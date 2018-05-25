@@ -1,5 +1,6 @@
+// AspectJ
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -98,21 +99,34 @@
  *									COMPILER_INHERIT_NULL_ANNOTATIONS
  *									COMPILER_PB_NONNULL_PARAMETER_ANNOTATION_DROPPED
  *									COMPILER_PB_SYNTACTIC_NULL_ANALYSIS_FOR_FIELDS
+ *									COMPILER_PB_UNLIKELY_COLLECTION_METHOD_ARGUMENT_TYPE
+ *									COMPILER_PB_UNLIKELY_EQUALS_ARGUMENT_TYPE
  *     Jesper S Moller   - Contributions for bug 381345 : [1.8] Take care of the Java 8 major version
  *                       - added the following constants:
  *									COMPILER_CODEGEN_METHOD_PARAMETERS_ATTR
  *     Harry Terkelsen (het@google.com) - Bug 449262 - Allow the use of third-party Java formatters
  *     Gábor Kövesdán - Contribution for Bug 350000 - [content assist] Include non-prefix matches in auto-complete suggestions
+ *     Karsten Thoms - Bug 532505 - Reduce memory footprint of ClasspathAccessRule
  *     
  *******************************************************************************/
 
 package org.aspectj.org.eclipse.jdt.core;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.zip.ZipFile;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -147,12 +161,17 @@ import org.aspectj.org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.aspectj.org.eclipse.jdt.core.search.SearchEngine;
 import org.aspectj.org.eclipse.jdt.core.search.SearchPattern;
 import org.aspectj.org.eclipse.jdt.core.search.TypeNameRequestor;
+import org.aspectj.org.eclipse.jdt.core.util.IAttributeNamesConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
+import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileReader;
+import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFormatException;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.AutomaticModuleNaming;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.IModule;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.IModule.IModuleReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
 import org.aspectj.org.eclipse.jdt.internal.core.BatchOperation;
 import org.aspectj.org.eclipse.jdt.internal.core.BufferManager;
-import org.aspectj.org.eclipse.jdt.internal.core.ClasspathAccessRule;
 import org.aspectj.org.eclipse.jdt.internal.core.ClasspathAttribute;
 import org.aspectj.org.eclipse.jdt.internal.core.ClasspathEntry;
 import org.aspectj.org.eclipse.jdt.internal.core.ClasspathValidation;
@@ -163,15 +182,18 @@ import org.aspectj.org.eclipse.jdt.internal.core.JavaCorePreferenceInitializer;
 import org.aspectj.org.eclipse.jdt.internal.core.JavaModel;
 import org.aspectj.org.eclipse.jdt.internal.core.JavaModelManager;
 import org.aspectj.org.eclipse.jdt.internal.core.JavaProject;
+import org.aspectj.org.eclipse.jdt.internal.core.PackageFragmentRoot;
 import org.aspectj.org.eclipse.jdt.internal.core.Region;
 import org.aspectj.org.eclipse.jdt.internal.core.SetContainerOperation;
 import org.aspectj.org.eclipse.jdt.internal.core.SetVariablesOperation;
 import org.aspectj.org.eclipse.jdt.internal.core.builder.JavaBuilder;
+import org.aspectj.org.eclipse.jdt.internal.core.builder.ModuleInfoBuilder;
 import org.aspectj.org.eclipse.jdt.internal.core.builder.State;
 import org.aspectj.org.eclipse.jdt.internal.core.nd.indexer.Indexer;
 import org.aspectj.org.eclipse.jdt.internal.core.search.indexing.IndexManager;
 import org.aspectj.org.eclipse.jdt.internal.core.util.MementoTokenizer;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Messages;
+import org.aspectj.org.eclipse.jdt.internal.core.util.ModuleUtil;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
 import org.osgi.framework.BundleContext;
 
@@ -237,6 +259,11 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	 * @since 3.0
 	 */
 	public static final String USER_LIBRARY_CONTAINER_ID= "org.aspectj.org.eclipse.jdt.USER_LIBRARY"; //$NON-NLS-1$
+
+	/**
+	 * @since 3.14
+	 */
+	public static final String MODULE_PATH_CONTAINER_ID = "org.aspectj.org.eclipse.jdt.MODULE_PATH"; //$NON-NLS-1$
 
 	// Begin configurable option IDs {
 
@@ -311,7 +338,7 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	 * <p><code>"cldc1.1"</code> requires the source version to be <code>"1.3"</code> and the compliance version to be <code>"1.4"</code> or lower.</p>
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.codegen.targetPlatform"</code></dd>
-	 * <dt>Possible values:</dt><dd><code>{ "1.1", "cldc1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.8" }</code></dd>
+	 * <dt>Possible values:</dt><dd><code>{ "1.1", "cldc1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "9", "10" }</code></dd>
 	 * <dt>Default:</dt><dd><code>"1.2"</code></dd>
 	 * </dl>
 	 * @category CompilerOptionID
@@ -403,6 +430,19 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	 * @category CompilerOptionID
 	 */
 	public static final String COMPILER_PB_DEPRECATION = PLUGIN_ID + ".compiler.problem.deprecation"; //$NON-NLS-1$
+	/**
+	 * Compiler option ID: Reporting Terminal Deprecation.
+	 * <p>When enabled, the compiler will signal use of terminally deprecated API either as an
+	 *    error or a warning.</p>
+	 * <dl>
+	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.terminalDeprecation"</code></dd>
+	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "info", "ignore" }</code></dd>
+	 * <dt>Default:</dt><dd><code>"warning"</code></dd>
+	 * </dl>
+	 * @since 3.14
+	 * @category CompilerOptionID
+	 */
+	public static final String COMPILER_PB_TERMINAL_DEPRECATION = PLUGIN_ID + ".compiler.problem.terminalDeprecation"; //$NON-NLS-1$
 	/**
 	 * Compiler option ID: Reporting Deprecation Inside Deprecated Code.
 	 * <p>When enabled, the compiler will signal use of deprecated API inside deprecated code.</p>
@@ -1514,6 +1554,105 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	 * @category CompilerOptionID
 	 */
 	public static final String COMPILER_PB_EXPLICITLY_CLOSED_AUTOCLOSEABLE = PLUGIN_ID + ".compiler.problem.explicitlyClosedAutoCloseable"; //$NON-NLS-1$
+
+	/**
+	 * Compiler option ID: Reporting a method invocation providing an argument of an unlikely type.
+	 * <p>When enabled, the compiler will issue an error or warning when certain well-known Collection methods
+	 *    that take an 'Object', like e.g. {@link Map#get(Object)}, are used with an argument type
+	 *    that seems to be not related to the corresponding type argument of the Collection.</p>
+	 * <p>By default, this analysis will apply some heuristics to determine whether or not two
+	 *    types may or may not be related, which can be changed via option
+	 *    {@link #COMPILER_PB_UNLIKELY_COLLECTION_METHOD_ARGUMENT_TYPE_STRICT}.</p>
+	 * <dl>
+	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.unlikelyCollectionMethodArgumentType"</code></dd>
+	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "info", "ignore" }</code></dd>
+	 * <dt>Default:</dt><dd><code>"warning"</code></dd>
+	 * </dl>
+	 * @since 3.13
+	 * @category CompilerOptionID
+	 */
+	public static final String COMPILER_PB_UNLIKELY_COLLECTION_METHOD_ARGUMENT_TYPE = PLUGIN_ID + ".compiler.problem.unlikelyCollectionMethodArgumentType"; //$NON-NLS-1$
+
+	/**
+	 * Compiler option ID: Perform strict analysis against the expected type of collection methods.
+	 * <p>This is a sub-option of {@link #COMPILER_PB_UNLIKELY_COLLECTION_METHOD_ARGUMENT_TYPE},
+	 *    which will replace the heuristics with strict compatibility checks,
+	 *    i.e., each argument that is not strictly compatible with the expected type will trigger an error or warning.</p>
+	 * <p>This option has no effect if {@link #COMPILER_PB_UNLIKELY_COLLECTION_METHOD_ARGUMENT_TYPE} is set to <code>"ignore"</code>.</p>
+	 * <dl>
+	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.unlikelyCollectionMethodArgumentTypeStrict"</code></dd>
+	 * <dt>Possible values:</dt><dd><code>{ "enabled", "disabled" }</code></dd>
+	 * <dt>Default:</dt><dd><code>"disabled"</code></dd>
+	 * </dl>
+	 * @since 3.13
+	 * @category CompilerOptionID
+	 */
+	public static final String COMPILER_PB_UNLIKELY_COLLECTION_METHOD_ARGUMENT_TYPE_STRICT = PLUGIN_ID + ".compiler.problem.unlikelyCollectionMethodArgumentTypeStrict"; //$NON-NLS-1$
+
+	/**
+	 * Compiler option ID: Reporting a method invocation providing an argument of an unlikely type to method 'equals'.
+	 * <p>
+	 * When enabled, the compiler will issue an error or warning when {@link java.lang.Object#equals(Object)} is used with an argument type 
+	 * that seems to be not related to the receiver's type, or correspondingly when the arguments of {@link java.util.Objects#equals(Object, Object)}
+	 * have types that seem to be not related to each other.
+	 * </p>
+	 * <dl>
+	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.unlikelyEqualsArgumentType"</code></dd>
+	 * <dt>Possible values:</dt>
+	 * <dd><code>{ "error", "warning", "info", "ignore" }</code></dd>
+	 * <dt>Default:</dt><dd><code>"info"</code></dd>
+	 * </dl>
+	 * 
+	 * @since 3.13
+	 * @category CompilerOptionID
+	 */
+	public static final String COMPILER_PB_UNLIKELY_EQUALS_ARGUMENT_TYPE = PLUGIN_ID + ".compiler.problem.unlikelyEqualsArgumentType"; //$NON-NLS-1$
+
+	/**
+	 * Compiler option ID: Reporting when public API uses a non-API type.
+	 * <p>
+	 * This option is relevant only when compiling code in a named module (at compliance 9 or greater).
+	 * <p>
+	 * When enabled, the compiler will issue an error or warning when public API mentions a type that is not
+	 * accessible to clients. Here, public API refers to signatures of public fields and methods declared
+	 * by a public type in an exported package.
+	 * In these positions types are complained against that are either not public or not in an exported package.
+	 * Export qualification is not taken into account.
+	 * If a type in one of these positions is declared in another module that is required by the current module,
+	 * but without the {@code transitive} modifier, this is reported as a problem, too.
+	 * <dl>
+	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.APILeak"</code></dd>
+	 * <dt>Possible values:</dt>
+	 * <dd><code>{ "error", "warning", "info", "ignore" }</code></dd>
+	 * <dt>Default:</dt><dd><code>"warning"</code></dd>
+	 * </dl>
+	 * 
+	 * @since 3.14
+	 * @category CompilerOptionID
+	 */
+	public static final String COMPILER_PB_API_LEAKS = PLUGIN_ID + ".compiler.problem.APILeak"; //$NON-NLS-1$
+	
+	/**
+	 * Compiler option ID: Reporting when a module requires an auto module with an unstable name.
+	 * <p>
+	 * The name of an auto module name is considered unstable when it is derived from a file name rather than
+	 * being declared in the module's MANIFEST.MF.
+	 * <p>
+	 * When enabled, the compiler will issue an error or warning when a module references an auto module
+	 * with an unstable name in its 'requires' clause.
+	 * <dl>
+	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.unstableAutoModuleName"</code></dd>
+	 * <dt>Possible values:</dt>
+	 * <dd><code>{ "error", "warning", "info", "ignore" }</code></dd>
+	 * <dt>Default:</dt><dd><code>"warning"</code></dd>
+	 * </dl>
+	 * 
+	 * @since 3.14
+	 * @category CompilerOptionID
+	 */
+	public static final String COMPILER_PB_UNSTABLE_AUTO_MODULE_NAME = PLUGIN_ID + ".compiler.problem.unstableAutoModuleName"; //$NON-NLS-1$
+
+	
 	/**
 	 * Compiler option ID: Annotation-based Null Analysis.
 	 * <p>This option controls whether the compiler will use null annotations for
@@ -1919,7 +2058,7 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	 *    set to the same version as the source level.</p>
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.source"</code></dd>
-	 * <dt>Possible values:</dt><dd><code>{ "1.3", "1.4", "1.5", "1.6", "1.7", "1.8" }</code></dd>
+	 * <dt>Possible values:</dt><dd><code>{ "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "10" }</code></dd>
 	 * <dt>Default:</dt><dd><code>"1.3"</code></dd>
 	 * </dl>
 	 * @since 2.0
@@ -1937,7 +2076,7 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	 *    should match the compliance setting.</p>
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.compliance"</code></dd>
-	 * <dt>Possible values:</dt><dd><code>{ "1.3", "1.4", "1.5", "1.6", "1.7", "1.8" }</code></dd>
+	 * <dt>Possible values:</dt><dd><code>{ "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "9", "10" }</code></dd>
 	 * <dt>Default:</dt><dd><code>"1.4"</code></dd>
 	 * </dl>
 	 * @since 2.0
@@ -1947,6 +2086,22 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	 * @see #setComplianceOptions(String, Map)
 	 */
 	public static final String COMPILER_COMPLIANCE = PLUGIN_ID + ".compiler.compliance"; //$NON-NLS-1$
+	/**
+	 * Compiler option ID: Use system libraries from release.
+	 * <p>When enabled, the compiler will compile against the system libraries from release
+	 * of the specified compliance level</p>
+	 * <p>Setting this option sets the {@link #COMPILER_CODEGEN_TARGET_PLATFORM}) and {@link #COMPILER_SOURCE} to
+	 * the same level as the compiler compliance. This option is available to a project only when a supporting 
+	 * JDK is found in the project's build path</p>
+	 * <dl>
+	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.release"</code></dd>
+	 * <dt>Possible values:</dt><dd><code>{ "enabled", "disabled" }</code></dd>
+	 * <dt>Default:</dt><dd><code>"disabled"</code></dd>
+	 * </dl>
+	 * @since 3.14
+	 * @category CompilerOptionID
+	 */
+	public static final String COMPILER_RELEASE = PLUGIN_ID + ".compiler.release"; //$NON-NLS-1$
 	/**
 	 * Compiler option ID: Defining the Automatic Task Priorities.
 	 * <p>In parallel with the Automatic Task Tags, this list defines the priorities (high, normal or low)
@@ -2838,10 +2993,34 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	public static final String VERSION_1_8 = "1.8"; //$NON-NLS-1$
 	/**
 	 * Configurable option value: {@value}.
+	 * @since 3.14
+	 * @category OptionValue
+	 */
+	public static final String VERSION_9 = "9"; //$NON-NLS-1$
+	/**
+	 * Configurable option value: {@value}.
+	 * @since 3.14
+	 * @category OptionValue
+	 */
+	public static final String VERSION_10 = "10"; //$NON-NLS-1$
+	/**
+	 * Configurable option value: {@value}.
 	 * @since 3.4
 	 * @category OptionValue
 	 */
 	public static final String VERSION_CLDC_1_1 = "cldc1.1"; //$NON-NLS-1$
+
+	/**
+	 * Returns all {@link JavaCore}{@code #VERSION_*} levels.
+	 * 
+	 * @return all available versions
+	 * @since 3.14
+	 */
+	public static List<String> getAllVersions() {
+		return Arrays.asList(VERSION_CLDC_1_1, VERSION_1_1, VERSION_1_2, VERSION_1_3, VERSION_1_4, VERSION_1_5,
+				VERSION_1_6, VERSION_1_7, VERSION_1_8, VERSION_9, VERSION_10);
+	}
+
 	/**
 	 * Configurable option value: {@value}.
 	 * @since 2.0
@@ -3627,7 +3806,7 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	    JavaModelManager manager = JavaModelManager.getJavaModelManager();
 
 		// Returns the stored deprecation message
-		String message = (String) manager.deprecatedVariables.get(variableName);
+		String message = manager.deprecatedVariables.get(variableName);
 		if (message != null) {
 		    return message;
 		}
@@ -4300,6 +4479,7 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 			if (JavaBuilder.DEBUG)
 				System.out.println("Build state version number has changed"); //$NON-NLS-1$
 			IWorkspaceRunnable runnable = new IWorkspaceRunnable() {
+				@Override
 				public void run(IProgressMonitor progressMonitor2) throws CoreException {
 					for (int i = 0, length = projects.length; i < length; i++) {
 						IJavaProject project = projects[i];
@@ -4340,6 +4520,7 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 				IJavaSearchConstants.CLASS,
 				scope,
 				new TypeNameRequestor() {
+					@Override
 					public void acceptType(
 						int modifiers,
 						char[] packageName,
@@ -4417,8 +4598,8 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 			if (element.equals(markerElement)) return true; // external elements may still be equal with different handleIDs.
 
 			// cycle through enclosing types in case marker is associated with a classfile (15568)
-			if (markerElement instanceof IClassFile){
-				IType enclosingType = ((IClassFile)markerElement).getType().getDeclaringType();
+			if (markerElement instanceof IOrdinaryClassFile){
+				IType enclosingType = ((IOrdinaryClassFile)markerElement).getType().getDeclaringType();
 				if (enclosingType != null){
 					markerElement = enclosingType.getClassFile(); // retry with immediate enclosing classfile
 					continue;
@@ -4460,8 +4641,8 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 			if (element.equals(markerElement)) return true; // external elements may still be equal with different handleIDs.
 
 			// cycle through enclosing types in case marker is associated with a classfile (15568)
-			if (markerElement instanceof IClassFile){
-				IType enclosingType = ((IClassFile)markerElement).getType().getDeclaringType();
+			if (markerElement instanceof IOrdinaryClassFile){
+				IType enclosingType = ((IOrdinaryClassFile)markerElement).getType().getDeclaringType();
 				if (enclosingType != null){
 					markerElement = enclosingType.getClassFile(); // retry with immediate enclosing classfile
 					continue;
@@ -4490,7 +4671,7 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	 * @see IClasspathEntry#getExclusionPatterns()
 	 */
 	public static IAccessRule newAccessRule(IPath filePattern, int kind) {
-		return new ClasspathAccessRule(filePattern, kind);
+		return JavaModelManager.getJavaModelManager().getAccessRule(filePattern, kind);
 	}
 
 	/**
@@ -4635,10 +4816,10 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 		} else if (containerPath.segmentCount() < 1) {
 			throw new ClasspathEntry.AssertionFailedException("Illegal classpath container path: \'" + containerPath.makeRelative().toString() + "\', must have at least one segment (containerID+hints)"); //$NON-NLS-1$//$NON-NLS-2$
 		}
-		if (accessRules == null) {
+		if (accessRules == null || accessRules.length == 0) {
 			accessRules = ClasspathEntry.NO_ACCESS_RULES;
 		}
-		if (extraAttributes == null) {
+		if (extraAttributes == null || extraAttributes.length == 0) {
 			extraAttributes = ClasspathEntry.NO_EXTRA_ATTRIBUTES;
 		}
 		return new ClasspathEntry(
@@ -4834,10 +5015,10 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 			boolean isExported) {
 
 		if (path == null) throw new ClasspathEntry.AssertionFailedException("Library path cannot be null"); //$NON-NLS-1$
-		if (accessRules == null) {
+		if (accessRules == null || accessRules.length==0) {
 			accessRules = ClasspathEntry.NO_ACCESS_RULES;
 		}
-		if (extraAttributes == null) {
+		if (extraAttributes == null || extraAttributes.length==0) {
 			extraAttributes = ClasspathEntry.NO_EXTRA_ATTRIBUTES;
 		}
 		boolean hasDotDot = ClasspathEntry.hasDotDot(path);
@@ -4965,10 +5146,10 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 			boolean isExported) {
 
 		if (!path.isAbsolute()) throw new ClasspathEntry.AssertionFailedException("Path for IClasspathEntry must be absolute"); //$NON-NLS-1$
-		if (accessRules == null) {
+		if (accessRules == null || accessRules.length == 0) {
 			accessRules = ClasspathEntry.NO_ACCESS_RULES;
 		}
-		if (extraAttributes == null) {
+		if (extraAttributes == null || extraAttributes.length == 0) {
 			extraAttributes = ClasspathEntry.NO_EXTRA_ATTRIBUTES;
 		}
 		return new ClasspathEntry(
@@ -5329,10 +5510,10 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 		if (variablePath.segmentCount() < 1) {
 			throw new ClasspathEntry.AssertionFailedException("Illegal classpath variable path: \'" + variablePath.makeRelative().toString() + "\', must have at least one segment"); //$NON-NLS-1$//$NON-NLS-2$
 		}
-		if (accessRules == null) {
+		if (accessRules == null || accessRules.length == 0) {
 			accessRules = ClasspathEntry.NO_ACCESS_RULES;
 		}
-		if (extraAttributes == null) {
+		if (extraAttributes == null || extraAttributes.length == 0) {
 			extraAttributes = ClasspathEntry.NO_EXTRA_ATTRIBUTES;
 		}
 
@@ -5461,7 +5642,8 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	}
 
 	/**
-	 * Deletes and rebuilds the java index.
+	 * Deletes the index, then rebuilds any portions of the index that are
+	 * currently needed by the workspace.
 	 * 
 	 * @param monitor a progress monitor, or <code>null</code> if progress
 	 *    reporting and cancellation are not desired
@@ -5469,14 +5651,13 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	 * @since 3.13
 	 */
 	public static void rebuildIndex(IProgressMonitor monitor) throws CoreException {
-		SubMonitor subMonitor = SubMonitor.convert(monitor, 10);
+		SubMonitor subMonitor = SubMonitor.convert(monitor, 100);
 		IndexManager manager = JavaModelManager.getIndexManager();
 		manager.deleteIndexFiles(subMonitor.split(1));
 		manager.reset();
-		Indexer.getInstance().rebuildIndex(subMonitor.split(7));
-		updateLegacyIndex(subMonitor.split(2));
+		Indexer.getInstance().rebuildIndex(subMonitor.split(95));
+		updateLegacyIndex(subMonitor.split(4));
 	}
-
 
 	/**
 	 * Runs the given action as an atomic Java model operation.
@@ -5790,6 +5971,24 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 				options.put(JavaCore.COMPILER_PB_ENUM_IDENTIFIER, JavaCore.ERROR);
 				options.put(JavaCore.COMPILER_CODEGEN_INLINE_JSR_BYTECODE, JavaCore.ENABLED);
 				break;
+			case ClassFileConstants.MAJOR_VERSION_9:
+				options.put(JavaCore.COMPILER_COMPLIANCE, JavaCore.VERSION_9);
+				options.put(JavaCore.COMPILER_SOURCE, JavaCore.VERSION_9);
+				options.put(JavaCore.COMPILER_CODEGEN_TARGET_PLATFORM, JavaCore.VERSION_9);
+				options.put(JavaCore.COMPILER_PB_ASSERT_IDENTIFIER, JavaCore.ERROR);
+				options.put(JavaCore.COMPILER_PB_ENUM_IDENTIFIER, JavaCore.ERROR);
+				options.put(JavaCore.COMPILER_CODEGEN_INLINE_JSR_BYTECODE, JavaCore.ENABLED);
+				options.put(JavaCore.COMPILER_RELEASE, JavaCore.ENABLED);
+				break;
+			case ClassFileConstants.MAJOR_VERSION_10:
+				options.put(JavaCore.COMPILER_COMPLIANCE, JavaCore.VERSION_10);
+				options.put(JavaCore.COMPILER_SOURCE, JavaCore.VERSION_10);
+				options.put(JavaCore.COMPILER_CODEGEN_TARGET_PLATFORM, JavaCore.VERSION_10);
+				options.put(JavaCore.COMPILER_PB_ASSERT_IDENTIFIER, JavaCore.ERROR);
+				options.put(JavaCore.COMPILER_PB_ENUM_IDENTIFIER, JavaCore.ERROR);
+				options.put(JavaCore.COMPILER_CODEGEN_INLINE_JSR_BYTECODE, JavaCore.ENABLED);
+				options.put(JavaCore.COMPILER_RELEASE, JavaCore.ENABLED);
+				break;
 		}
 	}
 
@@ -5832,6 +6031,163 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	public static int compareJavaVersions(String first, String second) {
 		return Long.compare(CompilerOptions.versionToJdkLevel(first), CompilerOptions.versionToJdkLevel(second));
 	}
+	/**
+	 * Returns an array of module names referenced by this project indirectly. 
+	 * This is a helper method that can be used to construct a Java module 
+	 * description of an existing project. The referenced modules can either be 
+	 * system modules or user modules found in project build path in the form of 
+	 * libraries.
+	 * The prerequisites for this to be effective are:
+	 * <ul>
+	 * <li>the project is already in compliance level 9 or above.
+	 * <li>the system library on the build path of the project is a modularized Java Runtime.
+	 * </ul>
+	 *
+	 * @param project
+	 *            the project whose referenced modules to be computed
+	 * @return an array of String containing module names
+	 * @throws CoreException
+	 * @since 3.14
+	 */
+	public static String[] getReferencedModules(IJavaProject project) throws CoreException {
+		return ModuleUtil.getReferencedModules(project);
+	}
+
+	/**
+	 * Returns the <code>IModuleDescription</code> that the given java element contains 
+	 * when regarded as an automatic module. The element must be an <code>IPackageFragmentRoot</code>
+	 * or an <code>IJavaProject</code>.
+	 * 
+	 * <p>The returned module descriptor has a name (<code>getElementName()</code>) following
+	 * the specification of <code>java.lang.module.ModuleFinder.of(Path...)</code>, but it
+	 * contains no other useful information.</p>
+	 * 
+	 * @return the <code>IModuleDescription</code> representing this java element as an automatic module,
+	 * 		never <code>null</code>.
+	 * @throws JavaModelException
+	 * @throws IllegalArgumentException if the provided element is neither <code>IPackageFragmentRoot</code>
+	 * 	nor <code>IJavaProject</code>
+	 * @since 3.14
+	 */
+	public static IModuleDescription getAutomaticModuleDescription(IJavaElement element) throws JavaModelException, IllegalArgumentException {
+		switch (element.getElementType()) {
+			case IJavaElement.JAVA_PROJECT:
+				return ((JavaProject) element).getAutomaticModuleDescription();
+			case IJavaElement.PACKAGE_FRAGMENT_ROOT:
+				return ((PackageFragmentRoot) element).getAutomaticModuleDescription();
+			default:
+				throw new IllegalArgumentException("Illegal kind of java element: "+element.getElementType()); //$NON-NLS-1$
+		}
+	}
+
+	/**
+	 * Filter the given set of system roots by the rules for root modules from JEP 261.
+	 * @param allSystemRoots all physically available system modules, represented by their package fragment roots
+	 * @return the list of names of default root modules
+	 * @since 3.14
+	 */
+	public static List<String> defaultRootModules(Iterable<IPackageFragmentRoot> allSystemRoots) {
+		return JavaProject.defaultRootModules(allSystemRoots);
+	}
+
+	/**
+	 * Compile the given module description in the context of its enclosing Java project
+	 * and add class file attributes using the given map of attribute values.
+	 * <p>In this map, the following keys are supported</p>
+	 * <dl>
+	 * <dt>{@link IAttributeNamesConstants#MODULE_MAIN_CLASS}</dt>
+	 * <dd>The associated value will be used for the <code>ModuleMainClass</code> attribute.</dd>
+	 * <dt>{@link IAttributeNamesConstants#MODULE_PACKAGES}</dt>
+	 * <dd>If the associated value is an empty string, then the compiler will generate a
+	 * <code>ModulePackages</code> attribute with a list of packages that is computed from
+	 * <ul>
+	 * <li>all <code>exports</code> directives
+	 * <li>all <code>opens</code> directives
+	 * <li>the implementation classes of all <code>provides</code> directives.
+	 * </ul>
+	 * If the associated value is not empty, it must be a comma-separated list of package names,
+	 * which will be added to the computed list.
+	 * </dl>
+	 * <p>No other keys are supported in this version, but more keys may be added in the future.</p>
+	 *
+	 * @param module handle for the <code>module-info.java</code> file to be compiled.
+	 * @param classFileAttributes map of attribute names and values to be used during class file generation
+	 * @return the compiled byte code
+	 * 
+	 * @throws JavaModelException
+	 * @throws IllegalArgumentException if the map of classFileAttributes contains an unsupported key.
+	 * @since 3.14
+	 */
+	public static byte[] compileWithAttributes(IModuleDescription module, Map<String,String> classFileAttributes)
+			throws JavaModelException, IllegalArgumentException
+	{
+		return new ModuleInfoBuilder().compileWithAttributes(module, classFileAttributes);
+	}
+
+	/**
+	 * Returns the module name computed for a jar. If the file is a jar and contains a module-info.class, the name
+	 * specified in it is used, otherwise, the algorithm for automatic module naming is used, which first looks for a
+	 * module name in the Manifest.MF and as last resort computes it from the file name.
+	 * 
+	 * @param file the jar to examine
+	 * @return null if file is not a file, otherwise the module name.
+	 * @since 3.14
+	 */
+	public static String getModuleNameFromJar(File file) {
+		if (!file.isFile()) {
+			return null;
+		}
+
+		char[] moduleName = null;
+		try (ZipFile zipFile = new ZipFile(file)) {
+			IModule module = null;
+			ClassFileReader reader = ClassFileReader.read(zipFile, IModule.MODULE_INFO_CLASS);
+			if (reader != null) {
+				module = reader.getModuleDeclaration();
+				if (module != null) {
+					moduleName = module.name();
+				}
+			}
+		} catch (ClassFormatException | IOException ex) {
+			Util.log(ex);
+		}
+		if (moduleName == null) {
+			moduleName = AutomaticModuleNaming.determineAutomaticModuleName(file.getAbsolutePath());
+		}
+		return new String(moduleName);
+	}
+	
+	/**
+	 * Returns the names of the modules required by the module-info.class in the jar. If the file is not jar or a jar
+	 * that has no module-info.class is present, the empty set is returned.
+	 * 
+	 * @param file the jar to examine
+	 * @return set of module names.
+	 * @since 3.14
+	 */
+	public static Set<String> getRequiredModulesFromJar(File file) {
+		if (!file.isFile()) {
+			return Collections.emptySet();
+		}
+		try (ZipFile zipFile = new ZipFile(file)) {
+			IModule module = null;
+			ClassFileReader reader = ClassFileReader.read(zipFile, IModule.MODULE_INFO_CLASS);
+			if (reader != null) {
+				module = reader.getModuleDeclaration();
+				if (module != null) {
+					IModuleReference[] moduleRefs = module.requires();
+					if (moduleRefs != null) {
+						return Stream.of(moduleRefs).map(m -> new String(m.name()))
+								.collect(Collectors.toCollection(LinkedHashSet::new));
+					}
+				}
+			}
+		} catch (ClassFormatException | IOException ex) {
+			Util.log(ex);
+		}
+		return Collections.emptySet();
+	}
+
 
 	/* (non-Javadoc)
 	 * Shutdown the JavaCore plug-in.
@@ -5840,6 +6196,7 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	 * </p>
 	 * @see org.eclipse.core.runtime.Plugin#stop(BundleContext)
 	 */
+	@Override
 	public void stop(BundleContext context) throws Exception {
 		try {
 			JavaModelManager.unregisterDebugOptionsListener();
@@ -5859,6 +6216,7 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	 * @throws Exception
 	 * @see org.eclipse.core.runtime.Plugin#start(BundleContext)
 	 */
+	@Override
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 		JavaModelManager.registerDebugOptionsListener(context);

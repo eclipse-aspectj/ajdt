@@ -47,7 +47,7 @@ public class ClassFormatException extends Exception {
 
 	private int errorCode;
 	private int bufferPosition;
-	private RuntimeException nestedException;
+	private Exception nestedException;
 	private char[] fileName;
 
 	public ClassFormatException(RuntimeException e, char[] fileName) {
@@ -57,7 +57,9 @@ public class ClassFormatException extends Exception {
 	public ClassFormatException(int code) {
 		this.errorCode = code;
 	}
-	public ClassFormatException(int code, int bufPos) {
+	public ClassFormatException(Exception e, char[] fileName, int code, int bufPos) {
+		this.nestedException = e;
+		this.fileName = fileName;
 		this.errorCode = code;
 		this.bufferPosition = bufPos;
 	}
@@ -82,6 +84,7 @@ public class ClassFormatException extends Exception {
 	public Throwable getException() {
 		return this.nestedException;
 	}
+	@Override
 	public void printStackTrace() {
 		printStackTrace(System.err);
 	}
@@ -92,6 +95,7 @@ public class ClassFormatException extends Exception {
 	 *            the print stream
 	 * @since 3.0
 	 */
+	@Override
 	public void printStackTrace(PrintStream output) {
 		synchronized (output) {
 			super.printStackTrace(output);
@@ -115,6 +119,7 @@ public class ClassFormatException extends Exception {
 	 *            the print writer
 	 * @since 3.0
 	 */
+	@Override
 	public void printStackTrace(PrintWriter output) {
 		synchronized (output) {
 			super.printStackTrace(output);

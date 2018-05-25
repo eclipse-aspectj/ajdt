@@ -1,5 +1,6 @@
+// ASPECTJ
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -74,6 +75,7 @@ public class SwitchStatement extends Statement {
 	int duplicateCaseStatementsCounter = 0;
 	private LocalVariableBinding dispatchStringCopy = null;
 
+	@Override
 	public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, FlowInfo flowInfo) {
 		try {
 			flowInfo = this.expression.analyseCode(currentScope, flowContext, flowInfo);
@@ -83,7 +85,7 @@ public class SwitchStatement extends Statement {
 				this.expression.checkNPE(currentScope, flowContext, flowInfo, 1);
 			}
 			SwitchFlowContext switchContext =
-				new SwitchFlowContext(flowContext, this, (this.breakLabel = new BranchLabel()), true);
+				new SwitchFlowContext(flowContext, this, (this.breakLabel = new BranchLabel()), true, true);
 
 			// analyse the block by considering specially the case/default statements (need to bind them
 			// to the entry point)
@@ -186,6 +188,7 @@ public class SwitchStatement extends Statement {
 					this.string = string;
 					this.label = label;
 				}
+				@Override
 				public int compareTo(Object o) {
 					StringSwitchCase that = (StringSwitchCase) o;
 					if (this.hashCode == that.hashCode) {
@@ -196,6 +199,7 @@ public class SwitchStatement extends Statement {
 					}
 					return -1;
 				}
+				@Override
 				public String toString() {
 					return "StringSwitchCase :\n" + //$NON-NLS-1$
 					       "case " + this.hashCode + ":(" + this.string + ")\n"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$	       
@@ -327,6 +331,7 @@ public class SwitchStatement extends Statement {
 	 * @param currentScope org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BlockScope
 	 * @param codeStream org.aspectj.org.eclipse.jdt.internal.compiler.codegen.CodeStream
 	 */
+	@Override
 	public void generateCode(BlockScope currentScope, CodeStream codeStream) {
 		if (this.expression.resolvedType.id == TypeIds.T_JavaLangString) {
 			generateCodeForStringSwitch(currentScope, codeStream);
@@ -450,6 +455,7 @@ public class SwitchStatement extends Statement {
 		}
 	}
 
+	@Override
 	public StringBuffer printStatement(int indent, StringBuffer output) {
 
 		printIndent(indent, output).append("switch ("); //$NON-NLS-1$
@@ -468,6 +474,7 @@ public class SwitchStatement extends Statement {
 		return printIndent(indent, output).append('}');
 	}
 
+	@Override
 	public void resolve(BlockScope upperScope) {
 		try {
 			boolean isEnumSwitch = false;
@@ -621,6 +628,7 @@ public class SwitchStatement extends Statement {
 		}
 	}
 
+	@Override
 	public void traverse(
 			ASTVisitor visitor,
 			BlockScope blockScope) {
@@ -639,6 +647,7 @@ public class SwitchStatement extends Statement {
 	/**
 	 * Dispatch the call on its last statement.
 	 */
+	@Override
 	public void branchChainTo(BranchLabel label) {
 
 		// in order to improve debug attributes for stepping (11431)

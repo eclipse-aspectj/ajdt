@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014, 2016 Mateusz Matela and others.
+ * Copyright (c) 2014, 2018 Mateusz Matela and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -35,7 +35,6 @@ import org.eclipse.text.edits.TextEdit;
 public class TextEditsBuilder extends TokenTraverser {
 
 	private final String source;
-	private List<IRegion> regions;
 	private TokenManager tm;
 	private final DefaultCodeFormatterOptions options;
 	private final StringBuilder buffer;
@@ -43,6 +42,7 @@ public class TextEditsBuilder extends TokenTraverser {
 	private final List<Token> stringLiteralsInLine = new ArrayList<Token>();
 	private final List<TextEdit> edits = new ArrayList<TextEdit>();
 
+	private final List<IRegion> regions;
 	private int currentRegion = 0;
 
 	private TextEditsBuilder childBuilder;
@@ -51,7 +51,7 @@ public class TextEditsBuilder extends TokenTraverser {
 	private int sourceLimit;
 	private int parentTokenIndex;
 
-	public TextEditsBuilder(String source, IRegion[] regions, TokenManager tokenManager,
+	public TextEditsBuilder(String source, List<IRegion> regions, TokenManager tokenManager,
 			DefaultCodeFormatterOptions options) {
 		this.source = source;
 		this.tm = tokenManager;
@@ -74,9 +74,7 @@ public class TextEditsBuilder extends TokenTraverser {
 		this.alignChar = DefaultCodeFormatterOptions.SPACE;
 	}
 
-	private List<IRegion> adaptRegions(IRegion[] givenRegions) {
-		if (givenRegions == null)
-			return null;
+	private List<IRegion> adaptRegions(List<IRegion> givenRegions) {
 		// make sure regions don't begin or end inside multiline comments
 		ArrayList<IRegion> result = new ArrayList<IRegion>();
 		IRegion previous = null;
@@ -175,8 +173,7 @@ public class TextEditsBuilder extends TokenTraverser {
 		} else if (index == 0 && this.parent == null) {
 			bufferIndent(token, index);
 		} else {
-			bufferAlign(token, index);
-			if (isSpaceBefore() && token.getAlign() == 0)
+			if (!bufferAlign(token, index) && isSpaceBefore())
 				this.buffer.append(' ');
 		}
 	}
@@ -280,10 +277,16 @@ public class TextEditsBuilder extends TokenTraverser {
 		target.append(indentChars);
 	}
 
-	private void bufferAlign(Token token, int index) {
+	private boolean bufferAlign(Token token, int index) {
 		int align = token.getAlign();
+		int alignmentChar = this.alignChar;
+		if (align == 0 && getLineBreaksBefore() == 0 && this.parent != null) {
+			align = token.getIndent();
+			token.setAlign(align);
+			alignmentChar = DefaultCodeFormatterOptions.SPACE;
+		}
 		if (align == 0)
-			return;
+			return false;
 
 		int currentPositionInLine = 0;
 		if (getLineBreaksBefore() > 0) {
@@ -293,11 +296,11 @@ public class TextEditsBuilder extends TokenTraverser {
 			currentPositionInLine = this.tm.getPositionInLine(index - 1);
 			currentPositionInLine += this.tm.getLength(this.tm.get(index - 1), currentPositionInLine);
 		}
-		if (isSpaceBefore())
-			align = Math.max(align, currentPositionInLine + 1);
+		if (currentPositionInLine >= align)
+			return false;
 
 		final int tabSize = this.options.tab_size;
-		switch (this.alignChar) {
+		switch (alignmentChar) {
 			case DefaultCodeFormatterOptions.SPACE:
 				while (currentPositionInLine++ < align) {
 					this.buffer.append(' ');
@@ -319,8 +322,9 @@ public class TextEditsBuilder extends TokenTraverser {
 				}
 				break;
 			default:
-				throw new IllegalStateException("Unrecognized align char: " + this.alignChar); //$NON-NLS-1$
+				throw new IllegalStateException("Unrecognized align char: " + alignmentChar); //$NON-NLS-1$
 		}
+		return true;
 	}
 
 	private void flushBuffer(int currentPosition) {

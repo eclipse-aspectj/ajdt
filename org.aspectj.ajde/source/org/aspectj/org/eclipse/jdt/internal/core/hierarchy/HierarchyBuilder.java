@@ -18,7 +18,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
-import org.aspectj.org.eclipse.jdt.core.IClassFile;
+import org.aspectj.org.eclipse.jdt.core.IOrdinaryClassFile;
 import org.aspectj.org.eclipse.jdt.core.IType;
 import org.aspectj.org.eclipse.jdt.core.JavaModelException;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
@@ -273,15 +273,15 @@ public abstract class HierarchyBuilder {
 /**
  * Create an ICompilationUnit info from the given compilation unit on disk.
  */
-protected ICompilationUnit createCompilationUnitFromPath(Openable handle, IFile file) {
-	final char[] elementName = handle.getElementName().toCharArray();
-	return new ResourceCompilationUnit(file) {
-		@Override
-		public char[] getFileName() {
-			return elementName;
-		}
-	};
-}
+	protected ICompilationUnit createCompilationUnitFromPath(Openable handle, IFile file) {
+		final char[] elementName = handle.getElementName().toCharArray();
+		return new ResourceCompilationUnit(file, null) {
+			@Override
+			public char[] getFileName() {
+				return elementName;
+			}
+		};
+	}
 	/**
  * Creates the type info from the given class file on disk and
  * adds it to the given list of infos.
@@ -313,7 +313,7 @@ protected IBinaryType createInfoFromClassFile(Openable handle, IResource file) {
  * Create a type info from the given class file in a jar and adds it to the given list of infos.
  */
 protected IBinaryType createInfoFromClassFileInJar(Openable classFile) {
-	IClassFile cf = (IClassFile)classFile;
+	IOrdinaryClassFile cf = (IOrdinaryClassFile)classFile;
 	IBinaryType info;
 	try {
 		info = BinaryTypeFactory.create(cf, null);

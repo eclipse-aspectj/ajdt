@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2016 GK Software AG, and others.
+ * Copyright (c) 2013, 2018 GK Software AG, and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -30,6 +30,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Invocation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.LambdaExpression;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ReferenceExpression;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Wildcard;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants.BoundCheckStatus;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.Sorting;
 
 /**
@@ -148,6 +149,7 @@ public class InferenceContext18 {
 	public static final int APPLICABILITY_INFERRED = 1;
 	/** Invocation Type Inference (18.5.2) has been completed (for some target type). */
 	public static final int TYPE_INFERRED = 2;
+	public static final int TYPE_INFERRED_FINAL = 3; // as above plus asserting that target type was a proper type
 	
 	/** Signals whether any type compatibility makes use of unchecked conversion. */
 	public List<ConstraintFormula> constraintsWithUncheckedConversion;
@@ -162,6 +164,8 @@ public class InferenceContext18 {
 	private BoundSet innerInbox; 
 	/** Not per JLS: signal when current is ready to directly merge all bounds from inner. */
 	private boolean directlyAcceptingInnerBounds = false;
+	/** Not per JLS: pushing bounds from inner to outer may have to be deferred till after overload resolution, store here a runnable to perform the push. */
+	private Runnable pushToOuterJob = null;
 	
 	public static boolean isSameSite(InvocationSite site1, InvocationSite site2) {
 		if (site1 == site2)
@@ -389,6 +393,8 @@ public class InferenceContext18 {
 		
 		this.currentBounds = this.b2.copy();
 		
+		int step = (expectedType == null || expectedType.isProperType(true)) ? TYPE_INFERRED_FINAL : TYPE_INFERRED;
+
 		try {
 			// bullets 1&2: definitions only.
 			if (expectedType != null
@@ -406,9 +412,10 @@ public class InferenceContext18 {
 			}
 
 			if (SHOULD_WORKAROUND_BUG_JDK_8153748) { // "before 18.5.2", but should not spill into b3 ... (heuristically)
-				ReductionResult jdk8153748result = addJDK_8153748ConstraintsFromInvocation(this.invocationArguments, method);
+				ReductionResult jdk8153748result = addJDK_8153748ConstraintsFromInvocation(this.invocationArguments, method, new InferenceSubstitution(this));
 				if (jdk8153748result != null) {
-					this.currentBounds.incorporate(this);
+					if (!this.currentBounds.incorporate(this))
+						return null;
 				}
 			}
 
@@ -464,9 +471,11 @@ public class InferenceContext18 {
 			}
 			// we're done, start reporting:
 			reportUncheckedConversions(solution);
-			return this.currentBounds = solution; // this is final, keep the result:
+			if (step == TYPE_INFERRED_FINAL)
+				this.currentBounds = solution; // this is final, keep the result:
+			return solution;
 		} finally {
-			this.stepCompleted = TYPE_INFERRED;
+			this.stepCompleted = step;
 		}
 	}
 
@@ -475,13 +484,29 @@ public class InferenceContext18 {
 	private void pushBoundsToOuter() {
 		InferenceContext18 outer = this.outerContext;
 		if (outer != null && outer.stepCompleted >= APPLICABILITY_INFERRED) {
-			if (outer.directlyAcceptingInnerBounds) {
-				outer.currentBounds.addBounds(this.currentBounds, this.environment);
-			} else if (outer.innerInbox == null) {
-				outer.innerInbox = this.currentBounds.copy();
+			boolean deferred = outer.currentInvocation instanceof Invocation; // need to wait till after overload resolution?
+			BoundSet toPush = deferred ? this.currentBounds.copy() : this.currentBounds;
+			Runnable job = () -> {
+				if (outer.directlyAcceptingInnerBounds) {
+					outer.currentBounds.addBounds(toPush, this.environment);
+				} else if (outer.innerInbox == null) {
+					outer.innerInbox = deferred ? toPush : toPush.copy(); // copy now, unless already copied on behalf of 'deferred'
+				} else {
+					outer.innerInbox.addBounds(toPush, this.environment);
+				}
+			};
+			if (deferred) {
+				this.pushToOuterJob = job;
 			} else {
-				outer.innerInbox.addBounds(this.currentBounds, this.environment);
+				job.run(); // TODO(stephan): ever reached? for ReferenceExpression? (would need a corresponding new call to flushBoundOutbox()).
 			}
+		}
+	}
+	/** Not JLS: after overload resolution is done, perform the push of type bounds to outer inference, if any. */
+	public void flushBoundOutbox() {
+		if (this.pushToOuterJob != null) {
+			this.pushToOuterJob.run();
+			this.pushToOuterJob = null;
 		}
 	}
 	/** Not JLS: merge pending bounds of inner inference into current. */
@@ -506,15 +531,17 @@ public class InferenceContext18 {
 	}
 	// ---
 
-	private ReductionResult addJDK_8153748ConstraintsFromInvocation(Expression[] arguments, MethodBinding method) throws InferenceFailureException {
+	private ReductionResult addJDK_8153748ConstraintsFromInvocation(Expression[] arguments, MethodBinding method, InferenceSubstitution substitution)
+			throws InferenceFailureException
+	{
 		// not per JLS, trying to mimic javac behavior
 		boolean constraintAdded = false;
 		if (arguments != null) {
 			for (int i = 0; i < arguments.length; i++) {
 				Expression argument = arguments[i];
 				TypeBinding parameter = getParameter(method.parameters, i, method.isVarargs());
-				parameter = this.substitute(parameter);
-				ReductionResult result = addJDK_8153748ConstraintsFromExpression(argument, parameter, method);
+				parameter = substitution.substitute(substitution, parameter); 
+				ReductionResult result = addJDK_8153748ConstraintsFromExpression(argument, parameter, method, substitution);
 				if (result == ReductionResult.FALSE)
 					return ReductionResult.FALSE;
 				if (result == ReductionResult.TRUE)
@@ -524,7 +551,10 @@ public class InferenceContext18 {
 		return constraintAdded ? ReductionResult.TRUE : null;
 	}
 
-	private ReductionResult addJDK_8153748ConstraintsFromExpression(Expression argument, TypeBinding parameter, MethodBinding method) throws InferenceFailureException {
+	private ReductionResult addJDK_8153748ConstraintsFromExpression(Expression argument, TypeBinding parameter, MethodBinding method,
+			InferenceSubstitution substitution)
+			throws InferenceFailureException
+	{
 		if (argument instanceof FunctionalExpression) {
 			return addJDK_8153748ConstraintsFromFunctionalExpr((FunctionalExpression) argument, parameter, method);
 		} else if (argument instanceof Invocation && argument.isPolyExpression(method)) {
@@ -532,13 +562,14 @@ public class InferenceContext18 {
 			Expression[] innerArgs = invocation.arguments();
 			MethodBinding innerMethod = invocation.binding();
 			if (innerMethod != null && innerMethod.isValidBinding()) {
-				return addJDK_8153748ConstraintsFromInvocation(innerArgs, innerMethod.original());
+				substitution = enrichSubstitution(substitution, invocation, innerMethod);
+				return addJDK_8153748ConstraintsFromInvocation(innerArgs, innerMethod.shallowOriginal(), substitution);
 			}
 		} else if (argument instanceof ConditionalExpression) {
 			ConditionalExpression ce = (ConditionalExpression) argument;
-			if (addJDK_8153748ConstraintsFromExpression(ce.valueIfTrue, parameter, method) == ReductionResult.FALSE)
+			if (addJDK_8153748ConstraintsFromExpression(ce.valueIfTrue, parameter, method, substitution) == ReductionResult.FALSE)
 				return ReductionResult.FALSE;
-			return addJDK_8153748ConstraintsFromExpression(ce.valueIfFalse, parameter, method);
+			return addJDK_8153748ConstraintsFromExpression(ce.valueIfFalse, parameter, method, substitution);
 		}
 		return null;
 	}
@@ -556,6 +587,15 @@ public class InferenceContext18 {
 			}
 		}
 		return null;
+	}
+	
+	InferenceSubstitution enrichSubstitution(InferenceSubstitution substitution, Invocation innerInvocation, MethodBinding innerMethod) {
+		if (innerMethod instanceof ParameterizedGenericMethodBinding) {
+			InferenceContext18 innerContext = innerInvocation.getInferenceContext((ParameterizedMethodBinding) innerMethod);
+			if (innerContext != null)
+				return substitution.addContext(innerContext);
+		}
+		return substitution;
 	}
 
 	private boolean addConstraintsToC(Expression[] exprs, Set<ConstraintFormula> c, MethodBinding method, int inferenceKindForMethod, InvocationSite site)
@@ -595,6 +635,7 @@ public class InferenceContext18 {
 	private boolean addConstraintsToC_OneExpr(Expression expri, Set<ConstraintFormula> c, TypeBinding fsi, TypeBinding substF, MethodBinding method)
 			throws InferenceFailureException
 	{
+		boolean substFIsProperType = substF.isProperType(true);
 		// -- not per JLS, emulate javac behavior:
 		substF = Scope.substitute(getResultSubstitution(this.b3), substF);
 		// --
@@ -629,7 +670,7 @@ public class InferenceContext18 {
 			}
 		} else if (expri instanceof Invocation && expri.isPolyExpression()) {
 
-			if (substF.isProperType(true)) // https://bugs.openjdk.java.net/browse/JDK-8052325 
+			if (substFIsProperType) // https://bugs.openjdk.java.net/browse/JDK-8052325
 				return true;
 
 			Invocation invocation = (Invocation) expri;
@@ -652,7 +693,11 @@ public class InferenceContext18 {
 					innerContext.inferInvocationApplicability(shallowMethod, argumentTypes, shallowMethod.isConstructor());
 				if (!innerContext.computeB3(invocation, substF, shallowMethod))
 					return false;
-				return innerContext.addConstraintsToC(arguments, c, innerMethod.genericMethod(), innerContext.inferenceKind, invocation);
+				if (innerContext.addConstraintsToC(arguments, c, innerMethod.genericMethod(), innerContext.inferenceKind, invocation)) {
+					this.currentBounds.addBounds(innerContext.currentBounds, this.environment);
+					return true;
+				}
+				return false;
 			} else {
 				int applicabilityKind = getInferenceKind(innerMethod, argumentTypes);
 				return this.addConstraintsToC(arguments, c, innerMethod.genericMethod(), applicabilityKind, invocation);
@@ -691,8 +736,15 @@ public class InferenceContext18 {
 				ReferenceBinding genericType = targetTypeWithWildCards.genericType();
 				TypeBinding[] a = targetTypeWithWildCards.arguments; // a is not-null by construction of parameterizedWithWildcard()
 				TypeBinding[] aprime = getFunctionInterfaceArgumentSolutions(a);
-				// TODO If F<A'1, ..., A'm> is a well-formed type, ...
-				return blockScope.environment().createParameterizedType(genericType, aprime, targetTypeWithWildCards.enclosingType());
+				// If F<A'1, ..., A'm> is a well-formed type, ...
+				ParameterizedTypeBinding ptb = blockScope.environment().createParameterizedType(genericType, aprime, targetTypeWithWildCards.enclosingType());
+				TypeVariableBinding[] vars = ptb.genericType().typeVariables();
+				ParameterizedTypeBinding captured = ptb.capture(blockScope, lambda.sourceStart, lambda.sourceEnd);
+				for (int i = 0; i < vars.length; i++) {
+					if (vars[i].boundCheck(captured, aprime[i], blockScope, lambda) == BoundCheckStatus.MISMATCH)
+						return null;
+				}
+				return ptb;
 			}
 		}
 		return targetTypeWithWildCards;
@@ -1113,12 +1165,15 @@ public class InferenceContext18 {
 						zs[j] = freshCapture(variables[j]);
 					final BoundSet kurrentBoundSet = tmpBoundSet;
 					Substitution theta = new Substitution() {
+						@Override
 						public LookupEnvironment environment() { 
 							return InferenceContext18.this.environment;
 						}
+						@Override
 						public boolean isRawSubstitution() {
 							return false;
 						}
+						@Override
 						public TypeBinding substitute(TypeVariableBinding typeVariable) {
 							for (int j = 0; j < numVars; j++)
 								if (TypeBinding.equalsEquals(variables[j], typeVariable))
@@ -1222,6 +1277,7 @@ public class InferenceContext18 {
 
 	static void sortTypes(TypeBinding[] types) {
 		Arrays.sort(types, new Comparator<TypeBinding>() {
+			@Override
 			public int compare(TypeBinding o1, TypeBinding o2) {
 				int i1 = o1.id, i2 = o2.id; 
 				return (i1<i2 ? -1 : (i1==i2 ? 0 : 1));
@@ -1521,7 +1577,6 @@ public class InferenceContext18 {
 		SuspendedInferenceRecord record = new SuspendedInferenceRecord(this.currentInvocation, this.invocationArguments, this.inferenceVariables, this.inferenceKind, this.usesUncheckedConversion);
 		this.inferenceVariables = null;
 		this.invocationArguments = null;
-		this.currentInvocation = null;
 		this.usesUncheckedConversion = false;
 		return record;
 	}
@@ -1556,12 +1611,15 @@ public class InferenceContext18 {
 
 	private Substitution getResultSubstitution(final BoundSet result) {
 		return new Substitution() {
+			@Override
 			public LookupEnvironment environment() { 
 				return InferenceContext18.this.environment;
 			}
+			@Override
 			public boolean isRawSubstitution() {
 				return false;
 			}
+			@Override
 			public TypeBinding substitute(TypeVariableBinding typeVariable) {
 				if (typeVariable instanceof InferenceVariable) {
 					TypeBinding instantiation = result.getInstantiation((InferenceVariable) typeVariable, InferenceContext18.this.environment);
@@ -1597,8 +1655,12 @@ public class InferenceContext18 {
 	 * unless the given candidate is tolerable to be compatible with buggy javac.
 	 */
 	public MethodBinding getReturnProblemMethodIfNeeded(TypeBinding expectedType, MethodBinding method) {
-		if (InferenceContext18.SIMULATE_BUG_JDK_8026527 && expectedType != null && method.returnType instanceof ReferenceBinding) {
-			if (method.returnType.erasure().isCompatibleWith(expectedType))
+		if (InferenceContext18.SIMULATE_BUG_JDK_8026527 && expectedType != null
+				&& !(method.original() instanceof SyntheticFactoryMethodBinding)
+				&& (method.returnType instanceof ReferenceBinding || method.returnType instanceof ArrayBinding)) {
+			if (!expectedType.isProperType(true))
+				return null; // not ready
+			if (this.environment.convertToRawType(method.returnType.erasure(), false).isCompatibleWith(expectedType))
 				return method; // don't count as problem.
 		}
 		/* We used to check if expected type is null and if so return method, but that is wrong - it injects an incompatible method into overload resolution.
@@ -1612,12 +1674,14 @@ public class InferenceContext18 {
 	}
 
 	// debugging:
+	@Override
 	public String toString() {
 		StringBuffer buf = new StringBuffer("Inference Context"); //$NON-NLS-1$
 		switch (this.stepCompleted) {
 			case NOT_INFERRED: buf.append(" (initial)");break; //$NON-NLS-1$
 			case APPLICABILITY_INFERRED: buf.append(" (applicability inferred)");break; //$NON-NLS-1$
 			case TYPE_INFERRED: buf.append(" (type inferred)");break; //$NON-NLS-1$
+			case TYPE_INFERRED_FINAL: buf.append(" (type inferred final)");break; //$NON-NLS-1$
 		}
 		switch (this.inferenceKind) {
 			case CHECK_STRICT: buf.append(" (strict)");break; //$NON-NLS-1$

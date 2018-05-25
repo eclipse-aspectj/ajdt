@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2005, 2011 BEA Systems, Inc.
+ * Copyright (c) 2005, 2017 BEA Systems, Inc, IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -39,10 +39,12 @@ class AnnotationBinding implements IAnnotationBinding {
 		this.bindingResolver = resolver;
 	}
 
+	@Override
 	public IAnnotationBinding[] getAnnotations() {
 		return NoAnnotations;
 	}
 
+	@Override
 	public ITypeBinding getAnnotationType() {
 		ITypeBinding typeBinding = this.bindingResolver.getTypeBinding(this.binding.getAnnotationType());
 		if (typeBinding == null)
@@ -50,6 +52,7 @@ class AnnotationBinding implements IAnnotationBinding {
 		return typeBinding;
 	}
 
+	@Override
 	public IMemberValuePairBinding[] getDeclaredMemberValuePairs() {
 		ReferenceBinding typeBinding = this.binding.getAnnotationType();
 		if (typeBinding == null || ((typeBinding.tagBits & TagBits.HasMissingType) != 0)) {
@@ -72,6 +75,7 @@ class AnnotationBinding implements IAnnotationBinding {
 		return pairs;
 	}
 
+	@Override
 	public IMemberValuePairBinding[] getAllMemberValuePairs() {
 		IMemberValuePairBinding[] pairs = getDeclaredMemberValuePairs();
 		ReferenceBinding typeBinding = this.binding.getAnnotationType();
@@ -100,6 +104,7 @@ class AnnotationBinding implements IAnnotationBinding {
 		return allPairs;
 	}
 
+	@Override
 	public IJavaElement getJavaElement() {
 		if (!(this.bindingResolver instanceof DefaultBindingResolver)) return null;
 		ASTNode node = (ASTNode) ((DefaultBindingResolver) this.bindingResolver).bindingsToAstNodes.get(this);
@@ -132,6 +137,11 @@ class AnnotationBinding implements IAnnotationBinding {
 				if (methodBinding == null) return null;
 				parentElement = methodBinding.getJavaElement();
 			break;
+		case ASTNode.MODULE_DECLARATION:
+			IModuleBinding moduleBinding = ((ModuleDeclaration) parent).resolveBinding();
+			if (moduleBinding == null) return null;
+			parentElement = moduleBinding.getJavaElement();
+		break;
 		case ASTNode.VARIABLE_DECLARATION_STATEMENT:
 			fragment = (VariableDeclarationFragment) ((VariableDeclarationStatement) parent).fragments().get(0);
 			variableBinding = fragment.resolveBinding();
@@ -150,6 +160,7 @@ class AnnotationBinding implements IAnnotationBinding {
 		return ((IAnnotatable) parentElement).getAnnotation(getName());
 	}
 
+	@Override
 	public String getKey() {
 		if (this.key == null) {
 			String recipientKey = getRecipientKey();
@@ -178,6 +189,8 @@ class AnnotationBinding implements IAnnotationBinding {
 			return fragment.resolveBinding().getKey();
 		case ASTNode.METHOD_DECLARATION:
 			return ((MethodDeclaration) recipient).resolveBinding().getKey();
+		case ASTNode.MODULE_DECLARATION:
+			return ((ModuleDeclaration) recipient).resolveBinding().getKey();
 		case ASTNode.VARIABLE_DECLARATION_STATEMENT:
 			fragment = (VariableDeclarationFragment) ((VariableDeclarationStatement) recipient).fragments().get(0);
 			return fragment.resolveBinding().getKey();
@@ -186,14 +199,17 @@ class AnnotationBinding implements IAnnotationBinding {
 		}
 	}
 
+	@Override
 	public int getKind() {
 		return IBinding.ANNOTATION;
 	}
 
+	@Override
 	public int getModifiers() {
 		return Modifier.NONE;
 	}
 
+	@Override
 	public String getName() {
 		ITypeBinding annotationType = getAnnotationType();
 		if (annotationType == null) {
@@ -203,12 +219,14 @@ class AnnotationBinding implements IAnnotationBinding {
 		}
 	}
 
+	@Override
 	public boolean isDeprecated() {
 		ReferenceBinding typeBinding = this.binding.getAnnotationType();
 		if (typeBinding == null) return false;
 		return typeBinding.isDeprecated();
 	}
 
+	@Override
 	public boolean isEqualTo(IBinding otherBinding) {
 		if (this == otherBinding)
 			return true;
@@ -228,18 +246,17 @@ class AnnotationBinding implements IAnnotationBinding {
 		return true;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.IBinding#isRecovered()
-	 */
+	@Override
 	public boolean isRecovered() {
         ReferenceBinding annotationType = this.binding.getAnnotationType();
         return annotationType == null || (annotationType.tagBits & TagBits.HasMissingType) != 0;	}
 
+	@Override
 	public boolean isSynthetic() {
 		return false;
 	}
 
+	@Override
 	public String toString() {
 		ITypeBinding type = getAnnotationType();
 		final StringBuffer buffer = new StringBuffer();

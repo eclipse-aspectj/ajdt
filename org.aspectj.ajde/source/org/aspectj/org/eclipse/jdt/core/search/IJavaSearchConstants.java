@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -128,6 +128,12 @@ public interface IJavaSearchConstants {
 	 */
 	int INTERFACE_AND_ANNOTATION= 11;
 
+	/**
+	 * The searched element is a module.
+	 * @since 3.14
+	 * @category searchFor
+	 */
+	int MODULE= 12;
 	/* Nature of match */
 
 	/**
@@ -190,6 +196,16 @@ public interface IJavaSearchConstants {
 	 * @category limitTo
 	 */
 	int WRITE_ACCESSES = 5;
+
+	/**
+	 * When searching for Type Declaration matches, and if a module is given, this
+	 * will find type declaration matches in this module as well as the dependent
+	 * module graph of the given module.
+	 *
+	 * @since 3.14
+	 * @category limitTo
+	 */
+	int MODULE_GRAPH = 6;
 
 	/**
 	 * Ignore declaring type while searching result.
@@ -544,5 +560,13 @@ public interface IJavaSearchConstants {
 	 */
 	int WAIT_UNTIL_READY_TO_SEARCH = IJob.WaitUntilReady;
 
+	/* Special Constant for module search */
+
+	/**
+	 * The unnamed module is represented by this constant for making the intent explicit
+	 * in searches involving modules
+	 * @since 3.14
+	 */
+	char[] ALL_UNNAMED = "ALL-UNNAMED".toCharArray(); ////$NON-NLS-1$
 
 }

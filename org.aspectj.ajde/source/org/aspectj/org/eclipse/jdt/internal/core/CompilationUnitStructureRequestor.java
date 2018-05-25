@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -23,6 +23,7 @@ import org.aspectj.org.eclipse.jdt.core.ICompilationUnit;
 import org.aspectj.org.eclipse.jdt.core.IJavaElement;
 import org.aspectj.org.eclipse.jdt.core.IMemberValuePair;
 import org.aspectj.org.eclipse.jdt.core.ITypeParameter;
+import org.aspectj.org.eclipse.jdt.core.JavaModelException;
 import org.aspectj.org.eclipse.jdt.core.Signature;
 import org.aspectj.org.eclipse.jdt.core.compiler.CategorizedProblem;
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
@@ -140,6 +141,7 @@ protected CompilationUnitStructureRequestor(ICompilationUnit unit, CompilationUn
 /**
  * @see ISourceElementRequestor
  */
+@Override
 public void acceptImport(int declarationStart, int declarationEnd, int nameSourceStart, int nameSourceEnd, char[][] tokens, boolean onDemand, int modifiers) {
 	JavaElement parentHandle= (JavaElement) this.handleStack.peek();
 	if (!(parentHandle.getElementType() == IJavaElement.COMPILATION_UNIT)) {
@@ -177,12 +179,14 @@ public void acceptImport(int declarationStart, int declarationEnd, int nameSourc
  * A line separator might corresponds to several characters in the source,
  *
  */
+@Override
 public void acceptLineSeparatorPositions(int[] positions) {
 	// ignore line separator positions
 }
 /**
  * @see ISourceElementRequestor
  */
+@Override
 public void acceptPackage(ImportReference importReference) {
 
 		Object parentInfo = this.infoStack.peek();
@@ -214,6 +218,7 @@ public void acceptPackage(ImportReference importReference) {
 			}
 		}
 }
+@Override
 public void acceptProblem(CategorizedProblem problem) {
 	if ((problem.getID() & IProblem.Syntax) != 0){
 		this.hasSyntaxErrors = true;
@@ -252,6 +257,10 @@ protected PackageDeclaration createPackageDeclaration(JavaElement parent, String
 protected SourceType createTypeHandle(JavaElement parent, TypeInfo typeInfo) {
 	String nameString= new String(typeInfo.name);
 	return new SourceType(parent, nameString);
+}
+protected SourceModule createModuleHandle(JavaElement parent, ModuleInfo modInfo) {
+	String nameString= new String(modInfo.moduleName);
+	return new org.aspectj.org.eclipse.jdt.internal.core.SourceModule(parent, nameString);
 }
 protected TypeParameter createTypeParameter(JavaElement parent, String name) {
 	return new TypeParameter(parent, name);
@@ -309,6 +318,7 @@ protected IAnnotation acceptAnnotation(org.aspectj.org.eclipse.jdt.internal.comp
 /**
  * @see ISourceElementRequestor
  */
+@Override
 public void enterCompilationUnit() {
 	this.infoStack = new Stack();
 	this.children = new HashMap();
@@ -319,12 +329,14 @@ public void enterCompilationUnit() {
 /**
  * @see ISourceElementRequestor
  */
+@Override
 public void enterConstructor(MethodInfo methodInfo) {
 	enterMethod(methodInfo);
 }
 /**
  * @see ISourceElementRequestor
  */
+@Override
 public void enterField(FieldInfo fieldInfo) {
 
 	TypeInfo parentInfo = (TypeInfo) this.infoStack.peek();
@@ -348,6 +360,7 @@ public void enterField(FieldInfo fieldInfo) {
 /**
  * @see ISourceElementRequestor
  */
+@Override
 public void enterInitializer(int declarationSourceStart, int modifiers) {
 	Object parentInfo = this.infoStack.peek();
 	JavaElement parentHandle= (JavaElement) this.handleStack.peek();
@@ -369,6 +382,7 @@ public void enterInitializer(int declarationSourceStart, int modifiers) {
 /**
  * @see ISourceElementRequestor
  */
+@Override
 public void enterMethod(MethodInfo methodInfo) {
 
 	TypeInfo parentInfo = (TypeInfo) this.infoStack.peek();
@@ -491,17 +505,29 @@ private LocalVariable[] acceptMethodParameters(Argument[] arguments, JavaElement
 	}
 	return result;
 }
+@Override
+public void enterModule(ModuleInfo info) {
 
+	Object parentInfo = this.infoStack.peek();
+	JavaElement parentHandle= (JavaElement) this.handleStack.peek();
+	JavaElement handle = createModuleHandle(parentHandle, info);
+	
+	this.infoStack.push(info);
+	this.handleStack.push(handle);
+
+	addToChildren(parentInfo, handle);
+}
 /**
  * @see ISourceElementRequestor
  */
+@Override
 public void enterType(TypeInfo typeInfo) {
 
 	Object parentInfo = this.infoStack.peek();
 	JavaElement parentHandle= (JavaElement) this.handleStack.peek();
-	SourceType handle = createTypeHandle(parentHandle, typeInfo); //NB: occurenceCount is computed in resolveDuplicates
-	resolveDuplicates(handle);
-
+	JavaElement handle = createTypeHandle(parentHandle, typeInfo);
+	 //NB: occurenceCount is computed in resolveDuplicates
+	resolveDuplicates((SourceType) handle);
 	this.infoStack.push(typeInfo);
 	this.handleStack.push(handle);
 
@@ -509,10 +535,30 @@ public void enterType(TypeInfo typeInfo) {
 		((TypeInfo) parentInfo).childrenCategories.put(handle, typeInfo.categories);
 	addToChildren(parentInfo, handle);
 }
+private org.aspectj.org.eclipse.jdt.internal.core.ModuleDescriptionInfo createModuleInfo(ModuleInfo modInfo, org.aspectj.org.eclipse.jdt.internal.core.SourceModule handle) {
+	org.aspectj.org.eclipse.jdt.internal.core.ModuleDescriptionInfo info = org.aspectj.org.eclipse.jdt.internal.core.ModuleDescriptionInfo.createModule(modInfo.node);
+	info.setHandle(handle);
+	info.setSourceRangeStart(modInfo.declarationStart);
+	info.setFlags(modInfo.modifiers);
+	info.setNameSourceStart(modInfo.nameSourceStart);
+	info.setNameSourceEnd(modInfo.nameSourceEnd);
+	info.addCategories(handle, modInfo.categories);
+	if (modInfo.annotations != null) {
+		int length = modInfo.annotations.length;
+		for (int i = 0; i < length; i++) {
+			org.aspectj.org.eclipse.jdt.internal.compiler.ast.Annotation annotation = modInfo.annotations[i];
+			acceptAnnotation(annotation, info, handle);
+		}
+	}
+	this.newElements.put(handle, info);
+
+	return info;
+}
 private SourceTypeElementInfo createTypeInfo(TypeInfo typeInfo, SourceType handle) {
 	SourceTypeElementInfo info =
 		typeInfo.anonymousMember ?
 			new SourceTypeElementInfo() {
+				@Override
 				public boolean isAnonymousMember() {
 					return true;
 				}
@@ -595,6 +641,7 @@ protected void acceptTypeParameter(TypeParameterInfo typeParameterInfo, JavaElem
 /**
  * @see ISourceElementRequestor
  */
+@Override
 public void exitCompilationUnit(int declarationEnd) {
 	// set import container children
 	if (this.importContainerInfo != null) {
@@ -610,12 +657,14 @@ public void exitCompilationUnit(int declarationEnd) {
 /**
  * @see ISourceElementRequestor
  */
+@Override
 public void exitConstructor(int declarationEnd) {
 	exitMethod(declarationEnd, null);
 }
 /**
  * @see ISourceElementRequestor
  */
+@Override
 public void exitField(int initializationStart, int declarationEnd, int declarationSourceEnd) {
 	JavaElement handle = (JavaElement) this.handleStack.peek();
 	FieldInfo fieldInfo = (FieldInfo) this.infoStack.peek();
@@ -663,6 +712,7 @@ public void exitField(int initializationStart, int declarationEnd, int declarati
 /**
  * @see ISourceElementRequestor
  */
+@Override
 public void exitInitializer(int declarationEnd) {
 	JavaElement handle = (JavaElement) this.handleStack.peek();
 	int[] initializerInfo = (int[]) this.infoStack.peek();
@@ -681,6 +731,7 @@ public void exitInitializer(int declarationEnd) {
 /**
  * @see ISourceElementRequestor
  */
+@Override
 public void exitMethod(int declarationEnd, Expression defaultValue) {
 	SourceMethod handle = (SourceMethod) this.handleStack.peek();
 	MethodInfo methodInfo = (MethodInfo) this.infoStack.peek();
@@ -702,16 +753,36 @@ public void exitMethod(int declarationEnd, Expression defaultValue) {
 	this.handleStack.pop();
 	this.infoStack.pop();
 }
+@Override
+public void exitModule(int declarationEnd) {
+	ModuleInfo moduleInfo = (ModuleInfo) this.infoStack.peek();
+	SourceModule handle = (SourceModule) this.handleStack.peek();
+	JavaProject proj = (JavaProject) handle.getAncestor(IJavaElement.JAVA_PROJECT);
+	if (proj != null) {
+		try {
+			org.aspectj.org.eclipse.jdt.internal.core.SourceModule moduleDecl = handle;
+			org.aspectj.org.eclipse.jdt.internal.core.ModuleDescriptionInfo info = createModuleInfo(moduleInfo, moduleDecl);
+			info.setSourceRangeEnd(declarationEnd);
+			info.children = getChildren(info);
+			this.unitInfo.setModule(moduleDecl);
+			proj.setModuleDescription(moduleDecl);
+		} catch (JavaModelException e) {
+			// Unexpected while creating
+		}
+	}
+	this.handleStack.pop();
+	this.infoStack.pop();
+}
 /**
  * @see ISourceElementRequestor
  */
+@Override
 public void exitType(int declarationEnd) {
-	SourceType handle = (SourceType) this.handleStack.peek();
 	TypeInfo typeInfo = (TypeInfo) this.infoStack.peek();
+	SourceType handle = (SourceType) this.handleStack.peek();
 	SourceTypeElementInfo info = createTypeInfo(typeInfo, handle);
 	info.setSourceRangeEnd(declarationEnd);
 	info.children = getChildren(typeInfo);
-	
 	this.handleStack.pop();
 	this.infoStack.pop();
 }

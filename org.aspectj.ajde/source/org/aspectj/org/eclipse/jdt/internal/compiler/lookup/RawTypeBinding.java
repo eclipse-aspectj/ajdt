@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -17,6 +17,8 @@
  *								Bug 441693 - [1.8][null] Bogus warning for type argument annotated with @NonNull
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
+
+import java.util.Set;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 
@@ -55,11 +57,12 @@ public class RawTypeBinding extends ParameterizedTypeBinding {
 				}
 			}
 		}
-		if (enclosingType == null || (enclosingType.modifiers & ExtraCompilerModifiers.AccGenericSignature) == 0) {
+		if (enclosingType == null || this.isStatic() || (enclosingType.modifiers & ExtraCompilerModifiers.AccGenericSignature) == 0) {
 			this.modifiers &= ~ExtraCompilerModifiers.AccGenericSignature; // only need signature if enclosing needs one
 		}
 	}
 
+	@Override
 	public char[] computeUniqueKey(boolean isLeaf) {
 	    StringBuffer sig = new StringBuffer(10);
 		if (isMemberType() && (enclosingType().isParameterizedType() || enclosingType().isRawType())) {
@@ -87,6 +90,7 @@ public class RawTypeBinding extends ParameterizedTypeBinding {
 		return uniqueKey;
    	}
 	
+	@Override
 	public TypeBinding clone(TypeBinding outerType) {
 		return new RawTypeBinding(this.actualType(), (ReferenceBinding) outerType, this.environment);
 	}
@@ -103,6 +107,7 @@ public class RawTypeBinding extends ParameterizedTypeBinding {
 	/**
 	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ParameterizedTypeBinding#createParameterizedMethod(org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodBinding)
 	 */
+	@Override
 	public ParameterizedMethodBinding createParameterizedMethod(MethodBinding originalMethod) {
 		if (originalMethod.typeVariables == Binding.NO_TYPE_VARIABLES || originalMethod.isStatic()) {
 			return super.createParameterizedMethod(originalMethod);
@@ -110,10 +115,12 @@ public class RawTypeBinding extends ParameterizedTypeBinding {
 		return this.environment.createParameterizedGenericMethod(originalMethod, this);
 	}
 
+	@Override
 	public boolean isParameterizedType() {
 		return false;
 	}
 
+	@Override
 	public int kind() {
 		return RAW_TYPE;
 	}
@@ -121,6 +128,7 @@ public class RawTypeBinding extends ParameterizedTypeBinding {
 	/**
 	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding#debugName()
 	 */
+	@Override
 	public String debugName() {
 		if (this.hasTypeAnnotations())
 			return annotatedDebugName();
@@ -128,6 +136,7 @@ public class RawTypeBinding extends ParameterizedTypeBinding {
 		nameBuffer.append(actualType().sourceName()).append("#RAW"); //$NON-NLS-1$
 	    return nameBuffer.toString();
 	}
+	@Override
 	public String annotatedDebugName() {
 		StringBuffer buffer = new StringBuffer(super.annotatedDebugName());
 		buffer.append("#RAW"); //$NON-NLS-1$
@@ -137,13 +146,14 @@ public class RawTypeBinding extends ParameterizedTypeBinding {
 	 * Ltype<param1 ... paramN>;
 	 * LY<TT;>;
 	 */
+	@Override
 	public char[] genericTypeSignature() {
 		if (this.genericTypeSignature == null) {
 			if ((this.modifiers & ExtraCompilerModifiers.AccGenericSignature) == 0) {
 		    	this.genericTypeSignature = genericType().signature();
 			} else {
 			    StringBuffer sig = new StringBuffer(10);
-			    if (isMemberType()) {
+			    if (isMemberType() && !isStatic()) {
 			    	ReferenceBinding enclosing = enclosingType();
 					char[] typeSig = enclosing.genericTypeSignature();
 					sig.append(typeSig, 0, typeSig.length-1);// copy all but trailing semicolon
@@ -166,7 +176,8 @@ public class RawTypeBinding extends ParameterizedTypeBinding {
 		return this.genericTypeSignature;
 	}
 
-    public boolean isEquivalentTo(TypeBinding otherType) {
+    @Override
+	public boolean isEquivalentTo(TypeBinding otherType) {
 		if (equalsEquals(this, otherType) || equalsEquals(erasure(), otherType))
 		    return true;
 	    if (otherType == null)
@@ -185,7 +196,8 @@ public class RawTypeBinding extends ParameterizedTypeBinding {
         return false;
 	}
 
-    public boolean isProvablyDistinct(TypeBinding otherType) {
+    @Override
+	public boolean isProvablyDistinct(TypeBinding otherType) {
 		if (TypeBinding.equalsEquals(this, otherType) || TypeBinding.equalsEquals(erasure(), otherType)) // https://bugs.eclipse.org/bugs/show_bug.cgi?id=329588
 		    return false;
 	    if (otherType == null)
@@ -199,12 +211,21 @@ public class RawTypeBinding extends ParameterizedTypeBinding {
 	    }
         return true;
 	}
+    @Override
+	public boolean isSubtypeOf(TypeBinding right, boolean simulatingBugJDK8026527) {
+    	if (simulatingBugJDK8026527) {
+    		right = this.environment.convertToRawType(right.erasure(), false);
+    	}
+    	return super.isSubtypeOf(right, simulatingBugJDK8026527);
+    }
 
-    public boolean isProperType(boolean admitCapture18) {
+    @Override
+	public boolean isProperType(boolean admitCapture18) {
     	TypeBinding actualType = actualType();
     	return actualType != null && actualType.isProperType(admitCapture18);
     }
 
+	@Override
 	protected void initializeArguments() {
 		TypeVariableBinding[] typeVariables = genericType().typeVariables();
 		int length = typeVariables.length;
@@ -232,6 +253,7 @@ public class RawTypeBinding extends ParameterizedTypeBinding {
 		return this;
 	}
 
+	@Override
 	public MethodBinding getSingleAbstractMethod(Scope scope, boolean replaceWildcards) {
 		int index = replaceWildcards ? 0 : 1;
 		if (this.singleAbstractMethod != null) {
@@ -256,12 +278,14 @@ public class RawTypeBinding extends ParameterizedTypeBinding {
 		}
 		return this.singleAbstractMethod[index];
 	}
+	@Override
 	public boolean mentionsAny(TypeBinding[] parameters, int idx) {
 		return false;
 	}
 	/**
 	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Binding#readableName()
 	 */
+	@Override
 	public char[] readableName(boolean showGenerics) /*java.lang.Object,  p.X<T> */ {
 	    char[] readableName;
 		if (isMemberType()) {
@@ -275,6 +299,7 @@ public class RawTypeBinding extends ParameterizedTypeBinding {
 	/**
 	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Binding#shortReadableName()
 	 */
+	@Override
 	public char[] shortReadableName(boolean showGenerics) /*Object*/ {
 	    char[] shortReadableName;
 		if (isMemberType()) {
@@ -283,5 +308,20 @@ public class RawTypeBinding extends ParameterizedTypeBinding {
 			shortReadableName = actualType().sourceName;
 		}
 		return shortReadableName;
+	}
+	
+	@Override
+	void collectInferenceVariables(Set<InferenceVariable> variables) {
+		// nothing to collect for a raw type.
+	}
+
+	@Override
+	public ReferenceBinding upwardsProjection(Scope scope, TypeBinding[] mentionedTypeVariables) {
+		return this;
+	}
+
+	@Override
+	public ReferenceBinding downwardsProjection(Scope scope, TypeBinding[] mentionedTypeVariables) {
+		return this;
 	}
 }

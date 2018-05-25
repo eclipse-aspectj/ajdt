@@ -53,15 +53,13 @@ public class RuntimeVisibleParameterAnnotationsAttribute
 			this.parameterAnnotations = NO_ENTRIES;
 		}
 	}
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.util.IRuntimeVisibleParameterAnnotations#getAnnotations()
-	 */
+
+	@Override
 	public IParameterAnnotation[] getParameterAnnotations() {
 		return this.parameterAnnotations;
 	}
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.util.IRuntimeVisibleParameterAnnotations#getParametersNumber()
-	 */
+
+	@Override
 	public int getParametersNumber() {
 		return this.parametersNumber;
 	}

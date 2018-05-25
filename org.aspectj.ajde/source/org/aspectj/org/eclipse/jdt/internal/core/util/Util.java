@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -43,9 +43,11 @@ import org.aspectj.org.eclipse.jdt.core.util.IMethodInfo;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AnnotationMethodDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Argument;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.UnionTypeReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.IntersectionCastTypeReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.UnionTypeReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileReader;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFormatException;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.ClassSignature;
@@ -771,15 +773,23 @@ public class Util {
 		if (pkgEnd == -1)
 			return null;
 		IPackageFragment pkg = getPackageFragment(slashSeparatedFileName, pkgEnd, -1/*no jar separator for .java files*/);
-		if (pkg == null) return null;
-		int start;
-		ICompilationUnit cu = pkg.getCompilationUnit(new String(slashSeparatedFileName, start =  pkgEnd+1, slashSeparatedFileName.length - start));
-		if (workingCopyOwner != null) {
-			ICompilationUnit workingCopy = cu.findWorkingCopy(workingCopyOwner);
-			if (workingCopy != null)
-				return workingCopy;
+		if (pkg != null) {
+			int start;
+			ICompilationUnit cu = pkg.getCompilationUnit(new String(slashSeparatedFileName, start =  pkgEnd+1, slashSeparatedFileName.length - start));
+			if (workingCopyOwner != null) {
+				ICompilationUnit workingCopy = cu.findWorkingCopy(workingCopyOwner);
+				if (workingCopy != null)
+					return workingCopy;
+			}
+			return cu;
 		}
-		return cu;
+		IWorkspaceRoot wsRoot = ResourcesPlugin.getWorkspace().getRoot();
+		IFile file = wsRoot.getFile(new Path(String.valueOf(fileName)));
+		if (file.exists()) {
+			// this approach works if file exists but is not on the project's build path:
+			return JavaCore.createCompilationUnitFrom(file);
+		}
+		return null;
 	}
 
 	/**
@@ -845,13 +855,17 @@ public class Util {
 						}
 					}
 					if (path != null) {
-						jar = JavaModelManager.getJavaModelManager().getZipFile(path);
-						for (Enumeration e= jar.entries(); e.hasMoreElements();) {
-							ZipEntry member= (ZipEntry) e.nextElement();
-							String entryName= member.getName();
-							if (org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.isClassFileName(entryName)) {
-								reader = ClassFileReader.read(jar, entryName);
-								break;
+						if (JavaModelManager.isJrt(path)) {
+							return ClassFileConstants.JDK9;
+						} else {
+							jar = JavaModelManager.getJavaModelManager().getZipFile(path);
+							for (Enumeration e= jar.entries(); e.hasMoreElements();) {
+								ZipEntry member= (ZipEntry) e.nextElement();
+								String entryName= member.getName();
+								if (org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.isClassFileName(entryName)) {
+									reader = ClassFileReader.read(jar, entryName);
+									break;
+								}
 							}
 						}
 					}
@@ -1867,7 +1881,7 @@ public class Util {
 	}
 
 	public static void log(Throwable e) {
-		log(new Status(IStatus.ERROR, JavaCore.PLUGIN_ID, Messages.code_assist_internal_error, e));
+		log(new Status(IStatus.ERROR, JavaCore.PLUGIN_ID, Messages.internal_error, e));
 	}
 
 	public static ClassFileReader newClassFileReader(IResource resource) throws CoreException, ClassFormatException, IOException {
@@ -2327,6 +2341,7 @@ public class Util {
 		IJavaElement[] copy = new IJavaElement[len];
 		System.arraycopy(elements, 0, copy, 0, len);
 		sort(copy, new Comparer() {
+			@Override
 			public int compare(Object a, Object b) {
 				return ((JavaElement) a).toStringWithAncestors().compareTo(((JavaElement) b).toStringWithAncestors());
 			}
@@ -2691,14 +2706,13 @@ public class Util {
 			// special treatment for union type reference
 			UnionTypeReference unionTypeReference = (UnionTypeReference) type;
 			TypeReference[] typeReferences = unionTypeReference.typeReferences;
-			int length = typeReferences.length;
-			String[] typeSignatures = new String[length];
-			for(int i = 0; i < length; i++) {
-				char[][] compoundName = typeReferences[i].getParameterizedTypeName();
-				char[] typeName = CharOperation.concatWith(compoundName, '.');
-				typeSignatures[i] = Signature.createTypeSignature(typeName, false/*don't resolve*/);
-			}
+			String[] typeSignatures = typeSignatures(typeReferences);
 			signature = Signature.createIntersectionTypeSignature(typeSignatures);
+		} else if (type instanceof IntersectionCastTypeReference) {
+			IntersectionCastTypeReference intersection = (IntersectionCastTypeReference) type;
+			TypeReference[] typeReferences = intersection.typeReferences;
+			String[] typeSignatures = typeSignatures(typeReferences);
+			signature = Signature.createUnionTypeSignature(typeSignatures);
 		} else {
 			char[][] compoundName = type.getParameterizedTypeName();
 			char[] typeName =CharOperation.concatWith(compoundName, '.');
@@ -2706,7 +2720,17 @@ public class Util {
 		}
 		return signature;
 	}
-
+	
+	private static String[] typeSignatures(TypeReference[] types) {
+		int length = types.length;
+		String[] typeSignatures = new String[length];
+		for(int i = 0; i < length; i++) {
+			char[][] compoundName = types[i].getParameterizedTypeName();
+			char[] typeName = CharOperation.concatWith(compoundName, '.');
+			typeSignatures[i] = Signature.createTypeSignature(typeName, false/*don't resolve*/);
+		}
+		return typeSignatures;
+	}
 	/**
 	 * Asserts that the given method signature is valid.
 	 */

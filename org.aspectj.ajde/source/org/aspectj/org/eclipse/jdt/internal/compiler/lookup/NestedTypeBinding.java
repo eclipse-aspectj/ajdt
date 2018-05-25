@@ -15,9 +15,6 @@
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
 
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Annotation;
-
 public abstract class NestedTypeBinding extends SourceTypeBinding {
 
 	public SourceTypeBinding enclosingType;
@@ -126,20 +123,9 @@ public SyntheticArgumentBinding addSyntheticArgumentAndField(ReferenceBinding ta
 	return synthLocal;
 }
 
-protected void checkRedundantNullnessDefaultRecurse(ASTNode location, Annotation[] annotations, long nullBits, boolean useNullTypeAnnotations) {
-	if (!isPrototype()) throw new IllegalStateException();
-	ReferenceBinding currentType = this.enclosingType;
-	do {
-		if (!((SourceTypeBinding)currentType).checkRedundantNullnessDefaultOne(location, annotations, nullBits, useNullTypeAnnotations)) {
-			return;
-		}
-		currentType = currentType.enclosingType();
-	} while (currentType instanceof SourceTypeBinding);
-	super.checkRedundantNullnessDefaultRecurse(location, annotations, nullBits, useNullTypeAnnotations);
-}
-
 /* Answer the receiver's enclosing type... null if the receiver is a top level type.
 */
+@Override
 public ReferenceBinding enclosingType() {
 	return this.enclosingType;
 }
@@ -147,6 +133,7 @@ public ReferenceBinding enclosingType() {
 /**
  * @return the enclosingInstancesSlotSize
  */
+@Override
 public int getEnclosingInstancesSlotSize() {
 	if (!isPrototype()) throw new IllegalStateException();
 	return this.enclosingInstances == null ? 0 : this.enclosingInstances.length;
@@ -155,6 +142,7 @@ public int getEnclosingInstancesSlotSize() {
 /**
  * @return the outerLocalVariablesSlotSize
  */
+@Override
 public int getOuterLocalVariablesSlotSize() {
 	if (!isPrototype()) throw new IllegalStateException();
 	if (this.outerLocalVariablesSlotSize < 0) {
@@ -235,6 +223,7 @@ public SyntheticArgumentBinding[] syntheticEnclosingInstances() {
 	return this.enclosingInstances;		// is null if no enclosing instances are required
 }
 
+@Override
 public ReferenceBinding[] syntheticEnclosingInstanceTypes() {
 	if (!isPrototype()) throw new IllegalStateException();
 	if (this.enclosingTypes == UNINITIALIZED_REFERENCE_TYPES) {
@@ -251,6 +240,7 @@ public ReferenceBinding[] syntheticEnclosingInstanceTypes() {
 	return this.enclosingTypes;
 }
 
+@Override
 public SyntheticArgumentBinding[] syntheticOuterLocalVariables() {
 	if (!isPrototype()) throw new IllegalStateException();
 	return this.outerLocalVariables;		// is null if no outer locals are required

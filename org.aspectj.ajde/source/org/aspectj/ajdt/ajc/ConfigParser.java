@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.StringTokenizer;
 
 public class ConfigParser {
 	Location location;
@@ -43,6 +44,21 @@ public class ConfigParser {
 		LinkedList<Arg> args = new LinkedList<Arg>();
 		for (int i = 0; i < argsArray.length; i++) {
 			args.add(new Arg(argsArray[i], location));
+		}
+		String aspectjOptions = null;
+		try {
+			aspectjOptions = System.getenv("ASPECTJ_OPTS");
+			if (aspectjOptions == null) {
+				aspectjOptions = System.getProperty("ASPECTJ_OPTS");
+			}
+		} catch (Throwable t) {
+			aspectjOptions = null;
+		}
+		if (aspectjOptions != null) {
+			StringTokenizer st = new StringTokenizer(aspectjOptions);
+			while (st.hasMoreElements()) {
+				args.add(new Arg(st.nextToken(),location));
+			}
 		}
 		parseArgs(args);
 	}
@@ -138,12 +154,14 @@ public class ConfigParser {
 		if (sourceFile.getName().charAt(0) == '*') {
 			if (sourceFile.getName().equals("*.java")) {
 				addFiles(sourceFile.getParentFile(), new FileFilter() {
+					@Override
 					public boolean accept(File f) {
 						return f != null && f.getName().endsWith(".java");
 					}
 				});
 			} else if (sourceFile.getName().equals("*.aj")) {
 				addFiles(sourceFile.getParentFile(), new FileFilter() {
+					@Override
 					public boolean accept(File f) {
 						return f != null && f.getName().endsWith(".aj");
 					}
@@ -176,7 +194,7 @@ public class ConfigParser {
 		}
 	}
 
-	protected void parseOption(String arg, LinkedList args) {
+	protected void parseOption(String arg, LinkedList<Arg> args) {
 		showWarning("unrecognized option: " + arg);
 	}
 
@@ -191,22 +209,22 @@ public class ConfigParser {
 		throw new ParseException(CONFIG_MSG + message, location);
 	}
 
-	void parseArgs(LinkedList args) {
+	void parseArgs(LinkedList<Arg> args) {
 		while (args.size() > 0) {
 			parseOneArg(args);
 		}
 	}
 
-	protected Arg removeArg(LinkedList args) {
+	protected Arg removeArg(LinkedList<Arg> args) {
 		if (args.size() == 0) {
 			showError("value missing");
 			return null;
 		} else {
-			return (Arg) args.removeFirst();
+			return args.removeFirst();
 		}
 	}
 
-	protected String removeStringArg(LinkedList args) {
+	protected String removeStringArg(LinkedList<Arg> args) {
 		Arg arg = removeArg(args);
 		if (arg == null) {
 			return null;
@@ -235,7 +253,7 @@ public class ConfigParser {
 		return false;
 	}
 
-	void parseOneArg(LinkedList args) {
+	void parseOneArg(LinkedList<Arg> args) {
 		Arg arg = removeArg(args);
 		String v = arg.getValue();
 		location = arg.getLocation();
@@ -245,6 +263,9 @@ public class ConfigParser {
 			parseConfigFileHelper(makeFile(removeArg(args).getValue()));
 		} else if (isSourceFileName(v)) {
 			addFileOrPattern(makeFile(v));
+			if (v.endsWith("module-info.java")) {
+				parseOption(arg.getValue(), args);				
+			}
 		} else if (isXml(v)) {
 			addXmlFile(makeFile(v));
 		} else {
@@ -284,6 +305,11 @@ public class ConfigParser {
 		private Location location;
 		private String value;
 
+		@Override
+		public String toString() {
+			return "Arg[location="+location+" value="+value+"]";
+		}
+		
 		public Arg(String value, Location location) {
 			this.value = value;
 			this.location = location;
@@ -313,6 +339,7 @@ public class ConfigParser {
 
 		public abstract int getLine();
 
+		@Override
 		public abstract String toString();
 	}
 
@@ -325,36 +352,44 @@ public class ConfigParser {
 			this.file = file;
 		}
 
+		@Override
 		public File getFile() {
 			return file;
 		}
 
+		@Override
 		public File getDirectory() {
 			return file.getParentFile();
 		}
 
+		@Override
 		public int getLine() {
 			return line;
 		}
 
+		@Override
 		public String toString() {
 			return file.getPath() + ":" + line;
 		}
 	}
 
 	static class CommandLineLocation extends Location {
+		@Override
 		public File getFile() {
 			return new File(System.getProperty("user.dir"));
 		}
 
+		@Override
 		public File getDirectory() {
 			return new File(System.getProperty("user.dir"));
 		}
 
+		@Override
 		public int getLine() {
 			return -1;
 		}
 
+		@Override
 		public String toString() {
 			return "command-line";
 		}

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -123,20 +123,17 @@ public class SimpleType extends AnnotatableType {
 	 * Method declared on AnnotatableType.
 	 * @since 3.10
 	 */
+	@Override
 	final ChildListPropertyDescriptor internalAnnotationsProperty() {
 		return ANNOTATIONS_PROPERTY;
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	final List internalStructuralPropertiesForType(int apiLevel) {
 		return propertyDescriptors(apiLevel);
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	final List internalGetChildListProperty(ChildListPropertyDescriptor property) {
 		if (property == ANNOTATIONS_PROPERTY) {
 			return annotations();
@@ -144,10 +141,8 @@ public class SimpleType extends AnnotatableType {
 		// allow default implementation to flag the error
 		return super.internalGetChildListProperty(property);
 	}
-	
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+
+	@Override
 	final ASTNode internalGetSetChildProperty(ChildPropertyDescriptor property, boolean get, ASTNode child) {
 		if (property == NAME_PROPERTY) {
 			if (get) {
@@ -161,20 +156,16 @@ public class SimpleType extends AnnotatableType {
 		return super.internalGetSetChildProperty(property, get, child);
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	final int getNodeType0() {
 		return SIMPLE_TYPE;
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	ASTNode clone0(AST target) {
 		SimpleType result = new SimpleType(target);
 		result.setSourceRange(getStartPosition(), getLength());
-		if (this.ast.apiLevel >= AST.JLS8) {
+		if (this.ast.apiLevel >= AST.JLS8_INTERNAL) {
 			result.annotations().addAll(
 					ASTNode.copySubtrees(target, annotations()));
 		}
@@ -182,22 +173,18 @@ public class SimpleType extends AnnotatableType {
 		return result;
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	final boolean subtreeMatch0(ASTMatcher matcher, Object other) {
 		// dispatch to correct overloaded match method
 		return matcher.match(this, other);
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	void accept0(ASTVisitor visitor) {
 		boolean visitChildren = visitor.visit(this);
 		if (visitChildren) {
 			// visit children in normal left to right reading order
-			if (this.ast.apiLevel >= AST.JLS8) {
+			if (this.ast.apiLevel >= AST.JLS8_INTERNAL) {
 				acceptChildren(visitor, this.annotations);
 			}
 			acceptChild(visitor, getName());
@@ -244,17 +231,27 @@ public class SimpleType extends AnnotatableType {
 		postReplaceChild(oldChild, typeName, NAME_PROPERTY);
 	}
 
+	/**
+	 * @exception UnsupportedOperationException if this operation is used below JLS10
+	 * @since 3.14
+	 */
+	@Override
+	public boolean isVar() {
+		unsupportedBelow10();
+		if (this.typeName == null) getName();
+		String qName = this.typeName.getFullyQualifiedName();
+		return qName != null && qName.equals("var"); //$NON-NLS-1$
+	}
 	/* (omit javadoc for this method)
 	 * Method declared on ASTNode.
 	 */
+	@Override
 	int memSize() {
 		// treat Code as free
 		return BASE_NODE_SIZE + 2 * 4;
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	int treeSize() {
 		return
 			memSize()

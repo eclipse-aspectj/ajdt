@@ -1,5 +1,6 @@
+// ASPECTJ
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -55,6 +56,7 @@ MethodVerifier15(LookupEnvironment environment) {
 }
 // Given `overridingMethod' which overrides `inheritedMethod' answer whether some subclass method that
 // differs in erasure from overridingMethod could override `inheritedMethod'
+@Override
 protected boolean canOverridingMethodDifferInErasure(MethodBinding overridingMethod, MethodBinding inheritedMethod) {
 	if (overridingMethod.areParameterErasuresEqual(inheritedMethod))
 		return false;  // no further change in signature is possible due to parameterization.
@@ -62,16 +64,19 @@ protected boolean canOverridingMethodDifferInErasure(MethodBinding overridingMet
 		return false;  // no parameterization is happening anyways.
 	return true;
 }
+@Override
 boolean canSkipInheritedMethods() {
 	if (this.type.superclass() != null)
 		if (this.type.superclass().isAbstract() || this.type.superclass().isParameterizedType())
 			return false;
 	return this.type.superInterfaces() == Binding.NO_SUPERINTERFACES;
 }
+@Override
 boolean canSkipInheritedMethods(MethodBinding one, MethodBinding two) {
 	return two == null // already know one is not null
 		|| (TypeBinding.equalsEquals(one.declaringClass, two.declaringClass) && !one.declaringClass.isParameterizedType());
 }
+@Override
 void checkConcreteInheritedMethod(MethodBinding concreteMethod, MethodBinding[] abstractMethods) {
 	super.checkConcreteInheritedMethod(concreteMethod, abstractMethods);
 	boolean analyseNullAnnotations = this.environment.globalOptions.isAnnotationBasedNullAnalysisEnabled;
@@ -79,9 +84,8 @@ void checkConcreteInheritedMethod(MethodBinding concreteMethod, MethodBinding[] 
 	AbstractMethodDeclaration srcMethod = null;
 	if (analyseNullAnnotations && this.type.equals(concreteMethod.declaringClass)) // is currentMethod from the current type?
 		srcMethod = concreteMethod.sourceMethod();
-	boolean useTypeAnnotations = this.environment.usesNullTypeAnnotations();
-	boolean hasReturnNonNullDefault = analyseNullAnnotations && concreteMethod.hasNonNullDefaultFor(Binding.DefaultLocationReturnType, useTypeAnnotations);
-	boolean hasParameterNonNullDefault = analyseNullAnnotations && concreteMethod.hasNonNullDefaultFor(Binding.DefaultLocationParameter, useTypeAnnotations);
+	boolean hasReturnNonNullDefault = analyseNullAnnotations && concreteMethod.hasNonNullDefaultForReturnType(srcMethod);
+	ParameterNonNullDefaultProvider hasParameterNonNullDefault = analyseNullAnnotations ? concreteMethod.hasNonNullDefaultForParameter(srcMethod): ParameterNonNullDefaultProvider.FALSE_PROVIDER;
 
 	for (int i = 0, l = abstractMethods.length; i < l; i++) {
 		MethodBinding abstractMethod = abstractMethods[i];
@@ -108,6 +112,7 @@ void checkConcreteInheritedMethod(MethodBinding concreteMethod, MethodBinding[] 
 		}
 	}
 }
+@Override
 void checkForBridgeMethod(MethodBinding currentMethod, MethodBinding inheritedMethod, MethodBinding[] allInheritedMethods) {
 	if (currentMethod.isVarargs() != inheritedMethod.isVarargs())
 		problemReporter(currentMethod).varargsConflict(currentMethod, inheritedMethod, this.type);
@@ -269,6 +274,7 @@ void checkInheritedMethods(MethodBinding inheritedMethod, MethodBinding otherInh
 	detectInheritedNameClash(inheritedMethod.original(), otherInheritedMethod.original());
 }
 // 8.4.8.4
+@Override
 void checkInheritedMethods(MethodBinding[] methods, int length, boolean[] isOverridden, boolean[] isInherited) {
 	boolean continueInvestigation = true;
 	MethodBinding concreteMethod = null;
@@ -359,14 +365,15 @@ boolean checkInheritedDefaultMethods(MethodBinding[] methods, boolean[] isOverri
 					if (!doesMethodOverride(methods[i], methods[j]) && !doesMethodOverride(methods[j], methods[i])) { 
 						problemReporter().inheritedDefaultMethodConflictsWithOtherInherited(this.type, methods[i], methods[j]);
 						ok = false;
-					continue findDefaultMethod;
+						continue findDefaultMethod;
+					}
 				}
 			}
 		}
 	}
-	}
 	return ok;
 }
+@Override
 boolean checkInheritedReturnTypes(MethodBinding method, MethodBinding otherMethod) {
 	if (areReturnTypesCompatible(method, otherMethod)) return true;
 
@@ -385,6 +392,7 @@ boolean checkInheritedReturnTypes(MethodBinding method, MethodBinding otherMetho
 
 	return false;
 }
+@Override
 void checkAgainstInheritedMethods(MethodBinding currentMethod, MethodBinding[] methods, int length, MethodBinding[] allInheritedMethods)
 {
 	super.checkAgainstInheritedMethods(currentMethod, methods, length, allInheritedMethods);
@@ -396,20 +404,20 @@ void checkAgainstInheritedMethods(MethodBinding currentMethod, MethodBinding[] m
 		AbstractMethodDeclaration srcMethod = null;
 		if (this.type.equals(currentMethod.declaringClass)) // is currentMethod from the current type?
 			srcMethod = currentMethod.sourceMethod();
-		boolean useTypeAnnotations = this.environment.usesNullTypeAnnotations();
-		boolean hasReturnNonNullDefault = currentMethod.hasNonNullDefaultFor(Binding.DefaultLocationReturnType, useTypeAnnotations);
-		boolean hasParameterNonNullDefault = currentMethod.hasNonNullDefaultFor(Binding.DefaultLocationParameter, useTypeAnnotations);
+		boolean hasReturnNonNullDefault = currentMethod.hasNonNullDefaultForReturnType(srcMethod);
+		ParameterNonNullDefaultProvider hasParameterNonNullDefault = currentMethod.hasNonNullDefaultForParameter(srcMethod);
 		for (int i = length; --i >= 0;)
 			if (!currentMethod.isStatic() && !methods[i].isStatic())
 				checkNullSpecInheritance(currentMethod, srcMethod, hasReturnNonNullDefault, hasParameterNonNullDefault, true, methods[i], methods, this.type.scope, null);
 	}
 }
 
+@Override
 void checkNullSpecInheritance(MethodBinding currentMethod, AbstractMethodDeclaration srcMethod, 
-		boolean hasReturnNonNullDefault, boolean hasParameterNonNullDefault, boolean complain, MethodBinding inheritedMethod, MethodBinding[] allInherited, Scope scope, InheritedNonNullnessInfo[] inheritedNonNullnessInfos)
+		boolean hasReturnNonNullDefault, ParameterNonNullDefaultProvider hasParameterNonNullDefault, boolean complain, MethodBinding inheritedMethod, MethodBinding[] allInherited, Scope scope, InheritedNonNullnessInfo[] inheritedNonNullnessInfos)
 {
 	complain &= !currentMethod.isConstructor();
-	if (!hasReturnNonNullDefault && !hasParameterNonNullDefault && !complain && !this.environment.globalOptions.inheritNullAnnotations) {
+	if (!hasReturnNonNullDefault && !hasParameterNonNullDefault.hasAnyNonNullDefault() && !complain && !this.environment.globalOptions.inheritNullAnnotations) {
 		// nothing to be done, take the shortcut
 		currentMethod.tagBits |= TagBits.IsNullnessKnown;
 		return;
@@ -467,6 +475,7 @@ void reportRawReferences() {
 		}
 	}
 }
+@Override
 public void reportRawReferences(MethodBinding currentMethod, MethodBinding inheritedMethod) {
 	CompilerOptions compilerOptions = this.type.scope.compilerOptions();
 	if (compilerOptions.sourceLevel < ClassFileConstants.JDK1_5 // shouldn't whine at all
@@ -510,6 +519,7 @@ public void reportRawReferences(MethodBinding currentMethod, MethodBinding inher
 	}
  }
 
+@Override
 void checkMethods() {
 	boolean mustImplementAbstractMethods = mustImplementAbstractMethods();
 	boolean skipInheritedMethods = mustImplementAbstractMethods && canSkipInheritedMethods(); // have a single concrete superclass so only check overridden methods
@@ -858,6 +868,7 @@ boolean doTypeVariablesClash(MethodBinding one, MethodBinding substituteTwo) {
 	// one has type variables and substituteTwo did not pass bounds check in computeSubstituteMethod()
 	return one.typeVariables != Binding.NO_TYPE_VARIABLES && !(substituteTwo instanceof ParameterizedGenericMethodBinding);
 }
+@Override
 SimpleSet findSuperinterfaceCollisions(ReferenceBinding superclass, ReferenceBinding[] superInterfaces) {
 	ReferenceBinding[] interfacesToVisit = null;
 	int nextPosition = 0;
@@ -952,6 +963,7 @@ boolean isAcceptableReturnTypeOverride(MethodBinding currentMethod, MethodBindin
 	}
 }
 // caveat: returns false if a method is implemented, but with a return type that is incompatible with that of the interface method
+@Override
 boolean isInterfaceMethodImplemented(MethodBinding inheritedMethod, MethodBinding existingMethod, ReferenceBinding superType) {
 	if (inheritedMethod.original() != inheritedMethod && existingMethod.declaringClass.isInterface())
 		return false; // must hold onto ParameterizedMethod to see if a bridge method is necessary
@@ -964,6 +976,7 @@ boolean isInterfaceMethodImplemented(MethodBinding inheritedMethod, MethodBindin
 				&& !existingMethod.declaringClass.isInterface()
 				&& areReturnTypesCompatible(existingMethod, inheritedMethod)); // may have to report incompatible return type
 }
+@Override
 public boolean isMethodSubsignature(MethodBinding method, MethodBinding inheritedMethod) {
 	if (!org.aspectj.org.eclipse.jdt.core.compiler.CharOperation.equals(method.selector, inheritedMethod.selector))
 		return false;
@@ -993,6 +1006,7 @@ boolean isUnsafeReturnTypeOverride(MethodBinding currentMethod, MethodBinding in
 	}
 	return false;
 }
+@Override
 boolean reportIncompatibleReturnTypeError(MethodBinding currentMethod, MethodBinding inheritedMethod) {
 	if (isUnsafeReturnTypeOverride(currentMethod, inheritedMethod)) {
 		problemReporter(currentMethod).unsafeReturnTypeOverride(currentMethod, inheritedMethod, this.type);
@@ -1000,6 +1014,7 @@ boolean reportIncompatibleReturnTypeError(MethodBinding currentMethod, MethodBin
 	}
 	return super.reportIncompatibleReturnTypeError(currentMethod, inheritedMethod);
 }
+@Override
 void verify() {
 	if (this.type.isAnnotationType())
 		this.type.detectAnnotationCycle();

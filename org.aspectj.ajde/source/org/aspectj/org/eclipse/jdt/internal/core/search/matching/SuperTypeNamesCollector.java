@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -41,33 +41,40 @@ public class SuperTypeNamesCollector {
 	 * collecting their super type names.
 	 */
 	public class TypeDeclarationVisitor extends ASTVisitor {
+		@Override
 		public boolean visit(TypeDeclaration typeDeclaration, BlockScope scope) {
 			ReferenceBinding binding = typeDeclaration.binding;
 			if (SuperTypeNamesCollector.this.matches(binding))
 				collectSuperTypeNames(binding, binding.compoundName);
 			return true;
 		}
+		@Override
 		public boolean visit(TypeDeclaration typeDeclaration, CompilationUnitScope scope) {
 			ReferenceBinding binding = typeDeclaration.binding;
 			if (SuperTypeNamesCollector.this.matches(binding))
 				collectSuperTypeNames(binding, binding.compoundName);
 			return true;
 		}
+		@Override
 		public boolean visit(TypeDeclaration memberTypeDeclaration, ClassScope scope) {
 			ReferenceBinding binding = memberTypeDeclaration.binding;
 			if (SuperTypeNamesCollector.this.matches(binding))
 				collectSuperTypeNames(binding, binding.compoundName);
 			return true;
 		}
+		@Override
 		public boolean visit(FieldDeclaration fieldDeclaration, MethodScope scope) {
 			return false; // don't visit field declarations
 		}
+		@Override
 		public boolean visit(Initializer initializer, MethodScope scope) {
 			return false; // don't visit initializers
 		}
+		@Override
 		public boolean visit(ConstructorDeclaration constructorDeclaration, ClassScope scope) {
 			return false; // don't visit constructor declarations
 		}
+		@Override
 		public boolean visit(MethodDeclaration methodDeclaration, ClassScope scope) {
 			return false; // don't visit method declarations
 		}
@@ -206,8 +213,8 @@ public char[][][] collect() throws JavaModelException {
 				CompilationUnitDeclaration parsedUnit = buildBindings(unit, true /*only top level and member types are visible to the focus type*/);
 				if (parsedUnit != null)
 					parsedUnit.traverse(new TypeDeclarationVisitor(), parsedUnit.scope);
-			} else if (openable instanceof IClassFile) {
-				IClassFile classFile = (IClassFile) openable;
+			} else if (openable instanceof IOrdinaryClassFile) {
+				IOrdinaryClassFile classFile = (IOrdinaryClassFile) openable;
 				BinaryTypeBinding binding = this.locator.cacheBinaryType(classFile.getType(), null);
 				if (matches(binding))
 					collectSuperTypeNames(binding, binding.compoundName);
@@ -258,6 +265,7 @@ protected String[] getPathsOfDeclaringType() {
 		IIndexConstants.TYPE_SUFFIX,
 		this.pattern.getMatchRule());
 	IndexQueryRequestor searchRequestor = new IndexQueryRequestor(){
+		@Override
 		public boolean acceptIndexMatch(String documentPath, SearchPattern indexRecord, SearchParticipant participant, AccessRuleSet access) {
 			TypeDeclarationPattern record = (TypeDeclarationPattern)indexRecord;
 			if (record.enclosingTypeNames != IIndexConstants.ONE_ZERO_CHAR) {  // filter out local and anonymous classes

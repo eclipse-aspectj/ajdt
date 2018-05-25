@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,6 +7,8 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
+ *     Jesper Steen Møller <jesper@selskabet.org> - contributions for:	
+ *         Bug 531046: [10] ICodeAssist#codeSelect support for 'var'
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.codeassist;
 
@@ -21,6 +23,7 @@ import org.aspectj.org.eclipse.jdt.core.IBuffer;
 import org.aspectj.org.eclipse.jdt.core.IJavaElement;
 import org.aspectj.org.eclipse.jdt.core.IMember;
 import org.aspectj.org.eclipse.jdt.core.IOpenable;
+import org.aspectj.org.eclipse.jdt.core.IOrdinaryClassFile;
 import org.aspectj.org.eclipse.jdt.core.ISourceRange;
 import org.aspectj.org.eclipse.jdt.core.IType;
 import org.aspectj.org.eclipse.jdt.core.JavaCore;
@@ -40,6 +43,7 @@ import org.aspectj.org.eclipse.jdt.internal.codeassist.impl.AssistParser;
 import org.aspectj.org.eclipse.jdt.internal.codeassist.impl.Engine;
 import org.aspectj.org.eclipse.jdt.internal.codeassist.select.SelectionJavadocParser;
 import org.aspectj.org.eclipse.jdt.internal.codeassist.select.SelectionNodeFound;
+import org.aspectj.org.eclipse.jdt.internal.codeassist.select.SelectionOnPackageVisibilityReference;
 import org.aspectj.org.eclipse.jdt.internal.codeassist.select.SelectionOnImportReference;
 import org.aspectj.org.eclipse.jdt.internal.codeassist.select.SelectionOnPackageReference;
 import org.aspectj.org.eclipse.jdt.internal.codeassist.select.SelectionOnQualifiedTypeReference;
@@ -54,13 +58,18 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclarat
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ConstructorDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ImportReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.LocalDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ModuleDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.PackageVisibilityStatement;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.SingleTypeReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeParameter;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileReader;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFormatException;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.AccessRestriction;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryType;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ArrayBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BaseTypeBinding;
@@ -69,21 +78,25 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BlockScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ClassScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.CompilationUnitScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.FieldBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.IntersectionTypeBinding18;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LocalTypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MemberTypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodScope;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ModuleBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.PackageBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ParameterizedTypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ProblemFieldBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ProblemReasons;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ProblemReferenceBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Scope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.SyntheticMethodBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeVariableBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.Scanner;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.ScannerHelper;
@@ -97,6 +110,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.util.ObjectVector;
 import org.aspectj.org.eclipse.jdt.internal.core.BinaryTypeConverter;
 import org.aspectj.org.eclipse.jdt.internal.core.ClassFile;
 import org.aspectj.org.eclipse.jdt.internal.core.JavaModelManager;
+import org.aspectj.org.eclipse.jdt.internal.core.JrtPackageFragmentRoot;
 import org.aspectj.org.eclipse.jdt.internal.core.SearchableEnvironment;
 import org.aspectj.org.eclipse.jdt.internal.core.SelectionRequestor;
 import org.aspectj.org.eclipse.jdt.internal.core.SourceType;
@@ -154,6 +168,7 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 			this.importReferences = importReferences;
 		}
 		
+		@Override
 		public void acceptType(int modifiers, char[] packageName, char[] simpleTypeName, char[][] enclosingTypeNames, String path, AccessRestriction access) {
 			if (enclosingTypeNames != null && enclosingTypeNames.length > 0) return;
 			
@@ -296,6 +311,7 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 				this.compilerOptions,
 				new DefaultProblemFactory(Locale.getDefault())) {
 
+			@Override
 			public CategorizedProblem createProblem(
 				char[] fileName,
 				int problemId,
@@ -329,6 +345,7 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 		this.owner = owner;
 	}
 	
+	@Override
 	public void acceptConstructor(
 			int modifiers,
 			char[] simpleTypeName,
@@ -344,6 +361,7 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 		// constructors aren't searched
 	}
 
+	@Override
 	public void acceptType(char[] packageName, char[] simpleTypeName, char[][] enclosingTypeNames, int modifiers, AccessRestriction accessRestriction) {
 		char[] typeName = enclosingTypeNames == null ?
 				simpleTypeName :
@@ -454,14 +472,7 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 		}
 	}
 
-	/**
-	 * One result of the search consists of a new package.
-	 * @param packageName char[]
-	 *
-	 * NOTE - All package names are presented in their readable form:
-	 *    Package names are in the form "a.b.c".
-	 *    The default package is represented by an empty array.
-	 */
+	@Override
 	public void acceptPackage(char[] packageName) {
 		// implementation of interface method
 	}
@@ -539,7 +550,8 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 	private boolean checkSelection(
 			char[] source,
 			int selectionStart,
-			int selectionEnd) {
+			int selectionEnd,
+			boolean isModuleInfo) {
 
 		Scanner scanner =
 			new Scanner(
@@ -628,7 +640,7 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 			}
 
 			// compute start and end of the last token
-			scanner.resetTo(nextCharacterPosition, end);
+			scanner.resetTo(nextCharacterPosition, end, isModuleInfo);
 			isolateLastName: do {
 				try {
 					token = scanner.getNextToken();
@@ -678,7 +690,7 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 					}
 				}  
 			} // there could be some innocuous widening, shouldn't matter.
-			scanner.resetTo(selectionStart, selectionEnd);
+			scanner.resetTo(selectionStart, selectionEnd, isModuleInfo);
 
 			boolean expectingIdentifier = true;
 			do {
@@ -827,33 +839,42 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 		try {
 			IProgressMonitor progressMonitor = new IProgressMonitor() {
 				boolean isCanceled = false;
+				@Override
 				public void beginTask(String name, int totalWork) {
 					// implements interface method
 				}
+				@Override
 				public void done() {
 					// implements interface method
 				}
+				@Override
 				public void internalWorked(double work) {
 					// implements interface method
 				}
+				@Override
 				public boolean isCanceled() {
 					return this.isCanceled;
 				}
+				@Override
 				public void setCanceled(boolean value) {
 					this.isCanceled = value;
 				}
+				@Override
 				public void setTaskName(String name) {
 					// implements interface method
 				}
+				@Override
 				public void subTask(String name) {
 					// implements interface method
 				}
+				@Override
 				public void worked(int work) {
 					// implements interface method
 				}
 			};
 			
 			TypeNameMatchRequestor typeNameMatchRequestor = new TypeNameMatchRequestor() {
+				@Override
 				public void acceptTypeNameMatch(TypeNameMatch match) {
 					if (SelectionEngine.this.requestor instanceof SelectionRequestor) {
 						SelectionEngine.this.noProposal = false;
@@ -892,6 +913,7 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 		}
 	}
 
+	@Override
 	public AssistParser getParser() {
 		return this.parser;
 	}
@@ -940,7 +962,8 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 			System.out.println("SELECTION - Source :"); //$NON-NLS-1$
 			System.out.println(source);
 		}
-		if (!checkSelection(source, selectionSourceStart, selectionSourceEnd)) {
+		boolean isModuleInfo = CharOperation.endsWith(sourceUnit.getFileName(), TypeConstants.MODULE_INFO_FILE_NAME);
+		if (!checkSelection(source, selectionSourceStart, selectionSourceEnd, isModuleInfo)) {
 			return;
 		}
 		if (DEBUG) {
@@ -1015,14 +1038,24 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 						}
 					}
 				}
-				if (parsedUnit.types != null || parsedUnit.isPackageInfo()) {
-					if(selectDeclaration(parsedUnit))
-						return;
-					this.lookupEnvironment.buildTypeBindings(parsedUnit, null /*no access restriction*/);
-					if ((this.unitScope = parsedUnit.scope)  != null) {
-						try {
+				try {
+					if (parsedUnit.isModuleInfo() && parsedUnit.moduleDeclaration != null) {
+						ModuleDeclaration module = parsedUnit.moduleDeclaration;
+						this.lookupEnvironment.buildTypeBindings(parsedUnit, null /*no access restriction*/);
+						if ((this.unitScope = parsedUnit.scope)  != null) {
 							this.lookupEnvironment.completeTypeBindings(parsedUnit, true);
-							
+						}
+						module.resolveModuleDirectives(parsedUnit.scope);
+						module.resolvePackageDirectives(parsedUnit.scope);
+						module.resolveTypeDirectives(parsedUnit.scope);
+						acceptPackageVisibilityStatements(module.exports, parsedUnit.scope);
+						acceptPackageVisibilityStatements(module.opens, parsedUnit.scope);
+					} else if (parsedUnit.types != null || parsedUnit.isPackageInfo()) {
+						if(selectDeclaration(parsedUnit))
+							return;
+						this.lookupEnvironment.buildTypeBindings(parsedUnit, null /*no access restriction*/);
+						if ((this.unitScope = parsedUnit.scope)  != null) {
+							this.lookupEnvironment.completeTypeBindings(parsedUnit, true);
 							CompilationUnitDeclaration previousUnitBeingCompleted = this.lookupEnvironment.unitBeingCompleted;
 							this.lookupEnvironment.unitBeingCompleted = parsedUnit;
 							parsedUnit.scope.faultInTypes();
@@ -1038,16 +1071,16 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 							if (node != null) {
 								selectLocalDeclaration(node);
 							}
-						} catch (SelectionNodeFound e) {
-							if (e.binding != null) {
-								if(DEBUG) {
-									System.out.println("SELECTION - Selection binding:"); //$NON-NLS-1$
-									System.out.println(e.binding.toString());
-								}
-								// if null then we found a problem in the selection node
-								selectFrom(e.binding, parsedUnit, sourceUnit, e.isDeclaration);
-							}
 						}
+					}
+				} catch (SelectionNodeFound e) {
+					if (e.binding != null) {
+						if(DEBUG) {
+							System.out.println("SELECTION - Selection binding:"); //$NON-NLS-1$
+							System.out.println(e.binding.toString());
+						}
+						// if null then we found a problem in the selection node
+						selectFrom(e.binding, parsedUnit, sourceUnit, e.isDeclaration);
 					}
 				}
 			}
@@ -1084,6 +1117,16 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 		}
 	}
 
+	private void acceptPackageVisibilityStatements(PackageVisibilityStatement[] pvs, Scope scope) {
+		if (pvs != null) {
+			for (PackageVisibilityStatement pv : pvs) {
+				if (pv.pkgRef instanceof SelectionOnPackageVisibilityReference) {
+					this.noProposal = false;
+					this.requestor.acceptPackage(CharOperation.concatWith(((SelectionOnPackageVisibilityReference) pv.pkgRef).tokens, '.'));
+				}
+			}
+		}
+	}
 	private void selectMemberTypeFromImport(CompilationUnitDeclaration parsedUnit, char[] lastToken, ReferenceBinding ref, boolean staticOnly) {
 		int fieldLength = lastToken.length;
 		ReferenceBinding[] memberTypes = ref.memberTypes();
@@ -1205,6 +1248,12 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 			if (isLocal(typeBinding) && this.requestor instanceof SelectionRequestor) {
 				this.noProposal = false;
 				((SelectionRequestor)this.requestor).acceptLocalType(typeBinding);
+			} else if (binding instanceof IntersectionTypeBinding18) {
+				IntersectionTypeBinding18 intersection = (IntersectionTypeBinding18) binding;
+				ReferenceBinding[] intersectingTypes = intersection.intersectingTypes;
+				for (ReferenceBinding referenceBinding : intersectingTypes) {
+					selectFrom(referenceBinding, parsedUnit, isDeclaration);
+				}
 			} else {
 				this.noProposal = false;
 
@@ -1349,6 +1398,15 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 			this.acceptedAnswer = true;
 		} else if(binding instanceof BaseTypeBinding) {
 			this.acceptedAnswer = true;
+		} else if (binding instanceof ModuleBinding) {
+			this.noProposal = false;
+			ModuleBinding moduleBinding = (ModuleBinding) binding;
+			this.requestor.acceptModule(
+					moduleBinding.moduleName,
+					moduleBinding.computeUniqueKey(),
+					this.actualSelectionStart,
+					this.actualSelectionEnd);
+			this.acceptedAnswer = true;
 		}
 	}
 	/*
@@ -1361,6 +1419,7 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 		if (assistIdentifier == null) return;
 
 		class Visitor extends ASTVisitor {
+			@Override
 			public boolean visit(ConstructorDeclaration constructorDeclaration, ClassScope scope) {
 				if (constructorDeclaration.selector == assistIdentifier){
 					if (constructorDeclaration.binding != null) {
@@ -1373,24 +1432,35 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 				}
 				return true;
 			}
+			@Override
+			public boolean visit(
+		    		LocalDeclaration localDeclaration, BlockScope scope) {
+				if (localDeclaration.type instanceof SingleTypeReference && ((SingleTypeReference)localDeclaration.type).token == assistIdentifier)
+					throw new SelectionNodeFound(localDeclaration.binding.type);
+				return true; // do nothing by default, keep traversing
+			}
+			@Override
 			public boolean visit(FieldDeclaration fieldDeclaration, MethodScope scope) {
 				if (fieldDeclaration.name == assistIdentifier){
 					throw new SelectionNodeFound(fieldDeclaration.binding);
 				}
 				return true;
 			}
+			@Override
 			public boolean visit(TypeDeclaration localTypeDeclaration, BlockScope scope) {
 				if (localTypeDeclaration.name == assistIdentifier) {
 					throw new SelectionNodeFound(localTypeDeclaration.binding);
 				}
 				return true;
 			}
+			@Override
 			public boolean visit(TypeDeclaration memberTypeDeclaration, ClassScope scope) {
 				if (memberTypeDeclaration.name == assistIdentifier) {
 					throw new SelectionNodeFound(memberTypeDeclaration.binding);
 				}
 				return true;
 			}
+			@Override
 			public boolean visit(MethodDeclaration methodDeclaration, ClassScope scope) {
 				if (methodDeclaration.selector == assistIdentifier){
 					if (methodDeclaration.binding != null) {
@@ -1403,18 +1473,21 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 				}
 				return true;
 			}
+			@Override
 			public boolean visit(TypeDeclaration typeDeclaration, CompilationUnitScope scope) {
 				if (typeDeclaration.name == assistIdentifier) {
 					throw new SelectionNodeFound(typeDeclaration.binding);
 				}
 				return true;
 			}
+			@Override
 			public boolean visit(TypeParameter typeParameter, BlockScope scope) {
 				if (typeParameter.name == assistIdentifier) {
 					throw new SelectionNodeFound(typeParameter.binding);
 				}
 				return true;
 			}
+			@Override
 			public boolean visit(TypeParameter typeParameter, ClassScope scope) {
 				if (typeParameter.name == assistIdentifier) {
 					throw new SelectionNodeFound(typeParameter.binding);
@@ -1486,26 +1559,36 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 					typeDeclaration = new ASTNodeFinder(parsedUnit).findType(context);
 				}
 			} else { // binary type
-				ClassFile classFile = (ClassFile) context.getClassFile();
-				BinaryTypeDescriptor descriptor = BinaryTypeFactory.createDescriptor(classFile);
-				ClassFileReader reader = null;
-				try {
-					reader = BinaryTypeFactory.rawReadType(descriptor, false/*don't fully initialize so as to keep constant pool (used below)*/);
-				} catch (ClassFormatException e) {
-					if (JavaCore.getPlugin().isDebugging()) {
-						e.printStackTrace(System.err);
+				IOrdinaryClassFile iClassFile = context.getClassFile();
+				if (iClassFile instanceof ClassFile) {
+					ClassFile classFile = (ClassFile) iClassFile;
+					ClassFileReader reader = null;
+					if (classFile.getPackageFragmentRoot() instanceof JrtPackageFragmentRoot) {
+						IBinaryType binaryTypeInfo = classFile.getBinaryTypeInfo();
+						if (binaryTypeInfo instanceof ClassFileReader) {
+							reader = (ClassFileReader) binaryTypeInfo;
+						}
+					} else {
+						BinaryTypeDescriptor descriptor = BinaryTypeFactory.createDescriptor(classFile);
+						try {
+							reader = BinaryTypeFactory.rawReadType(descriptor, false/*don't fully initialize so as to keep constant pool (used below)*/);
+						} catch (ClassFormatException e) {
+							if (JavaCore.getPlugin().isDebugging()) {
+								e.printStackTrace(System.err);
+							}
+						}
 					}
+					if (reader == null) {
+						throw classFile.newNotPresentException();
+					}
+					CompilationResult result = new CompilationResult(reader.getFileName(), 1, 1, this.compilerOptions.maxProblemsPerUnit);
+					parsedUnit = new CompilationUnitDeclaration(this.parser.problemReporter(), result, 0);
+					HashSetOfCharArrayArray typeNames = new HashSetOfCharArrayArray();
+					
+					BinaryTypeConverter converter = new BinaryTypeConverter(this.parser.problemReporter(), result, typeNames);
+					typeDeclaration = converter.buildTypeDeclaration(context, parsedUnit);
+					parsedUnit.imports = converter.buildImports(reader);
 				}
-				if (reader == null) {
-					throw classFile.newNotPresentException();
-				}
-				CompilationResult result = new CompilationResult(reader.getFileName(), 1, 1, this.compilerOptions.maxProblemsPerUnit);
-				parsedUnit = new CompilationUnitDeclaration(this.parser.problemReporter(), result, 0);
-				HashSetOfCharArrayArray typeNames = new HashSetOfCharArrayArray();
-
-				BinaryTypeConverter converter = new BinaryTypeConverter(this.parser.problemReporter(), result, typeNames);
-				typeDeclaration = converter.buildTypeDeclaration(context, parsedUnit);
-				parsedUnit.imports = converter.buildImports(reader);
 			}
 
 			if (typeDeclaration != null) {
@@ -1767,6 +1850,7 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 		ReferenceBinding type= method.declaringClass;
 		final SelectionRequestor requestor1 = (SelectionRequestor) this.requestor;
 		return new InheritDocVisitor() {
+			@Override
 			public Object visit(ReferenceBinding currType) throws JavaModelException {
 				MethodBinding overridden =  findOverriddenMethodInType(currType, method);
 				if (overridden == null)
@@ -1819,9 +1903,11 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 	 */
 	static abstract class InheritDocVisitor {
 		public static final Object STOP_BRANCH= new Object() {
+			@Override
 			public String toString() { return "STOP_BRANCH"; } //$NON-NLS-1$
 		};
 		public static final Object CONTINUE= new Object() {
+			@Override
 			public String toString() { return "CONTINUE"; } //$NON-NLS-1$
 		};
 
@@ -1912,5 +1998,11 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 			}
 			return InheritDocVisitor.CONTINUE;
 		}
+	}
+
+	@Override
+	public void acceptModule(char[] moduleName) {
+		// TODO Auto-generated method stub
+		
 	}
 }

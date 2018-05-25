@@ -71,7 +71,7 @@ public class BatchMessagerImpl extends BaseMessagerImpl implements Messager {
 		}
 		CategorizedProblem problem = createProblem(kind, msg, e, a, v);
 		if (problem != null) {
-            this._compiler.addExtraProblems(problem);
+			this._compiler.addExtraProblems(problem);
 		}
 	}
 }

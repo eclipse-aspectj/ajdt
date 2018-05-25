@@ -1,5 +1,6 @@
+//AspectJ
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -439,6 +440,7 @@ public LocalDeclaration[] findLocalVariableDeclarations(int position) {
 	return null;
 }
 
+@Override
 public LocalVariableBinding findVariable(char[] variableName) {
 	int varLength = variableName.length;
 	for (int i = this.localIndex-1; i >= 0; i--) { // lookup backward to reach latest additions first
@@ -497,7 +499,7 @@ public Binding getBinding(char[][] compoundName, int mask, InvocationSite invoca
 		PackageBinding packageBinding = (PackageBinding) binding;
 		while (currentIndex < length) {
 			unitScope.recordReference(packageBinding.compoundName, compoundName[currentIndex]);
-			binding = packageBinding.getTypeOrPackage(compoundName[currentIndex++]);
+			binding = packageBinding.getTypeOrPackage(compoundName[currentIndex++], module());
 			invocationSite.setFieldIndex(currentIndex);
 			if (binding == null) {
 				if (currentIndex == length) {
@@ -643,7 +645,7 @@ public final Binding getBinding(char[][] compoundName, InvocationSite invocation
 	foundType : if (binding instanceof PackageBinding) {
 		while (currentIndex < length) {
 			PackageBinding packageBinding = (PackageBinding) binding;
-			binding = packageBinding.getTypeOrPackage(compoundName[currentIndex++]);
+			binding = packageBinding.getTypeOrPackage(compoundName[currentIndex++], module());
 			if (binding == null) {
 				if (currentIndex == length) {
 					// must be a type if its the last name, otherwise we have no idea if its a package or type
@@ -825,7 +827,6 @@ public Object[] getEmulationPath(ReferenceBinding targetEnclosingType, boolean o
 				&& sourceType.scope.referenceContext.allocation.enclosingInstance != null;
 			// reject allocation and super constructor call
 			if (denyEnclosingArgInConstructorCall
-					&& currentMethodScope.isConstructorCall
 					&& !isAnonymousAndHasEnclosing
 					&& (TypeBinding.equalsEquals(sourceType, targetEnclosingType) || (!onlyExactMatch && sourceType.findSuperTypeOriginatingFrom(targetEnclosingType) != null))) {
 				return BlockScope.NoEnclosingInstanceInConstructorCall;
@@ -975,6 +976,7 @@ public final boolean needBlankFinalFieldInitializationCheck(FieldBinding binding
  * (unit, type or method) in case the problem handler decides it is necessary
  * to abort.
  */
+@Override
 public ProblemReporter problemReporter() {
 	return methodScope().problemReporter();
 }
@@ -1022,10 +1024,12 @@ public int scopeIndex() {
 }
 
 // start position in this scope - for ordering scopes vs. variables
+@Override
 int startIndex() {
 	return this.startIndex;
 }
 
+@Override
 public String toString() {
 	return toString(0);
 }
@@ -1041,6 +1045,7 @@ public String toString(int tab) {
 private List trackingVariables; // can be null if no resources are tracked
 /** Used only during analyseCode and only for checking if a resource was closed in a finallyBlock. */
 public FlowInfo finallyInfo;
+
 /**
  * Register a tracking variable and compute its id.
  */
@@ -1075,7 +1080,7 @@ public void checkUnclosedCloseables(FlowInfo flowInfo, FlowContext flowContext, 
 	if (!compilerOptions().analyseResourceLeaks) return;
 	if (this.trackingVariables == null) {
 		// at a method return we also consider enclosing scopes
-		if (location != null && this.parent instanceof BlockScope)
+		if (location != null && this.parent instanceof BlockScope && !isLambdaScope())
 			((BlockScope) this.parent).checkUnclosedCloseables(flowInfo, flowContext, location, locationScope);
 		return;
 	}
@@ -1235,8 +1240,5 @@ private boolean checkAppropriate(MethodBinding compileTimeDeclaration, MethodBin
 	}
 	return true;
 }
-@Override
-public boolean hasDefaultNullnessFor(int location) {
-	return this.parent.hasDefaultNullnessFor(location);
-}
+
 }

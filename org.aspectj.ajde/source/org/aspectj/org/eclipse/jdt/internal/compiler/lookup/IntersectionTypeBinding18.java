@@ -1,10 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- *
+ * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann - Contribution for
@@ -14,6 +14,8 @@
  *							Bug 428019 - [1.8][compiler] Type inference failure with nested generic invocation.
  *     Andy Clement (GoPivotal, Inc) aclement@gopivotal.com - Contributions for
  *                          Bug 405104 - [1.8][compiler][codegen] Implement support for serializeable lambdas
+ *     Jesper S Møller - Contributions for bug 381345 : [1.8] Take care of the Java 8 major version
+ *                          Bug 527554 - [18.3] Compiler support for JEP 286 Local-Variable Type
  *******************************************************************************/
 
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
@@ -34,7 +36,7 @@ public class IntersectionTypeBinding18 extends ReferenceBinding { // abstraction
 		this.intersectingTypes = intersectingTypes;
 		this.length = intersectingTypes.length;
 		if (!intersectingTypes[0].isClass()) {
-			this.javaLangObject = environment.getResolvedType(TypeConstants.JAVA_LANG_OBJECT, null);
+			this.javaLangObject = environment.getResolvedJavaBaseType(TypeConstants.JAVA_LANG_OBJECT, null);
 			this.modifiers |= ClassFileConstants.AccInterface;
 		}
 	}
@@ -54,12 +56,12 @@ public class IntersectionTypeBinding18 extends ReferenceBinding { // abstraction
 	}
 
 	@Override
-	protected MethodBinding[] getInterfaceAbstractContracts(Scope scope, boolean replaceWildcards) throws InvalidInputException {
+	protected MethodBinding[] getInterfaceAbstractContracts(Scope scope, boolean replaceWildcards, boolean filterDefaultMethods) throws InvalidInputException {
 		int typesLength = this.intersectingTypes.length;
 		MethodBinding[][] methods = new MethodBinding[typesLength][];
 		int contractsLength = 0;
 		for (int i = 0; i < typesLength; i++) {
-			methods[i] = this.intersectingTypes[i].getInterfaceAbstractContracts(scope, replaceWildcards);
+			methods[i] = this.intersectingTypes[i].getInterfaceAbstractContracts(scope, replaceWildcards, true);
 			contractsLength += methods[i].length;
 		}
 		MethodBinding[] contracts = new MethodBinding[contractsLength];
@@ -72,6 +74,7 @@ public class IntersectionTypeBinding18 extends ReferenceBinding { // abstraction
 		return contracts;
 	}
 
+	@Override
 	public boolean hasTypeBit(int bit) { // Stephan ??
 		for (int i = 0; i < this.length; i++) {		
 			if (this.intersectingTypes[i].hasTypeBit(bit))
@@ -80,10 +83,12 @@ public class IntersectionTypeBinding18 extends ReferenceBinding { // abstraction
 		return false;
 	}
 
+	@Override
 	public boolean canBeInstantiated() {
 		return false;
 	}
 	
+	@Override
 	public boolean canBeSeenBy(PackageBinding invocationPackage) {
 		for (int i = 0; i < this.length; i++) {
 			if (!this.intersectingTypes[i].canBeSeenBy(invocationPackage))
@@ -92,6 +97,7 @@ public class IntersectionTypeBinding18 extends ReferenceBinding { // abstraction
 		return true;
 	}
 	
+	@Override
 	public boolean canBeSeenBy(Scope scope) {
 		for (int i = 0; i < this.length; i++) {
 			if (!this.intersectingTypes[i].canBeSeenBy(scope))
@@ -100,6 +106,7 @@ public class IntersectionTypeBinding18 extends ReferenceBinding { // abstraction
 		return true;
 	}
 	
+	@Override
 	public boolean canBeSeenBy(ReferenceBinding receiverType, ReferenceBinding invocationType) {
 		for (int i = 0; i < this.length; i++) {
 			if (!this.intersectingTypes[i].canBeSeenBy(receiverType, invocationType))
@@ -109,22 +116,27 @@ public class IntersectionTypeBinding18 extends ReferenceBinding { // abstraction
 	}
 	
 	
+	@Override
 	public char[] constantPoolName() {
 		return this.intersectingTypes[0].constantPoolName();
 	}
 
+	@Override
 	public PackageBinding getPackage() {
 		throw new UnsupportedOperationException(); // cannot be referred to
 	}
 	
+	@Override
 	public ReferenceBinding[] getIntersectingTypes() {
 		return this.intersectingTypes;
 	}
 
+	@Override
 	public ReferenceBinding superclass() {
 		return this.intersectingTypes[0].isClass() ? this.intersectingTypes[0] : this.javaLangObject; 
 	}
 	
+	@Override
 	public ReferenceBinding [] superInterfaces() {
 		if (this.intersectingTypes[0].isClass()) {
 			ReferenceBinding [] superInterfaces = new ReferenceBinding[this.length - 1];
@@ -141,6 +153,7 @@ public class IntersectionTypeBinding18 extends ReferenceBinding { // abstraction
 	
 	/* Answer true if the receiver type can be assigned to the argument type (right)
 	 */
+	@Override
 	public boolean isCompatibleWith(TypeBinding right, Scope scope) {
 
 		// easy way out?
@@ -185,16 +198,17 @@ public class IntersectionTypeBinding18 extends ReferenceBinding { // abstraction
 	}
 	
 	@Override
-	public boolean isSubtypeOf(TypeBinding other) {
+	public boolean isSubtypeOf(TypeBinding other, boolean simulatingBugJDK8026527) {
 		if (TypeBinding.equalsEquals(this, other))
 			return true;
 		for (int i = 0; i < this.intersectingTypes.length; i++) {
-			if (this.intersectingTypes[i].isSubtypeOf(other))
+			if (this.intersectingTypes[i].isSubtypeOf(other, false))
 				return true;
 		}
 		return false;
 	}
 
+	@Override
 	public char[] qualifiedSourceName() {
 		StringBuffer qualifiedSourceName = new StringBuffer(16);
 		for (int i = 0; i < this.length; i++) {		
@@ -205,6 +219,7 @@ public class IntersectionTypeBinding18 extends ReferenceBinding { // abstraction
 		return qualifiedSourceName.toString().toCharArray();
 	}
 
+	@Override
 	public char[] sourceName() {
 		StringBuffer srcName = new StringBuffer(16);
 		for (int i = 0; i < this.length; i++) {		
@@ -215,6 +230,7 @@ public class IntersectionTypeBinding18 extends ReferenceBinding { // abstraction
 		return srcName.toString().toCharArray();
 	}
 
+	@Override
 	public char[] readableName() {
 		StringBuffer readableName = new StringBuffer(16);
 		for (int i = 0; i < this.length; i++) {		
@@ -224,6 +240,7 @@ public class IntersectionTypeBinding18 extends ReferenceBinding { // abstraction
 		}
 		return readableName.toString().toCharArray();
 	}
+	@Override
 	public char[] shortReadableName() {
 		StringBuffer shortReadableName = new StringBuffer(16);
 		for (int i = 0; i < this.length; i++) {		
@@ -233,12 +250,15 @@ public class IntersectionTypeBinding18 extends ReferenceBinding { // abstraction
 		}
 		return shortReadableName.toString().toCharArray();
 	}
+	@Override
 	public boolean isIntersectionType18() {
 		return true;
 	}
+	@Override
 	public int kind() {
 		return Binding.INTERSECTION_TYPE18;
 	}
+	@Override
 	public String debugName() {
 		StringBuffer debugName = new StringBuffer(16);
 		for (int i = 0; i < this.length; i++) {		
@@ -248,6 +268,7 @@ public class IntersectionTypeBinding18 extends ReferenceBinding { // abstraction
 		}
 		return debugName.toString();
 	}
+	@Override
 	public String toString() {
 	    return debugName();
 	}
@@ -271,6 +292,24 @@ public class IntersectionTypeBinding18 extends ReferenceBinding { // abstraction
 			this.intersectingTypes[i].collectInferenceVariables(variables);
 	}
 	
+	@Override
+	public ReferenceBinding upwardsProjection(Scope scope, TypeBinding[] mentionedTypeVariables) {
+		ReferenceBinding[] projectedTypes = new ReferenceBinding[this.intersectingTypes.length];
+		for (int i = 0; i < this.intersectingTypes.length; ++i) {
+			projectedTypes[i] =  this.intersectingTypes[i].upwardsProjection(scope, mentionedTypeVariables);
+		}
+		return (ReferenceBinding) scope.environment().createIntersectionType18(projectedTypes);
+	}
+
+	@Override
+	public ReferenceBinding downwardsProjection(Scope scope, TypeBinding[] mentionedTypeVariables) {
+		ReferenceBinding[] projectedTypes = new ReferenceBinding[this.intersectingTypes.length];
+		for (int i = 0; i < this.intersectingTypes.length; ++i) {
+			projectedTypes[i] = this.intersectingTypes[i].downwardsProjection(scope, mentionedTypeVariables);
+		}
+		return (ReferenceBinding) scope.environment().createIntersectionType18(projectedTypes);
+	}
+
 	@Override
 	public boolean mentionsAny(TypeBinding[] parameters, int idx) {
 		if (super.mentionsAny(parameters, idx))

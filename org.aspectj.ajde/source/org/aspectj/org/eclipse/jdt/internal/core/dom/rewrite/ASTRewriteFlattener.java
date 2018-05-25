@@ -1,10 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -70,6 +70,9 @@ public class ASTRewriteFlattener extends ASTVisitor {
 	private static final SimplePropertyDescriptor INTERNAL_VDS_MODIFIERS_PROPERTY = VariableDeclarationStatement.MODIFIERS_PROPERTY;
 
 	/** @deprecated using deprecated code */
+	private static final ChildListPropertyDescriptor INTERNAL_TRY_STATEMENT_RESOURCES_PROPERTY = TryStatement.RESOURCES_PROPERTY;
+
+	/** @deprecated using deprecated code */
 	private static final int JLS2_INTERNAL = AST.JLS2;
 
 	/** @deprecated using deprecated code */
@@ -77,6 +80,12 @@ public class ASTRewriteFlattener extends ASTVisitor {
 
 	/** @deprecated using deprecated code */
 	private static final int JLS4_INTERNAL = AST.JLS4;
+
+	/** @deprecated using deprecated code */
+	private static final int JLS8_INTERNAL = AST.JLS8;
+
+	/** @deprecated using deprecated code */
+	private static final int JLS9_INTERNAL = AST.JLS9;
 
 
 	public static String asString(ASTNode node, RewriteEventStore store) {
@@ -152,6 +161,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		}
 	}
 
+
 	protected List getChildList(ASTNode parent, StructuralPropertyDescriptor childProperty) {
 		return (List) getAttribute(parent, childProperty);
 	}
@@ -197,7 +207,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 	}
 
 	private void visitExtraDimensions(ASTNode node, SimplePropertyDescriptor dimensions, ChildListPropertyDescriptor dimensionsInfo) {
-		if (node.getAST().apiLevel() < AST.JLS8) {
+		if (node.getAST().apiLevel() < JLS8_INTERNAL) {
 			int extraDimensions= getIntAttribute(node, dimensions);
 			for (int i = 0; i < extraDimensions; i++) {
 				this.result.append("[]"); //$NON-NLS-1$
@@ -207,9 +217,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		}
 	}
 
-	/*
-	 * @see ASTVisitor#visit(AnonymousClassDeclaration)
-	 */
+	@Override
 	public boolean visit(AnonymousClassDeclaration node) {
 		this.result.append('{');
 		visitList(node, AnonymousClassDeclaration.BODY_DECLARATIONS_PROPERTY, null);
@@ -217,9 +225,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(ArrayAccess)
-	 */
+	@Override
 	public boolean visit(ArrayAccess node) {
 		getChildNode(node, ArrayAccess.ARRAY_PROPERTY).accept(this);
 		this.result.append('[');
@@ -228,9 +234,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(ArrayCreation)
-	 */
+	@Override
 	public boolean visit(ArrayCreation node) {
 		this.result.append("new "); //$NON-NLS-1$
 		ArrayType arrayType= (ArrayType) getChildNode(node, ArrayCreation.TYPE_PROPERTY);
@@ -238,7 +242,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		// get the element type and count dimensions
 		Type elementType;
 		int dimensions;
-		boolean astLevelGTE8 = node.getAST().apiLevel() >= AST.JLS8;
+		boolean astLevelGTE8 = node.getAST().apiLevel() >= JLS8_INTERNAL;
 		if (astLevelGTE8) {
 			elementType = (Type) getChildNode(arrayType, ArrayType.ELEMENT_TYPE_PROPERTY);
 			dimensions = getChildList(arrayType, ArrayType.DIMENSIONS_PROPERTY).size();
@@ -283,9 +287,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		}
 	}
 
-	/*
-	 * @see ASTVisitor#visit(ArrayInitializer)
-	 */
+	@Override
 	public boolean visit(ArrayInitializer node) {
 		this.result.append('{');
 		visitList(node, ArrayInitializer.EXPRESSIONS_PROPERTY, String.valueOf(','));
@@ -293,11 +295,9 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(ArrayType)
-	 */
+	@Override
 	public boolean visit(ArrayType node) {
-		if (node.getAST().apiLevel() < AST.JLS8) {
+		if (node.getAST().apiLevel() < JLS8_INTERNAL) {
 			getChildNode(node, INTERNAL_ARRAY_COMPONENT_TYPE_PROPERTY).accept(this);
 			this.result.append("[]"); //$NON-NLS-1$
 		} else {
@@ -307,9 +307,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(AssertStatement)
-	 */
+	@Override
 	public boolean visit(AssertStatement node) {
 		this.result.append("assert "); //$NON-NLS-1$
 		getChildNode(node, AssertStatement.EXPRESSION_PROPERTY).accept(this);
@@ -323,9 +321,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(Assignment)
-	 */
+	@Override
 	public boolean visit(Assignment node) {
 		getChildNode(node, Assignment.LEFT_HAND_SIDE_PROPERTY).accept(this);
 		this.result.append(getAttribute(node, Assignment.OPERATOR_PROPERTY).toString());
@@ -333,11 +329,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-
-
-	/*
-	 * @see ASTVisitor#visit(Block)
-	 */
+	@Override
 	public boolean visit(Block node) {
 		this.result.append('{');
 		visitList(node, Block.STATEMENTS_PROPERTY, null);
@@ -345,9 +337,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(BooleanLiteral)
-	 */
+	@Override
 	public boolean visit(BooleanLiteral node) {
 		if (node.booleanValue() == true) {
 			this.result.append("true"); //$NON-NLS-1$
@@ -357,9 +347,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(BreakStatement)
-	 */
+	@Override
 	public boolean visit(BreakStatement node) {
 		this.result.append("break"); //$NON-NLS-1$
 		ASTNode label= getChildNode(node, BreakStatement.LABEL_PROPERTY);
@@ -371,9 +359,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(CastExpression)
-	 */
+	@Override
 	public boolean visit(CastExpression node) {
 		this.result.append('(');
 		getChildNode(node, CastExpression.TYPE_PROPERTY).accept(this);
@@ -382,9 +368,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(CatchClause)
-	 */
+	@Override
 	public boolean visit(CatchClause node) {
 		this.result.append("catch ("); //$NON-NLS-1$
 		getChildNode(node, CatchClause.EXCEPTION_PROPERTY).accept(this);
@@ -393,17 +377,13 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(CharacterLiteral)
-	 */
+	@Override
 	public boolean visit(CharacterLiteral node) {
 		this.result.append(getAttribute(node, CharacterLiteral.ESCAPED_VALUE_PROPERTY));
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(ClassInstanceCreation)
-	 */
+	@Override
 	public boolean visit(ClassInstanceCreation node) {
 		ASTNode expression= getChildNode(node, ClassInstanceCreation.EXPRESSION_PROPERTY);
 		if (expression != null) {
@@ -428,10 +408,15 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(CompilationUnit)
-	 */
+	@Override
 	public boolean visit(CompilationUnit node) {
+		if (node.getAST().apiLevel() >= JLS9_INTERNAL) {
+			ASTNode module= getChildNode(node, CompilationUnit.MODULE_PROPERTY);
+			if (module != null) {
+				module.accept(this);
+			}
+		}
+
 		ASTNode pack= getChildNode(node, CompilationUnit.PACKAGE_PROPERTY);
 		if (pack != null) {
 			pack.accept(this);
@@ -441,9 +426,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(ConditionalExpression)
-	 */
+	@Override
 	public boolean visit(ConditionalExpression node) {
 		getChildNode(node, ConditionalExpression.EXPRESSION_PROPERTY).accept(this);
 		this.result.append('?');
@@ -453,9 +436,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(ConstructorInvocation)
-	 */
+	@Override
 	public boolean visit(ConstructorInvocation node) {
 		if (node.getAST().apiLevel() >= JLS3_INTERNAL) {
 			visitList(node, ConstructorInvocation.TYPE_ARGUMENTS_PROPERTY, String.valueOf(','), String.valueOf('<'), String.valueOf('>'));
@@ -466,9 +447,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(ContinueStatement)
-	 */
+	@Override
 	public boolean visit(ContinueStatement node) {
 		this.result.append("continue"); //$NON-NLS-1$
 		ASTNode label= getChildNode(node, ContinueStatement.LABEL_PROPERTY);
@@ -480,9 +459,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(CreationReference)
-	 */
+	@Override
 	public boolean visit(CreationReference node) {
 		getChildNode(node, CreationReference.TYPE_PROPERTY).accept(this);
 		this.result.append("::"); //$NON-NLS-1$
@@ -491,15 +468,14 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
+	@Override
 	public boolean visit(Dimension node) {
 		visitList(node, Dimension.ANNOTATIONS_PROPERTY, String.valueOf(' '), String.valueOf(' '), String.valueOf(' '));
 		this.result.append("[]"); //$NON-NLS-1$
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(DoStatement)
-	 */
+	@Override
 	public boolean visit(DoStatement node) {
 		this.result.append("do "); //$NON-NLS-1$
 		getChildNode(node, DoStatement.BODY_PROPERTY).accept(this);
@@ -509,26 +485,33 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(EmptyStatement)
-	 */
+	@Override
 	public boolean visit(EmptyStatement node) {
 		this.result.append(';');
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(ExpressionStatement)
-	 */
+	@Override
+	public boolean visit(ExportsDirective node) {
+		this.result.append("exports "); //$NON-NLS-1$
+		getChildNode(node, ExportsDirective.NAME_PROPERTY).accept(this);
+		List<Name> modules = node.modules();
+		if (modules.size() > 0) {
+			this.result.append(" to "); //$NON-NLS-1$
+			visitList(node, ExportsDirective.MODULES_PROPERTY, Util.COMMA_SEPARATOR, Util.EMPTY_STRING, Util.EMPTY_STRING);
+		}
+		this.result.append(';');
+		return false;
+	}
+
+	@Override
 	public boolean visit(ExpressionStatement node) {
 		getChildNode(node, ExpressionStatement.EXPRESSION_PROPERTY).accept(this);
 		this.result.append(';');
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(FieldAccess)
-	 */
+	@Override
 	public boolean visit(FieldAccess node) {
 		getChildNode(node, FieldAccess.EXPRESSION_PROPERTY).accept(this);
 		this.result.append('.');
@@ -536,9 +519,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(FieldDeclaration)
-	 */
+	@Override
 	public boolean visit(FieldDeclaration node) {
 		ASTNode javadoc= getChildNode(node, FieldDeclaration.JAVADOC_PROPERTY);
 		if (javadoc != null) {
@@ -556,9 +537,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(ForStatement)
-	 */
+	@Override
 	public boolean visit(ForStatement node) {
 		this.result.append("for ("); //$NON-NLS-1$
 		visitList(node, ForStatement.INITIALIZERS_PROPERTY, String.valueOf(','));
@@ -574,9 +553,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(IfStatement)
-	 */
+	@Override
 	public boolean visit(IfStatement node) {
 		this.result.append("if ("); //$NON-NLS-1$
 		getChildNode(node, IfStatement.EXPRESSION_PROPERTY).accept(this);
@@ -590,9 +567,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(ImportDeclaration)
-	 */
+	@Override
 	public boolean visit(ImportDeclaration node) {
 		this.result.append("import "); //$NON-NLS-1$
 		if (node.getAST().apiLevel() >= JLS3_INTERNAL) {
@@ -608,11 +583,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-
-
-	/*
-	 * @see ASTVisitor#visit(InfixExpression)
-	 */
+	@Override
 	public boolean visit(InfixExpression node) {
 		getChildNode(node, InfixExpression.LEFT_OPERAND_PROPERTY).accept(this);
 		this.result.append(' ');
@@ -627,9 +598,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(Initializer)
-	 */
+	@Override
 	public boolean visit(Initializer node) {
 		ASTNode javadoc= getChildNode(node, Initializer.JAVADOC_PROPERTY);
 		if (javadoc != null) {
@@ -644,9 +613,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(InstanceofExpression)
-	 */
+	@Override
 	public boolean visit(InstanceofExpression node) {
 		getChildNode(node, InstanceofExpression.LEFT_OPERAND_PROPERTY).accept(this);
 		this.result.append(" instanceof "); //$NON-NLS-1$
@@ -654,17 +621,13 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(IntersectionType)
-	 */
+	@Override
 	public boolean visit(IntersectionType node) {
 		visitList(node, IntersectionType.TYPES_PROPERTY, " & ", Util.EMPTY_STRING, Util.EMPTY_STRING); //$NON-NLS-1$
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(Javadoc)
-	 */
+	@Override
 	public boolean visit(Javadoc node) {
 		this.result.append("/**"); //$NON-NLS-1$
 		List list= getChildList(node, Javadoc.TAGS_PROPERTY);
@@ -676,18 +639,15 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(LabeledStatement)
-	 */
+	@Override
 	public boolean visit(LabeledStatement node) {
 		getChildNode(node, LabeledStatement.LABEL_PROPERTY).accept(this);
 		this.result.append(": "); //$NON-NLS-1$
 		getChildNode(node, LabeledStatement.BODY_PROPERTY).accept(this);
 		return false;
 	}
-	/*
-	 * @see ASTVisitor#visit(LambdaExpression)
-	 */
+
+	@Override
 	public boolean visit(LambdaExpression node) {
 		boolean hasParentheses = getBooleanAttribute(node, LambdaExpression.PARENTHESES_PROPERTY);
 		if (!hasParentheses) {
@@ -705,9 +665,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(MethodDeclaration)
-	 */
+	@Override
 	public boolean visit(MethodDeclaration node) {
 		ASTNode javadoc= getChildNode(node, MethodDeclaration.JAVADOC_PROPERTY);
 		if (javadoc != null) {
@@ -737,7 +695,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		getChildNode(node, MethodDeclaration.NAME_PROPERTY).accept(this);
 		this.result.append('(');
 		// receiver parameter
-		if (node.getAST().apiLevel() >= AST.JLS8) {
+		if (node.getAST().apiLevel() >= JLS8_INTERNAL) {
 			ASTNode receiverType = getChildNode(node, MethodDeclaration.RECEIVER_TYPE_PROPERTY);
 			if (receiverType != null) {
 				receiverType.accept(this);
@@ -758,7 +716,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		this.result.append(')');
 		visitExtraDimensions(node, INTERNAL_METHOD_EXTRA_DIMENSIONS_PROPERTY, MethodDeclaration.EXTRA_DIMENSIONS2_PROPERTY);
 
-		ChildListPropertyDescriptor exceptionsProperty = node.getAST().apiLevel() <	AST.JLS8 ? 
+		ChildListPropertyDescriptor exceptionsProperty = node.getAST().apiLevel() <	JLS8_INTERNAL ? 
 				INTERNAL_METHOD_THROWN_EXCEPTIONS_PROPERTY : MethodDeclaration.THROWN_EXCEPTION_TYPES_PROPERTY;
 		visitList(node, exceptionsProperty, String.valueOf(','), " throws ", Util.EMPTY_STRING); //$NON-NLS-1$			
 		ASTNode body= getChildNode(node, MethodDeclaration.BODY_PROPERTY);
@@ -770,9 +728,25 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(MethodInvocation)
-	 */
+	@Override
+	public boolean visit(ModuleDeclaration node) {
+		ASTNode javadoc= getChildNode(node, ModuleDeclaration.JAVADOC_PROPERTY);
+		if (javadoc != null) {
+			javadoc.accept(this);
+		}
+		visitList(node, ModuleDeclaration.ANNOTATIONS_PROPERTY, String.valueOf(' '), Util.EMPTY_STRING, String.valueOf(' '));
+		if (getBooleanAttribute(node, ModuleDeclaration.OPEN_PROPERTY)) {
+			this.result.append("open ");//$NON-NLS-1$
+		}
+		this.result.append("module "); //$NON-NLS-1$
+		getChildNode(node, ModuleDeclaration.NAME_PROPERTY).accept(this);
+		this.result.append('{');
+		visitList(node, ModuleDeclaration.MODULE_DIRECTIVES_PROPERTY, null);
+		this.result.append('}');
+		return false;
+	}
+
+	@Override
 	public boolean visit(MethodInvocation node) {
 		ASTNode expression= getChildNode(node, MethodInvocation.EXPRESSION_PROPERTY);
 		if (expression != null) {
@@ -790,25 +764,19 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(NullLiteral)
-	 */
+	@Override
 	public boolean visit(NullLiteral node) {
 		this.result.append("null"); //$NON-NLS-1$
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(NumberLiteral)
-	 */
+	@Override
 	public boolean visit(NumberLiteral node) {
 		this.result.append(getAttribute(node, NumberLiteral.TOKEN_PROPERTY).toString());
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(PackageDeclaration)
-	 */
+	@Override
 	public boolean visit(PackageDeclaration node) {
 		if (node.getAST().apiLevel() >= JLS3_INTERNAL) {
 			ASTNode javadoc = getChildNode(node, PackageDeclaration.JAVADOC_PROPERTY);
@@ -823,9 +791,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(ParenthesizedExpression)
-	 */
+	@Override
 	public boolean visit(ParenthesizedExpression node) {
 		this.result.append('(');
 		getChildNode(node, ParenthesizedExpression.EXPRESSION_PROPERTY).accept(this);
@@ -833,38 +799,40 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(PostfixExpression)
-	 */
+	@Override
 	public boolean visit(PostfixExpression node) {
 		getChildNode(node, PostfixExpression.OPERAND_PROPERTY).accept(this);
 		this.result.append(getAttribute(node, PostfixExpression.OPERATOR_PROPERTY).toString());
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(PrefixExpression)
-	 */
+	@Override
 	public boolean visit(PrefixExpression node) {
 		this.result.append(getAttribute(node, PrefixExpression.OPERATOR_PROPERTY).toString());
 		getChildNode(node, PrefixExpression.OPERAND_PROPERTY).accept(this);
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(PrimitiveType)
-	 */
+	@Override
+	public boolean visit(ProvidesDirective node) {
+		this.result.append("provides "); //$NON-NLS-1$
+		getChildNode(node, ProvidesDirective.NAME_PROPERTY).accept(this);
+		this.result.append(" with "); //$NON-NLS-1$
+		visitList(node, ProvidesDirective.IMPLEMENTATIONS_PROPERTY, Util.EMPTY_STRING, Util.COMMA_SEPARATOR, Util.EMPTY_STRING);
+		this.result.append(';');
+		return false;
+	}
+
+	@Override
 	public boolean visit(PrimitiveType node) {
-		if (node.getAST().apiLevel() >= AST.JLS8) {
+		if (node.getAST().apiLevel() >= JLS8_INTERNAL) {
 			visitList(node, PrimitiveType.ANNOTATIONS_PROPERTY, String.valueOf(' '), Util.EMPTY_STRING, String.valueOf(' '));
 		}
 		this.result.append(getAttribute(node, PrimitiveType.PRIMITIVE_TYPE_CODE_PROPERTY).toString());
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(QualifiedName)
-	 */
+	@Override
 	public boolean visit(QualifiedName node) {
 		getChildNode(node, QualifiedName.QUALIFIER_PROPERTY).accept(this);
 		this.result.append('.');
@@ -872,9 +840,16 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(ReturnStatement)
-	 */
+	@Override
+	public boolean visit(RequiresDirective node) {
+		this.result.append("requires "); //$NON-NLS-1$
+		visitList(node, RequiresDirective.MODIFIERS_PROPERTY, String.valueOf(' '), Util.EMPTY_STRING, String.valueOf(' '));
+		getChildNode(node, RequiresDirective.NAME_PROPERTY).accept(this);
+		this.result.append(';');
+		return false;
+	}
+
+	@Override
 	public boolean visit(ReturnStatement node) {
 		this.result.append("return"); //$NON-NLS-1$
 		ASTNode expression= getChildNode(node, ReturnStatement.EXPRESSION_PROPERTY);
@@ -886,28 +861,22 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(SimpleName)
-	 */
+	@Override
 	public boolean visit(SimpleName node) {
 		this.result.append(getAttribute(node, SimpleName.IDENTIFIER_PROPERTY));
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(SimpleType)
-	 */
+	@Override
 	public boolean visit(SimpleType node) {
-		if (node.getAST().apiLevel() >= AST.JLS8) {
+		if (node.getAST().apiLevel() >= JLS8_INTERNAL) {
 			visitList(node, SimpleType.ANNOTATIONS_PROPERTY, String.valueOf(' '), Util.EMPTY_STRING, String.valueOf(' '));
 		}
 		node.getName().accept(this);
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(SingleVariableDeclaration)
-	 */
+	@Override
 	public boolean visit(SingleVariableDeclaration node) {
 		if (node.getAST().apiLevel() == JLS2_INTERNAL) {
 			printModifiers(getIntAttribute(node, INTERNAL_VARIABLE_MODIFIERS_PROPERTY), this.result);
@@ -915,7 +884,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 			visitList(node, SingleVariableDeclaration.MODIFIERS2_PROPERTY, String.valueOf(' '), Util.EMPTY_STRING, String.valueOf(' '));
 		}
 		getChildNode(node, SingleVariableDeclaration.TYPE_PROPERTY).accept(this);
-		if (node.getAST().apiLevel() >= AST.JLS8  && node.isVarargs()) {
+		if (node.getAST().apiLevel() >= JLS8_INTERNAL  && node.isVarargs()) {
 			visitList(node, SingleVariableDeclaration.VARARGS_ANNOTATIONS_PROPERTY, String.valueOf(' '), Util.EMPTY_STRING, String.valueOf(' '));
 		}
 		if (node.getAST().apiLevel() >= JLS3_INTERNAL) {
@@ -934,17 +903,13 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(StringLiteral)
-	 */
+	@Override
 	public boolean visit(StringLiteral node) {
 		this.result.append(getAttribute(node, StringLiteral.ESCAPED_VALUE_PROPERTY));
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(SuperConstructorInvocation)
-	 */
+	@Override
 	public boolean visit(SuperConstructorInvocation node) {
 		ASTNode expression= getChildNode(node, SuperConstructorInvocation.EXPRESSION_PROPERTY);
 		if (expression != null) {
@@ -960,9 +925,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(SuperFieldAccess)
-	 */
+	@Override
 	public boolean visit(SuperFieldAccess node) {
 		ASTNode qualifier= getChildNode(node, SuperFieldAccess.QUALIFIER_PROPERTY);
 		if (qualifier != null) {
@@ -974,9 +937,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(SuperMethodInvocation)
-	 */
+	@Override
 	public boolean visit(SuperMethodInvocation node) {
 		ASTNode qualifier= getChildNode(node, SuperMethodInvocation.QUALIFIER_PROPERTY);
 		if (qualifier != null) {
@@ -994,9 +955,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(SwitchCase)
-	 */
+	@Override
 	public boolean visit(SwitchCase node) {
 		ASTNode expression= getChildNode(node, SwitchCase.EXPRESSION_PROPERTY);
 		if (expression == null) {
@@ -1009,9 +968,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(SwitchStatement)
-	 */
+	@Override
 	public boolean visit(SwitchStatement node) {
 		this.result.append("switch ("); //$NON-NLS-1$
 		getChildNode(node, SwitchStatement.EXPRESSION_PROPERTY).accept(this);
@@ -1022,9 +979,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(SynchronizedStatement)
-	 */
+	@Override
 	public boolean visit(SynchronizedStatement node) {
 		this.result.append("synchronized ("); //$NON-NLS-1$
 		getChildNode(node, SynchronizedStatement.EXPRESSION_PROPERTY).accept(this);
@@ -1033,9 +988,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(ThisExpression)
-	 */
+	@Override
 	public boolean visit(ThisExpression node) {
 		ASTNode qualifier= getChildNode(node, ThisExpression.QUALIFIER_PROPERTY);
 		if (qualifier != null) {
@@ -1046,9 +999,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(ThrowStatement)
-	 */
+	@Override
 	public boolean visit(ThrowStatement node) {
 		this.result.append("throw "); //$NON-NLS-1$
 		getChildNode(node, ThrowStatement.EXPRESSION_PROPERTY).accept(this);
@@ -1056,13 +1007,13 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(TryStatement)
-	 */
+	@Override
 	public boolean visit(TryStatement node) {
 		this.result.append("try "); //$NON-NLS-1$
-		if (node.getAST().apiLevel() >= JLS4_INTERNAL) {
-			visitList(node, TryStatement.RESOURCES_PROPERTY, String.valueOf(';'), String.valueOf('('), String.valueOf(')'));
+		int level = node.getAST().apiLevel();
+		if (level >= JLS4_INTERNAL) {
+			StructuralPropertyDescriptor desc = level < JLS9_INTERNAL ? INTERNAL_TRY_STATEMENT_RESOURCES_PROPERTY : TryStatement.RESOURCES2_PROPERTY;
+			visitList(node, desc, String.valueOf(';'), String.valueOf('('), String.valueOf(')'));
 		}
 		getChildNode(node, TryStatement.BODY_PROPERTY).accept(this);
 		this.result.append(' ');
@@ -1075,9 +1026,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(TypeDeclaration)
-	 */
+	@Override
 	public boolean visit(TypeDeclaration node) {
 		int apiLevel= node.getAST().apiLevel();
 
@@ -1118,9 +1067,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(TypeDeclarationStatement)
-	 */
+	@Override
 	public boolean visit(TypeDeclarationStatement node) {
 		if (node.getAST().apiLevel() == JLS2_INTERNAL) {
 			getChildNode(node, INTERNAL_TDS_TYPE_DECLARATION_PROPERTY).accept(this);
@@ -1130,26 +1077,28 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(TypeLiteral)
-	 */
+	@Override
 	public boolean visit(TypeLiteral node) {
 		getChildNode(node, TypeLiteral.TYPE_PROPERTY).accept(this);
 		this.result.append(".class"); //$NON-NLS-1$
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(UnionType)
-	 */
+	@Override
 	public boolean visit(UnionType node) {
 		visitList(node, UnionType.TYPES_PROPERTY, " | ", Util.EMPTY_STRING, Util.EMPTY_STRING); //$NON-NLS-1$
 		return false;
 	}
-	
-	/*
-	 * @see ASTVisitor#visit(VariableDeclarationExpression)
-	 */
+
+	@Override
+	public boolean visit(UsesDirective node) {
+		this.result.append("uses "); //$NON-NLS-1$
+		getChildNode(node, UsesDirective.NAME_PROPERTY).accept(this);
+		this.result.append(';');
+		return false;
+	}
+
+	@Override
 	public boolean visit(VariableDeclarationExpression node) {
 		if (node.getAST().apiLevel() == JLS2_INTERNAL) {
 			printModifiers(getIntAttribute(node, INTERNAL_VDE_MODIFIERS_PROPERTY), this.result);
@@ -1162,9 +1111,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(VariableDeclarationFragment)
-	 */
+	@Override
 	public boolean visit(VariableDeclarationFragment node) {
 		getChildNode(node, VariableDeclarationFragment.NAME_PROPERTY).accept(this);
 		visitExtraDimensions(node, INTERNAL_FRAGMENT_EXTRA_DIMENSIONS_PROPERTY, VariableDeclarationFragment.EXTRA_DIMENSIONS2_PROPERTY);
@@ -1176,9 +1123,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(VariableDeclarationStatement)
-	 */
+	@Override
 	public boolean visit(VariableDeclarationStatement node) {
 		if (node.getAST().apiLevel() == JLS2_INTERNAL) {
 			printModifiers(getIntAttribute(node, INTERNAL_VDS_MODIFIERS_PROPERTY), this.result);
@@ -1192,9 +1137,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(WhileStatement)
-	 */
+	@Override
 	public boolean visit(WhileStatement node) {
 		this.result.append("while ("); //$NON-NLS-1$
 		getChildNode(node, WhileStatement.EXPRESSION_PROPERTY).accept(this);
@@ -1203,22 +1146,17 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(org.aspectj.org.eclipse.jdt.core.dom.BlockComment)
-	 */
+	@Override
 	public boolean visit(BlockComment node) {
 		return false; // cant flatten, needs source
 	}
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(org.aspectj.org.eclipse.jdt.core.dom.LineComment)
-	 */
+
+	@Override
 	public boolean visit(LineComment node) {
 		return false; // cant flatten, needs source
 	}
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(org.aspectj.org.eclipse.jdt.core.dom.MemberRef)
-	 */
+
+	@Override
 	public boolean visit(MemberRef node) {
 		ASTNode qualifier= getChildNode(node, MemberRef.QUALIFIER_PROPERTY);
 		if (qualifier != null) {
@@ -1228,9 +1166,8 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		getChildNode(node, MemberRef.NAME_PROPERTY).accept(this);
 		return false;
 	}
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(org.aspectj.org.eclipse.jdt.core.dom.MethodRef)
-	 */
+
+	@Override
 	public boolean visit(MethodRef node) {
 		ASTNode qualifier= getChildNode(node, MethodRef.QUALIFIER_PROPERTY);
 		if (qualifier != null) {
@@ -1243,9 +1180,8 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		this.result.append(')');
 		return false;
 	}
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(org.aspectj.org.eclipse.jdt.core.dom.MethodRefParameter)
-	 */
+
+	@Override
 	public boolean visit(MethodRefParameter node) {
 		getChildNode(node, MethodRefParameter.TYPE_PROPERTY).accept(this);
 		if (node.getAST().apiLevel() >= JLS3_INTERNAL) {
@@ -1260,9 +1196,8 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		}
 		return false;
 	}
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(org.aspectj.org.eclipse.jdt.core.dom.TagElement)
-	 */
+
+	@Override
 	public boolean visit(TagElement node) {
 		Object tagName= getAttribute(node, TagElement.TAG_NAME_PROPERTY);
 		if (tagName != null) {
@@ -1284,17 +1219,14 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		}
 		return false;
 	}
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(org.aspectj.org.eclipse.jdt.core.dom.TextElement)
-	 */
+
+	@Override
 	public boolean visit(TextElement node) {
 		this.result.append(getAttribute(node, TextElement.TEXT_PROPERTY));
 		return false;
 	}
-	/*
-	 * @see ASTVisitor#visit(AnnotationTypeDeclaration)
-	 * @since 3.0
-	 */
+
+	@Override
 	public boolean visit(AnnotationTypeDeclaration node) {
 		ASTNode javadoc= getChildNode(node, AnnotationTypeDeclaration.JAVADOC_PROPERTY);
 		if (javadoc != null) {
@@ -1309,10 +1241,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(AnnotationTypeMemberDeclaration)
-	 * @since 3.0
-	 */
+	@Override
 	public boolean visit(AnnotationTypeMemberDeclaration node) {
 		ASTNode javadoc= getChildNode(node, AnnotationTypeMemberDeclaration.JAVADOC_PROPERTY);
 		if (javadoc != null) {
@@ -1332,10 +1261,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(EnhancedForStatement)
-	 * @since 3.0
-	 */
+	@Override
 	public boolean visit(EnhancedForStatement node) {
 		this.result.append("for (");//$NON-NLS-1$
 		getChildNode(node, EnhancedForStatement.PARAMETER_PROPERTY).accept(this);
@@ -1346,10 +1272,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(EnumConstantDeclaration)
-	 * @since 3.0
-	 */
+	@Override
 	public boolean visit(EnumConstantDeclaration node) {
 		ASTNode javadoc= getChildNode(node, EnumConstantDeclaration.JAVADOC_PROPERTY);
 		if (javadoc != null) {
@@ -1365,10 +1288,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(EnumDeclaration)
-	 * @since 3.0
-	 */
+	@Override
 	public boolean visit(EnumDeclaration node) {
 		ASTNode javadoc= getChildNode(node, EnumDeclaration.JAVADOC_PROPERTY);
 		if (javadoc != null) {
@@ -1386,9 +1306,8 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		this.result.append('}');
 		return false;
 	}
-	/*
-	 * @see ASTVisitor#visit(ExpressionMethodReference)
-	 */
+
+	@Override
 	public boolean visit(ExpressionMethodReference node) {
 		getChildNode(node, ExpressionMethodReference.EXPRESSION_PROPERTY).accept(this);
 		this.result.append("::"); //$NON-NLS-1$
@@ -1397,39 +1316,38 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(MarkerAnnotation)
-	 * @since 3.0
-	 */
+	@Override
 	public boolean visit(MarkerAnnotation node) {
 		this.result.append('@');
 		getChildNode(node, MarkerAnnotation.TYPE_NAME_PROPERTY).accept(this);
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(MemberValuePair)
-	 * @since 3.0
-	 */
+	@Override
 	public boolean visit(MemberValuePair node) {
 		getChildNode(node, MemberValuePair.NAME_PROPERTY).accept(this);
 		this.result.append('=');
 		getChildNode(node, MemberValuePair.VALUE_PROPERTY).accept(this);
 		return false;
 	}
-	/*
-	 * @see ASTVisitor#visit(Modifier)
-	 * @since 3.0
-	 */
+
+	@Override
 	public boolean visit(Modifier node) {
 		this.result.append(getAttribute(node, Modifier.KEYWORD_PROPERTY).toString());
 		return false;
 	}
 
+	@Override
 	/*
-	 * @see ASTVisitor#visit(NormalAnnotation)
-	 * @since 3.0
+	 * @see ASTVisitor#visit(ModuleModifier)
+	 * @since 3.14
 	 */
+	public boolean visit(ModuleModifier node) {
+		this.result.append(getAttribute(node, ModuleModifier.KEYWORD_PROPERTY).toString());
+		return false;
+	}
+
+	@Override
 	public boolean visit(NormalAnnotation node) {
 		this.result.append('@');
 		getChildNode(node, NormalAnnotation.TYPE_NAME_PROPERTY).accept(this);
@@ -1439,24 +1357,18 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(NameQualifiedType)
-	 * @since 3.10
-	 */
+	@Override
 	public boolean visit(NameQualifiedType node) {
 		getChildNode(node, NameQualifiedType.QUALIFIER_PROPERTY).accept(this);
 		this.result.append('.');
-		if (node.getAST().apiLevel() >= AST.JLS8) {
+		if (node.getAST().apiLevel() >= JLS8_INTERNAL) {
 			visitList(node, NameQualifiedType.ANNOTATIONS_PROPERTY, String.valueOf(' '), Util.EMPTY_STRING, String.valueOf(' '));
 		}
 		getChildNode(node, NameQualifiedType.NAME_PROPERTY).accept(this);
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(ParameterizedType)
-	 * @since 3.0
-	 */
+	@Override
 	public boolean visit(ParameterizedType node) {
 		getChildNode(node, ParameterizedType.TYPE_PROPERTY).accept(this);
 		this.result.append('<');
@@ -1465,23 +1377,18 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(QualifiedType)
-	 * @since 3.0
-	 */
+	@Override
 	public boolean visit(QualifiedType node) {
 		getChildNode(node, QualifiedType.QUALIFIER_PROPERTY).accept(this);
 		this.result.append('.');
-		if (node.getAST().apiLevel() >= AST.JLS8) {
+		if (node.getAST().apiLevel() >= JLS8_INTERNAL) {
 			visitList(node, QualifiedType.ANNOTATIONS_PROPERTY, String.valueOf(' '), Util.EMPTY_STRING, String.valueOf(' '));
 		}
 		getChildNode(node, QualifiedType.NAME_PROPERTY).accept(this);
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(org.aspectj.org.eclipse.jdt.core.dom.SingleMemberAnnotation)
-	 */
+	@Override
 	public boolean visit(SingleMemberAnnotation node) {
 		this.result.append('@');
 		getChildNode(node, SingleMemberAnnotation.TYPE_NAME_PROPERTY).accept(this);
@@ -1491,9 +1398,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(SuperMethodReference)
-	 */
+	@Override
 	public boolean visit(SuperMethodReference node) {
 		ASTNode qualifier = getChildNode(node, SuperMethodReference.QUALIFIER_PROPERTY);
 		if (qualifier != null) {
@@ -1506,9 +1411,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/*
-	 * @see ASTVisitor#visit(TypeMethodReference)
-	 */
+	@Override
 	public boolean visit(TypeMethodReference node) {
 		getChildNode(node, TypeMethodReference.TYPE_PROPERTY).accept(this);
 		this.result.append("::"); //$NON-NLS-1$
@@ -1517,11 +1420,9 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(org.aspectj.org.eclipse.jdt.core.dom.TypeParameter)
-	 */
+	@Override
 	public boolean visit(TypeParameter node) {
-		if (node.getAST().apiLevel() >= AST.JLS8) {
+		if (node.getAST().apiLevel() >= JLS8_INTERNAL) {
 			visitList(node, TypeParameter.MODIFIERS_PROPERTY, String.valueOf(' '), Util.EMPTY_STRING, String.valueOf(' '));
 		}
 		getChildNode(node, TypeParameter.NAME_PROPERTY).accept(this);
@@ -1529,11 +1430,9 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(org.aspectj.org.eclipse.jdt.core.dom.WildcardType)
-	 */
+	@Override
 	public boolean visit(WildcardType node) {
-		if (node.getAST().apiLevel() >= AST.JLS8) {
+		if (node.getAST().apiLevel() >= JLS8_INTERNAL) {
 			visitList(node, WildcardType.ANNOTATIONS_PROPERTY, String.valueOf(' '), Util.EMPTY_STRING, String.valueOf(' '));
 		}
 		this.result.append('?');

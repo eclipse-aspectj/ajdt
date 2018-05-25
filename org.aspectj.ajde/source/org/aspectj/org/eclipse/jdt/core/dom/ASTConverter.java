@@ -1,5 +1,6 @@
+// AspectJ
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -13,11 +14,14 @@
 
 package org.aspectj.org.eclipse.jdt.core.dom;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
@@ -27,9 +31,11 @@ import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.core.compiler.IProblem;
 import org.aspectj.org.eclipse.jdt.core.compiler.InvalidInputException;
 import org.aspectj.org.eclipse.jdt.core.dom.Modifier.ModifierKeyword;
+import org.aspectj.org.eclipse.jdt.core.dom.ModuleModifier.ModuleModifierKeyword;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractVariableDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Argument;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.FieldReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ForeachStatement;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.IntersectionCastTypeReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.JavadocArgumentExpression;
@@ -37,6 +43,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.JavadocFieldReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.JavadocMessageSend;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.LocalDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.MessageSend;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ModuleReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.NameReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.OperatorIds;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ParameterizedQualifiedTypeReference;
@@ -114,7 +121,7 @@ public class ASTConverter {
 	// AspectJ Extension - raised to protected
 	protected DefaultCommentMapper commentMapper;
 
-	public ASTConverter(Map<String,String> options, boolean resolveBindings, IProgressMonitor monitor) {
+	public ASTConverter(Map<String, String> options, boolean resolveBindings, IProgressMonitor monitor) {
 		this.resolveBindings = resolveBindings;
 		this.referenceContext = null;
 		String sourceModeSetting = options.get(JavaCore.COMPILER_SOURCE);
@@ -501,7 +508,7 @@ public class ASTConverter {
 	protected void completeRecord(ArrayType arrayType, org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode astNode) {
 		ArrayType array = arrayType;
 		this.recordNodes(arrayType, astNode);
-		if (this.ast.apiLevel() >= AST.JLS8) {
+		if (this.ast.apiLevel() >= AST.JLS8_INTERNAL) {
 			this.recordNodes(arrayType.getElementType(), astNode);
 			return;
 		}
@@ -545,7 +552,7 @@ public class ASTConverter {
 		int methodHeaderEnd = methodDeclaration.sourceEnd;
 		int thrownExceptionsLength = thrownExceptions == null ? 0 : thrownExceptions.length;
 		if (thrownExceptionsLength > 0) {
-			if (this.ast.apiLevel() < AST.JLS8) {
+			if (this.ast.apiLevel() < AST.JLS8_INTERNAL) {
 				Name thrownException;
 				int i = 0;
 				do {
@@ -569,7 +576,7 @@ public class ASTConverter {
 		}
 
 		if (methodDeclaration.receiver != null) {
-			if(this.ast.apiLevel >= AST.JLS8) {
+			if(this.ast.apiLevel >= AST.JLS8_INTERNAL) {
 				convertAndSetReceiver(methodDeclaration, methodDecl);
 			} else {
 				methodDecl.setFlags(methodDecl.getFlags() | ASTNode.MALFORMED);
@@ -615,7 +622,7 @@ public class ASTConverter {
 				// get the positions of the right parenthesis
 				int rightParenthesisPosition = retrieveEndOfRightParenthesisPosition(end, method.bodyEnd);
 				int extraDimensions = typeReference.extraDimensions();
-				if (this.ast.apiLevel >= AST.JLS8) {
+				if (this.ast.apiLevel >= AST.JLS8_INTERNAL) {
 					setExtraAnnotatedDimensions(rightParenthesisPosition, method.bodyEnd, typeReference,
 												methodDecl.extraDimensions(), extraDimensions);
 				} else {
@@ -675,8 +682,9 @@ public class ASTConverter {
 			}
 			if (block != null) {
 				if ((methodDeclaration.modifiers & (ClassFileConstants.AccAbstract | ClassFileConstants.AccNative)) != 0
-						|| (isInterface && (this.ast.apiLevel < AST.JLS8 ||
-							(methodDeclaration.modifiers & (ClassFileConstants.AccStatic | ExtraCompilerModifiers.AccDefaultMethod)) == 0))) {
+						|| (isInterface && (this.ast.apiLevel < AST.JLS8_INTERNAL ||
+							(methodDeclaration.modifiers & (ClassFileConstants.AccStatic | ExtraCompilerModifiers.AccDefaultMethod |
+									(this.ast.apiLevel > AST.JLS8_INTERNAL ? ClassFileConstants.AccPrivate : 0))) == 0))) {
 					methodDecl.setFlags(methodDecl.getFlags() | ASTNode.MALFORMED);
 				}
 			}
@@ -939,7 +947,7 @@ public class ASTConverter {
 		final int typeSourceEnd = argument.type.sourceEnd;
 		TypeReference typeReference = argument.type;
 		final int extraDimensions = typeReference.extraDimensions();
-		if (this.ast.apiLevel >= AST.JLS8) {
+		if (this.ast.apiLevel >= AST.JLS8_INTERNAL) {
 			setExtraAnnotatedDimensions(nameEnd + 1, typeSourceEnd, typeReference,
 										variableDecl.extraDimensions(), extraDimensions);
 		} else {
@@ -959,7 +967,7 @@ public class ASTConverter {
 		 */
 		if (isVarArgs) {
 			Dimension lastDimension = null;
-			if (this.ast.apiLevel() >= AST.JLS8) {
+			if (this.ast.apiLevel() >= AST.JLS8_INTERNAL) {
 				if (type.isArrayType()) { // should always be true
 					List dimensions = ((ArrayType) type).dimensions();
 					if (!dimensions.isEmpty()) {
@@ -969,7 +977,7 @@ public class ASTConverter {
 			}
 			setTypeForSingleVariableDeclaration(variableDecl, type, extraDimensions + 1);
 			// https://bugs.eclipse.org/bugs/show_bug.cgi?id=391898
-			if (this.ast.apiLevel() >= AST.JLS8) {
+			if (this.ast.apiLevel() >= AST.JLS8_INTERNAL) {
 				if (lastDimension != null) { // should always be true
 					List annotations = lastDimension.annotations();
 					Iterator iter = annotations.iterator();
@@ -1042,7 +1050,7 @@ public class ASTConverter {
 		if (type.isArrayType()) {
 			arrayType = (ArrayType) type;
 			if (expression.annotationsOnDimensions != null) {
-				if (this.ast.apiLevel() < AST.JLS8) {
+				if (this.ast.apiLevel() < AST.JLS8_INTERNAL) {
 					arrayType.setFlags(arrayType.getFlags() | ASTNode.MALFORMED);
 				} else {
 					setTypeAnnotationsAndSourceRangeOnArray(arrayType, expression.annotationsOnDimensions);
@@ -1399,24 +1407,37 @@ public class ASTConverter {
 				}
 			}
 	
-			org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration[] types = unit.types;
-			if (types != null) {
-				int typesLength = types.length;
-				for (int i = 0; i < typesLength; i++) {
-					org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration declaration = types[i];
-					if (CharOperation.equals(declaration.name, TypeConstants.PACKAGE_INFO_NAME)) {
-						continue;
-					}
-					ASTNode type = convert(declaration);
-					if (type == null) {
-						compilationUnit.setFlags(compilationUnit.getFlags() | ASTNode.MALFORMED);
-					} else {
-						compilationUnit.types().add(type);
+			org.aspectj.org.eclipse.jdt.internal.compiler.ast.ModuleDeclaration mod = unit.moduleDeclaration;
+			if (mod != null) {
+				ASTNode declaration = convertToModuleDeclaration(mod);
+				if (declaration == null) {
+					compilationUnit.setFlags(compilationUnit.getFlags() | ASTNode.MALFORMED);
+				} else {
+					compilationUnit.setModule((ModuleDeclaration) declaration);
+				}
+			} else {
+				org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration[] types = unit.types;
+				if (types != null) {
+					int typesLength = types.length;
+					for (int i = 0; i < typesLength; i++) {
+						org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration declaration = types[i];
+						if (CharOperation.equals(declaration.name, TypeConstants.PACKAGE_INFO_NAME)) {
+							continue;
+						}
+						ASTNode type = convert(declaration);
+						if (type == null) {
+							compilationUnit.setFlags(compilationUnit.getFlags() | ASTNode.MALFORMED);
+						} else {
+							if (type instanceof ModuleDeclaration)
+								compilationUnit.setModule((ModuleDeclaration) type);
+							else
+								compilationUnit.types().add(type);
+						}
 					}
 				}
 			}
 			compilationUnit.setSourceRange(unit.sourceStart, unit.sourceEnd - unit.sourceStart  + 1);
-	
+
 			int problemLength = unit.compilationResult.problemCount;
 			if (problemLength != 0) {
 				CategorizedProblem[] resizedProblems = null;
@@ -1713,6 +1734,33 @@ public class ASTConverter {
 			recordNodes(newStatement, statement);
 		}
 		return newStatement;
+	}
+
+	private ModulePackageAccess getPackageVisibilityStatement(
+			org.aspectj.org.eclipse.jdt.internal.compiler.ast.PackageVisibilityStatement pvsStmt, ModulePackageAccess stmt) {
+		int sourceEnd = pvsStmt.declarationSourceEnd;
+		if (pvsStmt.declarationEnd > sourceEnd) sourceEnd = pvsStmt.declarationEnd; // TODO: working around a compiler issue
+		Name name = getImportName(pvsStmt.pkgRef);
+		stmt.setName(name);
+		if (this.resolveBindings) {
+			recordNodes(name, pvsStmt.pkgRef);
+		}
+		int tmp = sourceEnd;
+		if (pvsStmt.targets != null && pvsStmt.targets.length > 0) {
+			List<Name> modules = stmt.modules();
+			for (ModuleReference moduleRef : pvsStmt.getTargetedModules()) {
+				Name target = getName(moduleRef, CharOperation.splitOn('.', moduleRef.moduleName), moduleRef.sourcePositions);
+				modules.add(target);
+				if (tmp < moduleRef.sourceEnd) tmp = moduleRef.sourceEnd;
+				if (this.resolveBindings) {
+					this.recordNodes(target, moduleRef);
+				}
+
+			}
+		}
+		if (tmp > sourceEnd) sourceEnd = tmp;
+		stmt.setSourceRange(pvsStmt.declarationSourceStart, sourceEnd - pvsStmt.declarationSourceStart + 1);
+		return stmt;
 	}
 
 	public Expression convert(org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression expression) {
@@ -2036,54 +2084,50 @@ public class ASTConverter {
 		return literal;
 	}
 
-	public void convert(org.aspectj.org.eclipse.jdt.internal.compiler.ast.Javadoc javadoc, BodyDeclaration bodyDeclaration) {
-		if (bodyDeclaration.getJavadoc() == null) {
-			if (javadoc != null) {
-				if (this.commentMapper == null || !this.commentMapper.hasSameTable(this.commentsTable)) {
-					this.commentMapper = new DefaultCommentMapper(this.commentsTable);
-				}
-				Comment comment = this.commentMapper.getComment(javadoc.sourceStart);
-				if (comment != null && comment.isDocComment() && comment.getParent() == null) {
-					Javadoc docComment = (Javadoc) comment;
-					if (this.resolveBindings) {
-						recordNodes(docComment, javadoc);
-						// resolve member and method references binding
-						Iterator tags = docComment.tags().listIterator();
-						while (tags.hasNext()) {
-							recordNodes(javadoc, (TagElement) tags.next());
-						}
+	interface IGetJavaDoc {
+		Javadoc getJavaDoc();
+	}
+	interface ISetJavaDoc {
+		void setJavadoc(Javadoc javadoc);
+	}
+	public void convert(org.aspectj.org.eclipse.jdt.internal.compiler.ast.Javadoc javadoc, IGetJavaDoc getJ, ISetJavaDoc setJ) {
+		if (getJ.getJavaDoc() == null) {
+			Javadoc docComment = convert(javadoc);
+			if (docComment != null) 
+				setJ.setJavadoc(docComment);
+		}
+	}
+	private Javadoc convert(org.aspectj.org.eclipse.jdt.internal.compiler.ast.Javadoc javadoc) {
+		Javadoc docComment = null;
+		if (javadoc != null) {
+			if (this.commentMapper == null || !this.commentMapper.hasSameTable(this.commentsTable)) {
+				this.commentMapper = new DefaultCommentMapper(this.commentsTable);
+			}
+			Comment comment = this.commentMapper.getComment(javadoc.sourceStart);
+			if (comment != null && comment.isDocComment() && comment.getParent() == null) {
+				docComment = (Javadoc) comment;
+				if (this.resolveBindings) {
+					recordNodes(docComment, javadoc);
+					// resolve member and method references binding
+					Iterator tags = docComment.tags().listIterator();
+					while (tags.hasNext()) {
+						recordNodes(javadoc, (TagElement) tags.next());
 					}
-					bodyDeclaration.setJavadoc(docComment);
 				}
 			}
 		}
+		return docComment;
+	}
+	public void convert(org.aspectj.org.eclipse.jdt.internal.compiler.ast.Javadoc javadoc, BodyDeclaration bodyDeclaration) {
+		convert(javadoc, bodyDeclaration::getJavadoc, bodyDeclaration::setJavadoc);
+	}
+	public void convert(org.aspectj.org.eclipse.jdt.internal.compiler.ast.Javadoc javadoc, ModuleDeclaration moduleDeclaration) {
+		convert(javadoc, moduleDeclaration::getJavadoc, moduleDeclaration::setJavadoc);
 	}
 
 	public void convert(org.aspectj.org.eclipse.jdt.internal.compiler.ast.Javadoc javadoc, PackageDeclaration packageDeclaration) {
-		switch(this.ast.apiLevel) {
-			case AST.JLS2_INTERNAL :
-				return;
-		}
-		if (packageDeclaration.getJavadoc() == null) {
-			if (javadoc != null) {
-				if (this.commentMapper == null || !this.commentMapper.hasSameTable(this.commentsTable)) {
-					this.commentMapper = new DefaultCommentMapper(this.commentsTable);
-				}
-				Comment comment = this.commentMapper.getComment(javadoc.sourceStart);
-				if (comment != null && comment.isDocComment() && comment.getParent() == null) {
-					Javadoc docComment = (Javadoc) comment;
-					if (this.resolveBindings) {
-						recordNodes(docComment, javadoc);
-						// resolve member and method references binding
-						Iterator tags = docComment.tags().listIterator();
-						while (tags.hasNext()) {
-							recordNodes(javadoc, (TagElement) tags.next());
-						}
-					}
-					packageDeclaration.setJavadoc(docComment);
-				}
-			}
-		}
+		if (this.ast.apiLevel == AST.JLS2_INTERNAL) return;
+		convert(javadoc, packageDeclaration::getJavadoc, packageDeclaration::setJavadoc);
 	}
 
 	public LabeledStatement convert(org.aspectj.org.eclipse.jdt.internal.compiler.ast.LabeledStatement statement) {
@@ -2246,7 +2290,7 @@ public class ASTConverter {
 	}
 
 	public Expression convert(org.aspectj.org.eclipse.jdt.internal.compiler.ast.LambdaExpression lambda) {
-		if (this.ast.apiLevel < AST.JLS8) {
+		if (this.ast.apiLevel < AST.JLS8_INTERNAL) {
 			return createFakeNullLiteral(lambda);		
 		}
 		final LambdaExpression	lambdaExpression = new LambdaExpression(this.ast);
@@ -2604,7 +2648,7 @@ public class ASTConverter {
 	}
 
 	public Expression convert(org.aspectj.org.eclipse.jdt.internal.compiler.ast.ReferenceExpression reference) {
-		if (this.ast.apiLevel < AST.JLS8) {
+		if (this.ast.apiLevel < AST.JLS8_INTERNAL) {
 			return createFakeNullLiteral(reference);
 		}
 		Expression result = null;
@@ -2885,8 +2929,7 @@ public class ASTConverter {
 	public TryStatement convert(org.aspectj.org.eclipse.jdt.internal.compiler.ast.TryStatement statement) {
 		final TryStatement tryStatement = new TryStatement(this.ast);
 		tryStatement.setSourceRange(statement.sourceStart, statement.sourceEnd - statement.sourceStart + 1);
-		LocalDeclaration[] localDeclarations = statement.resources;
-		int resourcesLength = localDeclarations.length;
+		int resourcesLength = statement.resources.length;
 		if (resourcesLength > 0) {
 			switch(this.ast.apiLevel) {
 				case AST.JLS2_INTERNAL :
@@ -2894,15 +2937,41 @@ public class ASTConverter {
 					// convert it to a simple try statement tagged as MALFORMED
 					tryStatement.setFlags(tryStatement.getFlags() | ASTNode.MALFORMED);
 					break;
-				default:
+				case AST.JLS4_INTERNAL:
+				case AST.JLS8_INTERNAL:
 					for (int i = 0; i < resourcesLength; i++) {
-						LocalDeclaration localDeclaration = localDeclarations[i];
+						if (!(statement.resources[i] instanceof LocalDeclaration)) {
+							tryStatement.setFlags(tryStatement.getFlags() | ASTNode.MALFORMED);
+							break;
+						}
+						LocalDeclaration localDeclaration = (LocalDeclaration)statement.resources[i];
 						VariableDeclarationExpression variableDeclarationExpression = convertToVariableDeclarationExpression(localDeclaration);
 						int start = variableDeclarationExpression.getStartPosition();
 						int end = localDeclaration.declarationEnd;
 						variableDeclarationExpression.setSourceRange(start, end - start + 1);
 						tryStatement.resources().add(variableDeclarationExpression);
 					}
+					break;
+				default:
+					for (int i = 0; i < resourcesLength; i++) {
+						org.aspectj.org.eclipse.jdt.internal.compiler.ast.Statement resource = statement.resources[i];
+						if (resource instanceof LocalDeclaration) {
+							LocalDeclaration localDeclaration = (LocalDeclaration)resource;
+							VariableDeclarationExpression variableDeclarationExpression = convertToVariableDeclarationExpression(localDeclaration);
+							int start = variableDeclarationExpression.getStartPosition();
+							int end = localDeclaration.declarationEnd;
+							variableDeclarationExpression.setSourceRange(start, end - start + 1);
+							tryStatement.resources().add(variableDeclarationExpression);
+						} else if (resource instanceof NameReference) {
+							tryStatement.resources().add(convert((NameReference) resource));
+						} else if (resource instanceof FieldReference) {
+							tryStatement.resources().add(convert((FieldReference) resource));
+						} else {
+							tryStatement.setFlags(tryStatement.getFlags() | ASTNode.MALFORMED);
+							break;
+						}
+					}
+					break;
 			}
 		}
 		tryStatement.setBody(convert(statement.tryBlock));
@@ -3110,24 +3179,9 @@ public class ASTConverter {
 
 	public ImportDeclaration convertImport(org.aspectj.org.eclipse.jdt.internal.compiler.ast.ImportReference importReference) {
 		final ImportDeclaration importDeclaration = new ImportDeclaration(this.ast);
+		Name name = getImportName(importReference);
+		importDeclaration.setName(name);
 		final boolean onDemand = (importReference.bits & org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode.OnDemand) != 0;
-		final char[][] tokens = importReference.tokens;
-		int length = importReference.tokens.length;
-		final long[] positions = importReference.sourcePositions;
-		if (length > 1) {
-			importDeclaration.setName(setQualifiedNameNameAndSourceRanges(tokens, positions, importReference));
-		} else {
-			final SimpleName name = new SimpleName(this.ast);
-			name.internalSetIdentifier(new String(tokens[0]));
-			final int start = (int)(positions[0]>>>32);
-			final int end = (int)(positions[0] & 0xFFFFFFFF);
-			name.setSourceRange(start, end - start + 1);
-			name.index = 1;
-			importDeclaration.setName(name);
-			if (this.resolveBindings) {
-				recordNodes(name, importReference);
-			}
-		}
 		importDeclaration.setSourceRange(importReference.declarationSourceStart, importReference.declarationEnd - importReference.declarationSourceStart + 1);
 		importDeclaration.setOnDemand(onDemand);
 		int modifiers = importReference.modifiers;
@@ -3148,6 +3202,30 @@ public class ASTConverter {
 			recordNodes(importDeclaration, importReference);
 		}
 		return importDeclaration;
+	}
+
+	public Name getImportName(org.aspectj.org.eclipse.jdt.internal.compiler.ast.ImportReference importReference) {
+		return getName(importReference, importReference.tokens, importReference.sourcePositions);
+	}
+
+	private Name getName(org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode node, final char[][] tokens,
+			final long[] positions) {
+		Name name;
+		int length = tokens != null ? tokens.length : 0;
+		if (length > 1) {
+			name = setQualifiedNameNameAndSourceRanges(tokens, positions, node);
+		} else {
+			name = new SimpleName(this.ast);
+			((SimpleName)name).internalSetIdentifier(new String(tokens[0]));
+			final int start = (int)(positions[0]>>>32);
+			final int end = (int)(positions[0] & 0xFFFFFFFF);
+			name.setSourceRange(start, end - start + 1);
+			name.index = 1;
+			if (this.resolveBindings) {
+				recordNodes(name, node);
+			}
+		}
+		return name;
 	}
 
 	public PackageDeclaration convertPackage(org.aspectj.org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration compilationUnitDeclaration) {
@@ -3194,7 +3272,7 @@ public class ASTConverter {
 	private ArrayType convertToArray(Type elementType, int sourceStart, int length, int dimensions, org.aspectj.org.eclipse.jdt.internal.compiler.ast.Annotation[][] annotationsOnDimensions) {
 		ArrayType arrayType = this.ast.newArrayType(elementType, dimensions);
 		if (length > 0) arrayType.setSourceRange(sourceStart, length);
-		if (this.ast.apiLevel() < AST.JLS8) {
+		if (this.ast.apiLevel() < AST.JLS8_INTERNAL) {
 			if (annotationsOnDimensions != null) {
 				arrayType.setFlags(arrayType.getFlags() | ASTNode.MALFORMED);
 			}
@@ -3265,6 +3343,120 @@ public class ASTConverter {
 		return fieldDeclaration;
 	}
 
+	/**
+	 * If there is a parsing error causing a recovered module the source positions may be updated only partially. 
+	 * See bug 518843 for a case where this issue occurred. This method provide a safety net with 
+	 * source positions updated even in case of a recovery - if there is no recovery, the source positions will 
+	 * be retained in-tact identical to the compile time ast module node.
+	 */
+	private int getKnownEnd(ModuleDeclaration md, int sourceEnd, int declSourceEnd) {
+		int end =  retrieveRightBrace(md.getStartPosition() + 1, this.compilationUnitSourceLength);
+		end = end > sourceEnd ? end : sourceEnd;
+		end = end > declSourceEnd ? end : declSourceEnd;
+		return end;
+	}
+	public ModuleDeclaration convertToModuleDeclaration(org.aspectj.org.eclipse.jdt.internal.compiler.ast.ModuleDeclaration moduleDeclaration) {
+		checkCanceled();
+		if (this.scanner.sourceLevel < ClassFileConstants.JDK9
+				|| this.ast.apiLevel < AST.JLS9_INTERNAL) return null;
+		ModuleDeclaration moduleDecl = this.ast.newModuleDeclaration();
+		// TODO
+		//convert(moduleDeclaration.javadoc, moduleDecl);
+		setAnnotations(moduleDecl, moduleDeclaration); // only annotations
+		moduleDecl.setOpen(moduleDeclaration.isOpen());
+		Name moduleName = getName(moduleDeclaration, CharOperation.splitOn('.', moduleDeclaration.moduleName), moduleDeclaration.sourcePositions);
+		moduleDecl.setName(moduleName);
+
+		List<ModuleDirective> stmts = moduleDecl.moduleStatements();
+		TreeSet<ModuleDirective> tSet = new TreeSet<> (new Comparator() {
+			@Override
+			public int compare(Object o1, Object o2) {
+				int p1 = ((ModuleDirective) o1).getStartPosition();
+				int p2 = ((ModuleDirective) o2).getStartPosition();
+				return p1 < p2 ? -1 : p1 == p2 ? 0 : 1;
+			}
+		});
+		for (int i = 0; i < moduleDeclaration.exportsCount; ++i) {
+			tSet.add(getPackageVisibilityStatement(moduleDeclaration.exports[i], new ExportsDirective(this.ast)));
+		}
+		for (int i = 0; i < moduleDeclaration.opensCount; ++i) {
+			tSet.add(getPackageVisibilityStatement(moduleDeclaration.opens[i], new OpensDirective(this.ast)));
+		}
+		for (int i = 0; i < moduleDeclaration.requiresCount; ++i) {
+			org.aspectj.org.eclipse.jdt.internal.compiler.ast.RequiresStatement req = moduleDeclaration.requires[i];
+			ModuleReference moduleRef = req.module;
+			RequiresDirective stmt = new RequiresDirective(this.ast);
+			Name name = getName(moduleRef, CharOperation.splitOn('.', moduleRef.moduleName), moduleRef.sourcePositions);
+			stmt.setName(name);
+			if (this.resolveBindings) {
+				recordNodes(name, moduleRef);
+			}
+
+			setModuleModifiers(req, stmt);
+			stmt.setSourceRange(req.declarationSourceStart, req.declarationEnd - req.declarationSourceStart + 1);
+			tSet.add(stmt);
+		}
+		for (int i = 0; i < moduleDeclaration.usesCount; ++i) {
+			org.aspectj.org.eclipse.jdt.internal.compiler.ast.UsesStatement usesStatement = moduleDeclaration.uses[i];
+			UsesDirective stmt = new UsesDirective(this.ast);
+			TypeReference usesRef = usesStatement.serviceInterface;
+			Name name = convert(usesRef);
+			stmt.setName(name);
+			stmt.setSourceRange(usesStatement.declarationSourceStart, usesStatement.declarationSourceEnd - usesStatement.declarationSourceStart + 1);			
+			tSet.add(stmt);
+		}
+		for (int i = 0; i < moduleDeclaration.servicesCount; ++i) {
+			org.aspectj.org.eclipse.jdt.internal.compiler.ast.ProvidesStatement pStmt = moduleDeclaration.services[i];
+			ProvidesDirective stmt = new ProvidesDirective(this.ast);
+			stmt.setName(convert(pStmt.serviceInterface));
+			TypeReference[] impls = pStmt.implementations;
+			for (TypeReference impl : impls) {
+				stmt.implementations().add(convert(impl));
+			}
+			stmt.setSourceRange(pStmt.declarationSourceStart, pStmt.declarationSourceEnd - pStmt.declarationSourceStart + 1);
+			tSet.add(stmt);
+		}
+		// The javadoc comment is now got from 	list store in compilation unit declaration
+		if (this.resolveBindings) {
+			recordNodes(moduleDecl, moduleDeclaration);
+			recordNodes(moduleName, moduleDeclaration);
+			moduleDecl.resolveBinding();
+		}
+		stmts.addAll(tSet);
+		int end = getKnownEnd(moduleDecl, moduleDeclaration.sourceEnd, moduleDeclaration.declarationSourceEnd);
+		moduleDecl.setSourceRange(moduleDeclaration.declarationSourceStart, end  - moduleDeclaration.declarationSourceStart + 1);
+		return moduleDecl;
+	}
+
+	private void setModuleModifiers(org.aspectj.org.eclipse.jdt.internal.compiler.ast.RequiresStatement req,	RequiresDirective stmt) {
+		boolean fakeInModule = this.scanner.fakeInModule;
+		this.scanner.fakeInModule = true;
+		this.scanner.resetTo(req.declarationSourceStart, req.sourceEnd);
+		try {
+			int token;
+			ModuleModifier modifier;
+			while ((token = this.scanner.getNextToken()) != TerminalTokens.TokenNameEOF) {
+				switch(token) {
+					case TerminalTokens.TokenNamestatic:
+						modifier = createModuleModifier(ModuleModifier.ModuleModifierKeyword.STATIC_KEYWORD);
+						break;
+					case TerminalTokens.TokenNametransitive:
+						modifier = createModuleModifier(ModuleModifier.ModuleModifierKeyword.TRANSITIVE_KEYWORD);
+						break;
+					default :
+						continue;
+				}
+				if (modifier != null) {
+					stmt.modifiers().add(modifier);
+				}
+			}
+		} catch(InvalidInputException e) {
+			// ignore
+		} finally {
+			this.scanner.fakeInModule = fakeInModule;
+		}
+	}
+
 	public ParenthesizedExpression convertToParenthesizedExpression(org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression expression) {
 		final ParenthesizedExpression parenthesizedExpression = new ParenthesizedExpression(this.ast);
 		if (this.resolveBindings) {
@@ -3308,7 +3500,7 @@ public class ASTConverter {
 		variableDecl.setName(name);
 		TypeReference typeReference = localDeclaration.type;
 		final int extraDimensions = typeReference.extraDimensions();
-		if (this.ast.apiLevel >= AST.JLS8) {
+		if (this.ast.apiLevel >= AST.JLS8_INTERNAL) {
 			setExtraAnnotatedDimensions(nameEnd + 1, localDeclaration.declarationSourceEnd, typeReference,
 					variableDecl.extraDimensions(), extraDimensions);
 		} else {
@@ -3356,7 +3548,7 @@ public class ASTConverter {
 		int end = start;
 		TypeReference typeReference = fieldDeclaration.type;
 		int extraDimensions = typeReference.extraDimensions();
-		if (this.ast.apiLevel >= AST.JLS8) {
+		if (this.ast.apiLevel >= AST.JLS8_INTERNAL) {
 			setExtraAnnotatedDimensions(fieldDeclaration.sourceEnd + 1, fieldDeclaration.declarationSourceEnd,
 					typeReference, variableDeclarationFragment.extraDimensions(), extraDimensions);
 		} else {
@@ -3400,7 +3592,7 @@ public class ASTConverter {
 		org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression initialization = localDeclaration.initialization;
 		TypeReference typeReference = localDeclaration.type;
 		int extraDimension = typeReference.extraDimensions();
-		if (this.ast.apiLevel >= AST.JLS8) {
+		if (this.ast.apiLevel >= AST.JLS8_INTERNAL) {
 			setExtraAnnotatedDimensions(localDeclaration.sourceEnd + 1, this.compilationUnitSourceLength,
 					typeReference, variableDeclarationFragment.extraDimensions(), extraDimension);
 		} else {
@@ -3493,12 +3685,17 @@ public class ASTConverter {
 		final VariableDeclarationFragment variableDeclarationFragment = convertToVariableDeclarationFragment(localDeclaration);
 		final VariableDeclarationStatement variableDeclarationStatement = new VariableDeclarationStatement(this.ast);
 		variableDeclarationStatement.fragments().add(variableDeclarationFragment);
-		if (this.resolveBindings) {
-			recordNodes(variableDeclarationFragment, localDeclaration);
-		}
 		variableDeclarationStatement.setSourceRange(localDeclaration.declarationSourceStart, localDeclaration.declarationSourceEnd - localDeclaration.declarationSourceStart + 1);
 		Type type = convertType(localDeclaration.type);
 		setTypeForVariableDeclarationStatement(variableDeclarationStatement, type, variableDeclarationFragment.getExtraDimensions());
+		if (this.resolveBindings) {
+			recordNodes(variableDeclarationFragment, localDeclaration);
+			if (this.ast.apiLevel() >= AST.JLS10_INTERNAL && type.isVar()) {
+				SimpleName varName = (SimpleName) ((SimpleType) type).getName();
+				varName.setVar(true);
+				recordNodes(varName, localDeclaration);				
+			}
+		}
 		if (localDeclaration.modifiersSourceStart != -1) {
 			setModifiers(variableDeclarationStatement, localDeclaration);
 		}
@@ -3678,6 +3875,9 @@ public class ASTConverter {
 				type = simpleType;
 				type.setSourceRange(sourceStart, end - sourceStart + 1);
 				type = simpleType;
+				if (this.ast.apiLevel() >= AST.JLS10_INTERNAL && type.isVar()) {
+					simpleName.setVar(true);
+				}
 				if (this.resolveBindings) {
 					this.recordNodes(simpleName, typeReference);
 				}
@@ -3946,7 +4146,7 @@ public class ASTConverter {
 			}
 
 			boolean createNameQualifiedType = typeAnnotations != null && typeAnnotations[firstTypeIndex] != null;
-			if (createNameQualifiedType && this.ast.apiLevel >= AST.JLS8) {
+			if (createNameQualifiedType && this.ast.apiLevel >= AST.JLS8_INTERNAL) {
 				NameQualifiedType nameQualifiedType = new NameQualifiedType(this.ast);
 				nameQualifiedType.setQualifier(name);
 				nameQualifiedType.setName(createSimpleName(typeReference, positions, tokens, firstTypeIndex));
@@ -4081,6 +4281,18 @@ public class ASTConverter {
 	 */
 	private Modifier createModifier(ModifierKeyword keyword) {
 		final Modifier modifier = new Modifier(this.ast);
+		modifier.setKeyword(keyword);
+		int start = this.scanner.getCurrentTokenStartPosition();
+		int end = this.scanner.getCurrentTokenEndPosition();
+		modifier.setSourceRange(start, end - start + 1);
+		return modifier;
+	}
+
+	/**
+	 * @return a new module modifier
+	 */
+	private ModuleModifier createModuleModifier(ModuleModifierKeyword keyword) {
+		final ModuleModifier modifier = new ModuleModifier(this.ast);
 		modifier.setKeyword(keyword);
 		int start = this.scanner.getCurrentTokenStartPosition();
 		int end = this.scanner.getCurrentTokenEndPosition();
@@ -4284,7 +4496,6 @@ public class ASTConverter {
 		}
 		return false;
 	}
-
 	private void lookupForScopes() {
 		if (this.pendingNameScopeResolution != null) {
 			for (Iterator iterator = this.pendingNameScopeResolution.iterator(); iterator.hasNext(); ) {
@@ -4660,34 +4871,6 @@ public class ASTConverter {
 		return -1;
 
 	}
-	
-	// Aspectj keeping this for now, we use it.
-	/**
-	 * This method is used to retrieve the end position of the block.
-	 * @return int the dimension found, -1 if none
-	 */
-	protected int retrieveEndBlockPosition(int start, int end) {
-		this.scanner.resetTo(start, end);
-		int count = 0;
-		try {
-			int token;
-			while ((token = this.scanner.getNextToken()) != TerminalTokens.TokenNameEOF) {
-				switch(token) {
-					case TerminalTokens.TokenNameLBRACE://110
-						count++;
-						break;
-					case TerminalTokens.TokenNameRBRACE://95
-						count--;
-						if (count == 0) {
-							return this.scanner.currentPosition - 1;
-						}
-				}
-			}
-		} catch(InvalidInputException e) {
-			// ignore
-		}
-		return -1;
-	}
 
 	protected int retrieveSemiColonPosition(Expression node) {
 		int start = node.getStartPosition();
@@ -4958,7 +5141,7 @@ public class ASTConverter {
 		}
 		return -1;
 	}
-
+	
 	protected int retrieveProperRightBracketPosition(int bracketNumber, int start) {
 		return retrieveProperRightBracketPosition(bracketNumber, start, this.compilationUnitSourceLength);
 	}
@@ -5025,6 +5208,35 @@ public class ASTConverter {
 		return -1;
 	}
 
+	// AspectJ - keep for now
+	/**
+	 * This method is used to retrieve the end position of the block.
+	 * @return int the dimension found, -1 if none
+	 */
+	protected int retrieveEndBlockPosition(int start, int end) {
+		this.scanner.resetTo(start, end);
+		int count = 0;
+		try {
+			int token;
+			while ((token = this.scanner.getNextToken()) != TerminalTokens.TokenNameEOF) {
+				switch(token) {
+					case TerminalTokens.TokenNameLBRACE://110
+						count++;
+						break;
+					case TerminalTokens.TokenNameRBRACE://95
+						count--;
+						if (count == 0) {
+							return this.scanner.currentPosition - 1;
+						}
+				}
+			}
+		} catch(InvalidInputException e) {
+			// ignore
+		}
+		return -1;
+	}
+	// End AspectJ
+
 	/**
 	 * This method is used to retrieve the starting position of the catch keyword.
 	 * @return int the dimension found, -1 if none
@@ -5064,6 +5276,9 @@ public class ASTConverter {
 	 * @param bodyDeclaration
 	 */
 	protected void setModifiers(BodyDeclaration bodyDeclaration, org.aspectj.org.eclipse.jdt.internal.compiler.ast.Annotation[] annotations, int modifiersEnd) {
+		setModifiers(bodyDeclaration.modifiers(), annotations, modifiersEnd);
+	}
+	protected void setModifiers(List modifiers, org.aspectj.org.eclipse.jdt.internal.compiler.ast.Annotation[] annotations, int modifiersEnd) {
 		this.scanner.tokenizeWhiteSpace = false;
 		try {
 			int token;
@@ -5124,7 +5339,7 @@ public class ASTConverter {
 						break;
 				}
 				if (modifier != null) {
-					bodyDeclaration.modifiers().add(modifier);
+					modifiers.add(modifier);
 				}
 			}
 		} catch(InvalidInputException e) {
@@ -5204,6 +5419,17 @@ public class ASTConverter {
 		}
 	}
 
+	protected void setAnnotations(ModuleDeclaration moduleDecl, org.aspectj.org.eclipse.jdt.internal.compiler.ast.ModuleDeclaration moduleDeclaration) {
+		this.scanner.resetTo(moduleDeclaration.declarationSourceStart, moduleDeclaration.sourceStart);
+		List<IExtendedModifier> modifiers = new ArrayList<>();
+		this.setModifiers(modifiers, moduleDeclaration.annotations, moduleDeclaration.sourceStart);
+		for (IExtendedModifier ie : modifiers) {
+			if (!ie.isAnnotation()) {
+				continue; // not setting to malformed.
+			}
+			moduleDecl.annotations().add(ie);
+		}
+	}
 	/**
 	 * @param variableDecl
 	 * @param argument
@@ -5699,7 +5925,7 @@ public class ASTConverter {
 				fieldDeclaration.setType(type);
 			}
 		} else {
-			if (type.isArrayType() && (this.ast.apiLevel() < AST.JLS8)) {
+			if (type.isArrayType() && (this.ast.apiLevel() < AST.JLS8_INTERNAL)) {
 				// update positions of the component types of the array type
 				int dimensions = ((ArrayType) type).getDimensions();
 				updateInnerPositions(type, dimensions);
@@ -5717,7 +5943,7 @@ public class ASTConverter {
 	private ArrayType extractSubArrayType(ArrayType arrayType, int remainingDimensions, int dimensionsToRemove) {
 		ArrayType subArrayType = arrayType;
 		int start = subArrayType.getStartPosition();
-		if (this.ast.apiLevel() < AST.JLS8) {
+		if (this.ast.apiLevel() < AST.JLS8_INTERNAL) {
 			while (dimensionsToRemove > 0 ) {
 				subArrayType = (ArrayType) componentType(subArrayType);
 				dimensionsToRemove--;

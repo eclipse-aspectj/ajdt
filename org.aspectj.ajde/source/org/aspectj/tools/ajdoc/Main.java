@@ -35,6 +35,7 @@ import org.aspectj.asm.AsmManager;
 import org.aspectj.bridge.IMessage;
 import org.aspectj.bridge.Version;
 import org.aspectj.util.FileUtil;
+import org.aspectj.util.LangUtil;
 
 /**
  * This is an old implementation of ajdoc that does not use an OO style. However, it does the job, and should serve to evolve a
@@ -47,24 +48,24 @@ public class Main implements Config {
 	private static final String FAIL_MESSAGE = "> compile failed, exiting ajdoc";
 
 	/** Command line options. */
-	static Vector options;
+	static Vector<String> options;
 
 	/** Options to pass to ajc. */
-	static Vector ajcOptions;
+	static Vector<String> ajcOptions;
 
 	/** All of the files to be processed by ajdoc. */
-	static Vector filenames;
+	static Vector<String> filenames;
 
 	/** List of files to pass to javadoc. */
-	static Vector fileList;
+	static Vector<String> fileList;
 
 	/** List of packages to pass to javadoc. */
-	static Vector packageList;
+	static Vector<String> packageList;
 
 	/** Default to package visiblity. */
 	static String docModifier = "package";
 
-	static Vector sourcepath;
+	static Vector<String> sourcepath;
 
 	static boolean verboseMode = false;
 	static boolean packageMode = false;
@@ -85,13 +86,13 @@ public class Main implements Config {
 	private static String outputWorkingDir = Config.WORKING_DIR;
 
 	public static void clearState() {
-		options = new Vector();
-		ajcOptions = new Vector();
-		filenames = new Vector();
-		fileList = new Vector();
-		packageList = new Vector();
+		options = new Vector<String>();
+		ajcOptions = new Vector<String>();
+		filenames = new Vector<String>();
+		fileList = new Vector<String>();
+		packageList = new Vector<String>();
 		docModifier = "package";
-		sourcepath = new Vector();
+		sourcepath = new Vector<String>();
 		verboseMode = false;
 		packageMode = false;
 		rootDir = null;
@@ -125,7 +126,7 @@ public class Main implements Config {
 			}
 
 			for (int i = 0; i < filenames.size(); i++) {
-				inputFiles[i] = new File((String) filenames.elementAt(i));
+				inputFiles[i] = new File(filenames.elementAt(i));
 			}
 
 			// PHASE 0: call ajc
@@ -169,7 +170,7 @@ public class Main implements Config {
 	 * package-summary properly.
 	 */
 	private static void packageHTML(AsmManager model, File[] inputFiles) throws IOException {
-		ArrayList dirList = new ArrayList();
+		ArrayList<String> dirList = new ArrayList<String>();
 		for (int i = 0; i < inputFiles.length; i++) {
 			String packageName = StructureUtil.getPackageDeclarationFromFile(model, inputFiles[i]);
 			// Only copy the package.html file once.
@@ -192,7 +193,7 @@ public class Main implements Config {
 				String pathName = outputWorkingDir + File.separator + packageName.replace('.', File.separatorChar);
 				File packageDir = new File(pathName);
 				if (!packageDir.exists()) {
-					dirList.add(packageDir);
+					dirList.add(packageName);
 					continue;
 				}
 				packageName = packageName.replace('.', '/'); // !!!
@@ -223,7 +224,7 @@ public class Main implements Config {
 		String[] argsToCompiler = new String[ajcOptions.size() + inputFiles.length];
 		int i = 0;
 		for (; i < ajcOptions.size(); i++) {
-			argsToCompiler[i] = (String) ajcOptions.elementAt(i);
+			argsToCompiler[i] = ajcOptions.elementAt(i);
 		}
 		for (int j = 0; j < inputFiles.length; j++) {
 			argsToCompiler[i] = inputFiles[j].getAbsolutePath();
@@ -237,6 +238,8 @@ public class Main implements Config {
 	private static void callJavadoc(File[] signatureFiles) throws IOException {
 		System.out.println("> Calling javadoc...");
 		String[] javadocargs = null;
+
+		List<String> files = new ArrayList<String>();
 		if (packageMode) {
 			int numExtraArgs = 2;
 			if (authorStandardDocletSwitch)
@@ -256,25 +259,37 @@ public class Main implements Config {
 			}
 			// javadocargs[1] = getSourcepathAsString();
 			for (int k = 0; k < options.size(); k++) {
-				javadocargs[numExtraArgs + k] = (String) options.elementAt(k);
+				javadocargs[numExtraArgs + k] = options.elementAt(k);
 			}
 			for (int k = 0; k < packageList.size(); k++) {
-				javadocargs[numExtraArgs + options.size() + k] = (String) packageList.elementAt(k);
+				javadocargs[numExtraArgs + options.size() + k] = packageList.elementAt(k);
 			}
 			for (int k = 0; k < fileList.size(); k++) {
-				javadocargs[numExtraArgs + options.size() + packageList.size() + k] = (String) fileList.elementAt(k);
+				javadocargs[numExtraArgs + options.size() + packageList.size() + k] = fileList.elementAt(k);
+			}
+			if (LangUtil.is19VMOrGreater()) {
+				options = new Vector<String>();
+				for (String a: javadocargs) {
+					options.add(a);
+				}
 			}
 		} else {
 			javadocargs = new String[options.size() + signatureFiles.length];
 			for (int k = 0; k < options.size(); k++) {
-				javadocargs[k] = (String) options.elementAt(k);
+				javadocargs[k] = options.elementAt(k);
 			}
 			for (int k = 0; k < signatureFiles.length; k++) {
 				javadocargs[options.size() + k] = StructureUtil.translateAjPathName(signatureFiles[k].getCanonicalPath());
 			}
+			for (int k = 0; k < signatureFiles.length; k++) {
+				files.add(StructureUtil.translateAjPathName(signatureFiles[k].getCanonicalPath()));
+			}
 		}
-
-		JavadocRunner.callJavadoc(javadocargs);
+		if (LangUtil.is19VMOrGreater()) {
+			JavadocRunner.callJavadocViaToolProvider(options, files);
+		} else {
+			JavadocRunner.callJavadoc(javadocargs);
+		}
 	}
 
 	/**
@@ -291,7 +306,7 @@ public class Main implements Config {
 		removeDeclIDsFromFile("serialized-form.html", true);
 		if (packageList.size() > 0) {
 			for (int p = 0; p < packageList.size(); p++) {
-				removeDeclIDsFromFile(((String) packageList.elementAt(p)).replace('.', '/') + Config.DIR_SEP_CHAR
+				removeDeclIDsFromFile(packageList.elementAt(p).replace('.', '/') + Config.DIR_SEP_CHAR
 						+ "package-summary.html", true);
 			}
 		} else {
@@ -301,6 +316,7 @@ public class Main implements Config {
 				return;
 			}
 			files = FileUtil.listFiles(rootDir, new FileFilter() {
+				@Override
 				public boolean accept(File f) {
 					return f.getName().equals("package-summary.html");
 				}
@@ -345,11 +361,11 @@ public class Main implements Config {
 		}
 	}
 
-	static Vector getSourcePath() {
-		Vector sourcePath = new Vector();
+	static Vector<String> getSourcePath() {
+		Vector<String> sourcePath = new Vector<String>();
 		boolean found = false;
 		for (int i = 0; i < options.size(); i++) {
-			String currOption = (String) options.elementAt(i);
+			String currOption = options.elementAt(i);
 			if (found && !currOption.startsWith("-")) {
 				sourcePath.add(currOption);
 			}
@@ -363,8 +379,8 @@ public class Main implements Config {
 	static File getRootDir() {
 		File rootDir = new File(".");
 		for (int i = 0; i < options.size(); i++) {
-			if (((String) options.elementAt(i)).equals("-d")) {
-				rootDir = new File((String) options.elementAt(i + 1));
+			if (options.elementAt(i).equals("-d")) {
+				rootDir = new File(options.elementAt(i + 1));
 				if (!rootDir.exists()) {
 					rootDir.mkdir();
 					// System.out.println( "Destination directory not found: " +
@@ -455,15 +471,15 @@ public class Main implements Config {
 				String line = "";
 				line = br.readLine();
 				StringTokenizer st = new StringTokenizer(line, " ");
-				List argList = new ArrayList();
+				List<String> argList = new ArrayList<String>();
 				while (st.hasMoreElements()) {
-					argList.add(st.nextElement());
+					argList.add(st.nextToken());
 				}
 				// System.err.println(argList);
 				args = new String[argList.size()];
 				int counter = 0;
-				for (Iterator it = argList.iterator(); it.hasNext();) {
-					args[counter] = (String) it.next();
+				for (Iterator<String> it = argList.iterator(); it.hasNext();) {
+					args[counter] = it.next();
 					counter++;
 				}
 			} catch (FileNotFoundException e) {
@@ -474,7 +490,7 @@ public class Main implements Config {
 				ioe.printStackTrace();
 			}
 		}
-		List vargs = new LinkedList(Arrays.asList(args));
+		List<String> vargs = new LinkedList<String>(Arrays.asList(args));
 		vargs.add("-Xset:minimalModel=false");
 		parseArgs(vargs, new File(".")); // !!!
 
@@ -488,14 +504,14 @@ public class Main implements Config {
 		arg = arg + File.pathSeparator; // makes things easier for ourselves
 		StringTokenizer tokenizer = new StringTokenizer(arg, File.pathSeparator);
 		while (tokenizer.hasMoreElements()) {
-			sourcepath.addElement(tokenizer.nextElement());
+			sourcepath.addElement(tokenizer.nextToken());
 		}
 	}
 
 	static String getSourcepathAsString() {
 		String cPath = "";
 		for (int i = 0; i < sourcepath.size(); i++) {
-			cPath += (String) sourcepath.elementAt(i) + Config.DIR_SEP_CHAR + outputWorkingDir;
+			cPath += sourcepath.elementAt(i) + Config.DIR_SEP_CHAR + outputWorkingDir;
 			if (i != sourcepath.size() - 1) {
 				cPath += File.pathSeparator;
 			}
@@ -668,10 +684,11 @@ public class Main implements Config {
 
 					// do this for every item in the classpath
 					for (int c = 0; c < sourcepath.size(); c++) {
-						String path = (String) sourcepath.elementAt(c) + Config.DIR_SEP_CHAR + arg;
+						String path = sourcepath.elementAt(c) + Config.DIR_SEP_CHAR + arg;
 						File pkg = new File(path);
 						if (pkg.isDirectory()) {
 							String[] files = pkg.list(new FilenameFilter() {
+								@Override
 								public boolean accept(File dir, String name) {
 									int index1 = name.lastIndexOf(".");
 									int index2 = name.length();
@@ -685,7 +702,7 @@ public class Main implements Config {
 								}
 							});
 							for (int j = 0; j < files.length; j++) {
-								filenames.addElement((String) sourcepath.elementAt(c) + Config.DIR_SEP_CHAR + arg
+								filenames.addElement(sourcepath.elementAt(c) + Config.DIR_SEP_CHAR + arg
 										+ Config.DIR_SEP_CHAR + files[j]);
 							}
 						} else if (c == sourcepath.size()) { // last element on classpath
@@ -705,7 +722,7 @@ public class Main implements Config {
 	}
 
 	static void expandAtSignFile(String filename, File currentWorkingDir) {
-		List result = new LinkedList();
+		List<String> result = new LinkedList<String>();
 
 		File atFile = qualifiedFile(filename, currentWorkingDir);
 		String atFileParent = atFile.getParent();
@@ -730,6 +747,7 @@ public class Main implements Config {
 					continue;
 				result.add(line);
 			}
+			stream.close();
 		} catch (IOException e) {
 			System.err.println("Error while reading the @ file " + atFile.getPath() + ".\n" + e);
 			System.exit(-1);

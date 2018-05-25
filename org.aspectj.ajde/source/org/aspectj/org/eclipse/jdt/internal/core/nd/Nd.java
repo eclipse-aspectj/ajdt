@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
@@ -25,17 +26,30 @@ import org.aspectj.org.eclipse.jdt.internal.core.nd.db.IndexException;
 /**
  * Network Database for storing semantic information.
  */
-public class Nd {
+public final class Nd {
 	private static final int CANCELLATION_CHECK_INTERVAL = 500;
 	private static final int BLOCKED_WRITE_LOCK_OUTPUT_INTERVAL = 30000;
 	private static final int LONG_WRITE_LOCK_REPORT_THRESHOLD = 1000;
 	private static final int LONG_READ_LOCK_WAIT_REPORT_THRESHOLD = 1000;
+
+	/**
+	 * Controls the number of pages that are allowed to be dirty before a
+	 * flush will occur. Specified as a ratio of the total cache size. For
+	 * example, a ration of 0.5 would mean that a flush is forced if half
+	 * of the cache is dirty.
+	 */
+	private static final double MAX_DIRTY_CACHE_RATIO = 0.25;
 	public static boolean sDEBUG_LOCKS= false;
 	public static boolean DEBUG_DUPLICATE_DELETIONS = false;
 
 	private final int currentVersion;
 	private final int maxVersion;
 	private final int minVersion;
+
+	/**
+	 * Stores data that has been stored via {@link #setData}. Synchronize on {@link #cookies} before accessing.
+	 */
+	private final Map<Class<?>, Object> cookies = new HashMap<>();
 
 	public static int version(int major, int minor) {
 		return (major << 16) + minor;
@@ -154,6 +168,45 @@ public class Nd {
 	}
 
 	/**
+	 * Inserts a cookie that can be later retrieved via getData(String). 
+	 */
+	public <T> void setData(Class<T> key, T value) {
+		synchronized (this.cookies) {
+			this.cookies.put(key, value);
+		}
+	}
+
+	/**
+	 * Returns a cookie that was previously attached using {@link #setData(Class, Object)}. If no such cookie
+	 * exists, it is computed using the given function and remembered for later. The function may return null.
+	 * If it does, this method will also return null and no cookie will be stored.
+	 */
+	@SuppressWarnings("unchecked")
+	public <T> T getData(Class<T> key, Supplier<T> defaultValue) {
+		T result;
+		synchronized (this.cookies) {
+			result = (T) this.cookies.get(key);
+		}
+
+		if (result == null) {
+			result = defaultValue.get();
+
+			if (result != null) {
+				synchronized (this.cookies) {
+					T newResult = (T) this.cookies.get(key);
+					if (newResult == null) {
+						this.cookies.put(key, result);
+					} else {
+						result = newResult;
+					}
+				}
+			}
+		}
+
+		return result;
+	}
+
+	/**
 	 * Returns whether this {@link Nd} can never be written to. Writable subclasses should return false.
 	 */
 	protected boolean isPermanentlyReadOnly() {
@@ -162,20 +215,19 @@ public class Nd {
 
 	private void loadDatabase(File dbPath, ChunkCache cache) throws IndexException {
 		this.fPath= dbPath;
-		final boolean lockDB= this.db == null || this.lockCount != 0;
 
 		clearCaches();
 		this.db = new Database(this.fPath, cache, getDefaultVersion(), isPermanentlyReadOnly());
-
-		this.db.setLocked(lockDB);
+		this.db.setExclusiveLock();
 		if (!isSupportedVersion()) {
 			Package.logInfo("Index database uses the unsupported version " + this.db.getVersion() //$NON-NLS-1$
 				+ ". Deleting and recreating."); //$NON-NLS-1$
 			this.db.close();
 			this.fPath.delete();
 			this.db = new Database(this.fPath, cache, getDefaultVersion(), isPermanentlyReadOnly());
-			this.db.setLocked(lockDB);
+			this.db.setExclusiveLock();
 		}
+		this.db.giveUpExclusiveLock();
 		this.fWriteNumber = this.db.getLong(Database.WRITE_NUMBER_OFFSET);
 		this.db.setLocked(this.lockCount != 0);
 	}
@@ -192,6 +244,7 @@ public class Nd {
 	private long lastWriteAccess= 0;
 	//private long lastReadAccess= 0;
 	private long timeWriteLockAcquired;
+	private Thread writeLockOwner;
 
 	public IReader acquireReadLock() {
 		try {
@@ -281,7 +334,7 @@ public class Nd {
 
 			// Let the readers go first
 			long start= sDEBUG_LOCKS ? System.currentTimeMillis() : 0;
-			while (this.lockCount > giveupReadLocks || this.waitingReaders > 0) {
+			while (this.lockCount > giveupReadLocks || this.waitingReaders > 0 || (this.lockCount < 0)) {
 				this.mutex.wait(CANCELLATION_CHECK_INTERVAL);
 				if (monitor != null && monitor.isCanceled()) {
 					throw new OperationCanceledException();
@@ -294,46 +347,91 @@ public class Nd {
 			if (sDEBUG_LOCKS)
 				this.timeWriteLockAcquired = System.currentTimeMillis();
 			this.db.setExclusiveLock();
+			if (this.writeLockOwner != null && this.writeLockOwner != Thread.currentThread()) {
+				throw new IllegalStateException("We somehow managed to acquire a write lock while another thread already holds it."); //$NON-NLS-1$
+			}
+			this.writeLockOwner = Thread.currentThread();
 		}
 	}
 
 	public final void releaseWriteLock() {
-		releaseWriteLock(0, true);
+		releaseWriteLock(0, false);
 	}
 
 	@SuppressWarnings("nls")
 	public void releaseWriteLock(int establishReadLocks, boolean flush) {
-		boolean wasInterrupted = false;
-		// When all locks are released we can clear the result cache.
-		if (establishReadLocks == 0) {
-			processDeletions();
-			this.db.putLong(Database.WRITE_NUMBER_OFFSET, ++this.fWriteNumber);
-			clearResultCache();
-		}
-		try {
-			wasInterrupted = this.db.giveUpExclusiveLock(flush) || wasInterrupted;
-		} catch (IndexException e) {
-			Package.log(e);
-		}
-		assert this.lockCount == -1;
-		this.lastWriteAccess= System.currentTimeMillis();
 		synchronized (this.mutex) {
-			if (sDEBUG_LOCKS) {
-				long timeHeld = this.lastWriteAccess - this.timeWriteLockAcquired;
-				if (timeHeld >= LONG_WRITE_LOCK_REPORT_THRESHOLD) {
-					System.out.println("Index write lock held for " + timeHeld + " ms");
-				}
-				decWriteLock(establishReadLocks);
+			Thread current = Thread.currentThread();
+			if (current != this.writeLockOwner) {
+				throw new IllegalStateException("Index wasn't locked by this thread!!!");
 			}
-
-			if (this.lockCount < 0)
-				this.lockCount= establishReadLocks;
-			this.mutex.notifyAll();
-			this.db.setLocked(this.lockCount != 0);
+			this.writeLockOwner = null;
+		}
+		RuntimeException exception = null;
+		boolean wasInterrupted = false;
+		try {
+			// When all locks are released we can clear the result cache.
+			if (establishReadLocks == 0) {
+				clearResultCache();
+			}
+			this.db.putLong(Database.WRITE_NUMBER_OFFSET, ++this.fWriteNumber);
+			// Process any outstanding deletions now
+			processDeletions();
+		} catch (RuntimeException e) {
+			exception = e;
+		} finally {
+			this.db.giveUpExclusiveLock();
+			assert this.lockCount == -1;
+			this.lastWriteAccess = System.currentTimeMillis();
+			try {
+				releaseWriteLockAndFlush(establishReadLocks, flush);
+			} catch (RuntimeException e) {
+				if (exception != null) {
+					e.addSuppressed(exception);
+				}
+				throw e;
+			}
 		}
 
 		if (wasInterrupted) {
 			throw new OperationCanceledException();
+		}
+	}
+
+	private void releaseWriteLockAndFlush(int establishReadLocks, boolean flush) throws AssertionError {
+		int dirtyPages = this.getDB().getDirtyChunkCount();
+
+		// If there are too many dirty pages, force a flush now.
+		int totalCacheSize = (int) (this.db.getCache().getMaxSize() / Database.CHUNK_SIZE);
+		if (dirtyPages > totalCacheSize * MAX_DIRTY_CACHE_RATIO) {
+			flush = true;
+		}
+
+		int initialReadLocks = flush ? establishReadLocks + 1 : establishReadLocks;
+		// Convert this write lock to a read lock while we flush the page cache to disk. That will prevent
+		// other writers from dirtying more pages during the flush but will allow reads to proceed.
+		synchronized (this.mutex) {
+			if (sDEBUG_LOCKS) {
+				long timeHeld = this.lastWriteAccess - this.timeWriteLockAcquired;
+				if (timeHeld >= LONG_WRITE_LOCK_REPORT_THRESHOLD) {
+					System.out.println("Index write lock held for " + timeHeld + " ms");  //$NON-NLS-1$//$NON-NLS-2$
+				}
+				decWriteLock(initialReadLocks);
+			}
+
+			if (this.lockCount < 0) {
+				this.lockCount = initialReadLocks;
+			}
+			this.mutex.notifyAll();
+			this.db.setLocked(initialReadLocks != 0);
+		}
+
+		if (flush) {
+			try {
+				this.db.flush();
+			} finally {
+				releaseReadLock();
+			}
 		}
 	}
 
@@ -552,7 +650,7 @@ public class Nd {
 	/**
 	 * Returns the type ID for the given class
 	 */
-	public short getNodeType(Class<? extends NdNode> toQuery) {
+	public short getNodeType(Class<?> toQuery) {
 		return this.fNodeTypeRegistry.getTypeForClass(toQuery);
 	}
 
@@ -601,6 +699,19 @@ public class Nd {
 	}
 
 	public void clear(IProgressMonitor monitor) {
+		this.pendingDeletions.clear();
 		getDB().clear(getDefaultVersion());
+	}
+
+	public boolean isValidAddress(long address) {
+		return address > 0 && address < (long) getDB().getChunkCount() * Database.CHUNK_SIZE;
+	}
+
+	/**
+	 * Creates a {@link IndexExceptionBuilder} object that collects information about database corruption after it is 
+	 * detected.
+	 */
+	public IndexExceptionBuilder describeProblem() {
+		return this.db.describeProblem();
 	}
 }

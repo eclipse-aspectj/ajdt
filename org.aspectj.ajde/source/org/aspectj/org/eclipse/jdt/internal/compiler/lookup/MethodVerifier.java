@@ -1,5 +1,6 @@
+// ASPECTJ
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -195,7 +196,7 @@ void checkAgainstInheritedMethods(MethodBinding currentMethod, MethodBinding[] m
 			}
 		}
 		if (!inheritedMethod.isStatic() && !inheritedMethod.isFinal())
-		checkForBridgeMethod(currentMethod, inheritedMethod, allInheritedMethods);
+			checkForBridgeMethod(currentMethod, inheritedMethod, allInheritedMethods);
 	}
 	MethodBinding[] overridden = (MethodBinding[])this.inheritedOverriddenMethods.get(currentMethod.selector);
 	if (overridden != null) {
@@ -203,9 +204,9 @@ void checkAgainstInheritedMethods(MethodBinding currentMethod, MethodBinding[] m
 			MethodBinding inheritedMethod = overridden[i];
 			if (isParameterSubsignature(currentMethod, inheritedMethod) &&
 					!inheritedMethod.isStatic() && !inheritedMethod.isFinal())
-				checkForBridgeMethod(currentMethod, inheritedMethod, allInheritedMethods);
-		}
+		checkForBridgeMethod(currentMethod, inheritedMethod, allInheritedMethods);
 	}
+}
 }
 void addBridgeMethodCandidate(MethodBinding overriddenMethod) {
 	MethodBinding[] existing = (MethodBinding[])this.inheritedOverriddenMethods.get(overriddenMethod.selector);
@@ -215,7 +216,7 @@ void addBridgeMethodCandidate(MethodBinding overriddenMethod) {
 		int length = existing.length;
 		System.arraycopy(existing, 0, existing = new MethodBinding[length + 1], 0, length);
 		existing[length] = overriddenMethod;
-}
+	}
 	this.inheritedOverriddenMethods.put(overriddenMethod.selector, existing);
 }
 
@@ -658,7 +659,7 @@ void computeInheritedMethods(ReferenceBinding superclass, ReferenceBinding[] sup
 			MethodBinding[] methods = superType.unResolvedMethods();
 			nextMethod : for (int m = methods.length; --m >= 0;) { // Interface methods are all abstract public
 				MethodBinding inheritedMethod = methods[m];
-				if (inheritedMethod.isStatic()) continue nextMethod;
+				if (inheritedMethod.isStatic() || inheritedMethod.isPrivate()) continue nextMethod;
 				if (!inheritedMethod.isAbstract() && !inheritedMethod.isDefaultMethod()) continue nextMethod; // AspectJ Extension - allow for ITDs on the interface
 				MethodBinding[] existingMethods = (MethodBinding[]) this.inheritedMethods.get(inheritedMethod.selector);
 				if (existingMethods == null) {
@@ -1069,6 +1070,7 @@ void verify(SourceTypeBinding someType) {
 	}
 }
 
+@Override
 public String toString() {
 	StringBuffer buffer = new StringBuffer(10);
 	buffer.append("MethodVerifier for type: "); //$NON-NLS-1$

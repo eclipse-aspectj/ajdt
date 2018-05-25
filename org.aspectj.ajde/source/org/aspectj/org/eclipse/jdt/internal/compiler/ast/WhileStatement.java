@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -42,6 +42,7 @@ public class WhileStatement extends Statement {
 		this.sourceEnd = e;
 	}
 
+	@Override
 	public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, FlowInfo flowInfo) {
 
 		this.breakLabel = new BranchLabel();
@@ -103,6 +104,7 @@ public class WhileStatement extends Statement {
 					this.continueLabel,
 					currentScope,
 					true);
+			loopingContext.copyNullCheckedFieldsFrom(condLoopContext);
 			if (isConditionFalse) {
 				actionInfo = FlowInfo.DEAD_END;
 			} else {
@@ -179,6 +181,7 @@ public class WhileStatement extends Statement {
 	 * @param currentScope org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BlockScope
 	 * @param codeStream org.aspectj.org.eclipse.jdt.internal.compiler.codegen.CodeStream
 	 */
+	@Override
 	public void generateCode(BlockScope currentScope, CodeStream codeStream) {
 
 		if ((this.bits & IsReachable) == 0) {
@@ -262,6 +265,7 @@ public class WhileStatement extends Statement {
 		codeStream.recordPositionsFrom(pc, this.sourceStart);
 	}
 
+	@Override
 	public void resolve(BlockScope scope) {
 
 		TypeBinding type = this.condition.resolveTypeExpecting(scope, TypeBinding.BOOLEAN);
@@ -270,6 +274,7 @@ public class WhileStatement extends Statement {
 			this.action.resolve(scope);
 	}
 
+	@Override
 	public StringBuffer printStatement(int tab, StringBuffer output) {
 
 		printIndent(tab, output).append("while ("); //$NON-NLS-1$
@@ -281,6 +286,7 @@ public class WhileStatement extends Statement {
 		return output;
 	}
 
+	@Override
 	public void traverse(
 		ASTVisitor visitor,
 		BlockScope blockScope) {

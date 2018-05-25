@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -17,8 +17,10 @@ package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
 import java.util.List;
 
+import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeReference.AnnotationCollector;
+import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.AnnotationTargetTypeConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.CodeStream;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.AnnotationBinding;
@@ -29,6 +31,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Scope;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeVariableBinding;
 
 @SuppressWarnings("rawtypes")
@@ -40,6 +43,7 @@ public class TypeParameter extends AbstractVariableDeclaration {
 	/**
 	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractVariableDeclaration#getKind()
 	 */
+	@Override
 	public int getKind() {
 		return TYPE_PARAMETER;
 	}
@@ -106,8 +110,16 @@ public class TypeParameter extends AbstractVariableDeclaration {
 		if (this.annotations != null || scope.environment().usesNullTypeAnnotations()) {
 			resolveAnnotations(scope);
 		}
+		if (CharOperation.equals(this.name, TypeConstants.VAR)) {
+			if (scope.compilerOptions().sourceLevel < ClassFileConstants.JDK10) {
+				scope.problemReporter().varIsReservedTypeNameInFuture(this);
+			} else {
+				scope.problemReporter().varIsNotAllowedHere(this);
+			}
+		}
 	}
 
+	@Override
 	public void resolve(BlockScope scope) {
 		internalResolve(scope, scope.methodScope().isStatic);
 	}
@@ -129,7 +141,7 @@ public class TypeParameter extends AbstractVariableDeclaration {
 			if (isAnnotationBasedNullAnalysisEnabled) {
 				if (this.binding != null && this.binding.isValidBinding()) {
 					if (!this.binding.hasNullTypeAnnotations()
-							&& scope.hasDefaultNullnessFor(Binding.DefaultLocationTypeParameter)) {
+							&& scope.hasDefaultNullnessFor(Binding.DefaultLocationTypeParameter, this.sourceStart())) {
 						AnnotationBinding[] annots = new AnnotationBinding[] { environment.getNonNullAnnotation() };
 						TypeVariableBinding previousBinding = this.binding;
 						this.binding = (TypeVariableBinding) environment.createAnnotatedType(this.binding, annots);
@@ -154,9 +166,7 @@ public class TypeParameter extends AbstractVariableDeclaration {
 		}	
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.ast.AstNode#print(int, java.lang.StringBuffer)
-	 */
+	@Override
 	public StringBuffer printStatement(int indent, StringBuffer output) {
 		if (this.annotations != null) {
 			printAnnotations(this.annotations, output);
@@ -176,10 +186,12 @@ public class TypeParameter extends AbstractVariableDeclaration {
 		return output;
 	}
 
+	@Override
 	public void generateCode(BlockScope currentScope, CodeStream codeStream) {
 	    // nothing to do
 	}
 
+	@Override
 	public void traverse(ASTVisitor visitor, BlockScope scope) {
 		if (visitor.visit(this, scope)) {
 			if (this.annotations != null) {

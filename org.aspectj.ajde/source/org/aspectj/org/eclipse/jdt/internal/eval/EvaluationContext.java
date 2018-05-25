@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -117,10 +117,12 @@ public void complete(
 		IProgressMonitor monitor) {
 	try {
 		IRequestor variableRequestor = new IRequestor() {
+			@Override
 			public boolean acceptClassFiles(ClassFile[] classFiles, char[] codeSnippetClassName) {
 				// Do nothing
 				return true;
 			}
+			@Override
 			public void acceptProblem(CategorizedProblem problem, char[] fragmentSource, int fragmentKind) {
 				// Do nothing
 			}
@@ -145,20 +147,30 @@ public void complete(
 		complianceVersion
 	);
 	ICompilationUnit sourceUnit = new ICompilationUnit() {
+		@Override
 		public char[] getFileName() {
 			return CharOperation.concat(className, Util.defaultJavaExtension().toCharArray());
 		}
+		@Override
 		public char[] getContents() {
 			return mapper.getCUSource(EvaluationContext.this.lineSeparator);
 		}
+		@Override
 		public char[] getMainTypeName() {
 			return className;
 		}
+		@Override
 		public char[][] getPackageName() {
 			return null;
 		}
+		@Override
 		public boolean ignoreOptionalProblems() {
 			return false;
+		}
+		@Override
+		public char[] getModuleName() {
+			// TODO Java 9 Auto-generated method stub
+			return null;
 		}
 	};
 
@@ -215,9 +227,11 @@ private void deployCodeSnippetClassIfNeeded(IRequestor requestor) throws Install
 		if (!requestor.acceptClassFiles(
 			new ClassFile[] {
 				new ClassFile() {
+					@Override
 					public byte[] getBytes() {
 						return getCodeSnippetBytes();
 					}
+					@Override
 					public char[][] getCompoundName() {
 						return EvaluationConstants.ROOT_COMPOUND_NAME;
 					}
@@ -258,9 +272,11 @@ public void evaluate(
 		// Install new variables if needed
 		class ForwardingRequestor implements IRequestor {
 			boolean hasErrors = false;
+			@Override
 			public boolean acceptClassFiles(ClassFile[] classFiles, char[] codeSnippetClassName) {
 				return requestor.acceptClassFiles(classFiles, codeSnippetClassName);
 			}
+			@Override
 			public void acceptProblem(CategorizedProblem problem, char[] fragmentSource, int fragmentKind) {
 				requestor.acceptProblem(problem, fragmentSource, fragmentKind);
 				if (problem.isError()) {
@@ -391,6 +407,7 @@ public void evaluateVariables(INameEnvironment environment, Map<String, String> 
 			// otherwise an AbortCompilation is thrown in 1.5 mode since the enclosing type
 			// is needed to resolve a nested type
 			Util.sort(classes, new Util.Comparer() {
+				@Override
 				public int compare(Object a, Object b) {
 					if (a == b) return 0;
 					ClassFile enclosing = ((ClassFile) a).enclosingClassFile;
@@ -592,20 +609,29 @@ public void select(
 		complianceVersion
 	);
 	ICompilationUnit sourceUnit = new ICompilationUnit() {
+		@Override
 		public char[] getFileName() {
 			return CharOperation.concat(className, Util.defaultJavaExtension().toCharArray());
 		}
+		@Override
 		public char[] getContents() {
 			return mapper.getCUSource(EvaluationContext.this.lineSeparator);
 		}
+		@Override
 		public char[] getMainTypeName() {
 			return className;
 		}
+		@Override
 		public char[][] getPackageName() {
 			return null;
 		}
+		@Override
 		public boolean ignoreOptionalProblems() {
 			return false;
+		}
+		@Override
+		public char[] getModuleName() {
+			return null;
 		}
 	};
 	SelectionEngine engine = new SelectionEngine(environment, mapper.getSelectionRequestor(requestor), options, owner);

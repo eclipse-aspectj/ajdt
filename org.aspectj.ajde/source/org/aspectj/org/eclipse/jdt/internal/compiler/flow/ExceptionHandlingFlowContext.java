@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -97,7 +97,7 @@ ExceptionHandlingFlowContext(
 		BlockScope scope,
 		UnconditionalFlowInfo flowInfo) {
 
-	super(parent, associatedNode);
+	super(parent, associatedNode, true);
 	this.isMethodContext = scope == scope.methodScope();
 	this.handledExceptions = handledExceptions;
 	this.catchArguments = catchArguments;
@@ -207,6 +207,7 @@ public FlowContext getInitializationContext() {
 	return this.initializationParent;
 }
 
+@Override
 public String individualToString() {
 	StringBuffer buffer = new StringBuffer("Exception flow context"); //$NON-NLS-1$
 	int length = this.handledExceptions.length;
@@ -236,6 +237,7 @@ public UnconditionalFlowInfo initsOnException(int index) {
 	return this.initsOnExceptions[index];
 }
 
+@Override
 public UnconditionalFlowInfo initsOnReturn(){
 	return this.initsOnReturn;
 }
@@ -296,6 +298,7 @@ public void recordHandlingException(
 			flowInfo.unconditionalCopy();
 }
 
+@Override
 public void recordReturnFrom(UnconditionalFlowInfo flowInfo) {
 	if ((flowInfo.tagBits & FlowInfo.UNREACHABLE_OR_DEAD) == 0) {
 		if ((this.initsOnReturn.tagBits & FlowInfo.UNREACHABLE_OR_DEAD) == 0) {
@@ -314,6 +317,7 @@ public void recordReturnFrom(UnconditionalFlowInfo flowInfo) {
  * exception handlers.
  * @see org.aspectj.org.eclipse.jdt.internal.compiler.flow.FlowContext#subroutine()
  */
+@Override
 public SubRoutineStatement subroutine() {
 	if (this.associatedNode instanceof SubRoutineStatement) {
 		// exception handler context may be child of InsideSubRoutineFlowContext, which maps to same handler

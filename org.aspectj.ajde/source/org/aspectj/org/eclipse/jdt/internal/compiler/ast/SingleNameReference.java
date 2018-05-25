@@ -1,10 +1,11 @@
+// ASPECTJ
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- *
+ * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann <stephan@cs.tu-berlin.de> - Contributions for
@@ -19,6 +20,7 @@
  *     							bug 382721 - [1.8][compiler] Effectively final variables needs special treatment
  *								bug 378674 - "The method can be declared as static" is wrong
  *								bug 404657 - [1.8][compiler] Analysis for effectively final variables fails to consider loops
+ *								bug 527554 - [18.3] Compiler support for JEP 286 Local-Variable Type
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
@@ -67,6 +69,7 @@ public SingleNameReference(char[] source, long pos) {
 	this.sourceEnd = (int) pos;
 }
 
+@Override
 public FlowInfo analyseAssignment(BlockScope currentScope, FlowContext flowContext, FlowInfo flowInfo, Assignment assignment, boolean isCompound) {
 	boolean isReachable = (flowInfo.tagBits & FlowInfo.UNREACHABLE) == 0;
 	// compound assignment extra work
@@ -171,10 +174,12 @@ public FlowInfo analyseAssignment(BlockScope currentScope, FlowContext flowConte
 	return flowInfo;
 }
 
+@Override
 public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, FlowInfo flowInfo) {
 	return analyseCode(currentScope, flowContext, flowInfo, true);
 }
 
+@Override
 public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, FlowInfo flowInfo, boolean valueRequired) {
 	switch (this.bits & ASTNode.RestrictiveFlagMASK) {
 		case Binding.FIELD : // reading a field
@@ -254,6 +259,7 @@ public TypeBinding checkFieldAccess(BlockScope scope) {
 
 }
 
+@Override
 public boolean checkNPE(BlockScope scope, FlowContext flowContext, FlowInfo flowInfo, int ttlForFieldCheck) {
 	if (!super.checkNPE(scope, flowContext, flowInfo, ttlForFieldCheck)) {
 		CompilerOptions compilerOptions = scope.compilerOptions();
@@ -269,15 +275,17 @@ public boolean checkNPE(BlockScope scope, FlowContext flowContext, FlowInfo flow
 /**
  * @see org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression#computeConversion(org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Scope, org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding, org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding)
  */
+@Override
 public void computeConversion(Scope scope, TypeBinding runtimeTimeType, TypeBinding compileTimeType) {
 	if (runtimeTimeType == null || compileTimeType == null)
 		return;
 	if (this.binding != null && this.binding.isValidBinding()) {
 		TypeBinding originalType = null;
-		if ((this.bits & Binding.FIELD) != 0 && (this.binding instanceof FieldBinding)) { // AspectJ extension - - new guard (ajc_aroundClosure does this) ??
-		// set the generic cast after the fact, once the type expectation is fully known (no need for strict cast)
-		FieldBinding field = (FieldBinding) this.binding;
-		FieldBinding originalBinding = field.original();
+			if (this.binding instanceof FieldBinding) { // AspectJ Extension - new guard (ajc_aroundClosure does this) ??
+		if ((this.bits & Binding.FIELD) != 0) {
+			// set the generic cast after the fact, once the type expectation is fully known (no need for strict cast)
+			FieldBinding field = (FieldBinding) this.binding;
+			FieldBinding originalBinding = field.original();
 			originalType = originalBinding.type;
 		} else if ((this.bits & Binding.LOCAL) != 0) {
 			LocalVariableBinding local = (LocalVariableBinding) this.binding;
@@ -285,25 +293,27 @@ public void computeConversion(Scope scope, TypeBinding runtimeTimeType, TypeBind
 		}
 		// extra cast needed if field/local type is type variable
 		if (originalType != null && originalType.leafComponentType().isTypeVariable()) {
-	    	TypeBinding targetType = (!compileTimeType.isBaseType() && runtimeTimeType.isBaseType())
-	    		? compileTimeType  // unboxing: checkcast before conversion
-	    		: runtimeTimeType;
-	        this.genericCast = originalType.genericCast(scope.boxing(targetType));
-	        if (this.genericCast instanceof ReferenceBinding) {
+			TypeBinding targetType = (!compileTimeType.isBaseType() && runtimeTimeType.isBaseType())
+					? compileTimeType  // unboxing: checkcast before conversion
+							: runtimeTimeType;
+			this.genericCast = originalType.genericCast(scope.boxing(targetType));
+			if (this.genericCast instanceof ReferenceBinding) {
 				ReferenceBinding referenceCast = (ReferenceBinding) this.genericCast;
 				if (!referenceCast.canBeSeenBy(scope)) {
-		        	scope.problemReporter().invalidType(this,
-		        			new ProblemReferenceBinding(
-								CharOperation.splitOn('.', referenceCast.shortReadableName()),
-								referenceCast,
-								ProblemReasons.NotVisible));
+					scope.problemReporter().invalidType(this,
+							new ProblemReferenceBinding(
+									CharOperation.splitOn('.', referenceCast.shortReadableName()),
+									referenceCast,
+									ProblemReasons.NotVisible));
 				}
-	        }
+			}
+		    }// AspectJ Extension - close the new if()		        
 		}
 	}
 	super.computeConversion(scope, runtimeTimeType, compileTimeType);
 }
 
+@Override
 public void generateAssignment(BlockScope currentScope, CodeStream codeStream, Assignment assignment, boolean valueRequired) {
 	// optimizing assignment like: i = i + 1 or i = 1 + i
 	if (assignment.expression.isCompactableOperation()) {
@@ -402,6 +412,7 @@ public void generateAssignment(BlockScope currentScope, CodeStream codeStream, A
 	}
 }
 
+@Override
 public void generateCode(BlockScope currentScope, CodeStream codeStream, boolean valueRequired) {
 	int pc = codeStream.position;
 	if (this.constant != Constant.NotAConstant) {
@@ -523,6 +534,7 @@ public void generateCode(BlockScope currentScope, CodeStream codeStream, boolean
  * The APIs with an extra argument is used whenever there are two references to the same variable which
  * are optimized in one access: e.g "a = a + 1" optimized into "a++".
  */
+@Override
 public void generateCompoundAssignment(BlockScope currentScope, CodeStream codeStream, Expression expression, int operator, int assignmentImplicitConversion, boolean valueRequired) {
 	// https://bugs.eclipse.org/bugs/show_bug.cgi?id=185682
 	switch (this.bits & ASTNode.RestrictiveFlagMASK) {
@@ -701,6 +713,7 @@ public void generateCompoundAssignment(BlockScope currentScope, CodeStream codeS
 	}
 }
 
+@Override
 public void generatePostIncrement(BlockScope currentScope, CodeStream codeStream, CompoundAssignment postIncrement, boolean valueRequired) {
 	switch (this.bits & ASTNode.RestrictiveFlagMASK) {
 		case Binding.FIELD : // assigning to a field
@@ -822,10 +835,12 @@ public void generateReceiver(CodeStream codeStream) {
 /**
  * @see org.aspectj.org.eclipse.jdt.internal.compiler.lookup.InvocationSite#genericTypeArguments()
  */
+@Override
 public TypeBinding[] genericTypeArguments() {
 	return null;
 }
 
+@Override
 public boolean isEquivalent(Reference reference) {
 	char[] otherToken = null;
 	if (reference instanceof SingleNameReference) {
@@ -843,6 +858,7 @@ public boolean isEquivalent(Reference reference) {
  * Returns the local variable referenced by this node. Can be a direct reference (SingleNameReference)
  * or thru a cast expression etc...
  */
+@Override
 public LocalVariableBinding localVariableBinding() {
 	switch (this.bits & ASTNode.RestrictiveFlagMASK) {
 		case Binding.FIELD : // reading a field
@@ -853,6 +869,7 @@ public LocalVariableBinding localVariableBinding() {
 	return null;
 }
 
+@Override
 public VariableBinding nullAnnotatedVariableBinding(boolean supportTypeAnnotations) {
 	switch (this.bits & ASTNode.RestrictiveFlagMASK) {
 		case Binding.FIELD : // reading a field
@@ -864,6 +881,7 @@ public VariableBinding nullAnnotatedVariableBinding(boolean supportTypeAnnotatio
 	return null;
 }
 
+@Override
 public int nullStatus(FlowInfo flowInfo, FlowContext flowContext) {
 	if ((this.implicitConversion & TypeIds.BOXING) != 0)
 		return FlowInfo.NON_NULL;
@@ -884,6 +902,10 @@ public void manageEnclosingInstanceAccessIfNecessary(BlockScope currentScope, Fl
 		if (localVariableBinding != null) {
 			if ((localVariableBinding.tagBits & TagBits.NotInitialized) != 0) {
 				// local was tagged as uninitialized
+				return;
+			}
+			if ((localVariableBinding.tagBits & TagBits.IsEffectivelyFinal) == 0) {
+				// local was tagged as not effectively final
 				return;
 			}
 			switch(localVariableBinding.useFlag) {
@@ -946,6 +968,7 @@ public void manageSyntheticAccessIfNecessary(BlockScope currentScope, FlowInfo f
 /**
  * @see org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression#postConversionType(Scope)
  */
+@Override
 public TypeBinding postConversionType(Scope scope) {
 	TypeBinding convertedType = this.resolvedType;
 	if (this.genericCast != null)
@@ -984,6 +1007,7 @@ public TypeBinding postConversionType(Scope scope) {
 	return convertedType;
 }
 
+@Override
 public StringBuffer printExpression(int indent, StringBuffer output){
 	return output.append(this.token);
 }
@@ -1000,6 +1024,7 @@ public TypeBinding reportError(BlockScope scope) {
 	return null;
 }
 
+@Override
 public TypeBinding resolveType(BlockScope scope) {
 	// for code gen, harm the restrictiveFlag
 
@@ -1019,6 +1044,7 @@ public TypeBinding resolveType(BlockScope scope) {
 					if (this.binding instanceof LocalVariableBinding) {
 						this.bits &= ~ASTNode.RestrictiveFlagMASK;  // clear bits
 						this.bits |= Binding.LOCAL;
+						((LocalVariableBinding) this.binding).markReferenced();
 						if (!variable.isFinal() && (this.bits & ASTNode.IsCapturedOuterLocal) != 0) {
 							if (scope.compilerOptions().sourceLevel < ClassFileConstants.JDK1_8) // for 8, defer till effective finality could be ascertained.
 								scope.problemReporter().cannotReferToNonFinalOuterLocal((LocalVariableBinding)variable, this);
@@ -1063,20 +1089,24 @@ public TypeBinding resolveType(BlockScope scope) {
 	return this.resolvedType = reportError(scope);
 }
 
+@Override
 public void traverse(ASTVisitor visitor, BlockScope scope) {
 	visitor.visit(this, scope);
 	visitor.endVisit(this, scope);
 }
 
+@Override
 public void traverse(ASTVisitor visitor, ClassScope scope) {
 	visitor.visit(this, scope);
 	visitor.endVisit(this, scope);
 }
 
+@Override
 public String unboundReferenceErrorName(){
 	return new String(this.token);
 }
 
+@Override
 public char[][] getName() {
 	return new char[][] {this.token};
 }

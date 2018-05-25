@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+ * Copyright (c) 2000, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -32,6 +32,7 @@ public abstract class JarEntryResource  extends PlatformObject implements IJarEn
 
 	public abstract JarEntryResource clone(Object newParent);
 
+	@Override
 	public boolean equals(Object obj) {
 		if (! (obj instanceof JarEntryResource))
 			return false;
@@ -52,18 +53,22 @@ public abstract class JarEntryResource  extends PlatformObject implements IJarEn
 		return parentEntryName + this.simpleName;
 	}
 
+	@Override
 	public IPath getFullPath() {
 		return new Path(getEntryName()).makeAbsolute();
 	}
 
+	@Override
 	public String getName() {
 		return this.simpleName;
 	}
 
+	@Override
 	public Object getParent() {
 		return this.parent;
 	}
 
+	@Override
 	public IPackageFragmentRoot getPackageFragmentRoot() {
 		if (this.parent instanceof IPackageFragment) {
 			return (IPackageFragmentRoot) ((IPackageFragment) this.parent).getParent();
@@ -84,10 +89,12 @@ public abstract class JarEntryResource  extends PlatformObject implements IJarEn
 			return ((JarEntryDirectory) this.parent).getZipFile();
 	}
 
+	@Override
 	public int hashCode() {
 		return Util.combineHashCodes(this.simpleName.hashCode(), this.parent.hashCode());
 	}
 
+	@Override
 	public boolean isReadOnly() {
 		return true;
 	}

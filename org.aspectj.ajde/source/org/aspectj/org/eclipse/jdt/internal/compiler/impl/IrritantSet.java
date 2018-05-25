@@ -1,5 +1,6 @@
+// AspectJ
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -15,6 +16,7 @@
  *								bug 374605 - Unreasonable warning for enum-based switch statements
  *								bug 381443 - [compiler][null] Allow parameter widening from @NonNull to unannotated
  *								Bug 441208 - [1.8][null]SuppressWarnings("null") does not suppress / marked Unnecessary
+ *								Bug 410218 - Optional warning for arguments of "unexpected" types to Map#get(Object), Collection#remove(Object) et al.
  *******************************************************************************/
 
 package org.aspectj.org.eclipse.jdt.internal.compiler.impl;
@@ -30,14 +32,15 @@ public class IrritantSet {
 	// Reserve two high bits for selecting the right bit pattern
 	public final static int GROUP_MASK = ASTNode.Bit32 | ASTNode.Bit31 | ASTNode.Bit30;
 	public final static int GROUP_SHIFT = 29;
-	public final static int GROUP_MAX = 3; // can be increased up to 8
+	public final static int GROUP_MAX = 4; // AspectJ can be increased up to 8
 
 	// Group prefix for irritants
 	public final static int GROUP0 = 0 << GROUP_SHIFT;
 	public final static int GROUP1 = 1 << GROUP_SHIFT;
 	public final static int GROUP2 = 2 << GROUP_SHIFT;
 	// reveal subsequent groups as needed
-	// public final static int GROUP3 = 3 << GROUP_SHIFT;
+	// AspectJ for options in AjCompilerOptions
+	public final static int GROUP3 = 3 << GROUP_SHIFT;
 	// public final static int GROUP4 = 4 << GROUP_SHIFT;
 	// public final static int GROUP5 = 5 << GROUP_SHIFT;
 	// public final static int GROUP6 = 6 << GROUP_SHIFT;
@@ -48,6 +51,7 @@ public class IrritantSet {
 	public static final IrritantSet BOXING = new IrritantSet(CompilerOptions.AutoBoxing);
 	public static final IrritantSet CAST = new IrritantSet(CompilerOptions.UnnecessaryTypeCheck);
 	public static final IrritantSet DEPRECATION = new IrritantSet(CompilerOptions.UsingDeprecatedAPI);
+	public static final IrritantSet TERMINAL_DEPRECATION = new IrritantSet(CompilerOptions.UsingTerminallyDeprecatedAPI);
 	public static final IrritantSet DEP_ANN = new IrritantSet(CompilerOptions.MissingDeprecatedAnnotation);
 	public static final IrritantSet FALLTHROUGH = new IrritantSet(CompilerOptions.FallthroughCase);
 	public static final IrritantSet FINALLY = new IrritantSet(CompilerOptions.FinallyBlockNotCompleting);
@@ -67,12 +71,20 @@ public class IrritantSet {
 	public static final IrritantSet UNCHECKED = new IrritantSet(CompilerOptions.UncheckedTypeOperation);
 	public static final IrritantSet UNQUALIFIED_FIELD_ACCESS = new IrritantSet(CompilerOptions.UnqualifiedFieldAccess);
 	public static final IrritantSet RESOURCE = new IrritantSet(CompilerOptions.UnclosedCloseable);
+	public static final IrritantSet UNLIKELY_ARGUMENT_TYPE = new IrritantSet(CompilerOptions.UnlikelyCollectionMethodArgumentType);
+	public static final IrritantSet API_LEAK = new IrritantSet(CompilerOptions.APILeak);
+	public static final IrritantSet MODULE = new IrritantSet(CompilerOptions.UnstableAutoModuleName);
 
 	public static final IrritantSet JAVADOC = new IrritantSet(CompilerOptions.InvalidJavadoc);
 	public static final IrritantSet COMPILER_DEFAULT_ERRORS = new IrritantSet(0); // no optional error by default	
 	public static final IrritantSet COMPILER_DEFAULT_WARNINGS = new IrritantSet(0); // see static initializer below
 	public static final IrritantSet COMPILER_DEFAULT_INFOS = new IrritantSet(0); // As of now, no default values
 	static {
+		COMPILER_DEFAULT_INFOS
+		// group-2 infos enabled by default
+		.set(
+			CompilerOptions.UnlikelyEqualsArgumentType);
+		
 		COMPILER_DEFAULT_WARNINGS
 			// group-0 warnings enabled by default
 			.set(
@@ -117,7 +129,11 @@ public class IrritantSet {
 				|CompilerOptions.RedundantNullAnnotation
 				|CompilerOptions.NonnullParameterAnnotationDropped
 				|CompilerOptions.PessimisticNullAnalysisForFreeTypeVariables
-				|CompilerOptions.NonNullTypeVariableFromLegacyInvocation);
+				|CompilerOptions.NonNullTypeVariableFromLegacyInvocation
+				|CompilerOptions.UnlikelyCollectionMethodArgumentType
+				|CompilerOptions.UsingTerminallyDeprecatedAPI
+				|CompilerOptions.APILeak
+				|CompilerOptions.UnstableAutoModuleName);
 		// default errors IF AnnotationBasedNullAnalysis is enabled:
 		COMPILER_DEFAULT_ERRORS.set(
 				CompilerOptions.NullSpecViolation
@@ -169,6 +185,9 @@ public class IrritantSet {
 		JAVADOC
 			.set(CompilerOptions.MissingJavadocComments)
 			.set(CompilerOptions.MissingJavadocTags);
+
+		UNLIKELY_ARGUMENT_TYPE
+			.set(CompilerOptions.UnlikelyEqualsArgumentType);
 	}
 
 	// Internal state

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,6 +10,8 @@
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.core.search.matching;
 
+
+import java.util.regex.Pattern;
 
 import org.eclipse.core.runtime.*;
 import org.aspectj.org.eclipse.jdt.core.*;
@@ -93,6 +95,8 @@ public static PatternLocator patternLocator(SearchPattern pattern) {
 			return new LocalVariableLocator((LocalVariablePattern) pattern);
 		case IIndexConstants.TYPE_PARAM_PATTERN:
 			return new TypeParameterLocator((TypeParameterPattern) pattern);
+		case IIndexConstants.MODULE_PATTERN:
+			return new ModuleLocator((ModulePattern) pattern);
 	}
 	return null;
 }
@@ -222,6 +226,12 @@ public int match(MessageSend node, MatchingNodeSet nodeSet) {
 	// each subtype should override if needed
 	return IMPOSSIBLE_MATCH;
 }
+protected int match(ModuleDeclaration node, MatchingNodeSet nodeSet) {
+	return IMPOSSIBLE_MATCH;
+}
+protected int match(ModuleReference node, MatchingNodeSet nodeSet) {
+	return IMPOSSIBLE_MATCH;
+}
 public int match(Reference node, MatchingNodeSet nodeSet) {
 	// each subtype should override if needed
 	return IMPOSSIBLE_MATCH;
@@ -319,7 +329,9 @@ protected int matchNameValue(char[] pattern, char[] name) {
 			break;
 
 		case SearchPattern.R_REGEXP_MATCH :
-			// TODO (frederic) implement regular expression match
+			if (Pattern.matches(new String(pattern), new String(name))) {
+				return POSSIBLE_MATCH;
+			}
 			break;
 
 		case SearchPattern.R_CAMELCASE_MATCH:
@@ -417,6 +429,9 @@ protected void matchReportReference(ASTNode reference, IJavaElement element, Bin
 			break;
 		case IJavaElement.TYPE_PARAMETER:
 			this.match = locator.newTypeParameterReferenceMatch(element, accuracy, offset, reference.sourceEnd-offset+1, reference);
+			break;
+		case IJavaElement.JAVA_MODULE:
+			this.match = locator.newModuleReferenceMatch(element, elementBinding, accuracy, offset, reference.sourceEnd-offset+1, reference);
 			break;
 	}
 	if (this.match != null) {
@@ -987,9 +1002,11 @@ protected int resolveLevelForType (char[] simpleNamePattern,
 	}
 	return level;
 }
+@Override
 public String toString(){
 	return "SearchPattern"; //$NON-NLS-1$
 }
+@Override
 public void recordResolution(QualifiedTypeReference typeReference, TypeBinding resolution) {
 	// noop by default
 }

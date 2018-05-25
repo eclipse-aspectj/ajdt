@@ -1,10 +1,11 @@
+// ASPECTJ
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- *
+ * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann <stephan@cs.tu-berlin.de> - Contributions for
@@ -28,6 +29,8 @@
  *							Bug 453483 - [compiler][null][loop] Improve null analysis for loops
  *     Jesper S Moller - Contributions for
  *							Bug 378674 - "The method can be declared as static" is wrong
+ *							Bug 527554 - [18.3] Compiler support for JEP 286 Local-Variable Type
+ *							Bug 529556 - [18.3] Add content assist support for 'var' as a type
  *        Andy Clement (GoPivotal, Inc) aclement@gopivotal.com - Contributions for
  *							Bug 409250 - [1.8][compiler] Various loose ends in 308 code generation
  *							Bug 426616 - [1.8][compiler] Type Annotations, multiple problems 
@@ -35,8 +38,11 @@
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
 import static org.aspectj.org.eclipse.jdt.internal.compiler.ast.ExpressionContext.ASSIGNMENT_CONTEXT;
+import static org.aspectj.org.eclipse.jdt.internal.compiler.ast.ExpressionContext.VANILLA_CONTEXT;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.aspectj.org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.*;
@@ -63,6 +69,7 @@ public class LocalDeclaration extends AbstractVariableDeclaration {
 		this.declarationEnd = sourceEnd;
 	}
 
+@Override
 public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, FlowInfo flowInfo) {
 	// record variable initialization if any
 	if ((flowInfo.tagBits & FlowInfo.UNREACHABLE_OR_DEAD) == 0) {
@@ -127,6 +134,7 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 	 * Code generation for a local declaration:
 	 *	i.e.&nbsp;normal assignment to a local variable + unused variable handling
 	 */
+	@Override
 	public void generateCode(BlockScope currentScope, CodeStream codeStream) {
 
 		// even if not reachable, variable must be added to visible if allocated (28298)
@@ -181,6 +189,7 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 	/**
 	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractVariableDeclaration#getKind()
 	 */
+	@Override
 	public int getKind() {
 		return LOCAL_VARIABLE;
 	}
@@ -203,10 +212,75 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 	public boolean isReceiver() {
 		return false;
 	}
+	public TypeBinding patchType(TypeBinding newType) {
+		// Perform upwards projection on type wrt mentioned type variables
+		TypeBinding[] mentionedTypeVariables= findCapturedTypeVariables(newType);
+		if (mentionedTypeVariables != null && mentionedTypeVariables.length > 0) {
+			newType = newType.upwardsProjection(this.binding.declaringScope, mentionedTypeVariables); 	
+		}
+		this.type.resolvedType = newType;
+		if (this.binding != null) {
+			this.binding.type = newType;
+			this.binding.markInitialized();
+		}
+		return this.type.resolvedType;
+	}
+
+	private TypeVariableBinding[] findCapturedTypeVariables(TypeBinding typeBinding) {
+		final Set<TypeVariableBinding> mentioned = new HashSet<>();
+		TypeBindingVisitor.visit(new TypeBindingVisitor() {
+			@Override
+			public boolean visit(TypeVariableBinding typeVariable) {
+				if (typeVariable.isCapture())
+					mentioned.add(typeVariable);
+				return super.visit(typeVariable);
+			}
+		}, typeBinding);
+		if (mentioned.isEmpty()) return null;
+		return mentioned.toArray(new TypeVariableBinding[mentioned.size()]);
+	}
+	
+	private static Expression findPolyExpression(Expression e) {
+		// This is simpler than using an ASTVisitor, since we only care about a very few select cases.
+		if (e instanceof FunctionalExpression) {
+			return e;
+		}
+		if (e instanceof ConditionalExpression) {
+			ConditionalExpression ce = (ConditionalExpression)e;
+			Expression candidate = findPolyExpression(ce.valueIfTrue);
+			if (candidate == null) {
+				candidate = findPolyExpression(ce.valueIfFalse);
+			}
+			if (candidate != null) return candidate;
+		}
+		return null;
+	}
+	
+	@Override
 	public void resolve(BlockScope scope) {
 
-		// create a binding and add it to the scope
-		TypeBinding variableType = this.type.resolveType(scope, true /* check bounds*/);
+		// prescan NNBD
+		handleNonNullByDefault(scope, this.annotations, this);
+
+		TypeBinding variableType = null;
+		boolean variableTypeInferenceError = false;
+		boolean isTypeNameVar = isTypeNameVar(scope);
+		if (isTypeNameVar) {
+			if ((this.bits & ASTNode.IsForeachElementVariable) == 0) {
+				// infer a type from the initializer
+				if (this.initialization != null) {
+					variableType = checkInferredLocalVariableInitializer(scope);
+					variableTypeInferenceError = variableType != null;
+				} else {
+					// That's always an error
+					scope.problemReporter().varLocalWithoutInitizalier(this);
+					variableType = scope.getJavaLangObject();
+					variableTypeInferenceError = true;
+				}
+			}
+		} else {
+			variableType = this.type.resolveType(scope, true /* check bounds*/);
+		}
 
 		this.bits |= (this.type.bits & ASTNode.HasTypeAnnotations);
 		checkModifiers();
@@ -236,15 +310,53 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 		if ((this.modifiers & ClassFileConstants.AccFinal)!= 0 && this.initialization == null) {
 			this.modifiers |= ExtraCompilerModifiers.AccBlankFinal;
 		}
-		this.binding = new LocalVariableBinding(this, variableType, this.modifiers, false /*isArgument*/);
+		if (isTypeNameVar) {
+			// Create binding for the initializer's type
+			// In order to resolve self-referential initializers, we must declare the variable with a placeholder type (j.l.Object), and then patch it later 
+			this.binding = new LocalVariableBinding(this, variableType != null ? variableType : scope.getJavaLangObject(), this.modifiers, false) {
+				private boolean isInitialized = false;
+				
+				@Override
+				public void markReferenced() {
+					if (! this.isInitialized) {
+						scope.problemReporter().varLocalReferencesItself(LocalDeclaration.this);
+						this.type = null;
+						this.isInitialized = true; // Quell additional type errors
+					}
+				}
+				@Override
+				public void markInitialized() {
+					this.isInitialized = true;
+				}
+			};
+		} else {
+			// create a binding from the specified type
+			this.binding = new LocalVariableBinding(this, variableType, this.modifiers, false /*isArgument*/);
+		}
 		scope.addLocalVariable(this.binding);
 		this.binding.setConstant(Constant.NotAConstant);
 		// allow to recursivelly target the binding....
 		// the correct constant is harmed if correctly computed at the end of this method
 
 		if (variableType == null) {
-			if (this.initialization != null)
+			if (this.initialization != null) {
 				this.initialization.resolveType(scope); // want to report all possible errors
+				if (isTypeNameVar && this.initialization.resolvedType != null) {
+					if (TypeBinding.equalsEquals(TypeBinding.NULL, this.initialization.resolvedType)) {
+						scope.problemReporter().varLocalInitializedToNull(this);
+						variableTypeInferenceError = true;
+					} else if (TypeBinding.equalsEquals(TypeBinding.VOID, this.initialization.resolvedType)) {
+						scope.problemReporter().varLocalInitializedToVoid(this);
+						variableTypeInferenceError = true;
+					}
+					variableType = patchType(this.initialization.resolvedType);
+				} else {
+					variableTypeInferenceError = true;
+				}
+			}
+		}
+		this.binding.markInitialized();
+		if (variableTypeInferenceError) {
 			return;
 		}
 
@@ -257,9 +369,9 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 					this.initialization.computeConversion(scope, variableType, initializationType);
 				}
 			} else {
-				this.initialization.setExpressionContext(ASSIGNMENT_CONTEXT);
+				this.initialization.setExpressionContext(isTypeNameVar ? VANILLA_CONTEXT : ASSIGNMENT_CONTEXT);
 				this.initialization.setExpectedType(variableType);
-				TypeBinding initializationType = this.initialization.resolveType(scope);
+				TypeBinding initializationType = this.initialization.resolvedType != null ? this.initialization.resolvedType : this.initialization.resolveType(scope);
 				if (initializationType != null) {
 					if (TypeBinding.notEquals(variableType, initializationType)) // must call before computeConversion() and typeMismatchError()
 						scope.compilationUnitScope().recordTypeConversion(variableType, initializationType);
@@ -306,6 +418,38 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 			this.binding.tagBits &= ~TagBits.AnnotationNullMASK;
 	}
 
+	/*
+	 * Checks the initializer for simple errors, and reports an error as needed. If error is found,
+	 * returns a reasonable match for further type checking.
+	 */
+	private TypeBinding checkInferredLocalVariableInitializer(BlockScope scope) {
+		TypeBinding errorType = null;
+		if (this.initialization instanceof ArrayInitializer) {
+			scope.problemReporter().varLocalCannotBeArrayInitalizers(this);
+			errorType = scope.createArrayType(scope.getJavaLangObject(), 1); // Treat as array of anything
+		} else {
+			// Catch-22: isPolyExpression() is not reliable BEFORE resolveType, so we need to peek to suppress the errors
+			Expression polyExpression = findPolyExpression(this.initialization);
+			if (polyExpression instanceof ReferenceExpression) {
+				scope.problemReporter().varLocalCannotBeMethodReference(this);
+				errorType = TypeBinding.NULL;
+			} else if (polyExpression != null) { // Should be instanceof LambdaExpression, but this is safer
+				scope.problemReporter().varLocalCannotBeLambda(this);
+				errorType = TypeBinding.NULL;
+			}
+		}
+		if (this.type.dimensions() > 0 || this.type.extraDimensions() > 0) {
+			scope.problemReporter().varLocalCannotBeArray(this);
+			errorType = scope.createArrayType(scope.getJavaLangObject(), 1); // This is just to quell some warnings
+		}
+		if ((this.bits & ASTNode.IsAdditionalDeclarator) != 0) {
+			scope.problemReporter().varLocalMultipleDeclarators(this);
+			errorType = this.initialization.resolveType(scope);
+		}
+		return errorType;
+	}
+
+	@Override
 	public void traverse(ASTVisitor visitor, BlockScope scope) {
 
 		if (visitor.visit(this, scope)) {
@@ -337,4 +481,9 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 		return this.name == RecoveryScanner.FAKE_IDENTIFIER && 
 				(this.type instanceof SingleTypeReference || (this.type instanceof QualifiedTypeReference && !(this.type instanceof ArrayQualifiedTypeReference))) && this.initialization == null && !this.type.isBaseTypeReference();
 	}
+	
+	public boolean isTypeNameVar(Scope scope) {
+		return this.type != null && this.type.isTypeNameVar(scope);
+	}
+	
 }

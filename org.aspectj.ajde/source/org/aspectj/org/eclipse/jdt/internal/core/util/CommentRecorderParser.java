@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,6 +9,8 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.core.util;
+
+import java.util.Arrays;
 
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
@@ -41,6 +43,7 @@ public class CommentRecorderParser extends Parser {
 
 	// old javadoc style check which doesn't include all leading comments into declaration
 	// for backward compatibility with 2.1 DOM
+	@Override
 	public void checkComment() {
 
 		// discard obsolete comments while inside methods or fields initializer (see bug 74369)
@@ -88,54 +91,43 @@ public class CommentRecorderParser extends Parser {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.parser.Parser#consumeAnnotationTypeDeclarationHeader()
-	 */
+	@Override
 	protected void consumeAnnotationTypeDeclarationHeader() {
 		pushOnCommentsStack(0, this.scanner.commentPtr);
 		super.consumeAnnotationTypeDeclarationHeader();
 	}
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.parser.Parser#consumeClassHeader()
-	 */
+
+	@Override
 	protected void consumeClassHeader() {
 		pushOnCommentsStack(0, this.scanner.commentPtr);
 		super.consumeClassHeader();
 	}
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.parser.Parser#consumeEmptyTypeDeclaration()
-	 */
+
+	@Override
 	protected void consumeEmptyTypeDeclaration() {
 		pushOnCommentsStack(0, this.scanner.commentPtr);
 		super.consumeEmptyTypeDeclaration();
 	}
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.parser.Parser#consumeEnterAnonymousClassBody(boolean)
-	 */
+
 	@Override
 	protected void consumeEnterAnonymousClassBody(boolean qualified) {
 		pushOnCommentsStack(0, this.scanner.commentPtr);
 		super.consumeEnterAnonymousClassBody(qualified);
 	}
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.parser.Parser#consumeEnumHeader()
-	 */
+
+	@Override
 	protected void consumeEnumHeader() {
 		pushOnCommentsStack(0, this.scanner.commentPtr);
 		super.consumeEnumHeader();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.parser.Parser#consumeInterfaceHeader()
-	 */
+	@Override
 	protected void consumeInterfaceHeader() {
 		pushOnCommentsStack(0, this.scanner.commentPtr);
 		super.consumeInterfaceHeader();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.parser.Parser#endParse(int)
-	 */
+	@Override
 	protected CompilationUnitDeclaration endParse(int act) {
 		CompilationUnitDeclaration unit = super.endParse(act);
 		if (unit.comments == null) {
@@ -149,9 +141,10 @@ public class CommentRecorderParser extends Parser {
 	 * Save all source comments currently stored before flushing them.
 	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.parser.Parser#flushCommentsDefinedPriorTo(int)
 	 */
+	@Override
 	public int flushCommentsDefinedPriorTo(int position) {
 
-		int lastCommentIndex = this.scanner.commentPtr;
+		int lastCommentIndex = getCommentPtr();
 		if (lastCommentIndex < 0) return position; // no comment
 
 		// compute the index of the first obsolete comment
@@ -211,6 +204,34 @@ public class CommentRecorderParser extends Parser {
 		return position;
 	}
 
+	protected int getCommentPtr() {
+		int lastComment = this.scanner.commentPtr;
+		if (lastComment == -1 && this.currentElement != null) {
+			// during recovery reuse comments from initial scan ...
+			lastComment = this.commentPtr;
+			if (lastComment >= 0) {
+				// ... but ignore if not suitable ...
+				if (lastComment >= this.scanner.commentStarts.length) {
+					return -1;
+				} else {
+					int start = this.scanner.commentStarts[lastComment];
+					// ... unsuitable if:
+					//     - unknown to the scanner (start == 0)
+					//     - line comment (start < 0)
+					if (start <= 0)
+						return -1;
+					//     - past the current position, or start of previous recovered element
+					int currentStart = this.currentElement.getLastStart();
+					if (currentStart == -1)
+						currentStart = this.scanner.currentPosition;
+					if (start > currentStart)
+						return -1;
+				}
+			}
+		}
+		return lastComment;
+	}
+
 	/*
 	 * Build a n*2 matrix of comments positions.
 	 * For each position, 0 is for start position and 1 for end position of the comment.
@@ -224,16 +245,13 @@ public class CommentRecorderParser extends Parser {
 		return positions;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.parser.Parser#initialize()
-	 */
+	@Override
 	public void initialize(boolean parsingCompilationUnit) {
 		super.initialize(parsingCompilationUnit);
 		this.commentPtr = -1;
 	}
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.parser.Parser#initialize()
-	 */
+
+	@Override
 	public void initialize() {
 		super.initialize();
 		this.commentPtr = -1;
@@ -243,6 +261,7 @@ public class CommentRecorderParser extends Parser {
 	 * Create and store a specific comment recorder scanner.
 	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.parser.Parser#initializeScanner()
 	 */
+	@Override
 	public void initializeScanner() {
 		this.scanner = new Scanner(
 				false /*comment*/,
@@ -260,6 +279,7 @@ public class CommentRecorderParser extends Parser {
 	private void pushOnCommentsStack(int start, int end) {
 
 		for (int i=start; i<=end; i++) {
+			if (this.scanner.commentPtr < i) break;
 			// First see if comment hasn't been already stored
 			int scannerStart = this.scanner.commentStarts[i]<0 ? -this.scanner.commentStarts[i] : this.scanner.commentStarts[i];
 			int commentStart = this.commentPtr == -1 ? -1 : (this.commentStarts[this.commentPtr]<0 ? -this.commentStarts[this.commentPtr] : this.commentStarts[this.commentPtr]);
@@ -285,11 +305,21 @@ public class CommentRecorderParser extends Parser {
 	 * this.scanner.commentPtr is expected *not* yet being reset before calling this method.
 	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.parser.Parser#resetModifiers()
 	 */
+	@Override
 	protected void resetModifiers() {
 		pushOnCommentsStack(0, this.scanner.commentPtr);
 		super.resetModifiers();
 	}
-	
+	public void resetComments() {
+		this.commentPtr = -1;
+		Arrays.fill(this.commentStarts, 0);
+		Arrays.fill(this.commentStops, 0);
+		Arrays.fill(this.scanner.commentStops, 0);
+		Arrays.fill(this.scanner.commentStarts, 0);
+		Arrays.fill(this.scanner.commentTagStarts, 0);
+		this.scanner.commentPtr = -1; // no comment test with commentPtr value -1
+		this.scanner.lastCommentLinePosition = -1;
+	}
 	// AspectJ Extension
 	/* (non-Javadoc)
 	 * bug 150467 - save all source comments currently stored for declare 
@@ -297,6 +327,7 @@ public class CommentRecorderParser extends Parser {
 	 * calling super.consumeToken(type) 
 	 * @see org.aspectj.org.aspectj.org.eclipse.jdt.internal.compiler.parser.Parser#consumeToken(int)
 	 */
+	@Override
 	protected void consumeToken(int type) {
 		if (type == TokenNamedeclare) {
 			pushOnCommentsStack(0, this.scanner.commentPtr);

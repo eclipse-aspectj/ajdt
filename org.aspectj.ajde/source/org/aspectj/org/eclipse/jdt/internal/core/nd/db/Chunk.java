@@ -23,16 +23,53 @@ final class Chunk {
 	final private byte[] fBuffer= new byte[Database.CHUNK_SIZE];
 
 	final Database fDatabase;
+	/**
+	 * Holds the database-specific chunk number. This is the index into the database's chunk array and indicates the
+	 * start of the range of addresses held by this chunk. Non-negative. 
+	 */
 	final int fSequenceNumber;
-
-	boolean fCacheHitFlag;
+	/**
+	 * True iff this chunk contains data that hasn't yet been written to disk. This is protected by the write lock
+	 * on the corresponding {@link Database}.
+	 */
 	boolean fDirty;
-	boolean fLocked;	// locked chunks must not be released from cache.
+	/**
+	 * True iff this {@link Chunk} was accessed since the last time it was tested for eviction in the
+	 * {@link ChunkCache}. Protected by synchronizing on the {@link ChunkCache} itself.
+	 */
+	boolean fCacheHitFlag;
+	/**
+	 * Holds the index into the {@link ChunkCache}'s page table, or -1 if this {@link Chunk} isn't present in the page
+	 * table. Protected by synchronizing on the {@link ChunkCache} itself.
+	 */
 	int fCacheIndex= -1;
 
 	Chunk(Database db, int sequenceNumber) {
 		this.fDatabase= db;
 		this.fSequenceNumber= sequenceNumber;
+	}
+
+	public void makeDirty() {
+		if (this.fSequenceNumber >= Database.NUM_HEADER_CHUNKS) {
+			Chunk chunk = this.fDatabase.fChunks[this.fSequenceNumber];
+			if (chunk != this) {
+				throw new IllegalStateException("CHUNK " + this.fSequenceNumber + ": found two copies. Copy 1: " //$NON-NLS-1$ //$NON-NLS-2$
+						+ System.identityHashCode(this) + ", Copy 2: " + System.identityHashCode(chunk)); //$NON-NLS-1$
+			}
+		}
+		if (!this.fDirty) {
+			if (Database.DEBUG_PAGE_CACHE) {
+				System.out.println(
+						"CHUNK " + this.fSequenceNumber + ": dirtied - instance " + System.identityHashCode(this)); //$NON-NLS-1$ //$NON-NLS-2$
+			}
+			if (this.fSequenceNumber >= Database.NUM_HEADER_CHUNKS
+					&& this.fDatabase.fMostRecentlyFetchedChunk != this) {
+				throw new IllegalStateException("CHUNK " + this.fSequenceNumber //$NON-NLS-1$
+						+ " dirtied out of order: Only the most-recently-fetched chunk is allowed to be dirtied"); //$NON-NLS-1$
+			}
+			this.fDirty = true;
+			this.fDatabase.chunkDirtied(this);
+		}
 	}
 
 	void read() throws IndexException {
@@ -49,6 +86,10 @@ final class Chunk {
 	 * {@link Thread#interrupt()}.
 	 */
 	boolean flush() throws IndexException {
+		if (Database.DEBUG_PAGE_CACHE) {
+			System.out.println(
+					"CHUNK " + this.fSequenceNumber + ": flushing - instance " + System.identityHashCode(this)); //$NON-NLS-1$//$NON-NLS-2$
+		}
 		boolean wasCanceled = false;
 		try {
 			final ByteBuffer buf= ByteBuffer.wrap(this.fBuffer);
@@ -56,22 +97,32 @@ final class Chunk {
 		} catch (IOException e) {
 			throw new IndexException(new DBStatus(e));
 		}
-		this.fDirty= false;
+		this.fDirty = false;
+		this.fDatabase.chunkCleaned(this);
 		return wasCanceled;
 	}
 
-	private static int recPtrToIndex(final long offset) {
+	static int recPtrToIndex(final long offset) {
 		return (int) (offset & Database.OFFSET_IN_CHUNK_MASK);
 	}
 
 	public void putByte(final long offset, final byte value) {
-		assert this.fLocked;
-		this.fDirty= true;
+		makeDirty();
 		this.fBuffer[recPtrToIndex(offset)]= value;
+		recordWrite(offset, 1);
 	}
 
 	public byte getByte(final long offset) {
 		return this.fBuffer[recPtrToIndex(offset)];
+	}
+
+	/**
+	 * Returns a copy of the entire chunk.
+	 */
+	public byte[] getBytes() {
+		final byte[] bytes = new byte[this.fBuffer.length];
+		System.arraycopy(this.fBuffer, 0, bytes, 0, this.fBuffer.length);
+		return bytes;
 	}
 
 	public byte[] getBytes(final long offset, final int length) {
@@ -81,16 +132,16 @@ final class Chunk {
 	}
 
 	public void putBytes(final long offset, final byte[] bytes) {
-		assert this.fLocked;
-		this.fDirty= true;
+		makeDirty();
 		System.arraycopy(bytes, 0, this.fBuffer, recPtrToIndex(offset), bytes.length);
+		recordWrite(offset, bytes.length);
 	}
 
 	public void putInt(final long offset, final int value) {
-		assert this.fLocked;
-		this.fDirty= true;
+		makeDirty();
 		int idx= recPtrToIndex(offset);
 		putInt(value, this.fBuffer, idx);
+		recordWrite(offset, 4);
 	}
 
 	static final void putInt(final int value, final byte[] buffer, int idx) {
@@ -143,10 +194,10 @@ final class Chunk {
 	 * This is a pointer to a block + BLOCK_HEADER_SIZE.
 	 */
 	public void putRecPtr(final long offset, final long value) {
-		assert this.fLocked;
-		this.fDirty = true;
+		makeDirty();
 		int idx = recPtrToIndex(offset);
 		Database.putRecPtr(value, this.fBuffer, idx);
+		recordWrite(offset, 4);
 	}
 
 	/**
@@ -154,10 +205,10 @@ final class Chunk {
 	 * i.e. the pointer is not moved past the BLOCK_HEADER_SIZE.
 	 */
 	public void putFreeRecPtr(final long offset, final long value) {
-		assert this.fLocked;
-		this.fDirty = true;
+		makeDirty();
 		int idx = recPtrToIndex(offset);
 		putInt(compressFreeRecPtr(value), this.fBuffer, idx);
+		recordWrite(offset, 4);
 	}
 
 	public long getRecPtr(final long offset) {
@@ -172,12 +223,12 @@ final class Chunk {
 	}
 
 	public void put3ByteUnsignedInt(final long offset, final int value) {
-		assert this.fLocked;
-		this.fDirty= true;
+		makeDirty();
 		int idx= recPtrToIndex(offset);
 		this.fBuffer[idx]= (byte) (value >> 16);
 		this.fBuffer[++idx]= (byte) (value >> 8);
 		this.fBuffer[++idx]= (byte) (value);
+		recordWrite(offset, 3);
 	}
 
 	public int get3ByteUnsignedInt(final long offset) {
@@ -188,11 +239,15 @@ final class Chunk {
 	}
 
 	public void putShort(final long offset, final short value) {
-		assert this.fLocked;
-		this.fDirty= true;
+		makeDirty();
 		int idx= recPtrToIndex(offset);
 		this.fBuffer[idx]= (byte) (value >> 8);
 		this.fBuffer[++idx]= (byte) (value);
+		recordWrite(offset, 2);
+	}
+
+	private void recordWrite(long offset, int size) {
+		this.fDatabase.getLog().recordWrite(offset, size);
 	}
 
 	public short getShort(final long offset) {
@@ -221,8 +276,7 @@ final class Chunk {
 	}
 
 	public void putLong(final long offset, final long value) {
-		assert this.fLocked;
-		this.fDirty= true;
+		makeDirty();
 		int idx= recPtrToIndex(offset);
 
 		this.fBuffer[idx]=   (byte) (value >> 56);
@@ -233,19 +287,19 @@ final class Chunk {
 		this.fBuffer[++idx]= (byte) (value >> 16);
 		this.fBuffer[++idx]= (byte) (value >> 8);
 		this.fBuffer[++idx]= (byte) (value);
+		recordWrite(offset, 8);
 	}
 
 	public void putChar(final long offset, final char value) {
-		assert this.fLocked;
-		this.fDirty= true;
+		makeDirty();
 		int idx= recPtrToIndex(offset);
 		this.fBuffer[idx]= (byte) (value >> 8);
 		this.fBuffer[++idx]= (byte) (value);
+		recordWrite(offset, 2);
 	}
 
 	public void putChars(final long offset, char[] chars, int start, int len) {
-		assert this.fLocked;
-		this.fDirty= true;
+		makeDirty();
 		int idx= recPtrToIndex(offset)-1;
 		final int end= start + len;
 		for (int i = start; i < end; i++) {
@@ -253,17 +307,18 @@ final class Chunk {
 			this.fBuffer[++idx]= (byte) (value >> 8);
 			this.fBuffer[++idx]= (byte) (value);
 		}
+		recordWrite(offset, len * 2);
 	}
 
 	public void putCharsAsBytes(final long offset, char[] chars, int start, int len) {
-		assert this.fLocked;
-		this.fDirty= true;
+		makeDirty();
 		int idx= recPtrToIndex(offset)-1;
 		final int end= start + len;
 		for (int i = start; i < end; i++) {
 			char value= chars[i];
 			this.fBuffer[++idx]= (byte) (value);
 		}
+		recordWrite(offset, len);
 	}
 
 	public void putDouble(final long offset, double value) {
@@ -293,13 +348,17 @@ final class Chunk {
 	}
 
 	void clear(final long offset, final int length) {
-		assert this.fLocked;
-		this.fDirty= true;
+		makeDirty();
 		int idx = recPtrToIndex(offset);
 		final int end = idx + length;
+		if (end > this.fBuffer.length) {
+			throw new IndexException("Attempting to clear beyond end of chunk. Chunk = " + this.fSequenceNumber //$NON-NLS-1$
+					+ ", offset = " + offset + ", length = " + length); //$NON-NLS-1$//$NON-NLS-2$
+		}
 		for (; idx < end; idx++) {
 			this.fBuffer[idx] = 0;
 		}
+		recordWrite(offset, length);
 	}
 
 	void put(final long offset, final byte[] data, final int len) {
@@ -307,10 +366,10 @@ final class Chunk {
 	}
 
 	void put(final long offset, final byte[] data, int dataPos, final int len) {
-		assert this.fLocked;
-		this.fDirty = true;
+		makeDirty();
 		int idx = recPtrToIndex(offset);
 		System.arraycopy(data, dataPos, this.fBuffer, idx, len);
+		recordWrite(offset, len);
 	}
 
 	public void get(final long offset, byte[] data) {
@@ -320,5 +379,14 @@ final class Chunk {
 	public void get(final long offset, byte[] data, int dataPos, int len) {
 		int idx = recPtrToIndex(offset);
 		System.arraycopy(this.fBuffer, idx, data, dataPos, len);
+	}
+
+	/**
+	 * Returns a dirtied, writable version of this chunk whose identity won't change until the write lock is released.
+	 */
+	public Chunk getWritableChunk() {
+		Chunk result = this.fDatabase.getChunk((long) this.fSequenceNumber * Database.CHUNK_SIZE);
+		result.makeDirty();
+		return result;
 	}
 }

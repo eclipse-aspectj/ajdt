@@ -1,5 +1,6 @@
+// AspectJ
 /*******************************************************************************
- * Copyright (c) 2004, 2016 IBM Corporation and others.
+ * Copyright (c) 2004, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -35,6 +36,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclarat
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ConstructorDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ExplicitConstructorCall;
 import org.aspectj.org.eclipse.jdt.internal.compiler.batch.Main;
+import org.aspectj.org.eclipse.jdt.internal.compiler.batch.FileSystem.Classpath;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryType;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.RecoveryScanner;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData;
@@ -263,7 +265,9 @@ public class ASTParser {
 			case AST.JLS2_INTERNAL:
 			case AST.JLS3_INTERNAL:
 			case AST.JLS4_INTERNAL:
-			case AST.JLS8:
+			case AST.JLS8_INTERNAL:
+			case AST.JLS9_INTERNAL:
+			case AST.JLS10_INTERNAL:
 				break;
 			default:
 				throw new IllegalArgumentException();
@@ -272,9 +276,9 @@ public class ASTParser {
 		initializeDefaults();
 	}
 
-	private List getClasspath() throws IllegalStateException {
+	private List<Classpath> getClasspath() throws IllegalStateException {
 		Main main = new Main(new PrintWriter(System.out), new PrintWriter(System.err), false/*systemExit*/, null/*options*/, null/*progress*/);
-		ArrayList allClasspaths = new ArrayList();
+		ArrayList<Classpath> allClasspaths = new ArrayList<Classpath>();
 		try {
 			if ((this.bits & CompilationUnitResolver.INCLUDE_RUNNING_VM_BOOTCLASSPATH) != 0) {
 				org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.collectRunningVMBootclasspath(allClasspaths);
@@ -784,6 +788,10 @@ public class ASTParser {
 	 * {@link JavaCore#getJavaLikeExtensions() Java-like extensions}
 	 * and match the name of the main (public) class or interface declared in the source.</p>
 	 *
+	 * <p>
+	 * For compilation of a module-info.java file (since Java 9), the name of the compilation unit must be supplied.
+	 * Otherwise, module-info.java will be compiled as an ordinary Java file resulting in compilation errors.</p>
+	 *
 	 * <p>This name must represent the full path of the unit inside the given project. For example, if the source
 	 * declares a public class named "Foo" in a project "P" where the source folder is the project itself, the name
 	 * of the compilation unit must be "/P/Foo.java".
@@ -835,6 +843,9 @@ public class ASTParser {
 	 * A successful call to this method returns all settings to their
 	 * default values so the object is ready to be reused.
 	 * </p>
+	 * <p>For identifying a module-info.java file as a special file instead of an ordinary 
+	 * Java file (Since Java 9), a call to this should be preceded by a call to 
+	 * {@link #setUnitName(String)} that sets the unit name as module-info.java</p>
 	 *
 	 * @param monitor the progress monitor used to report progress and request cancellation,
 	 *   or <code>null</code> if none
@@ -1173,19 +1184,27 @@ public class ASTParser {
 							}
 							PackageFragment packageFragment = (PackageFragment) this.typeRoot.getParent();
 							BinaryType type = (BinaryType) this.typeRoot.findPrimaryType();
-							IBinaryType binaryType = (IBinaryType) type.getElementInfo();
-							// file name is used to recreate the Java element, so it has to be the toplevel .class file name
-							char[] fileName = binaryType.getFileName();
-							int firstDollar = CharOperation.indexOf('$', fileName);
-							if (firstDollar != -1) {
-								char[] suffix = SuffixConstants.SUFFIX_class;
-								int suffixLength = suffix.length;
-								char[] newFileName = new char[firstDollar + suffixLength];
-								System.arraycopy(fileName, 0, newFileName, 0, firstDollar);
-								System.arraycopy(suffix, 0, newFileName, firstDollar, suffixLength);
-								fileName = newFileName;
+							String fileNameString = null;
+							if (type != null) {
+								IBinaryType binaryType = (IBinaryType) type.getElementInfo();
+								// file name is used to recreate the Java element, so it has to be the toplevel .class file name
+								char[] fileName = binaryType.getFileName();
+
+								int firstDollar = CharOperation.indexOf('$', fileName);
+								if (firstDollar != -1) {
+									char[] suffix = SuffixConstants.SUFFIX_class;
+									int suffixLength = suffix.length;
+									char[] newFileName = new char[firstDollar + suffixLength];
+									System.arraycopy(fileName, 0, newFileName, 0, firstDollar);
+									System.arraycopy(suffix, 0, newFileName, firstDollar, suffixLength);
+									fileName = newFileName;
+								}
+								fileNameString = new String(fileName);
+							} else {
+								// assumed to be "module-info.class" (which has no type):
+								fileNameString = this.typeRoot.getElementName();
 							}
-							sourceUnit = new BasicCompilationUnit(sourceString.toCharArray(), Util.toCharArrays(packageFragment.names), new String(fileName), this.project);
+							sourceUnit = new BasicCompilationUnit(sourceString.toCharArray(), Util.toCharArrays(packageFragment.names), fileNameString, this.typeRoot);
 						} catch(JavaModelException e) {
 							// an error occured accessing the java element
 							StringWriter stringWriter = new StringWriter();

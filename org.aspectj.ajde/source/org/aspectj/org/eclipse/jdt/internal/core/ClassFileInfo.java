@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -146,6 +146,15 @@ private IMemberValuePair[] getTargetElementTypes(long tagBits) {
 	if ((tagBits & TagBits.AnnotationForPackage) != 0) {
 		values.add(elementType + new String(TypeConstants.UPPER_PACKAGE));
 	}
+	if ((tagBits & TagBits.AnnotationForTypeUse) != 0) {
+		values.add(elementType + new String(TypeConstants.TYPE_USE_TARGET));
+	}
+	if ((tagBits & TagBits.AnnotationForTypeParameter) != 0) {
+		values.add(elementType + new String(TypeConstants.TYPE_PARAMETER_TARGET));
+	}
+	if ((tagBits & TagBits.AnnotationForModule) != 0) {
+		values.add(elementType + new String(TypeConstants.UPPER_MODULE));
+	}
 	final Object value;
 	if (values.size() == 0) {
 		if ((tagBits & TagBits.AnnotationTarget) != 0)
@@ -159,12 +168,15 @@ private IMemberValuePair[] getTargetElementTypes(long tagBits) {
 	}
 	return new IMemberValuePair[] {
 		new IMemberValuePair() {
+			@Override
 			public int getValueKind() {
 				return IMemberValuePair.K_QUALIFIED_NAME;
 			}
+			@Override
 			public Object getValue() {
 				return value;
 			}
+			@Override
 			public String getMemberName() {
 				return new String(TypeConstants.VALUE);
 			}
@@ -188,12 +200,15 @@ private IMemberValuePair[] getRetentionPolicy(long tagBits) {
 	return 
 		new IMemberValuePair[] {
 			new IMemberValuePair() {
+				@Override
 				public int getValueKind() {
 					return IMemberValuePair.K_QUALIFIED_NAME;
 				}
+				@Override
 				public Object getValue() {
 					return value;
 				}
+				@Override
 				public String getMemberName() {
 					return new String(TypeConstants.VALUE);
 				}
@@ -397,13 +412,6 @@ private void generateTypeParameterInfos(BinaryMember parent, char[] signature, H
 
 		newElements.put(typeParameter, info);
 	}
-}
-/**
- * Returns true iff the <code>readBinaryChildren</code> has already
- * been called.
- */
-boolean hasReadBinaryChildren() {
-	return this.binaryChildren != null;
 }
 /**
  * Creates the handles for <code>BinaryMember</code>s defined in this

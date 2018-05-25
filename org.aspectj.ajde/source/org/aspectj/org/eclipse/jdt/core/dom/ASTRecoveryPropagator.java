@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2006, 2014 IBM Corporation and others.
+ * Copyright (c) 2006, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -51,6 +51,8 @@ class ASTRecoveryPropagator extends DefaultASTVisitor {
 		this.endingTokens.put(Initializer.class, new int[]{TerminalTokens.TokenNameRBRACE});
 		this.endingTokens.put(MethodDeclaration.class, new int[]{NOTHING, TerminalTokens.TokenNameSEMICOLON});
 		this.endingTokens.put(MethodInvocation.class, new int[]{TerminalTokens.TokenNameRPAREN});
+		this.endingTokens.put(ModuleDeclaration.class, new int[]{TerminalTokens.TokenNameRBRACE});
+		this.endingTokens.put(ModuleDirective.class, new int[]{TerminalTokens.TokenNameSEMICOLON});
 		this.endingTokens.put(NullLiteral.class, new int[]{TerminalTokens.TokenNamenull});
 		this.endingTokens.put(NumberLiteral.class, new int[]{TerminalTokens.TokenNameIntegerLiteral, TerminalTokens.TokenNameLongLiteral, TerminalTokens.TokenNameFloatingPointLiteral, TerminalTokens.TokenNameDoubleLiteral});
 		this.endingTokens.put(PackageDeclaration.class, new int[]{TerminalTokens.TokenNameSEMICOLON});
@@ -123,6 +125,7 @@ class ASTRecoveryPropagator extends DefaultASTVisitor {
 		}
 	}
 
+	@Override
 	public void endVisit(Block node) {
 		this.blockDepth--;
 		if(this.blockDepth <= 0) {
@@ -133,12 +136,14 @@ class ASTRecoveryPropagator extends DefaultASTVisitor {
 
 
 
+	@Override
 	public boolean visit(Block node) {
 		boolean visitChildren = super.visit(node);
 		this.blockDepth++;
 		return visitChildren;
 	}
 
+	@Override
 	protected boolean visitNode(ASTNode node) {
 		if(this.blockDepth > 0) {
 			int start = node.getStartPosition();
@@ -178,6 +183,7 @@ class ASTRecoveryPropagator extends DefaultASTVisitor {
 		return true;
 	}
 
+	@Override
 	protected void endVisitNode(ASTNode node) {
 		int start = node.getStartPosition();
 		int end = start + node.getLength() - 1;
@@ -192,6 +198,7 @@ class ASTRecoveryPropagator extends DefaultASTVisitor {
 				case ASTNode.IMPORT_DECLARATION:
 				case ASTNode.INITIALIZER:
 				case ASTNode.METHOD_DECLARATION:
+				case ASTNode.MODULE_DECLARATION:
 				case ASTNode.PACKAGE_DECLARATION:
 				case ASTNode.TYPE_DECLARATION:
 				case ASTNode.MARKER_ANNOTATION:
@@ -356,6 +363,7 @@ class ASTRecoveryPropagator extends DefaultASTVisitor {
 		return foundProblems;
 	}
 
+	@Override
 	public void endVisit(ExpressionStatement node) {
 		endVisitNode(node);
 		if ((node.getFlags() & ASTNode.RECOVERED) == 0) return;
@@ -376,6 +384,7 @@ class ASTRecoveryPropagator extends DefaultASTVisitor {
 		}
 	}
 
+	@Override
 	public void endVisit(ForStatement node) {
 		endVisitNode(node);
 		List initializers = node.initializers();
@@ -396,6 +405,7 @@ class ASTRecoveryPropagator extends DefaultASTVisitor {
 		}
 	}
 
+	@Override
 	public void endVisit(VariableDeclarationStatement node) {
 		endVisitNode(node);
 		List fragments = node.fragments();
@@ -414,6 +424,7 @@ class ASTRecoveryPropagator extends DefaultASTVisitor {
 		}
 	}
 
+	@Override
 	public void endVisit(NormalAnnotation node) {
 		endVisitNode(node);
 		// is inside diet part of the ast
@@ -432,6 +443,7 @@ class ASTRecoveryPropagator extends DefaultASTVisitor {
 		}
 	}
 
+	@Override
 	public void endVisit(SingleMemberAnnotation node) {
 		endVisitNode(node);
 		// is inside diet part of the ast

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -34,6 +34,7 @@ import org.eclipse.core.runtime.*;
 import org.aspectj.org.eclipse.jdt.core.*;
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.SourceElementParser;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
 import org.aspectj.org.eclipse.jdt.internal.core.JavaModelManager.PerProjectInfo;
 import org.aspectj.org.eclipse.jdt.internal.core.builder.JavaBuilder;
 import org.aspectj.org.eclipse.jdt.internal.core.hierarchy.TypeHierarchy;
@@ -62,7 +63,6 @@ import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
  * 		resolved classpath, cycles))</li>
  * </ul>
  */
-@SuppressWarnings({ "rawtypes", "unchecked" })
 public class DeltaProcessor {
 
 	/*
@@ -77,6 +77,7 @@ public class DeltaProcessor {
 			this.traverseModes = traverseModes;
 			this.outputCount = outputCount;
 		}
+		@Override
 		public String toString() {
 			if (this.paths == null) return "<none>"; //$NON-NLS-1$
 			StringBuffer buffer = new StringBuffer();
@@ -145,13 +146,14 @@ public class DeltaProcessor {
 					this.root = getPackageFragmentRoot();
 				}
 			}
-			if (this.root != null) 
+			if (this.root != null)
 				this.cache = this.root;
 			return this.root;
 		}
 		boolean isRootOfProject(IPath path) {
 			return this.rootPath.equals(path) && this.project.getProject().getFullPath().isPrefixOf(path);
 		}
+		@Override
 		public String toString() {
 			StringBuffer buffer = new StringBuffer("project="); //$NON-NLS-1$
 			if (this.project == null) {
@@ -240,13 +242,13 @@ public class DeltaProcessor {
 	 * Queue of deltas created explicily by the Java Model that
 	 * have yet to be fired.
 	 */
-	public ArrayList javaModelDeltas= new ArrayList();
+	public List<IJavaElementDelta> javaModelDeltas= new ArrayList<>();
 
 	/*
 	 * Queue of reconcile deltas on working copies that have yet to be fired.
 	 * This is a table form IWorkingCopy to IJavaElementDelta
 	 */
-	public HashMap reconcileDeltas = new HashMap();
+	public Map<ICompilationUnit, IJavaElementDelta> reconcileDeltas = new HashMap<>();
 
 	/*
 	 * Turns delta firing on/off. By default it is on.
@@ -259,12 +261,12 @@ public class DeltaProcessor {
 	private final ModelUpdater modelUpdater = new ModelUpdater();
 
 	/* A set of IJavaProject whose caches need to be reset */
-	public HashSet projectCachesToReset = new HashSet();
+	public Set<IJavaElement> projectCachesToReset = new HashSet<>();
 
 	/* A table from IJavaProject to an array of IPackageFragmentRoot.
 	 * This table contains the pkg fragment roots of the project that are being deleted.
 	 */
-	public Map oldRoots;
+	public Map<IJavaProject, IPackageFragmentRoot[]> oldRoots;
 
 	/*
 	 * Type of event that should be processed no matter what the real event type is.
@@ -285,8 +287,8 @@ public class DeltaProcessor {
 	 * Adds the dependents of the given project to the list of the projects
 	 * to update.
 	 */
-	private void addDependentProjects(IJavaProject project, HashMap projectDependencies, HashSet result) {
-		IJavaProject[] dependents = (IJavaProject[]) projectDependencies.get(project);
+	private void addDependentProjects(IJavaProject project, Map<IJavaProject, IJavaProject[]> projectDependencies, Set<IJavaElement> result) {
+		IJavaProject[] dependents = projectDependencies.get(project);
 		if (dependents == null) return;
 		for (int i = 0, length = dependents.length; i < length; i++) {
 			IJavaProject dependent = dependents[i];
@@ -315,7 +317,7 @@ public class DeltaProcessor {
 			}
 		}
 	}
-	
+
 	private void addPackageFragmentRoot(OpenableElementInfo parent, IPackageFragmentRoot child)
 			throws JavaModelException {
 
@@ -495,7 +497,7 @@ public class DeltaProcessor {
 						this.manager.removePerProjectInfo(javaProject, true /* remove external jar files indexes and timestamps*/);
 						// remove container cache for this project
 						this.manager.containerRemove(javaProject);
-
+						JavaModelManager.getModulePathManager().removeEntry(javaProject);
 						this.state.rootsAreStale = true;
 						break;
 				}
@@ -507,13 +509,12 @@ public class DeltaProcessor {
 					case IResourceDelta.REMOVED:
 						// Close the containing package fragment root to reset its cached children.
 						// See http://bugs.eclipse.org/500714
-						IPackageFragmentRoot root = findContainingPackageFragmentRoot(resource);
-						if (root != null && root.isOpen()) {
-							try {
+						try {
+							IPackageFragmentRoot root = findContainingPackageFragmentRoot(resource);
+							if (root != null && root.isOpen())
 								root.close();
-							} catch (JavaModelException e) {
-								Util.log(e);
-							}
+						} catch (JavaModelException e) {
+							Util.log(e);
 						}
 						break;
 
@@ -534,7 +535,7 @@ public class DeltaProcessor {
 							int flags = delta.getFlags();
 							if ((flags & IResourceDelta.CONTENT) == 0  // only consider content change
 								&& (flags & IResourceDelta.ENCODING) == 0 // and encoding change
-								&& (flags & IResourceDelta.MOVED_FROM) == 0) {// and also move and overide scenario (see http://dev.eclipse.org/bugs/show_bug.cgi?id=21420)
+								&& (flags & IResourceDelta.MOVED_FROM) == 0) {// and also move and override scenario (see http://dev.eclipse.org/bugs/show_bug.cgi?id=21420)
 								break;
 							}
 						//$FALL-THROUGH$
@@ -553,6 +554,28 @@ public class DeltaProcessor {
 					javaProject = (JavaProject)JavaCore.create(file.getProject());
 					javaProject.resetResolvedClasspath();
 					this.state.rootsAreStale = true;
+				} else if (file.getName().toLowerCase().contains(new String(TypeConstants.MODULE_INFO_FILE_NAME))) {
+					switch(kind) {
+						case IResourceDelta.CHANGED :
+							int flags = delta.getFlags();
+							if ((flags & IResourceDelta.CONTENT) == 0)
+								break;
+							javaProject = (JavaProject)JavaCore.create(file.getProject());
+							this.manager.removePerProjectInfo(javaProject, false);
+							this.state.rootsAreStale = true;
+							break;
+							//$FALL-THROUGH$
+						case IResourceDelta.ADDED :
+						case IResourceDelta.REMOVED :
+							javaProject = (JavaProject)JavaCore.create(file.getProject());
+							try {
+								// Make sure module description is read
+								javaProject.close();
+							} catch (JavaModelException e) {
+								// do nothing
+							}
+							break;
+					}
 				}
 				break;
 
@@ -564,22 +587,24 @@ public class DeltaProcessor {
 		}
 	}
 
-	private IPackageFragmentRoot findContainingPackageFragmentRoot(IResource resource) {
+	private IPackageFragmentRoot findContainingPackageFragmentRoot(IResource resource) throws JavaModelException {
 		IProject project = resource.getProject();
 		if (JavaProject.hasJavaNature(project)) {
 			IJavaProject javaProject = JavaCore.create(project);
-			try {
-				IPath path = resource.getProjectRelativePath();
-				IPackageFragmentRoot[] roots = javaProject.getPackageFragmentRoots();
-				for (IPackageFragmentRoot root : roots) {
-					IResource rootResource = root.getUnderlyingResource();
-					if (rootResource != null && !resource.equals(rootResource) &&
-							rootResource.getProjectRelativePath().isPrefixOf(path)) {
-						return root;
-					}
+			IPath path = resource.getProjectRelativePath();
+			IPackageFragmentRoot[] roots = javaProject.getPackageFragmentRoots();
+			for (IPackageFragmentRoot root : roots) {
+				IResource rootResource = null;
+				try {
+					rootResource = root.getUnderlyingResource();
+				} catch (JavaModelException e) {
+					if (!e.isDoesNotExist())
+						throw e;
 				}
-			} catch (JavaModelException e) {
-				Util.log(e);
+				if (rootResource != null && !resource.equals(rootResource) &&
+						rootResource.getProjectRelativePath().isPrefixOf(path)) {
+					return root;
+				}
 			}
 		}
 		return null;
@@ -591,8 +616,8 @@ public class DeltaProcessor {
 	}
 
 	private void checkProjectReferenceChange(IProject project, JavaProject javaProject) {
-		ClasspathChange change = this.state.getClasspathChange(project);
-		this.state.addProjectReferenceChange(javaProject, change == null ? null : change.oldResolvedClasspath);
+		project.clearCachedDynamicReferences();
+		this.state.addProjectReferenceChange(javaProject);
 	}
 
 	private void readRawClasspath(JavaProject javaProject) {
@@ -608,7 +633,7 @@ public class DeltaProcessor {
 		}
 	}
 	private void checkSourceAttachmentChange(IResourceDelta delta, IResource res) {
-		IPath rootPath = (IPath)this.state.sourceAttachments.get(externalPath(res));
+		IPath rootPath = this.state.sourceAttachments.get(externalPath(res));
 		if (rootPath != null) {
 			RootInfo rootInfo = rootInfo(rootPath, delta.getKind());
 			if (rootInfo != null) {
@@ -796,7 +821,10 @@ public class DeltaProcessor {
 							// create class file handle
 							// fileName validation has been done in elementType(IResourceDelta, int, boolean)
 							String fileName = path.lastSegment();
-							element = pkgFragment.getClassFile(fileName);
+							if (TypeConstants.MODULE_INFO_CLASS_NAME_STRING.equals(fileName))
+								element = pkgFragment.getModularClassFile();
+							else
+								element = pkgFragment.getClassFile(fileName);
 						}
 					}
 				}
@@ -806,7 +834,7 @@ public class DeltaProcessor {
 		this.currentElement = (Openable)element;
 		return this.currentElement;
 	}
-	
+
 	public void checkExternalArchiveChanges(IJavaElement[] elementsScope,  IProgressMonitor monitor) throws JavaModelException {
 		checkExternalArchiveChanges(elementsScope, false, monitor);
 	}
@@ -826,10 +854,10 @@ public class DeltaProcessor {
 				this.state.addForRefresh(elementsScope[i]);
 				if (element.getElementType() == IJavaElement.JAVA_MODEL) {
 					// ensure external working copies' projects' caches are reset
-					HashSet projects = JavaModelManager.getJavaModelManager().getExternalWorkingCopyProjects();
+					Set<IJavaProject> projects = JavaModelManager.getJavaModelManager().getExternalWorkingCopyProjects();
 					if (projects != null) {
 						hasExternalWorkingCopyProject = true;
-						Iterator iterator = projects.iterator();
+						Iterator<IJavaProject> iterator = projects.iterator();
 						while (iterator.hasNext()) {
 							JavaProject project = (JavaProject) iterator.next();
 							project.resetCaches();
@@ -837,7 +865,7 @@ public class DeltaProcessor {
 					}
 				}
 			}
-			HashSet elementsToRefresh = this.state.removeExternalElementsToRefresh();
+			Set<IJavaElement> elementsToRefresh = this.state.removeExternalElementsToRefresh();
 			boolean hasDelta = elementsToRefresh != null && createExternalArchiveDelta(elementsToRefresh, monitor);
 			if (hasDelta){
 				IJavaElementDelta[] projectDeltas = this.currentDelta.getAffectedChildren();
@@ -857,6 +885,7 @@ public class DeltaProcessor {
 						//	 so that there is no concurrency with the Java builder
 						// see https://bugs.eclipse.org/bugs/show_bug.cgi?id=96575
 						IWorkspaceRunnable runnable = new IWorkspaceRunnable() {
+							@Override
 							public void run(IProgressMonitor progressMonitor) throws CoreException {
 								for (int i = 0; i < projectsToTouch.length; i++) {
 									IProject project = projectsToTouch[i];
@@ -893,16 +922,16 @@ public class DeltaProcessor {
 	 * Check if external archives have changed for the given elements and create the corresponding deltas.
 	 * Returns whether at least one delta was created.
 	 */
-	private boolean createExternalArchiveDelta(HashSet refreshedElements, IProgressMonitor monitor) {
+	private boolean createExternalArchiveDelta(Set<IJavaElement> refreshedElements, IProgressMonitor monitor) {
 
-		HashMap externalArchivesStatus = new HashMap();
+		Map<IPath, String> externalArchivesStatus = new HashMap<>();
 		boolean hasDelta = false;
 
 		// find JARs to refresh
-		HashSet archivePathsToRefresh = new HashSet();
-		Iterator iterator = refreshedElements.iterator();
+		Set<IPath> archivePathsToRefresh = new HashSet<>();
+		Iterator<IJavaElement> iterator = refreshedElements.iterator();
 		while (iterator.hasNext()) {
-			IJavaElement element = (IJavaElement)iterator.next();
+			IJavaElement element = iterator.next();
 			switch(element.getElementType()){
 				case IJavaElement.PACKAGE_FRAGMENT_ROOT :
 					archivePathsToRefresh.add(element.getPath());
@@ -926,9 +955,9 @@ public class DeltaProcessor {
 					}
 					break;
 				case IJavaElement.JAVA_MODEL :
-					Iterator projectNames = this.state.getOldJavaProjecNames().iterator();
+					Iterator<String> projectNames = this.state.getOldJavaProjecNames().iterator();
 					while (projectNames.hasNext()) {
-						String projectName = (String) projectNames.next();
+						String projectName = projectNames.next();
 						IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(projectName);
 						if (!JavaProject.hasJavaNature(project)) {
 							// project is not accessible or has lost its Java nature
@@ -952,13 +981,13 @@ public class DeltaProcessor {
 		}
 
 		// perform refresh
-		Iterator projectNames = this.state.getOldJavaProjecNames().iterator();
+		Iterator<String> projectNames = this.state.getOldJavaProjecNames().iterator();
 		IWorkspaceRoot wksRoot = ResourcesPlugin.getWorkspace().getRoot();
 		while (projectNames.hasNext()) {
 
 			if (monitor != null && monitor.isCanceled()) break;
 
-			String projectName = (String) projectNames.next();
+			String projectName = projectNames.next();
 			IProject project = wksRoot.getProject(projectName);
 			if (!JavaProject.hasJavaNature(project)) {
 				// project is not accessible or has lost its Java nature
@@ -979,7 +1008,7 @@ public class DeltaProcessor {
 
 					if (!archivePathsToRefresh.contains(entryPath)) continue; // not supposed to be refreshed
 
-					String status = (String)externalArchivesStatus.get(entryPath);
+					String status = externalArchivesStatus.get(entryPath);
 					if (status == null){
 
 						// Clear the external file state for this path, since this method is responsible for updating it.
@@ -1001,7 +1030,7 @@ public class DeltaProcessor {
 							File externalFile = (File)targetLibrary;
 
 							// check timestamp to figure if JAR has changed in some way
-							Long oldTimestamp =(Long) this.state.getExternalLibTimeStamps().get(entryPath);
+							Long oldTimestamp =this.state.getExternalLibTimeStamps().get(entryPath);
 							long newTimeStamp = getTimeStamp(externalFile);
 							if (oldTimestamp != null){
 
@@ -1041,7 +1070,7 @@ public class DeltaProcessor {
 						}
 					}
 					// according to computed status, generate a delta
-					status = (String)externalArchivesStatus.get(entryPath);
+					status = externalArchivesStatus.get(entryPath);
 					if (status != null){
 						if (status == EXTERNAL_JAR_ADDED){
 							PackageFragmentRoot root = (PackageFragmentRoot) javaProject.getPackageFragmentRoot(entryPath.toString());
@@ -1076,7 +1105,7 @@ public class DeltaProcessor {
 					}
 				}
 			}
-			
+
 			if (deltaContainsModifiedJar) {
 				javaProject.resetResolvedClasspath();
 			}
@@ -1108,7 +1137,7 @@ public class DeltaProcessor {
 
 			// remember roots of this project
 			if (this.oldRoots == null) {
-				this.oldRoots = new HashMap();
+				this.oldRoots = new HashMap<>();
 			}
 			if (javaProject.isOpen()) {
 				this.oldRoots.put(javaProject, javaProject.getPackageFragmentRoots());
@@ -1119,6 +1148,7 @@ public class DeltaProcessor {
 					javaProject.computePackageFragmentRoots(
 						javaProject.getResolvedClasspath(),
 						false,
+						true, // respect limit modules
 						null /*no reverse map*/));
 			}
 
@@ -1425,7 +1455,7 @@ public class DeltaProcessor {
 	 * Flushes all deltas without firing them.
 	 */
 	public void flush() {
-		this.javaModelDeltas = new ArrayList();
+		this.javaModelDeltas = new ArrayList<>();
 	}
 
 	private SourceElementParser getSourceElementParser(Openable element) {
@@ -1473,9 +1503,9 @@ public class DeltaProcessor {
 
 		// Refresh internal scopes
 		if (deltaToNotify != null) {
-			Iterator scopes = this.manager.searchScopes.keySet().iterator();
+			Iterator<AbstractSearchScope> scopes = this.manager.searchScopes.keySet().iterator();
 			while (scopes.hasNext()) {
-				AbstractSearchScope scope = (AbstractSearchScope)scopes.next();
+				AbstractSearchScope scope = scopes.next();
 				scope.processDelta(deltaToNotify, eventType);
 			}
 			JavaWorkspaceScope workspaceScope = this.manager.workspaceScope;
@@ -1539,7 +1569,7 @@ public class DeltaProcessor {
 		}
 		if (deltaToNotify != null) {
 			// flush now so as to keep listener reactions to post their own deltas for subsequent iteration
-			this.reconcileDeltas = new HashMap();
+			this.reconcileDeltas = new HashMap<>();
 
 			notifyListeners(deltaToNotify, ElementChangedEvent.POST_RECONCILE, listeners, listenerMask, listenerCount);
 		}
@@ -1559,6 +1589,7 @@ public class DeltaProcessor {
 			}
 			try {
 				rootDelta.accept(new IResourceDeltaVisitor() {
+					@Override
 					public boolean visit(IResourceDelta delta) /* throws CoreException */ {
 						switch (delta.getKind()){
 							case IResourceDelta.ADDED :
@@ -1639,15 +1670,15 @@ public class DeltaProcessor {
 	/*
 	 * Merges all awaiting deltas.
 	 */
-	private IJavaElementDelta mergeDeltas(Collection deltas) {
+	private IJavaElementDelta mergeDeltas(Collection<IJavaElementDelta> deltas) {
 		if (deltas.size() == 0) return null;
-		if (deltas.size() == 1) return (IJavaElementDelta)deltas.iterator().next();
+		if (deltas.size() == 1) return deltas.iterator().next();
 
 		if (VERBOSE) {
 			System.out.println("MERGING " + deltas.size() + " DELTAS ["+Thread.currentThread()+"]"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		}
 
-		Iterator iterator = deltas.iterator();
+		Iterator<IJavaElementDelta> iterator = deltas.iterator();
 		JavaElementDelta rootDelta = new JavaElementDelta(this.manager.javaModel);
 		boolean insertedTree = false;
 		while (iterator.hasNext()) {
@@ -1690,9 +1721,11 @@ public class DeltaProcessor {
 				}
 				// wrap callbacks with Safe runnable for subsequent listeners to be called when some are causing grief
 				SafeRunner.run(new ISafeRunnable() {
+					@Override
 					public void handleException(Throwable exception) {
 						Util.log(exception, "Exception occurred in listener of Java element change notification"); //$NON-NLS-1$
 					}
+					@Override
 					public void run() throws Exception {
 						PerformanceStats stats = null;
 						if(PERF) {
@@ -1718,9 +1751,11 @@ public class DeltaProcessor {
 
 			// wrap callbacks with Safe runnable for subsequent listeners to be called when some are causing grief
 			SafeRunner.run(new ISafeRunnable() {
+				@Override
 				public void handleException(Throwable exception) {
 					Util.log(exception, "Exception occurred in listener of Java element change notification"); //$NON-NLS-1$
 				}
+				@Override
 				public void run() throws Exception {
 					TypeHierarchy typeHierarchy = (TypeHierarchy)listener;
 					if (typeHierarchy.hasFineGrainChanges()) {
@@ -1745,7 +1780,7 @@ public class DeltaProcessor {
 			JavaElementInfo info = (JavaElementInfo)element.getElementInfo();
 			switch (element.getElementType()) {
 				case IJavaElement.JAVA_MODEL :
-					((JavaModelInfo) info).nonJavaResources = null;
+					((JavaModelInfo) info).setNonJavaResources(null);
 					if (!ExternalFoldersManager.isInternalPathForExternalFolder(delta.getFullPath()))
 						currentDelta().addResourceDelta(delta);
 					return;
@@ -1781,16 +1816,16 @@ public class DeltaProcessor {
 	 * Returns the old root info for the given path and project.
 	 */
 	private RootInfo oldRootInfo(IPath path, JavaProject project) {
-		RootInfo oldInfo = (RootInfo) this.state.oldRoots.get(path);
+		RootInfo oldInfo = this.state.oldRoots.get(path);
 		if (oldInfo == null)
 			return null;
 		if (oldInfo.project.equals(project))
 			return oldInfo;
-		ArrayList oldInfos = (ArrayList) this.state.oldOtherRoots.get(path);
+		List<RootInfo> oldInfos = this.state.oldOtherRoots.get(path);
 		if (oldInfos == null)
 			return null;
 		for (int i = 0, length = oldInfos.size(); i < length; i++) {
-			oldInfo = (RootInfo) oldInfos.get(i);
+			oldInfo = oldInfos.get(i);
 			if (oldInfo.project.equals(project))
 				return oldInfo;
 		}
@@ -1799,11 +1834,11 @@ public class DeltaProcessor {
 	/*
 	 * Returns the other root infos for the given path. Look in the old other roots table if kind is REMOVED.
 	 */
-	private ArrayList otherRootsInfo(IPath path, int kind) {
+	private List<RootInfo> otherRootsInfo(IPath path, int kind) {
 		if (kind == IResourceDelta.REMOVED) {
-			return (ArrayList)this.state.oldOtherRoots.get(path);
+			return this.state.oldOtherRoots.get(path);
 		}
-		return (ArrayList)this.state.otherRoots.get(path);
+		return this.state.otherRoots.get(path);
 	}
 
 	private OutputsInfo outputsInfo(RootInfo rootInfo, IResource res) {
@@ -1953,9 +1988,9 @@ public class DeltaProcessor {
 
 		JavaModelManager.getJavaModelManager().resetJarTypeCache();
 
-		Iterator iterator = this.projectCachesToReset.iterator();
-		HashMap projectDepencies = this.state.projectDependencies;
-		HashSet affectedDependents = new HashSet();
+		Iterator<IJavaElement> iterator = this.projectCachesToReset.iterator();
+		Map<IJavaProject, IJavaProject[]> projectDepencies = this.state.projectDependencies;
+		Set<IJavaElement> affectedDependents = new HashSet<>();
 		while (iterator.hasNext()) {
 			JavaProject project = (JavaProject)iterator.next();
 			project.resetCaches();
@@ -2034,7 +2069,7 @@ public class DeltaProcessor {
 				//https://bugs.eclipse.org/bugs/show_bug.cgi?id=302295
 				// Refresh all project references together in a single job
 				JavaModelManager.getExternalManager().refreshReferences(projects, null);
-				
+
 				IJavaProject[] javaElements = new IJavaProject[projects.length];
 				for (int index = 0; index < projects.length; index++) {
 					javaElements[index] = JavaCore.create(projects[index]);
@@ -2048,7 +2083,7 @@ public class DeltaProcessor {
 				return;
 
 			case IResourceChangeEvent.POST_CHANGE :
-				HashSet elementsToRefresh = this.state.removeExternalElementsToRefresh();
+				Set<IJavaElement> elementsToRefresh = this.state.removeExternalElementsToRefresh();
 				if (isAffectedBy(delta) // avoid populating for SYNC or MARKER deltas
 						|| elementsToRefresh != null) {
 					try {
@@ -2062,13 +2097,13 @@ public class DeltaProcessor {
 							}
 
 							// generate classpath change deltas
-							HashMap classpathChanges = this.state.removeAllClasspathChanges();
+							Map<IProject, ClasspathChange> classpathChanges = this.state.removeAllClasspathChanges();
 							if (classpathChanges.size() > 0) {
 								boolean hasDelta = this.currentDelta != null;
 								JavaElementDelta javaDelta = currentDelta();
-								Iterator changes = classpathChanges.values().iterator();
+								Iterator<ClasspathChange> changes = classpathChanges.values().iterator();
 								while (changes.hasNext()) {
-									ClasspathChange change = (ClasspathChange) changes.next();
+									ClasspathChange change = changes.next();
 									int result = change.generateDelta(javaDelta, false/*don't add classpath change*/);
 									if ((result & ClasspathChange.HAS_DELTA) != 0) {
 										hasDelta = true;
@@ -2080,7 +2115,8 @@ public class DeltaProcessor {
 										this.state.addClasspathValidation(change.project);
 									}
 									if ((result & ClasspathChange.HAS_PROJECT_CHANGE) != 0) {
-										this.state.addProjectReferenceChange(change.project, change.oldResolvedClasspath);
+										change.project.getProject().clearCachedDynamicReferences();
+										this.state.addProjectReferenceChange(change.project);
 									}
 									if ((result & ClasspathChange.HAS_LIBRARY_CHANGE) != 0) {
 										this.state.addExternalFolderChange(change.project, change.oldResolvedClasspath);
@@ -2118,7 +2154,7 @@ public class DeltaProcessor {
 				// (note this is no-op if already initialized)
 				// see https://bugs.eclipse.org/bugs/show_bug.cgi?id=241751
 				this.state.initializeRoots(false/*not initiAfterLoad*/);
-				
+
 				boolean isAffected = isAffectedBy(delta);
 				boolean needCycleValidation = isAffected && validateClasspaths(delta);
 
@@ -2145,20 +2181,13 @@ public class DeltaProcessor {
 				}
 
 				// update project references if necessary
-			    ProjectReferenceChange[] projectRefChanges = this.state.removeProjectReferenceChanges();
-				if (projectRefChanges != null) {
-				    for (int i = 0, length = projectRefChanges.length; i < length; i++) {
-				        try {
-					        projectRefChanges[i].updateProjectReferencesIfNecessary();
-				        } catch(JavaModelException e) {
-				            // project doesn't exist any longer, continue with next one
-				        	if (!e.isDoesNotExist())
-				        		Util.log(e, "Exception while updating project references"); //$NON-NLS-1$
-				        }
-				    }
-				}
+				Set<IJavaProject> referencedProjects = this.state.removeProjectReferenceChanges();
+				needCycleValidation = needCycleValidation || !referencedProjects.isEmpty();
 
-				if (needCycleValidation || projectRefChanges != null) {
+				if (needCycleValidation) {
+					for (IJavaProject next : referencedProjects) {
+						next.getProject().clearCachedDynamicReferences();
+					}
 					// update all cycle markers since the project references changes may have affected cycles
 					try {
 						JavaProject.validateCycles(null);
@@ -2229,9 +2258,9 @@ public class DeltaProcessor {
 	 */
 	private RootInfo rootInfo(IPath path, int kind) {
 		if (kind == IResourceDelta.REMOVED) {
-			return (RootInfo)this.state.oldRoots.get(path);
+			return this.state.oldRoots.get(path);
 		}
-		return (RootInfo)this.state.roots.get(path);
+		return this.state.roots.get(path);
 	}
 	/*
 	 * Turns the firing mode to on. That is, deltas that are/have been
@@ -2384,11 +2413,11 @@ public class DeltaProcessor {
 				}
 
 				// if the child is a package fragment root of one or several other projects
-				ArrayList rootList;
+				List<RootInfo> rootList;
 				if ((rootList = otherRootsInfo(childPath, childKind)) != null) {
-					Iterator iterator = rootList.iterator();
+					Iterator<RootInfo> iterator = rootList.iterator();
 					while (iterator.hasNext()) {
-						originalChildRootInfo = (RootInfo) iterator.next();
+						originalChildRootInfo = iterator.next();
 						this.currentElement = null; // ensure that 2 roots refering to the same resource don't share the current element (see https://bugs.eclipse.org/bugs/show_bug.cgi?id=210746 )
 						traverseDelta(child, IJavaElement.PACKAGE_FRAGMENT_ROOT, originalChildRootInfo, null); // binary output of childRootInfo.project cannot be this root
 					}
@@ -2417,7 +2446,7 @@ public class DeltaProcessor {
 		} // else resource delta will be added by parent
 	}
 
-	private void validateClasspaths(IResourceDelta delta, HashSet affectedProjects) {
+	private void validateClasspaths(IResourceDelta delta, Set<IPath> affectedProjects) {
 		IResource resource = delta.getResource();
 		boolean processChildren = false;
 		switch (resource.getType()) {
@@ -2488,7 +2517,7 @@ public class DeltaProcessor {
 	 * Returns whether cycle markers should be recomputed.
 	 */
 	private boolean validateClasspaths(IResourceDelta delta) {
-		HashSet affectedProjects = new HashSet(5);
+		Set<IPath> affectedProjects = new HashSet<>(5);
 		validateClasspaths(delta, affectedProjects);
 		boolean needCycleValidation = false;
 
@@ -2536,6 +2565,7 @@ public class DeltaProcessor {
 	 * Returns whether the children of the given delta must be processed.
 	 * @throws a JavaModelException if the delta doesn't correspond to a java element of the given type.
 	 */
+	@SuppressWarnings("unlikely-arg-type")
 	public boolean updateCurrentDeltaAndIndex(IResourceDelta delta, int elementType, RootInfo rootInfo) {
 		Openable element;
 		switch (delta.getKind()) {
@@ -2614,6 +2644,7 @@ public class DeltaProcessor {
 						if (res.isOpen()) {
 							if (JavaProject.hasJavaNature(res)) {
 								addToParentInfo(element);
+								this.manager.getPerProjectInfo(res, true /*create info if needed*/).rememberExternalLibTimestamps();
 								currentDelta().opened(element);
 								this.state.updateRoots(element.getPath(), delta, this);
 
@@ -2813,7 +2844,7 @@ public class DeltaProcessor {
 
 		if (customDelta == null){
 			for (int i = 0, length = this.javaModelDeltas.size(); i < length; i++){
-				IJavaElementDelta delta = (IJavaElementDelta)this.javaModelDeltas.get(i);
+				IJavaElementDelta delta = this.javaModelDeltas.get(i);
 				this.modelUpdater.processJavaDelta(delta);
 			}
 		} else {

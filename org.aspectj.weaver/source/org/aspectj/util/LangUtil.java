@@ -1,6 +1,7 @@
 /* *******************************************************************
  * Copyright (c) 1999-2001 Xerox Corporation, 
  *               2002 Palo Alto Research Center, Incorporated (PARC).
+ *               2018 Contributors
  * All rights reserved. 
  * This program and the accompanying materials are made available 
  * under the terms of the Eclipse Public License v1.0 
@@ -42,6 +43,17 @@ public class LangUtil {
 
 	private static double vmVersion;
 
+	/**
+	 * @return the vm version (1.1, 1.2, 1.3, 1.4, etc)
+	 */
+	public static String getVmVersionString() {
+		return Double.toString(vmVersion);
+	}
+	
+	public static double getVmVersion() {
+		return vmVersion;
+	}
+	
 	static {
 		StringWriter buf = new StringWriter();
 		PrintWriter writer = new PrintWriter(buf);
@@ -59,6 +71,8 @@ public class LangUtil {
 	}
 
 	static {
+		// http://www.oracle.com/technetwork/java/javase/versioning-naming-139433.html
+		// http://openjdk.java.net/jeps/223 "New Version-String Scheme"
 		try {
 			String vm = System.getProperty("java.version"); // JLS 20.18.7
 			if (vm == null) {
@@ -73,17 +87,21 @@ public class LangUtil {
 						.printStackTrace(System.err);
 				vmVersion = 1.5;
 			} else {
-				if (vm.startsWith("9")) {
-					// JDK 9 beta 99 starts using 9-ea as the version string.
-					vmVersion = 1.9;
-				} else {
-					try {
-						String versionString = vm.substring(0, 3);
-						Double temp = new Double(Double.parseDouble(versionString));
-						vmVersion = temp.doubleValue();
-					} catch (Exception e) {
-						vmVersion = 1.4;
+				// Version: [1-9][0-9]*((\.0)*\.[1-9][0-9]*)* 
+				// Care about the first set of digits and second set if first digit is 1
+				try {
+					List<Integer> numbers = getFirstNumbers(vm);
+					if (numbers.get(0) == 1) {
+						// Old school for 1.0 > 1.8
+						vmVersion = numbers.get(0)+(numbers.get(1)/10d);
+					} else {
+						// numbers.get(0) is the major version (9 and above)
+						// Note here the number will be 9 (or 10), *not* 1.9 or 1.10
+						vmVersion = numbers.get(0);
 					}
+				} catch (Throwable t) {
+					// Give up
+					vmVersion = 1.5;
 				}
 			}
 		} catch (Throwable t) {
@@ -92,6 +110,19 @@ public class LangUtil {
 					.printStackTrace(System.err);
 			vmVersion = 1.5;
 		}
+	}
+	
+	private static List<Integer> getFirstNumbers(String vm) {
+		List<Integer> result = new ArrayList<Integer>();
+		StringTokenizer st = new StringTokenizer(vm,".-_");
+		try {
+			result.add(Integer.parseInt(st.nextToken()));
+			result.add(Integer.parseInt(st.nextToken()));
+		} catch (Exception e) {
+			// NoSuchElementException if no more tokens
+			// NumberFormatException if not a number
+		}
+		return result;
 	}
 
 	public static boolean is13VMOrGreater() {
@@ -119,7 +150,11 @@ public class LangUtil {
 	}
 	
 	public static boolean is19VMOrGreater() {
-		return 1.9 <= vmVersion;
+		return 9 <= vmVersion;
+	}
+	
+	public static boolean is10VMOrGreater() {
+		return 10 <= vmVersion;
 	}
 
 	/**
@@ -237,7 +272,7 @@ public class LangUtil {
 	 * @param text <code>String</code> to split.
 	 */
 	public static String[] split(String text) {
-		return (String[]) strings(text).toArray(new String[0]);
+		return strings(text).toArray(new String[0]);
 	}
 
 	/**
@@ -268,7 +303,7 @@ public class LangUtil {
 				result.add(entry);
 			}
 		}
-		return (String[]) result.toArray(new String[0]);
+		return result.toArray(new String[0]);
 	}
 
 	/**
@@ -856,7 +891,7 @@ public class LangUtil {
 		String line;
 		int elided = 0;
 		while (!lines.isEmpty()) {
-			line = (String) lines.getLast();
+			line = lines.getLast();
 			if (!checker.acceptString(line)) {
 				break;
 			} else {
@@ -868,7 +903,7 @@ public class LangUtil {
 			final int EOL_LEN = EOL.length();
 			int totalLength = 0;
 			while (!lines.isEmpty()) {
-				totalLength += EOL_LEN + ((String) lines.getFirst()).length();
+				totalLength += EOL_LEN + lines.getFirst().length();
 				lines.removeFirst();
 			}
 			if (stack.length() > totalLength) {
@@ -1030,7 +1065,7 @@ public class LangUtil {
 		if (!LangUtil.isEmpty(args)) {
 			cmd.addAll(Arrays.asList(args));
 		}
-		String[] command = (String[]) cmd.toArray(new String[0]);
+		String[] command = cmd.toArray(new String[0]);
 		if (null == controller) {
 			controller = new ProcessController();
 		}
@@ -1219,7 +1254,7 @@ public class LangUtil {
 			if (!LangUtil.isEmpty(args)) {
 				cmd.addAll(Arrays.asList(args));
 			}
-			init((String[]) cmd.toArray(new String[0]), mainClass);
+			init(cmd.toArray(new String[0]), mainClass);
 		}
 
 		public final void init(String[] command, String label) {
@@ -1285,6 +1320,7 @@ public class LangUtil {
 			inStream = new FileUtil.Pipe(System.in, process.getOutputStream());
 			// start 4 threads, process & pipes for in, err, out
 			Runnable processRunner = new Runnable() {
+				@Override
 				public void run() {
 					Throwable thrown = null;
 					int result = Integer.MIN_VALUE;
@@ -1436,6 +1472,7 @@ public class LangUtil {
 				thrown = ((null != fromProcess) || (null != fromInPipe) || (null != fromOutPipe) || (null != fromErrPipe));
 			}
 
+			@Override
 			public String toString() {
 				StringBuffer sb = new StringBuffer();
 				append(sb, fromProcess, "process");

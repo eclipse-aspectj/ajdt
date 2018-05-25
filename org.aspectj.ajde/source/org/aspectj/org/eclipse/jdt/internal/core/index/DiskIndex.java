@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,6 +11,7 @@
 package org.aspectj.org.eclipse.jdt.internal.core.index;
 
 import java.io.*;
+import java.util.regex.Pattern;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.core.search.*;
@@ -46,7 +47,7 @@ private int bufferIndex, bufferEnd; // used when reading from the file into the 
 private int streamEnd; // used when writing data from the streamBuffer to the file
 char separator = Index.DEFAULT_SEPARATOR;
 
-public static final String SIGNATURE= "INDEX VERSION 1.129"; //$NON-NLS-1$
+public static final String SIGNATURE= "INDEX VERSION 1.131"; //$NON-NLS-1$
 private static final char[] SIGNATURE_CHARS = SIGNATURE.toCharArray();
 public static boolean DEBUG = false;
 
@@ -204,6 +205,22 @@ HashtableOfObject addQueryResults(char[][] categories, char[] key, int matchRule
 						for (int j = 0, m = words.length; j < m; j++) {
 							char[] word = words[j];
 							if (word != null && key[0] == word[0] && CharOperation.prefixEquals(key, word))
+								results = addQueryResult(results, word, values[j], memoryIndex, prevResults);
+						}
+					}
+					prevResults = results != null;
+				}
+				break;
+			case SearchPattern.R_REGEXP_MATCH:
+				Pattern pattern = Pattern.compile(new String(key));
+				for (int i = 0, l = categories.length; i < l; i++) {
+					HashtableOfObject wordsToDocNumbers = readCategoryTable(categories[i], false);
+					if (wordsToDocNumbers != null) {
+						char[][] words = wordsToDocNumbers.keyTable;
+						Object[] values = wordsToDocNumbers.valueTable;
+						for (int j = 0, m = words.length; j < m; j++) {
+							char[] word = words[j];
+							if (word != null && pattern.matcher(new String(word)).matches())
 								results = addQueryResult(results, word, values[j], memoryIndex, prevResults);
 						}
 					}

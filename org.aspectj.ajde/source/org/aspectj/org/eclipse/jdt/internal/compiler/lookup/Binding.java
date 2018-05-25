@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -28,6 +28,7 @@ public abstract class Binding {
 	public static final int METHOD = ASTNode.Bit4;
 	public static final int PACKAGE = ASTNode.Bit5;
 	public static final int IMPORT = ASTNode.Bit6;
+	public static final int MODULE = ASTNode.Bit7;
 	public static final int ARRAY_TYPE = TYPE | ASTNode.Bit7;
 	public static final int BASE_TYPE = TYPE | ASTNode.Bit8;
 	public static final int PARAMETERIZED_TYPE = TYPE | ASTNode.Bit9;
@@ -44,6 +45,8 @@ public abstract class Binding {
 	// In the unlikely event you add a new type binding, remember to update TypeBindingVisitor and Scope.substitute methods. 
 
 	// Shared binding collections
+	public static final ModuleBinding[] NO_MODULES = new ModuleBinding[0];
+	public static final PackageBinding[] NO_PACKAGES = new PackageBinding[0];
 	public static final TypeBinding[] NO_TYPES = new TypeBinding[0];
 	public static final ReferenceBinding[] NO_REFERENCE_TYPES = new ReferenceBinding[0];
 	public static final TypeBinding[] NO_PARAMETERS = new TypeBinding[0];
@@ -67,8 +70,11 @@ public abstract class Binding {
 
 	// Nullness defaults:
 	public static final int NO_NULL_DEFAULT = 0;
-	// SE5 style:
-	public static final int NONNULL_BY_DEFAULT = 1;
+
+	// not used any longer (was in the old implementation when NonNullByDefault only supported a boolean arg)
+	// corresponds to #DefaultLocationsForTrueValue
+	// public static final int NONNULL_BY_DEFAULT = 1;
+
 	public static final int NULL_UNSPECIFIED_BY_DEFAULT = 2;
 	// JSR308 style:
 	/**
@@ -97,9 +103,10 @@ public abstract class Binding {
 	public static final int DefaultLocationTypeBound = ASTNode.Bit9;
 	/**
 	 * Bit in defaultNullness bit vectors, representing the enum constant DefaultLocation#ARRAY_CONTENTS
-	 * TODO: this constant is not yet used, due to difficulty to discern these annotations between SE5 / SE8
 	 */
 	public static final int DefaultLocationArrayContents = ASTNode.Bit10;
+
+	public static final int DefaultLocationsForTrueValue = DefaultLocationParameter | DefaultLocationReturnType | DefaultLocationField;
 
 	public static final int NullnessDefaultMASK = 
 			NULL_UNSPECIFIED_BY_DEFAULT | // included to terminate search up the parent chain
@@ -112,14 +119,16 @@ public abstract class Binding {
 	public abstract int kind();
 	/*
 	 * Computes a key that uniquely identifies this binding.
-	 * Returns null if binding is not a TypeBinding, a MethodBinding, a FieldBinding, a LocalVariableBinding or a PackageBinding (i.e. an ImportBinding).
+	 * Returns null if binding is not a TypeBinding, a MethodBinding, a FieldBinding, a LocalVariableBinding, a PackageBinding (i.e. an ImportBinding)
+	 * or a ModuleBinding.
 	 */
 	public char[] computeUniqueKey() {
 		return computeUniqueKey(true/*leaf*/);
 	}
 	/*
 	 * Computes a key that uniquely identifies this binding. Optionally include access flags.
-	 * Returns null if binding is not a TypeBinding, a MethodBinding, a FieldBinding, a LocalVariableBinding or a PackageBinding (i.e. an ImportBinding)
+	 * Returns null if binding is not a TypeBinding, a MethodBinding, a FieldBinding, a LocalVariableBinding, a PackageBinding (i.e. an ImportBinding)
+	 * or a ModuleBinding.
 	 */
 	public char[] computeUniqueKey(boolean isLeaf) {
 		return null;
@@ -155,6 +164,9 @@ public abstract class Binding {
 	public final boolean isValidBinding() {
 		return problemId() == ProblemReasons.NoError;
 	}
+	public static boolean isValid(/*@Nullable*/Binding binding) {
+		return binding != null && binding.isValidBinding();
+	}
 	public boolean isVolatile() {
 		return false;
 	}
@@ -184,10 +196,10 @@ public abstract class Binding {
 	public AnnotationBinding[] getAnnotations() {
 		return Binding.NO_ANNOTATIONS;
 	}
-	public void setAnnotations(AnnotationBinding[] annotations, Scope scope) {
-		setAnnotations(annotations);
+	public void setAnnotations(AnnotationBinding[] annotations, Scope scope, boolean forceStore) {
+		setAnnotations(annotations, forceStore);
 	}
-	public void setAnnotations(AnnotationBinding[] annotations) {
+	public void setAnnotations(AnnotationBinding[] annotations, boolean forceStore) {
 		// Left to subtypes.
 	}
 }

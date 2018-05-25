@@ -10,7 +10,9 @@
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.util;
 
-public final class ObjectVector {
+import java.util.Iterator;
+
+public final class ObjectVector implements Iterable<Object> {
 
 	static int INITIAL_SIZE = 10;
 
@@ -125,11 +127,27 @@ public final class ObjectVector {
 		return this.size;
 	}
 
+	@Override
 	public String toString() {
 
 		String s = ""; //$NON-NLS-1$
 		for (int i = 0; i < this.size; i++)
 			s += this.elements[i].toString() + "\n"; //$NON-NLS-1$
 		return s;
+	}
+
+	@Override
+	public Iterator<Object> iterator() {
+		return new Iterator<Object>() {
+			int i=0;
+			@Override
+			public boolean hasNext() {
+				return this.i < ObjectVector.this.size;
+			}
+			@Override
+			public Object next() {
+				return ObjectVector.this.elementAt(this.i++);
+			}
+		};
 	}
 }

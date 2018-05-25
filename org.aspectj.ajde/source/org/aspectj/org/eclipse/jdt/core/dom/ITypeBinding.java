@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -14,7 +14,7 @@
 package org.aspectj.org.eclipse.jdt.core.dom;
 
 /**
- * A type binding represents fully-resolved type. There are a number of
+ * A type binding represents a fully-resolved type. There are a number of
  * different kinds of type bindings:
  * <ul>
  * <li>a class - represents the class declaration;
@@ -277,6 +277,27 @@ public interface ITypeBinding extends IBinding {
 	public IBinding getDeclaringMember();
 
 	/**
+	 * Returns the binding of the module associated with the package in which
+	 * this type is declared.
+	 *
+	 * <p>The module of a recovered type reference binding is the module
+	 * associated with the package returned by {@link #getPackage()} ie either
+	 * the module associated with the package of the enclosing type, or, 
+	 * if the type name is the name of a {@linkplain AST#resolveWellKnownType(String) 
+	 * well-known type},  the module associated with the package of the matching 
+	 * well-known type.</p>
+	 *
+	 * @return the binding of the module associated with the package
+	 * in which this class, interface, enum, or annotation type is declared, 
+	 * or <code>null</code> if this type binding represents a primitive type, an array type, 
+	 * the null type, a type variable, a wildcard type or a capture binding.
+	 *
+	 * @since 3.14
+	 */
+	public default IModuleBinding getModule() {
+		return null;
+	}
+	/**
 	 * Returns the dimensionality of this array type, or <code>0</code> if this
 	 * is not an array type binding.
 	 *
@@ -388,6 +409,7 @@ public interface ITypeBinding extends IBinding {
 	 * if this type does not represent a class, an interface, an enum, an annotation
 	 * type or a recovered type.
 	 */
+	@Override
 	public int getModifiers();
 
 	/**
@@ -435,6 +457,7 @@ public interface ITypeBinding extends IBinding {
 	 * or the empty string if it has none
 	 * @see #getQualifiedName()
 	 */
+	@Override
 	public String getName();
 
 	/**

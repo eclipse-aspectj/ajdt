@@ -13,7 +13,7 @@ package org.aspectj.org.eclipse.jdt.internal.core;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Iterator;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
@@ -21,6 +21,7 @@ import org.eclipse.core.resources.IResourceStatus;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.ISafeRunnable;
+import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.core.runtime.SafeRunner;
 import org.eclipse.core.runtime.content.IContentDescription;
 import org.aspectj.org.eclipse.jdt.core.*;
@@ -34,7 +35,7 @@ public class Buffer implements IBuffer {
 	protected IFile file;
 	protected int flags;
 	protected char[] contents;
-	protected ArrayList changeListeners;
+	protected ListenerList<IBufferChangedListener> changeListeners;
 	protected IOpenable owner;
 	protected int gapStart = -1;
 	protected int gapEnd = -1;
@@ -58,18 +59,18 @@ protected Buffer(IFile file, IOpenable owner, boolean readOnly) {
 /**
  * @see IBuffer
  */
+@Override
 public synchronized void addBufferChangedListener(IBufferChangedListener listener) {
 	if (this.changeListeners == null) {
-		this.changeListeners = new ArrayList(5);
+		this.changeListeners = new ListenerList();
 	}
-	if (!this.changeListeners.contains(listener)) {
-		this.changeListeners.add(listener);
-	}
+	this.changeListeners.add(listener);
 }
 /**
  * Append the <code>text</code> to the actual content, the gap is moved
  * to the end of the <code>text</code>.
  */
+@Override
 public void append(char[] text) {
 	if (!isReadOnly()) {
 		if (text == null || text.length == 0) {
@@ -90,6 +91,7 @@ public void append(char[] text) {
  * Append the <code>text</code> to the actual content, the gap is moved
  * to the end of the <code>text</code>.
  */
+@Override
 public void append(String text) {
 	if (text == null) {
 		return;
@@ -99,6 +101,7 @@ public void append(String text) {
 /**
  * @see IBuffer
  */
+@Override
 public void close() {
 	BufferChangedEvent event = null;
 	synchronized (this.lock) {
@@ -116,6 +119,7 @@ public void close() {
 /**
  * @see IBuffer
  */
+@Override
 public char getChar(int position) {
 	synchronized (this.lock) {
 	    if (this.contents == null) return Character.MIN_VALUE;
@@ -129,6 +133,7 @@ public char getChar(int position) {
 /**
  * @see IBuffer
  */
+@Override
 public char[] getCharacters() {
 	synchronized (this.lock) {
 		if (this.contents == null) return null;
@@ -145,6 +150,7 @@ public char[] getCharacters() {
 /**
  * @see IBuffer
  */
+@Override
 public String getContents() {
 	char[] chars = getCharacters();
 	if (chars == null) return null;
@@ -153,6 +159,7 @@ public String getContents() {
 /**
  * @see IBuffer
  */
+@Override
 public int getLength() {
 	synchronized (this.lock) {
 		if (this.contents == null) return -1;
@@ -163,12 +170,14 @@ public int getLength() {
 /**
  * @see IBuffer
  */
+@Override
 public IOpenable getOwner() {
 	return this.owner;
 }
 /**
  * @see IBuffer
  */
+@Override
 public String getText(int offset, int length) {
 	synchronized (this.lock) {
 		if (this.contents == null) return ""; //$NON-NLS-1$
@@ -187,24 +196,28 @@ public String getText(int offset, int length) {
 /**
  * @see IBuffer
  */
+@Override
 public IResource getUnderlyingResource() {
 	return this.file;
 }
 /**
  * @see IBuffer
  */
+@Override
 public boolean hasUnsavedChanges() {
 	return (this.flags & F_HAS_UNSAVED_CHANGES) != 0;
 }
 /**
  * @see IBuffer
  */
+@Override
 public boolean isClosed() {
 	return (this.flags & F_IS_CLOSED) != 0;
 }
 /**
  * @see IBuffer
  */
+@Override
 public boolean isReadOnly() {
 	return (this.flags & F_IS_READ_ONLY) != 0;
 }
@@ -255,25 +268,28 @@ protected void moveAndResizeGap(int position, int size) {
  * To avoid deadlock, this should not be called in a synchronized block.
  */
 protected void notifyChanged(final BufferChangedEvent event) {
-	ArrayList listeners = this.changeListeners;
+	ListenerList<IBufferChangedListener> listeners = this.changeListeners;
 	if (listeners != null) {
-		for (int i = 0, size = listeners.size(); i < size; ++i) {
-			final IBufferChangedListener listener = (IBufferChangedListener) listeners.get(i);
+		Iterator<IBufferChangedListener> iterator = listeners.iterator();
+		while (iterator.hasNext()) {
+			final IBufferChangedListener listener = iterator.next();
 			SafeRunner.run(new ISafeRunnable() {
+				@Override
 				public void handleException(Throwable exception) {
 					Util.log(exception, "Exception occurred in listener of buffer change notification"); //$NON-NLS-1$
 				}
+				@Override
 				public void run() throws Exception {
 					listener.bufferChanged(event);
 				}
 			});
-
 		}
 	}
 }
 /**
  * @see IBuffer
  */
+@Override
 public synchronized void removeBufferChangedListener(IBufferChangedListener listener) {
 	if (this.changeListeners != null) {
 		this.changeListeners.remove(listener);
@@ -287,6 +303,7 @@ public synchronized void removeBufferChangedListener(IBufferChangedListener list
  * After that operation, the gap is placed at the end of the
  * inserted <code>text</code>.
  */
+@Override
 public void replace(int position, int length, char[] text) {
 	if (!isReadOnly()) {
 		int textLength = text == null ? 0 : text.length;
@@ -323,12 +340,14 @@ public void replace(int position, int length, char[] text) {
  * After that operation, the gap is placed at the end of the
  * inserted <code>text</code>.
  */
+@Override
 public void replace(int position, int length, String text) {
 	this.replace(position, length, text == null ? null : text.toCharArray());
 }
 /**
  * @see IBuffer
  */
+@Override
 public void save(IProgressMonitor progress, boolean force) throws JavaModelException {
 
 	// determine if saving is required
@@ -400,6 +419,7 @@ public void save(IProgressMonitor progress, boolean force) throws JavaModelExcep
 /**
  * @see IBuffer
  */
+@Override
 public void setContents(char[] newContents) {
 	// allow special case for first initialization
 	// after creation by buffer factory
@@ -430,6 +450,7 @@ public void setContents(char[] newContents) {
 /**
  * @see IBuffer
  */
+@Override
 public void setContents(String newContents) {
 	this.setContents(newContents.toCharArray());
 }
@@ -443,6 +464,7 @@ protected void setReadOnly(boolean readOnly) {
 		this.flags &= ~(F_IS_READ_ONLY);
 	}
 }
+@Override
 public String toString() {
 	StringBuffer buffer = new StringBuffer();
 	buffer.append("Owner: " + ((JavaElement)this.owner).toStringWithAncestors()); //$NON-NLS-1$

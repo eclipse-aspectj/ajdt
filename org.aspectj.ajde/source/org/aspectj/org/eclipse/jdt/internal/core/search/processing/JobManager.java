@@ -325,6 +325,7 @@ public abstract class JobManager implements Runnable {
 	/**
 	 * Infinite loop performing resource indexing
 	 */
+	@Override
 	public void run() {
 
 		long idlingStart = -1;
@@ -334,6 +335,7 @@ public abstract class JobManager implements Runnable {
 				ProgressJob(String name) {
 					super(name);
 				}
+				@Override
 				protected IStatus run(IProgressMonitor monitor) {
 					IJob job = currentJob();
 					while (!monitor.isCanceled() && job != null) {
@@ -400,8 +402,12 @@ public abstract class JobManager implements Runnable {
 						if (VERBOSE)
 							Util.verbose("FINISHED background job - " + job); //$NON-NLS-1$
 						moveToNextJob();
-						if (this.awaitingClients == 0)
-							Thread.sleep(50);
+						if (this.awaitingClients == 0 && job.waitNeeded()) {
+							if (VERBOSE) {
+								Util.verbose("WAITING after job - " + job); //$NON-NLS-1$
+							}
+							Thread.sleep(5);
+						}
 					}
 				} catch (InterruptedException e) { // background indexing was interrupted
 				}
@@ -459,6 +465,7 @@ public abstract class JobManager implements Runnable {
 			// ignore
 		}
 	}
+	@Override
 	public String toString() {
 		StringBuffer buffer = new StringBuffer(10);
 		buffer.append("Enable count:").append(this.enableCount).append('\n'); //$NON-NLS-1$

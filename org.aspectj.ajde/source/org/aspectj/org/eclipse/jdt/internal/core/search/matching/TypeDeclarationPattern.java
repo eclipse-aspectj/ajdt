@@ -11,17 +11,25 @@
 package org.aspectj.org.eclipse.jdt.internal.core.search.matching;
 
 import java.io.IOException;
+import java.util.regex.Pattern;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
+import org.aspectj.org.eclipse.jdt.core.search.IJavaSearchConstants;
 import org.aspectj.org.eclipse.jdt.core.search.SearchPattern;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.core.index.*;
+import org.aspectj.org.eclipse.jdt.internal.core.search.indexing.IIndexConstants;
 
 public class TypeDeclarationPattern extends JavaSearchPattern {
 
 public char[] simpleName;
 public char[] pkg;
 public char[][] enclosingTypeNames;
+public char[][] moduleNames = null;
+private boolean allowModuleRegex = false; // enable to try experimental Module Regex Match
+/* package */ Pattern[] modulePatterns = null;
+public boolean moduleGraph = false;
+/* package */ char[][] moduleGraphElements = null;
 
 // set to CLASS_SUFFIX for only matching classes
 // set to INTERFACE_SUFFIX for only matching interfaces
@@ -132,30 +140,68 @@ public static char[] createIndexKey(int modifiers, char[] typeName, char[] packa
 }
 
 public TypeDeclarationPattern(
+		char[] moduleNames,
+		char[] pkg,
+		char[][] enclosingTypeNames,
+		char[] simpleName,
+		char typeSuffix,
+		int matchRule) {
+
+		this(matchRule);
+		addModuleNames(moduleNames);
+		this.pkg = this.isCaseSensitive ? pkg : CharOperation.toLowerCase(pkg);
+		if (this.isCaseSensitive || enclosingTypeNames == null) {
+			this.enclosingTypeNames = enclosingTypeNames;
+		} else {
+			int length = enclosingTypeNames.length;
+			this.enclosingTypeNames = new char[length][];
+			for (int i = 0; i < length; i++)
+				this.enclosingTypeNames[i] = CharOperation.toLowerCase(enclosingTypeNames[i]);
+		}
+		this.simpleName = (this.isCaseSensitive || this.isCamelCase) ? simpleName : CharOperation.toLowerCase(simpleName);
+		this.typeSuffix = typeSuffix;
+
+		this.mustResolve = (this.pkg != null && this.enclosingTypeNames != null) || typeSuffix != TYPE_SUFFIX;
+	}
+
+public TypeDeclarationPattern(
 	char[] pkg,
 	char[][] enclosingTypeNames,
 	char[] simpleName,
 	char typeSuffix,
 	int matchRule) {
 
-	this(matchRule);
-
-	this.pkg = this.isCaseSensitive ? pkg : CharOperation.toLowerCase(pkg);
-	if (this.isCaseSensitive || enclosingTypeNames == null) {
-		this.enclosingTypeNames = enclosingTypeNames;
-	} else {
-		int length = enclosingTypeNames.length;
-		this.enclosingTypeNames = new char[length][];
-		for (int i = 0; i < length; i++)
-			this.enclosingTypeNames[i] = CharOperation.toLowerCase(enclosingTypeNames[i]);
-	}
-	this.simpleName = (this.isCaseSensitive || this.isCamelCase) ? simpleName : CharOperation.toLowerCase(simpleName);
-	this.typeSuffix = typeSuffix;
-
-	this.mustResolve = (this.pkg != null && this.enclosingTypeNames != null) || typeSuffix != TYPE_SUFFIX;
+	this(null, pkg, enclosingTypeNames, simpleName, typeSuffix, matchRule);
 }
 TypeDeclarationPattern(int matchRule) {
 	super(TYPE_DECL_PATTERN, matchRule);
+}
+protected void addModuleNames(char[] modNames) {
+	if (modNames == null) {
+		return;
+	}
+	final String explicit_unnamed = new String(IJavaSearchConstants.ALL_UNNAMED);
+	String[] names = new String(modNames).split(String.valueOf(CharOperation.COMMA_SEPARATOR));
+	int len = names.length;
+	if (this.allowModuleRegex && len > 0 && names[0] != null && names[0].length() > 0 
+			&& names[0].charAt(0) == IIndexConstants.ZERO_CHAR) { //pattern
+		names[0] = names[0].substring(1);
+		this.modulePatterns = new Pattern[len];
+		for (int i = 0; i < len; ++i) {
+			this.modulePatterns[i] = Pattern.compile(names[i]);
+		}
+	} else { // 'normal' matching - flag if don't care conditions are passed
+		for (int i = 0; i < len; ++i) {
+			names[i] = names[i].trim();
+			if (explicit_unnamed.equals(names[i]))
+				names[i] = ""; //$NON-NLS-1$
+		}
+	}
+	this.moduleNames = new char[len][];
+	for (int i = 0; i < len; ++i) {
+		String s = names[i];
+		this.moduleNames[i] = s != null ? s.toCharArray() : CharOperation.NO_CHAR;
+	}
 }
 /*
  * Type entries are encoded as:
@@ -166,6 +212,7 @@ TypeDeclarationPattern(int matchRule) {
  * or for secondary types as:
  * 	simpleTypeName / packageName / enclosingTypeName / modifiers / S
  */
+@Override
 public void decodeIndexKey(char[] key) {
 	int slash = CharOperation.indexOf(SEPARATOR, key, 0);
 	this.simpleName = CharOperation.subarray(key, 0, slash);
@@ -219,12 +266,15 @@ protected void decodeModifiers() {
 			break;
 	}
 }
+@Override
 public SearchPattern getBlankPattern() {
 	return new TypeDeclarationPattern(R_EXACT_MATCH | R_CASE_SENSITIVE);
 }
+@Override
 public char[][] getIndexCategories() {
 	return CATEGORIES;
 }
+@Override
 public boolean matchesDecodedKey(SearchPattern decodedPattern) {
 	TypeDeclarationPattern pattern = (TypeDeclarationPattern) decodedPattern;
 
@@ -255,6 +305,7 @@ public boolean matchesDecodedKey(SearchPattern decodedPattern) {
 	}
 	return true;
 }
+@Override
 public EntryResult[] queryIn(Index index) throws IOException {
 	char[] key = this.simpleName; // can be null
 	int matchRule = getMatchRule();
@@ -309,6 +360,7 @@ public EntryResult[] queryIn(Index index) throws IOException {
 
 	return index.query(getIndexCategories(), key, matchRule); // match rule is irrelevant when the key is null
 }
+@Override
 protected StringBuffer print(StringBuffer output) {
 	switch (this.typeSuffix){
 		case CLASS_SUFFIX :

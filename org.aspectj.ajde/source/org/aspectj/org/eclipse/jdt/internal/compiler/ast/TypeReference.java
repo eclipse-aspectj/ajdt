@@ -1,5 +1,6 @@
+// ASPECTJ
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -28,14 +29,20 @@
  *                          Bug 383624 - [1.8][compiler] Revive code generation support for type annotations (from Olivier's work)
  *                          Bug 409236 - [1.8][compiler] Type annotations on intersection cast types dropped by code generator
  *                          Bug 415399 - [1.8][compiler] Type annotations on constructor results dropped by the code generator
+ *      Jesper S Møller <jesper@selskabet.org> -  Contributions for
+ *                          bug 527554 - [18.3] Compiler support for JEP 286 Local-Variable Type
+ *                          bug 529556 - [18.3] Add content assist support for 'var' as a type
+ *                          
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.NullAnnotationMatching.CheckMode;
+import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.AnnotationContext;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.AnnotationTargetTypeConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.flow.FlowContext;
@@ -56,6 +63,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Scope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Substitution;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TagBits;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeIds;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemSeverities;
 @SuppressWarnings({"rawtypes", "unchecked"})
@@ -219,19 +227,24 @@ static class AnnotationCollector extends ASTVisitor {
 		}
 		return true;
 	}
+	@Override
 	public boolean visit(MarkerAnnotation annotation, BlockScope scope) {
 		return internalVisit(annotation);
 	}
+	@Override
 	public boolean visit(NormalAnnotation annotation, BlockScope scope) {
 		return internalVisit(annotation);
 	}
+	@Override
 	public boolean visit(SingleMemberAnnotation annotation, BlockScope scope) {
 		return internalVisit(annotation);
 	}
+	@Override
 	public boolean visit(Wildcard wildcard, BlockScope scope) {
 		this.currentWildcard = wildcard;
 		return true;
 	}
+	@Override
 	public boolean visit(Argument argument, BlockScope scope) {
 		if ((argument.bits & ASTNode.IsUnionType) == 0) {
 			return true;
@@ -245,6 +258,7 @@ static class AnnotationCollector extends ASTVisitor {
 		}
 		return false;
 	}
+	@Override
 	public boolean visit(Argument argument, ClassScope scope) {
 		if ((argument.bits & ASTNode.IsUnionType) == 0) {
 			return true;
@@ -258,6 +272,7 @@ static class AnnotationCollector extends ASTVisitor {
 		}
 		return false;
 	}
+	@Override
 	public boolean visit(LocalDeclaration localDeclaration, BlockScope scope) {
 		for (int i = 0, max = this.localVariable.initializationCount; i < max; i++) {
 			int startPC = this.localVariable.initializationPCs[i << 1];
@@ -268,6 +283,7 @@ static class AnnotationCollector extends ASTVisitor {
 		}
 		return false;
 	}
+	@Override
 	public void endVisit(Wildcard wildcard, BlockScope scope) {
 		this.currentWildcard = null;
 	}
@@ -332,6 +348,7 @@ public Annotation[][] annotations = null;
 public void aboutToResolve(Scope scope) {
 	// default implementation: do nothing
 }
+@Override
 public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, FlowInfo flowInfo) {
 	return flowInfo;
 }
@@ -504,7 +521,11 @@ protected TypeBinding internalResolveType(Scope scope, int location) {
 	if (type == null) {
 		return null; // detected cycle while resolving hierarchy
 	} else if ((hasError = !type.isValidBinding()) == true) {
-		reportInvalidType(scope);
+		if (this.isTypeNameVar(scope)) {
+			reportVarIsNotAllowedHere(scope);
+		} else {
+			reportInvalidType(scope);
+		}
 		switch (type.problemId()) {
 			case ProblemReasons.NotFound :
 			case ProblemReasons.NotVisible :
@@ -540,6 +561,7 @@ protected TypeBinding internalResolveType(Scope scope, int location) {
 		return this.resolvedType; // pick up value that may have been changed in resolveAnnotations(..)
 	}
 }
+@Override
 public boolean isTypeReference() {
 	return true;
 }
@@ -567,6 +589,10 @@ protected void reportInvalidType(Scope scope) {
 	scope.problemReporter().invalidType(this, this.resolvedType);
 }
 
+protected void reportVarIsNotAllowedHere(Scope scope) {
+	scope.problemReporter().varIsNotAllowedHere(this);
+}
+
 public TypeBinding resolveSuperType(ClassScope scope) {
 	// assumes the implementation of resolveType(ClassScope) will call back to detect cycles
 	TypeBinding superType = resolveType(scope);
@@ -582,6 +608,7 @@ public TypeBinding resolveSuperType(ClassScope scope) {
 	return superType;
 }
 
+@Override
 public final TypeBinding resolveType(BlockScope blockScope) {
 	return resolveType(blockScope, true /* checkbounds if any */);
 }
@@ -594,6 +621,7 @@ public TypeBinding resolveType(BlockScope scope, boolean checkBounds, int locati
 	return internalResolveType(scope, location);
 }
 
+@Override
 public TypeBinding resolveType(ClassScope scope) {
 	return resolveType(scope, 0);
 }
@@ -614,8 +642,8 @@ public TypeBinding resolveTypeArgument(ClassScope classScope, ReferenceBinding g
 	boolean pauseHierarchyCheck = false;
 	try {
 		if (ref.isHierarchyBeingConnected()) {
+			pauseHierarchyCheck = (ref.tagBits & TagBits.PauseHierarchyCheck) == 0;
 			ref.tagBits |= TagBits.PauseHierarchyCheck;
-			pauseHierarchyCheck = true;
 		}
 	    return resolveType(classScope, Binding.DefaultLocationTypeArgument);
 	} finally {
@@ -625,8 +653,10 @@ public TypeBinding resolveTypeArgument(ClassScope classScope, ReferenceBinding g
 	}
 }
 
+@Override
 public abstract void traverse(ASTVisitor visitor, BlockScope scope);
 
+@Override
 public abstract void traverse(ASTVisitor visitor, ClassScope scope);
 
 protected void resolveAnnotations(Scope scope, int location) {
@@ -663,7 +693,7 @@ protected void resolveAnnotations(Scope scope, int location) {
 			&& !this.resolvedType.isTypeVariable()
 			&& !this.resolvedType.isWildcard()
 			&& location != 0
-			&& scope.hasDefaultNullnessFor(location)) 
+			&& scope.hasDefaultNullnessFor(location, this.sourceStart)) 
 	{
 		if (location == Binding.DefaultLocationTypeBound && this.resolvedType.id == TypeIds.T_JavaLangObject) {
 			scope.problemReporter().implicitObjectBoundNoNullDefault(this);
@@ -697,7 +727,7 @@ protected void checkNullConstraints(Scope scope, Substitution substitution, Type
     	}
 	}
 	checkIllegalNullAnnotation(scope);
-	}
+}
 protected void checkIllegalNullAnnotation(Scope scope) {
 	if (this.resolvedType.leafComponentType().isBaseType() && hasNullTypeAnnotation(AnnotationPosition.LEAF_TYPE))
 		scope.problemReporter().illegalAnnotationForBaseType(this, this.annotations[0], this.resolvedType.tagBits & TagBits.AnnotationNullMASK);	
@@ -719,13 +749,13 @@ public Annotation findAnnotation(long nullTagBits) {
 public boolean hasNullTypeAnnotation(AnnotationPosition position) {
 	if (this.annotations != null) {
 		if (position == AnnotationPosition.MAIN_TYPE) {
-		Annotation[] innerAnnotations = this.annotations[this.annotations.length-1];
+			Annotation[] innerAnnotations = this.annotations[this.annotations.length-1];
 			return containsNullAnnotation(innerAnnotations);
 		} else {
 			for (Annotation[] someAnnotations: this.annotations) {
 				if (containsNullAnnotation(someAnnotations))
-			return true;
-	}
+					return true;
+			}
 		}
 	}
 	return false;
@@ -745,5 +775,18 @@ public TypeReference[] getTypeReferences() {
 
 public boolean isBaseTypeReference() {
 	return false;
+}
+/**
+ * Checks to see if the declaration uses 'var' as type name 
+ * @param scope Relevant scope, for error reporting
+ * @return true, if source level is Java 10 or above and the type name is just 'var', false otherwise 
+ */
+public boolean isTypeNameVar(Scope scope) {
+	CompilerOptions compilerOptions = scope != null ? scope.compilerOptions() : null;
+	if (compilerOptions != null && compilerOptions.sourceLevel < ClassFileConstants.JDK10) {
+		return false;
+	}
+	char[][] typeName = this.getTypeName();
+	return typeName.length == 1 && CharOperation.equals(typeName[0], TypeConstants.VAR);
 }
 }

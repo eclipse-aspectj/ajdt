@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2015 GK Software AG.
+ * Copyright (c) 2013, 2017 GK Software AG.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -17,26 +17,68 @@ public class InferenceSubstitution extends Scope.Substitutor implements Substitu
 
 	private LookupEnvironment environment;
 	private InferenceVariable[] variables;
-	private InvocationSite site;
+	private InvocationSite[] sites;
 
 	public InferenceSubstitution(LookupEnvironment environment, InferenceVariable[] variables, InvocationSite site) {
 		this.environment = environment;
 		this.variables = variables;
-		this.site = site;
+		this.sites = new InvocationSite[] {site};
 	}
 
 	public InferenceSubstitution(InferenceContext18 context) {
 		this(context.environment, context.inferenceVariables, context.currentInvocation);
 	}
 
+	/** Answer a substitution that is able to substitute into inference variables of several inference contexts (outer & inner) */
+	public InferenceSubstitution addContext(InferenceContext18 otherContext) {
+		InferenceSubstitution subst = new InferenceSubstitution(this.environment, null, null) {
+
+			@Override
+			protected boolean isSameParameter(TypeBinding p1, TypeBinding originalType) {
+				if (TypeBinding.equalsEquals(p1, originalType))
+					return true;
+				if (p1 instanceof TypeVariableBinding && originalType instanceof TypeVariableBinding) {
+					// may need to 'normalize' if inner & outer have different degree of parameterization / original:
+					TypeVariableBinding var1= (TypeVariableBinding) p1, var2 = (TypeVariableBinding) originalType;
+					Binding declaring1 = var1.declaringElement;
+					Binding declaring2 = var2.declaringElement;
+					if (declaring1 instanceof MethodBinding && declaring2 instanceof MethodBinding) {
+						declaring1 = ((MethodBinding) declaring1).original();
+						declaring2 = ((MethodBinding) declaring2).original();
+					}
+					// TODO: handle TypeBinding if needed
+					return declaring1 == declaring2 && var1.rank == var2.rank;
+				}
+				return false;
+			}
+		};
+		
+		int l1 = this.sites.length;
+		subst.sites = new InvocationSite[l1+1];
+		System.arraycopy(this.sites, 0, subst.sites, 0, l1);
+		subst.sites[l1] = otherContext.currentInvocation;
+
+		subst.variables = this.variables;
+
+// TODO: switch to also combining variables, if needed (filter duplicates?):
+//		l1 = this.variables.length;
+//		int l2 = otherContext.inferenceVariables.length;
+//		subst.variables = new InferenceVariable[l1+l2];
+//		System.arraycopy(this.variables, 0, subst.variables, 0, l1);
+//		System.arraycopy(otherContext.inferenceVariables, 0, subst.variables, l1, l2);
+
+		return subst;
+	}
+
 	/**
 	 * Override method {@link Scope.Substitutor#substitute(Substitution, TypeBinding)}, 
 	 * to add substitution of types other than type variables.
 	 */
+	@Override
 	public TypeBinding substitute(Substitution substitution, TypeBinding originalType) {
 		for (int i = 0; i < this.variables.length; i++) {
 			InferenceVariable variable = this.variables[i];
-			if (InferenceContext18.isSameSite(this.site, variable.site) && TypeBinding.equalsEquals(getP(i), originalType)) {
+			if (isInSites(variable.site) && isSameParameter(getP(i), originalType)) {
 				if (this.environment.globalOptions.isAnnotationBasedNullAnalysisEnabled && originalType.hasNullTypeAnnotations())
 					return this.environment.createAnnotatedType(variable.withoutToplevelNullAnnotation(), originalType.getTypeAnnotations());
 				return variable;
@@ -44,6 +86,17 @@ public class InferenceSubstitution extends Scope.Substitutor implements Substitu
 		}
 
 		return super.substitute(substitution, originalType);
+	}
+
+	private boolean isInSites(InvocationSite otherSite) {
+		for (int i = 0; i < this.sites.length; i++)
+			if (InferenceContext18.isSameSite(this.sites[i], otherSite))
+				return true;
+		return false;
+	}
+
+	protected boolean isSameParameter(TypeBinding p1, TypeBinding originalType) {
+		return TypeBinding.equalsEquals(p1, originalType);
 	}
 
 	/**
@@ -55,6 +108,7 @@ public class InferenceSubstitution extends Scope.Substitutor implements Substitu
 		return this.variables[i].typeParameter;
 	}
 
+	@Override
 	public TypeBinding substitute(TypeVariableBinding typeVariable) {
 		ReferenceBinding superclass = typeVariable.superclass;
 		ReferenceBinding[] superInterfaces = typeVariable.superInterfaces;
@@ -93,10 +147,12 @@ public class InferenceSubstitution extends Scope.Substitutor implements Substitu
 		return typeVariable;
 	}
 
+	@Override
 	public LookupEnvironment environment() {
 		return this.environment;
 	}
 
+	@Override
 	public boolean isRawSubstitution() {
 		// FIXME Auto-generated method stub
 		return false;

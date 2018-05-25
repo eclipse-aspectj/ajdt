@@ -144,7 +144,7 @@ public class ArrayType extends Type {
 	 */
 	ArrayType(AST ast) {
 		super(ast);
-		if (ast.apiLevel >= AST.JLS8) {
+		if (ast.apiLevel >= AST.JLS8_INTERNAL) {
 			this.dimensions = new ASTNode.NodeList(DIMENSIONS_PROPERTY);
 			// single dimension array is the default
 			this.dimensions().add(this.ast.newDimension());
@@ -171,16 +171,12 @@ public class ArrayType extends Type {
 		}
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	final List internalStructuralPropertiesForType(int apiLevel) {
 		return propertyDescriptors(apiLevel);
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	final List internalGetChildListProperty(ChildListPropertyDescriptor property) {
 		if (property == DIMENSIONS_PROPERTY) {
 			return dimensions();
@@ -188,10 +184,8 @@ public class ArrayType extends Type {
 		// allow default implementation to flag the error
 		return super.internalGetChildListProperty(property);
 	}
-	
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+
+	@Override
 	final ASTNode internalGetSetChildProperty(ChildPropertyDescriptor property, boolean get, ASTNode child) {
 		if (property == COMPONENT_TYPE_PROPERTY) {
 			if (get) {
@@ -212,19 +206,15 @@ public class ArrayType extends Type {
 		return super.internalGetSetChildProperty(property, get, child);
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	final int getNodeType0() {
 		return ARRAY_TYPE;
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	ASTNode clone0(AST target) {
 		ArrayType result;
-		if (this.ast.apiLevel < AST.JLS8) {
+		if (this.ast.apiLevel < AST.JLS8_INTERNAL) {
 			result = new ArrayType(target);
 			result.setComponentType((Type) getComponentType().clone(target));			
 		} else {
@@ -237,22 +227,18 @@ public class ArrayType extends Type {
 		return result;
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	final boolean subtreeMatch0(ASTMatcher matcher, Object other) {
 		// dispatch to correct overloaded match method
 		return matcher.match(this, other);
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	void accept0(ASTVisitor visitor) {
 		boolean visitChildren = visitor.visit(this);
 		if (visitChildren) {
 			// visit children in normal left to right reading order
-			if (this.ast.apiLevel < AST.JLS8) {
+			if (this.ast.apiLevel < AST.JLS8_INTERNAL) {
 				acceptChild(visitor, getComponentType());				
 			} else {
 				acceptChild(visitor, getElementType());
@@ -332,7 +318,7 @@ public class ArrayType extends Type {
 	 * @return the element type node
 	 */
 	public Type getElementType() {
-		if (this.ast.apiLevel() < AST.JLS8) {
+		if (this.ast.apiLevel() < AST.JLS8_INTERNAL) {
 			Type t = getComponentType();
 			while (t.isArrayType()) {
 				t = ((ArrayType) t).getComponentType();
@@ -376,7 +362,7 @@ public class ArrayType extends Type {
 	 * @return the number of dimensions (always positive)
 	 */
 	public int getDimensions() {
-		if (this.ast.apiLevel() >= AST.JLS8) {
+		if (this.ast.apiLevel() >= AST.JLS8_INTERNAL) {
 			return dimensions().size();
 		}
 		Type t = getComponentType();
@@ -406,20 +392,16 @@ public class ArrayType extends Type {
 		return this.dimensions;
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	int memSize() {
 		return BASE_NODE_SIZE + 2 * 4;
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	int treeSize() {
 		return
 			memSize()
-			+ (this.type == null ? 0 : (this.ast.apiLevel() < AST.JLS8 ? getComponentType().treeSize() : getElementType().treeSize())
+			+ (this.type == null ? 0 : (this.ast.apiLevel() < AST.JLS8_INTERNAL ? getComponentType().treeSize() : getElementType().treeSize())
 			+ (this.dimensions == null ? 0 : this.dimensions.listSize()));
 	}
 }

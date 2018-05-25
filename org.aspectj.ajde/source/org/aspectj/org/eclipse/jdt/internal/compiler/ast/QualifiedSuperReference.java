@@ -1,3 +1,4 @@
+// ASPECTJ
 /*******************************************************************************
  * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
@@ -17,12 +18,7 @@ package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BlockScope;
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ClassScope;
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ProblemReasons;
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ProblemReferenceBinding;
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.*;
 
 public class QualifiedSuperReference extends QualifiedThisReference {
 
@@ -30,22 +26,27 @@ public QualifiedSuperReference(TypeReference name, int pos, int sourceEnd) {
 	super(name, pos, sourceEnd);
 }
 
+@Override
 public boolean isSuper() {
 	return true;
 }
 
+@Override
 public boolean isQualifiedSuper() {
 	return true;
 }
 
+@Override
 public boolean isThis() {
 	return false;
 }
 
+@Override
 public StringBuffer printExpression(int indent, StringBuffer output) {
 	return this.qualification.print(0, output).append(".super"); //$NON-NLS-1$
 }
 
+@Override
 public TypeBinding resolveType(BlockScope scope) {
 	if ((this.bits & ParenthesizedMASK) != 0) {
 		scope.problemReporter().invalidParenthesizedExpression(this);
@@ -68,6 +69,7 @@ public TypeBinding resolveType(BlockScope scope) {
 			: this.currentCompatibleType.superclass());
 }
 
+@Override
 int findCompatibleEnclosing(ReferenceBinding enclosingType, TypeBinding type, BlockScope scope) {
 	if (type.isInterface()) {
 		// super call to an overridden default method? (not considering outer enclosings)
@@ -89,19 +91,8 @@ int findCompatibleEnclosing(ReferenceBinding enclosingType, TypeBinding type, Bl
 				// keep looking to ensure we always find the referenced type (even if illegal) 
 			}
 		}
-		if (!isLegal) {// || !isJava8) {
-			// AspectJ
-//			if (isJava8) {
-//				// Allowed inside ITDs
-//				Scope s = scope;
-//				boolean isOK = false;
-//				while (s!=null) {
-//					if (s instanceof InterTypeScope)
-//					s = s.parent;
-//				}
-//				break;
-//			}
-			// End AspectJ
+		// AspectJ
+		if (!isLegal || (!isJava8 && !isWithinInterTypeScope(scope))) {
 			this.currentCompatibleType = null;
 			// Please note the slightly unconventional use of the ProblemReferenceBinding:
 			// we use the problem's compoundName to report the type being illegally bypassed,
@@ -118,6 +109,24 @@ int findCompatibleEnclosing(ReferenceBinding enclosingType, TypeBinding type, Bl
 	return super.findCompatibleEnclosing(enclosingType, type, scope);
 }
 
+// AspectJ - start
+/**
+ * @param scope the scope to check
+ * @return true if the specified scope is nested within an inter type declaration scope
+ */
+private boolean isWithinInterTypeScope(Scope scope) {
+	Scope s = scope;
+	while (s != null) {
+		if (s.isInterTypeScope()) {
+			return true;
+		}
+		s = s.parent;
+	}
+	return false;
+}
+//AspectJ - end
+
+@Override
 public void traverse(
 	ASTVisitor visitor,
 	BlockScope blockScope) {
@@ -127,6 +136,7 @@ public void traverse(
 	}
 	visitor.endVisit(this, blockScope);
 }
+@Override
 public void traverse(
 		ASTVisitor visitor,
 		ClassScope blockScope) {

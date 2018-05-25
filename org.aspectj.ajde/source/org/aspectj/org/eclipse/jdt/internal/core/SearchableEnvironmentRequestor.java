@@ -13,6 +13,7 @@ package org.aspectj.org.eclipse.jdt.internal.core;
 import org.aspectj.org.eclipse.jdt.core.IInitializer;
 import org.aspectj.org.eclipse.jdt.core.IJavaElement;
 import org.aspectj.org.eclipse.jdt.core.IJavaProject;
+import org.aspectj.org.eclipse.jdt.core.IModuleDescription;
 import org.aspectj.org.eclipse.jdt.core.IPackageFragment;
 import org.aspectj.org.eclipse.jdt.core.IType;
 import org.aspectj.org.eclipse.jdt.core.JavaCore;
@@ -76,18 +77,25 @@ public SearchableEnvironmentRequestor(ISearchRequestor requestor, ICompilationUn
  *
  * @see IJavaElementRequestor
  */
+@Override
 public void acceptInitializer(IInitializer initializer) {
 	// implements interface method
 }
 /**
  * @see IJavaElementRequestor
  */
+@Override
 public void acceptPackageFragment(IPackageFragment packageFragment) {
 	this.requestor.acceptPackage(packageFragment.getElementName().toCharArray());
+}
+@Override
+public void acceptModule(IModuleDescription module) {
+	this.requestor.acceptModule(module.getElementName().toCharArray());
 }
 /**
  * @see IJavaElementRequestor
  */
+@Override
 public void acceptType(IType type) {
 	try {
 		if (this.unitToSkip != null && this.unitToSkip.equals(type.getCompilationUnit())){

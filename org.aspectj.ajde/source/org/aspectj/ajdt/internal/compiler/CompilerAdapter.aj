@@ -30,6 +30,7 @@ public privileged aspect CompilerAdapter {
 	 */
 	private static ICompilerAdapterFactory adapterFactory =
 		new ICompilerAdapterFactory() {
+				@Override
 				public ICompilerAdapter getAdapter(Compiler forCompiler) {
 					return new DefaultCompilerAdapter(forCompiler);
 				}

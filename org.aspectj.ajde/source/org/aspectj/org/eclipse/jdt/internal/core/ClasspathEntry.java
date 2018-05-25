@@ -1,10 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- *
+ * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Terry Parker <tparker@google.com> - DeltaProcessor misses state changes in archive files, see https://bugs.eclipse.org/bugs/show_bug.cgi?id=357425
@@ -13,8 +13,12 @@
  *								Bug 440477 - [null] Infrastructure for feeding external annotations into compilation
  *								Bug 462768 - [null] NPE when using linked folder for external annotations
  *                              Bug 465296 - precedence of extra attributes on a classpath container
+ *     Karsten Thoms - Bug 532505 - Reduce memory footprint of ClasspathAccessRule
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.core;
+
+import static org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.UTF_8;
+import static org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.getInputStreamAsCharArray;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -61,7 +65,11 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.env.AccessRestriction;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.AccessRule;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.AccessRuleSet;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.ManifestAnalyzer;
+import org.aspectj.org.eclipse.jdt.internal.core.nd.IReader;
+import org.aspectj.org.eclipse.jdt.internal.core.nd.java.JavaIndex;
+import org.aspectj.org.eclipse.jdt.internal.core.nd.java.NdResourceFile;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Messages;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
 import org.w3c.dom.DOMException;
@@ -317,7 +325,7 @@ public class ClasspathEntry implements IClasspathEntry {
 //		}
 
 		this.combineAccessRules = combineAccessRules;
-		this.extraAttributes = extraAttributes;
+		this.extraAttributes = extraAttributes.length > 0 ? extraAttributes : NO_EXTRA_ATTRIBUTES;
 
 	    if (inclusionPatterns != INCLUDE_ALL && inclusionPatterns.length > 0) {
 			this.fullInclusionPatternChars = UNINIT_PATTERNS;
@@ -331,6 +339,7 @@ public class ClasspathEntry implements IClasspathEntry {
 		this.isExported = isExported;
 	}
 
+	@Override
 	public boolean combineAccessRules() {
 		return this.combineAccessRules;
 	}
@@ -348,8 +357,15 @@ public class ClasspathEntry implements IClasspathEntry {
 			int lenRefer = referringExtraAttributes.length;
 			if (lenRefer > 0) {
 				int lenEntry = combinedAttributes.length;
-				System.arraycopy(combinedAttributes, 0, combinedAttributes=new IClasspathAttribute[lenEntry+lenRefer], lenRefer, lenEntry);
-				System.arraycopy(referringExtraAttributes, 0, combinedAttributes, 0, lenRefer);
+				if (referringEntry.path.isPrefixOf(this.path)) {
+					// consider prefix location as less specific, put to back (e.g.: referring to a library via a project):
+					System.arraycopy(combinedAttributes, 0, combinedAttributes=new IClasspathAttribute[lenEntry+lenRefer], 0, lenEntry);
+					System.arraycopy(referringExtraAttributes, 0, combinedAttributes, lenEntry, lenRefer);
+				} else {
+					// otherwise consider the referring entry as more specific than the referee:
+					System.arraycopy(combinedAttributes, 0, combinedAttributes=new IClasspathAttribute[lenEntry+lenRefer], lenRefer, lenEntry);
+					System.arraycopy(referringExtraAttributes, 0, combinedAttributes, 0, lenRefer);
+				}
 			}
 			return new ClasspathEntry(
 								getContentKind(),
@@ -429,7 +445,7 @@ public class ClasspathEntry implements IClasspathEntry {
 				else
 					continue;
 				boolean ignoreIfBetter = "true".equals(elementAccessRule.getAttribute(TAG_IGNORE_IF_BETTER)); //$NON-NLS-1$
-				result[index++] = new ClasspathAccessRule(new Path(pattern), ignoreIfBetter ? kind | IAccessRule.IGNORE_IF_BETTER : kind);
+				result[index++] = JavaCore.newAccessRule(new Path(pattern), ignoreIfBetter ? kind | IAccessRule.IGNORE_IF_BETTER : kind);
 			}
 		}
 		if (index != length)
@@ -965,23 +981,60 @@ public class ClasspathEntry implements IClasspathEntry {
 		}
 	}
 
+	private static char[] getManifestContents(IPath jarPath) throws CoreException, IOException {
+		// Try to read a cached manifest from the index
+		if (JavaIndex.isEnabled()) {
+			JavaIndex index = JavaIndex.getIndex();
+			String location = JavaModelManager.getLocalFile(jarPath).getAbsolutePath();
+			try (IReader reader = index.getNd().acquireReadLock()) {
+				NdResourceFile resourceFile = index.getResourceFile(location.toCharArray());
+				if (index.isUpToDate(resourceFile)) {
+					char[] manifestContent = resourceFile.getManifestContent().getChars();
+					if (manifestContent.length == 0) {
+						return null;
+					}
+					return manifestContent;
+				}
+			}
+		}
+
+		ZipFile zip = null;
+		InputStream inputStream = null;
+		JavaModelManager manager = JavaModelManager.getJavaModelManager();
+		try {
+			zip = manager.getZipFile(jarPath);
+			ZipEntry manifest = zip.getEntry(TypeConstants.META_INF_MANIFEST_MF);
+			if (manifest == null) {
+				return null;
+			}
+			inputStream = zip.getInputStream(manifest);
+			char[] chars = getInputStreamAsCharArray(inputStream, -1, UTF_8);
+			return chars;
+		} finally {
+			if (inputStream != null) {
+				try {
+					inputStream.close();
+				} catch (IOException e) {
+					// best effort
+				}
+			}
+			manager.closeZipFile(zip);
+		}
+	}
+
 	private static List getCalledFileNames(IPath jarPath) {
 		Object target = JavaModel.getTarget(jarPath, true/*check existence, otherwise the manifest cannot be read*/);
 		if (!(target instanceof IFile || target instanceof File))
 			return null;
-		JavaModelManager manager = JavaModelManager.getJavaModelManager();
-		ZipFile zip = null;
-		InputStream inputStream = null;
+
 		List calledFileNames = null;
 		try {
-			zip = manager.getZipFile(jarPath);
-			ZipEntry manifest = zip.getEntry("META-INF/MANIFEST.MF"); //$NON-NLS-1$
-			if (manifest == null) 
+			char[] manifestContents = getManifestContents(jarPath);
+			if (manifestContents == null) 
 				return null;
 			// non-null implies regular file
 			ManifestAnalyzer analyzer = new ManifestAnalyzer();
-			inputStream = zip.getInputStream(manifest);
-			boolean success = analyzer.analyzeManifestContents(inputStream);
+			boolean success = analyzer.analyzeManifestContents(manifestContents);
 			calledFileNames = analyzer.getCalledFileNames();
 			if (!success || analyzer.getClasspathSectionsCount() == 1 && calledFileNames == null) {
 				if (JavaModelManager.CP_RESOLVE_VERBOSE_FAILURE) {
@@ -1006,19 +1059,10 @@ public class ClasspathEntry implements IClasspathEntry {
 				Util.verbose("Could not read Class-Path header in manifest of jar file: " + jarPath.toOSString()); //$NON-NLS-1$
 				e.printStackTrace();
 			}
-		} finally {
-			if (inputStream != null) {
-				try {
-					inputStream.close();
-				} catch (IOException e) {
-					// best effort
-				}
-			}
-			manager.closeZipFile(zip);
 		}
 		return calledFileNames;
 	}
-	
+
 	/*
 	 * Resolves the ".." in the given path. Returns the given path if it contains no ".." segment.
 	 */
@@ -1089,6 +1133,7 @@ public class ClasspathEntry implements IClasspathEntry {
 	 * Returns true if the given object is a classpath entry
 	 * with equivalent attributes.
 	 */
+	@Override
 	public boolean equals(Object object) {
 		if (this == object)
 			return true;
@@ -1186,6 +1231,7 @@ public class ClasspathEntry implements IClasspathEntry {
 	/**
 	 * @see IClasspathEntry#getAccessRules()
 	 */
+	@Override
 	public IAccessRule[] getAccessRules() {
 		if (this.accessRuleSet == null) return NO_ACCESS_RULES;
 		AccessRule[] rules = this.accessRuleSet.getAccessRules();
@@ -1203,6 +1249,7 @@ public class ClasspathEntry implements IClasspathEntry {
 	/**
 	 * @see IClasspathEntry
 	 */
+	@Override
 	public int getContentKind() {
 		return this.contentKind;
 	}
@@ -1210,6 +1257,7 @@ public class ClasspathEntry implements IClasspathEntry {
 	/**
 	 * @see IClasspathEntry
 	 */
+	@Override
 	public int getEntryKind() {
 		return this.entryKind;
 	}
@@ -1217,10 +1265,12 @@ public class ClasspathEntry implements IClasspathEntry {
 	/**
 	 * @see IClasspathEntry#getExclusionPatterns()
 	 */
+	@Override
 	public IPath[] getExclusionPatterns() {
 		return this.exclusionPatterns;
 	}
 
+	@Override
 	public IClasspathAttribute[] getExtraAttributes() {
 		return this.extraAttributes;
 	}
@@ -1228,6 +1278,7 @@ public class ClasspathEntry implements IClasspathEntry {
 	/**
 	 * @see IClasspathEntry#getExclusionPatterns()
 	 */
+	@Override
 	public IPath[] getInclusionPatterns() {
 		return this.inclusionPatterns;
 	}
@@ -1235,6 +1286,7 @@ public class ClasspathEntry implements IClasspathEntry {
 	/**
 	 * @see IClasspathEntry#getOutputLocation()
 	 */
+	@Override
 	public IPath getOutputLocation() {
 		return this.specificOutputLocation;
 	}
@@ -1242,6 +1294,7 @@ public class ClasspathEntry implements IClasspathEntry {
 	/**
 	 * @see IClasspathEntry
 	 */
+	@Override
 	public IPath getPath() {
 		return this.path;
 	}
@@ -1249,6 +1302,7 @@ public class ClasspathEntry implements IClasspathEntry {
 	/**
 	 * @see IClasspathEntry
 	 */
+	@Override
 	public IPath getSourceAttachmentPath() {
 		return this.sourceAttachmentPath;
 	}
@@ -1256,6 +1310,7 @@ public class ClasspathEntry implements IClasspathEntry {
 	/**
 	 * @see IClasspathEntry
 	 */
+	@Override
 	public IPath getSourceAttachmentRootPath() {
 		return this.sourceAttachmentRootPath;
 	}
@@ -1322,14 +1377,7 @@ public class ClasspathEntry implements IClasspathEntry {
 	 * @return the attached external annotation path, or null.
 	 */
 	static String getRawExternalAnnotationPath(IClasspathEntry entry) {
-		IClasspathAttribute[] extraAttributes = entry.getExtraAttributes();
-		for (int i = 0, length = extraAttributes.length; i < length; i++) {
-			IClasspathAttribute attribute = extraAttributes[i];
-			if (IClasspathAttribute.EXTERNAL_ANNOTATION_PATH.equals(attribute.getName())) {
-				return attribute.getValue();
-			}
-		}
-		return null;
+		return getExtraAttribute(entry, IClasspathAttribute.EXTERNAL_ANNOTATION_PATH);
 	}
 
 	private static void invalidExternalAnnotationPath(IProject project) {
@@ -1367,6 +1415,18 @@ public class ClasspathEntry implements IClasspathEntry {
 						new String[] { annotationPath.toString(), project.getName(), this.path.toString()}));
 	}
 
+	public static String getExtraAttribute(IClasspathEntry entry, String attributeName) {
+		IClasspathAttribute[] extraAttributes = entry.getExtraAttributes();
+		for (int i = 0, length = extraAttributes.length; i < length; i++) {
+			IClasspathAttribute attribute = extraAttributes[i];
+			if (attributeName.equals(attribute.getName())) {
+				return attribute.getValue();
+			}
+		}
+		return null;
+	}
+
+	@Override
 	public IClasspathEntry getReferencingEntry() {
 		return this.referencingEntry;
 	}
@@ -1374,6 +1434,7 @@ public class ClasspathEntry implements IClasspathEntry {
 	/**
 	 * Returns the hash code for this classpath entry
 	 */
+	@Override
 	public int hashCode() {
 		return this.path.hashCode();
 	}
@@ -1381,6 +1442,7 @@ public class ClasspathEntry implements IClasspathEntry {
 	/**
 	 * @see IClasspathEntry#isExported()
 	 */
+	@Override
 	public boolean isExported() {
 		return this.isExported;
 	}
@@ -1389,6 +1451,14 @@ public class ClasspathEntry implements IClasspathEntry {
 		for (int i = 0, length = this.extraAttributes.length; i < length; i++) {
 			IClasspathAttribute attribute = this.extraAttributes[i];
 			if (IClasspathAttribute.OPTIONAL.equals(attribute.getName()) && "true".equals(attribute.getValue())) //$NON-NLS-1$
+				return true;
+		}
+		return false;
+	}
+	public boolean isModular() {
+		for (int i = 0, length = this.extraAttributes.length; i < length; i++) {
+			IClasspathAttribute attribute = this.extraAttributes[i];
+			if (IClasspathAttribute.MODULE.equals(attribute.getName()) && "true".equals(attribute.getValue())) //$NON-NLS-1$
 				return true;
 		}
 		return false;
@@ -1467,6 +1537,7 @@ public class ClasspathEntry implements IClasspathEntry {
 	/**
 	 * Returns a printable representation of this classpath entry.
 	 */
+	@Override
 	public String toString() {
 		StringBuffer buffer = new StringBuffer();
 		Object target = JavaModel.getTarget(getPath(), true);
@@ -1654,6 +1725,7 @@ public class ClasspathEntry implements IClasspathEntry {
 	 * @see IClasspathEntry
 	 * @deprecated
 	 */
+	@Override
 	public IClasspathEntry getResolvedEntry() {
 
 		return JavaCore.getResolvedClasspathEntry(this);
@@ -1785,9 +1857,9 @@ public class ClasspathEntry implements IClasspathEntry {
 		int sourceEntryCount = 0;
 		boolean disableExclusionPatterns = JavaCore.DISABLED.equals(javaProject.getOption(JavaCore.CORE_ENABLE_CLASSPATH_EXCLUSION_PATTERNS, true));
 		boolean disableCustomOutputLocations = JavaCore.DISABLED.equals(javaProject.getOption(JavaCore.CORE_ENABLE_CLASSPATH_MULTIPLE_OUTPUT_LOCATIONS, true));
-
-		for (int i = 0 ; i < length; i++) {
-			IClasspathEntry resolvedEntry = classpath[i];
+		ArrayList<IClasspathEntry> testSourcesFolders=new ArrayList<>();
+		HashSet<IPath> mainOutputLocations=new HashSet<>();
+		for (IClasspathEntry resolvedEntry : classpath) {
 			if (disableExclusionPatterns &&
 			        ((resolvedEntry.getInclusionPatterns() != null && resolvedEntry.getInclusionPatterns().length > 0)
 			        || (resolvedEntry.getExclusionPatterns() != null && resolvedEntry.getExclusionPatterns().length > 0))) {
@@ -1796,6 +1868,10 @@ public class ClasspathEntry implements IClasspathEntry {
 			switch(resolvedEntry.getEntryKind()){
 				case IClasspathEntry.CPE_SOURCE :
 					sourceEntryCount++;
+					boolean isTest = resolvedEntry.isTest();
+					if(isTest) {
+						testSourcesFolders.add(resolvedEntry);
+					}
 
 					IPath customOutput;
 					if ((customOutput = resolvedEntry.getOutputLocation()) != null) {
@@ -1811,7 +1887,9 @@ public class ClasspathEntry implements IClasspathEntry {
 						} else {
 							return new JavaModelStatus(IJavaModelStatusConstants.RELATIVE_PATH, customOutput);
 						}
-
+						if(!isTest) {
+							mainOutputLocations.add(customOutput);
+						}
 						// ensure custom output doesn't conflict with other outputs
 						// check exact match
 						if (Util.indexOfMatchingPath(customOutput, outputLocations, outputCount) != -1) {
@@ -1842,6 +1920,23 @@ public class ClasspathEntry implements IClasspathEntry {
 		    allowNestingInOutputLocations[0] = true;
 		} else if (potentialNestedOutput != null) {
 			return new JavaModelStatus(IJavaModelStatusConstants.INVALID_CLASSPATH, Messages.bind(Messages.classpath_cannotNestOutputInOutput, new String[] {potentialNestedOutput.makeRelative().toString(), outputLocations[0].makeRelative().toString()}));
+		} else {
+			if (sourceEntryCount > testSourcesFolders.size()) {
+				// if there are source folders with main sources, treat project output location as main output location
+				mainOutputLocations.add(outputLocations[0]);
+			}
+		}
+		for (IClasspathEntry resolvedEntry : testSourcesFolders) {
+			IPath customOutput;
+			if ((customOutput = resolvedEntry.getOutputLocation()) != null) {
+				if(mainOutputLocations.contains(customOutput)) {
+					return new JavaModelStatus(IJavaModelStatusConstants.TEST_OUTPUT_FOLDER_MUST_BE_SEPARATE_FROM_MAIN_OUTPUT_FOLDERS, javaProject, resolvedEntry.getPath());				
+				}
+			} else {
+				if(sourceEntryCount > testSourcesFolders.size()) {
+					return new JavaModelStatus(IJavaModelStatusConstants.TEST_SOURCE_REQUIRES_SEPARATE_OUTPUT_LOCATION, javaProject, resolvedEntry.getPath());
+				}
+			}
 		}
 
 		for (int i = 0 ; i < length; i++) {
@@ -1987,6 +2082,7 @@ public class ClasspathEntry implements IClasspathEntry {
 									cachedStatus = new JavaModelStatus(IStatus.OK, IJavaModelStatusConstants.OUTPUT_LOCATION_OVERLAPPING_ANOTHER_SOURCE, 
 										Messages.bind(Messages.classpath_cannotUseDistinctSourceFolderAsOutput, new String[] {
 										entryPathMsg, otherPathMsg, projectName })){
+										@Override
 										public boolean isOK() {
 											return true;
 										}

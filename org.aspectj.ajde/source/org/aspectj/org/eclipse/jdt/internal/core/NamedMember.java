@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2004, 2012 IBM Corporation and others.
+ * Copyright (c) 2004, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -16,6 +16,8 @@ import org.aspectj.org.eclipse.jdt.core.IField;
 import org.aspectj.org.eclipse.jdt.core.IJavaElement;
 import org.aspectj.org.eclipse.jdt.core.IMember;
 import org.aspectj.org.eclipse.jdt.core.IMethod;
+import org.aspectj.org.eclipse.jdt.core.IModularClassFile;
+import org.aspectj.org.eclipse.jdt.core.IModuleDescription;
 import org.aspectj.org.eclipse.jdt.core.IPackageFragment;
 import org.aspectj.org.eclipse.jdt.core.IType;
 import org.aspectj.org.eclipse.jdt.core.ITypeParameter;
@@ -64,6 +66,7 @@ public abstract class NamedMember extends Member {
 		buffer.append('>');
 	}
 
+	@Override
 	public String getElementName() {
 		return this.name;
 	}
@@ -91,8 +94,10 @@ public abstract class NamedMember extends Member {
 
 		// selector
 		key.append('.');
-		String selector = method.getElementName();
-		key.append(selector);
+		if (!method.isConstructor()) { // empty selector for ctors, cf. BindingKeyResolver.consumeMethod()
+			String selector = method.getElementName();
+			key.append(selector);
+		}
 
 		// type parameters
 		if (forceOpen) {
@@ -157,6 +162,13 @@ public abstract class NamedMember extends Member {
 		key.append(';');
 		return key.toString();
 	}
+	protected String getKey(IModuleDescription module, boolean forceOpen) throws JavaModelException {
+		StringBuffer key = new StringBuffer();
+		key.append('"');
+		String modName = module.getElementName();
+		key.append(modName);
+		return key.toString();
+	}
 
 	protected String getFullyQualifiedParameterizedName(String fullyQualifiedName, String uniqueKey) throws JavaModelException {
 		String[] typeArguments = new BindingKey(uniqueKey).getTypeArguments();
@@ -198,6 +210,8 @@ public abstract class NamedMember extends Member {
 				}
 				return this.name;
 			case IJavaElement.CLASS_FILE:
+				if (this.parent instanceof IModularClassFile)
+					return null;
 				String classFileName = this.parent.getElementName();
 				String typeName;
 				if (classFileName.indexOf('$') == -1) {
@@ -262,6 +276,7 @@ public abstract class NamedMember extends Member {
 
 		class TypeResolveRequestor implements ISelectionRequestor {
 			String[][] answers = null;
+			@Override
 			public void acceptType(char[] packageName, char[] tName, int modifiers, boolean isDeclaration, char[] uniqueKey, int start, int end) {
 				String[] answer = new String[]  {new String(packageName), new String(tName) };
 				if (this.answers == null) {
@@ -273,22 +288,32 @@ public abstract class NamedMember extends Member {
 					this.answers[length] = answer;
 				}
 			}
+			@Override
 			public void acceptError(CategorizedProblem error) {
 				// ignore
 			}
+			@Override
 			public void acceptField(char[] declaringTypePackageName, char[] declaringTypeName, char[] fieldName, boolean isDeclaration, char[] uniqueKey, int start, int end) {
 				// ignore
 			}
+			@Override
 			public void acceptMethod(char[] declaringTypePackageName, char[] declaringTypeName, String enclosingDeclaringTypeSignature, char[] selector, char[][] parameterPackageNames, char[][] parameterTypeNames, String[] parameterSignatures, char[][] typeParameterNames, char[][][] typeParameterBoundNames, boolean isConstructor, boolean isDeclaration, char[] uniqueKey, int start, int end) {
 				// ignore
 			}
+			@Override
 			public void acceptPackage(char[] packageName){
 				// ignore
 			}
+			@Override
 			public void acceptTypeParameter(char[] declaringTypePackageName, char[] declaringTypeName, char[] typeParameterName, boolean isDeclaration, int start, int end) {
 				// ignore
 			}
+			@Override
 			public void acceptMethodTypeParameter(char[] declaringTypePackageName, char[] declaringTypeName, char[] selector, int selectorStart, int selcetorEnd, char[] typeParameterName, boolean isDeclaration, int start, int end) {
+				// ignore
+			}
+			@Override
+			public void acceptModule(char[] moduleName, char[] uniqueKey, int start, int end) {
 				// ignore
 			}
 

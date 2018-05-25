@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,6 +11,7 @@
 package org.aspectj.org.eclipse.jdt.internal.core;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.ZipEntry;
@@ -18,9 +19,12 @@ import java.util.zip.ZipFile;
 
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.aspectj.org.eclipse.jdt.core.IJarEntryResource;
 import org.aspectj.org.eclipse.jdt.core.IJavaModelStatusConstants;
+import org.aspectj.org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.aspectj.org.eclipse.jdt.core.JavaModelException;
+import org.aspectj.org.eclipse.jdt.internal.compiler.util.JRTUtil;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
 
 /**
@@ -30,47 +34,65 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
  */
 public class JarEntryFile  extends JarEntryResource {
 	private static final IJarEntryResource[] NO_CHILDREN = new IJarEntryResource[0];
-
 	public JarEntryFile(String simpleName) {
 		super(simpleName);
 	}
 
+	@Override
 	public JarEntryResource clone(Object newParent) {
 		JarEntryFile file = new JarEntryFile(this.simpleName);
 		file.setParent(newParent);
 		return file;
 	}
 
+	@Override
 	public InputStream getContents() throws CoreException {
-		ZipFile zipFile = null;
-		try {
-			zipFile = getZipFile();
-			if (JavaModelManager.ZIP_ACCESS_VERBOSE) {
-				System.out.println("(" + Thread.currentThread() + ") [JarEntryFile.getContents()] Creating ZipFile on " +zipFile.getName()); //$NON-NLS-1$	//$NON-NLS-2$
+		IPackageFragmentRoot root = getPackageFragmentRoot();
+		if (Util.isJrt(root.getPath().toOSString())) {
+			try {
+				IPath rootPath = root.getPath();
+				Object target = JavaModel.getTarget(rootPath, false);
+				if (target != null && target instanceof File) {
+					return JRTUtil.getContentFromJrt((File) target, getEntryName(), root.getElementName());
+				}
+			} catch (IOException e) {
+				throw new JavaModelException(e, IJavaModelStatusConstants.IO_EXCEPTION);
 			}
-			String entryName = getEntryName();
-			ZipEntry zipEntry = zipFile.getEntry(entryName);
-			if (zipEntry == null){
-				throw new JavaModelException(new JavaModelStatus(IJavaModelStatusConstants.INVALID_PATH, entryName));
+			return null;
+		} else {
+			ZipFile zipFile = null;
+			try {
+				zipFile = getZipFile();
+				if (JavaModelManager.ZIP_ACCESS_VERBOSE) {
+					System.out.println("(" + Thread.currentThread() + ") [JarEntryFile.getContents()] Creating ZipFile on " +zipFile.getName()); //$NON-NLS-1$	//$NON-NLS-2$
+				}
+				String entryName = getEntryName();
+				ZipEntry zipEntry = zipFile.getEntry(entryName);
+				if (zipEntry == null){
+					throw new JavaModelException(new JavaModelStatus(IJavaModelStatusConstants.INVALID_PATH, entryName));
+				}
+				byte[] contents = Util.getZipEntryByteContent(zipEntry, zipFile);
+				return new ByteArrayInputStream(contents);
+			} catch (IOException e){
+				throw new JavaModelException(e, IJavaModelStatusConstants.IO_EXCEPTION);
+			} finally {
+				// avoid leaking ZipFiles
+				JavaModelManager.getJavaModelManager().closeZipFile(zipFile);
 			}
-			byte[] contents = Util.getZipEntryByteContent(zipEntry, zipFile);
-			return new ByteArrayInputStream(contents);
-		} catch (IOException e){
-			throw new JavaModelException(e, IJavaModelStatusConstants.IO_EXCEPTION);
-		} finally {
-			// avoid leaking ZipFiles
-			JavaModelManager.getJavaModelManager().closeZipFile(zipFile);
 		}
 	}
 
+	@Override
 	public IJarEntryResource[] getChildren() {
 		return NO_CHILDREN;
 	}
 
+	@Override
 	public boolean isFile() {
 		return true;
 	}
 
+	@Override
 	public String toString() {
 		return "JarEntryFile["+getEntryName()+"]"; //$NON-NLS-2$ //$NON-NLS-1$
 	}

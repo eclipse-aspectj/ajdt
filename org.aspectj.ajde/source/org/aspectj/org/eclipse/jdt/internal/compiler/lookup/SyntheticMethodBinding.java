@@ -1,5 +1,6 @@
+// ASPECTJ
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -515,8 +516,12 @@ public class SyntheticMethodBinding extends MethodBinding {
 		this.targetMethod = accessedMethod;
 		if (isSuperAccess && receiverType.isInterface() && !accessedMethod.isStatic())
 			this.modifiers = ClassFileConstants.AccPrivate | ClassFileConstants.AccSynthetic;
+		else {
+			if (receiverType.isInterface()) // default is not allowed. TODO: do we need a target level check here?
+				this.modifiers = ClassFileConstants.AccPublic | ClassFileConstants.AccStatic | ClassFileConstants.AccSynthetic;
 		else
 			this.modifiers = ClassFileConstants.AccDefault | ClassFileConstants.AccStatic | ClassFileConstants.AccSynthetic;
+		}
 		this.tagBits |= (TagBits.AnnotationResolved | TagBits.DeprecatedAnnotationResolved);
 		SourceTypeBinding declaringSourceType = (SourceTypeBinding) receiverType;
 		SyntheticMethodBinding[] knownAccessMethods = declaringSourceType.syntheticMethods();
@@ -582,9 +587,12 @@ public class SyntheticMethodBinding extends MethodBinding {
 		return this.purpose == SyntheticMethodBinding.ConstructorAccess;
 	}
 	
+	@Override
 	public LambdaExpression sourceLambda() {
 		return this.lambda;
 	}
+
+
 	public void markNonNull(LookupEnvironment environment) {
 		markNonNull(this, this.purpose, environment);
 	}
@@ -610,7 +618,7 @@ public class SyntheticMethodBinding extends MethodBinding {
 				}
 				return;
 		}
-	}	
+	}
 	
 	// AspectJ Extension
 	public SyntheticMethodBinding(MethodBinding myBinding) {

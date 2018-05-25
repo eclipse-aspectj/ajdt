@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -18,6 +18,7 @@ package org.aspectj.org.eclipse.jdt.internal.codeassist.impl;
 import java.util.HashSet;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.InvalidInputException;
+import org.aspectj.org.eclipse.jdt.internal.compiler.CompilationResult;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractVariableDeclaration;
@@ -35,7 +36,10 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.LambdaExpression;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.LocalDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.MessageSend;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ModuleDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ModuleReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.NameReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.RequiresStatement;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Statement;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.SuperReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
@@ -46,6 +50,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ExtraCompilerModifie
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.Parser;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.RecoveredBlock;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.RecoveredElement;
+import org.aspectj.org.eclipse.jdt.internal.compiler.parser.RecoveredExportsStatement;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.RecoveredField;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.RecoveredInitializer;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.RecoveredLocalVariable;
@@ -95,7 +100,8 @@ public abstract class AssistParser extends Parser {
 	protected static final int K_ATTRIBUTE_VALUE_DELIMITER = ASSIST_PARSER + 5; // whether we are inside a annotation attribute valuer
 	protected static final int K_ENUM_CONSTANT_DELIMITER = ASSIST_PARSER + 6; // whether we are inside a field initializer
 	protected static final int K_LAMBDA_EXPRESSION_DELIMITER = ASSIST_PARSER + 7; // whether we are inside a lambda expression
-	
+	protected static final int K_MODULE_INFO_DELIMITER = ASSIST_PARSER + 8; // whether we are inside a module info declaration
+
 	// selector constants
 	protected static final int THIS_CONSTRUCTOR = -1;
 	protected static final int SUPER_CONSTRUCTOR = -2;
@@ -103,7 +109,7 @@ public abstract class AssistParser extends Parser {
 	// enum constant constants
 	protected static final int NO_BODY = 0;
 	protected static final int WITH_BODY = 1;
-	
+
 	protected static final int EXPRESSION_BODY = 0;
 	protected static final int BLOCK_BODY = 1;
 
@@ -123,6 +129,7 @@ public AssistParser(ProblemReporter problemReporter) {
 
 public abstract char[] assistIdentifier();
 
+@Override
 public void copyState(Parser from) {
 	
 	super.copyState(from);
@@ -172,6 +179,7 @@ public int bodyEnd(Initializer initializer){
  * Build initial recovery state.
  * Recovery state is inferred from the current state of the parser (reduced node stack).
  */
+@Override
 public RecoveredElement buildInitialRecoveryState(){
 	/* recovery in unit structure */
 	if (this.referenceContext instanceof CompilationUnitDeclaration){
@@ -179,6 +187,7 @@ public RecoveredElement buildInitialRecoveryState(){
 		flushAssistState();
 		flushElementStack();
 		this.snapShot = null;
+		initModuleInfo(element);
 		return element;
 	}
 
@@ -365,30 +374,53 @@ public RecoveredElement buildInitialRecoveryState(){
 
 	return element;
 }
+
+private void initModuleInfo(RecoveredElement element) {
+	if (element  instanceof RecoveredUnit) {
+		RecoveredUnit unit = (RecoveredUnit) element;
+		if (unit.unitDeclaration.isModuleInfo()) {
+			ASTNode node = null;
+			int i = 0;
+			for (; i <= this.astPtr; i++) {
+				if ((node = this.astStack[i]) instanceof ModuleDeclaration) {
+					unit.add((ModuleDeclaration) node, this.bracketDepth); 
+					break;
+				}
+			}
+		}
+	}
+}
+@Override
 protected void consumeAnnotationTypeDeclarationHeader() {
 	super.consumeAnnotationTypeDeclarationHeader();
 	pushOnElementStack(K_TYPE_DELIMITER);
 }
+@Override
 protected void consumeClassBodyDeclaration() {
 	popElement(K_METHOD_DELIMITER);
 	super.consumeClassBodyDeclaration();
 }
+@Override
 protected void consumeClassBodyopt() {
 	super.consumeClassBodyopt();
 	popElement(K_SELECTOR);
 }
+@Override
 protected void consumeClassHeader() {
 	super.consumeClassHeader();
 	pushOnElementStack(K_TYPE_DELIMITER);
 }
+@Override
 protected void consumeConstructorBody() {
 	super.consumeConstructorBody();
 	popElement(K_METHOD_DELIMITER);
 }
+@Override
 protected void consumeConstructorHeader() {
 	super.consumeConstructorHeader();
 	pushOnElementStack(K_METHOD_DELIMITER);
 }
+@Override
 protected void consumeEnhancedForStatementHeaderInit(boolean hasModifiers) {
 	super.consumeEnhancedForStatementHeaderInit(hasModifiers);
 
@@ -398,15 +430,18 @@ protected void consumeEnhancedForStatementHeaderInit(boolean hasModifiers) {
 		this.currentElement = this.currentElement.add(localDecl, 0);
 	}
 }
+@Override
 protected void consumeEnterAnonymousClassBody(boolean qualified) {
 	super.consumeEnterAnonymousClassBody(qualified);
 	popElement(K_SELECTOR);
 	pushOnElementStack(K_TYPE_DELIMITER);
 }
+@Override
 protected void consumeEnterMemberValue() {
 	super.consumeEnterMemberValue();
 	pushOnElementStack(K_ATTRIBUTE_VALUE_DELIMITER, this.identifierPtr);
 }
+@Override
 protected void consumeEnumConstantHeader() {
 	if(this.currentToken == TokenNameLBRACE) {
 		popElement(K_ENUM_CONSTANT_DELIMITER);
@@ -415,30 +450,38 @@ protected void consumeEnumConstantHeader() {
 		pushOnElementStack(K_TYPE_DELIMITER);
 	}
 	super.consumeEnumConstantHeader();
+	if (triggerRecoveryUponLambdaClosure((Statement) this.astStack[this.astPtr], true) && this.currentElement != null)
+		this.restartRecovery = true;
 }
+@Override
 protected void consumeEnumConstantHeaderName() {
 	super.consumeEnumConstantHeaderName();
 	pushOnElementStack(K_ENUM_CONSTANT_DELIMITER);
 }
+@Override
 protected void consumeEnumConstantWithClassBody() {
 	popElement(K_TYPE_DELIMITER);
 	popElement(K_FIELD_INITIALIZER_DELIMITER);
 	popElement(K_ENUM_CONSTANT_DELIMITER);
 	super.consumeEnumConstantWithClassBody();
 }
+@Override
 protected void consumeEnumConstantNoClassBody() {
 	popElement(K_ENUM_CONSTANT_DELIMITER);
 	super.consumeEnumConstantNoClassBody();
 }
+@Override
 protected void consumeEnumHeader() {
 	super.consumeEnumHeader();
 	pushOnElementStack(K_TYPE_DELIMITER);
 }
+@Override
 protected void consumeExitMemberValue() {
 	super.consumeExitMemberValue();
 	popElement(K_ATTRIBUTE_VALUE_DELIMITER);
 }
 
+@Override
 protected void consumeExplicitConstructorInvocation(int flag, int recFlag) {
 	super.consumeExplicitConstructorInvocation(flag, recFlag);
 	popElement(K_SELECTOR);
@@ -571,20 +614,24 @@ protected ASTNode enclosingNode() {
 	return null;
 }
 
+@Override
 protected boolean isAssistParser() {
 	return true;
 }
+@Override
 protected void consumeBlockStatement() {
 	super.consumeBlockStatement();
 	if (triggerRecoveryUponLambdaClosure((Statement) this.astStack[this.astPtr], true) && this.currentElement != null)
 		this.restartRecovery = true;
 }
+@Override
 protected void consumeBlockStatements() {
 	super.consumeBlockStatements();
 	if (triggerRecoveryUponLambdaClosure((Statement) this.astStack[this.astPtr], true) && this.currentElement != null) {
 		this.restartRecovery = true;
 	}
 }
+@Override
 protected void consumeFieldDeclaration() {
 	super.consumeFieldDeclaration();
 	if (triggerRecoveryUponLambdaClosure((Statement) this.astStack[this.astPtr], true)) {
@@ -594,6 +641,7 @@ protected void consumeFieldDeclaration() {
 			this.restartRecovery = true;
 	}
 }
+@Override
 protected void consumeForceNoDiet() {
 	super.consumeForceNoDiet();
 	// if we are not in a method (i.e. we are not in a local variable initializer)
@@ -612,6 +660,7 @@ protected void consumeForceNoDiet() {
 
 	}
 }
+@Override
 protected void consumeInterfaceHeader() {
 	super.consumeInterfaceHeader();
 	pushOnElementStack(K_TYPE_DELIMITER);
@@ -622,20 +671,24 @@ protected void consumeNestedLambda() {
 	LambdaExpression lexp = (LambdaExpression) this.astStack[this.astPtr];
 	pushOnElementStack(K_LAMBDA_EXPRESSION_DELIMITER, EXPRESSION_BODY, lexp);
 }
+@Override
 protected void consumeMethodBody() {
 	super.consumeMethodBody();
 	popElement(K_METHOD_DELIMITER);
 }
+@Override
 protected void consumeMethodDeclaration(boolean isNotAbstract, boolean isDefaultMethod) {
 	if (!isNotAbstract) {
 		popElement(K_METHOD_DELIMITER);
 	}
 	super.consumeMethodDeclaration(isNotAbstract, isDefaultMethod);
 }
+@Override
 protected void consumeMethodHeader() {
 	super.consumeMethodHeader();
 	pushOnElementStack(K_METHOD_DELIMITER);
 }
+@Override
 protected void consumeMethodInvocationName() {
 	super.consumeMethodInvocationName();
 	popElement(K_SELECTOR);
@@ -644,6 +697,7 @@ protected void consumeMethodInvocationName() {
 		this.lastCheckPoint = messageSend.sourceEnd + 1;
 	}
 }
+@Override
 protected void consumeMethodInvocationNameWithTypeArguments() {
 	super.consumeMethodInvocationNameWithTypeArguments();
 	popElement(K_SELECTOR);
@@ -652,6 +706,7 @@ protected void consumeMethodInvocationNameWithTypeArguments() {
 		this.lastCheckPoint = messageSend.sourceEnd + 1;
 	}
 }
+@Override
 protected void consumeMethodInvocationPrimary() {
 	super.consumeMethodInvocationPrimary();
 	popElement(K_SELECTOR);
@@ -660,6 +715,7 @@ protected void consumeMethodInvocationPrimary() {
 		this.lastCheckPoint = messageSend.sourceEnd + 1;
 	}
 }
+@Override
 protected void consumeMethodInvocationPrimaryWithTypeArguments() {
 	super.consumeMethodInvocationPrimaryWithTypeArguments();
 	popElement(K_SELECTOR);
@@ -668,6 +724,7 @@ protected void consumeMethodInvocationPrimaryWithTypeArguments() {
 		this.lastCheckPoint = messageSend.sourceEnd + 1;
 	}
 }
+@Override
 protected void consumeMethodInvocationSuper() {
 	super.consumeMethodInvocationSuper();
 	popElement(K_SELECTOR);
@@ -676,6 +733,7 @@ protected void consumeMethodInvocationSuper() {
 		this.lastCheckPoint = messageSend.sourceEnd + 1;
 	}
 }
+@Override
 protected void consumeMethodInvocationSuperWithTypeArguments() {
 	super.consumeMethodInvocationSuperWithTypeArguments();
 	popElement(K_SELECTOR);
@@ -684,10 +742,65 @@ protected void consumeMethodInvocationSuperWithTypeArguments() {
 		this.lastCheckPoint = messageSend.sourceEnd + 1;
 	}
 }
+@Override
+protected void consumeModuleHeader() {
+	pushOnElementStack(K_MODULE_INFO_DELIMITER);
+	// ModuleHeader ::= 'module' Name
+	/* build an ImportRef build from the last name
+	stored in the identifier stack. */
+
+	int index;
+
+	/* no need to take action if not inside assist identifiers */
+	if ((index = indexOfAssistIdentifier()) < 0) {
+		super.consumeModuleHeader();
+		return;
+	}
+	/* retrieve identifiers subset and whole positions, the assist node positions
+	should include the entire replaced source. */
+	int length = this.identifierLengthStack[this.identifierLengthPtr];
+	char[][] subset = identifierSubSet(index+1); // include the assistIdentifier
+	this.identifierLengthPtr--;
+	this.identifierPtr -= length;
+	long[] positions = new long[length];
+	System.arraycopy(
+			this.identifierPositionStack,
+			this.identifierPtr + 1,
+			positions,
+			0,
+			length);
+	ModuleDeclaration typeDecl = createAssistModuleDeclaration(this.compilationUnit.compilationResult, subset, positions);
+
+	this.compilationUnit.moduleDeclaration = typeDecl;
+	this.assistNode = typeDecl;
+	this.lastCheckPoint = typeDecl.sourceEnd + 1;
+
+	//compute the declaration source too
+	typeDecl.declarationSourceStart = this.intStack[this.intPtr--];
+
+	typeDecl.bodyStart = typeDecl.sourceEnd + 1;
+	pushOnAstStack(typeDecl);
+
+	this.listLength = 0; // will be updated when reading super-interfaces
+	// recovery
+	if (this.currentElement != null){
+		this.lastCheckPoint = typeDecl.bodyStart;
+		this.currentElement = this.currentElement.add(typeDecl, 0);
+		this.lastIgnoredToken = -1;
+	}
+}
+
+@Override
+protected void consumeModuleDeclaration() {
+	super.consumeModuleDeclaration();
+	popElement(K_MODULE_INFO_DELIMITER);
+}
+@Override
 protected void consumeNestedMethod() {
 	super.consumeNestedMethod();
 	if(!isInsideMethod()) pushOnElementStack(K_METHOD_DELIMITER);
 }
+@Override
 protected void consumeOpenBlock() {
 	// OpenBlock ::= $empty
 	super.consumeOpenBlock();
@@ -730,6 +843,7 @@ protected void consumeOpenFakeBlock() {
 	}
 	this.blockStarts[this.realBlockPtr] = -this.scanner.startPosition;
 }
+@Override
 protected void consumePackageDeclarationName() {
 	// PackageDeclarationName ::= 'package' Name
 	/* build an ImportRef build from the last name
@@ -778,6 +892,7 @@ protected void consumePackageDeclarationName() {
 		this.restartRecovery = true; // used to avoid branching back into the regular automaton
 	}
 }
+@Override
 protected void consumePackageDeclarationNameWithModifiers() {
 	// PackageDeclarationName ::= Modifiers 'package' PushRealModifiers Name
 	/* build an ImportRef build from the last name
@@ -837,6 +952,7 @@ protected void consumePackageDeclarationNameWithModifiers() {
 		this.restartRecovery = true; // used to avoid branching back into the regular automaton
 	}
 }
+@Override
 protected void consumeRestoreDiet() {
 	super.consumeRestoreDiet();
 	// if we are not in a method (i.e. we were not in a local variable initializer)
@@ -846,6 +962,7 @@ protected void consumeRestoreDiet() {
 		popElement(K_FIELD_INITIALIZER_DELIMITER);
 	}
 }
+@Override
 protected void consumeSingleStaticImportDeclarationName() {
 	// SingleTypeImportDeclarationName ::= 'import' 'static' Name
 	/* push an ImportRef build from the last name
@@ -897,6 +1014,108 @@ protected void consumeSingleStaticImportDeclarationName() {
 		this.restartRecovery = true; // used to avoid branching back into the regular automaton
 	}
 }
+@Override
+protected void consumeSinglePkgName() {
+	int index;
+	/* no need to take action if not inside assist identifiers */
+	if ((index = indexOfAssistIdentifier()) < 0) {
+		super.consumeSinglePkgName();
+		return;
+	}
+	/* retrieve identifiers subset and whole positions, the assist node positions
+	should include the entire replaced source. */
+	int length = this.identifierLengthStack[this.identifierLengthPtr];
+	char[][] subset = identifierSubSet(index+1); // include the assistIdentifier
+	this.identifierLengthPtr--;
+	this.identifierPtr -= length;
+	long[] positions = new long[length];
+	System.arraycopy(
+			this.identifierPositionStack,
+			this.identifierPtr + 1,
+			positions,
+			0,
+			length);
+
+	/* build specific assist node on import statement */
+	ImportReference reference = createAssistPackageVisibilityReference(subset, positions);
+	this.assistNode = reference;
+	this.lastCheckPoint = reference.sourceEnd + 1;
+
+	pushOnAstStack(reference);
+
+	if (this.currentToken == TokenNameSEMICOLON) {
+		reference.declarationSourceEnd = this.scanner.currentPosition - 1;
+	} else {
+		reference.declarationSourceEnd = (int) positions[length-1];
+	}
+}
+@Override
+protected void consumeSingleTargetModuleName() {
+	int index;
+	/* no need to take action if not inside assist identifiers */
+	if ((index = indexOfAssistIdentifier()) < 0) {
+		super.consumeSingleTargetModuleName();
+		return;
+	}
+
+	/* build specific assist node on targetted exports statement */
+	ModuleReference reference = createAssistModuleReference(index);
+	this.assistNode = reference;
+	this.lastCheckPoint = reference.sourceEnd + 1;
+	pushOnAstStack(reference);
+
+	// recovery - TBD
+	if (this.currentElement instanceof RecoveredExportsStatement){
+		// TODO
+		this.lastCheckPoint = reference.sourceEnd+1;
+		this.currentElement = ((RecoveredExportsStatement) this.currentElement).add(reference, 0);
+		this.lastIgnoredToken = -1;
+		//this.restartRecovery = true; // used to avoid branching back into the regular automaton
+	}
+
+}
+@Override
+protected void consumeSingleRequiresModuleName() {
+
+	int index = indexOfAssistIdentifier();
+	/* no need to take action if not inside assist identifiers */
+	if (index < 0) {
+		super.consumeSingleRequiresModuleName();
+		return;
+	}
+
+	/* build specific assist node on requires statement */
+	ModuleReference reference = createAssistModuleReference(index);
+	this.assistNode = reference;
+	this.lastCheckPoint = reference.sourceEnd + 1;
+	RequiresStatement req = new RequiresStatement(reference);
+	if (this.currentToken == TokenNameSEMICOLON){
+		req.declarationSourceEnd = this.scanner.currentPosition - 1;
+	} else {
+		req.declarationSourceEnd = reference.sourceEnd;
+	}
+	req.sourceStart = req.declarationSourceStart;
+	req.declarationEnd = req.declarationSourceEnd;
+	req.modifiersSourceStart = this.intStack[this.intPtr--];
+	req.modifiers |= this.intStack[this.intPtr--];
+	req.declarationSourceStart = this.intStack[this.intPtr--];
+	if (req.modifiersSourceStart >= 0) {
+		req.declarationSourceStart = req.modifiersSourceStart;
+	}
+	req.sourceEnd = reference.sourceEnd;
+	pushOnAstStack(req);
+
+	// recovery TBD
+
+	if (this.currentElement != null){
+		this.lastCheckPoint = req.declarationSourceEnd + 1;
+		this.currentElement = this.currentElement.add(req, 0);
+		this.lastIgnoredToken = -1;
+	}
+
+}
+
+@Override
 protected void consumeSingleTypeImportDeclarationName() {
 	// SingleTypeImportDeclarationName ::= 'import' Name
 	/* push an ImportRef build from the last name
@@ -948,6 +1167,7 @@ protected void consumeSingleTypeImportDeclarationName() {
 		this.restartRecovery = true; // used to avoid branching back into the regular automaton
 	}
 }
+@Override
 protected void consumeStaticImportOnDemandDeclarationName() {
 	// TypeImportOnDemandDeclarationName ::= 'import' 'static' Name '.' '*'
 	/* push an ImportRef build from the last name
@@ -1002,14 +1222,31 @@ protected void consumeStaticImportOnDemandDeclarationName() {
 		this.restartRecovery = true; // used to avoid branching back into the regular automaton
 	}
 }
+@Override
 protected void consumeStaticInitializer() {
 	super.consumeStaticInitializer();
 	popElement(K_METHOD_DELIMITER);
 }
+@Override
 protected void consumeStaticOnly() {
 	super.consumeStaticOnly();
 	pushOnElementStack(K_METHOD_DELIMITER);
 }
+private void adjustBracket(int token) {
+	switch (token) {
+		case TokenNameLPAREN :
+		case TokenNameLBRACE:
+		case TokenNameLBRACKET:
+			this.bracketDepth++;
+			break;
+		case TokenNameRBRACE:
+		case TokenNameRBRACKET:
+		case TokenNameRPAREN:
+			this.bracketDepth--;
+			break;
+	}
+}
+@Override
 protected void consumeToken(int token) {
 	super.consumeToken(token);
 
@@ -1019,10 +1256,10 @@ protected void consumeToken(int token) {
 	}
 	// register message send selector only if inside a method or if looking at a field initializer
 	// and if the current token is an open parenthesis
-	if (isInsideMethod() || isInsideFieldInitialization() || isInsideAttributeValue()) {
+	if (isInsideMethod() || isInsideFieldInitialization() || isInsideAttributeValue() || isInsideEnumConstantnitialization()) {
+		adjustBracket(token);
 		switch (token) {
 			case TokenNameLPAREN :
-				this.bracketDepth++;
 				switch (this.previousToken) {
 					case TokenNameIdentifier:
 						this.pushOnElementStack(K_SELECTOR, this.identifierPtr);
@@ -1047,21 +1284,10 @@ protected void consumeToken(int token) {
 					popElement(K_LAMBDA_EXPRESSION_DELIMITER);
 					pushOnElementStack(K_LAMBDA_EXPRESSION_DELIMITER, BLOCK_BODY, this.previousObjectInfo);
 				}
-				this.bracketDepth++;
-				break;
-			case TokenNameLBRACKET:
-				this.bracketDepth++;
-				break;
-			case TokenNameRBRACE:
-				this.bracketDepth--;
-				break;
-			case TokenNameRBRACKET:
-				this.bracketDepth--;
-				break;
-			case TokenNameRPAREN:
-				this.bracketDepth--;
 				break;
 		}
+	} else if (isInsideModuleInfo()) { 
+		adjustBracket(token);
 	} else {
 		switch (token) {
 			case TokenNameRBRACE :
@@ -1076,6 +1302,7 @@ protected void consumeToken(int token) {
 		this.previousIdentifierPtr = this.identifierPtr;
 	}
 }
+@Override
 protected void consumeTypeImportOnDemandDeclarationName() {
 	// TypeImportOnDemandDeclarationName ::= 'import' Name '.' '*'
 	/* push an ImportRef build from the last name
@@ -1130,7 +1357,11 @@ protected void consumeTypeImportOnDemandDeclarationName() {
 		this.restartRecovery = true; // used to avoid branching back into the regular automaton
 	}
 }
+
+// TODO : Change to ExportsReference/PackageReference once we have the new compiler ast.node
+public abstract ImportReference createAssistPackageVisibilityReference(char[][] tokens, long[] positions);
 public abstract ImportReference createAssistImportReference(char[][] tokens, long[] positions, int mod);
+public abstract ModuleReference createAssistModuleReference(int index);
 public abstract ImportReference createAssistPackageReference(char[][] tokens, long[] positions);
 public abstract NameReference createQualifiedAssistNameReference(char[][] previousIdentifiers, char[] assistName, long[] positions);
 public abstract TypeReference createQualifiedAssistTypeReference(char[][] previousIdentifiers, char[] assistName, long[] positions);
@@ -1138,6 +1369,7 @@ public abstract TypeReference createParameterizedQualifiedAssistTypeReference(ch
 public abstract NameReference createSingleAssistNameReference(char[] assistName, long position);
 public abstract TypeReference createSingleAssistTypeReference(char[] assistName, long position);
 public abstract TypeReference createParameterizedSingleAssistTypeReference(TypeReference[] typeArguments, char[] assistName, long position);
+public abstract ModuleDeclaration createAssistModuleDeclaration(CompilationResult compilationResult, char[][] tokens, long[] positions);
 /*
  * Flush parser/scanner state regarding to code assist
  */
@@ -1159,6 +1391,7 @@ protected void flushElementStack() {
 /*
  * Build specific type reference nodes in case the cursor is located inside the type reference
  */
+@Override
 protected TypeReference getTypeReference(int dim) {
 
 	int index;
@@ -1315,6 +1548,7 @@ protected TypeReference getAssistTypeReferenceForGenericType(int dim, int identi
  * qualified name reference, then create a CompletionOnQualifiedNameReference
  * instead.
  */
+@Override
 protected NameReference getUnspecifiedReferenceOptimized() {
 
 	int completionIndex;
@@ -1356,18 +1590,22 @@ protected NameReference getUnspecifiedReferenceOptimized() {
 	this.lastCheckPoint = reference.sourceEnd + 1;
 	return reference;
 }
+@Override
 public void goForBlockStatementsopt() {
 	super.goForBlockStatementsopt();
 	this.isFirst = true;
 }
+@Override
 public void goForHeaders(){
 	super.goForHeaders();
 	this.isFirst = true;
 }
+@Override
 public void goForCompilationUnit(){
 	super.goForCompilationUnit();
 	this.isFirst = true;
 }
+@Override
 public void goForBlockStatementsOrCatchHeader() {
 	super.goForBlockStatementsOrCatchHeader();
 	this.isFirst = true;
@@ -1425,6 +1663,7 @@ protected int indexOfAssistIdentifier(boolean useGenericsStack){
 	// none of the awaiting identifiers is the completion one
 	return -1;
 }
+@Override
 public void initialize() {
 	super.initialize();
 	flushAssistState();
@@ -1432,6 +1671,7 @@ public void initialize() {
 	this.previousIdentifierPtr = -1;
 	this.bracketDepth = 0;
 }
+@Override
 public void initialize(boolean parsingCompilationUnit) {
 	super.initialize(parsingCompilationUnit);
 	flushAssistState();
@@ -1439,11 +1679,21 @@ public void initialize(boolean parsingCompilationUnit) {
 	this.previousIdentifierPtr = -1;
 	this.bracketDepth = 0;
 }
+@Override
 public abstract void initializeScanner();
 protected boolean isIndirectlyInsideFieldInitialization(){
 	int i = this.elementPtr;
 	while(i > -1) {
 		if(this.elementKindStack[i] == K_FIELD_INITIALIZER_DELIMITER)
+			return true;
+		i--;
+	}
+	return false;
+}
+protected boolean isIndirectlyInsideEnumConstantnitialization(){
+	int i = this.elementPtr;
+	while(i > -1) {
+		if(this.elementKindStack[i] == K_ENUM_CONSTANT_DELIMITER)
 			return true;
 		i--;
 	}
@@ -1458,6 +1708,7 @@ protected boolean isIndirectlyInsideMethod(){
 	}
 	return false;
 }
+@Override
 protected boolean isIndirectlyInsideLambdaExpression(){
 	int i = this.elementPtr;
 	while (i > -1) {
@@ -1504,7 +1755,36 @@ protected boolean isInsideFieldInitialization(){
 		switch (this.elementKindStack[i]) {
 			case K_TYPE_DELIMITER : return false;
 			case K_METHOD_DELIMITER : return false;
-			case K_FIELD_INITIALIZER_DELIMITER : return true;
+			case K_FIELD_INITIALIZER_DELIMITER : 
+				return true;
+		}
+		i--;
+	}
+	return false;
+}
+protected boolean isInsideEnumConstantnitialization(){
+	int i = this.elementPtr;
+	while(i > -1) {
+		switch (this.elementKindStack[i]) {
+			case K_TYPE_DELIMITER : return false;
+			case K_METHOD_DELIMITER : return false;
+			case K_ENUM_CONSTANT_DELIMITER :
+				return true;
+		}
+		i--;
+	}
+	return false;
+}
+protected boolean isInsideModuleInfo(){
+	int i = this.elementPtr;
+	while(i > -1) {
+		switch (this.elementKindStack[i]) {
+			case K_TYPE_DELIMITER : 
+			case K_METHOD_DELIMITER :
+			case K_FIELD_INITIALIZER_DELIMITER : 
+				return false;
+			case K_MODULE_INFO_DELIMITER:
+				return true;
 		}
 		i--;
 	}
@@ -1688,8 +1968,6 @@ public void parseBlockStatements(MethodDeclaration md, CompilationUnitDeclaratio
 
 	//convert bugs into parse error
 
-	if (md.isAbstract())
-		return;
 	if (md.isNative())
 		return;
 	if ((md.modifiers & ExtraCompilerModifiers.AccSemicolonBody) != 0)
@@ -1791,6 +2069,7 @@ protected void popUntilElement(int kind){
 /*
  * Prepares the state of the parser to go for BlockStatements.
  */
+@Override
 protected void prepareForBlockStatements() {
 	this.nestedMethod[this.nestedType = 0] = 1;
 	this.variablesCounter[this.nestedType] = 0;
@@ -1861,6 +2140,7 @@ protected void pushOnElementStack(int kind, int info, Object objectInfo){
 	this.elementInfoStack[this.elementPtr] = info;
 	this.elementObjectInfoStack[this.elementPtr] = objectInfo;
 }
+@Override
 public void recoveryExitFromVariable() {
 	if(this.currentElement != null && this.currentElement instanceof RecoveredField
 		&& !(this.currentElement instanceof RecoveredInitializer)) {
@@ -1873,6 +2153,7 @@ public void recoveryExitFromVariable() {
 		super.recoveryExitFromVariable();
 	}
 }
+@Override
 public void recoveryTokenCheck() {
 	RecoveredElement oldElement = this.currentElement;
 	switch (this.currentToken) {
@@ -1995,6 +2276,7 @@ protected int fallBackToSpringForward(Statement unused) {
  * Move checkpoint location, reset internal stacks and
  * decide which grammar goal is activated.
  */
+@Override
 protected int resumeAfterRecovery() {
 	if (requireExtendedRecovery()) {
 		if (this.unstackedAct == ERROR_ACTION) {
@@ -2062,6 +2344,12 @@ protected int resumeAfterRecovery() {
 			goForBlockStatementsopt();
 		} else {
 			prepareForHeaders();
+			if (this.referenceContext instanceof CompilationUnitDeclaration) {
+				CompilationUnitDeclaration unit = (CompilationUnitDeclaration) this.referenceContext;
+				if (unit.isModuleInfo()) {
+					pushOnElementStack(K_MODULE_INFO_DELIMITER);
+				}
+			}
 			goForHeaders();
 			this.diet = true; // passed this point, will not consider method bodies
 			this.dietInt = 0;

@@ -24,11 +24,11 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
-import org.aspectj.org.eclipse.jdt.core.IClassFile;
-import org.aspectj.org.eclipse.jdt.core.IJavaElement;
 import org.aspectj.org.eclipse.jdt.core.IJavaModelStatusConstants;
+import org.aspectj.org.eclipse.jdt.core.IOrdinaryClassFile;
 import org.aspectj.org.eclipse.jdt.core.IType;
 import org.aspectj.org.eclipse.jdt.core.JavaModelException;
+import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileReader;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFormatException;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryType;
@@ -38,6 +38,7 @@ import org.aspectj.org.eclipse.jdt.internal.core.ClassFile;
 import org.aspectj.org.eclipse.jdt.internal.core.JarPackageFragmentRoot;
 import org.aspectj.org.eclipse.jdt.internal.core.JavaModelManager;
 import org.aspectj.org.eclipse.jdt.internal.core.PackageFragment;
+import org.aspectj.org.eclipse.jdt.internal.core.PackageFragmentRoot;
 import org.aspectj.org.eclipse.jdt.internal.core.nd.IReader;
 import org.aspectj.org.eclipse.jdt.internal.core.nd.Nd;
 import org.aspectj.org.eclipse.jdt.internal.core.nd.db.IndexException;
@@ -57,8 +58,6 @@ public class BinaryTypeFactory {
 		public NotInIndexException() {
 		}
 	}
-	
-	private final static char[] PACKAGE_INFO = "package-info".toCharArray(); //$NON-NLS-1$
 
 	/**
 	 * Returns a descriptor for the given class within the given package fragment, or null if the fragment doesn't have
@@ -66,19 +65,20 @@ public class BinaryTypeFactory {
 	 */
 	private static BinaryTypeDescriptor createDescriptor(PackageFragment pkg, ClassFile classFile) {
 		String name = classFile.getName();
-		IJavaElement root = pkg.getParent();
+		PackageFragmentRoot root = (PackageFragmentRoot) pkg.getParent();
 		IPath location = JavaIndex.getLocationForElement(root);
-		String entryName = Util.concatWith(pkg.names, classFile.getElementName(), '/');
-		char[] fieldDescriptor = CharArrayUtils.concat(new char[] { 'L' },
-				Util.concatWith(pkg.names, name, '/').toCharArray(), new char[] { ';' });
-		IPath workspacePath = root.getPath();
-		String indexPath;
-
 		if (location == null) {
 			return null;
 		}
+		name = root.getClassFilePath(Util.concatWith(pkg.names, name, '/'));
+		String entryName = Util.concatWith(pkg.names, classFile.getElementName(), '/');
+		char[] fieldDescriptor = CharArrayUtils.concat(new char[] { 'L' },
+				name.toCharArray(), new char[] { ';' });
+		IPath workspacePath = root.getPath();
+		String indexPath;
 
 		if (root instanceof JarPackageFragmentRoot) {
+			entryName = ((JarPackageFragmentRoot) root).getClassFilePath(entryName);
 			// The old version returned this, but it doesn't conform to the spec on IBinaryType.getFileName():
 			indexPath = root.getHandleIdentifier() + IDependent.JAR_FILE_ENTRY_SEPARATOR + entryName;
 			// Version that conforms to the JavaDoc spec on IBinaryType.getFileName() -- note that this breaks
@@ -94,7 +94,7 @@ public class BinaryTypeFactory {
 				workspacePath.toString().toCharArray(), indexPath.toCharArray());
 	}
 
-	public static BinaryTypeDescriptor createDescriptor(IClassFile classFile) {
+	public static BinaryTypeDescriptor createDescriptor(IOrdinaryClassFile classFile) {
 		ClassFile concreteClass = (ClassFile)classFile;
 		PackageFragment parent = (PackageFragment) classFile.getParent();
 
@@ -105,7 +105,7 @@ public class BinaryTypeFactory {
 		return createDescriptor(type.getClassFile());
 	}
 
-	public static IBinaryType create(IClassFile classFile, IProgressMonitor monitor) throws JavaModelException, ClassFormatException {
+	public static IBinaryType create(IOrdinaryClassFile classFile, IProgressMonitor monitor) throws JavaModelException, ClassFormatException {
 		BinaryTypeDescriptor descriptor = createDescriptor(classFile);
 		return readType(descriptor, monitor);
 	}
@@ -152,27 +152,29 @@ public class BinaryTypeFactory {
 			return null;
 		}
 		if (descriptor.isInJarFile()) {
-			ZipFile zip = null;
-			try {
-				zip = JavaModelManager.getJavaModelManager().getZipFile(new Path(new String(descriptor.workspacePath)),
-						useInvalidArchiveCache);
-				char[] entryNameCharArray = CharArrayUtils.concat(
-						JavaNames.fieldDescriptorToBinaryName(descriptor.fieldDescriptor), SuffixConstants.SUFFIX_class);
-				String entryName = new String(entryNameCharArray);
-				ZipEntry ze = zip.getEntry(entryName);
-				if (ze != null) {
-					byte contents[];
-					try {
-						contents = org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.getZipEntryByteContent(ze, zip);
-					} catch (IOException ioe) {
-						throw new JavaModelException(ioe, IJavaModelStatusConstants.IO_EXCEPTION);
+			if (CharOperation.indexOf("jrt-fs.jar".toCharArray(), descriptor.location, false) == -1) { //$NON-NLS-1$
+				ZipFile zip = null;
+				try {
+					zip = JavaModelManager.getJavaModelManager().getZipFile(new Path(new String(descriptor.workspacePath)),
+							useInvalidArchiveCache);
+					char[] entryNameCharArray = CharArrayUtils.concat(
+							JavaNames.fieldDescriptorToBinaryName(descriptor.fieldDescriptor), SuffixConstants.SUFFIX_class);
+					String entryName = new String(entryNameCharArray);
+					ZipEntry ze = zip.getEntry(entryName);
+					if (ze != null) {
+						byte contents[];
+						try {
+							contents = org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.getZipEntryByteContent(ze, zip);
+						} catch (IOException ioe) {
+							throw new JavaModelException(ioe, IJavaModelStatusConstants.IO_EXCEPTION);
+						}
+						return new ClassFileReader(contents, descriptor.indexPath, fullyInitialize);
 					}
-					return new ClassFileReader(contents, descriptor.indexPath, fullyInitialize);
+				} catch (CoreException e) {
+					throw new JavaModelException(e);
+				} finally {
+					JavaModelManager.getJavaModelManager().closeZipFile(zip);
 				}
-			} catch (CoreException e) {
-				throw new JavaModelException(e);
-			} finally {
-				JavaModelManager.getJavaModelManager().closeZipFile(zip);
 			}
 		} else {
 			IFile file = ResourcesPlugin.getWorkspace().getRoot().getFile(new Path(new String(descriptor.workspacePath)));
@@ -201,54 +203,49 @@ public class BinaryTypeFactory {
 	 * able to determine that the requested class does not exist in that file.
 	 */
 	public static IBinaryType readFromIndex(JavaIndex index, BinaryTypeDescriptor descriptor, IProgressMonitor monitor) throws JavaModelException, NotInIndexException {
-		char[] className = JavaNames.fieldDescriptorToSimpleName(descriptor.fieldDescriptor);
-
 		// If the new index is enabled, check if we have this class file cached in the index already		
 		char[] fieldDescriptor = descriptor.fieldDescriptor;
 
-		if (!CharArrayUtils.equals(PACKAGE_INFO, className)) {
-			Nd nd = index.getNd();
+		Nd nd = index.getNd();
 
-			// We don't currently cache package-info files in the index
-			if (descriptor.location != null) {
-				// Acquire a read lock on the index
-				try (IReader lock = nd.acquireReadLock()) {
-					try {
-						TypeRef typeRef = TypeRef.create(nd, descriptor.location, fieldDescriptor);
-						NdType type = typeRef.get();
+		if (descriptor.location != null) {
+			// Acquire a read lock on the index
+			try (IReader lock = nd.acquireReadLock()) {
+				try {
+					TypeRef typeRef = TypeRef.create(nd, descriptor.location, fieldDescriptor);
+					NdType type = typeRef.get();
 
-						if (type == null) {
-							// If we couldn't find the type in the index, determine whether the cause is
-							// that the type is known not to exist or whether the resource just hasn't
-							// been indexed yet
+					if (type == null) {
+						// If we couldn't find the type in the index, determine whether the cause is
+						// that the type is known not to exist or whether the resource just hasn't
+						// been indexed yet
 
-							NdResourceFile resourceFile = index.getResourceFile(descriptor.location);
-							if (index.isUpToDate(resourceFile)) {
-								return null;
-							}
-							throw new NotInIndexException();
-						}
-						NdResourceFile resourceFile = type.getResourceFile();
+						NdResourceFile resourceFile = index.getResourceFile(descriptor.location);
 						if (index.isUpToDate(resourceFile)) {
-							IndexBinaryType result = new IndexBinaryType(typeRef, descriptor.indexPath);
-
-							// We already have the database lock open and have located the element, so we may as
-							// well prefetch the inexpensive attributes.
-							result.initSimpleAttributes();
-
-							return result;
+							return null;
 						}
 						throw new NotInIndexException();
-					} catch (CoreException e) {
-						throw new JavaModelException(e);
 					}
-				} catch (IndexException e) {
-					Package.log("Index corruption detected. Rebuilding index.", e); //$NON-NLS-1$
-					Indexer.getInstance().requestRebuildIndex();
+					NdResourceFile resourceFile = type.getResourceFile();
+					if (index.isUpToDate(resourceFile)) {
+						IndexBinaryType result = new IndexBinaryType(typeRef, descriptor.indexPath);
+
+						// We already have the database lock open and have located the element, so we may as
+						// well prefetch the inexpensive attributes.
+						result.initSimpleAttributes();
+
+						return result;
+					}
+					throw new NotInIndexException();
+				} catch (CoreException e) {
+					throw new JavaModelException(e);
 				}
+			} catch (IndexException e) {
+				Package.log("Index corruption detected. Rebuilding index.", e); //$NON-NLS-1$
+				Indexer.getInstance().requestRebuildIndex();
 			}
 		}
-		
+
 		throw new NotInIndexException();
 	}
 }

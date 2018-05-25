@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -256,6 +256,7 @@ public final boolean canBeSeenByForCodeSnippet(ReferenceBinding referenceBinding
 	return receiverType.fPackage == referenceBinding.fPackage;
 }
 // Internal use only
+@Override
 public MethodBinding findExactMethod(ReferenceBinding receiverType, char[] selector, TypeBinding[] argumentTypes, InvocationSite invocationSite) {
 	MethodBinding exactMethod = receiverType.getExactMethod(selector, argumentTypes, null);
 	if (exactMethod != null){
@@ -371,6 +372,7 @@ public FieldBinding findFieldForCodeSnippet(TypeBinding receiverType, char[] fie
 	return null;
 }
 // Internal use only
+@Override
 public MethodBinding findMethod(ReferenceBinding receiverType, char[] selector, TypeBinding[] argumentTypes, InvocationSite invocationSite, boolean inStaticContext) {
 	MethodBinding methodBinding = super.findMethod(receiverType, selector, argumentTypes, invocationSite, inStaticContext);
 	if (methodBinding != null && methodBinding.isValidBinding())
@@ -380,6 +382,7 @@ public MethodBinding findMethod(ReferenceBinding receiverType, char[] selector, 
 }
 
 // Internal use only
+@Override
 public MethodBinding findMethodForArray(ArrayBinding receiverType, char[] selector, TypeBinding[] argumentTypes, InvocationSite invocationSite) {
 	ReferenceBinding object = getJavaLangObject();
 	MethodBinding methodBinding = object.getExactMethod(selector, argumentTypes, null);
@@ -449,7 +452,7 @@ public Binding getBinding(char[][] compoundName, int mask, InvocationSite invoca
 		PackageBinding packageBinding = (PackageBinding) binding;
 
 		while (currentIndex < length) {
-			binding = packageBinding.getTypeOrPackage(compoundName[currentIndex++]);
+			binding = packageBinding.getTypeOrPackage(compoundName[currentIndex++], null);
 			invocationSite.setFieldIndex(currentIndex);
  			if (binding == null) {
 	 			if (currentIndex == length) // must be a type if its the last name, otherwise we have no idea if its a package or type
@@ -528,6 +531,7 @@ public Binding getBinding(char[][] compoundName, int mask, InvocationSite invoca
 	If no visible constructor is discovered, an error binding is answered.
 */
 
+@Override
 public MethodBinding getConstructor(ReferenceBinding receiverType, TypeBinding[] argumentTypes, InvocationSite invocationSite) {
 	MethodBinding methodBinding = receiverType.getExactConstructor(argumentTypes);
 	if (methodBinding != null) {

@@ -171,7 +171,7 @@ public class SingleVariableDeclaration extends VariableDeclaration {
 	public static List propertyDescriptors(int apiLevel) {
 		if (apiLevel == AST.JLS2_INTERNAL) {
 			return PROPERTY_DESCRIPTORS_2_0;
-		} else if (apiLevel < AST.JLS8) {
+		} else if (apiLevel < AST.JLS8_INTERNAL) {
 			return PROPERTY_DESCRIPTORS_3_0;
 		} else {
 			return PROPERTY_DESCRIPTORS_8_0;
@@ -231,54 +231,38 @@ public class SingleVariableDeclaration extends VariableDeclaration {
 		super(ast);
 		if (ast.apiLevel >= AST.JLS3_INTERNAL) {
 			this.modifiers = new ASTNode.NodeList(MODIFIERS2_PROPERTY);
-			if (ast.apiLevel >= AST.JLS8) {
+			if (ast.apiLevel >= AST.JLS8_INTERNAL) {
 				this.varargsAnnotations = new ASTNode.NodeList(VARARGS_ANNOTATIONS_PROPERTY);
 			}
 		}
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on VariableDeclaration.
-	 * @since 3.1
-	 */
+	@Override
 	final ChildPropertyDescriptor internalNameProperty() {
 		return NAME_PROPERTY;
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on VariableDeclaration.
-	 * @since 3.1
-	 */
+	@Override
 	final SimplePropertyDescriptor internalExtraDimensionsProperty() {
 		return EXTRA_DIMENSIONS_PROPERTY;
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on VariableDeclaration.
-	 * @since 3.10
-	 */
+	@Override
 	final ChildListPropertyDescriptor internalExtraDimensions2Property() {
 		return EXTRA_DIMENSIONS2_PROPERTY;
 	}
 	
-	/* (omit javadoc for this method)
-	 * Method declared on VariableDeclaration.
-	 * @since 3.1
-	 */
+	@Override
 	final ChildPropertyDescriptor internalInitializerProperty() {
 		return INITIALIZER_PROPERTY;
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	final List internalStructuralPropertiesForType(int apiLevel) {
 		return propertyDescriptors(apiLevel);
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	final int internalGetSetIntProperty(SimplePropertyDescriptor property, boolean get, int value) {
 		if (property == MODIFIERS_PROPERTY) {
 			if (get) {
@@ -300,9 +284,7 @@ public class SingleVariableDeclaration extends VariableDeclaration {
 		return super.internalGetSetIntProperty(property, get, value);
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	final boolean internalGetSetBooleanProperty(SimplePropertyDescriptor property, boolean get, boolean value) {
 		if (property == VARARGS_PROPERTY) {
 			if (get) {
@@ -316,9 +298,7 @@ public class SingleVariableDeclaration extends VariableDeclaration {
 		return super.internalGetSetBooleanProperty(property, get, value);
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	final ASTNode internalGetSetChildProperty(ChildPropertyDescriptor property, boolean get, ASTNode child) {
 		if (property == TYPE_PROPERTY) {
 			if (get) {
@@ -348,9 +328,7 @@ public class SingleVariableDeclaration extends VariableDeclaration {
 		return super.internalGetSetChildProperty(property, get, child);
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	final List internalGetChildListProperty(ChildListPropertyDescriptor property) {
 		if (property == MODIFIERS2_PROPERTY) {
 			return modifiers();
@@ -365,16 +343,12 @@ public class SingleVariableDeclaration extends VariableDeclaration {
 		return super.internalGetChildListProperty(property);
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	final int getNodeType0() {
 		return SINGLE_VARIABLE_DECLARATION;
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	ASTNode clone0(AST target) {
 		SingleVariableDeclaration result = new SingleVariableDeclaration(target);
 		result.setSourceRange(getStartPosition(), getLength());
@@ -385,12 +359,12 @@ public class SingleVariableDeclaration extends VariableDeclaration {
 			result.setVarargs(isVarargs());
 		}
 		result.setType((Type) getType().clone(target));
-		if (this.ast.apiLevel >= AST.JLS8) {
+		if (this.ast.apiLevel >= AST.JLS8_INTERNAL) {
 			result.varargsAnnotations().addAll(
 					ASTNode.copySubtrees(target, varargsAnnotations()));
 		}
 		result.setName((SimpleName) getName().clone(target));
-		if (this.ast.apiLevel >= AST.JLS8) {
+		if (this.ast.apiLevel >= AST.JLS8_INTERNAL) {
 			result.extraDimensions().addAll(
 					ASTNode.copySubtrees(target, this.extraDimensions()));
 		} else {
@@ -401,17 +375,13 @@ public class SingleVariableDeclaration extends VariableDeclaration {
 		return result;
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	final boolean subtreeMatch0(ASTMatcher matcher, Object other) {
 		// dispatch to correct overloaded match method
 		return matcher.match(this, other);
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	void accept0(ASTVisitor visitor) {
 		boolean visitChildren = visitor.visit(this);
 		if (visitChildren) {
@@ -420,11 +390,11 @@ public class SingleVariableDeclaration extends VariableDeclaration {
 				acceptChildren(visitor, this.modifiers);
 			}
 			acceptChild(visitor, getType());
-			if (this.ast.apiLevel >= AST.JLS8 && isVarargs()) {
+			if (this.ast.apiLevel >= AST.JLS8_INTERNAL && isVarargs()) {
 				acceptChildren(visitor, this.varargsAnnotations);
 			}
 			acceptChild(visitor, getName());
-			if (this.ast.apiLevel >= AST.JLS8){
+			if (this.ast.apiLevel >= AST.JLS8_INTERNAL){
 				acceptChildren(visitor, this.extraDimensions);
 			}
 			acceptChild(visitor, getInitializer());
@@ -634,18 +604,14 @@ public class SingleVariableDeclaration extends VariableDeclaration {
 		}
 		return this.varargsAnnotations;
 	}
-	
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+
+	@Override
 	int memSize() {
 		// treat Operator as free
 		return BASE_NODE_SIZE + 9 * 4;
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	int treeSize() {
 		return
 			memSize()

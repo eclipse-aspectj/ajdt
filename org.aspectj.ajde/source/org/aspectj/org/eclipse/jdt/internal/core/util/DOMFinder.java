@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2005, 2015 IBM Corporation and others.
+ * Copyright (c) 2005, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -35,6 +35,7 @@ import org.aspectj.org.eclipse.jdt.core.dom.Initializer;
 import org.aspectj.org.eclipse.jdt.core.dom.LambdaExpression;
 import org.aspectj.org.eclipse.jdt.core.dom.MarkerAnnotation;
 import org.aspectj.org.eclipse.jdt.core.dom.MethodDeclaration;
+import org.aspectj.org.eclipse.jdt.core.dom.ModuleDeclaration;
 import org.aspectj.org.eclipse.jdt.core.dom.NormalAnnotation;
 import org.aspectj.org.eclipse.jdt.core.dom.PackageDeclaration;
 import org.aspectj.org.eclipse.jdt.core.dom.ParameterizedType;
@@ -85,18 +86,21 @@ public class DOMFinder extends ASTVisitor {
 		return this.foundNode;
 	}
 
+	@Override
 	public boolean visit(AnnotationTypeDeclaration node) {
 		if (found(node, node.getName()) && this.resolveBinding)
 			this.foundBinding = node.resolveBinding();
 		return true;
 	}
 
+	@Override
 	public boolean visit(AnnotationTypeMemberDeclaration node) {
 		if (found(node, node.getName()) && this.resolveBinding)
 			this.foundBinding = node.resolveBinding();
 		return true;
 	}
 
+	@Override
 	public boolean visit(AnonymousClassDeclaration node) {
 		ASTNode name;
 		ASTNode parent = node.getParent();
@@ -118,84 +122,105 @@ public class DOMFinder extends ASTVisitor {
 		return true;
 	}
 
+	@Override
 	public boolean visit(EnumConstantDeclaration node) {
 		if (found(node, node.getName()) && this.resolveBinding)
 			this.foundBinding = node.resolveVariable();
 		return true;
 	}
 
+	@Override
 	public boolean visit(EnumDeclaration node) {
 		if (found(node, node.getName()) && this.resolveBinding)
 			this.foundBinding = node.resolveBinding();
 		return true;
 	}
 
+	@Override
 	public boolean visit(ImportDeclaration node) {
 		if (found(node, node) && this.resolveBinding)
 			this.foundBinding = node.resolveBinding();
 		return true;
 	}
 
+	@Override
 	public boolean visit(Initializer node) {
 		// note that no binding exists for an Initializer
 		found(node, node);
 		return true;
 	}
 
+	@Override
 	public boolean visit(MarkerAnnotation node) {
 		if (found(node, node) && this.resolveBinding)
 			this.foundBinding = node.resolveAnnotationBinding();
 		return true;
 	}
 
+	@Override
 	public boolean visit(MethodDeclaration node) {
 		if (found(node, node.getName()) && this.resolveBinding)
 			this.foundBinding = node.resolveBinding();
 		return true;
 	}
 
+	@Override
+	public boolean visit(ModuleDeclaration node) {
+		if (found(node, node.getName()) && this.resolveBinding) {
+			this.foundBinding = node.resolveBinding();
+		}
+		return true;
+	}
+	@Override
 	public boolean visit(NormalAnnotation node) {
 		if (found(node, node) && this.resolveBinding)
 			this.foundBinding = node.resolveAnnotationBinding();
 		return true;
 	}
 
+	@Override
 	public boolean visit(PackageDeclaration node) {
 		if (found(node, node) && this.resolveBinding)
 			this.foundBinding = node.resolveBinding();
 		return true;
 	}
 
+	@Override
 	public boolean visit(SingleMemberAnnotation node) {
 		if (found(node, node) && this.resolveBinding)
 			this.foundBinding = node.resolveAnnotationBinding();
 		return true;
 	}
 
+	@Override
 	public boolean visit(TypeDeclaration node) {
 		if (found(node, node.getName()) && this.resolveBinding)
 			this.foundBinding = node.resolveBinding();
 		return true;
 	}
 
+	@Override
 	public boolean visit(TypeParameter node) {
 		if (found(node, node.getName()) && this.resolveBinding)
 			this.foundBinding = node.resolveBinding();
 		return true;
 	}
 
+	@Override
 	public boolean visit(VariableDeclarationFragment node) {
 		if (found(node, node.getName()) && this.resolveBinding)
 			this.foundBinding = node.resolveBinding();
 		return true;
 	}
 
+	@Override
 	public boolean visit(SingleVariableDeclaration node) {
 		if (found(node, node.getName()) && this.resolveBinding)
 			this.foundBinding = node.resolveBinding();
 		return true;		
 	}
 
+	@Override
 	public boolean visit(LambdaExpression node) {
 		if (found(node, node) && this.resolveBinding)
 			this.foundBinding = node.resolveMethodBinding();

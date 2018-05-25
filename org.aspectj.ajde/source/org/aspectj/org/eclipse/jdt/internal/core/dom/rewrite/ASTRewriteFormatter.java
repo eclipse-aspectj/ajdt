@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -54,9 +54,7 @@ public final class ASTRewriteFormatter {
 			this.positions= new ArrayList();
 		}
 
-		/* (non-Javadoc)
-		 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#preVisit(ASTNode)
-		 */
+		@Override
 		public void preVisit(ASTNode node) {
 			Object trackData= getEventStore().getTrackedNodeData(node);
 			if (trackData != null) {
@@ -68,9 +66,7 @@ public final class ASTRewriteFormatter {
 			}
 		}
 
-		/* (non-Javadoc)
-		 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#postVisit(ASTNode)
-		 */
+		@Override
 		public void postVisit(ASTNode node) {
 			Object placeholderData= getPlaceholders().getPlaceholderData(node);
 			if (placeholderData != null) {
@@ -82,9 +78,7 @@ public final class ASTRewriteFormatter {
 			}
 		}
 
-		/* (non-Javadoc)
-		 * @see org.aspectj.org.eclipse.jdt.internal.corext.dom.ASTRewriteFlattener#visit(org.aspectj.org.eclipse.jdt.core.dom.Block)
-		 */
+		@Override
 		public boolean visit(Block node) {
 			if (getPlaceholders().isCollapsed(node)) {
 				visitList(node, Block.STATEMENTS_PROPERTY, null);
@@ -294,6 +288,9 @@ public final class ASTRewriteFormatter {
 				case ASTNode.COMPILATION_UNIT:
 					code= CodeFormatter.K_COMPILATION_UNIT;
 					break;
+				case ASTNode.MODULE_DECLARATION:
+					code= CodeFormatter.K_MODULE_INFO;
+					break;
 				case ASTNode.VARIABLE_DECLARATION_EXPRESSION:
 					suffix= ";"; //$NON-NLS-1$
 					code= CodeFormatter.K_STATEMENTS;
@@ -334,6 +331,9 @@ public final class ASTRewriteFormatter {
 				case ASTNode.MODIFIER:
 					suffix= " class x {}"; //$NON-NLS-1$
 					code= CodeFormatter.K_COMPILATION_UNIT;
+					break;
+				case ASTNode.MODULE_MODIFIER:
+					code= CodeFormatter.K_MODULE_INFO;
 					break;
 				case ASTNode.TYPE_PARAMETER:
 					prefix= "class X<"; //$NON-NLS-1$
@@ -415,6 +415,7 @@ public final class ASTRewriteFormatter {
 
 				doc.addPositionCategory(POS_CATEGORY);
 				doc.addPositionUpdater(new DefaultPositionUpdater(POS_CATEGORY) {
+					@Override
 					protected boolean notDeleted() {
 						int start= this.fOffset;
 						int end= start + this.fLength;
@@ -456,6 +457,7 @@ public final class ASTRewriteFormatter {
 			this.prefix= prefix;
 		}
 
+		@Override
 		public String getPrefix(int indent) {
 			return this.prefix;
 		}
@@ -474,6 +476,7 @@ public final class ASTRewriteFormatter {
 			this.kind= kind;
 		}
 
+		@Override
 		public String getPrefix(int indent) {
 			Position pos= new Position(this.start, this.length);
 			String str= this.string;
@@ -494,6 +497,7 @@ public final class ASTRewriteFormatter {
 			this.prefix= prefix;
 		}
 
+		@Override
 		public String[] getPrefixAndSuffix(int indent, ASTNode node, RewriteEventStore events) {
 			String nodeString= ASTRewriteFlattener.asString(node, events);
 			String str= this.prefix + nodeString;
@@ -518,6 +522,7 @@ public final class ASTRewriteFormatter {
 			this.prefix= prefix;
 		}
 
+		@Override
 		public String[] getPrefixAndSuffix(int indent, ASTNode node, RewriteEventStore events) {
 			String nodeString= ASTRewriteFlattener.asString(node, events);
 			int nodeStart= this.prefix.length();

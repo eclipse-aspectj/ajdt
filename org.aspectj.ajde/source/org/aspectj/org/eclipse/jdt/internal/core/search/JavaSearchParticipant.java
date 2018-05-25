@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,8 +12,10 @@ package org.aspectj.org.eclipse.jdt.internal.core.search;
 
 import org.eclipse.core.runtime.*;
 import org.aspectj.org.eclipse.jdt.core.search.*;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
 import org.aspectj.org.eclipse.jdt.internal.core.index.IndexLocation;
 import org.aspectj.org.eclipse.jdt.internal.core.search.indexing.BinaryIndexer;
+import org.aspectj.org.eclipse.jdt.internal.core.search.indexing.ManifestIndexer;
 import org.aspectj.org.eclipse.jdt.internal.core.search.indexing.SourceIndexer;
 import org.aspectj.org.eclipse.jdt.internal.core.search.matching.MatchLocator;
 
@@ -33,39 +35,29 @@ public class JavaSearchParticipant extends SearchParticipant {
 	private ThreadLocal indexSelector = new ThreadLocal();
 	private SourceIndexer sourceIndexer;
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.search.SearchParticipant#beginSearching()
-	 */
+	@Override
 	public void beginSearching() {
 		super.beginSearching();
 		this.indexSelector.set(null);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.search.SearchParticipant#doneSearching()
-	 */
+	@Override
 	public void doneSearching() {
 		this.indexSelector.set(null);
 		super.doneSearching();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.search.SearchParticipant#getName()
-	 */
+	@Override
 	public String getDescription() {
 		return "Java"; //$NON-NLS-1$
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.search.SearchParticipant#getDocument(String)
-	 */
+	@Override
 	public SearchDocument getDocument(String documentPath) {
 		return new JavaSearchDocument(documentPath, this);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.search.SearchParticipant#indexDocument(SearchDocument)
-	 */
+	@Override
 	public void indexDocument(SearchDocument document, IPath indexPath) {
 		// TODO must verify that the document + indexPath match, when this is not called from scheduleDocumentIndexing
 		document.removeAllIndexEntries(); // in case the document was already indexed
@@ -76,12 +68,11 @@ public class JavaSearchParticipant extends SearchParticipant {
 			this.sourceIndexer.indexDocument();
 		} else if (org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.isClassFileName(documentPath)) {
 			new BinaryIndexer(document).indexDocument();
+		} else if (documentPath.endsWith(TypeConstants.AUTOMATIC_MODULE_NAME)) {
+			new ManifestIndexer(document).indexDocument();
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.search.SearchParticipant#indexResolvedDocument(SearchDocument, IPath)
-	 */
 	@Override
 	public void indexResolvedDocument(SearchDocument document, IPath indexPath) {
 		String documentPath = document.getPath();
@@ -92,9 +83,7 @@ public class JavaSearchParticipant extends SearchParticipant {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.search.SearchParticipant#resolveDocument(SearchDocument document)
-	 */
+	@Override
 	public void resolveDocument(SearchDocument document) {
 		String documentPath = document.getPath();
 		if (org.aspectj.org.eclipse.jdt.internal.core.util.Util.isJavaLikeFileName(documentPath)) {
@@ -102,10 +91,8 @@ public class JavaSearchParticipant extends SearchParticipant {
 				this.sourceIndexer.resolveDocument();
 		}
 	}
-	
-	/* (non-Javadoc)
-	 * @see SearchParticipant#locateMatches(SearchDocument[], SearchPattern, IJavaSearchScope, SearchRequestor, IProgressMonitor)
-	 */
+
+	@Override
 	public void locateMatches(SearchDocument[] indexMatches, SearchPattern pattern,
 			IJavaSearchScope scope, SearchRequestor requestor, IProgressMonitor monitor) throws CoreException {
 
@@ -122,9 +109,7 @@ public class JavaSearchParticipant extends SearchParticipant {
 		matchLocator.locateMatches(indexMatches);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.search.SearchParticipant#selectIndexes(org.aspectj.org.eclipse.jdt.core.search.SearchQuery, org.aspectj.org.eclipse.jdt.core.search.SearchContext)
-	 */
+	@Override
 	public IPath[] selectIndexes(SearchPattern pattern, IJavaSearchScope scope) {
 		IndexSelector selector = (IndexSelector) this.indexSelector.get();
 		if (selector == null) {

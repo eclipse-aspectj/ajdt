@@ -1,10 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- *
+ * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -19,16 +19,19 @@ import org.aspectj.org.eclipse.jdt.core.ICompilationUnit;
 import org.aspectj.org.eclipse.jdt.core.IField;
 import org.aspectj.org.eclipse.jdt.core.IJavaElement;
 import org.aspectj.org.eclipse.jdt.core.IMethod;
+import org.aspectj.org.eclipse.jdt.core.IModuleDescription;
 import org.aspectj.org.eclipse.jdt.core.IPackageFragment;
 import org.aspectj.org.eclipse.jdt.core.ISourceRange;
 import org.aspectj.org.eclipse.jdt.core.IType;
 import org.aspectj.org.eclipse.jdt.core.ITypeParameter;
 import org.aspectj.org.eclipse.jdt.core.JavaModelException;
 import org.aspectj.org.eclipse.jdt.core.Signature;
-import org.aspectj.org.eclipse.jdt.core.compiler.*;
+import org.aspectj.org.eclipse.jdt.core.compiler.CategorizedProblem;
+import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.codeassist.ISelectionRequestor;
 import org.aspectj.org.eclipse.jdt.internal.codeassist.SelectionEngine;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractVariableDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CastExpression;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.LambdaExpression;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.LocalDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
@@ -43,6 +46,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeVariableBinding;
+import org.aspectj.org.eclipse.jdt.internal.core.NameLookup.Answer;
 import org.aspectj.org.eclipse.jdt.internal.core.util.HandleFactory;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
 
@@ -168,9 +172,15 @@ protected void acceptBinaryMethod(
 		acceptBinaryMethod(type, method, uniqueKey, isConstructor);
 	}
 }
+@Override
+public void acceptModule(char[] moduleName, char[] uniqueKey, int start, int end) {
+	IModuleDescription module = resolveModule(moduleName);
+	addElement(module);
+}
 /**
  * Resolve the type.
  */
+@Override
 public void acceptType(char[] packageName, char[] typeName, int modifiers, boolean isDeclaration, char[] uniqueKey, int start, int end) {
 	int acceptFlags = 0;
 	int kind = modifiers & (ClassFileConstants.AccInterface|ClassFileConstants.AccEnum|ClassFileConstants.AccAnnotation);
@@ -242,12 +252,14 @@ public void acceptType(IType type) {
 /**
  * @see ISelectionRequestor#acceptError
  */
+@Override
 public void acceptError(CategorizedProblem error) {
 	// do nothing
 }
 /**
  * Resolve the field.
  */
+@Override
 public void acceptField(char[] declaringTypePackageName, char[] declaringTypeName, char[] name, boolean isDeclaration, char[] uniqueKey, int start, int end) {
 	if(isDeclaration) {
 		IType type= resolveTypeByLocation(declaringTypePackageName, declaringTypeName,
@@ -456,6 +468,16 @@ public void acceptLocalVariable(LocalVariableBinding binding, org.aspectj.org.ec
 	}
 	LocalVariable localVar = null;
 	if(parent != null) {
+		String typeSig = null;
+		if (local.type == null || local.type.isTypeNameVar(binding.declaringScope)) {
+			if (local.initialization instanceof CastExpression) {
+				typeSig = Util.typeSignature(((CastExpression) local.initialization).type);
+			} else {
+				typeSig = Signature.createTypeSignature(binding.type.signableName(), true);
+			}
+		} else {
+			typeSig = Util.typeSignature(local.type);
+		}
 		localVar = new LocalVariable(
 				(JavaElement)parent,
 				new String(local.name),
@@ -463,7 +485,7 @@ public void acceptLocalVariable(LocalVariableBinding binding, org.aspectj.org.ec
 				local.declarationSourceEnd,
 				local.sourceStart,
 				local.sourceEnd,
-				local.type == null ? Signature.createTypeSignature(binding.type.signableName(), true) : Util.typeSignature(local.type),
+				typeSig,
 				local.annotations,
 				local.modifiers,
 				local.getKind() == AbstractVariableDeclaration.PARAMETER);
@@ -480,6 +502,7 @@ public void acceptLocalVariable(LocalVariableBinding binding, org.aspectj.org.ec
 /**
  * Resolve the method
  */
+@Override
 public void acceptMethod(
 		char[] declaringTypePackageName,
 		char[] declaringTypeName,
@@ -555,6 +578,7 @@ public void acceptMethod(
 /**
  * Resolve the package
  */
+@Override
 public void acceptPackage(char[] packageName) {
 	IPackageFragment[] pkgs = this.nameLookup.findPackageFragments(new String(packageName), false);
 	if (pkgs != null) {
@@ -694,6 +718,7 @@ protected void acceptMethodDeclaration(IType type, char[] selector, int start, i
 	}
 	return;
 }
+@Override
 public void acceptTypeParameter(char[] declaringTypePackageName, char[] declaringTypeName, char[] typeParameterName, boolean isDeclaration, int start, int end) {
 	IType type;
 	if(isDeclaration) {
@@ -724,6 +749,7 @@ public void acceptTypeParameter(char[] declaringTypePackageName, char[] declarin
 		}
 	}
 }
+@Override
 public void acceptMethodTypeParameter(char[] declaringTypePackageName, char[] declaringTypeName, char[] selector,int selectorStart, int selectorEnd, char[] typeParameterName, boolean isDeclaration, int start, int end) {
 	IType type = resolveTypeByLocation(declaringTypePackageName, declaringTypeName,
 			NameLookup.ACCEPT_ALL,
@@ -904,6 +930,13 @@ public IJavaElement[] getElements() {
 		System.arraycopy(this.elements, 0, this.elements = new IJavaElement[elementLength], 0, elementLength);
 	}
 	return this.elements;
+}
+protected IModuleDescription resolveModule(char[] moduleName) {
+	Answer answer = this.nameLookup.findModule(moduleName);
+	if (answer != null) {
+		return answer.module;
+	}
+	return null;
 }
 /**
  * Resolve the type

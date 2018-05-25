@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -81,15 +81,17 @@ public class DeleteElementsOperation extends MultiOperation {
 	}
 
 	private void initASTParser() {
-		this.parser = ASTParser.newParser(AST.JLS8);
+		this.parser = ASTParser.newParser(AST.JLS10);
 	}
 
 	/**
 	 * @see MultiOperation
 	 */
+	@Override
 	protected String getMainTaskName() {
 		return Messages.operation_deleteElementProgress;
 	}
+	@Override
 	protected ISchedulingRule getSchedulingRule() {
 		if (this.elementsToProcess != null && this.elementsToProcess.length == 1) {
 			IResource resource = this.elementsToProcess[0].getResource();
@@ -133,6 +135,7 @@ public class DeleteElementsOperation extends MultiOperation {
 	 * Deletes this element from its compilation unit.
 	 * @see MultiOperation
 	 */
+	@Override
 	protected void processElement(IJavaElement element) throws JavaModelException {
 		ICompilationUnit cu = (ICompilationUnit) element;
 
@@ -168,6 +171,7 @@ public class DeleteElementsOperation extends MultiOperation {
 	 * This method first group the elements by <code>ICompilationUnit</code>,
 	 * and then processes the <code>ICompilationUnit</code>.
 	 */
+	@Override
 	protected void processElements() throws JavaModelException {
 		groupElements();
 		super.processElements();
@@ -175,6 +179,7 @@ public class DeleteElementsOperation extends MultiOperation {
 	/**
 	 * @see MultiOperation
 	 */
+	@Override
 	protected void verify(IJavaElement element) throws JavaModelException {
 		IJavaElement[] children = ((IRegion) this.childrenToRemove.get(element)).getElements();
 		for (int i = 0; i < children.length; i++) {

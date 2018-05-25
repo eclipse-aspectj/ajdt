@@ -1,5 +1,6 @@
+// AspectJ
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -196,6 +197,8 @@
  *									IllegalParameterNullityRedefinition
  *									ContradictoryNullAnnotationsInferredFunctionType
  *									IllegalReturnNullityRedefinitionFreeTypeVariable
+ *									UnlikelyCollectionMethodArgumentType
+ *									UnlikelyEqualsArgumentType
  *      Jesper S Moller  - added the following constants
  *									TargetTypeNotAFunctionalInterface
  *									OuterLocalMustBeEffectivelyFinal
@@ -212,7 +215,18 @@
  *									RepeatableAnnotationIsDocumented
  *									RepeatableAnnotationIsInherited
  *									RepeatableAnnotationWithRepeatingContainerAnnotation
-*******************************************************************************/
+ *									VarLocalMultipleDeclarators
+ *									VarLocalCannotBeArray
+ *									VarLocalReferencesItself
+ *									VarLocalWithoutInitizalier
+ *									VarLocalInitializedToNull
+ *									VarLocalCannotBeArrayInitalizers
+ *									VarLocalCannotBeLambda 
+ *									VarLocalCannotBeMethodReference
+ *									VarIsReserved
+ *									VarIsReservedInFuture
+ *									VarIsNotAllowedHere
+******************************************************************************/
 package org.aspectj.org.eclipse.jdt.core.compiler;
 
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ProblemReasons;
@@ -374,15 +388,22 @@ void setSourceStart(int sourceStart);
 	int Syntax = 0x40000000;
 	/** @since 3.0 */
 	int Javadoc = 0x80000000;
+	/** @since 3.14 */
+	int ModuleRelated = 0x00800000;
 
 	/**
 	 * Mask to use in order to filter out the category portion of the problem ID.
 	 */
-	int IgnoreCategoriesMask = 0xFFFFFF;
+	int IgnoreCategoriesMask = 0x7FFFFF;
 
-	/**
+	/*
 	 * Below are listed all available problem IDs. Note that this list could be augmented in the future,
 	 * as new features are added to the Java core implementation.
+	 *
+	 * Problem IDs must be kept unique even when their mask is stripped, since
+	 * the bare integer literal is used for message lookup in
+	 * /org.aspectj.org.eclipse.jdt.core/compiler/org.aspectj.org.eclipse.jdt/internal/compiler/problem/messages.properties.
+	 * Use this regex to find duplicates: (?s)(\+ \d+)\b.*\1\b
 	 */
 
 	/**
@@ -1500,6 +1521,8 @@ void setSourceStart(int sourceStart);
     int InterfaceSuperInvocationNotBelow18 = Internal + Syntax + 667;
     /** @since 3.13*/
     int InterfaceStaticMethodInvocationNotBelow18 = Internal + Syntax + 668;
+	/** @since 3.14 */
+	int FieldMustBeFinal = Internal + 669;
 
 
 	/**
@@ -1697,6 +1720,8 @@ void setSourceStart(int sourceStart);
 	/** @since 3.10 */
 	int RepeatedAnnotationWithContainerAnnotation = TypeRelated + 899;
 	
+	/** @since 3.14 */
+	int AutoManagedVariableResourceNotBelow9 = Syntax + Internal + 1351;
 	/**
 	 * External problems -- These are problems defined by other plugins
 	 */
@@ -1795,7 +1820,9 @@ void setSourceStart(int sourceStart);
 	int RedundantNullCheckOnField = Internal + 941;
 	/** @since 3.10 */
 	int FieldComparisonYieldsFalse = Internal + 942;
-	
+	/** @since 3.14 */
+	int RedundantNullDefaultAnnotationModule = Internal + 943;
+
 	/** @since 3.10 */
 	int ArrayReferencePotentialNullReference = Internal + 951;
 	/** @since 3.10 */
@@ -1895,12 +1922,142 @@ void setSourceStart(int sourceStart);
 	/** @since 3.13 */
 	int CannotInferInvocationType = TypeRelated + 1059;
 	
+	
 	/** @since 3.13 */
 	int TypeAnnotationAtQualifiedName = Internal + Syntax + 1060;
 
 	/** @since 3.13 */
 	int NullAnnotationAtQualifyingType = Internal + Syntax + 1061;
+	
+	/** @since 3.14*/
+	int IllegalModifierForInterfaceMethod9 = MethodRelated + 1071;
+	/** @since 3.14*/
+	int IllegalModifierCombinationForPrivateInterfaceMethod9 = MethodRelated + 1070;
+	/** @since 3.14 */
+	int UndefinedModule = ModuleRelated + 1300;
+	/** @since 3.14 */
+	int DuplicateRequires = ModuleRelated + 1301;
+	/** @since 3.14 */
+	int DuplicateExports = ModuleRelated + 1302;
+	/** @since 3.14 */
+	int DuplicateUses = ModuleRelated + 1303;
+	/** @since 3.14 */
+	int DuplicateServices = ModuleRelated + 1304;
+	/** @since 3.14 */
+	int CyclicModuleDependency = ModuleRelated + 1305;
+	/** @since 3.14 */
+	int AbstractServiceImplementation = TypeRelated + 1306;
+	/** @since 3.14 */
+	int ProviderMethodOrConstructorRequiredForServiceImpl = TypeRelated + 1307;
+	/** @since 3.14 */
+	int ServiceImplDefaultConstructorNotPublic = TypeRelated + 1308;
+	/** @since 3.14 */
+	int NestedServiceImpl = TypeRelated + 1309;
+	/** @since 3.14 */
+	int ServiceImplNotDefinedByModule = TypeRelated + 1310;
+	/** @since 3.14 */
+	int PackageDoesNotExistOrIsEmpty = ModuleRelated + 1311;
+	/** @since 3.14 */
+	int NonDenotableTypeArgumentForAnonymousDiamond = TypeRelated + 1312;
+	/** @since 3.14 */
+	int DuplicateOpens = ModuleRelated + 1313;
+	/** @since 3.14 */
+	int DuplicateModuleRef = ModuleRelated + 1314;
+	/** @since 3.14 */
+	int InvalidOpensStatement = ModuleRelated + 1315;
+	/** @since 3.14 */
+	int InvalidServiceIntfType = ModuleRelated + 1316;
+	/** @since 3.14 */
+	int InvalidServiceImplType = ModuleRelated + 1317;
+	/** @since 3.14 */
+	int IllegalModifierForModule = ModuleRelated + 1318;
 
+	/** @since 3.14 */
+	int DuplicateResource = Internal + 1251;
+
+	// terminally
+	/** @since 3.14 */
+	int UsingTerminallyDeprecatedType = TypeRelated + 1400;
+	/** @since 3.14 */
+	int UsingTerminallyDeprecatedMethod = MethodRelated + 1401;
+	/** @since 3.14 */
+	int UsingTerminallyDeprecatedConstructor = MethodRelated + 1402;
+	/** @since 3.14 */
+	int UsingTerminallyDeprecatedField = FieldRelated + 1403;
+	/** @since 3.14 */
+	int OverridingTerminallyDeprecatedMethod = MethodRelated + 1404;
+	// with since
+	/** @since 3.14 */
+	int UsingDeprecatedSinceVersionType = TypeRelated + 1405;
+	/** @since 3.14 */
+	int UsingDeprecatedSinceVersionMethod = MethodRelated + 1406;
+	/** @since 3.14 */
+	int UsingDeprecatedSinceVersionConstructor = MethodRelated + 1407;
+	/** @since 3.14 */
+	int UsingDeprecatedSinceVersionField = FieldRelated + 1408;
+	/** @since 3.14 */
+	int OverridingDeprecatedSinceVersionMethod = MethodRelated + 1409;
+	// terminally with since
+	/** @since 3.14 */
+	int UsingTerminallyDeprecatedSinceVersionType = TypeRelated + 1410;
+	/** @since 3.14 */
+	int UsingTerminallyDeprecatedSinceVersionMethod = MethodRelated + 1411;
+	/** @since 3.14 */
+	int UsingTerminallyDeprecatedSinceVersionConstructor = MethodRelated + 1412;
+	/** @since 3.14 */
+	int UsingTerminallyDeprecatedSinceVersionField = FieldRelated + 1413;
+	/** @since 3.14 */
+	int OverridingTerminallyDeprecatedSinceVersionMethod = MethodRelated + 1414;
+
+	// deprecation of package / module:
+	/** @since 3.14 */
+	int UsingDeprecatedPackage = ModuleRelated + 1425;
+	/** @since 3.14 */
+	int UsingDeprecatedSinceVersionPackage = ModuleRelated + 1426;
+	/** @since 3.14 */
+	int UsingTerminallyDeprecatedPackage = ModuleRelated + 1427;
+	/** @since 3.14 */
+	int UsingTerminallyDeprecatedSinceVersionPackage = ModuleRelated + 1428;
+	/** @since 3.14 */
+	int UsingDeprecatedModule = ModuleRelated + 1429;
+	/** @since 3.14 */
+	int UsingDeprecatedSinceVersionModule = ModuleRelated + 1430;
+	/** @since 3.14 */
+	int UsingTerminallyDeprecatedModule = ModuleRelated + 1431;
+	/** @since 3.14 */
+	int UsingTerminallyDeprecatedSinceVersionModule = ModuleRelated + 1432;
+	
+	/** @since 3.14 */
+	int NotAccessibleType = TypeRelated + 1450;
+	/** @since 3.14 */
+	int NotAccessibleField = FieldRelated + 1451;
+	/** @since 3.14 */
+	int NotAccessibleMethod = MethodRelated + 1452;
+	/** @since 3.14 */
+	int NotAccessibleConstructor = MethodRelated + 1453;
+	/** @since 3.14 */
+	int NotAccessiblePackage = ImportRelated + 1454;
+	/** @since 3.14 */
+	int ConflictingPackageFromModules = ModuleRelated + 1455;
+	/** @since 3.14 */
+	int ConflictingPackageFromOtherModules = ModuleRelated + 1456;
+	/** @since 3.14 */
+	int NonPublicTypeInAPI = ModuleRelated + 1457;
+	/** @since 3.14 */
+	int NotExportedTypeInAPI = ModuleRelated + 1458;
+	/** @since 3.14 */
+	int MissingRequiresTransitiveForTypeInAPI = ModuleRelated + 1459;
+	/** @since  3.14 */
+	int UnnamedPackageInNamedModule = ModuleRelated + 1460;
+	/** @since  3.14 */
+	int UnstableAutoModuleName = ModuleRelated + 1461;
+
+	/** @since 3.13 */
+	int RedundantNullDefaultAnnotationLocal = Internal + 1062;
+	
+	/** @since 3.13 */
+	int RedundantNullDefaultAnnotationField = Internal + 1063;
+	
 	/** @since 3.10 */
 	int GenericInferenceError = 1100; 	// FIXME: This is just a stop-gap measure, be more specific via https://bugs.eclipse.org/404675
 	
@@ -1909,4 +2066,36 @@ void setSourceStart(int sourceStart);
 	int LambdaShapeComputationError = 1101;
 	/** @since 3.13 */
 	int ProblemNotAnalysed = 1102;
+	
+	/** @since 3.13 */
+	int UnlikelyCollectionMethodArgumentType = 1200;
+	/** @since 3.13 */
+	int UnlikelyEqualsArgumentType = 1201;
+
+	/* Local-Variable Type Inference */
+	/** @since 3.14 */
+	int VarLocalMultipleDeclarators = Syntax + 1500; // ''var'' is not allowed in a compound declaration
+	/** @since 3.14 */
+	int VarLocalCannotBeArray = Syntax + 1501; // ''var'' is not allowed as an element type of an array
+	/** @since 3.14 */
+	int VarLocalReferencesItself = Syntax + 1502; // Declaration using ''var'' may not contin references to itself
+	/** @since 3.14 */
+	int VarLocalWithoutInitizalier = Syntax + 1503; // Cannot use ''var'' on variable without initializer
+	/** @since 3.14 */
+	int VarLocalInitializedToNull = TypeRelated + 1504; // Variable initialized to ''null'' needs an explicit target-type
+	/** @since 3.14 */
+	int VarLocalInitializedToVoid = TypeRelated + 1505; // Variable initializer is ''void'' -- cannot infer variable type 
+	/** @since 3.14 */
+	int VarLocalCannotBeArrayInitalizers = TypeRelated + 1506; // Array initializer needs an explicit target-type
+	/** @since 3.14 */
+	int VarLocalCannotBeLambda = TypeRelated + 1507; // Lambda expression needs an explicit target-type 
+	/** @since 3.14 */
+	int VarLocalCannotBeMethodReference = TypeRelated + 1508; // Method reference needs an explicit target-type
+	/** @since 3.14 */
+	int VarIsReserved = Syntax + 1509; // ''var'' is not a valid type name
+	/** @since 3.14 */
+	int VarIsReservedInFuture = Syntax + 1510; // ''var'' should not be used as an type name, since it is a reserved word from source level 10 on
+	/** @since 3.14 */
+	int VarIsNotAllowedHere = Syntax + 1511; // ''var'' is not allowed here
+	
 }

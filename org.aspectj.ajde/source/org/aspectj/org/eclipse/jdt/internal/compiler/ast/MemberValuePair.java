@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -48,9 +48,7 @@ public class MemberValuePair extends ASTNode {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode#print(int, java.lang.StringBuffer)
-	 */
+	@Override
 	public StringBuffer print(int indent, StringBuffer output) {
 		output
 			.append(this.name)
@@ -60,6 +58,9 @@ public class MemberValuePair extends ASTNode {
 	}
 
 	public void resolveTypeExpecting(final BlockScope scope, final TypeBinding requiredType) {
+		if (this.compilerElementPair != null) {
+			return;
+		}
 
 		if (this.value == null) {
 			this.compilerElementPair = new ElementValuePair(this.name, this.value, this.binding);
@@ -89,6 +90,7 @@ public class MemberValuePair extends ASTNode {
 			valueType = this.value.resolveType(scope);
 			// https://bugs.eclipse.org/bugs/show_bug.cgi?id=248897
 			ASTVisitor visitor = new ASTVisitor() {
+				@Override
 				public boolean visit(SingleNameReference reference, BlockScope scop) {
 					if (reference.binding instanceof LocalVariableBinding) {
 						((LocalVariableBinding) reference.binding).useFlag = LocalVariableBinding.USED;
@@ -248,6 +250,7 @@ public class MemberValuePair extends ASTNode {
 		}
 	}
 
+	@Override
 	public void traverse(ASTVisitor visitor, BlockScope scope) {
 		if (visitor.visit(this, scope)) {
 			if (this.value != null) {

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2016 GK Software AG.
+ * Copyright (c) 2013, 2017 GK Software AG.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -27,6 +27,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Invocation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.LambdaExpression;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.MessageSend;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ReferenceExpression;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Wildcard;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.InferenceContext18.SuspendedInferenceRecord;
 
 /**
@@ -52,6 +53,7 @@ class ConstraintExpressionFormula extends ConstraintFormula {
 		this.isSoft = isSoft;
 	}
 
+	@Override
 	public Object reduce(InferenceContext18 inferenceContext) throws InferenceFailureException {
 		
 		if (this.relation == POTENTIALLY_COMPATIBLE) {
@@ -66,7 +68,13 @@ class ConstraintExpressionFormula extends ConstraintFormula {
 	
 		// JLS 18.2.1
 		if (this.right.isProperType(true)) {
-			return this.left.isCompatibleWith(this.right, inferenceContext.scope) || this.left.isBoxingCompatibleWith(this.right, inferenceContext.scope) ? TRUE : FALSE;
+			if (this.left.isCompatibleWith(this.right, inferenceContext.scope) || this.left.isBoxingCompatibleWith(this.right, inferenceContext.scope)) {
+				if (this.left.resolvedType != null && this.left.resolvedType.needsUncheckedConversion(this.right)) {
+					inferenceContext.usesUncheckedConversion = true;
+				}
+				return TRUE;
+			}
+			return FALSE;
 		}
 		if (!canBePolyExpression(this.left)) {
 			TypeBinding exprType = this.left.resolvedType;
@@ -382,8 +390,7 @@ class ConstraintExpressionFormula extends ConstraintFormula {
 				throw new InferenceFailureException("expression has no value"); //$NON-NLS-1$
 
 			if (inferenceContext.usesUncheckedConversion) {
-				// spec says erasure, but we don't really have compatibility rules for erasure, use raw type instead:
-				TypeBinding erasure = inferenceContext.environment.convertToRawType(returnType, false);
+				TypeBinding erasure = getRealErasure(returnType, inferenceContext.environment);
 				ConstraintTypeFormula newConstraint = ConstraintTypeFormula.create(erasure, targetType, COMPATIBLE);
 				return inferenceContext.reduceAndIncorporate(newConstraint);
 			}
@@ -396,12 +403,17 @@ class ConstraintExpressionFormula extends ConstraintFormula {
 						parameterizedType.genericType(), betas, parameterizedType.enclosingType(), parameterizedType.getTypeAnnotations());
 				inferenceContext.currentBounds.captures.put(gbeta, parameterizedType); // established: both types have nonnull arguments
 				if (InferenceContext18.SHOULD_WORKAROUND_BUG_JDK_8054721) {
-					parameterizedType = parameterizedType.capture(inferenceContext.scope, invocationSite.sourceStart(), invocationSite.sourceEnd());
-					arguments = parameterizedType.arguments;
 					for (int i = 0, length = arguments.length; i < length; i++) {
-						if (arguments[i].isCapture() && arguments[i].isProperType(true)) {
-							CaptureBinding capture = (CaptureBinding) arguments[i];
-							inferenceContext.currentBounds.addBound(new TypeBound(betas[i], capture, SAME), inferenceContext.environment);
+						if (arguments[i].isWildcard()) {
+							WildcardBinding wc = (WildcardBinding) arguments[i];
+							switch (wc.boundKind) {
+								case Wildcard.EXTENDS:
+									inferenceContext.currentBounds.addBound(new TypeBound(betas[i], wc.bound(), SUBTYPE), inferenceContext.environment);
+									break;
+								case Wildcard.SUPER:
+									inferenceContext.currentBounds.addBound(new TypeBound(betas[i], wc.bound(), SUPERTYPE), inferenceContext.environment);
+									break;
+							}
 						}
 					}
 				}
@@ -440,6 +452,18 @@ class ConstraintExpressionFormula extends ConstraintFormula {
 		return true;
 	}
 
+	private static TypeBinding getRealErasure(TypeBinding type, LookupEnvironment environment) {
+		TypeBinding erasure = type.erasure();
+		// could still be / contain a generic type that needs to be converted to raw:
+		TypeBinding erasedLeaf = erasure.leafComponentType();
+		if (erasedLeaf.isGenericType())
+			erasedLeaf = environment.convertToRawType(erasedLeaf, false);
+		if (erasure.isArrayType())
+			return environment.createArrayType(erasedLeaf, erasure.dimensions());
+		return erasedLeaf;
+	}
+
+	@Override
 	Collection<InferenceVariable> inputVariables(final InferenceContext18 context) {
 		// from 18.5.2.
 		if (this.left instanceof LambdaExpression) {
@@ -500,6 +524,7 @@ class ConstraintExpressionFormula extends ConstraintFormula {
 	}
 
 	// debugging:
+	@Override
 	public String toString() {
 		StringBuffer buf = new StringBuffer().append(LEFT_ANGLE_BRACKET);
 		this.left.printExpression(4, buf);

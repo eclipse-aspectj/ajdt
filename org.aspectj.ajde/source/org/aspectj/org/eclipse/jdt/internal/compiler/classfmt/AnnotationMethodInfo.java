@@ -16,12 +16,13 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.AttributeNamesConst
 public class AnnotationMethodInfo extends MethodInfo {
 	protected Object defaultValue = null;
 
-public static MethodInfo createAnnotationMethod(byte classFileBytes[], int offsets[], int offset) {
-	MethodInfo methodInfo = new MethodInfo(classFileBytes, offsets, offset);
+public static MethodInfo createAnnotationMethod(byte classFileBytes[], int offsets[], int offset, long version) {
+	MethodInfo methodInfo = new MethodInfo(classFileBytes, offsets, offset, version);
 	int attributesCount = methodInfo.u2At(6);
 	int readOffset = 8;
 	AnnotationInfo[] annotations = null;
 	Object defaultValue = null;
+	TypeAnnotationInfo[] typeAnnotations = null;
 	for (int i = 0; i < attributesCount; i++) {
 		// check the name of each attribute
 		int utf8Offset = methodInfo.constantPoolOffsets[methodInfo.u2At(readOffset)] - methodInfo.structOffset;
@@ -43,10 +44,15 @@ public static MethodInfo createAnnotationMethod(byte classFileBytes[], int offse
 					break;
 				case 'R' :
 					AnnotationInfo[] methodAnnotations = null;
+					TypeAnnotationInfo[] methodTypeAnnotations = null;
 					if (CharOperation.equals(attributeName, AttributeNamesConstants.RuntimeVisibleAnnotationsName)) {
 						methodAnnotations = decodeMethodAnnotations(readOffset, true, methodInfo);
 					} else if (CharOperation.equals(attributeName, AttributeNamesConstants.RuntimeInvisibleAnnotationsName)) {
 						methodAnnotations = decodeMethodAnnotations(readOffset, false, methodInfo);
+					} else if (CharOperation.equals(attributeName, AttributeNamesConstants.RuntimeVisibleTypeAnnotationsName)) {
+						methodTypeAnnotations = decodeTypeAnnotations(readOffset, true, methodInfo);
+					} else if (CharOperation.equals(attributeName, AttributeNamesConstants.RuntimeInvisibleTypeAnnotationsName)) {
+						methodTypeAnnotations = decodeTypeAnnotations(readOffset, false, methodInfo);
 					}
 					if (methodAnnotations != null) {
 						if (annotations == null) {
@@ -58,6 +64,16 @@ public static MethodInfo createAnnotationMethod(byte classFileBytes[], int offse
 							System.arraycopy(methodAnnotations, 0, newAnnotations, length, methodAnnotations.length);
 							annotations = newAnnotations;
 						}
+					} else if (methodTypeAnnotations != null) {
+						if (typeAnnotations == null) {
+							typeAnnotations = methodTypeAnnotations;
+						} else {
+							int length = typeAnnotations.length;
+							TypeAnnotationInfo[] newAnnotations = new TypeAnnotationInfo[length + methodTypeAnnotations.length];
+							System.arraycopy(typeAnnotations, 0, newAnnotations, 0, length);
+							System.arraycopy(methodTypeAnnotations, 0, newAnnotations, length, methodTypeAnnotations.length);
+							typeAnnotations = newAnnotations;
+						}
 					}
 					break;
 			}
@@ -67,18 +83,22 @@ public static MethodInfo createAnnotationMethod(byte classFileBytes[], int offse
 	methodInfo.attributeBytes = readOffset;
 
 	if (defaultValue != null) {
+		if (typeAnnotations != null)
+			return new AnnotationMethodInfoWithTypeAnnotations(methodInfo, defaultValue, annotations, typeAnnotations);
 		if (annotations != null) {
 			return new AnnotationMethodInfoWithAnnotations(methodInfo, defaultValue, annotations);
 		}
 		return new AnnotationMethodInfo(methodInfo, defaultValue);
 	}
+	if (typeAnnotations != null)
+		return new MethodInfoWithTypeAnnotations(methodInfo, annotations, null, typeAnnotations);
 	if (annotations != null)
 		return new MethodInfoWithAnnotations(methodInfo, annotations);
 	return methodInfo;
 }
 
 AnnotationMethodInfo(MethodInfo methodInfo, Object defaultValue) {
-	super(methodInfo.reference, methodInfo.constantPoolOffsets, methodInfo.structOffset);
+	super(methodInfo.reference, methodInfo.constantPoolOffsets, methodInfo.structOffset, methodInfo.version);
 	this.defaultValue = defaultValue;
 
 	this.accessFlags = methodInfo.accessFlags;
@@ -90,6 +110,7 @@ AnnotationMethodInfo(MethodInfo methodInfo, Object defaultValue) {
 	this.signatureUtf8Offset = methodInfo.signatureUtf8Offset;
 	this.tagBits = methodInfo.tagBits;
 }
+@Override
 public Object getDefaultValue() {
 	return this.defaultValue;
 }

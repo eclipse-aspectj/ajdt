@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -17,10 +17,16 @@ import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
-import org.aspectj.org.eclipse.jdt.core.*;
+import org.aspectj.org.eclipse.jdt.core.IClasspathEntry;
+import org.aspectj.org.eclipse.jdt.core.ICompilationUnit;
+import org.aspectj.org.eclipse.jdt.core.IJavaElement;
+import org.aspectj.org.eclipse.jdt.core.IPackageFragmentRoot;
+import org.aspectj.org.eclipse.jdt.core.JavaCore;
+import org.aspectj.org.eclipse.jdt.core.JavaModelException;
+import org.aspectj.org.eclipse.jdt.internal.core.DeltaProcessor.RootInfo;
 import org.aspectj.org.eclipse.jdt.internal.core.util.HashSetOfArray;
-import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
 import org.aspectj.org.eclipse.jdt.internal.core.util.HashtableOfArrayToObject;
+import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
 
 /**
  * Info for IJavaProject.
@@ -32,7 +38,7 @@ import org.aspectj.org.eclipse.jdt.internal.core.util.HashtableOfArrayToObject;
  * that are internal to the project, use <code>JavaProject#getChildren()</code>.
  */
 
-@SuppressWarnings({"rawtypes", "unchecked"})
+@SuppressWarnings({"rawtypes"})
 /* package */
 class JavaProjectElementInfo extends OpenableElementInfo {
 
@@ -65,12 +71,8 @@ class JavaProjectElementInfo extends OpenableElementInfo {
 		public Map rootToResolvedEntries;
 	}
 
-	/**
-	 * A array with all the non-java resources contained by this PackageFragment
-	 */
-	private Object[] nonJavaResources;
-
 	ProjectCache projectCache;
+	ProjectCache mainProjectCache;
 
 	/*
 	 * Adds the given name and its super names to the given set
@@ -135,7 +137,7 @@ class JavaProjectElementInfo extends OpenableElementInfo {
 							String resName = res.getName();
 
 							// ignore a jar file on the classpath
-							if (isClasspathResolved && 
+							if (isClasspathResolved &&
 									isClasspathEntryOrOutputLocation(resFullPath, res.getLocation()/* see https://bugs.eclipse.org/bugs/show_bug.cgi?id=244406 */, classpath, projectOutput)) {
 								break;
 							}
@@ -198,26 +200,26 @@ class JavaProjectElementInfo extends OpenableElementInfo {
 		return resources;
 	}
 
-	ProjectCache getProjectCache(JavaProject project) {
-		ProjectCache cache = this.projectCache;
+	ProjectCache getProjectCache(JavaProject project, boolean excludeTestCode) {
+		ProjectCache cache = excludeTestCode ? this.mainProjectCache : this.projectCache;
 		if (cache == null) {
 			IPackageFragmentRoot[] roots;
-			Map reverseMap = new HashMap(3);
+			Map<?, ?> reverseMap = new HashMap<>(3);
 			try {
-				roots = project.getAllPackageFragmentRoots(reverseMap);
+				roots = project.getAllPackageFragmentRoots(reverseMap, excludeTestCode);
 			} catch (JavaModelException e) {
 				// project does not exist: cannot happen since this is the info of the project
 				roots = new IPackageFragmentRoot[0];
 				reverseMap.clear();
 			}
 
-			HashMap rootInfos = JavaModelManager.getJavaModelManager().deltaState.roots;
-			HashMap pkgFragmentsCaches = new HashMap();
+			Map<IPath, RootInfo> rootInfos = JavaModelManager.getJavaModelManager().deltaState.roots;
+			HashMap<IPackageFragmentRoot, HashSetOfArray> pkgFragmentsCaches = new HashMap<>();
 			int length = roots.length;
 			JavaModelManager  manager = JavaModelManager.getJavaModelManager();
 			for (int i = 0; i < length; i++) {
 				IPackageFragmentRoot root = roots[i];
-				DeltaProcessor.RootInfo rootInfo = (DeltaProcessor.RootInfo) rootInfos.get(root.getPath());
+				DeltaProcessor.RootInfo rootInfo = rootInfos.get(root.getPath());
 				if (rootInfo == null || rootInfo.project.equals(project)) {
 					// ensure that an identical root is used (see https://bugs.eclipse.org/bugs/show_bug.cgi?id=217059 )
 					roots[i] = root = (IPackageFragmentRoot) manager.getExistingElement(root);
@@ -229,7 +231,11 @@ class JavaProjectElementInfo extends OpenableElementInfo {
 			}
 
 			cache = new ProjectCache(roots, reverseMap, pkgFragmentsCaches);
-			this.projectCache = cache;
+			if(excludeTestCode) {
+				this.mainProjectCache = cache;
+			} else {
+				this.projectCache = cache;
+			}
 		}
 		return cache;
 	}
@@ -238,11 +244,12 @@ class JavaProjectElementInfo extends OpenableElementInfo {
 	 * Returns an array of non-java resources contained in the receiver.
 	 */
 	Object[] getNonJavaResources(JavaProject project) {
-
-		if (this.nonJavaResources == null) {
-			this.nonJavaResources = computeNonJavaResources(project);
+		Object[] resources = this.nonJavaResources;
+		if (resources == null) {
+			resources = computeNonJavaResources(project);
+			this.nonJavaResources = resources;
 		}
-		return this.nonJavaResources;
+		return resources;
 	}
 
 	private void initializePackageNames(IPackageFragmentRoot root, HashSetOfArray fragmentsCache) {
@@ -259,7 +266,7 @@ class JavaProjectElementInfo extends OpenableElementInfo {
 			return;
 		}
 		for (int j = 0, length = frags.length; j < length; j++) {
-			fragmentsCache.add(((PackageFragment) frags[j]).names);
+			if (frags[j] instanceof PackageFragment) fragmentsCache.add(((PackageFragment) frags[j]).names);
 		}
 	}
 
@@ -287,17 +294,17 @@ class JavaProjectElementInfo extends OpenableElementInfo {
 	 * The given project is assumed to be the handle of this info.
 	 * This name lookup first looks in the given working copies.
 	 */
-	NameLookup newNameLookup(JavaProject project, ICompilationUnit[] workingCopies) {
-		ProjectCache cache = getProjectCache(project);
+	NameLookup newNameLookup(JavaProject project, ICompilationUnit[] workingCopies, boolean excludeTestCode) {
+		ProjectCache cache = getProjectCache(project, excludeTestCode);
 		HashtableOfArrayToObject allPkgFragmentsCache = cache.allPkgFragmentsCache;
 		if (allPkgFragmentsCache == null) {
-			HashMap rootInfos = JavaModelManager.getJavaModelManager().deltaState.roots;
+			Map<IPath, RootInfo> rootInfos = JavaModelManager.getJavaModelManager().deltaState.roots;
 			IPackageFragmentRoot[] allRoots = cache.allPkgFragmentRootsCache;
 			int length = allRoots.length;
 			allPkgFragmentsCache = new HashtableOfArrayToObject();
 			for (int i = 0; i < length; i++) {
 				IPackageFragmentRoot root = allRoots[i];
-				DeltaProcessor.RootInfo rootInfo = (DeltaProcessor.RootInfo) rootInfos.get(root.getPath());
+				DeltaProcessor.RootInfo rootInfo = rootInfos.get(root.getPath());
 				JavaProject rootProject = rootInfo == null ? project : rootInfo.project;
 				HashSetOfArray fragmentsCache;
 				if (rootProject.equals(project)) {
@@ -307,7 +314,7 @@ class JavaProjectElementInfo extends OpenableElementInfo {
 					// retrieve package fragments  cache from the root's project
 					ProjectCache rootProjectCache;
 					try {
-						rootProjectCache = rootProject.getProjectCache();
+						rootProjectCache = rootProject.getProjectCache(excludeTestCode);
 					} catch (JavaModelException e) {
 						// project doesn't exit
 						continue;
@@ -352,14 +359,6 @@ class JavaProjectElementInfo extends OpenableElementInfo {
 	 */
 	void resetCaches() {
 		this.projectCache = null;
+		this.mainProjectCache = null;
 	}
-
-	/**
-	 * Set the fNonJavaResources to res value
-	 */
-	void setNonJavaResources(Object[] resources) {
-
-		this.nonJavaResources = resources;
-	}
-
 }

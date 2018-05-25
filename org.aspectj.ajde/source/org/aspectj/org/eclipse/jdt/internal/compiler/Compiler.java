@@ -1,5 +1,6 @@
+// AspectJ
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -17,6 +18,7 @@ import org.aspectj.org.eclipse.jdt.core.compiler.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.*;
+import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.*;
@@ -273,6 +275,7 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 			this.requestor = requestor;
 		} else {
 			this.requestor = new ICompilerRequestor(){
+				@Override
 				public void acceptResult(CompilationResult result){
 					if (DebugRequestor.isActive()){
 						DebugRequestor.acceptDebugResult(result);
@@ -291,6 +294,7 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 	/**
 	 * Add an additional binary type
 	 */
+	@Override
 	public void accept(IBinaryType binaryType, PackageBinding packageBinding, AccessRestriction accessRestriction) {
 		if (this.options.verbose) {
 			this.out.println(
@@ -298,13 +302,15 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 //			new Exception("TRACE BINARY").printStackTrace(System.out);
 //		    System.out.println();
 		}
-		this.lookupEnvironment.createBinaryTypeFrom(binaryType, packageBinding, accessRestriction);
+		LookupEnvironment env = packageBinding.environment;
+		env.createBinaryTypeFrom(binaryType, packageBinding, accessRestriction);
 	}
 
 	/**
 	 * Add an additional compilation unit into the loop
 	 *  ->  build compilation unit declarations, their bindings and record their results.
 	 */
+	@Override
 	public void accept(ICompilationUnit sourceUnit, AccessRestriction accessRestriction) {
 		// Switch the current policy and compilation result for this unit to the requested one.
 		CompilationResult unitResult =
@@ -348,6 +354,7 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 	/**
 	 * Add additional source types
 	 */
+	@Override
 	public void accept(ISourceType[] sourceTypes, PackageBinding packageBinding, AccessRestriction accessRestriction) {
 		this.problemReporter.abortDueToInternalError(
 			Messages.bind(Messages.abort_againstSourceModel, new String[] { String.valueOf(sourceTypes[0].getName()), String.valueOf(sourceTypes[0].getFileName()) }));
@@ -427,6 +434,10 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 			// build and record parsed units
 			reportProgress(Messages.compilation_beginningToCompile);
 
+			if (this.options.complianceLevel >= ClassFileConstants.JDK9) {
+				// in Java 9 the compiler must never ask the oracle for a module that is contained in the input units:
+				sortModuleDeclarationsFirst(sourceUnits);
+			}
 			if (this.annotationProcessorManager == null) {
 				beginToCompile(sourceUnits);
 			} else {
@@ -474,6 +485,18 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 		}
 	}
 
+	private void sortModuleDeclarationsFirst(ICompilationUnit[] sourceUnits) {
+		Arrays.sort(sourceUnits, (u1, u2) -> {
+			char[] fn1 = u1.getFileName();
+			char[] fn2 = u2.getFileName();
+			boolean isMod1 = CharOperation.endsWith(fn1, TypeConstants.MODULE_INFO_FILE_NAME) || CharOperation.endsWith(fn1, TypeConstants.MODULE_INFO_CLASS_NAME);
+			boolean isMod2 = CharOperation.endsWith(fn2, TypeConstants.MODULE_INFO_FILE_NAME) || CharOperation.endsWith(fn2, TypeConstants.MODULE_INFO_CLASS_NAME);
+			if (isMod1 == isMod2)
+				return 0;
+			return isMod1 ? -1 : 1;
+		});
+	}
+
 	class APTProblem {
 		CategorizedProblem problem;
 		ReferenceContext context;
@@ -482,7 +505,7 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 			this.context = context;
 		}
 	}
-
+	
 	protected void backupAptProblems() {
 		if (this.unitsToProcess == null) return;
 		for (int i = 0; i < this.totalUnits; i++) {
@@ -549,14 +572,12 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 								}));
 						process(unit, i);
 					} finally {
-						// cleanup compilation unit result, but only if not annotation processed.
+						// cleanup compilation unit result
 						// if (this.annotationProcessorManager == null || shouldCleanup(i))
 						// unit.cleanUp(); // AspectJ Extension - moved to afterProcessing
 					}
 					// AspectJ Extension
-					// 					if (this.annotationProcessorManager == null) {
 					// this.unitsToProcess[i] = null; // release reference to processed unit declaration
-					// }
 					// AspectJ Extension end
 					reportWorked(1, i);
 					this.stats.lineCount += unit.compilationResult.lineSeparatorPositions.length;
@@ -605,14 +626,14 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 				}
 			}
 			if (!lastRound) {
-			if (this.annotationProcessorManager != null && this.totalUnits > this.annotationProcessorStartIndex) {
-				int backup = this.annotationProcessorStartIndex;
-				int prevUnits = this.totalUnits;
-				processAnnotations();
-				// Clean up the units that were left out previously for annotation processing.
-				for (int i = backup; i < prevUnits; i++) {
-					this.unitsToProcess[i].cleanUp();
-				}
+				if (this.annotationProcessorManager != null && this.totalUnits > this.annotationProcessorStartIndex) {
+					int backup = this.annotationProcessorStartIndex;
+					int prevUnits = this.totalUnits;
+					processAnnotations();
+					// Clean up the units that were left out previously for annotation processing.
+					for (int i = backup; i < prevUnits; i++) {
+						this.unitsToProcess[i].cleanUp();
+					}
 					processCompiledUnits(backup, lastRound);
 				}
 			}

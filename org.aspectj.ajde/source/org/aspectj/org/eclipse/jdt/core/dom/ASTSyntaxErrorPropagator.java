@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -82,65 +82,52 @@ class ASTSyntaxErrorPropagator extends ASTVisitor {
 		return tagWithErrors;
 	}
 
-	/*
-	 * Method declared on ASTVisitor.
-	 */
+	@Override
 	public boolean visit(FieldDeclaration node) {
 		return checkAndTagAsMalformed(node);
 	}
 
-	/*
-	 * Method declared on ASTVisitor.
-	 */
+	@Override
 	public boolean visit(MethodDeclaration node) {
 		return checkAndTagAsMalformed(node);
 	}
 
-	/*
-	 * Method declared on ASTVisitor.
-	 */
+	@Override
+	public boolean visit(ModuleDeclaration node) {
+		return checkAndTagAsMalformed(node);
+	}
+
+	@Override
 	public boolean visit(PackageDeclaration node) {
 		return checkAndTagAsMalformed(node);
 	}
 
-	/*
-	 * Method declared on ASTVisitor.
-	 */
+	@Override
 	public boolean visit(ImportDeclaration node) {
 		return checkAndTagAsMalformed(node);
 	}
 
-	/*
-	 * Method declared on ASTVisitor.
-	 */
+	@Override
 	public boolean visit(CompilationUnit node) {
 		return checkAndTagAsMalformed(node);
 	}
 
-	/*
-	 * Method declared on ASTVisitor.
-	 */
+	@Override
 	public boolean visit(AnnotationTypeDeclaration node) {
 		return checkAndTagAsMalformed(node);
 	}
 
-	/*
-	 * Method declared on ASTVisitor.
-	 */
+	@Override
 	public boolean visit(EnumDeclaration node) {
 		return checkAndTagAsMalformed(node);
 	}
 
-	/*
-	 * Method declared on ASTVisitor.
-	 */
+	@Override
 	public boolean visit(TypeDeclaration node) {
 		return checkAndTagAsMalformed(node);
 	}
 
-	/*
-	 * Method declared on ASTVisitor.
-	 */
+	@Override
 	public boolean visit(Initializer node) {
 		return checkAndTagAsMalformed(node);
 	}

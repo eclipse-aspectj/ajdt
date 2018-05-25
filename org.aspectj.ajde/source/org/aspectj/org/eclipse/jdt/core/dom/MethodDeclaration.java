@@ -254,7 +254,7 @@ public class MethodDeclaration extends BodyDeclaration {
 	public static List propertyDescriptors(int apiLevel) {
 		if (apiLevel == AST.JLS2_INTERNAL) {
 			return PROPERTY_DESCRIPTORS_2_0;
-		} else if (apiLevel < AST.JLS8) {
+		} else if (apiLevel < AST.JLS8_INTERNAL) {
 			return PROPERTY_DESCRIPTORS_3_0;
 		} else {
 			return PROPERTY_DESCRIPTORS_8_0;
@@ -380,7 +380,7 @@ public class MethodDeclaration extends BodyDeclaration {
 		if (ast.apiLevel >= AST.JLS3_INTERNAL) {
 			this.typeParameters = new ASTNode.NodeList(TYPE_PARAMETERS_PROPERTY);
 		}
-		if (ast.apiLevel < AST.JLS8) {
+		if (ast.apiLevel < AST.JLS8_INTERNAL) {
 			this.thrownExceptions = new ASTNode.NodeList(THROWN_EXCEPTIONS_PROPERTY);
 		} else {
 			this.extraDimensions = new ASTNode.NodeList(EXTRA_DIMENSIONS2_PROPERTY);
@@ -392,13 +392,12 @@ public class MethodDeclaration extends BodyDeclaration {
 	 * Method declared on ASTNode.
 	 * @since 3.0
 	 */
+	@Override
 	final List internalStructuralPropertiesForType(int apiLevel) {
 		return propertyDescriptors(apiLevel);
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	final int internalGetSetIntProperty(SimplePropertyDescriptor property, boolean get, int value) {
 		if (property == MODIFIERS_PROPERTY) {
 			if (get) {
@@ -420,9 +419,7 @@ public class MethodDeclaration extends BodyDeclaration {
 		return super.internalGetSetIntProperty(property, get, value);
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	final boolean internalGetSetBooleanProperty(SimplePropertyDescriptor property, boolean get, boolean value) {
 		if (property == CONSTRUCTOR_PROPERTY) {
 			if (get) {
@@ -436,9 +433,7 @@ public class MethodDeclaration extends BodyDeclaration {
 		return super.internalGetSetBooleanProperty(property, get, value);
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	final ASTNode internalGetSetChildProperty(ChildPropertyDescriptor property, boolean get, ASTNode child) {
 		if (property == JAVADOC_PROPERTY) {
 			if (get) {
@@ -500,9 +495,7 @@ public class MethodDeclaration extends BodyDeclaration {
 		return super.internalGetSetChildProperty(property, get, child);
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	final List internalGetChildListProperty(ChildListPropertyDescriptor property) {
 		if (property == MODIFIERS2_PROPERTY) {
 			return modifiers();
@@ -526,37 +519,27 @@ public class MethodDeclaration extends BodyDeclaration {
 		return super.internalGetChildListProperty(property);
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on BodyDeclaration.
-	 */
+	@Override
 	final ChildPropertyDescriptor internalJavadocProperty() {
 		return JAVADOC_PROPERTY;
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on BodyDeclaration.
-	 */
+	@Override
 	final ChildListPropertyDescriptor internalModifiers2Property() {
 		return MODIFIERS2_PROPERTY;
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on BodyDeclaration.
-	 */
+	@Override
 	final SimplePropertyDescriptor internalModifiersProperty() {
 		return MODIFIERS_PROPERTY;
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	final int getNodeType0() {
 		return METHOD_DECLARATION;
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	ASTNode clone0(AST target) {
 		MethodDeclaration result = new MethodDeclaration(target);
 		result.setSourceRange(getStartPosition(), getLength());
@@ -576,18 +559,18 @@ public class MethodDeclaration extends BodyDeclaration {
 		}
 		result.setConstructor(isConstructor());
 		result.setName((SimpleName) getName().clone(target));
-		if (this.ast.apiLevel >= AST.JLS8) {
+		if (this.ast.apiLevel >= AST.JLS8_INTERNAL) {
 			result.setReceiverType((Type) ASTNode.copySubtree(target, getReceiverType()));
 			result.setReceiverQualifier((SimpleName) ASTNode.copySubtree(target, getReceiverQualifier()));
 		}
 		result.parameters().addAll(
 			ASTNode.copySubtrees(target, parameters()));
-		if (this.ast.apiLevel >= AST.JLS8) {
+		if (this.ast.apiLevel >= AST.JLS8_INTERNAL) {
 			result.extraDimensions().addAll(ASTNode.copySubtrees(target, extraDimensions()));
 		} else {
 			result.setExtraDimensions(getExtraDimensions());
 		}
-		if (this.ast.apiLevel() >= AST.JLS8) {
+		if (this.ast.apiLevel() >= AST.JLS8_INTERNAL) {
 			result.thrownExceptionTypes().addAll(ASTNode.copySubtrees(target, thrownExceptionTypes()));
 		} else {
 			result.thrownExceptions().addAll(ASTNode.copySubtrees(target, thrownExceptions()));			
@@ -597,17 +580,13 @@ public class MethodDeclaration extends BodyDeclaration {
 		return result;
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	final boolean subtreeMatch0(ASTMatcher matcher, Object other) {
 		// dispatch to correct overloaded match method
 		return matcher.match(this, other);
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	void accept0(ASTVisitor visitor) {
 		boolean visitChildren = visitor.visit(this);
 		if (visitChildren) {
@@ -622,12 +601,12 @@ public class MethodDeclaration extends BodyDeclaration {
 			}
 			// n.b. visit return type even for constructors
 			acceptChild(visitor, getName());
-			if (this.ast.apiLevel >= AST.JLS8) {
+			if (this.ast.apiLevel >= AST.JLS8_INTERNAL) {
 				acceptChild(visitor, this.optionalReceiverType);
 				acceptChild(visitor, this.optionalReceiverQualifier);
 			}
 			acceptChildren(visitor, this.parameters);
-			if (this.ast.apiLevel() >= AST.JLS8) {
+			if (this.ast.apiLevel() >= AST.JLS8_INTERNAL) {
 				acceptChildren(visitor, this.extraDimensions);
 				acceptChildren(visitor, this.thrownExceptionTypes);				
 			} else {
@@ -1149,16 +1128,12 @@ public class MethodDeclaration extends BodyDeclaration {
 		return this.ast.getBindingResolver().resolveMethod(this);
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	int memSize() {
 		return super.memSize() + 13 * 4;
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	int treeSize() {
 		return
 			memSize()
@@ -1170,7 +1145,7 @@ public class MethodDeclaration extends BodyDeclaration {
 			+ (this.optionalReceiverQualifier == null ? 0 : this.optionalReceiverQualifier.treeSize())
 			+ (this.returnType == null ? 0 : this.returnType.treeSize())
 			+ this.parameters.listSize()
-			+ (this.ast.apiLevel < AST.JLS8
+			+ (this.ast.apiLevel < AST.JLS8_INTERNAL
 					? this.thrownExceptions.listSize()
 					: this.extraDimensions.listSize() + this.thrownExceptionTypes.listSize())
 			+ (this.optionalBody == null ? 0 : getBody().treeSize());

@@ -1,5 +1,6 @@
+// ASPECTJ
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,7 +13,7 @@
  *								Bug 440477 - [null] Infrastructure for feeding external annotations into compilation
  *								Bug 440687 - [compiler][batch][null] improve command line option for external annotations
  *     Andy Clement (GoPivotal, Inc) aclement@gopivotal.com - Contributions for
- *         bug 407191 - [1.8] Binary access support for type annotations
+ *         						bug 407191 - [1.8] Binary access support for type annotations
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.classfmt;
 
@@ -20,23 +21,18 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.function.Predicate;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.AnnotationTargetTypeConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.AttributeNamesConstants;
-import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryAnnotation;
-import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryElementValuePair;
-import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryField;
-import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryMethod;
-import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryNestedType;
-import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryType;
-import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryTypeAnnotation;
-import org.aspectj.org.eclipse.jdt.internal.compiler.env.ITypeAnnotationWalker;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.Constant;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BinaryTypeBinding.ExternalAnnotationStatus;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TagBits;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeIds;
+import org.aspectj.org.eclipse.jdt.internal.compiler.util.JRTUtil;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
 
 public class ClassFileReader extends ClassFileStruct implements IBinaryType {
@@ -49,6 +45,8 @@ public class ClassFileReader extends ClassFileStruct implements IBinaryType {
 	private AnnotationInfo[] annotations;
 	private TypeAnnotationInfo[] typeAnnotations;
 	private FieldInfo[] fields;
+	private ModuleInfo moduleDeclaration;
+	public char[] moduleName;
 	private int fieldsCount;
 
 	// initialized in case the .class file is a nested type
@@ -117,6 +115,23 @@ public static ClassFileReader read(
 		return read(zip, filename, false);
 }
 
+public static ClassFileReader readFromJrt(
+		File jrt,
+		IModule module,
+		String filename)
+
+		throws ClassFormatException, java.io.IOException {
+		return JRTUtil.getClassfile(jrt, filename, module);
+	}
+public static ClassFileReader readFromModule(
+		File jrt,
+		String moduleName,
+		String filename,
+		Predicate<String> moduleNameFilter)
+
+		throws ClassFormatException, java.io.IOException {
+		return JRTUtil.getClassfile(jrt, filename, moduleName, moduleNameFilter);
+}
 public static ClassFileReader read(
 	java.util.zip.ZipFile zip,
 	String filename,
@@ -237,6 +252,14 @@ public ClassFileReader(byte[] classFileBytes, char[] fileName, boolean fullyInit
 					this.constantPoolOffsets[i] = readOffset;
 					readOffset += ClassFileConstants.ConstantInvokeDynamicFixedSize;
 					break;
+				case ClassFileConstants.ModuleTag:
+					this.constantPoolOffsets[i] = readOffset;
+					readOffset += ClassFileConstants.ConstantModuleFixedSize;
+					break;
+				case ClassFileConstants.PackageTag:
+					this.constantPoolOffsets[i] = readOffset;
+					readOffset += ClassFileConstants.ConstantPackageFixedSize;
+					break;
 			}
 		}
 		// Read and validate access flags
@@ -245,7 +268,9 @@ public ClassFileReader(byte[] classFileBytes, char[] fileName, boolean fullyInit
 
 		// Read the classname, use exception handlers to catch bad format
 		this.classNameIndex = u2At(readOffset);
-		this.className = getConstantClassNameAt(this.classNameIndex);
+		if (this.classNameIndex != 0) {
+			this.className = getConstantClassNameAt(this.classNameIndex);
+		}
 		readOffset += 2;
 
 		// Read the superclass name, can be null for java.lang.Object
@@ -274,7 +299,7 @@ public ClassFileReader(byte[] classFileBytes, char[] fileName, boolean fullyInit
 			FieldInfo field;
 			this.fields = new FieldInfo[this.fieldsCount];
 			for (int i = 0; i < this.fieldsCount; i++) {
-				field = FieldInfo.createField(this.reference, this.constantPoolOffsets, readOffset);
+				field = FieldInfo.createField(this.reference, this.constantPoolOffsets, readOffset, this.version);
 				this.fields[i] = field;
 				readOffset += field.sizeInBytes();
 			}
@@ -287,8 +312,8 @@ public ClassFileReader(byte[] classFileBytes, char[] fileName, boolean fullyInit
 			boolean isAnnotationType = (this.accessFlags & ClassFileConstants.AccAnnotation) != 0;
 			for (int i = 0; i < this.methodsCount; i++) {
 				this.methods[i] = isAnnotationType
-					? AnnotationMethodInfo.createAnnotationMethod(this.reference, this.constantPoolOffsets, readOffset)
-					: MethodInfo.createMethod(this.reference, this.constantPoolOffsets, readOffset);
+					? AnnotationMethodInfo.createAnnotationMethod(this.reference, this.constantPoolOffsets, readOffset, this.version)
+					: MethodInfo.createMethod(this.reference, this.constantPoolOffsets, readOffset, this.version);
 				readOffset += this.methods[i].sizeInBytes();
 			}
 		}
@@ -393,9 +418,16 @@ public ClassFileReader(byte[] classFileBytes, char[] fileName, boolean fullyInit
 								missingTypeOffset += 2;
 							}
 						}
+					} else if (CharOperation.equals(attributeName, AttributeNamesConstants.ModuleName)) {
+						this.moduleDeclaration = ModuleInfo.createModule(this.reference, this.constantPoolOffsets, readOffset);
+						this.moduleName = this.moduleDeclaration.name();
 					}
 			}
 			readOffset += (6 + u4At(readOffset + 2));
+		}
+		if (this.moduleDeclaration != null && this.annotations != null) {
+			this.moduleDeclaration.setAnnotations(this.annotations, this.tagBits, fullyInitialize);
+			this.annotations = null;
 		}
 		if (fullyInitialize) {
 			initialize();
@@ -403,7 +435,8 @@ public ClassFileReader(byte[] classFileBytes, char[] fileName, boolean fullyInit
 	} catch(ClassFormatException e) {
 		throw e;
 	} catch (Exception e) {
-		throw new ClassFormatException(
+		throw new ClassFormatException(e,
+			this.classFileName,
 			ClassFormatException.ErrTruncatedInput,
 			readOffset);
 	}
@@ -413,7 +446,6 @@ public ClassFileReader(byte[] classFileBytes, char[] fileName, boolean fullyInit
 public ExternalAnnotationStatus getExternalAnnotationStatus() {
 	return ExternalAnnotationStatus.NOT_EEA_CONFIGURED;
 }
-
 /**
  * Conditionally add external annotations to the mix.
  * If 'member' is given it must be either of IBinaryField or IBinaryMethod, in which case we're seeking annotations for that member.
@@ -446,11 +478,12 @@ private void decodeAnnotations(int offset, boolean runtimeVisible) {
 			long standardTagBits = newInfo.standardAnnotationTagBits;
 			if (standardTagBits != 0) {
 				this.tagBits |= standardTagBits;
-			} else {
-				if (newInfos == null)
-					newInfos = new AnnotationInfo[numberOfAnnotations - i];
-				newInfos[newInfoCount++] = newInfo;
+				if (this.version < ClassFileConstants.JDK9 || (standardTagBits & TagBits.AnnotationDeprecated) == 0)
+					continue;
 			}
+			if (newInfos == null)
+				newInfos = new AnnotationInfo[numberOfAnnotations - i];
+			newInfos[newInfoCount++] = newInfo;
 		}
 		if (newInfos == null)
 			return; // nothing to record in this.annotations
@@ -496,6 +529,7 @@ private void decodeTypeAnnotations(int offset, boolean runtimeVisible) {
 /**
  * @return the annotations or null if there is none.
  */
+@Override
 public IBinaryAnnotation[] getAnnotations() {
 	return this.annotations;
 }
@@ -503,6 +537,7 @@ public IBinaryAnnotation[] getAnnotations() {
 /**
  * @return the type annotations or null if there is none.
  */
+@Override
 public IBinaryTypeAnnotation[] getTypeAnnotations() {
 	return this.typeAnnotations;
 }
@@ -528,6 +563,7 @@ public int[] getConstantPoolOffsets() {
 	return this.constantPoolOffsets;
 }
 
+@Override
 public char[] getEnclosingMethod() {
 	if (this.enclosingNameAndTypeIndex <= 0) {
 		return null;
@@ -552,6 +588,7 @@ public char[] getEnclosingMethod() {
  * Answer the resolved compoundName of the enclosing type
  * or null if the receiver is a top level type.
  */
+@Override
 public char[] getEnclosingTypeName() {
 	return this.enclosingTypeName;
 }
@@ -560,17 +597,36 @@ public char[] getEnclosingTypeName() {
  * Answer the receiver's this.fields or null if the array is empty.
  * @return org.aspectj.org.eclipse.jdt.internal.compiler.api.IBinaryField[]
  */
+@Override
 public IBinaryField[] getFields() {
 	return this.fields;
+}
+/**
+ * @see IBinaryType#getModule()
+ */
+@Override
+public char[] getModule() {
+	return this.moduleName;
+}
+/**
+ * Returns the module declaration that this class file represents. This will be 
+ * null for non module-info class files.
+ * 
+ * @return the module declaration this represents
+ */
+public IBinaryModule getModuleDeclaration() {
+	return this.moduleDeclaration;
 }
 
 /**
  * @see org.aspectj.org.eclipse.jdt.internal.compiler.env.IDependent#getFileName()
  */
+@Override
 public char[] getFileName() {
 	return this.classFileName;
 }
 
+@Override
 public char[] getGenericSignature() {
 	return this.signature;
 }
@@ -602,20 +658,14 @@ public char[] getInnerSourceName() {
 	return null;
 }
 
-/**
- * Answer the resolved names of the receiver's interfaces in the
- * class file format as specified in section 4.2 of the Java 2 VM spec
- * or null if the array is empty.
- *
- * For example, java.lang.String is java/lang/String.
- * @return char[][]
- */
+@Override
 public char[][] getInterfaceNames() {
 	return this.interfaceNames;
 }
 
 // AspectJ start - original method has added boolean parameter, this new one has the original signature and simply
 // passes in false.  This is all needed due to the support for inter type inner types
+@Override
 public IBinaryNestedType[] getMemberTypes() {
 	return getMemberTypes(false);
 }
@@ -687,6 +737,7 @@ public IBinaryNestedType[] getMemberTypes(boolean keepIncorrectlyNamedInners) { 
  * Answer the receiver's this.methods or null if the array is empty.
  * @return org.aspectj.org.eclipse.jdt.internal.compiler.api.env.IBinaryMethod[]
  */
+@Override
 public IBinaryMethod[] getMethods() {
 	return this.methods;
 }
@@ -738,6 +789,7 @@ public static void main(String[] args) throws ClassFormatException, IOException 
 	System.err.println('}');
 }
 */
+@Override
 public char[][][] getMissingTypeNames() {
 	return this.missingTypeNames;
 }
@@ -748,6 +800,7 @@ public char[][][] getMissingTypeNames() {
  * Set the AccDeprecated and AccSynthetic bits if necessary
  * @return int
  */
+@Override
 public int getModifiers() {
 	int modifiers;
 	if (this.innerInfo != null) {
@@ -760,17 +813,12 @@ public int getModifiers() {
 	return modifiers;
 }
 
-/**
- * Answer the resolved name of the type in the
- * class file format as specified in section 4.2 of the Java 2 VM spec.
- *
- * For example, java.lang.String is java/lang/String.
- * @return char[]
- */
+@Override
 public char[] getName() {
 	return this.className;
 }
 
+@Override
 public char[] getSourceName() {
 	if (this.sourceName != null)
 		return this.sourceName;
@@ -793,18 +841,12 @@ public char[] getSourceName() {
 	return this.sourceName = name;
 }
 
-/**
- * Answer the resolved name of the receiver's superclass in the
- * class file format as specified in section 4.2 of the Java 2 VM spec
- * or null if it does not have one.
- *
- * For example, java.lang.String is java/lang/String.
- * @return char[]
- */
+@Override
 public char[] getSuperclassName() {
 	return this.superclassName;
 }
 
+@Override
 public long getTagBits() {
 	return this.tagBits;
 }
@@ -1065,41 +1107,40 @@ private boolean hasStructuralAnnotationChanges(IBinaryAnnotation[] currentAnnota
 }
 private Boolean matchAnnotations(IBinaryAnnotation currentAnnotation, IBinaryAnnotation otherAnnotation) {
 	if (!CharOperation.equals(currentAnnotation.getTypeName(), otherAnnotation.getTypeName()))
-			return true;
+		return true;
 	IBinaryElementValuePair[] currentPairs = currentAnnotation.getElementValuePairs();
 	IBinaryElementValuePair[] otherPairs = otherAnnotation.getElementValuePairs();
-		int currentPairsLength = currentPairs == null ? 0 : currentPairs.length;
-		int otherPairsLength = otherPairs == null ? 0 : otherPairs.length;
-		if (currentPairsLength != otherPairsLength)
+	int currentPairsLength = currentPairs == null ? 0 : currentPairs.length;
+	int otherPairsLength = otherPairs == null ? 0 : otherPairs.length;
+	if (currentPairsLength != otherPairsLength)
 		return Boolean.TRUE;
-		for (int j = 0; j < currentPairsLength; j++) {
-			if (!CharOperation.equals(currentPairs[j].getName(), otherPairs[j].getName()))
+	for (int j = 0; j < currentPairsLength; j++) {
+		if (!CharOperation.equals(currentPairs[j].getName(), otherPairs[j].getName()))
 			return Boolean.TRUE;
-			final Object value = currentPairs[j].getValue();
-			final Object value2 = otherPairs[j].getValue();
-			if (value instanceof Object[]) {
-				Object[] currentValues = (Object[]) value;
-				if (value2 instanceof Object[]) {
-					Object[] currentValues2 = (Object[]) value2;
-					final int length = currentValues.length;
-					if (length != currentValues2.length) {
+		final Object value = currentPairs[j].getValue();
+		final Object value2 = otherPairs[j].getValue();
+		if (value instanceof Object[]) {
+			Object[] currentValues = (Object[]) value;
+			if (value2 instanceof Object[]) {
+				Object[] currentValues2 = (Object[]) value2;
+				final int length = currentValues.length;
+				if (length != currentValues2.length) {
 					return Boolean.TRUE;
-					}
-					for (int n = 0; n < length; n++) {
-						if (!currentValues[n].equals(currentValues2[n])) {
-						return Boolean.TRUE;
-						}
-					}
-				return Boolean.FALSE;
 				}
+				for (int n = 0; n < length; n++) {
+					if (!currentValues[n].equals(currentValues2[n])) {
+						return Boolean.TRUE;
+					}
+				}
+				return Boolean.FALSE;
+			}
 			return Boolean.TRUE;
-			} else if (!value.equals(value2)) {
+		} else if (!value.equals(value2)) {
 			return Boolean.TRUE;
 		}
 	}
 	return null;
 }
-
 private boolean hasStructuralFieldChanges(FieldInfo currentFieldInfo, FieldInfo otherFieldInfo) {
 	// generic signature
 	if (!CharOperation.equals(currentFieldInfo.getGenericSignature(), otherFieldInfo.getGenericSignature()))
@@ -1262,32 +1303,19 @@ private void initialize() throws ClassFormatException {
 		throw exception;
 	}
 }
-
-/**
- * Answer true if the receiver is an anonymous type, false otherwise
- *
- * @return <CODE>boolean</CODE>
- */
+@Override
 public boolean isAnonymous() {
 	if (this.innerInfo == null) return false;
 	char[] innerSourceName = this.innerInfo.getSourceName();
 	return (innerSourceName == null || innerSourceName.length == 0);
 }
 
-/**
- * Answer whether the receiver contains the resolved binary form
- * or the unresolved source form of the type.
- * @return boolean
- */
+@Override
 public boolean isBinaryType() {
 	return true;
 }
 
-/**
- * Answer true if the receiver is a local type, false otherwise
- *
- * @return <CODE>boolean</CODE>
- */
+@Override
 public boolean isLocal() {
 	if (this.innerInfo == null) return false;
 	if (this.innerInfo.getEnclosingTypeName() != null) return false;
@@ -1295,11 +1323,7 @@ public boolean isLocal() {
 	return (innerSourceName != null && innerSourceName.length > 0);
 }
 
-/**
- * Answer true if the receiver is a member type, false otherwise
- *
- * @return <CODE>boolean</CODE>
- */
+@Override
 public boolean isMember() {
 	if (this.innerInfo == null) return false;
 	if (this.innerInfo.getEnclosingTypeName() == null) return false;
@@ -1321,16 +1345,20 @@ public boolean isNestedType() {
  *
  * @return char[]
  */
+@Override
 public char[] sourceFileName() {
 	return this.sourceFileName;
 }
 
+@Override
 public String toString() {
 	java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
 	java.io.PrintWriter print = new java.io.PrintWriter(out);
 	print.println(getClass().getName() + "{"); //$NON-NLS-1$
 	print.println(" this.className: " + new String(getName())); //$NON-NLS-1$
 	print.println(" this.superclassName: " + (getSuperclassName() == null ? "null" : new String(getSuperclassName()))); //$NON-NLS-2$ //$NON-NLS-1$
+	if (this.moduleName != null)
+		print.println(" this.moduleName: " + (new String(this.moduleName))); //$NON-NLS-1$
 	print.println(" access_flags: " + printTypeModifiers(accessFlags()) + "(" + accessFlags() + ")"); //$NON-NLS-1$ //$NON-NLS-3$ //$NON-NLS-2$
 	print.flush();
 	return out.toString();

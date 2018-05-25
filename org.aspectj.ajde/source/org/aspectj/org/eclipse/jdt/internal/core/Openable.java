@@ -45,6 +45,7 @@ protected Openable(JavaElement parent) {
  *
  * @see IBufferChangedListener
  */
+@Override
 public void bufferChanged(BufferChangedEvent event) {
 	if (event.getBuffer().isClosed()) {
 		JavaModelManager.getJavaModelManager().getElementsOutOfSynchWithBuffers().remove(this);
@@ -94,6 +95,7 @@ protected void closeBuffer() {
 /**
  * This element is being closed.  Do any necessary cleanup.
  */
+@Override
 protected void closing(Object info) {
 	closeBuffer();
 }
@@ -121,7 +123,7 @@ protected void codeComplete(
 		throw new JavaModelException(new JavaModelStatus(IJavaModelStatusConstants.INDEX_OUT_OF_BOUNDS));
 	}
 	JavaProject project = (JavaProject) getJavaProject();
-	SearchableEnvironment environment = project.newSearchableNameEnvironment(owner);
+	SearchableEnvironment environment = project.newSearchableNameEnvironment(owner, requestor.isTestCodeExcluded());
 
 	// set unit to skip
 	environment.unitToSkip = unitToSkip;
@@ -174,12 +176,14 @@ protected IJavaElement[] codeSelect(org.aspectj.org.eclipse.jdt.internal.compile
 /*
  * Returns a new element info for this element.
  */
+@Override
 protected Object createElementInfo() {
 	return new OpenableElementInfo();
 }
 /**
  * @see IJavaElement
  */
+@Override
 public boolean exists() {
 	if (JavaModelManager.getJavaModelManager().getInfo(this) != null)
 		return true;
@@ -206,11 +210,13 @@ public boolean exists() {
 	}
 	return validateExistence(resource()).isOK();
 }
+@Override
 public String findRecommendedLineSeparator() throws JavaModelException {
 	IBuffer buffer = getBuffer();
 	String source = buffer == null ? null : buffer.getContents();
 	return Util.getLineSeparator(source, getJavaProject());
 }
+@Override
 protected void generateInfos(Object info, HashMap newElements, IProgressMonitor monitor) throws JavaModelException {
 
 	if (JavaModelCache.VERBOSE){
@@ -243,7 +249,7 @@ protected void generateInfos(Object info, HashMap newElements, IProgressMonitor 
 	// validate existence
 	IResource underlResource = resource();
 	IStatus status = validateExistence(underlResource);
-	if (!status.isOK())
+	if (!status.isOK() && !ignoreErrorStatus(status))
 		throw newJavaModelException(status);
 
 	if (monitor != null && monitor.isCanceled())
@@ -270,6 +276,9 @@ protected void generateInfos(Object info, HashMap newElements, IProgressMonitor 
 		System.out.println(JavaModelManager.getJavaModelManager().cacheToString("-> ")); //$NON-NLS-1$
 	}
 }
+protected boolean ignoreErrorStatus(IStatus status) {
+	return false;
+}
 /**
  * Note: a buffer with no unsaved changes can be closed by the Java Model
  * since it has a finite number of buffers allowed open at one time. If this
@@ -279,6 +288,7 @@ protected void generateInfos(Object info, HashMap newElements, IProgressMonitor 
  *
  * @see IOpenable
  */
+@Override
 public IBuffer getBuffer() throws JavaModelException {
 	if (hasBuffer()) {
 		// ensure element is open
@@ -316,12 +326,14 @@ protected BufferManager getBufferManager() {
  *
  * @see IJavaElement
  */
+@Override
 public IResource getCorrespondingResource() throws JavaModelException {
 	return getUnderlyingResource();
 }
 /*
  * @see IJavaElement
  */
+@Override
 public IOpenable getOpenable() {
 	return this;
 }
@@ -331,6 +343,7 @@ public IOpenable getOpenable() {
 /**
  * @see IJavaElement
  */
+@Override
 public IResource getUnderlyingResource() throws JavaModelException {
 	IResource parentResource = this.parent.getUnderlyingResource();
 	if (parentResource == null) {
@@ -360,6 +373,7 @@ protected boolean hasBuffer() {
 /**
  * @see IOpenable
  */
+@Override
 public boolean hasUnsavedChanges() throws JavaModelException{
 
 	if (isReadOnly() || !isOpen()) {
@@ -395,6 +409,7 @@ public boolean hasUnsavedChanges() throws JavaModelException{
  *
  * @see IOpenable
  */
+@Override
 public boolean isConsistent() {
 	return true;
 }
@@ -402,6 +417,7 @@ public boolean isConsistent() {
  *
  * @see IOpenable
  */
+@Override
 public boolean isOpen() {
 	return JavaModelManager.getJavaModelManager().getInfo(this) != null;
 }
@@ -416,12 +432,14 @@ protected boolean isSourceElement() {
 /**
  * @see IJavaElement
  */
+@Override
 public boolean isStructureKnown() throws JavaModelException {
 	return ((OpenableElementInfo)getElementInfo()).isStructureKnown();
 }
 /**
  * @see IOpenable
  */
+@Override
 public void makeConsistent(IProgressMonitor monitor) throws JavaModelException {
 	// only compilation units can be inconsistent
 	// other openables cannot be inconsistent so default is to do nothing
@@ -429,6 +447,7 @@ public void makeConsistent(IProgressMonitor monitor) throws JavaModelException {
 /**
  * @see IOpenable
  */
+@Override
 public void open(IProgressMonitor pm) throws JavaModelException {
 	getElementInfo(pm);
 }
@@ -443,6 +462,7 @@ protected IBuffer openBuffer(IProgressMonitor pm, Object info) throws JavaModelE
 	return null;
 }
 
+@Override
 public IResource getResource() {
 	PackageFragmentRoot root = getPackageFragmentRoot();
 	if (root != null) {
@@ -454,6 +474,7 @@ public IResource getResource() {
 	return resource(root);
 }
 
+@Override
 public IResource resource() {
 	PackageFragmentRoot root = getPackageFragmentRoot();
 	if (root != null && root.isArchive())
@@ -473,6 +494,7 @@ protected boolean resourceExists(IResource underlyingResource) {
 /**
  * @see IOpenable
  */
+@Override
 public void save(IProgressMonitor pm, boolean force) throws JavaModelException {
 	if (isReadOnly()) {
 		throw new JavaModelException(new JavaModelStatus(IJavaModelStatusConstants.READ_ONLY, this));

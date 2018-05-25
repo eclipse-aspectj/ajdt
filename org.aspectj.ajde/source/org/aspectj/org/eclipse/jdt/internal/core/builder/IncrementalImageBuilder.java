@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -17,10 +17,12 @@ import org.aspectj.org.eclipse.jdt.core.*;
 import org.aspectj.org.eclipse.jdt.core.compiler.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.*;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ModuleBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.SimpleLookupTable;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.SuffixConstants;
+import org.aspectj.org.eclipse.jdt.internal.core.CompilationGroup;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Messages;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
 
@@ -34,36 +36,52 @@ import java.util.*;
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class IncrementalImageBuilder extends AbstractImageBuilder {
 
-protected ArrayList sourceFiles;
-protected ArrayList previousSourceFiles;
-protected StringSet qualifiedStrings;
-protected StringSet simpleStrings;
-protected StringSet rootStrings;
+protected LinkedHashSet<SourceFile> sourceFiles;
+protected LinkedHashSet<SourceFile> previousSourceFiles;
+protected Set<String> qualifiedStrings;
+protected Set<String> simpleStrings;
+protected Set<String> rootStrings;
 protected SimpleLookupTable secondaryTypesToRemove;
 protected boolean hasStructuralChanges;
-protected int compileLoop;
 protected boolean makeOutputFolderConsistent;
+
+private IncrementalImageBuilder testImageBuilder;
 
 public static int MaxCompileLoop = 5; // perform a full build if it takes more than ? incremental compile loops
 
-protected IncrementalImageBuilder(JavaBuilder javaBuilder, State buildState) {
-	super(javaBuilder, true, buildState);
+protected IncrementalImageBuilder(JavaBuilder javaBuilder, State buildState, CompilationGroup compilationGroup) {
+	super(javaBuilder, true, buildState, compilationGroup);
 	this.nameEnvironment.isIncrementalBuild = true;
 	this.makeOutputFolderConsistent = JavaCore.ENABLED.equals(
 		javaBuilder.javaProject.getOption(JavaCore.CORE_JAVA_BUILD_RECREATE_MODIFIED_CLASS_FILES_IN_OUTPUT_FOLDER, true));
+	if (compilationGroup == CompilationGroup.MAIN) {
+		final IncrementalImageBuilder builder = new IncrementalImageBuilder(javaBuilder, this.newState,
+				CompilationGroup.TEST);
+		if (builder.sourceLocations.length > 0) {
+			this.testImageBuilder = builder;
+			this.testImageBuilder.resetCollections();
+		}
+	}
 }
 
 protected IncrementalImageBuilder(JavaBuilder javaBuilder) {
-	this(javaBuilder, null);
+	this(javaBuilder, null, CompilationGroup.MAIN);
 	this.newState.copyFrom(javaBuilder.lastState);
 }
 
-protected IncrementalImageBuilder(BatchImageBuilder batchBuilder) {
-	this(batchBuilder.javaBuilder, batchBuilder.newState);
+protected IncrementalImageBuilder(BatchImageBuilder batchBuilder, CompilationGroup compilationGroup) {
+	this(batchBuilder.javaBuilder, batchBuilder.newState, compilationGroup);
 	resetCollections();
 }
 
 public boolean build(SimpleLookupTable deltas) {
+	if(this.sourceLocations.length == 0) {
+		if (this.testImageBuilder != null) {
+			return this.testImageBuilder.build(deltas);
+		} else {
+			return true;
+		}
+	}
 	// initialize builder
 	// walk this project's deltas, find changed source files
 	// walk prereq projects' deltas, find changed class files & add affected source files
@@ -82,7 +100,7 @@ public boolean build(SimpleLookupTable deltas) {
 
 		this.notifier.subTask(Messages.build_analyzingDeltas);
 		if (this.javaBuilder.hasBuildpathErrors()) {
-			// if a mssing class file was detected in the last build, a build state was saved since its no longer fatal
+			// if a missing class file was detected in the last build, a build state was saved since its no longer fatal
 			// but we need to rebuild every source file since problems were not recorded
 			// AND to avoid the infinite build scenario if this project is involved in a cycle, see bug 160550
 			// we need to avoid unnecessary deltas caused by doing a full build in this case
@@ -93,8 +111,12 @@ public boolean build(SimpleLookupTable deltas) {
 			this.notifier.updateProgressDelta(0.25f);
 		} else {
 			IResourceDelta sourceDelta = (IResourceDelta) deltas.get(this.javaBuilder.currentProject);
-			if (sourceDelta != null)
-				if (!findSourceFiles(sourceDelta)) return false;
+			if (sourceDelta != null) {
+				if (!findSourceFiles(sourceDelta)) return this.testImageBuilder != null ? this.testImageBuilder.build(deltas) : false;
+				if(this.testImageBuilder != null) {
+					this.testImageBuilder.findSourceFiles(sourceDelta);
+				}
+			}
 			this.notifier.updateProgressDelta(0.10f);
 
 			Object[] keyTable = deltas.keyTable;
@@ -115,26 +137,11 @@ public boolean build(SimpleLookupTable deltas) {
 			this.notifier.updateProgressDelta(0.05f);
 		}
 
-		this.compileLoop = 0;
-		float increment = 0.40f;
-		while (this.sourceFiles.size() > 0) { // added to in acceptResult
-			if (++this.compileLoop > MaxCompileLoop) {
-				if (JavaBuilder.DEBUG)
-					System.out.println("ABORTING incremental build... exceeded loop count"); //$NON-NLS-1$
-				return false;
-			}
-			this.notifier.checkCancel();
-
-			SourceFile[] allSourceFiles = new SourceFile[this.sourceFiles.size()];
-			this.sourceFiles.toArray(allSourceFiles);
-			resetCollections();
-
-			this.workQueue.addAll(allSourceFiles);
-			this.notifier.setProgressPerCompilationUnit(increment / allSourceFiles.length);
-			increment = increment / 2;
-			compile(allSourceFiles);
-			removeSecondaryTypes();
-			addAffectedSourceFiles();
+		if (incrementalBuildLoop() == false) {
+			return false;
+		}
+		if (this.testImageBuilder != null && this.testImageBuilder.incrementalBuildLoop() == false) {
+			return false;
 		}
 		if (this.hasStructuralChanges && this.javaBuilder.javaProject.hasCycleMarker())
 			this.javaBuilder.mustPropagateStructuralChanges();
@@ -148,6 +155,34 @@ public boolean build(SimpleLookupTable deltas) {
 		throw internalException(e);
 	} finally {
 		cleanUp();
+		if (this.testImageBuilder != null) {
+			this.testImageBuilder.cleanUp();
+		}
+	}
+	return true;
+}
+
+private boolean incrementalBuildLoop() throws CoreException {
+	int compileLoop = 0;
+	float increment = 0.40f;
+	while (this.sourceFiles.size() > 0) { // added to in acceptResult
+		if (++compileLoop > MaxCompileLoop) {
+			if (JavaBuilder.DEBUG)
+				System.out.println("ABORTING incremental build... exceeded loop count"); //$NON-NLS-1$
+			return false;
+		}
+		this.notifier.checkCancel();
+
+		SourceFile[] allSourceFiles = new SourceFile[this.sourceFiles.size()];
+		this.sourceFiles.toArray(allSourceFiles);
+		resetCollections();
+
+		this.workQueue.addAll(allSourceFiles);
+		this.notifier.setProgressPerCompilationUnit(increment / allSourceFiles.length);
+		increment = increment / 2;
+		compile(allSourceFiles);
+		removeSecondaryTypes();
+		addAffectedSourceFiles();
 	}
 	return true;
 }
@@ -181,20 +216,22 @@ protected void buildAfterBatchBuild() {
 }
 
 protected void addAffectedSourceFiles() {
-	if (this.qualifiedStrings.elementSize == 0 && this.simpleStrings.elementSize == 0) return;
-
+	if (this.qualifiedStrings.size() == 0 && this.simpleStrings.size() == 0) return;
+	if(this.testImageBuilder != null) {
+		this.testImageBuilder.addAffectedSourceFiles(this.qualifiedStrings, this.simpleStrings, this.rootStrings, null);
+	}
 	addAffectedSourceFiles(this.qualifiedStrings, this.simpleStrings, this.rootStrings, null);
 }
 
-protected void addAffectedSourceFiles(StringSet qualifiedSet, StringSet simpleSet, StringSet rootSet, StringSet affectedTypes) {
+protected void addAffectedSourceFiles(Set<String> qualifiedSet, Set<String> simpleSet, Set<String> rootSet, Set<String> affectedTypes) {
 	// the qualifiedStrings are of the form 'p1/p2' & the simpleStrings are just 'X'
 	char[][][] internedQualifiedNames = ReferenceCollection.internQualifiedNames(qualifiedSet);
 	// if a well known qualified name was found then we can skip over these
-	if (internedQualifiedNames.length < qualifiedSet.elementSize)
+	if (internedQualifiedNames.length < qualifiedSet.size())
 		internedQualifiedNames = null;
 	char[][] internedSimpleNames = ReferenceCollection.internSimpleNames(simpleSet, true);
 	// if a well known name was found then we can skip over these
-	if (internedSimpleNames.length < simpleSet.elementSize)
+	if (internedSimpleNames.length < simpleSet.size())
 		internedSimpleNames = null;
 	char[][] internedRootNames = ReferenceCollection.internSimpleNames(rootSet, false);
 
@@ -203,7 +240,7 @@ protected void addAffectedSourceFiles(StringSet qualifiedSet, StringSet simpleSe
 	next : for (int i = 0, l = valueTable.length; i < l; i++) {
 		String typeLocator = (String) keyTable[i];
 		if (typeLocator != null) {
-			if (affectedTypes != null && !affectedTypes.includes(typeLocator)) continue next;
+			if (affectedTypes != null && !affectedTypes.contains(typeLocator)) continue next;
 			ReferenceCollection refs = (ReferenceCollection) valueTable[i];
 			if (refs.includes(internedQualifiedNames, internedSimpleNames, internedRootNames)) {
 				IFile file = this.javaBuilder.currentProject.getFile(typeLocator);
@@ -225,7 +262,7 @@ protected void addDependentsOf(IPath path, boolean isStructuralChange) {
 	addDependentsOf(path, isStructuralChange, this.qualifiedStrings, this.simpleStrings, this.rootStrings);
 }
 
-protected void addDependentsOf(IPath path, boolean isStructuralChange, StringSet qualifiedNames, StringSet simpleNames, StringSet rootNames) {
+protected void addDependentsOf(IPath path, boolean isStructuralChange, Set<String> qualifiedNames, Set<String> simpleNames, Set<String> rootNames) {
 	path = path.setDevice(null);
 	if (isStructuralChange) {
 		String last = path.lastSegment();
@@ -290,6 +327,7 @@ protected boolean checkForClassFileChanges(IResourceDelta binaryDelta, Classpath
 	return true;
 }
 
+@Override
 protected void cleanUp() {
 	super.cleanUp();
 
@@ -300,9 +338,9 @@ protected void cleanUp() {
 	this.rootStrings = null;
 	this.secondaryTypesToRemove = null;
 	this.hasStructuralChanges = false;
-	this.compileLoop = 0;
 }
 
+@Override
 protected void compile(SourceFile[] units, SourceFile[] additionalUnits, boolean compilingFirstGroup) {
 	if (compilingFirstGroup && additionalUnits != null) {
 		// add any source file from additionalUnits to units if it defines secondary types
@@ -330,6 +368,7 @@ protected void compile(SourceFile[] units, SourceFile[] additionalUnits, boolean
 	super.compile(units, additionalUnits, compilingFirstGroup);
 }
 
+@Override
 protected void deleteGeneratedFiles(IFile[] deletedGeneratedFiles) {
 	// delete generated files and recompile any affected source files
 	try {
@@ -418,7 +457,7 @@ protected void findAffectedSourceFiles(IResourceDelta binaryDelta, int segmentCo
 							System.out.println("Skipped dependents of added package " + packageName); //$NON-NLS-1$
 					} else {
 						// see if the package still exists on the classpath
-						if (!this.nameEnvironment.isPackage(packageName)) {
+						if (!this.nameEnvironment.isPackage(packageName, ModuleBinding.ANY)) {
 							if (JavaBuilder.DEBUG)
 								System.out.println("Found removed package " + packageName); //$NON-NLS-1$
 							addDependentsOf(packagePath, false);
@@ -635,7 +674,8 @@ protected boolean findSourceFiles(IResourceDelta sourceDelta, ClasspathMultiDire
 							return true; // skip it since it really isn't changed
 						if (JavaBuilder.DEBUG)
 							System.out.println("Compile this changed source file " + typeLocator); //$NON-NLS-1$
-						this.sourceFiles.add(new SourceFile((IFile) resource, md, true));
+						SourceFile unit = new SourceFile((IFile) resource, md, true);
+						this.sourceFiles.add(unit);
 				}
 				return true;
 			} else if (org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.isClassFileName(resourceName)) {
@@ -694,6 +734,7 @@ protected boolean findSourceFiles(IResourceDelta sourceDelta, ClasspathMultiDire
 	return true;
 }
 
+@Override
 protected void finishedWith(String sourceLocator, CompilationResult result, char[] mainTypeName, ArrayList definedTypeNames, ArrayList duplicateTypeNames) {
 	char[][] previousTypeNames = this.newState.getDefinedTypeNamesFor(sourceLocator);
 	if (previousTypeNames == null)
@@ -721,6 +762,7 @@ protected void finishedWith(String sourceLocator, CompilationResult result, char
 	super.finishedWith(sourceLocator, result, mainTypeName, definedTypeNames, duplicateTypeNames);
 }
 
+@Override
 protected void processAnnotationResults(CompilationParticipantResult[] results) {
 	for (int i = results.length; --i >= 0;) {
 		CompilationParticipantResult result = results[i];
@@ -779,15 +821,14 @@ protected void removeSecondaryTypes() throws CoreException {
 
 protected void resetCollections() {
 	if (this.sourceFiles == null) {
-		this.sourceFiles = new ArrayList(33);
+		this.sourceFiles = new LinkedHashSet<>(33);
 		this.previousSourceFiles = null;
-		this.qualifiedStrings = new StringSet(3);
-		this.simpleStrings = new StringSet(3);
-		this.rootStrings = new StringSet(3);
+		this.qualifiedStrings = new HashSet<>(3);
+		this.simpleStrings = new HashSet<>(3);
+		this.rootStrings = new HashSet<>(3);
 		this.hasStructuralChanges = false;
-		this.compileLoop = 0;
 	} else {
-		this.previousSourceFiles = this.sourceFiles.isEmpty() ? null : (ArrayList) this.sourceFiles.clone();
+		this.previousSourceFiles = this.sourceFiles.isEmpty() ? null : (LinkedHashSet) this.sourceFiles.clone();
 
 		this.sourceFiles.clear();
 		this.qualifiedStrings.clear();
@@ -797,10 +838,17 @@ protected void resetCollections() {
 	}
 }
 
+@Override
 protected void updateProblemsFor(SourceFile sourceFile, CompilationResult result) throws CoreException {
 	if (CharOperation.equals(sourceFile.getMainTypeName(), TypeConstants.PACKAGE_INFO_NAME)) {
 		IResource pkgResource = sourceFile.resource.getParent();
-		pkgResource.deleteMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, false, IResource.DEPTH_ZERO);
+		IMarker[] findMarkers = pkgResource.findMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, false,
+				IResource.DEPTH_ZERO);
+		if (findMarkers.length > 0) {
+			// markers must be from the time when no package-info.java existed.
+			// trigger a full build, so marker is cleared also from packages in other source folders
+			throw new AbortCompilation(true, new AbortIncrementalBuildException(new String(TypeConstants.PACKAGE_INFO_NAME)));
+		}
 	}
 	IMarker[] markers = JavaBuilder.getProblemsFor(sourceFile.resource);
 	CategorizedProblem[] problems = result.getProblems();
@@ -811,6 +859,7 @@ protected void updateProblemsFor(SourceFile sourceFile, CompilationResult result
 	storeProblemsFor(sourceFile, problems);
 }
 
+@Override
 protected void updateTasksFor(SourceFile sourceFile, CompilationResult result) throws CoreException {
 	IMarker[] markers = JavaBuilder.getTasksFor(sourceFile.resource);
 	CategorizedProblem[] tasks = result.getTasks();
@@ -823,6 +872,7 @@ protected void updateTasksFor(SourceFile sourceFile, CompilationResult result) t
 /**
  * @see org.aspectj.org.eclipse.jdt.internal.core.builder.AbstractImageBuilder#writeClassFileContents(org.aspectj.org.eclipse.jdt.internal.compiler.ClassFile, org.eclipse.core.resources.IFile, java.lang.String, boolean, org.aspectj.org.eclipse.jdt.internal.core.builder.SourceFile)
  */
+@Override
 protected void writeClassFileContents(ClassFile classfile, IFile file, String qualifiedFileName, boolean isTopLevelType, SourceFile compilationUnit) throws CoreException {
 	// Before writing out the class file, compare it to the previous file
 	// If structural changes occurred then add dependent source files
@@ -910,6 +960,7 @@ protected boolean writeClassFileCheck(IFile file, String fileName, byte[] newByt
 	return true;
 }
 
+@Override
 public String toString() {
 	return "incremental image builder for:\n\tnew state: " + this.newState; //$NON-NLS-1$
 }

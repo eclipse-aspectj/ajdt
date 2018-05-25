@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010, 2016 IBM Corporation and others.
+ * Copyright (c) 2010, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -41,14 +41,14 @@ class NameEnvironmentWithProgress extends FileSystem implements INameEnvironment
 			throw new AbortCompilation(true/*silent*/, new OperationCanceledException());
 		}
 	}
-
-	public NameEnvironmentAnswer findType(char[] typeName, char[][] packageName) {
-		return findType(typeName, packageName, true);
+	@Override
+	public NameEnvironmentAnswer findType(char[] typeName, char[][] packageName, char[] moduleName) {
+		return findType(typeName, packageName, true, moduleName);
 	}
-
-	public NameEnvironmentAnswer findType(char[] typeName, char[][] packageName, boolean searchWithSecondaryTypes) {
+	@Override
+	public NameEnvironmentAnswer findType(char[] typeName, char[][] packageName, boolean searchWithSecondaryTypes, char[] moduleName) {
 		checkCanceled();
-		NameEnvironmentAnswer answer = super.findType(typeName, packageName);
+		NameEnvironmentAnswer answer = super.findType(typeName, packageName, moduleName);
 		if (answer == null && searchWithSecondaryTypes) {
 			NameEnvironmentAnswer suggestedAnswer = null;
 			String qualifiedPackageName = new String(CharOperation.concatWith(packageName, '/'));
@@ -57,6 +57,12 @@ class NameEnvironmentWithProgress extends FileSystem implements INameEnvironment
 			for (int i = 0, length = this.classpaths.length; i < length; i++) {
 				if (!(this.classpaths[i] instanceof ClasspathDirectory)) continue;
 				ClasspathDirectory classpathDirectory = (ClasspathDirectory) this.classpaths[i];
+				LookupStrategy strategy = LookupStrategy.get(moduleName);
+				if (!strategy.matchesWithName(classpathDirectory,
+						loc -> loc.getModule() != null,
+						loc -> loc.servesModule(moduleName))) {
+					continue;
+				}
 				answer = classpathDirectory.findSecondaryInClass(typeName, qualifiedPackageName, qualifiedBinaryFileName);
 				if (answer != null) {
 					if (!answer.ignoreIfBetter()) {
@@ -71,15 +77,18 @@ class NameEnvironmentWithProgress extends FileSystem implements INameEnvironment
 		return answer;
 	}
 
+	@Override
 	public NameEnvironmentAnswer findType(char[][] compoundName) {
 		checkCanceled();
 		return super.findType(compoundName);
 	}
+	@Override
 	public boolean isPackage(char[][] compoundName, char[] packageName) {
 		checkCanceled();
 		return super.isPackage(compoundName, packageName);
 	}
 	
+	@Override
 	public void setMonitor(IProgressMonitor monitor) {
 		this.monitor = monitor;
 	}

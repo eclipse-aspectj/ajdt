@@ -1,5 +1,6 @@
+// ASPECTJ
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -70,12 +71,15 @@ public class ParameterizedMethodBinding extends MethodBinding {
 
 			// need to substitute old var refs with new ones (double substitution: declaringClass + new type variables)
 			substitution = new Substitution() {
+				@Override
 				public LookupEnvironment environment() {
 					return parameterizedDeclaringClass.environment;
 				}
+				@Override
 				public boolean isRawSubstitution() {
 					return !isStatic && parameterizedDeclaringClass.isRawSubstitution();
 				}
+				@Override
 				public TypeBinding substitute(TypeVariableBinding typeVariable) {
 					// check this variable can be substituted given copied variables
 					if (typeVariable.rank < length && TypeBinding.equalsEquals(originalVariables[typeVariable.rank], typeVariable)) {
@@ -103,7 +107,7 @@ public class ParameterizedMethodBinding extends MethodBinding {
 				}
 				switch (substitutedSuperclass.kind()) {
 					case Binding.ARRAY_TYPE :
-						substitutedVariable.setSuperClass(parameterizedDeclaringClass.environment.getResolvedType(TypeConstants.JAVA_LANG_OBJECT, null));
+						substitutedVariable.setSuperClass(parameterizedDeclaringClass.environment.getResolvedJavaBaseType(TypeConstants.JAVA_LANG_OBJECT, null));
 						substitutedVariable.setSuperInterfaces(substitutedInterfaces);
 						break;
 					default:
@@ -210,12 +214,15 @@ public class ParameterizedMethodBinding extends MethodBinding {
 
 			// need to substitute old var refs with new ones (double substitution: declaringClass + new type variables)
 			substitution = new Substitution() {
+				@Override
 				public LookupEnvironment environment() {
 					return environment;
 				}
+				@Override
 				public boolean isRawSubstitution() {
 					return false;
 				}
+				@Override
 				public TypeBinding substitute(TypeVariableBinding typeVariable) {
 			        // check this variable can be substituted given copied variables
 			        if (typeVariable.rank < length && TypeBinding.equalsEquals(originalVariables[typeVariable.rank], typeVariable)) {
@@ -241,7 +248,7 @@ public class ParameterizedMethodBinding extends MethodBinding {
 				}
 				switch (substitutedSuperclass.kind()) {
 					case Binding.ARRAY_TYPE :
-						substitutedVariable.setSuperClass(environment.getResolvedType(TypeConstants.JAVA_LANG_OBJECT, null));
+						substitutedVariable.setSuperClass(environment.getResolvedJavaBaseType(TypeConstants.JAVA_LANG_OBJECT, null));
 						substitutedVariable.setSuperInterfaces(substitutedInterfaces);
 						break;
 					default:
@@ -328,6 +335,7 @@ public class ParameterizedMethodBinding extends MethodBinding {
 	/**
 	 * Returns true if some parameters got substituted.
 	 */
+	@Override
 	public boolean hasSubstitutedParameters() {
 		return this.parameters != this.originalMethod.parameters;
 	}
@@ -335,6 +343,7 @@ public class ParameterizedMethodBinding extends MethodBinding {
 	/**
 	 * Returns true if the return type got substituted.
 	 */
+	@Override
 	public boolean hasSubstitutedReturnType() {
 		return this.returnType != this.originalMethod.returnType; //$IDENTITY-COMPARISON$
 	}
@@ -342,30 +351,36 @@ public class ParameterizedMethodBinding extends MethodBinding {
 	/**
 	 * Returns the original method (as opposed to parameterized instances)
 	 */
+	@Override
 	public MethodBinding original() {
 		return this.originalMethod.original();
 	}
 	
 	
+	@Override
 	public MethodBinding shallowOriginal() {
 		return this.originalMethod;
 	}
 	
 	// AspectJ Extension - delegate to the original method
 	
+	@Override
 	public boolean alwaysNeedsAccessMethod() {
 		return originalMethod.alwaysNeedsAccessMethod();
 	}
 
+	@Override
 	public boolean canBeSeenBy(TypeBinding receiverType, InvocationSite invocationSite, Scope scope) {
 		if (alwaysNeedsAccessMethod()) return originalMethod.canBeSeenBy(receiverType,invocationSite,scope);
 		else                           return super.canBeSeenBy(receiverType,invocationSite,scope);
 	}
 
+	@Override
 	public MethodBinding getAccessMethod(boolean staticReference) {
 		return originalMethod.getAccessMethod(staticReference);
 	}
 	
+	@Override
 	public AbstractMethodDeclaration sourceMethod() {
 		return originalMethod.sourceMethod();
 	}

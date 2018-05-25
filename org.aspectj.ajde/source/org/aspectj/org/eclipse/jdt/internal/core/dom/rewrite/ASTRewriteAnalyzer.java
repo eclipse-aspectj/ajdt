@@ -1,5 +1,6 @@
+// AspectJ
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -149,6 +150,9 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 	private static final SimplePropertyDescriptor INTERNAL_VDS_MODIFIERS_PROPERTY = VariableDeclarationStatement.MODIFIERS_PROPERTY;
 
 	/** @deprecated using deprecated code */
+	private static final ChildListPropertyDescriptor INTERNAL_TRY_STATEMENT_RESOURCES_PROPERTY = TryStatement.RESOURCES_PROPERTY;
+
+	/** @deprecated using deprecated code */
 	private static final int JLS2_INTERNAL = AST.JLS2;
 	
 	/** @deprecated using deprecated code */
@@ -156,6 +160,12 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 	
 	/** @deprecated using deprecated code */
 	private static final int JLS4_INTERNAL = AST.JLS4;
+
+	/** @deprecated using deprecated code */
+	private static final int JLS8_INTERNAL = AST.JLS8;
+
+	/** @deprecated using deprecated code */
+	private static final int JLS9_INTERNAL = AST.JLS9;
 
 
 	TextEdit currentEdit;
@@ -833,6 +843,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 			}
 			return currPos;
 		}
+
 		public final int rewriteList(ASTNode parent, StructuralPropertyDescriptor property, int offset, String keyword) {
 			return rewriteList(parent, property, keyword, null, offset);
 		}
@@ -1072,10 +1083,12 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 			this.separatorLines= separator;
 		}
 
+		@Override
 		protected int getInitialIndent() {
 			return this.initialIndent;
 		}
 
+		@Override
 		protected String getSeparatorString(int nodeIndex) {
 			return getSeparatorString(nodeIndex, nodeIndex + 1);
 		}
@@ -1154,6 +1167,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 			return 0;
 		}
 		
+		@Override
 		protected boolean mustRemoveSeparator(int originalOffset, int nodeIndex) {
 			// Do not remove separator if the previous non removed node is on the same line and the next node is on another line
 			int previousNonRemovedNodeIndex = nodeIndex - 1;
@@ -1353,19 +1367,26 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		}
 	}
 
-	/*
-	 * Next token is a left brace. Returns the offset after the brace. For incomplete code, return the start offset.
-	 */
-	private int getPosAfterLeftBrace(int pos) {
+	private int getPosAfterToken(int pos, int token) {
 		try {
 			int nextToken= getScanner().readNext(pos, true);
-			if (nextToken == TerminalTokens.TokenNameLBRACE) {
+			if (nextToken == token) {
 				return getScanner().getCurrentEndOffset();
 			}
 		} catch (CoreException e) {
 			handleException(e);
 		}
 		return pos;
+	}
+	/*
+	 * Next token is a left brace. Returns the offset after the brace. For incomplete code, return the start offset.
+	 */
+	private int getPosAfterLeftBrace(int pos) {
+		try {
+			return getPosAfterToken(pos, TerminalTokens.TokenNameLBRACE);
+		} catch (IllegalArgumentException e) {
+			return pos;
+		}
 	}
 
 	/*
@@ -1546,9 +1567,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 			this.annotationSeparation= annotationSeparation;
 		}
 
-		/* (non-Javadoc)
-		 * @see org.aspectj.org.eclipse.jdt.internal.core.dom.rewrite.ASTRewriteAnalyzer.ListRewriter#getSeparatorString(int)
-		 */
+		@Override
 		protected String getSeparatorString(int nodeIndex) {
 			ASTNode curr= getNewNode(nodeIndex);
 			if (curr instanceof Annotation) {
@@ -1583,16 +1602,16 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		boolean isAnnotationsProperty = isVarargsAnnotationsProperty 
 				|| node instanceof AnnotatableType && property == ((AnnotatableType) node).getAnnotationsProperty();
 		Prefix formatterPrefix;
-		if (property == SingleVariableDeclaration.MODIFIERS2_PROPERTY || 
+		if (property == SingleVariableDeclaration.MODIFIERS2_PROPERTY ||
 				property == VariableDeclarationExpression.MODIFIERS2_PROPERTY ||
 				property == VariableDeclarationStatement.MODIFIERS2_PROPERTY ||
 				property == TypeParameter.MODIFIERS_PROPERTY || isAnnotationsProperty) {
 			ASTNode parent = node.getParent();
 			if (parent instanceof MethodDeclaration)
-			formatterPrefix= this.formatter.PARAM_ANNOTATION_SEPARATION;
+				formatterPrefix= this.formatter.PARAM_ANNOTATION_SEPARATION;
 			else if (parent instanceof Block || parent instanceof TryStatement || parent instanceof ForStatement)
 				formatterPrefix= this.formatter.LOCAL_ANNOTATION_SEPARATION;
-		else
+			else
 				formatterPrefix= this.formatter.TYPE_ANNOTATION_SEPARATION;
 		} else {
 			formatterPrefix= this.formatter.ANNOTATION_SEPARATION;
@@ -1655,9 +1674,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#postVisit(ASTNode)
-	 */
+	@Override
 	public void postVisit(ASTNode node) {
 		TextEditGroup editGroup= this.eventStore.getTrackedNodeData(node);
 		if (editGroup != null) {
@@ -1667,9 +1684,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		doCopySourcePostVisit(node, this.sourceCopyEndNodes);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#preVisit(ASTNode)
-	 */
+	@Override
 	public void preVisit(ASTNode node) {
 		// copies, then range marker
 
@@ -1709,14 +1724,16 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(CompilationUnit)
-	 */
+	@Override
 	public boolean visit(CompilationUnit node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
 		}
 
+		if (node.getAST().apiLevel() >= JLS9_INTERNAL && node.getModule() != null) {
+			rewriteNode(node, CompilationUnit.MODULE_PROPERTY, 0, ASTRewriteFormatter.NONE);
+			return false;
+		}
 		int startPos= rewriteNode(node, CompilationUnit.PACKAGE_PROPERTY, 0, ASTRewriteFormatter.NONE);
 
 		if (getChangeKind(node, CompilationUnit.PACKAGE_PROPERTY) == RewriteEvent.INSERTED) {
@@ -1728,10 +1745,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(TypeDeclaration)
-	 */
+	@Override
 	public boolean visit(TypeDeclaration node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -1886,7 +1900,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 	
 	private int rewriteMethodReceiver(MethodDeclaration method, int offset) throws CoreException {
 		offset= getScanner().getTokenEndOffset(TerminalTokens.TokenNameLPAREN, offset);
-		if (method.getAST().apiLevel() < AST.JLS8) {
+		if (method.getAST().apiLevel() < JLS8_INTERNAL) {
 			return offset;
 		}
 
@@ -2002,6 +2016,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return offset;
 	}
 	
+	@Override
 	public boolean visit(Dimension node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -2039,9 +2054,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(MethodDeclaration)
-	 */
+	@Override
 	public boolean visit(MethodDeclaration node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -2069,9 +2082,9 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 			pos= rewriteNodeList(node, MethodDeclaration.PARAMETERS_PROPERTY, pos, Util.EMPTY_STRING, ", "); //$NON-NLS-1$ 
 
 			pos= getScanner().getTokenEndOffset(TerminalTokens.TokenNameRPAREN, pos);
-			ChildListPropertyDescriptor exceptionsProperty = apiLevel < AST.JLS8 ? INTERNAL_METHOD_THROWN_EXCEPTIONS_PROPERTY : MethodDeclaration.THROWN_EXCEPTION_TYPES_PROPERTY;
+			ChildListPropertyDescriptor exceptionsProperty = apiLevel < JLS8_INTERNAL ? INTERNAL_METHOD_THROWN_EXCEPTIONS_PROPERTY : MethodDeclaration.THROWN_EXCEPTION_TYPES_PROPERTY;
 
-			if (apiLevel < AST.JLS8) {
+			if (apiLevel < JLS8_INTERNAL) {
 				int extraDims= rewriteExtraDimensions(node, INTERNAL_METHOD_EXTRA_DIMENSIONS_PROPERTY, pos);
 
 				boolean hasExceptionChanges= isChanged(node, exceptionsProperty);
@@ -2098,9 +2111,44 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(Block)
-	 */
+	@Override
+	public boolean visit(ModuleDeclaration node) {
+		if (!hasChildrenChanges(node)) {
+			return doVisitUnchangedChildren(node);
+		}
+		int pos= rewriteJavadoc(node, ModuleDeclaration.JAVADOC_PROPERTY);
+		pos= rewriteModifiers2(node, ModuleDeclaration.ANNOTATIONS_PROPERTY, pos);
+
+		RewriteEvent event= getEvent(node, ModuleDeclaration.OPEN_PROPERTY);
+		if (event != null && event.getChangeKind() != RewriteEvent.UNCHANGED) {
+			boolean fakeInModule = getScanner().getScanner().fakeInModule;
+			try {
+				boolean wasOpen= ((Boolean) event.getOriginalValue()).booleanValue();
+				if (wasOpen) {
+					this.tokenScanner.getScanner().fakeInModule = true;
+					int endPos= getScanner().getTokenStartOffset(TerminalTokens.TokenNamemodule, pos);
+					doTextRemove(pos, endPos - pos, getEditGroup(event));
+				} else {
+					doTextInsert(pos, "open ", getEditGroup(event)); //$NON-NLS-1$
+				}
+			} catch (CoreException e) {
+				handleException(e);
+			} finally {
+				this.tokenScanner.getScanner().fakeInModule = fakeInModule;
+			}
+		}
+
+		pos= rewriteRequiredNode(node, ModuleDeclaration.NAME_PROPERTY);
+		int startPos = getPosAfterLeftBrace(pos);
+		int startIndent= getIndent(node.getStartPosition()) + 1;
+		boolean fakeInModule = this.tokenScanner.getScanner().fakeInModule;
+		this.tokenScanner.getScanner().fakeInModule = true;
+		rewriteParagraphList(node, ModuleDeclaration.MODULE_DIRECTIVES_PROPERTY, startPos, startIndent, 0, 1);
+		this.tokenScanner.getScanner().fakeInModule = fakeInModule;
+		return false;
+	}
+
+	@Override
 	public boolean visit(Block node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -2117,9 +2165,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(ReturnStatement)
-	 */
+	@Override
 	public boolean visit(ReturnStatement node) {
 		try {
 			this.beforeRequiredSpaceIndex = getScanner().getTokenEndOffset(TerminalTokens.TokenNamereturn, node.getStartPosition());
@@ -2137,10 +2183,18 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
+	@Override
+	public boolean visit(RequiresDirective node) {
+		if (!hasChildrenChanges(node)) {
+			return doVisitUnchangedChildren(node);
+		}
+		int pos = getPosAfterToken(node.getStartPosition(), TerminalTokens.TokenNamerequires);
+		rewriteNodeList(node, RequiresDirective.MODIFIERS_PROPERTY, pos, String.valueOf(' '), String.valueOf(' '));
+		rewriteRequiredNode(node, RequiresDirective.NAME_PROPERTY);
+		return false;
+	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(AnonymousClassDeclaration)
-	 */
+	@Override
 	public boolean visit(AnonymousClassDeclaration node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -2152,9 +2206,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(ArrayAccess)
-	 */
+	@Override
 	public boolean visit(ArrayAccess node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -2165,9 +2217,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(ArrayCreation)
-	 */
+	@Override
 	public boolean visit(ArrayCreation node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -2176,7 +2226,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		ArrayType arrayType= (ArrayType) getOriginalValue(node, ArrayCreation.TYPE_PROPERTY);
 		ArrayType replacingType= arrayType;
 		int nOldBrackets= getDimensions(arrayType); // number of total brackets
-		boolean astLevelGTE8 = node.getAST().apiLevel() >= AST.JLS8;
+		boolean astLevelGTE8 = node.getAST().apiLevel() >= JLS8_INTERNAL;
 		boolean typeReplaced = false;
 
 		TextEditGroup editGroup= null;
@@ -2349,7 +2399,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 	}
 
 	private Type getElementType(ArrayType parent) {
-		if (parent.getAST().apiLevel() >= AST.JLS8) {
+		if (parent.getAST().apiLevel() >= JLS8_INTERNAL) {
 			return (Type) getOriginalValue(parent, ArrayType.ELEMENT_TYPE_PROPERTY);
 		}
 		Type t = (Type) getOriginalValue(parent, INTERNAL_ARRAY_COMPONENT_TYPE_PROPERTY);
@@ -2360,7 +2410,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 	}
 
 	private int getDimensions(ArrayType parent) {
-		if (parent.getAST().apiLevel() >= AST.JLS8) {
+		if (parent.getAST().apiLevel() >= JLS8_INTERNAL) {
 			return ((List) getOriginalValue(parent, ArrayType.DIMENSIONS_PROPERTY)).size();
 		}
 		Type t = (Type) getOriginalValue(parent, INTERNAL_ARRAY_COMPONENT_TYPE_PROPERTY);
@@ -2372,9 +2422,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return dimensions;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(ArrayInitializer)
-	 */
+	@Override
 	public boolean visit(ArrayInitializer node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -2389,14 +2437,12 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return rewriteNodeList(node, ArrayType.DIMENSIONS_PROPERTY, pos, Util.EMPTY_STRING, ""); //$NON-NLS-1$
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(ArrayType)
-	 */
+	@Override
 	public boolean visit(ArrayType node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
 		}
-		if (node.getAST().apiLevel() < AST.JLS8) {
+		if (node.getAST().apiLevel() < JLS8_INTERNAL) {
 			rewriteRequiredNode(node, INTERNAL_ARRAY_COMPONENT_TYPE_PROPERTY);
 		} else {
 			int pos = rewriteRequiredNode(node, ArrayType.ELEMENT_TYPE_PROPERTY);
@@ -2405,9 +2451,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(AssertStatement)
-	 */
+	@Override
 	public boolean visit(AssertStatement node) {
 		try {
 			this.beforeRequiredSpaceIndex = getScanner().getNextEndOffset(node.getStartPosition(), true);
@@ -2426,9 +2470,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(Assignment)
-	 */
+	@Override
 	public boolean visit(Assignment node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -2440,9 +2482,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(BooleanLiteral)
-	 */
+	@Override
 	public boolean visit(BooleanLiteral node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -2454,9 +2494,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(BreakStatement)
-	 */
+	@Override
 	public boolean visit(BreakStatement node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -2471,9 +2509,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(CastExpression)
-	 */
+	@Override
 	public boolean visit(CastExpression node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -2484,9 +2520,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(CatchClause)
-	 */
+	@Override
 	public boolean visit(CatchClause node) { // catch (Exception) Block
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -2497,9 +2531,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(CharacterLiteral)
-	 */
+	@Override
 	public boolean visit(CharacterLiteral node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -2511,9 +2543,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(ClassInstanceCreation)
-	 */
+	@Override
 	public boolean visit(ClassInstanceCreation node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -2561,9 +2591,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(ConditionalExpression)
-	 */
+	@Override
 	public boolean visit(ConditionalExpression node) { // expression ? thenExpression : elseExpression
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -2575,9 +2603,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(ConstructorInvocation)
-	 */
+	@Override
 	public boolean visit(ConstructorInvocation node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -2595,9 +2621,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(ContinueStatement)
-	 */
+	@Override
 	public boolean visit(ContinueStatement node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -2623,9 +2647,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(CreationReference)
-	 */
+	@Override
 	public boolean visit(CreationReference node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -2635,9 +2657,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(DoStatement)
-	 */
+	@Override
 	public boolean visit(DoStatement node) { // do statement while expression
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -2663,9 +2683,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(EmptyStatement)
-	 */
+	@Override
 	public boolean visit(EmptyStatement node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -2675,9 +2693,18 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(ExpressionStatement)
-	 */
+	@Override
+	public boolean visit(ExportsDirective node) {
+		if (!hasChildrenChanges(node)) {
+			return doVisitUnchangedChildren(node);
+		}
+		int pos = rewriteRequiredNode(node, ExportsDirective.NAME_PROPERTY);
+		rewriteNodeList(node, ExportsDirective.MODULES_PROPERTY, pos, "to ", ", "); //$NON-NLS-1$ //$NON-NLS-2$ 
+
+		return false;
+	}
+
+	@Override
 	public boolean visit(ExpressionStatement node) { // expression
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -2687,9 +2714,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(FieldAccess)
-	 */
+	@Override
 	public boolean visit(FieldAccess node) { // expression.name
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -2700,9 +2725,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(FieldDeclaration)
-	 */
+	@Override
 	public boolean visit(FieldDeclaration node) { //{ Modifier } Type VariableDeclarationFragment { ',' VariableDeclarationFragment } ';'
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -2721,9 +2744,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(ForStatement)
-	 */
+	@Override
 	public boolean visit(ForStatement node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -2768,9 +2789,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(IfStatement)
-	 */
+	@Override
 	public boolean visit(IfStatement node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -2820,9 +2839,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(ImportDeclaration)
-	 */
+	@Override
 	public boolean visit(ImportDeclaration node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -2864,12 +2881,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-
-
-
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(InfixExpression)
-	 */
+	@Override
 	public boolean visit(InfixExpression node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -2945,9 +2957,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(Initializer)
-	 */
+	@Override
 	public boolean visit(Initializer node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -2962,9 +2972,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(InstanceofExpression)
-	 */
+	@Override
 	public boolean visit(InstanceofExpression node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -3012,9 +3020,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(IntersectionType)
-	 */
+	@Override
 	public boolean visit(IntersectionType node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -3022,10 +3028,8 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		rewriteNodeList(node, IntersectionType.TYPES_PROPERTY, node.getStartPosition(), Util.EMPTY_STRING, " & "); //$NON-NLS-1$
 		return false;
 	}
-	
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(Javadoc)
-	 */
+
+	@Override
 	public boolean visit(Javadoc node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -3037,9 +3041,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(LabeledStatement)
-	 */
+	@Override
 	public boolean visit(LabeledStatement node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -3050,9 +3052,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(LambdaExpression)
-	 */
+	@Override
 	public boolean visit(LambdaExpression node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -3124,9 +3124,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(MethodInvocation)
-	 */
+	@Override
 	public boolean visit(MethodInvocation node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -3153,9 +3151,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(NullLiteral)
-	 */
+	@Override
 	public boolean visit(NullLiteral node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -3165,9 +3161,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(NumberLiteral)
-	 */
+	@Override
 	public boolean visit(NumberLiteral node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -3178,9 +3172,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(PackageDeclaration)
-	 */
+	@Override
 	public boolean visit(PackageDeclaration node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -3194,9 +3186,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(ParenthesizedExpression)
-	 */
+	@Override
 	public boolean visit(ParenthesizedExpression node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -3206,9 +3196,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(PostfixExpression)
-	 */
+	@Override
 	public boolean visit(PostfixExpression node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -3219,9 +3207,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(PrefixExpression)
-	 */
+	@Override
 	public boolean visit(PrefixExpression node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -3232,14 +3218,12 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(PrimitiveType)
-	 */
+	@Override
 	public boolean visit(PrimitiveType node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
 		}
-		if (node.getAST().apiLevel() >= AST.JLS8) {
+		if (node.getAST().apiLevel() >= JLS8_INTERNAL) {
 			rewriteTypeAnnotations(node, PrimitiveType.ANNOTATIONS_PROPERTY, node.getStartPosition());
 		}
 		PrimitiveType.Code newCode= (PrimitiveType.Code) getNewValue(node, PrimitiveType.PRIMITIVE_TYPE_CODE_PROPERTY);
@@ -3248,9 +3232,17 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(QualifiedName)
-	 */
+	@Override
+	public boolean visit(ProvidesDirective node) {
+		if (!hasChildrenChanges(node)) {
+			return doVisitUnchangedChildren(node);
+		}
+		int pos = rewriteRequiredNode(node, ProvidesDirective.NAME_PROPERTY);
+		pos= rewriteNodeList(node, ProvidesDirective.IMPLEMENTATIONS_PROPERTY, pos, " with ", ", "); //$NON-NLS-1$ //$NON-NLS-2$
+		return false;
+	}
+
+	@Override
 	public boolean visit(QualifiedName node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -3261,9 +3253,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(SimpleName)
-	 */
+	@Override
 	public boolean visit(SimpleName node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -3274,23 +3264,19 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(SimpleType)
-	 */
+	@Override
 	public boolean visit(SimpleType node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
 		}
-		if (node.getAST().apiLevel() >= AST.JLS8) {
+		if (node.getAST().apiLevel() >= JLS8_INTERNAL) {
 			rewriteTypeAnnotations(node, SimpleType.ANNOTATIONS_PROPERTY, node.getStartPosition());
 		}
 		rewriteRequiredNode(node, SimpleType.NAME_PROPERTY);
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(SingleVariableDeclaration)
-	 */
+	@Override
 	public boolean visit(SingleVariableDeclaration node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -3307,7 +3293,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 			if (isChanged(node, SingleVariableDeclaration.VARARGS_PROPERTY)) {
 				TextEditGroup editGroup = getEditGroup(node, SingleVariableDeclaration.VARARGS_PROPERTY);
 				if (getNewValue(node, SingleVariableDeclaration.VARARGS_PROPERTY).equals(Boolean.TRUE)) {
-					if (apiLevel >= AST.JLS8) {
+					if (apiLevel >= JLS8_INTERNAL) {
 						pos= rewriteVarargsAnnotations(node, SingleVariableDeclaration.VARARGS_ANNOTATIONS_PROPERTY, pos);
 					}
 					int indent= getIndent(node.getStartPosition());
@@ -3317,7 +3303,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 				} else {
 					try {
 						int ellipsisEnd;
-						int noOfAnnotations = apiLevel >= AST.JLS8 ? node.varargsAnnotations().size() : 0;
+						int noOfAnnotations = apiLevel >= JLS8_INTERNAL ? node.varargsAnnotations().size() : 0;
 						if (noOfAnnotations > 0) {
 							Annotation annotation= (Annotation) node.varargsAnnotations().get(noOfAnnotations - 1);
 							int annotationEndPosition= annotation.getStartPosition() + annotation.getLength();
@@ -3331,7 +3317,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 					}
 				}
 			} else {
-				if (apiLevel >= AST.JLS8 && node.isVarargs()) {
+				if (apiLevel >= JLS8_INTERNAL && node.isVarargs()) {
 					pos = rewriteVarargsAnnotations(node, SingleVariableDeclaration.VARARGS_ANNOTATIONS_PROPERTY, pos);
 				}
 			}
@@ -3343,7 +3329,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		}
 
 		pos= rewriteRequiredNode(node, SingleVariableDeclaration.NAME_PROPERTY);
-		if (apiLevel < AST.JLS8) {
+		if (apiLevel < JLS8_INTERNAL) {
 			int extraDims= rewriteExtraDimensions(node, INTERNAL_VARIABLE_EXTRA_DIMENSIONS_PROPERTY, pos);
 
 			if (extraDims > 0) {
@@ -3366,9 +3352,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(StringLiteral)
-	 */
+	@Override
 	public boolean visit(StringLiteral node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -3380,9 +3364,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(SuperConstructorInvocation)
-	 */
+	@Override
 	public boolean visit(SuperConstructorInvocation node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -3408,9 +3390,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(SuperFieldAccess)
-	 */
+	@Override
 	public boolean visit(SuperFieldAccess node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -3421,9 +3401,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(SuperMethodInvocation)
-	 */
+	@Override
 	public boolean visit(SuperMethodInvocation node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -3458,9 +3436,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(SwitchCase)
-	 */
+	@Override
 	public boolean visit(SwitchCase node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -3481,6 +3457,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 				DefaultCodeFormatterConstants.TRUE.equals(ASTRewriteAnalyzer.this.options.get(DefaultCodeFormatterConstants.FORMATTER_INDENT_SWITCHSTATEMENTS_COMPARE_TO_CASES));
 		}
 
+		@Override
 		protected int getNodeIndent(int nodeIndex) {
 			int indent= getInitialIndent();
 			
@@ -3502,6 +3479,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 			return indent;
 		}
 		
+		@Override
 		protected String getSeparatorString(int nodeIndex) {
 			int total = this.list.length;
 			
@@ -3515,6 +3493,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 			return getSeparatorString(nodeIndex, nextNodeIndex);
 		}
 		
+		@Override
 		protected void updateIndent(int prevMark, int originalOffset, int nodeIndex, TextEditGroup editGroup) {
 			if (prevMark != RewriteEvent.UNCHANGED && prevMark != RewriteEvent.REPLACED) return;
 			
@@ -3562,9 +3541,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(SwitchStatement)
-	 */
+	@Override
 	public boolean visit(SwitchStatement node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -3595,9 +3572,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(SynchronizedStatement)
-	 */
+	@Override
 	public boolean visit(SynchronizedStatement node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -3608,9 +3583,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(ThisExpression)
-	 */
+	@Override
 	public boolean visit(ThisExpression node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -3620,9 +3593,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(ThrowStatement)
-	 */
+	@Override
 	public boolean visit(ThrowStatement node) {
 		try {
 			this.beforeRequiredSpaceIndex = getScanner().getTokenEndOffset(TerminalTokens.TokenNamethrow, node.getStartPosition());
@@ -3640,22 +3611,22 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(TryStatement)
-	 */
+	@Override
 	public boolean visit(TryStatement node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
 		}
 		int pos= node.getStartPosition();
-		if (node.getAST().apiLevel() >= JLS4_INTERNAL) {
-			if (isChanged(node, TryStatement.RESOURCES_PROPERTY)) {
+		int level = node.getAST().apiLevel();
+		if (level >= JLS4_INTERNAL) {
+			StructuralPropertyDescriptor desc = level < JLS9_INTERNAL ? INTERNAL_TRY_STATEMENT_RESOURCES_PROPERTY : TryStatement.RESOURCES2_PROPERTY;
+			if (isChanged(node, desc)) {
 				int indent= getIndent(node.getStartPosition());
 				String prefix= this.formatter.TRY_RESOURCES.getPrefix(indent);
 				String newParen = this.formatter.TRY_RESOURCES_PAREN.getPrefix(indent) + "("; //$NON-NLS-1$
-				pos= rewriteNodeList(node, TryStatement.RESOURCES_PROPERTY, getPosAfterTry(pos), newParen, ")", ";" + prefix); //$NON-NLS-1$ //$NON-NLS-2$
+				pos= rewriteNodeList(node, desc, getPosAfterTry(pos), newParen, ")", ";" + prefix); //$NON-NLS-1$ //$NON-NLS-2$
 			} else {
-				pos= doVisit(node, TryStatement.RESOURCES_PROPERTY, pos);
+				pos= doVisit(node, desc, pos);
 			}
 		}
 
@@ -3672,11 +3643,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-
-
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(TypeDeclarationStatement)
-	 */
+	@Override
 	public boolean visit(TypeDeclarationStatement node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -3689,9 +3656,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(TypeLiteral)
-	 */
+	@Override
 	public boolean visit(TypeLiteral node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -3701,9 +3666,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(UnionType)
-	 */
+	@Override
 	public boolean visit(UnionType node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -3711,10 +3674,17 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		rewriteNodeList(node, UnionType.TYPES_PROPERTY, node.getStartPosition(), Util.EMPTY_STRING, " | "); //$NON-NLS-1$
 		return false;
 	}
-	
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(VariableDeclarationExpression)
-	 */
+
+	@Override
+	public boolean visit(UsesDirective node) {
+		if (!hasChildrenChanges(node)) {
+			return doVisitUnchangedChildren(node);
+		}
+		rewriteRequiredNode(node,UsesDirective.NAME_PROPERTY);
+		return false;
+	}
+
+	@Override
 	public boolean visit(VariableDeclarationExpression node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -3732,9 +3702,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(VariableDeclarationFragment)
-	 */
+	@Override
 	public boolean visit(VariableDeclarationFragment node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -3742,7 +3710,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 
 		int pos= rewriteRequiredNode(node, VariableDeclarationFragment.NAME_PROPERTY);
 
-		if (node.getAST().apiLevel() < AST.JLS8) {
+		if (node.getAST().apiLevel() < JLS8_INTERNAL) {
 			int extraDims= rewriteExtraDimensions(node, INTERNAL_FRAGMENT_EXTRA_DIMENSIONS_PROPERTY, pos);
 			if (extraDims > 0) {
 				int kind= getChangeKind(node, VariableDeclarationFragment.INITIALIZER_PROPERTY);
@@ -3763,9 +3731,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(VariableDeclarationStatement)
-	 */
+	@Override
 	public boolean visit(VariableDeclarationStatement node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -3784,9 +3750,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(WhileStatement)
-	 */
+	@Override
 	public boolean visit(WhileStatement node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -3807,9 +3771,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(org.aspectj.org.eclipse.jdt.core.dom.MemberRef)
-	 */
+	@Override
 	public boolean visit(MemberRef node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -3820,9 +3782,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(org.aspectj.org.eclipse.jdt.core.dom.MethodRef)
-	 */
+	@Override
 	public boolean visit(MethodRef node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -3845,9 +3805,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(org.aspectj.org.eclipse.jdt.core.dom.MethodRefParameter)
-	 */
+	@Override
 	public boolean visit(MethodRefParameter node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -3871,9 +3829,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(org.aspectj.org.eclipse.jdt.core.dom.TagElement)
-	 */
+	@Override
 	public boolean visit(TagElement node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -3920,10 +3876,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 	    return tagNode.getStartPosition();
 	}
 
-
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(org.aspectj.org.eclipse.jdt.core.dom.TextElement)
-	 */
+	@Override
 	public boolean visit(TextElement node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -3934,10 +3887,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(org.aspectj.org.eclipse.jdt.core.dom.AnnotationTypeDeclaration)
-	 */
+	@Override
 	public boolean visit(AnnotationTypeDeclaration node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -3952,9 +3902,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(org.aspectj.org.eclipse.jdt.core.dom.AnnotationTypeMemberDeclaration)
-	 */
+	@Override
 	public boolean visit(AnnotationTypeMemberDeclaration node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -3976,9 +3924,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(org.aspectj.org.eclipse.jdt.core.dom.EnhancedForStatement)
-	 */
+	@Override
 	public boolean visit(EnhancedForStatement node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -4001,9 +3947,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(org.aspectj.org.eclipse.jdt.core.dom.EnumConstantDeclaration)
-	 */
+	@Override
 	public boolean visit(EnumConstantDeclaration node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -4056,9 +4000,8 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		}
 		return false;
 	}
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(org.aspectj.org.eclipse.jdt.core.dom.EnumDeclaration)
-	 */
+
+	@Override
 	public boolean visit(EnumDeclaration node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -4131,9 +4074,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(ExpressionMethodReference)
-	 */
+	@Override
 	public boolean visit(ExpressionMethodReference node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -4144,9 +4085,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(org.aspectj.org.eclipse.jdt.core.dom.MarkerAnnotation)
-	 */
+	@Override
 	public boolean visit(MarkerAnnotation node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -4154,9 +4093,8 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		rewriteRequiredNode(node, MarkerAnnotation.TYPE_NAME_PROPERTY);
 		return false;
 	}
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(org.aspectj.org.eclipse.jdt.core.dom.MemberValuePair)
-	 */
+
+	@Override
 	public boolean visit(MemberValuePair node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -4166,9 +4104,8 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 
 		return false;
 	}
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(org.aspectj.org.eclipse.jdt.core.dom.Modifier)
-	 */
+
+	@Override
 	public boolean visit(Modifier node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -4178,9 +4115,19 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		doTextReplace(node.getStartPosition(), node.getLength(), newText, group);
 		return false;
 	}
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(org.aspectj.org.eclipse.jdt.core.dom.NormalAnnotation)
-	 */
+
+	@Override
+	public boolean visit(ModuleModifier node) {
+		if (!hasChildrenChanges(node)) {
+			return doVisitUnchangedChildren(node);
+		}
+		String newText= getNewValue(node, ModuleModifier.KEYWORD_PROPERTY).toString(); // type ModuleModifier.ModuleModifierKeyword
+		TextEditGroup group = getEditGroup(node, ModuleModifier.KEYWORD_PROPERTY);
+		doTextReplace(node.getStartPosition(), node.getLength(), newText, group);
+		return false;
+	}
+
+	@Override
 	public boolean visit(NormalAnnotation node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -4199,9 +4146,8 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		}
 		return false;
 	}
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(org.aspectj.org.eclipse.jdt.core.dom.NameQualifiedType)
-	 */
+
+	@Override
 	public boolean visit(NameQualifiedType node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -4216,9 +4162,8 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		rewriteRequiredNode(node, NameQualifiedType.NAME_PROPERTY);
 		return false;
 	}
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(org.aspectj.org.eclipse.jdt.core.dom.ParameterizedType)
-	 */
+
+	@Override
 	public boolean visit(ParameterizedType node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -4237,15 +4182,14 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		}
 		return false;
 	}
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(org.aspectj.org.eclipse.jdt.core.dom.QualifiedType)
-	 */
+
+	@Override
 	public boolean visit(QualifiedType node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
 		}
 		int pos = rewriteRequiredNode(node, QualifiedType.QUALIFIER_PROPERTY);
-		if (node.getAST().apiLevel() >= AST.JLS8) {
+		if (node.getAST().apiLevel() >= JLS8_INTERNAL) {
 			try {
 				pos = getScanner().getTokenEndOffset(TerminalTokens.TokenNameDOT, pos);
 				rewriteTypeAnnotations(node, QualifiedType.ANNOTATIONS_PROPERTY, pos);
@@ -4256,9 +4200,8 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		rewriteRequiredNode(node, QualifiedType.NAME_PROPERTY);
 		return false;
 	}
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(org.aspectj.org.eclipse.jdt.core.dom.SingleMemberAnnotation)
-	 */
+
+	@Override
 	public boolean visit(SingleMemberAnnotation node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -4268,9 +4211,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(SuperMethodReference)
-	 */
+	@Override
 	public boolean visit(SuperMethodReference node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -4281,9 +4222,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(TypeMethodReference)
-	 */
+	@Override
 	public boolean visit(TypeMethodReference node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
@@ -4294,29 +4233,26 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(org.aspectj.org.eclipse.jdt.core.dom.TypeParameter)
-	 */
+	@Override
 	public boolean visit(TypeParameter node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
 		}
 		int pos;
-		if (node.getAST().apiLevel() >= AST.JLS8) {
+		if (node.getAST().apiLevel() >= JLS8_INTERNAL) {
 			pos = rewriteModifiers2(node, TypeParameter.MODIFIERS_PROPERTY, node.getStartPosition());
 		}
 		pos= rewriteRequiredNode(node, TypeParameter.NAME_PROPERTY);
 		rewriteNodeList(node, TypeParameter.TYPE_BOUNDS_PROPERTY, pos, " extends ", " & "); //$NON-NLS-1$ //$NON-NLS-2$
 		return false;
 	}
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(org.aspectj.org.eclipse.jdt.core.dom.WildcardType)
-	 */
+
+	@Override
 	public boolean visit(WildcardType node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
 		}
-		if (node.getAST().apiLevel() >= AST.JLS8) {
+		if (node.getAST().apiLevel() >= JLS8_INTERNAL) {
 			rewriteTypeAnnotations(node, WildcardType.ANNOTATIONS_PROPERTY, node.getStartPosition());
 		}
 		try {
@@ -4348,4 +4284,5 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 	final void handleException(Throwable e) {
 		throw new IllegalArgumentException("Document does not match the AST", e); //$NON-NLS-1$
 	}
+
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -23,6 +23,7 @@ import org.aspectj.org.eclipse.jdt.core.WorkingCopyOwner;
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.core.util.ClassFileBytesDisassembler;
 import org.aspectj.org.eclipse.jdt.core.util.IClassFileReader;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Disassembler;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
 
@@ -31,17 +32,25 @@ import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
  */
 public class ClassFileWorkingCopy extends CompilationUnit {
 
-	public ClassFile classFile;
+	public AbstractClassFile classFile;
 
-public ClassFileWorkingCopy(ClassFile classFile, WorkingCopyOwner owner) {
-	super((PackageFragment) classFile.getParent(), ((BinaryType) classFile.getType()).getSourceFileName(null/*no info available*/), owner);
+public ClassFileWorkingCopy(AbstractClassFile classFile, WorkingCopyOwner owner) {
+	super((PackageFragment) classFile.getParent(), sourceFileName(classFile), owner);
 	this.classFile = classFile;
 }
+private static String sourceFileName(AbstractClassFile classFile) {
+	if (classFile instanceof ModularClassFile)
+		return TypeConstants.MODULE_INFO_FILE_NAME_STRING;
+	else
+		return ((BinaryType) ((ClassFile) classFile).getType()).getSourceFileName(null/*no info available*/);
+}
 
+@Override
 public void commitWorkingCopy(boolean force, IProgressMonitor monitor) throws JavaModelException {
 	throw new JavaModelException(new JavaModelStatus(IJavaModelStatusConstants.INVALID_ELEMENT_TYPES, this));
 }
 
+@Override
 public IBuffer getBuffer() throws JavaModelException {
 	if (isWorkingCopy())
 		return super.getBuffer();
@@ -49,6 +58,7 @@ public IBuffer getBuffer() throws JavaModelException {
 		return this.classFile.getBuffer();
 }
 
+@Override
 public char[] getContents() {
 	try {
 		IBuffer buffer = getBuffer();
@@ -61,15 +71,18 @@ public char[] getContents() {
 	}
 }
 
+@Override
 public IPath getPath() {
 	return this.classFile.getPath();
 }
 
+@Override
 public IJavaElement getPrimaryElement(boolean checkOwner) {
 	if (checkOwner && isPrimary()) return this;
 	return new ClassFileWorkingCopy(this.classFile, DefaultWorkingCopyOwner.PRIMARY);
 }
 
+@Override
 public IResource resource(PackageFragmentRoot root) {
 	if (root.isArchive())
 		return root.resource(root);
@@ -79,6 +92,7 @@ public IResource resource(PackageFragmentRoot root) {
 /**
  * @see Openable#openBuffer(IProgressMonitor, Object)
  */
+@Override
 protected IBuffer openBuffer(IProgressMonitor pm, Object info) throws JavaModelException {
 
 	// create buffer
@@ -106,6 +120,7 @@ protected IBuffer openBuffer(IProgressMonitor pm, Object info) throws JavaModelE
 	return buffer;
 }
 
+@Override
 protected void toStringName(StringBuffer buffer) {
 	buffer.append(this.classFile.getElementName());
 }

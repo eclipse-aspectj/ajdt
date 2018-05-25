@@ -1,6 +1,6 @@
-// ASPECTJ
+//AspectJ
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -90,6 +90,7 @@ public class AllocationExpression extends Expression implements IPolyExpression,
 	public TypeBinding[] argumentTypes = Binding.NO_PARAMETERS;
 	public boolean argumentsHaveErrors = false;
 	
+@Override
 public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, FlowInfo flowInfo) {
 	// check captured variables are initialized in current context (26134)
 	checkCapturedLocalInitializationIfNecessary((ReferenceBinding)this.binding.declaringClass.erasure(), currentScope, flowInfo);
@@ -173,6 +174,7 @@ public Expression enclosingInstance() {
 	return null;
 }
 
+@Override
 public void generateCode(BlockScope currentScope, CodeStream codeStream, boolean valueRequired) {
 	cleanUpInferenceContexts();
 	if (!valueRequired)
@@ -255,14 +257,17 @@ public void generateCode(BlockScope currentScope, CodeStream codeStream, boolean
 /**
  * @see org.aspectj.org.eclipse.jdt.internal.compiler.lookup.InvocationSite#genericTypeArguments()
  */
+@Override
 public TypeBinding[] genericTypeArguments() {
 	return this.genericTypeArguments;
 }
 
+@Override
 public boolean isSuperAccess() {
 	return false;
 }
 
+@Override
 public boolean isTypeAccess() {
 	return true;
 }
@@ -321,6 +326,7 @@ public void manageSyntheticAccessIfNecessary(BlockScope currentScope, FlowInfo f
 	}
 }
 
+@Override
 public StringBuffer printExpression(int indent, StringBuffer output) {
 	if (this.type != null) { // type null for enum constant initializations
 		output.append("new "); //$NON-NLS-1$
@@ -348,6 +354,7 @@ public StringBuffer printExpression(int indent, StringBuffer output) {
 	return output.append(')');
 }
 
+@Override
 public TypeBinding resolveType(BlockScope scope) {
 	// Propagate the type checking to the arguments, and check if the constructor is defined.
 	final boolean isDiamond = this.type != null && (this.type.bits & ASTNode.IsDiamond) != 0;
@@ -361,130 +368,138 @@ public TypeBinding resolveType(BlockScope scope) {
 		} else {
 			this.resolvedType = this.type.resolveType(scope, true /* check bounds*/);
 		}
-		if (this.type != null) {
-			checkIllegalNullAnnotation(scope, this.resolvedType);
-			checkParameterizedAllocation: {
-				if (this.type instanceof ParameterizedQualifiedTypeReference) { // disallow new X<String>.Y<Integer>()
-					ReferenceBinding currentType = (ReferenceBinding)this.resolvedType;
-					if (currentType == null) return currentType;
-					do {
-						// isStatic() is answering true for toplevel types
-						if ((currentType.modifiers & ClassFileConstants.AccStatic) != 0) break checkParameterizedAllocation;
-						if (currentType.isRawType()) break checkParameterizedAllocation;
-					} while ((currentType = currentType.enclosingType())!= null);
-					ParameterizedQualifiedTypeReference qRef = (ParameterizedQualifiedTypeReference) this.type;
-					for (int i = qRef.typeArguments.length - 2; i >= 0; i--) {
-						if (qRef.typeArguments[i] != null) {
-							scope.problemReporter().illegalQualifiedParameterizedTypeAllocation(this.type, this.resolvedType);
-							break;
-						}
+	if (this.type != null) {
+		checkIllegalNullAnnotation(scope, this.resolvedType);
+		checkParameterizedAllocation: {
+			if (this.type instanceof ParameterizedQualifiedTypeReference) { // disallow new X<String>.Y<Integer>()
+				ReferenceBinding currentType = (ReferenceBinding)this.resolvedType;
+				if (currentType == null) return currentType;
+				do {
+					// isStatic() is answering true for toplevel types
+					if ((currentType.modifiers & ClassFileConstants.AccStatic) != 0) break checkParameterizedAllocation;
+					if (currentType.isRawType()) break checkParameterizedAllocation;
+				} while ((currentType = currentType.enclosingType())!= null);
+				ParameterizedQualifiedTypeReference qRef = (ParameterizedQualifiedTypeReference) this.type;
+				for (int i = qRef.typeArguments.length - 2; i >= 0; i--) {
+					if (qRef.typeArguments[i] != null) {
+						scope.problemReporter().illegalQualifiedParameterizedTypeAllocation(this.type, this.resolvedType);
+						break;
 					}
 				}
 			}
 		}
-		// will check for null after args are resolved
+	}
+	// will check for null after args are resolved
 
-		// resolve type arguments (for generic constructor call)
-		if (this.typeArguments != null) {
-			int length = this.typeArguments.length;
+	// resolve type arguments (for generic constructor call)
+	if (this.typeArguments != null) {
+		int length = this.typeArguments.length;
 			this.argumentsHaveErrors = sourceLevel < ClassFileConstants.JDK1_5;
-			this.genericTypeArguments = new TypeBinding[length];
-			for (int i = 0; i < length; i++) {
-				TypeReference typeReference = this.typeArguments[i];
-				if ((this.genericTypeArguments[i] = typeReference.resolveType(scope, true /* check bounds*/)) == null) {
+		this.genericTypeArguments = new TypeBinding[length];
+		for (int i = 0; i < length; i++) {
+			TypeReference typeReference = this.typeArguments[i];
+			if ((this.genericTypeArguments[i] = typeReference.resolveType(scope, true /* check bounds*/)) == null) {
 					this.argumentsHaveErrors = true;
-				}
+			}
 				if (this.argumentsHaveErrors && typeReference instanceof Wildcard) {
-					scope.problemReporter().illegalUsageOfWildcard(typeReference);
-				}
-			}
-			if (isDiamond) {
-				scope.problemReporter().diamondNotWithExplicitTypeArguments(this.typeArguments);
-				return null;
-			}
-			if (this.argumentsHaveErrors) {
-				if (this.arguments != null) { // still attempt to resolve arguments
-					for (int i = 0, max = this.arguments.length; i < max; i++) {
-						this.arguments[i].resolveType(scope);
-					}
-				}
-				return null;
+				scope.problemReporter().illegalUsageOfWildcard(typeReference);
 			}
 		}
-
-		// buffering the arguments' types
-		if (this.arguments != null) {
-			this.argumentsHaveErrors = false;
-			int length = this.arguments.length;
-			this.argumentTypes = new TypeBinding[length];
-			for (int i = 0; i < length; i++) {
-				Expression argument = this.arguments[i];
-				if (argument instanceof CastExpression) {
-					argument.bits |= DisableUnnecessaryCastCheck; // will check later on
-					this.argsContainCast = true;
-				}
-				argument.setExpressionContext(INVOCATION_CONTEXT);
-				if (this.arguments[i].resolvedType != null) 
-					scope.problemReporter().genericInferenceError("Argument was unexpectedly found resolved", this); //$NON-NLS-1$
-				if ((this.argumentTypes[i] = argument.resolveType(scope)) == null) {
-					this.argumentsHaveErrors = true;
-				}
-			}
-			if (this.argumentsHaveErrors) {
-				/* https://bugs.eclipse.org/bugs/show_bug.cgi?id=345359, if arguments have errors, completely bail out in the <> case.
-			   No meaningful type resolution is possible since inference of the elided types is fully tied to argument types. Do
-			   not return the partially resolved type.
-				 */
-				if (isDiamond) {
-					return null; // not the partially cooked this.resolvedType
-				}
-				if (this.resolvedType instanceof ReferenceBinding) {
-					// record a best guess, for clients who need hint about possible constructor match
-					TypeBinding[] pseudoArgs = new TypeBinding[length];
-					for (int i = length; --i >= 0;) {
-						pseudoArgs[i] = this.argumentTypes[i] == null ? TypeBinding.NULL : this.argumentTypes[i]; // replace args with errors with null type
-					}
-					this.binding = scope.findMethod((ReferenceBinding) this.resolvedType, TypeConstants.INIT, pseudoArgs, this, false);
-					if (this.binding != null && !this.binding.isValidBinding()) {
-						MethodBinding closestMatch = ((ProblemMethodBinding)this.binding).closestMatch;
-						// record the closest match, for clients who may still need hint about possible method match
-						if (closestMatch != null) {
-							if (closestMatch.original().typeVariables != Binding.NO_TYPE_VARIABLES) { // generic method
-								// shouldn't return generic method outside its context, rather convert it to raw method (175409)
-								closestMatch = scope.environment().createParameterizedGenericMethod(closestMatch.original(), (RawTypeBinding)null);
-							}
-							this.binding = closestMatch;
-							MethodBinding closestMatchOriginal = closestMatch.original();
-							if (closestMatchOriginal.isOrEnclosedByPrivateType() && !scope.isDefinedInMethod(closestMatchOriginal)) {
-								// ignore cases where method is used from within inside itself (e.g. direct recursions)
-								closestMatchOriginal.modifiers |= ExtraCompilerModifiers.AccLocallyUsed;
-							}
-						}
-					}
-				}
-				return this.resolvedType;
-			}
-		}
-		if (this.resolvedType == null || !this.resolvedType.isValidBinding()) {
+		if (isDiamond) {
+			scope.problemReporter().diamondNotWithExplicitTypeArguments(this.typeArguments);
 			return null;
 		}
+		if (this.argumentsHaveErrors) {
+			if (this.arguments != null) { // still attempt to resolve arguments
+				for (int i = 0, max = this.arguments.length; i < max; i++) {
+					this.arguments[i].resolveType(scope);
+				}
+			}
+			return null;
+		}
+	}
 
-		// null type denotes fake allocation for enum constant inits
-		if (this.type != null && !this.resolvedType.canBeInstantiated()) {
-			scope.problemReporter().cannotInstantiate(this.type, this.resolvedType);
+	// buffering the arguments' types
+	if (this.arguments != null) {
+		this.argumentsHaveErrors = false;
+		int length = this.arguments.length;
+		this.argumentTypes = new TypeBinding[length];
+		for (int i = 0; i < length; i++) {
+			Expression argument = this.arguments[i];
+			if (argument instanceof CastExpression) {
+				argument.bits |= DisableUnnecessaryCastCheck; // will check later on
+				this.argsContainCast = true;
+			}
+			argument.setExpressionContext(INVOCATION_CONTEXT);
+			if (this.arguments[i].resolvedType != null) 
+				scope.problemReporter().genericInferenceError("Argument was unexpectedly found resolved", this); //$NON-NLS-1$
+				if ((this.argumentTypes[i] = argument.resolveType(scope)) == null) {
+					this.argumentsHaveErrors = true;
+			}
+		}
+		if (this.argumentsHaveErrors) {
+			/* https://bugs.eclipse.org/bugs/show_bug.cgi?id=345359, if arguments have errors, completely bail out in the <> case.
+			   No meaningful type resolution is possible since inference of the elided types is fully tied to argument types. Do
+			   not return the partially resolved type.
+			 */
+			if (isDiamond) {
+				return null; // not the partially cooked this.resolvedType
+			}
+			if (this.resolvedType instanceof ReferenceBinding) {
+				// record a best guess, for clients who need hint about possible constructor match
+				TypeBinding[] pseudoArgs = new TypeBinding[length];
+				for (int i = length; --i >= 0;) {
+					pseudoArgs[i] = this.argumentTypes[i] == null ? TypeBinding.NULL : this.argumentTypes[i]; // replace args with errors with null type
+				}
+				this.binding = scope.findMethod((ReferenceBinding) this.resolvedType, TypeConstants.INIT, pseudoArgs, this, false);
+				if (this.binding != null && !this.binding.isValidBinding()) {
+					MethodBinding closestMatch = ((ProblemMethodBinding)this.binding).closestMatch;
+					// record the closest match, for clients who may still need hint about possible method match
+					if (closestMatch != null) {
+						if (closestMatch.original().typeVariables != Binding.NO_TYPE_VARIABLES) { // generic method
+							// shouldn't return generic method outside its context, rather convert it to raw method (175409)
+							closestMatch = scope.environment().createParameterizedGenericMethod(closestMatch.original(), (RawTypeBinding)null);
+						}
+						this.binding = closestMatch;
+						MethodBinding closestMatchOriginal = closestMatch.original();
+						if (closestMatchOriginal.isOrEnclosedByPrivateType() && !scope.isDefinedInMethod(closestMatchOriginal)) {
+							// ignore cases where method is used from within inside itself (e.g. direct recursions)
+							closestMatchOriginal.modifiers |= ExtraCompilerModifiers.AccLocallyUsed;
+						}
+					}
+				}
+			}
 			return this.resolvedType;
 		}
-	} 
+	}
+	if (this.resolvedType == null || !this.resolvedType.isValidBinding()) {
+		return null;
+	}
+
+	// null type denotes fake allocation for enum constant inits
+	if (this.type != null && !this.resolvedType.canBeInstantiated()) {
+		scope.problemReporter().cannotInstantiate(this.type, this.resolvedType);
+		return this.resolvedType;
+	}
+		}
 	if (isDiamond) {
 		this.binding = inferConstructorOfElidedParameterizedType(scope);
 		if (this.binding == null || !this.binding.isValidBinding()) {
 			scope.problemReporter().cannotInferElidedTypes(this);
 			return this.resolvedType = null;
-		}
+ 	}
 		if (this.typeExpected == null && compilerOptions.sourceLevel >= ClassFileConstants.JDK1_8 && this.expressionContext.definesTargetType()) {
 			return new PolyTypeBinding(this);
-		}
+}
 		this.resolvedType = this.type.resolvedType = this.binding.declaringClass;
+		// 15.9.3 - If the compile-time declaration is applicable by variable arity invocation...
+		if (this.binding.isVarargs()) {
+			TypeBinding lastArg = this.binding.parameters[this.binding.parameters.length - 1].leafComponentType();
+			if (!lastArg.erasure().canBeSeenBy(scope)) {
+				scope.problemReporter().invalidType(this, new ProblemReferenceBinding(new char[][] {lastArg.readableName()}, (ReferenceBinding)lastArg, ProblemReasons.NotVisible));
+				return this.resolvedType = null;
+			}
+		}
 		resolvePolyExpressionArguments(this, this.binding, this.argumentTypes, scope);
 	} else {
 		this.binding = findConstructorBinding(scope, this, (ReferenceBinding) this.resolvedType, this.argumentTypes);
@@ -515,17 +530,14 @@ public TypeBinding resolveType(BlockScope scope) {
  		checkTypeArgumentRedundancy((ParameterizedTypeBinding) this.resolvedType, scope);
  	}
 	if (compilerOptions.isAnnotationBasedNullAnalysisEnabled) {
-		if ((this.binding.tagBits & TagBits.IsNullnessKnown) == 0) {
-			new ImplicitNullAnnotationVerifier(scope.environment(), compilerOptions.inheritNullAnnotations)
-					.checkImplicitNullAnnotations(this.binding, null/*srcMethod*/, false, scope);
-		}
+		ImplicitNullAnnotationVerifier.ensureNullnessIsKnown(this.binding, scope);
 		if (compilerOptions.sourceLevel >= ClassFileConstants.JDK1_8) {
 			if (this.binding instanceof ParameterizedGenericMethodBinding && this.typeArguments != null) {
 				TypeVariableBinding[] typeVariables = this.binding.original().typeVariables();
 				for (int i = 0; i < this.typeArguments.length; i++)
 					this.typeArguments[i].checkNullConstraints(scope, (ParameterizedGenericMethodBinding) this.binding, typeVariables, i);
 			}
-		}
+}
 	}
 	if (compilerOptions.sourceLevel >= ClassFileConstants.JDK1_8 &&
 			this.binding.getTypeAnnotations() != Binding.NO_ANNOTATIONS) {
@@ -550,10 +562,12 @@ void checkIllegalNullAnnotation(BlockScope scope, TypeBinding allocationType) {
 }
 
 // For allocation expressions, boxing compatibility is same as vanilla compatibility, since java.lang's wrapper types are not generic.
+@Override
 public boolean isBoxingCompatibleWith(TypeBinding targetType, Scope scope) {
 	return isPolyExpression() ? false : isCompatibleWith(scope.boxing(targetType), scope);
 }
 
+@Override
 public boolean isCompatibleWith(TypeBinding targetType, final Scope scope) {
 	if (this.argumentsHaveErrors || this.binding == null || !this.binding.isValidBinding() || targetType == null || scope == null)
 		return false;
@@ -613,22 +627,29 @@ public static MethodBinding inferDiamondConstructor(Scope scope, InvocationSite 
 		if (constructorTypeArguments.length > 0)
 			System.arraycopy(((ParameterizedGenericMethodBinding)factory).typeArguments, sfmb.typeVariables().length - constructorTypeArguments.length , 
 												constructorTypeArguments, 0, constructorTypeArguments.length);
-		return sfmb.applyTypeArgumentsOnConstructor(((ParameterizedTypeBinding)factory.returnType).arguments, constructorTypeArguments, genericFactory.inferredWithUncheckedConversion);
+		if (allocationType.isInterface()) {
+			ParameterizedTypeBinding parameterizedType = (ParameterizedTypeBinding) factory.returnType;
+			return new ParameterizedMethodBinding(parameterizedType, sfmb.getConstructor());
+		}
+		return sfmb.applyTypeArgumentsOnConstructor(((ParameterizedTypeBinding)factory.returnType).arguments, constructorTypeArguments, genericFactory.inferredWithUncheckedConversion, site.invocationTargetType());
 	}
 	return null;
 }
 
 public TypeBinding[] inferElidedTypes(final Scope scope) {
+	return inferElidedTypes((ParameterizedTypeBinding) this.resolvedType, scope);
+}
+public TypeBinding[] inferElidedTypes(ParameterizedTypeBinding parameterizedType, final Scope scope) {
 	
-	ReferenceBinding genericType = ((ParameterizedTypeBinding) this.resolvedType).genericType();
-	ReferenceBinding enclosingType = this.resolvedType.enclosingType();
+	ReferenceBinding genericType = parameterizedType.genericType();
+	ReferenceBinding enclosingType = parameterizedType.enclosingType();
 	ParameterizedTypeBinding allocationType = scope.environment().createParameterizedType(genericType, genericType.typeVariables(), enclosingType);
 	
 	/* Given the allocation type and the arguments to the constructor, see if we can synthesize a generic static factory
 	   method that would, given the argument types and the invocation site, manufacture a parameterized object of type allocationType.
 	   If we are successful then by design and construction, the parameterization of the return type of the factory method is identical
 	   to the types elided in the <>.
-	*/
+	 */   
 	MethodBinding factory = scope.getStaticFactory(allocationType, enclosingType, this.argumentTypes, this);
 	if (factory instanceof ParameterizedGenericMethodBinding && factory.isValidBinding()) {
 		ParameterizedGenericMethodBinding genericFactory = (ParameterizedGenericMethodBinding) factory;
@@ -665,7 +686,7 @@ public void checkTypeArgumentRedundancy(ParameterizedTypeBinding allocationType,
 		// checking for redundant type parameters must fake a diamond, 
 		// so we infer the same results as we would get with a diamond in source code:
 		this.type.bits |= IsDiamond;
-		inferredTypes = inferElidedTypes(scope);
+		inferredTypes = inferElidedTypes(allocationType, scope);
 	} finally {
 		// reset effects of inference
 		this.type.bits = previousBits;
@@ -680,18 +701,22 @@ public void checkTypeArgumentRedundancy(ParameterizedTypeBinding allocationType,
 	scope.problemReporter().redundantSpecificationOfTypeArguments(this.type, allocationType.arguments);
 }
 
+@Override
 public void setActualReceiverType(ReferenceBinding receiverType) {
 	// ignored
 }
 
+@Override
 public void setDepth(int i) {
 	// ignored
 }
 
+@Override
 public void setFieldIndex(int i) {
 	// ignored
 }
 
+@Override
 public void traverse(ASTVisitor visitor, BlockScope scope) {
 	if (visitor.visit(this, scope)) {
 		if (this.typeArguments != null) {
@@ -712,17 +737,21 @@ public void traverse(ASTVisitor visitor, BlockScope scope) {
 /**
  * @see org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression#setExpectedType(org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding)
  */
+@Override
 public void setExpectedType(TypeBinding expectedType) {
 	this.typeExpected = expectedType;
 }
 
+@Override
 public void setExpressionContext(ExpressionContext context) {
 	this.expressionContext = context;
 }
 
+@Override
 public boolean isPolyExpression() {
 	return isPolyExpression(this.binding);
 }
+@Override
 public boolean isPolyExpression(MethodBinding method) {
 	return (this.expressionContext == ASSIGNMENT_CONTEXT || this.expressionContext == INVOCATION_CONTEXT) &&
 			this.type != null && (this.type.bits & ASTNode.IsDiamond) != 0;
@@ -731,27 +760,32 @@ public boolean isPolyExpression(MethodBinding method) {
 /**
  * @see org.aspectj.org.eclipse.jdt.internal.compiler.lookup.InvocationSite#invocationTargetType()
  */
+@Override
 public TypeBinding invocationTargetType() {
 	return this.typeExpected;
 }
 
+@Override
 public boolean statementExpression() {
 	return ((this.bits & ASTNode.ParenthesizedMASK) == 0);
 }
 
 //-- interface Invocation: --
+@Override
 public MethodBinding binding() {
 	return this.binding;
 }
+@Override
 public Expression[] arguments() {
 	return this.arguments;
 }
 
+@Override
 public void registerInferenceContext(ParameterizedGenericMethodBinding method, InferenceContext18 infCtx18) {
 	if (this.inferenceContexts == null)
 		this.inferenceContexts = new SimpleLookupTable();
 	this.inferenceContexts.put(method, infCtx18);
-}
+	}
 
 @Override
 public void registerResult(TypeBinding targetType, MethodBinding method) {
@@ -759,9 +793,10 @@ public void registerResult(TypeBinding targetType, MethodBinding method) {
 		if (this.solutionsPerTargetType == null)
 			this.solutionsPerTargetType = new HashMap<>();
 		this.solutionsPerTargetType.put(targetType, method);
-	}
+}
 }
 
+@Override
 public InferenceContext18 getInferenceContext(ParameterizedMethodBinding method) {
 	if (this.inferenceContexts == null)
 		return null;
@@ -781,9 +816,11 @@ public void cleanUpInferenceContexts() {
 }
 
 //-- interface InvocationSite: --
+@Override
 public ExpressionContext getExpressionContext() {
 	return this.expressionContext;
 }
+@Override
 public InferenceContext18 freshInferenceContext(Scope scope) {
 	return new InferenceContext18(scope, this.arguments, this, this.outerInferenceContext);
 }

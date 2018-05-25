@@ -1,10 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- *
+ * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann - Contributions for
@@ -39,6 +39,7 @@ public UnresolvedReferenceBinding(UnresolvedReferenceBinding prototype) {
 	this.prototype = prototype.prototype;
 }
 
+@Override
 public TypeBinding clone(TypeBinding outerType) {
 	if (this.resolvedType != null)
 		return this.resolvedType.clone(outerType);
@@ -62,23 +63,28 @@ void addWrapper(TypeBinding wrapper, LookupEnvironment environment) {
 		this.wrappers[length] = wrapper;
 	}
 }
+@Override
 public boolean isUnresolvedType() {
 	return true;
 }
+@Override
 public String debugName() {
 	return toString();
 }
+@Override
 public int depth() {
 	// we don't yet have our enclosing types wired, but we know the nesting depth from our compoundName:
 	// (NOTE: this an upper bound, because class names may contain '$')
 	int last = this.compoundName.length-1;
 	return CharOperation.occurencesOf('$', this.compoundName[last], 1); // leading '$' must be part of the class name, so start at 1.
 }
+@Override
 public boolean hasTypeBit(int bit) {
 	// shouldn't happen since we are not called before analyseCode(), but play safe:
 	return false;
 }
 
+@Override
 public TypeBinding prototype() {
 	return this.prototype;
 }
@@ -99,25 +105,25 @@ ReferenceBinding resolve(LookupEnvironment environment, boolean convertGenericTo
 		char[] typeName = this.compoundName[this.compoundName.length - 1];
 		targetType = this.fPackage.getType0(typeName);
 		if (targetType == this) { //$IDENTITY-COMPARISON$
-			targetType = environment.askForType(this.compoundName);
+			if (this.fPackage instanceof SplitPackageBinding) // leverage SplitPackageBinding to avoid duplicate creation of BinaryTypeBinding
+				targetType = environment.askForType(this.fPackage, typeName, this.fPackage.enclosingModule);
+			else
+				targetType = environment.askForType(this.compoundName, this.fPackage.enclosingModule);
 		}
 		if ((targetType == null || targetType == this) && CharOperation.contains('.', typeName)) { //$IDENTITY-COMPARISON$
 			// bug 491354: this complements the NameLookup#seekTypes(..), which performs the same adaptation
-			targetType = environment.askForType(this.fPackage, CharOperation.replaceOnCopy(typeName, '.', '$'));
+			targetType = environment.askForType(this.fPackage, CharOperation.replaceOnCopy(typeName, '.', '$'), this.fPackage.enclosingModule);
 		}
 		if (targetType == null || targetType == this) { // could not resolve any better, error was already reported against it //$IDENTITY-COMPARISON$
 			// report the missing class file first - only if not resolving a previously missing type
 			if ((this.tagBits & TagBits.HasMissingType) == 0 && !environment.mayTolerateMissingType) {
 				environment.problemReporter.isClassPathCorrect(
 					this.compoundName,
-					environment.unitBeingCompleted,
+					environment.root.unitBeingCompleted,
 					environment.missingClassFileLocation);
 			}
 			// create a proxy for the missing BinaryType
 			targetType = environment.createMissingType(null, this.compoundName);
-		}
-		if (targetType.id != TypeIds.NoId) {
-			this.id = targetType.id;
 		}
 		setResolvedType(targetType, environment);
 	}
@@ -139,18 +145,20 @@ void setResolvedType(ReferenceBinding targetType, LookupEnvironment environment)
 			this.wrappers[i].swapUnresolved(this, targetType, environment);
 }
 
+@Override
 public void swapUnresolved(UnresolvedReferenceBinding unresolvedType, ReferenceBinding unannotatedType, LookupEnvironment environment) {
 	if (this.resolvedType != null) return;
 	ReferenceBinding annotatedType = (ReferenceBinding) unannotatedType.clone(null);
 	this.resolvedType = annotatedType;
 	annotatedType.setTypeAnnotations(getTypeAnnotations(), environment.globalOptions.isAnnotationBasedNullAnalysisEnabled);
-	annotatedType.id = unannotatedType.id = this.id;
+
 	environment.updateCaches(this, annotatedType);
 	if (this.wrappers != null)
 		for (int i = 0, l = this.wrappers.length; i < l; i++)
 			this.wrappers[i].swapUnresolved(this, annotatedType, environment);
 }
 
+@Override
 public String toString() {
 	if (this.hasTypeAnnotations())
 		return super.annotatedDebugName() + "(unresolved)"; //$NON-NLS-1$

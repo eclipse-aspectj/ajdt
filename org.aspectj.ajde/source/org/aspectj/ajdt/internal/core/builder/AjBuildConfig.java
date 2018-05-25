@@ -1,5 +1,5 @@
 /* *******************************************************************
- * Copyright (c) 2002 - 2014 Contributors
+ * Copyright (c) 2002 - 2018 Contributors
  * All rights reserved. 
  * This program and the accompanying materials are made available 
  * under the terms of the Eclipse Public License v1.0 
@@ -20,14 +20,20 @@ import java.io.File;
 import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.StringTokenizer;
 
 import org.aspectj.ajdt.ajc.BuildArgParser;
 import org.aspectj.ajdt.internal.compiler.CompilationResultDestinationManager;
+import org.aspectj.org.eclipse.jdt.internal.compiler.batch.ClasspathLocation;
+import org.aspectj.org.eclipse.jdt.internal.compiler.batch.FileSystem;
+import org.aspectj.org.eclipse.jdt.internal.compiler.batch.FileSystem.Classpath;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.IModule;
 import org.aspectj.util.FileUtil;
 
 /**
@@ -35,7 +41,9 @@ import org.aspectj.util.FileUtil;
  * an AjCompilerOptions instance
  */
 public class AjBuildConfig implements CompilerConfigurationChangeFlags {
-
+	
+	public static final Classpath[] NO_CHECKED_CLASSPATHS = new Classpath[0];
+	
 	private boolean shouldProceed = true;
 
 	public static final String AJLINT_IGNORE = "ignore";
@@ -59,8 +67,16 @@ public class AjBuildConfig implements CompilerConfigurationChangeFlags {
 	private Map<String, File> sourcePathResources = new HashMap<String, File>();
 	private List<File> aspectpath = new ArrayList<File>();
 	private List<String> classpath = new ArrayList<String>();
+	private List<String> modulepath = new ArrayList<String>();
+	// Expensive to compute (searching modules, parsing module-info)
+	private ArrayList<Classpath> modulepathClasspathEntries = null;
+	private List<String> modulesourcepath = new ArrayList<String>();
+	// Expensive to compute (searching modules, parsing module-info)
+	private ArrayList<Classpath> modulesourcepathClasspathEntries = null;
+	private Classpath[] checkedClasspaths = null;
 	private List<String> bootclasspath = new ArrayList<String>();
 	private List<String> cpElementsWithModifiedContents = new ArrayList<String>();
+	private IModule moduleDesc;
 
 	private File configFile;
 	private String lintMode = AJLINT_DEFAULT;
@@ -77,6 +93,7 @@ public class AjBuildConfig implements CompilerConfigurationChangeFlags {
 	private boolean incrementalMode;
 	private File incrementalFile;
 
+	@Override
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
 		sb.append("BuildConfig[" + (configFile == null ? "null" : configFile.getAbsoluteFile().toString()) + "] #Files="
@@ -93,6 +110,7 @@ public class AjBuildConfig implements CompilerConfigurationChangeFlags {
 		public File fromInPathDirectory;
 		public File binSrc;
 
+		@Override
 		public boolean equals(Object obj) {
 			if (obj != null && (obj instanceof BinarySourceFile)) {
 				BinarySourceFile other = (BinarySourceFile) obj;
@@ -101,6 +119,7 @@ public class AjBuildConfig implements CompilerConfigurationChangeFlags {
 			return false;
 		}
 
+		@Override
 		public int hashCode() {
 			return binSrc != null ? binSrc.hashCode() : 0;
 		}
@@ -205,6 +224,53 @@ public class AjBuildConfig implements CompilerConfigurationChangeFlags {
 
 	public void setClasspath(List<String> classpath) {
 		this.classpath = classpath;
+		checkedClasspaths = null;
+	}
+
+	public List<String> getModulepath() {
+		return modulepath;
+	}
+	
+	public List<String> getModulesourcepath() {
+		return modulesourcepath;
+	}
+
+	public void setModulepath(List<String> modulepath) {
+		this.modulepath = modulepath;
+		checkedClasspaths = null;
+	}
+
+	public void setModulesourcepath(List<String> modulesourcepath) {
+		this.modulesourcepath = modulesourcepath;
+		checkedClasspaths = null;
+	}
+
+	public void setCheckedClasspaths(Classpath[] checkedClasspaths) {
+		this.checkedClasspaths = checkedClasspaths;	
+		checkedClasspaths = null;
+	}
+	
+	private List<Classpath> processFilePath(List<File> path, java.lang.String encoding) {
+		List<Classpath> entries = new ArrayList<Classpath>();
+		for (File file: path) {
+			entries.add(FileSystem.getClasspath(file.getAbsolutePath(), encoding, null, ClasspathLocation.BINARY));
+		}
+		return entries;
+	}
+
+	private List<Classpath> processStringPath(List<String> path, java.lang.String encoding) {
+		List<Classpath> entries = new ArrayList<Classpath>();
+		for (String file: path) {
+			entries.add(FileSystem.getClasspath(file, encoding, null, ClasspathLocation.BINARY));
+		}
+		return entries;
+	}
+
+	public Classpath[] getCheckedClasspaths() {
+		if (checkedClasspaths == null) {
+			computeCheckedClasspath();
+		}
+		return checkedClasspaths;
 	}
 
 	public List<String> getBootclasspath() {
@@ -225,7 +291,7 @@ public class AjBuildConfig implements CompilerConfigurationChangeFlags {
 
 	public List<File> getInpath() {
 		// Elements of the list are either archives (jars/zips) or directories
-		return inPath;
+		return Collections.unmodifiableList(inPath);
 	}
 
 	public List<File> getInJars() {
@@ -246,19 +312,19 @@ public class AjBuildConfig implements CompilerConfigurationChangeFlags {
 
 	public void setInJars(List<File> sourceJars) {
 		this.inJars = sourceJars;
+		checkedClasspaths = null;
 	}
 
-	public void setInPath(List<File> dirsOrJars) {
-		inPath = dirsOrJars;
-
+	public void processInPath() {
 		// remember all the class files in directories on the inpath
 		binaryFiles = new ArrayList<BinarySourceFile>();
 		FileFilter filter = new FileFilter() {
+			@Override
 			public boolean accept(File pathname) {
 				return pathname.getPath().endsWith(".class");
 			}
 		};
-		for (Iterator<File> iter = dirsOrJars.iterator(); iter.hasNext();) {
+		for (Iterator<File> iter = inPath.iterator(); iter.hasNext();) {
 			File inpathElement = iter.next();
 			if (inpathElement.isDirectory()) {
 				File[] files = FileUtil.listFiles(inpathElement, filter);
@@ -267,6 +333,12 @@ public class AjBuildConfig implements CompilerConfigurationChangeFlags {
 				}
 			}
 		}
+	}
+
+	public void setInPath(List<File> dirsOrJars) {
+		inPath = dirsOrJars;
+		checkedClasspaths = null;
+		processInPath();
 	}
 
 	public List<File> getSourceRoots() {
@@ -308,16 +380,18 @@ public class AjBuildConfig implements CompilerConfigurationChangeFlags {
 	public List<String> getFullClasspath() {
 		List<String> full = new ArrayList<String>();
 		full.addAll(getBootclasspath()); // XXX Is it OK that boot classpath overrides inpath/injars/aspectpath?
-		for (Iterator<File> i = inJars.iterator(); i.hasNext();) {
-			full.add((i.next()).getAbsolutePath());
+		for (File file: inJars) {
+			full.add(file.getAbsolutePath());
 		}
-		for (Iterator<File> i = inPath.iterator(); i.hasNext();) {
-			full.add((i.next()).getAbsolutePath());
+		for (File file: inPath) {
+			full.add(file.getAbsolutePath());
 		}
-		for (Iterator<File> i = aspectpath.iterator(); i.hasNext();) {
-			full.add((i.next()).getAbsolutePath());
+		for (File file: aspectpath) {
+			full.add(file.getAbsolutePath());
 		}
 		full.addAll(getClasspath());
+//		full.addAll(getModulepath());
+//		full.addAll(getModulesourcepath());
 		// if (null != outputDir) {
 		// full.add(outputDir.getAbsolutePath());
 		// } else if (null != outputJar) {
@@ -335,11 +409,22 @@ public class AjBuildConfig implements CompilerConfigurationChangeFlags {
 	}
 
 	public List<File> getAspectpath() {
-		return aspectpath;
+		return Collections.unmodifiableList(aspectpath);
 	}
 
 	public void setAspectpath(List<File> aspectpath) {
 		this.aspectpath = aspectpath;
+		checkedClasspaths = null;
+	}
+	
+	public void addToAspectpath(File file) {
+		this.aspectpath.add(file);
+		checkedClasspaths = null;
+	}
+
+	public void addToInjars(File file) {
+		this.inJars.add(file);
+		checkedClasspaths = null;
 	}
 
 	/** @return true if any config file, sourceroots, sourcefiles, injars or inpath */
@@ -765,4 +850,116 @@ public class AjBuildConfig implements CompilerConfigurationChangeFlags {
 	public void setProjectEncoding(String projectEncoding) {
 		options.defaultEncoding = projectEncoding;
 	}
+	
+	public String getProjectEncoding() {
+		return options.defaultEncoding;
+	}
+
+	public void setModuleDesc(IModule moduleDesc) {
+		this.moduleDesc = moduleDesc;
+	}
+
+	public IModule getModuleDesc() {
+		return moduleDesc;
+	}
+
+	public void addToInpath(Set<File> newInpathEntries) {
+		if (newInpathEntries != null && newInpathEntries.size() != 0) {
+			for (File newInpathEntry: newInpathEntries) {
+				if (!inPath.contains(newInpathEntry)) {
+					inPath.add(newInpathEntry);
+				}
+			}
+			checkedClasspaths = null;
+		}
+	}
+
+	public void addToInpath(File newInpathEntry) {
+//		if (!inPath.contains(newInpathEntry)) {
+			inPath.add(newInpathEntry);
+//		}
+		checkedClasspaths = null;
+	}
+
+	public void addToAspectpath(Set<File> newAspectpathEntries) {
+		if (newAspectpathEntries != null && newAspectpathEntries.size() != 0) {
+			for (File newAspectpathEntry: newAspectpathEntries) {
+				if (!aspectpath.contains(newAspectpathEntry)) {
+					aspectpath.add(newAspectpathEntry);
+				}
+			}
+			checkedClasspaths = null;
+		}
+	}
+
+	public void setModulepathClasspathEntries(ArrayList<Classpath> modulepathClasspathEntries) {
+		this.modulepathClasspathEntries = modulepathClasspathEntries;
+	}
+
+	public void setModulesourcepathClasspathEntries(ArrayList<Classpath> modulesourcepathClasspathEntries) {
+		this.modulesourcepathClasspathEntries = modulesourcepathClasspathEntries;
+	}
+
+	public File removeAspectPathEntry(int i) {
+		checkedClasspaths = null;
+		return aspectpath.remove(i);
+	}
+
+	public String removeClasspathEntry(int i) {
+		checkedClasspaths = null;
+		return classpath.remove(i);
+	}
+
+	public File removeInpathEntry(int i) {
+		checkedClasspaths = null;
+		return inPath.remove(i);
+	}
+
+	public File removeInjarsEntry(int i) {
+		checkedClasspaths = null;
+		return inJars.remove(0);
+	}
+
+
+	// This is similar to the calculation done in Main.setPaths() but it isn't as sophisticated
+	// as that one (doesn't need to be) and it also considers the additional paths for an
+	// AspectJ project (aspectpath/inpath/injars)
+	private void computeCheckedClasspath() {		
+		// Follow what we do in getFullClasspath():
+		// bootclasspath, injars, inpath, aspectpath, classpath, modulepath
+
+		String encoding = getProjectEncoding();
+		// What to do about bootclasspath on java 9?
+		
+		// ArrayList<Classpath> allPaths = handleBootclasspath(bootclasspaths, customEncoding);
+		ArrayList<FileSystem.Classpath> allPaths = new ArrayList<FileSystem.Classpath>(); 
+	 	allPaths.addAll(processStringPath(bootclasspath, encoding));
+		allPaths.addAll(processFilePath(inJars, encoding));
+	 	allPaths.addAll(processFilePath(inPath, encoding)); 
+	 	allPaths.addAll(processFilePath(aspectpath, encoding)); 
+	 	if (modulepathClasspathEntries != null) {
+	 		allPaths.addAll(modulepathClasspathEntries);
+	 	}
+	 	if (modulesourcepathClasspathEntries != null) {
+	 		allPaths.addAll(modulesourcepathClasspathEntries);
+	 	}
+	 	// The classpath is done after modules to give precedence to modules that share the
+	 	// same paths as classpath elements (the upcoming normalize will remove later dups)
+	 	allPaths.addAll(processStringPath(classpath, encoding));
+	 	for (Iterator<FileSystem.Classpath> iter = allPaths.iterator();iter.hasNext();) {
+	 		Classpath next = iter.next();
+	 		if (next == null) {
+	 			iter.remove();
+	 		}
+	 	}
+		allPaths = FileSystem.ClasspathNormalizer.normalize(allPaths);
+		this.checkedClasspaths = new FileSystem.Classpath[allPaths.size()];
+		allPaths.toArray(this.checkedClasspaths);
+		for (int i=0;i<checkedClasspaths.length;i++) {
+			if (checkedClasspaths[i] == null) {
+				throw new IllegalStateException();
+			}
+		}
+	}
+	
 }

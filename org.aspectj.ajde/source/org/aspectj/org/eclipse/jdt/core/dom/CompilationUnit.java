@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -28,19 +28,29 @@ import org.eclipse.text.edits.TextEdit;
 
 /**
  * Java compilation unit AST node type. This is the type of the root of an AST.
+ * In JLS9 and later, this node can also contain a ModuleDeclaration (with a completely different grammar).
  * <p>
  * The source range for this type of node is ordinarily the entire source file,
  * including leading and trailing whitespace and comments.
  * </p>
  * <pre>
  * CompilationUnit:
- *    [ PackageDeclaration ]
- *        { ImportDeclaration }
- *        { TypeDeclaration | EnumDeclaration | AnnotationTypeDeclaration | <b>;</b> }
+ *     OrdinaryCompilationUnit
+ *     ModularCompilationUnit
+ *     
+ * OrdinaryCompilationUnit:
+ *     [ PackageDeclaration ]
+ *         { ImportDeclaration }
+ *         { TypeDeclaration | EnumDeclaration | AnnotationTypeDeclaration | <b>;</b> }
+ * 
+ * ModularCompilationUnit:
+ *     {ImportDeclaration}
+ *         ModuleDeclaration
  * </pre>
  *
  * @since 2.0
  * @noinstantiate This class is not intended to be instantiated by clients.
+ * @noextend This class is not intended to be subclassed by clients.
  */
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class CompilationUnit extends ASTNode {
@@ -72,12 +82,28 @@ public class CompilationUnit extends ASTNode {
 		new ChildPropertyDescriptor(CompilationUnit.class, "package", PackageDeclaration.class, OPTIONAL, NO_CYCLE_RISK); //$NON-NLS-1$
 
 	/**
+	 * The "module" structural property of this node type (child type: {@link ModuleDeclaration}) (added in JLS9 API).
+	 *
+	 * @since 3.14
+	 */
+	public static final ChildPropertyDescriptor MODULE_PROPERTY =
+		new ChildPropertyDescriptor(CompilationUnit.class, "module", ModuleDeclaration.class, OPTIONAL, NO_CYCLE_RISK); //$NON-NLS-1$
+
+	/**
 	 * A list of property descriptors (element type:
 	 * {@link StructuralPropertyDescriptor}),
 	 * or null if uninitialized.
 	 * @since 3.0
 	 */
 	private static final List PROPERTY_DESCRIPTORS;
+
+	/**
+	 * A list of property descriptors (element type:
+	 * {@link StructuralPropertyDescriptor}),
+	 * or null if uninitialized.
+	 * @since 3.14
+	 */
+	private static final List PROPERTY_DESCRIPTORS_9_0;
 
 	/**
 	 * The "types" structural property of this node type (element type: {@link AbstractTypeDeclaration}).
@@ -94,6 +120,14 @@ public class CompilationUnit extends ASTNode {
 		addProperty(IMPORTS_PROPERTY, properyList);
 		addProperty(TYPES_PROPERTY, properyList);
 		PROPERTY_DESCRIPTORS = reapPropertyList(properyList);
+
+		properyList = new ArrayList(5);
+		createPropertyList(CompilationUnit.class, properyList);
+		addProperty(PACKAGE_PROPERTY, properyList);
+		addProperty(IMPORTS_PROPERTY, properyList);
+		addProperty(TYPES_PROPERTY, properyList);
+		addProperty(MODULE_PROPERTY, properyList);
+		PROPERTY_DESCRIPTORS_9_0 = reapPropertyList(properyList);
 	}
 
 	/**
@@ -108,7 +142,10 @@ public class CompilationUnit extends ASTNode {
 	 * @since 3.0
 	 */
 	public static List propertyDescriptors(int apiLevel) {
-		return PROPERTY_DESCRIPTORS;
+		if (apiLevel < AST.JLS9_INTERNAL)
+			return PROPERTY_DESCRIPTORS;
+		else
+			return PROPERTY_DESCRIPTORS_9_0;
 	}
 
 	/**
@@ -168,10 +205,15 @@ public class CompilationUnit extends ASTNode {
 	private PackageDeclaration optionalPackageDeclaration = null;
 
 	/**
+	 * The module declaration, or <code>null</code> if none; initially
+	 * <code>null</code>.
+	 */
+	private ModuleDeclaration module = null;
+	/**
 	 * Problems reported by the compiler during parsing or name resolution.
 	 */
 	private IProblem[] problems = EMPTY_PROBLEMS;
-	
+
 	/**
 	 * Internal data used to perform statements recovery.
 	 */
@@ -200,13 +242,14 @@ public class CompilationUnit extends ASTNode {
 		super(ast);
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	void accept0(ASTVisitor visitor) {
 		boolean visitChildren = visitor.visit(this);
 		if (visitChildren) {
 			// visit children in normal left to right reading order
+			if (this.ast.apiLevel >= AST.JLS9_INTERNAL) {
+				acceptChild(visitor, getModule());
+			}
 			acceptChild(visitor, getPackage());
 			acceptChildren(visitor, this.imports);
 			acceptChildren(visitor, this.types);
@@ -214,13 +257,14 @@ public class CompilationUnit extends ASTNode {
 		visitor.endVisit(this);
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	ASTNode clone0(AST target) {
 		CompilationUnit result = new CompilationUnit(target);
 		// n.b do not copy line number table or messages
 		result.setSourceRange(getStartPosition(), getLength());
+		if (this.ast.apiLevel >= AST.JLS9_INTERNAL) {
+			result.setModule((ModuleDeclaration) ASTNode.copySubtree(target, getModule()));
+		}
 		result.setPackage(
 			(PackageDeclaration) ASTNode.copySubtree(target, getPackage()));
 		result.imports().addAll(ASTNode.copySubtrees(target, imports()));
@@ -529,11 +573,22 @@ public class CompilationUnit extends ASTNode {
 		return this.messages;
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	final int getNodeType0() {
 		return COMPILATION_UNIT;
+	}
+
+	/**
+	 * Returns the node for the module declaration of this compilation
+	 * unit, or <code>null</code> if this compilation unit is not a module info.
+	 *
+	 * @return the module declaration node, or <code>null</code> if none
+	 * @exception UnsupportedOperationException if this operation is used below JLS9
+	 * @since 3.14
+	 */
+	public ModuleDeclaration getModule() {
+		unsupportedBelow9();
+		return this.module;
 	}
 
 	/**
@@ -698,9 +753,7 @@ public class CompilationUnit extends ASTNode {
 		this.commentMapper.initialize(this, scanner);
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	final List internalGetChildListProperty(ChildListPropertyDescriptor property) {
 		if (property == IMPORTS_PROPERTY) {
 			return imports();
@@ -712,10 +765,16 @@ public class CompilationUnit extends ASTNode {
 		return super.internalGetChildListProperty(property);
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	final ASTNode internalGetSetChildProperty(ChildPropertyDescriptor property, boolean get, ASTNode child) {
+		if (property == MODULE_PROPERTY) {
+			if (get) {
+				return getModule();
+			} else {
+				setModule((ModuleDeclaration) child);
+				return null;
+			}
+		}
 		if (property == PACKAGE_PROPERTY) {
 			if (get) {
 				return getPackage();
@@ -728,10 +787,7 @@ public class CompilationUnit extends ASTNode {
 		return super.internalGetSetChildProperty(property, get, child);
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 * @since 3.0
-	 */
+	@Override
 	final List internalStructuralPropertiesForType(int apiLevel) {
 		return propertyDescriptors(apiLevel);
 	}
@@ -843,9 +899,7 @@ public class CompilationUnit extends ASTNode {
 		}
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	int memSize() {
 		int size = BASE_NODE_SIZE + 8 * 4;
 		if (this.lineEndTable != null) {
@@ -1000,6 +1054,28 @@ public class CompilationUnit extends ASTNode {
 	}
 
 	/**
+	 * Sets or clears the module declaration of this compilation unit
+	 * node to the given module declaration node.
+	 *
+	 * @param module the new module declaration node, or
+	 *   <code>null</code> if this compilation unit does not have a module
+	 * @exception IllegalArgumentException if:
+	 * <ul>
+	 * <li>the node belongs to a different AST</li>
+	 * <li>the node already has a parent</li>
+	 * </ul>
+	 * @exception UnsupportedOperationException if this operation is used below JLS9
+	 * @since 3.14
+	 */
+	public void setModule(ModuleDeclaration module) {
+		unsupportedBelow9();
+		ASTNode oldChild = this.module;
+		preReplaceChild(oldChild, module, MODULE_PROPERTY);
+		this.module = module;
+		postReplaceChild(oldChild, module, MODULE_PROPERTY);
+	}
+
+	/**
 	 * Sets or clears the package declaration of this compilation unit
 	 * node to the given package declaration node.
 	 *
@@ -1045,19 +1121,18 @@ public class CompilationUnit extends ASTNode {
 		this.statementsRecoveryData = data;
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	final boolean subtreeMatch0(ASTMatcher matcher, Object other) {
 		// dispatch to correct overloaded match method
 		return matcher.match(this, other);
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	int treeSize() {
 		int size = memSize();
+		if (this.module != null) {
+			size += getModule().treeSize();
+		}
 		if (this.optionalPackageDeclaration != null) {
 			size += getPackage().treeSize();
 		}

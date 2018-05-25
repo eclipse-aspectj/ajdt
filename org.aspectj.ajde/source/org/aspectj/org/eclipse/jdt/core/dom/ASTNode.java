@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -897,6 +897,62 @@ public abstract class ASTNode {
 	public static final int TYPE_METHOD_REFERENCE = 92;
 
 	/**
+	 * Node type constant indicating a node of type
+	 * <code>ModuleDeclaration</code>.
+	 * @see ModuleDeclaration
+	 * @since 3.14
+	 */
+	public static final int MODULE_DECLARATION = 93;
+
+	/**
+	 * Node type constant indicating a node of type
+	 * <code>RequiresDirective</code>.
+	 * @see RequiresDirective
+	 * @since 3.14
+	 */
+	public static final int REQUIRES_DIRECTIVE = 94;
+	
+	/**
+	 * Node type constant indicating a node of type
+	 * <code>ExportsDirective</code>.
+	 * @see ExportsDirective
+	 * @since 3.14
+	 */
+	public static final int EXPORTS_DIRECTIVE = 95;
+
+	/**
+	 * Node type constant indicating a node of type
+	 * <code>OpensDirective</code>.
+	 * @see OpensDirective
+	 * @since 3.14
+	 */
+	public static final int OPENS_DIRECTIVE = 96;
+	
+	/**
+	 * Node type constant indicating a node of type
+	 * <code>UsesDirective</code>.
+	 * @see UsesDirective
+	 * @since 3.14
+	 */
+	public static final int USES_DIRECTIVE = 97;
+
+	/**
+	 * Node type constant indicating a node of type
+	 * <code>ProvidesDirective</code>.
+	 * @see ProvidesDirective
+	 * @since 3.14
+	 */
+	public static final int PROVIDES_DIRECTIVE = 98;
+
+	/**
+	 * Node type constant indicating a node of type
+	 * <code>ModuleModifier</code>.
+	 * @see ModuleModifier
+	 * @since 3.14
+	 */
+	public static final int MODULE_MODIFIER = 99;
+
+	/**
 	 * Returns the node class for the corresponding node type.
 	 *
 	 * @param nodeType AST node type
@@ -964,6 +1020,8 @@ public abstract class ASTNode {
 				return EnumConstantDeclaration.class;
 			case ENUM_DECLARATION :
 				return EnumDeclaration.class;
+			case EXPORTS_DIRECTIVE :
+				return ExportsDirective.class;
 			case EXPRESSION_METHOD_REFERENCE :
 				return ExpressionMethodReference.class;
 			case EXPRESSION_STATEMENT :
@@ -1010,6 +1068,10 @@ public abstract class ASTNode {
 				return MethodRefParameter.class;
 			case MODIFIER :
 				return Modifier.class;
+			case MODULE_DECLARATION :
+				return ModuleDeclaration.class;
+			case MODULE_MODIFIER :
+				return ModuleModifier.class;
 			case NAME_QUALIFIED_TYPE :
 				return NameQualifiedType.class;
 			case NORMAL_ANNOTATION :
@@ -1018,6 +1080,8 @@ public abstract class ASTNode {
 				return NullLiteral.class;
 			case NUMBER_LITERAL :
 				return NumberLiteral.class;
+			case OPENS_DIRECTIVE :
+				return OpensDirective.class;
 			case PACKAGE_DECLARATION :
 				return PackageDeclaration.class;
 			case PARAMETERIZED_TYPE :
@@ -1030,10 +1094,14 @@ public abstract class ASTNode {
 				return PrefixExpression.class;
 			case PRIMITIVE_TYPE :
 				return PrimitiveType.class;
+			case PROVIDES_DIRECTIVE :
+				return ProvidesDirective.class;
 			case QUALIFIED_NAME :
 				return QualifiedName.class;
 			case QUALIFIED_TYPE :
 				return QualifiedType.class;
+			case REQUIRES_DIRECTIVE :
+				return RequiresDirective.class;
 			case RETURN_STATEMENT :
 				return ReturnStatement.class;
 			case SIMPLE_NAME :
@@ -1082,6 +1150,8 @@ public abstract class ASTNode {
 				return TypeParameter.class;
 			case UNION_TYPE :
 				return UnionType.class;
+			case USES_DIRECTIVE :
+				return UsesDirective.class;
 			case VARIABLE_DECLARATION_EXPRESSION :
 				return VariableDeclarationExpression.class;
 			case VARIABLE_DECLARATION_FRAGMENT :
@@ -1288,25 +1358,19 @@ public abstract class ASTNode {
 			 */
 			private int position = 0;
 
-			/* (non-Javadoc)
-			 * Method declared on <code>Iterator</code>.
-			 */
+			@Override
 			public boolean hasNext() {
 				return this.position < NodeList.this.store.size();
 			}
 
-			/* (non-Javadoc)
-			 * Method declared on <code>Iterator</code>.
-			 */
+			@Override
 			public Object next() {
 				Object result = NodeList.this.store.get(this.position);
 				this.position++;
 				return result;
 		    }
 
-			/* (non-Javadoc)
-			 * Method declared on <code>Iterator</code>.
-			 */
+			@Override
 			public void remove() {
 				throw new UnsupportedOperationException();
 			}
@@ -1355,23 +1419,17 @@ public abstract class ASTNode {
 			this.propertyDescriptor = property;
 		}
 
-		/* (non-javadoc)
-		 * @see java.util.AbstractCollection#size()
-		 */
+		@Override
 		public int size() {
 			return this.store.size();
 		}
 
-		/* (non-javadoc)
-		 * @see AbstractList#get(int)
-		 */
+		@Override
 		public Object get(int index) {
 			return this.store.get(index);
 		}
 
-		/* (non-javadoc)
-		 * @see List#set(int, java.lang.Object)
-		 */
+		@Override
 		public Object set(int index, Object element) {
 		    if (element == null) {
 		        throw new IllegalArgumentException();
@@ -1401,9 +1459,7 @@ public abstract class ASTNode {
 			return result;
 		}
 
-		/* (non-javadoc)
-		 * @see List#add(int, java.lang.Object)
-		 */
+		@Override
 		public void add(int index, Object element) {
 		    if (element == null) {
 		        throw new IllegalArgumentException();
@@ -1425,9 +1481,7 @@ public abstract class ASTNode {
 			ASTNode.this.ast.postAddChildEvent(ASTNode.this, newChild, this.propertyDescriptor);
 		}
 
-		/* (non-javadoc)
-		 * @see List#remove(int)
-		 */
+		@Override
 		public Object remove(int index) {
 			if ((ASTNode.this.typeAndFlags & PROTECT) != 0) {
 				// this node is protected => cannot gain or lose children
@@ -1964,18 +2018,48 @@ public abstract class ASTNode {
 	 * @since 3.10
 	 */
 	final void unsupportedIn2_3_4() {
-		if (this.ast.apiLevel < AST.JLS8) {
+		if (this.ast.apiLevel < AST.JLS8_INTERNAL) {
 			throw new UnsupportedOperationException("Operation only supported in JLS8 and later AST"); //$NON-NLS-1$
 		}
 	}
-	
+
+	/**
+     * Checks that this AST operation is not used when
+     * building JLS2, JLS3, JLS4 or JLS8 level ASTs.
+     * <p>
+     * Use this method to prevent access to new properties that have been added in JLS9.
+     * </p>
+     *
+	 * @exception UnsupportedOperationException if this operation is used below JLS9
+	 * @since 3.14
+	 */
+	final void unsupportedBelow9() {
+		if (this.ast.apiLevel < AST.JLS9_INTERNAL) {
+			throw new UnsupportedOperationException("Operation only supported in JLS9 and later AST"); //$NON-NLS-1$
+		}
+	}
+	/**
+     * Checks that this AST operation is not used when
+     * building JLS2, JLS3, JLS4, JLS8 or JLS9 level ASTs.
+     * <p>
+     * Use this method to prevent access to new properties that have been added in JLS10
+     * </p>
+     *
+	 * @exception UnsupportedOperationException if this operation is used below JLS10
+	 * @since 3.14
+	 */
+	final void unsupportedBelow10() {
+		if (this.ast.apiLevel < AST.JLS10_INTERNAL) {
+			throw new UnsupportedOperationException("Operation only supported in ASTs with level JLS10 and above"); //$NON-NLS-1$
+		}
+	}
 	/**
      * Checks that this AST operation is only used when
      * building JLS2 level ASTs.
      * <p>
      * Use this method to prevent access to deprecated properties (deprecated in JLS3).
      * </p>
-     * 
+     *
 	 * @exception UnsupportedOperationException if this operation is used in an AST later than JLS2
 	 * @since 3.0
      */
@@ -1998,7 +2082,7 @@ public abstract class ASTNode {
      */
 	// In API Javadocs, add: * @deprecated In the JLS8 API, this method is replaced by {@link #replacement()}.
 	final void supportedOnlyIn2_3_4() {
-	  if (this.ast.apiLevel >= AST.JLS8) {
+	  if (this.ast.apiLevel >= AST.JLS8_INTERNAL) {
 	  	throw new UnsupportedOperationException("Operation only supported in JLS2, JLS3 and JLS4 ASTs"); //$NON-NLS-1$
 	  }
 	}
@@ -2093,7 +2177,7 @@ public abstract class ASTNode {
 		Class childClass = newChild.getClass();
 		if (nodeType != null && !nodeType.isAssignableFrom(childClass)) {
 			// new child is not of the right type
-			throw new ClassCastException();
+			throw new ClassCastException(childClass + " is not an instance of " + nodeType); //$NON-NLS-1$
 		}
 		if ((newChild.typeAndFlags & PROTECT) != 0) {
 			// new child node is protected => cannot be parented
@@ -2535,6 +2619,7 @@ public abstract class ASTNode {
 	 * @return {@inheritDoc}
 	 * @see #subtreeMatch(ASTMatcher matcher, Object other)
 	 */
+	@Override
 	public final boolean equals(Object obj) {
 		return this == obj; // equivalent to Object.equals
 	}
@@ -2544,6 +2629,7 @@ public abstract class ASTNode {
 	 * This makes it consistent with the fact that a equals methods has been provided.
 	 * @see java.lang.Object#hashCode()
 	 */
+	@Override
 	public final int hashCode() {
 		return super.hashCode();
 	}
@@ -2860,6 +2946,7 @@ public abstract class ASTNode {
 	 *
 	 * @return a debug string
 	 */
+	@Override
 	public final String toString() {
 		StringBuffer buffer = new StringBuffer();
 		int p = buffer.length();

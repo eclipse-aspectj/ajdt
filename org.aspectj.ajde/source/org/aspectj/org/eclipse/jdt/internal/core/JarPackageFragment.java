@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -25,6 +25,7 @@ import org.aspectj.org.eclipse.jdt.core.IJarEntryResource;
 import org.aspectj.org.eclipse.jdt.core.IJavaElement;
 import org.aspectj.org.eclipse.jdt.core.IJavaModelStatusConstants;
 import org.aspectj.org.eclipse.jdt.core.JavaModelException;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
 
 /**
@@ -43,6 +44,7 @@ protected JarPackageFragment(PackageFragmentRoot root, String[] names) {
 /**
  * @see Openable
  */
+@Override
 protected boolean buildStructure(OpenableElementInfo info, IProgressMonitor pm, Map newElements, IResource underlyingResource) throws JavaModelException {
 	JarPackageFragmentRoot root = (JarPackageFragmentRoot) getParent();
 	JarPackageFragmentRootInfo parentInfo = (JarPackageFragmentRootInfo) root.getElementInfo();
@@ -71,7 +73,10 @@ private IJavaElement[] computeChildren(ArrayList namesWithoutExtension) {
 	IJavaElement[] children = new IJavaElement[size];
 	for (int i = 0; i < size; i++) {
 		String nameWithoutExtension = (String) namesWithoutExtension.get(i);
-		children[i] = new ClassFile(this, nameWithoutExtension);
+		if (TypeConstants.MODULE_INFO_NAME_STRING.equals(nameWithoutExtension))
+			children[i] = new ModularClassFile(this);
+		else
+			children[i] = new ClassFile(this, nameWithoutExtension);
 	}
 	return children;
 }
@@ -147,25 +152,29 @@ private Object[] computeNonJavaResources(ArrayList entryNames) {
  * Returns true if this fragment contains at least one java resource.
  * Returns false otherwise.
  */
+@Override
 public boolean containsJavaResources() throws JavaModelException {
 	return ((JarPackageFragmentInfo) getElementInfo()).containsJavaResources();
 }
 /**
  * @see org.aspectj.org.eclipse.jdt.core.IPackageFragment
  */
+@Override
 public ICompilationUnit createCompilationUnit(String cuName, String contents, boolean force, IProgressMonitor monitor) throws JavaModelException {
 	throw new JavaModelException(new JavaModelStatus(IJavaModelStatusConstants.READ_ONLY, this));
 }
 /**
  * @see JavaElement
  */
+@Override
 protected Object createElementInfo() {
 	return new JarPackageFragmentInfo();
 }
 /**
  * @see org.aspectj.org.eclipse.jdt.core.IPackageFragment
  */
-public IClassFile[] getClassFiles() throws JavaModelException {
+@Override
+public IClassFile[] getAllClassFiles() throws JavaModelException {
 	ArrayList list = getChildrenOfType(CLASS_FILE);
 	IClassFile[] array= new IClassFile[list.size()];
 	list.toArray(array);
@@ -175,6 +184,7 @@ public IClassFile[] getClassFiles() throws JavaModelException {
  * A jar package fragment never contains compilation units.
  * @see org.aspectj.org.eclipse.jdt.core.IPackageFragment
  */
+@Override
 public ICompilationUnit[] getCompilationUnits() {
 	return NO_COMPILATION_UNITS;
 }
@@ -183,12 +193,14 @@ public ICompilationUnit[] getCompilationUnits() {
  *
  * @see IJavaElement
  */
+@Override
 public IResource getCorrespondingResource() {
 	return null;
 }
 /**
  * Returns an array of non-java resources contained in the receiver.
  */
+@Override
 public Object[] getNonJavaResources() throws JavaModelException {
 	if (isDefaultPackage()) {
 		// We don't want to show non java resources of the default package (see PR #1G58NB8)
@@ -197,12 +209,14 @@ public Object[] getNonJavaResources() throws JavaModelException {
 		return storedNonJavaResources();
 	}
 }
+@Override
 protected boolean internalIsValidPackageName() {
 	return true;
 }
 /**
  * Jars and jar entries are all read only
  */
+@Override
 public boolean isReadOnly() {
 	return true;
 }

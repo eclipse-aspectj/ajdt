@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -23,6 +23,8 @@
  *								Bug 438458 - [1.8][null] clean up handling of null type annotations wrt type variables
  *								Bug 440759 - [1.8][null] @NonNullByDefault should never affect wildcards and uses of a type variable
  *								Bug 441693 - [1.8][null] Bogus warning for type argument annotated with @NonNull
+ *     Jesper S Møller - Contributions for bug 381345 : [1.8] Take care of the Java 8 major version
+ *								Bug 527554 - [18.3] Compiler support for JEP 286 Local-Variable Type
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
 
@@ -70,6 +72,7 @@ public ArrayBinding(TypeBinding type, int dimensions, LookupEnvironment environm
 	}
 }
 
+@Override
 public TypeBinding closestMatch() {
 	if (isValidBinding()) {
 		return this;
@@ -84,6 +87,7 @@ public TypeBinding closestMatch() {
 /**
  * @see org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding#collectMissingTypes(java.util.List)
  */
+@Override
 public List<TypeBinding> collectMissingTypes(List<TypeBinding> missingTypes) {
 	if ((this.tagBits & TagBits.HasMissingType) != 0) {
 		missingTypes = this.leafComponentType.collectMissingTypes(missingTypes);
@@ -91,14 +95,7 @@ public List<TypeBinding> collectMissingTypes(List<TypeBinding> missingTypes) {
 	return missingTypes;
 }
 
-/**
- * Collect the substitutes into a map for certain type variables inside the receiver type
- * e.g.   Collection<T>.collectSubstitutes(Collection<List<X>>, Map), will populate Map with: T --> List<X>
- * Constraints:
- *   A << F   corresponds to:   F.collectSubstitutes(..., A, ..., CONSTRAINT_EXTENDS (1))
- *   A = F   corresponds to:      F.collectSubstitutes(..., A, ..., CONSTRAINT_EQUAL (0))
- *   A >> F   corresponds to:   F.collectSubstitutes(..., A, ..., CONSTRAINT_SUPER (2))
-*/
+@Override
 public void collectSubstitutes(Scope scope, TypeBinding actualType, InferenceContext inferenceContext, int constraint) {
 
 	if ((this.tagBits & TagBits.HasTypeVariable) == 0) return;
@@ -126,10 +123,12 @@ public boolean mentionsAny(TypeBinding[] parameters, int idx) {
 	return this.leafComponentType.mentionsAny(parameters, idx);
 }
 
+@Override
 void collectInferenceVariables(Set<InferenceVariable> variables) {
 	this.leafComponentType.collectInferenceVariables(variables);
 }
 
+@Override
 TypeBinding substituteInferenceVariable(InferenceVariable var, TypeBinding substituteType) {
 	TypeBinding substitutedLeaf = this.leafComponentType.substituteInferenceVariable(var, substituteType);
 	if (TypeBinding.notEquals(substitutedLeaf, this.leafComponentType))
@@ -141,17 +140,14 @@ TypeBinding substituteInferenceVariable(InferenceVariable var, TypeBinding subst
  * brakets leafUniqueKey
  * p.X[][] --> [[Lp/X;
  */
+@Override
 public char[] computeUniqueKey(boolean isLeaf) {
 	char[] brackets = new char[this.dimensions];
 	for (int i = this.dimensions - 1; i >= 0; i--) brackets[i] = '[';
 	return CharOperation.concat(brackets, this.leafComponentType.computeUniqueKey(isLeaf));
  }
 
-/**
- * Answer the receiver's constant pool name.
- * NOTE: This method should only be used during/after code gen.
- * e.g. '[Ljava/lang/Object;'
- */
+@Override
 public char[] constantPoolName() {
 	if (this.constantPoolName != null)
 		return this.constantPoolName;
@@ -160,6 +156,7 @@ public char[] constantPoolName() {
 	for (int i = this.dimensions - 1; i >= 0; i--) brackets[i] = '[';
 	return this.constantPoolName = CharOperation.concat(brackets, this.leafComponentType.signature());
 }
+@Override
 public String debugName() {
 	if (this.hasTypeAnnotations())
 		return annotatedDebugName();
@@ -169,6 +166,7 @@ public String debugName() {
 	return this.leafComponentType.debugName() + brackets.toString();
 }
 
+@Override
 public String annotatedDebugName() {
 	StringBuffer brackets = new StringBuffer(this.dimensions * 2);
 	brackets.append(this.leafComponentType.annotatedDebugName());
@@ -188,6 +186,7 @@ public String annotatedDebugName() {
 	return brackets.toString();
 }
 
+@Override
 public int dimensions() {
 	return this.dimensions;
 }
@@ -217,16 +216,31 @@ public TypeBinding elementsType() {
 /**
  * @see org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding#erasure()
  */
+@Override
 public TypeBinding erasure() {
     TypeBinding erasedType = this.leafComponentType.erasure();
     if (TypeBinding.notEquals(this.leafComponentType, erasedType))
         return this.environment.createArrayType(erasedType, this.dimensions);
     return this;
 }
+
+@Override
+public ArrayBinding upwardsProjection(Scope scope, TypeBinding[] mentionedTypeVariables) {
+	TypeBinding leafType = this.leafComponentType.upwardsProjection(scope, mentionedTypeVariables);
+	return scope.environment().createArrayType(leafType, this.dimensions, this.typeAnnotations);
+}
+
+@Override
+public ArrayBinding downwardsProjection(Scope scope, TypeBinding[] mentionedTypeVariables) {
+	TypeBinding leafType = this.leafComponentType.downwardsProjection(scope, mentionedTypeVariables);
+	return scope.environment().createArrayType(leafType, this.dimensions, this.typeAnnotations);
+}
+
 public LookupEnvironment environment() {
     return this.environment;
 }
 
+@Override
 public char[] genericTypeSignature() {
 
     if (this.genericTypeSignature == null) {
@@ -237,16 +251,19 @@ public char[] genericTypeSignature() {
     return this.genericTypeSignature;
 }
 
+@Override
 public PackageBinding getPackage() {
 	return this.leafComponentType.getPackage();
 }
 
+@Override
 public int hashCode() {
 	return this.leafComponentType == null ? super.hashCode() : this.leafComponentType.hashCode();
 }
 
 /* Answer true if the receiver type can be assigned to the argument type (right)
 */
+@Override
 public boolean isCompatibleWith(TypeBinding otherType, Scope captureScope) {
 	if (equalsEquals(this, otherType))
 		return true;
@@ -292,7 +309,7 @@ public boolean isCompatibleWith(TypeBinding otherType, Scope captureScope) {
 }
 
 @Override
-public boolean isSubtypeOf(TypeBinding otherType) {
+public boolean isSubtypeOf(TypeBinding otherType, boolean simulatingBugJDK8026527) {
 	if (equalsEquals(this, otherType))
 		return true;
 
@@ -302,7 +319,7 @@ public boolean isSubtypeOf(TypeBinding otherType) {
 			if (otherArray.leafComponentType.isBaseType())
 				return false; // relying on the fact that all equal arrays are identical
 			if (this.dimensions == otherArray.dimensions)
-				return this.leafComponentType.isSubtypeOf(otherArray.leafComponentType);
+				return this.leafComponentType.isSubtypeOf(otherArray.leafComponentType, simulatingBugJDK8026527);
 			if (this.dimensions < otherArray.dimensions)
 				return false; // cannot assign 'String[]' into 'Object[][]' but can assign 'byte[][]' into 'Object[]'
 			break;
@@ -318,18 +335,22 @@ public boolean isSubtypeOf(TypeBinding otherType) {
 	return false;
 }
 
+@Override
 public boolean isProperType(boolean admitCapture18) {
 	return this.leafComponentType.isProperType(admitCapture18);
 }
 
+@Override
 public int kind() {
 	return ARRAY_TYPE;
 }
 
+@Override
 public TypeBinding leafComponentType(){
 	return this.leafComponentType;
 }
 
+@Override
 public char[] nullAnnotatedReadableName(CompilerOptions options, boolean shortNames) /* java.lang.Object @o.e.j.a.NonNull[] */ {
 	if (this.nullTagBitsPerDimension == null)
 		return shortNames ? shortReadableName() : readableName();
@@ -362,15 +383,12 @@ public char[] nullAnnotatedReadableName(CompilerOptions options, boolean shortNa
 * Answer the problem id associated with the receiver.
 * NoError if the receiver is a valid binding.
 */
+@Override
 public int problemId() {
 	return this.leafComponentType.problemId();
 }
-/**
-* Answer the source name for the type.
-* In the case of member types, as the qualified name from its top level type.
-* For example, for a member type N defined inside M & A: "A.M.N".
-*/
 
+@Override
 public char[] qualifiedSourceName() {
 	char[] brackets = new char[this.dimensions * 2];
 	for (int i = this.dimensions * 2 - 1; i >= 0; i -= 2) {
@@ -379,6 +397,7 @@ public char[] qualifiedSourceName() {
 	}
 	return CharOperation.concat(this.leafComponentType.qualifiedSourceName(), brackets);
 }
+@Override
 public char[] readableName() /* java.lang.Object[] */ {
 	char[] brackets = new char[this.dimensions * 2];
 	for (int i = this.dimensions * 2 - 1; i >= 0; i -= 2) {
@@ -388,6 +407,7 @@ public char[] readableName() /* java.lang.Object[] */ {
 	return CharOperation.concat(this.leafComponentType.readableName(), brackets);
 }
 
+@Override
 public void setTypeAnnotations(AnnotationBinding[] annotations, boolean evalNullAnnotations) {
 	this.tagBits |= TagBits.HasTypeAnnotations;
 	if (annotations == null || annotations.length == 0)
@@ -422,6 +442,7 @@ public void setTypeAnnotations(AnnotationBinding[] annotations, boolean evalNull
 		this.tagBits |= this.nullTagBitsPerDimension[0]; // outer-most dimension
 	}
 }
+@Override
 public char[] shortReadableName(){
 	char[] brackets = new char[this.dimensions * 2];
 	for (int i = this.dimensions * 2 - 1; i >= 0; i -= 2) {
@@ -430,6 +451,7 @@ public char[] shortReadableName(){
 	}
 	return CharOperation.concat(this.leafComponentType.shortReadableName(), brackets);
 }
+@Override
 public char[] sourceName() {
 	char[] brackets = new char[this.dimensions * 2];
 	for (int i = this.dimensions * 2 - 1; i >= 0; i -= 2) {
@@ -438,6 +460,7 @@ public char[] sourceName() {
 	}
 	return CharOperation.concat(this.leafComponentType.sourceName(), brackets);
 }
+@Override
 public void swapUnresolved(UnresolvedReferenceBinding unresolvedType, ReferenceBinding resolvedType, LookupEnvironment env) {
 	if (this.leafComponentType == unresolvedType) { //$IDENTITY-COMPARISON$
 		this.leafComponentType = env.convertUnresolvedBinaryToRawType(resolvedType);
@@ -458,9 +481,11 @@ public void swapUnresolved(UnresolvedReferenceBinding unresolvedType, ReferenceB
 		this.tagBits |= this.leafComponentType.tagBits & (TagBits.HasTypeVariable | TagBits.HasDirectWildcard | TagBits.HasMissingType | TagBits.HasCapturedWildcard);
 	}
 }
+@Override
 public String toString() {
 	return this.leafComponentType != null ? debugName() : "NULL TYPE ARRAY"; //$NON-NLS-1$
 }
+@Override
 public TypeBinding unannotated() {
 	return this.hasTypeAnnotations() ? this.environment.getUnannotatedType(this) : this;
 }
@@ -501,11 +526,7 @@ public MethodBinding getCloneMethod(final MethodBinding originalMethod) {
 			return originalMethod.signature(); // for codeGen we need to answer the signature of j.l.Object.clone()
 		}
 	};
-	// AspectJ was:
-	// method.modifiers = originalMethod.modifiers;
-	// now:
-	method.modifiers = (originalMethod.modifiers & ~ClassFileConstants.AccProtected) | ClassFileConstants.AccPublic;
-	// End AspectJ
+	method.modifiers = originalMethod.modifiers;
 	method.selector = originalMethod.selector;
 	method.declaringClass = originalMethod.declaringClass; // cannot set array binding as declaring class, will be tweaked in CodeStream.getConstantPoolDeclaringClass()
 	method.typeVariables = Binding.NO_TYPE_VARIABLES;

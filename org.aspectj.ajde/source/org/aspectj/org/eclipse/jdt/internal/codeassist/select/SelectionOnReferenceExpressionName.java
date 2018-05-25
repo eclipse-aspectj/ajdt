@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2014 IBM Corporation and others.
+ * Copyright (c) 2013, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -17,13 +17,15 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.PolyTypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ProblemReferenceBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.parser.Scanner;
 
 public class SelectionOnReferenceExpressionName extends ReferenceExpression {
 
-	public SelectionOnReferenceExpressionName() {
-		super();
+	public SelectionOnReferenceExpressionName(Scanner scanner) {
+		super(scanner);
 	}
 
+	@Override
 	public StringBuffer printExpression(int indent, StringBuffer output) {
 		output.append("<SelectionOnReferenceExpressionName:"); //$NON-NLS-1$
 		super.printExpression(indent, output);
@@ -31,15 +33,18 @@ public class SelectionOnReferenceExpressionName extends ReferenceExpression {
 	}
 	
 	// See SelectionScanner#scanIdentifierOrKeyword
+	@Override
 	public boolean isConstructorReference() {
 		return CharOperation.equals(this.selector, "new".toCharArray()); //$NON-NLS-1$
 	}
 	
 	// See SelectionScanner#scanIdentifierOrKeyword
+	@Override
 	public boolean isMethodReference() {
 		return !CharOperation.equals(this.selector, "new".toCharArray()); //$NON-NLS-1$
 	}
 
+	@Override
 	public TypeBinding resolveType(BlockScope scope) {
 		TypeBinding type = super.resolveType(scope);
 		if (type == null || type instanceof ProblemReferenceBinding || type instanceof PolyTypeBinding)

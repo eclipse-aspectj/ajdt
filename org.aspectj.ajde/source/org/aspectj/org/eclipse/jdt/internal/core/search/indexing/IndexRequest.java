@@ -22,24 +22,32 @@ public abstract class IndexRequest implements IJob {
 		this.containerPath = containerPath;
 		this.manager = manager;
 	}
+	@Override
 	public boolean belongsTo(String projectNameOrJarPath) {
 		// used to remove pending jobs because the project was deleted... not to delete index files
 		// can be found either by project name or JAR path name
 		return projectNameOrJarPath.equals(this.containerPath.segment(0))
 			|| projectNameOrJarPath.equals(this.containerPath.toString());
 	}
+	@Override
 	public void cancel() {
 		this.manager.jobWasCancelled(this.containerPath);
 		this.isCancelled = true;
 	}
+	@Override
 	public void ensureReadyToRun() {
 		// tag the index as inconsistent
 		this.manager.aboutToUpdateIndex(this.containerPath, updatedIndexState());
 	}
+	@Override
 	public String getJobFamily() {
 		return this.containerPath.toString();
 	}
 	protected Integer updatedIndexState() {
 		return IndexManager.UPDATING_STATE;
+	}
+	@Override
+	public boolean waitNeeded() {
+		return true;
 	}
 }

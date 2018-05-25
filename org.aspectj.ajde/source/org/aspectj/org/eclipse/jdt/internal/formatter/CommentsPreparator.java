@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014, 2016 Mateusz Matela and others.
+ * Copyright (c) 2014, 2018 Mateusz Matela and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -39,8 +39,8 @@ import org.aspectj.org.eclipse.jdt.core.dom.LineComment;
 import org.aspectj.org.eclipse.jdt.core.dom.MemberRef;
 import org.aspectj.org.eclipse.jdt.core.dom.MethodRef;
 import org.aspectj.org.eclipse.jdt.core.dom.QualifiedName;
+import org.aspectj.org.eclipse.jdt.core.dom.SimpleName;
 import org.aspectj.org.eclipse.jdt.core.dom.TagElement;
-import org.aspectj.org.eclipse.jdt.core.formatter.CodeFormatter;
 import org.aspectj.org.eclipse.jdt.core.formatter.DefaultCodeFormatterConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.ScannerHelper;
@@ -61,10 +61,10 @@ public class CommentsPreparator extends ASTVisitor {
 		String breakBeforeTags = "(dd|dt|li|td|th|h1|h2|h3|h4|h5|h6|q)"; //$NON-NLS-1$
 		String breakAfterTags = "(br)"; //$NON-NLS-1$
 		String noFormatTags = "(code|tt)"; //$NON-NLS-1$
-		String otherTags = "([^<>&&\\S]++)"; //$NON-NLS-1$
+		String otherTags = "([\\S&&[^<>]]++)"; //$NON-NLS-1$
 		String ws = "(?>[ \\t]++|[\\r\\n]++[ \\t]*+\\*?)"; // whitespace or line break with optional asterisk //$NON-NLS-1$
-		String attributeValue = "(?>\"[^\"]*\")|(?>\'[^\']*\')|[^/>\"\'&&\\S]++"; //$NON-NLS-1$
-		String attribute = "(?>" + ws + "+[^=&&\\S]+" + ws + "*(=)" + ws + "*(?>" + attributeValue  + "))"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
+		String attributeValue = "(?>\"[^\"]*\")|(?>\'[^\']*\')|[\\S&&[^/>\"\']]++"; //$NON-NLS-1$
+		String attribute = "(?>" + ws + "+[\\S&&[^=]]+" + ws + "*(=)" + ws + "*(?>" + attributeValue  + "))"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
 		HTML_TAG_PATTERN = Pattern.compile("<(/)?+(?:" //$NON-NLS-1$
 				+ formatCodeTags + '|' + separateLineTags + '|' + breakBeforeTags + '|' + breakAfterTags + '|' + noFormatTags + '|' + otherTags + ')'
 				+ "(" + attribute + "*)" + ws + "*/?>", Pattern.CASE_INSENSITIVE); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
@@ -144,12 +144,12 @@ public class CommentsPreparator extends ASTVisitor {
 					&& !this.options.comment_format_line_comment_starting_on_first_column) {
 				this.lastLineComment = null;
 				commentToken.setIndent(0);
-				commentToken.setWrapPolicy(null);
+				commentToken.setWrapPolicy(WrapPolicy.FORCE_FIRST_COLUMN);
 				return;
 			}
 			if (this.options.never_indent_line_comments_on_first_column) {
 				commentToken.setIndent(0);
-				commentToken.setWrapPolicy(null);
+				commentToken.setWrapPolicy(WrapPolicy.FORCE_FIRST_COLUMN);
 			}
 		}
 
@@ -392,7 +392,7 @@ public class CommentsPreparator extends ASTVisitor {
 
 		if (this.options.never_indent_block_comments_on_first_column && isFirstColumn) {
 			commentToken.setIndent(0);
-			commentToken.setWrapPolicy(null);
+			commentToken.setWrapPolicy(WrapPolicy.FORCE_FIRST_COLUMN);
 		}
 	}
 
@@ -427,7 +427,8 @@ public class CommentsPreparator extends ASTVisitor {
 
 		if (existingBreaksBefore <= 1
 				&& (previous.tokenType == TokenNameCOMMENT_LINE || previous.tokenType == TokenNameCOMMENT_BLOCK)) {
-			commentToken.setWrapPolicy(previous.getWrapPolicy());
+			if (previous.getWrapPolicy() != WrapPolicy.FORCE_FIRST_COLUMN)
+				commentToken.setWrapPolicy(previous.getWrapPolicy());
 		} else {
 			int i = commentIndex + 2;
 			while (existingBreaksAfter <= 1 && i < this.tm.size()
@@ -549,6 +550,9 @@ public class CommentsPreparator extends ASTVisitor {
 		this.commentStructure = commentToken.getInternalStructure();
 		this.commentIndent = this.tm.toIndent(commentToken.getIndent(), true);
 		this.ctm = new TokenManager(commentToken.getInternalStructure(), this.tm);
+
+		handleJavadocTagAlignment(node);
+
 		return true;
 	}
 
@@ -585,16 +589,10 @@ public class CommentsPreparator extends ASTVisitor {
 				Token token = this.ctm.get(startIndex + 2);
 				token.breakBefore();
 			}
-
-			if (this.options.comment_indent_root_tags) {
-				int indent = this.ctm.getLength(this.ctm.get(startIndex), 0) + 1;
-				if (isParamTag && this.options.comment_indent_parameter_description)
-					indent += this.options.indentation_size;
-				for (int i = startIndex + 1; i <= endIndex; i++) {
+			if (isParamTag && this.options.comment_indent_parameter_description) {
+				for (int i = startIndex + 2; i <= endIndex; i++) {
 					Token token = this.ctm.get(i);
-					token.setIndent(indent);
-					// indent is used temporarily, tokens that are actually first in line
-					// will have this changed to align (indent is reserved for code inside <pre> tags)
+					token.setIndent(token.getIndent() + this.options.indentation_size);
 				}
 			}
 
@@ -623,6 +621,110 @@ public class CommentsPreparator extends ASTVisitor {
 
 		if (TagElement.TAG_SEE.equals(tagName))
 			handleStringLiterals(this.tm.toString(node), node.getStartPosition());
+
+		if (PARAM_TAGS.contains(tagName) && this.options.comment_indent_parameter_description) {
+			// tokens in the first line should not be indented
+			int startIndex = this.ctm.findIndex(node.getStartPosition(), -1, false);
+			if (this.ctm.get(startIndex).tokenType != TokenNameNotAToken) {
+				int endIndex = this.ctm.lastIndexIn(node, -1);
+				int range = this.options.indentation_size;
+				for (int i = startIndex + 2; i <= endIndex && range > 0; i++) {
+					Token token = this.ctm.get(i);
+					if (token.getLineBreaksBefore() > 0)
+						break;
+					assert token.getIndent() >= this.options.indentation_size;
+					token.setIndent(token.getIndent() - this.options.indentation_size);
+					if (token.getLineBreaksAfter() > 0)
+						break;
+					range -= this.ctm.getLength(token, 0) + (token.isSpaceBefore() ? 1 : 0);
+				}
+			}
+		}
+	}
+
+	private void handleJavadocTagAlignment(Javadoc node) {
+		// Lists of tag tokens: index 0 for tag name, index 1 for param name (may be null), the rest for description
+		List<List<Token>> javadocRootTags = new ArrayList<>();
+		List<TagElement> tagElements = node.tags();
+		for (TagElement tagElement : tagElements) {
+			String tagName = tagElement.getTagName();
+			if (tagName == null || tagName.length() <= 1)
+				continue;
+			int startIndex = tokenStartingAt(tagElement.getStartPosition());
+			int nodeEnd = tagElement.getStartPosition() + tagElement.getLength() - 1;
+			while (ScannerHelper.isWhitespace(this.ctm.charAt(nodeEnd)))
+				nodeEnd--;
+			int endIndex = tokenEndingAt(nodeEnd);
+
+			List<Token> tagTokens = new ArrayList<>();
+			tagTokens.add(this.ctm.get(startIndex));
+			if (!PARAM_TAGS.contains(tagName) || tagElement.fragments().isEmpty()
+					|| !(tagElement.fragments().get(0) instanceof SimpleName)) {
+				tagTokens.add(null);
+			}
+			for (int i = startIndex + 1; i <= endIndex; i++) {
+				tagTokens.add(this.ctm.get(i));
+			}
+			javadocRootTags.add(tagTokens);
+		}
+		
+		// indent is used temporarily, tokens that are actually first in line
+		// will have this changed to align (indent is reserved for code inside <pre> tags)
+		if (this.options.comment_align_tags_names_descriptions) {
+			int maxTagNameLength = 0;
+			int maxParamNameLength = 0;
+			for (List<Token> tagTokens : javadocRootTags) {
+				Token tagName = tagTokens.get(0);
+				Token paramName = tagTokens.get(1);
+				maxTagNameLength = Math.max(maxTagNameLength, this.tm.getLength(tagName, 0));
+				if (paramName != null)
+					maxParamNameLength = Math.max(maxParamNameLength, this.tm.getLength(paramName, 0));
+			}
+			int paramNameAlign = maxTagNameLength + 1;
+			int descriptionAlign = paramNameAlign;
+			if (maxParamNameLength > 0)
+				descriptionAlign += maxParamNameLength + 1;
+			for (List<Token> tagTokens : javadocRootTags) {
+				if (tagTokens.get(1) != null)
+					tagTokens.get(1).setIndent(paramNameAlign);
+				for (int i = 2; i < tagTokens.size(); i++)
+					tagTokens.get(i).setIndent(descriptionAlign);
+			}
+		} else if (this.options.comment_align_tags_descriptions_grouped) {
+			int groupStart = 0;
+			String groupTagName = null;
+			int descriptionAlign = 0;
+			for (int i = 0; i < javadocRootTags.size(); i++) {
+				List<Token> tagTokens = javadocRootTags.get(i);
+				String tagName = this.ctm.toString(tagTokens.get(0));
+				if (!tagName.equals(groupTagName)) {
+					for (int j = groupStart; j < i; j++) {
+						List<Token> tokens = javadocRootTags.get(j);
+						for (int k = 2; k < tokens.size(); k++)
+							tokens.get(k).setIndent(descriptionAlign);
+					}
+					groupStart = i;
+					groupTagName = tagName;
+					descriptionAlign = 0;
+				}
+				int indent = tagName.length() + 1;
+				if (tagTokens.get(1) != null)
+					indent += 1 + this.ctm.getLength(tagTokens.get(1), 0);
+				descriptionAlign = Math.max(descriptionAlign, indent);
+			}
+			for (int j = groupStart; j < javadocRootTags.size(); j++) {
+				List<Token> tokens = javadocRootTags.get(j);
+				for (int k = 2; k < tokens.size(); k++)
+					tokens.get(k).setIndent(descriptionAlign);
+			}
+		} else if (this.options.comment_indent_root_tags) {
+			for (List<Token> tagTokens : javadocRootTags) {
+				Token tagName = tagTokens.get(0);
+				int indent = this.ctm.getLength(tagName, 0) + 1;
+				for (int i = 2; i < tagTokens.size(); i++)
+					tagTokens.get(i).setIndent(indent);
+			}
+		}
 	}
 
 	private void handleHtml(TagElement node) {
@@ -1008,11 +1110,14 @@ public class CommentsPreparator extends ASTVisitor {
 		boolean newLinesAtBoundries = commentToken.tokenType == TokenNameCOMMENT_JAVADOC
 				? this.options.comment_new_lines_at_javadoc_boundaries
 				: this.options.comment_new_lines_at_block_boundaries;
-		if (newLinesAtBoundries && this.tm.countLineBreaksBetween(first, last) > 0) {
+		if (!newLinesAtBoundries) {
+			structure.get(1).clearLineBreaksBefore();
+			last.clearLineBreaksBefore();
+		} else if (this.tm.countLineBreaksBetween(first, last) > 0) {
 			first.breakAfter();
 			last.breakBefore();
-			last.setAlign(1);
 		}
+		last.setAlign(1);
 
 		if (structure.size() == 2)
 			return false;
@@ -1027,11 +1132,13 @@ public class CommentsPreparator extends ASTVisitor {
 	}
 
 	private void addSubstituteWraps() {
-		int commentStart = this.ctm.get(0).originalStart;
+		Token previous = this.ctm.get(0);
+		int commentStart = previous.originalStart;
 		for (int i = 1; i < this.ctm.size() - 1; i++) {
 			Token token = this.ctm.get(i);
 			boolean touchesPrevious = token.originalStart == this.ctm.get(i - 1).originalEnd + 1;
-			if (touchesPrevious && token.getWrapPolicy() == null && token.getLineBreaksBefore() == 0) {
+			if (touchesPrevious && token.getLineBreaksBefore() == 0 && previous.getLineBreaksAfter() == 0
+					&& token.getWrapPolicy() == null) {
 				boolean allowWrap = this.allowSubstituteWrapping[token.originalStart - commentStart];
 				token.setWrapPolicy(allowWrap ? WrapPolicy.SUBSTITUTE_ONLY : WrapPolicy.DISABLE_WRAP);
 			}
@@ -1044,6 +1151,7 @@ public class CommentsPreparator extends ASTVisitor {
 					this.ctm.get(tokenStartingAt(pos + 1)).setWrapPolicy(WrapPolicy.SUBSTITUTE_ONLY);
 				}
 			}
+			previous = token;
 		}
 	}
 
@@ -1058,8 +1166,7 @@ public class CommentsPreparator extends ASTVisitor {
 		// ^ index: original source position (minus startPosition), value: position in code string
 		getCodeToFormat(codeStartPosition, codeEndPosition, codeBuilder, positionMapping);
 
-		List<Token> formattedTokens = getCommentCodeFormatter().prepareFormattedCode(codeBuilder.toString(),
-				CodeFormatter.K_UNKNOWN);
+		List<Token> formattedTokens = getCommentCodeFormatter().prepareFormattedCode(codeBuilder.toString());
 
 		if (formattedTokens == null) {
 			disableFormattingExclusively(openingTagLastIndex, closingTagFirstIndex);
@@ -1206,14 +1313,22 @@ public class CommentsPreparator extends ASTVisitor {
 			Token translated = new Token(token, newStart + startPosition, newEnd + startPosition, token.tokenType);
 			if (translated.getWrapPolicy() == null)
 				translated.setWrapPolicy(WrapPolicy.DISABLE_WRAP);
-			if (token.hasNLSTag())
-				translationMap.put(token, translated);
+
+			if (token.hasNLSTag()) {
+				if (translationMap == null)
+					translationMap = new HashMap<>();
+				Token translatedNLS = translationMap.get(token.getNLSTag());
+				if (translatedNLS != null) {
+					translatedNLS.setNLSTag(translated);
+					translated.setNLSTag(translatedNLS);
+				} else {
+					translationMap.put(token, translated);
+				}
+			}
 
 			int lineBreaks = Math.max(previousLineBreaks, token.getLineBreaksBefore());
 			List<Token> structure = token.getInternalStructure();
 			if (structure != null && !structure.isEmpty()) {
-				if (translationMap == null)
-					translationMap = new HashMap<>();
 				translated.setInternalStructure(translateFormattedTokens(startPosition, structure, positionMapping,
 						translationMap));
 			}
@@ -1223,14 +1338,6 @@ public class CommentsPreparator extends ASTVisitor {
 		}
 		result.get(result.size() - 1).putLineBreaksAfter(previousLineBreaks);
 
-		for (Token translated : result) {
-			if (translated.getNLSTag() != null) {
-				Token nlsTagToken = translationMap.get(translated.getNLSTag());
-				translated.setNLSTag(nlsTagToken);
-				nlsTagToken.setNLSTag(translated);
-				assert translated.getNLSTag() != null;
-			}
-		}
 		return result;
 	}
 

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -17,17 +17,23 @@
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.formatter;
 
+import static org.aspectj.org.eclipse.jdt.internal.compiler.parser.TerminalTokens.TokenNameCOMMENT_BLOCK;
+import static org.aspectj.org.eclipse.jdt.internal.compiler.parser.TerminalTokens.TokenNameCOMMENT_JAVADOC;
+import static org.aspectj.org.eclipse.jdt.internal.compiler.parser.TerminalTokens.TokenNameCOMMENT_LINE;
 import static org.aspectj.org.eclipse.jdt.internal.compiler.parser.TerminalTokens.TokenNameEOF;
 import static org.aspectj.org.eclipse.jdt.internal.compiler.parser.TerminalTokens.TokenNameNotAToken;
-import static org.aspectj.org.eclipse.jdt.internal.compiler.parser.TerminalTokens.TokenNameCOMMENT_JAVADOC;
-import static org.aspectj.org.eclipse.jdt.internal.compiler.parser.TerminalTokens.TokenNameCOMMENT_BLOCK;
-import static org.aspectj.org.eclipse.jdt.internal.compiler.parser.TerminalTokens.TokenNameCOMMENT_LINE;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.aspectj.org.eclipse.jdt.core.ICompilationUnit;
+import org.aspectj.org.eclipse.jdt.core.IJavaProject;
+import org.aspectj.org.eclipse.jdt.core.IModuleDescription;
 import org.aspectj.org.eclipse.jdt.core.JavaCore;
+import org.aspectj.org.eclipse.jdt.core.JavaModelException;
 import org.aspectj.org.eclipse.jdt.core.compiler.IProblem;
 import org.aspectj.org.eclipse.jdt.core.compiler.InvalidInputException;
 import org.aspectj.org.eclipse.jdt.core.dom.AST;
@@ -40,8 +46,11 @@ import org.aspectj.org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.aspectj.org.eclipse.jdt.core.formatter.CodeFormatter;
 import org.aspectj.org.eclipse.jdt.core.formatter.DefaultCodeFormatterConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.Scanner;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
+import org.aspectj.org.eclipse.jdt.internal.core.JavaProject;
+import org.aspectj.org.eclipse.jdt.internal.core.SourceModule;
 import org.aspectj.org.eclipse.jdt.internal.formatter.linewrap.CommentWrapExecutor;
 import org.aspectj.org.eclipse.jdt.internal.formatter.linewrap.WrapPreparator;
 import org.eclipse.jface.text.IRegion;
@@ -66,7 +75,17 @@ public class DefaultCodeFormatter extends CodeFormatter {
 		| K_STATEMENTS
 		| K_CLASS_BODY_DECLARATIONS
 		| K_COMPILATION_UNIT
+		| K_MODULE_INFO
 		| K_COMMENTS_MASK;
+
+	private static final Map<Integer, Integer> FORMAT_TO_PARSER_KIND = new HashMap<>();
+	static {
+		FORMAT_TO_PARSER_KIND.put(K_COMPILATION_UNIT, ASTParser.K_COMPILATION_UNIT);
+		FORMAT_TO_PARSER_KIND.put(K_MODULE_INFO, ASTParser.K_COMPILATION_UNIT);
+		FORMAT_TO_PARSER_KIND.put(K_CLASS_BODY_DECLARATIONS, ASTParser.K_CLASS_BODY_DECLARATIONS);
+		FORMAT_TO_PARSER_KIND.put(K_STATEMENTS, ASTParser.K_STATEMENTS);
+		FORMAT_TO_PARSER_KIND.put(K_EXPRESSION, ASTParser.K_EXPRESSION);
+	}
 
 	private DefaultCodeFormatterOptions originalOptions;
 	private DefaultCodeFormatterOptions workingOptions;
@@ -75,8 +94,8 @@ public class DefaultCodeFormatter extends CodeFormatter {
 	private String sourceLevel;
 
 	private String sourceString;
-	private char[] sourceArray;
-	private IRegion[] formatRegions;
+	char[] sourceArray;
+	private List<IRegion> formatRegions;
 
 	private ASTNode astRoot;
 	private List<Token> tokens = new ArrayList<>();
@@ -123,6 +142,7 @@ public class DefaultCodeFormatter extends CodeFormatter {
 		return options.get(DefaultCodeFormatterConstants.FORMATTER_COMMENT_FORMAT);
 	}
 
+	@Override
 	public String createIndentationString(final int indentationLevel) {
 		if (indentationLevel < 0) {
 			throw new IllegalArgumentException();
@@ -138,6 +158,7 @@ public class DefaultCodeFormatter extends CodeFormatter {
 	/**
 	 * @see org.aspectj.org.eclipse.jdt.core.formatter.CodeFormatter#format(int, java.lang.String, int, int, int, java.lang.String)
 	 */
+	@Override
 	public TextEdit format(int kind, String source, int offset, int length, int indentationLevel, String lineSeparator) {
 		return format(kind, source, new IRegion[] { new Region(offset, length) }, indentationLevel, lineSeparator);
 	}
@@ -145,11 +166,12 @@ public class DefaultCodeFormatter extends CodeFormatter {
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	public TextEdit format(int kind, String source, IRegion[] regions, int indentationLevel, String lineSeparator) {
 		if (!regionsSatisfiesPreconditions(regions, source.length())) {
 			throw new IllegalArgumentException();
 		}
-		this.formatRegions = regions;
+		this.formatRegions = Arrays.asList(regions);
 
 		updateWorkingOptions(indentationLevel, lineSeparator, kind);
 
@@ -160,7 +182,7 @@ public class DefaultCodeFormatter extends CodeFormatter {
 			return this.tokens.isEmpty() ? new MultiTextEdit() : null;
 
 		MultiTextEdit result = new MultiTextEdit();
-		TextEditsBuilder resultBuilder = new TextEditsBuilder(this.sourceString, regions, this.tokenManager,
+		TextEditsBuilder resultBuilder = new TextEditsBuilder(this.sourceString, this.formatRegions, this.tokenManager,
 				this.workingOptions);
 		this.tokenManager.traverse(0, resultBuilder);
 		for (TextEdit edit : resultBuilder.getEdits()) {
@@ -169,7 +191,7 @@ public class DefaultCodeFormatter extends CodeFormatter {
 		return result;
 	}
 
-	private boolean init(String source) {
+	private boolean init(String source, int kind) {
 
 		// this is convenient for debugging (see Token.toString())
 		// Token.source = source;
@@ -179,12 +201,17 @@ public class DefaultCodeFormatter extends CodeFormatter {
 		this.tokens.clear();
 		this.tokenManager = new TokenManager(this.tokens, source, this.workingOptions);
 
-		tokenizeSource();
+		tokenizeSource(kind);
 		return !this.tokens.isEmpty();
 	}
 
-	List<Token> prepareFormattedCode(String source, int kind) {
-		if (!init(source))
+	List<Token> prepareFormattedCode(String source) {
+		this.formatRegions = Arrays.asList(new Region(0, source.length()));
+		return prepareFormattedCode(source, CodeFormatter.K_UNKNOWN);
+	}
+
+	private List<Token> prepareFormattedCode(String source, int kind) {
+		if (!init(source, kind))
 			return null;
 
 		this.astRoot = parseSourceCode(kind);
@@ -198,8 +225,6 @@ public class DefaultCodeFormatter extends CodeFormatter {
 		prepareLineBreaks();
 		prepareComments();
 		prepareWraps(kind);
-
-		this.tokenManager.applyFormatOff();
 
 		return this.tokens;
 	}
@@ -218,7 +243,7 @@ public class DefaultCodeFormatter extends CodeFormatter {
 
 	private TextEdit formatComments(String source, int kind) {
 		MultiTextEdit result = new MultiTextEdit();
-		if (!init(source))
+		if (!init(source, kind))
 			return result;
 
 		CommentsPreparator commentsPreparator = new CommentsPreparator(this.tokenManager, this.workingOptions,
@@ -226,12 +251,9 @@ public class DefaultCodeFormatter extends CodeFormatter {
 		CommentWrapExecutor commentWrapper = new CommentWrapExecutor(this.tokenManager, this.workingOptions);
 		switch (kind) {
 			case K_JAVA_DOC:
-				ASTParser parser = ASTParser.newParser(AST.JLS8);
 				for (Token token : this.tokens) {
 					if (token.tokenType == TokenNameCOMMENT_JAVADOC) {
-						parser.setSourceRange(token.originalStart, token.countChars());
-						CompilationUnit cu = (CompilationUnit) parseSourceCode(parser, ASTParser.K_COMPILATION_UNIT,
-								true);
+						CompilationUnit cu = (CompilationUnit) parseSourceCode(ASTParser.K_COMPILATION_UNIT);
 						Javadoc javadoc = (Javadoc) cu.getCommentList().get(0);
 						javadoc.accept(commentsPreparator);
 						int startPosition = this.tokenManager.findSourcePositionInLine(token.originalStart);
@@ -268,7 +290,7 @@ public class DefaultCodeFormatter extends CodeFormatter {
 				throw new AssertionError(String.valueOf(kind));
 		}
 
-		this.tokenManager.applyFormatOff();
+		applyFormatOff();
 
 		TextEditsBuilder resultBuilder = new TextEditsBuilder(source, this.formatRegions, this.tokenManager,
 				this.workingOptions);
@@ -286,59 +308,85 @@ public class DefaultCodeFormatter extends CodeFormatter {
 	}
 
 	private ASTNode parseSourceCode(int kind) {
-		ASTParser parser = ASTParser.newParser(AST.JLS8);
+		kind = kind & K_MASK;
+		if (kind != K_UNKNOWN) {
+			ASTNode astNode = createParser(kind).createAST(null);
+			if (kind == K_COMPILATION_UNIT || kind == K_MODULE_INFO)
+				return astNode;
+			return hasErrors(astNode) ? null : astNode;
+		}
+
+		int[] kindsToTry = { K_COMPILATION_UNIT, K_EXPRESSION, K_CLASS_BODY_DECLARATIONS, K_STATEMENTS, K_MODULE_INFO };
+		for (int kindToTry : kindsToTry) {
+			ASTNode astNode = createParser(kindToTry).createAST(null);
+			if (!hasErrors(astNode)) {
+				if (kindToTry == K_MODULE_INFO) 
+					tokenizeSource(kindToTry); // run scanner again to get module specific tokens
+				return astNode;
+			}
+		}
+		return null;
+	}
+
+	private ASTParser createParser(int kind) {
+		@SuppressWarnings("deprecation")
+		ASTParser parser = ASTParser.newParser(AST.JLS9);
+
+		if (kind == K_MODULE_INFO) {
+			parser.setSource(createDummyModuleInfoCompilationUnit());
+		} else {
+			parser.setSource(this.sourceArray);
+		}
+		parser.setKind(FORMAT_TO_PARSER_KIND.get(kind));
+
 		Map<String, String> parserOptions = JavaCore.getOptions();
 		parserOptions.put(CompilerOptions.OPTION_Source, this.sourceLevel);
 		parserOptions.put(CompilerOptions.OPTION_DocCommentSupport, CompilerOptions.ENABLED);
 		parser.setCompilerOptions(parserOptions);
-
-		switch (kind & K_MASK) {
-			case K_COMPILATION_UNIT:
-				return parseSourceCode(parser, ASTParser.K_COMPILATION_UNIT, true);
-			case K_CLASS_BODY_DECLARATIONS:
-				return parseSourceCode(parser, ASTParser.K_CLASS_BODY_DECLARATIONS, false);
-			case K_STATEMENTS:
-				return parseSourceCode(parser, ASTParser.K_STATEMENTS, false);
-			case K_EXPRESSION:
-				return parseSourceCode(parser, ASTParser.K_EXPRESSION, false);
-			case K_UNKNOWN:
-				int[] parserModes = { ASTParser.K_COMPILATION_UNIT, ASTParser.K_EXPRESSION,
-						ASTParser.K_CLASS_BODY_DECLARATIONS, ASTParser.K_STATEMENTS };
-				for (int parserMode : parserModes) {
-					ASTNode astNode = parseSourceCode(parser, parserMode, false);
-					if (astNode != null)
-						return astNode;
-					parser.setCompilerOptions(parserOptions); // parser loses compiler options after every use
-				}
-				return null;
-			default:
-				throw new IllegalArgumentException();
-		}
+		return parser;
 	}
 
-	private ASTNode parseSourceCode(ASTParser parser, int parserMode, boolean ignoreErrors) {
-		parser.setKind(parserMode);
-		parser.setSource(this.sourceArray);
-		ASTNode astNode = parser.createAST(null);
-		if (ignoreErrors)
-			return astNode;
+	private ICompilationUnit createDummyModuleInfoCompilationUnit() {
+		IJavaProject dummyProject = new JavaProject() {
+			@Override
+			public Map<String, String> getOptions(boolean inheritJavaCoreOptions) {
+				return new HashMap<>();
+			}
 
-		boolean hasErrors = false;
+			@Override
+			public IModuleDescription getModuleDescription() throws JavaModelException {
+				return new SourceModule(this, ""); //$NON-NLS-1$
+			}
+		};
+		return new org.aspectj.org.eclipse.jdt.internal.core.CompilationUnit(null, TypeConstants.MODULE_INFO_FILE_NAME_STRING,
+				null) {
+			@Override
+			public char[] getContents() {
+				return DefaultCodeFormatter.this.sourceArray;
+			}
+
+			@Override
+			public IJavaProject getJavaProject() {
+				return dummyProject;
+			}
+		};
+	}
+
+	private boolean hasErrors(ASTNode astNode) {
 		CompilationUnit root = (CompilationUnit) astNode.getRoot();
 		for (IProblem problem : root.getProblems()) {
-			if (problem.isError()) {
-				hasErrors = true;
-				break;
-			}
+			if (problem.isError())
+				return true;
 		}
-		return hasErrors ? null : astNode;
+		return false;
 	}
 
-	private void tokenizeSource() {
+	private void tokenizeSource(int kind) {
 		this.tokens.clear();
 		Scanner scanner = new Scanner(true, false, false/* nls */, CompilerOptions.versionToJdkLevel(this.sourceLevel),
 				null/* taskTags */, null/* taskPriorities */, false/* taskCaseSensitive */);
 		scanner.setSource(this.sourceArray);
+		scanner.fakeInModule = (kind & K_MODULE_INFO) != 0;
 		while (true) {
 			try {
 				int tokenType = scanner.getNextToken();
@@ -378,7 +426,35 @@ public class DefaultCodeFormatter extends CodeFormatter {
 	private void prepareWraps(int kind) {
 		WrapPreparator wrapPreparator = new WrapPreparator(this.tokenManager, this.workingOptions, kind);
 		this.astRoot.accept(wrapPreparator);
+		applyFormatOff();
 		wrapPreparator.finishUp(this.astRoot, this.formatRegions);
+	}
+
+	private void applyFormatOff() {
+		for (Token[] offPair : this.tokenManager.getDisableFormatTokenPairs()) {
+			final int offStart = offPair[0].originalStart;
+			final int offEnd = offPair[1].originalEnd;
+
+			offPair[0].setWrapPolicy(null);
+			offPair[0]
+					.setIndent(Math.min(offPair[0].getIndent(), this.tokenManager.findSourcePositionInLine(offStart)));
+
+			final List<IRegion> result = new ArrayList<>();
+			for (IRegion region : this.formatRegions) {
+				final int start = region.getOffset(), end = region.getOffset() + region.getLength() - 1;
+				if (offEnd < start || end < offStart) {
+					result.add(region);
+				} else if (offStart <= start && end <= offEnd) {
+					// whole region off
+				} else {
+					if (start < offStart)
+						result.add(new Region(start, offStart - start));
+					if (offEnd < end)
+						result.add(new Region(offEnd + 1, end - offEnd));
+				}
+			}
+			this.formatRegions = result;
+		}
 	}
 
 	/**

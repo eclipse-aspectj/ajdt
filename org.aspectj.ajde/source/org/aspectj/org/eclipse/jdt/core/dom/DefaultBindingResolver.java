@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -39,6 +39,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Literal;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.LocalDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.MemberValuePair;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.MessageSend;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ModuleReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ParameterizedQualifiedTypeReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.QualifiedNameReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.QualifiedSuperReference;
@@ -60,6 +61,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ParameterizedGenericMethodBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ProblemFieldBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ProblemPackageBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ProblemReasons;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ProblemReferenceBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
@@ -184,9 +186,7 @@ class DefaultBindingResolver extends BindingResolver {
 		this.fromJavaProject = fromJavaProject;
 	}
 
-	/*
-	 * Method declared on BindingResolver.
-	 */
+	@Override
 	synchronized ASTNode findDeclaringNode(IBinding binding) {
 		if (binding == null) {
 			return null;
@@ -204,6 +204,7 @@ class DefaultBindingResolver extends BindingResolver {
 		return (ASTNode) this.bindingsToAstNodes.get(binding);
 	}
 
+	@Override
 	synchronized ASTNode findDeclaringNode(String bindingKey) {
 		if (bindingKey == null) {
 			return null;
@@ -229,6 +230,8 @@ class DefaultBindingResolver extends BindingResolver {
 				return new TypeBinding(this, (org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding) binding);
 			case Binding.METHOD:
 				return getMethodBinding((org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodBinding) binding);
+			case Binding.MODULE:
+				return getModuleBinding((org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ModuleBinding) binding);
 			case Binding.FIELD:
 			case Binding.LOCAL:
 				return getVariableBinding((org.aspectj.org.eclipse.jdt.internal.compiler.lookup.VariableBinding) binding);
@@ -238,6 +241,7 @@ class DefaultBindingResolver extends BindingResolver {
 
 	Util.BindingsToNodesMap getBindingsToNodesMap() {
 		return new Util.BindingsToNodesMap() {
+			@Override
 			public org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode get(Binding binding) {
 				return (org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode)
 					DefaultBindingResolver.this.newAstToOldAst.get(DefaultBindingResolver.this.bindingsToAstNodes.get(binding));
@@ -245,13 +249,12 @@ class DefaultBindingResolver extends BindingResolver {
 		};
 	}
 
+	@Override
 	synchronized org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode getCorrespondingNode(ASTNode currentNode) {
 		return (org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode) this.newAstToOldAst.get(currentNode);
 	}
 
-	/*
-	 * Method declared on BindingResolver.
-	 */
+	@Override
 	synchronized IMethodBinding getMethodBinding(org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodBinding methodBinding) {
 		return getMethodOrLambdaBinding(methodBinding, null, null);
 	}
@@ -285,6 +288,7 @@ class DefaultBindingResolver extends BindingResolver {
 		return null;
 	}
 
+	@Override
 	synchronized IMemberValuePairBinding getMemberValuePairBinding(ElementValuePair valuePair) {
 		if (valuePair == null || valuePair.binding == null) return null;
 		IMemberValuePairBinding binding =
@@ -296,18 +300,33 @@ class DefaultBindingResolver extends BindingResolver {
 		return binding;
 	}
 
-	/*
-	 * Method declared on BindingResolver.
+	/**
+	 * @see org.aspectj.org.eclipse.jdt.core.dom.BindingResolver#getModuleBinding(org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ModuleBinding)
 	 */
+	@Override
+	synchronized IModuleBinding getModuleBinding(org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ModuleBinding moduleBinding) {
+		if (moduleBinding != null) {
+			IModuleBinding binding = (IModuleBinding) this.bindingTables.compilerBindingsToASTBindings.get(moduleBinding);
+			if (binding == null) {
+				binding = new ModuleBinding(this, moduleBinding);
+				this.bindingTables.compilerBindingsToASTBindings.put(moduleBinding, binding);
+			}
+			return binding;
+		}
+		return null;
+	}
+
+	@Override
 	synchronized IPackageBinding getPackageBinding(org.aspectj.org.eclipse.jdt.internal.compiler.lookup.PackageBinding packageBinding) {
-		if (packageBinding == null) {
+		if (packageBinding == null || packageBinding instanceof ProblemPackageBinding) {
 			return null;
 		}
 		IPackageBinding binding = (IPackageBinding) this.bindingTables.compilerBindingsToASTBindings.get(packageBinding);
 		if (binding != null) {
 			return binding;
 		}
-		binding = new PackageBinding(packageBinding, this);
+		binding = packageBinding instanceof ProblemPackageBinding ? new RecoveredPackageBinding(packageBinding, this) :
+				new PackageBinding(packageBinding, this);
 		this.bindingTables.compilerBindingsToASTBindings.put(packageBinding, binding);
 		return binding;
 	}
@@ -325,17 +344,7 @@ class DefaultBindingResolver extends BindingResolver {
 		return value;
 	}
 
-	/**
-	 * Returns the new type binding corresponding to the given variable declaration.
-	 * This is used for recovered binding only.
-	 * <p>
-	 * The default implementation of this method returns <code>null</code>.
-	 * Subclasses may reimplement.
-	 * </p>
-	 *
-	 * @param variableDeclaration the given variable declaration
-	 * @return the new type binding
-	 */
+	@Override
 	synchronized ITypeBinding getTypeBinding(VariableDeclaration variableDeclaration) {
 		ITypeBinding binding = (ITypeBinding) this.bindingTables.compilerBindingsToASTBindings.get(variableDeclaration);
 		if (binding != null) {
@@ -346,17 +355,7 @@ class DefaultBindingResolver extends BindingResolver {
 		return binding;
 	}
 
-	/**
-	 * Returns the new type binding corresponding to the given type.
-	 * This is used for recovered binding only.
-	 * <p>
-	 * The default implementation of this method returns <code>null</code>.
-	 * Subclasses may reimplement.
-	 * </p>
-	 *
-	 * @param type the given type
-	 * @return the new type binding
-	 */
+	@Override
 	synchronized ITypeBinding getTypeBinding(Type type) {
 		ITypeBinding binding = (ITypeBinding) this.bindingTables.compilerBindingsToASTBindings.get(type);
 		if (binding != null) {
@@ -367,9 +366,7 @@ class DefaultBindingResolver extends BindingResolver {
 		return binding;
 	}
 
-	/*
-	 * Method declared on BindingResolver.
-	 */
+	@Override
 	synchronized ITypeBinding getTypeBinding(org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding referenceBinding) {
 		return internalGetTypeBinding(referenceBinding, null);
 	}
@@ -425,9 +422,7 @@ class DefaultBindingResolver extends BindingResolver {
 		}
 	}
 
-	/*
-	 * Method declared on BindingResolver.
-	 */
+	@Override
 	synchronized ITypeBinding getTypeBinding(RecoveredTypeBinding recoveredTypeBinding, int dimensions) {
 		if (recoveredTypeBinding== null) {
 			return null;
@@ -481,13 +476,12 @@ class DefaultBindingResolver extends BindingResolver {
 		return this.getVariableBinding(variableBinding);
 	}
 
+	@Override
 	public WorkingCopyOwner getWorkingCopyOwner() {
 		return this.workingCopyOwner;
 	}
 
-	/*
-	 * Method declared on BindingResolver.
-	 */
+	@Override
 	synchronized IVariableBinding getVariableBinding(org.aspectj.org.eclipse.jdt.internal.compiler.lookup.VariableBinding variableBinding) {
 		if (variableBinding != null) {
 			if (variableBinding.isValidBinding()) {
@@ -548,6 +542,7 @@ class DefaultBindingResolver extends BindingResolver {
 		}
 	}
 
+	@Override
 	synchronized IAnnotationBinding getAnnotationInstance(org.aspectj.org.eclipse.jdt.internal.compiler.lookup.AnnotationBinding internalInstance) {
 		if (internalInstance == null) return null;
 		ReferenceBinding annotationType = internalInstance.getAnnotationType();
@@ -562,6 +557,7 @@ class DefaultBindingResolver extends BindingResolver {
 		return domInstance != null ? domInstance : newDomInstance;
 	}
 
+	@Override
 	boolean isResolvedTypeInferredFromExpectedType(MethodInvocation methodInvocation) {
 		Object oldNode = this.newAstToOldAst.get(methodInvocation);
 		if (oldNode instanceof MessageSend) {
@@ -575,6 +571,7 @@ class DefaultBindingResolver extends BindingResolver {
 		return false;
 	}
 
+	@Override
 	boolean isResolvedTypeInferredFromExpectedType(SuperMethodInvocation superMethodInvocation) {
 		Object oldNode = this.newAstToOldAst.get(superMethodInvocation);
 		if (oldNode instanceof MessageSend) {
@@ -588,6 +585,7 @@ class DefaultBindingResolver extends BindingResolver {
 		return false;
 	}
 
+	@Override
 	boolean isResolvedTypeInferredFromExpectedType(ClassInstanceCreation classInstanceCreation) {
 		Object oldNode = this.newAstToOldAst.get(classInstanceCreation);
 		if (oldNode instanceof AllocationExpression) {
@@ -597,9 +595,7 @@ class DefaultBindingResolver extends BindingResolver {
 		return false;
 	}
 
-	/*
-	 * Method declared on BindingResolver.
-	 */
+	@Override
 	LookupEnvironment lookupEnvironment() {
 		return this.scope.environment();
 	}
@@ -607,13 +603,12 @@ class DefaultBindingResolver extends BindingResolver {
 	/**
 	 * @see org.aspectj.org.eclipse.jdt.core.dom.BindingResolver#recordScope(ASTNode, BlockScope)
 	 */
+	@Override
 	synchronized void recordScope(ASTNode astNode, BlockScope blockScope) {
 		this.astNodesToBlockScope.put(astNode, blockScope);
 	}
 
-	/*
-	 * @see BindingResolver#resolveBoxing(Expression)
-	 */
+	@Override
 	boolean resolveBoxing(Expression expression) {
 		org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode node = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode) this.newAstToOldAst.get(expression);
 		if (node instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression) {
@@ -623,9 +618,7 @@ class DefaultBindingResolver extends BindingResolver {
 		return false;
 	}
 
-	/*
-	 * @see BindingResolver#resolveUnboxing(Expression)
-	 */
+	@Override
 	boolean resolveUnboxing(Expression expression) {
 		org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode node = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode) this.newAstToOldAst.get(expression);
 		if (node instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression) {
@@ -635,9 +628,7 @@ class DefaultBindingResolver extends BindingResolver {
 		return false;
 	}
 
-	/*
-	 * @see BindingResolver#resolveConstantExpressionValue(Expression)
-	 */
+	@Override
 	Object resolveConstantExpressionValue(Expression expression) {
 		org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode node = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode) this.newAstToOldAst.get(expression);
 		if (node instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression) {
@@ -661,9 +652,7 @@ class DefaultBindingResolver extends BindingResolver {
 		return null;
 	}
 
-	/*
-	 * @see BindingResolver#resolveConstructor(ClassInstanceCreation)
-	 */
+	@Override
 	synchronized IMethodBinding resolveConstructor(ClassInstanceCreation expression) {
 		org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode node = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode) this.newAstToOldAst.get(expression);
 		if (node != null && (node.bits & org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode.IsAnonymousType) != 0) {
@@ -675,9 +664,7 @@ class DefaultBindingResolver extends BindingResolver {
 		return null;
 	}
 
-	/*
-	 * @see BindingResolver#resolveConstructor(ConstructorInvocation)
-	 */
+	@Override
 	synchronized IMethodBinding resolveConstructor(ConstructorInvocation expression) {
 		org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode node = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode) this.newAstToOldAst.get(expression);
 		if (node instanceof ExplicitConstructorCall) {
@@ -687,9 +674,7 @@ class DefaultBindingResolver extends BindingResolver {
 		return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.BindingResolver#resolveConstructor(org.aspectj.org.eclipse.jdt.core.dom.EnumConstantDeclaration)
-	 */
+	@Override
 	IMethodBinding resolveConstructor(EnumConstantDeclaration enumConstantDeclaration) {
 		org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode node = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode) this.newAstToOldAst.get(enumConstantDeclaration);
 		if (node instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.FieldDeclaration) {
@@ -702,9 +687,7 @@ class DefaultBindingResolver extends BindingResolver {
 		return null;
 	}
 
-	/*
-	 * @see BindingResolver#resolveConstructor(SuperConstructorInvocation)
-	 */
+	@Override
 	synchronized IMethodBinding resolveConstructor(SuperConstructorInvocation expression) {
 		org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode node = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode) this.newAstToOldAst.get(expression);
 		if (node instanceof ExplicitConstructorCall) {
@@ -713,9 +696,8 @@ class DefaultBindingResolver extends BindingResolver {
 		}
 		return null;
 	}
-	/*
-	 * Method declared on BindingResolver.
-	 */
+
+	@Override
 	synchronized ITypeBinding resolveExpressionType(Expression expression) {
 		try {
 			switch(expression.getNodeType()) {
@@ -803,9 +785,7 @@ class DefaultBindingResolver extends BindingResolver {
 		return null;
 	}
 
-	/*
-	 * @see BindingResolver#resolveField(FieldAccess)
-	 */
+	@Override
 	synchronized IVariableBinding resolveField(FieldAccess fieldAccess) {
 		Object oldNode = this.newAstToOldAst.get(fieldAccess);
 		if (oldNode instanceof FieldReference) {
@@ -815,9 +795,7 @@ class DefaultBindingResolver extends BindingResolver {
 		return null;
 	}
 
-	/*
-	 * @see BindingResolver#resolveField(SuperFieldAccess)
-	 */
+	@Override
 	synchronized IVariableBinding resolveField(SuperFieldAccess fieldAccess) {
 		Object oldNode = this.newAstToOldAst.get(fieldAccess);
 		if (oldNode instanceof FieldReference) {
@@ -827,9 +805,7 @@ class DefaultBindingResolver extends BindingResolver {
 		return null;
 	}
 
-	/*
-	 * @see BindingResolver#resolveImport(ImportDeclaration)
-	 */
+	@Override
 	synchronized IBinding resolveImport(ImportDeclaration importDeclaration) {
 		if (this.scope == null) return null;
 		try {
@@ -893,9 +869,7 @@ class DefaultBindingResolver extends BindingResolver {
 		return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.BindingResolver#resolveMember(org.aspectj.org.eclipse.jdt.core.dom.AnnotationTypeMemberDeclaration)
-	 */
+	@Override
 	IMethodBinding resolveMember(AnnotationTypeMemberDeclaration declaration) {
 		Object oldNode = this.newAstToOldAst.get(declaration);
 		if (oldNode instanceof AbstractMethodDeclaration) {
@@ -914,9 +888,7 @@ class DefaultBindingResolver extends BindingResolver {
 		return null;
 	}
 
-	/*
-	 * Method declared on BindingResolver.
-	 */
+	@Override
 	synchronized IMethodBinding resolveMethod(LambdaExpression lambda) {
 		Object oldNode = this.newAstToOldAst.get(lambda);
 		if (oldNode instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.LambdaExpression) {
@@ -981,9 +953,7 @@ class DefaultBindingResolver extends BindingResolver {
 		return null;
 	}
 
-	/*
-	 * Method declared on BindingResolver.
-	 */
+	@Override
 	synchronized IMethodBinding resolveMethod(MethodDeclaration method) {
 		Object oldNode = this.newAstToOldAst.get(method);
 		if (oldNode instanceof AbstractMethodDeclaration) {
@@ -1001,9 +971,8 @@ class DefaultBindingResolver extends BindingResolver {
 		}
 		return null;
 	}
-/*
-	 * Method declared on BindingResolver.
-	 */
+
+	@Override
 	synchronized IMethodBinding resolveMethod(MethodInvocation method) {
 		Object oldNode = this.newAstToOldAst.get(method);
 		if (oldNode instanceof MessageSend) {
@@ -1012,9 +981,8 @@ class DefaultBindingResolver extends BindingResolver {
 		}
 		return null;
 	}
-	/*
-	 * Method declared on BindingResolver.
-	 */
+
+	@Override
 	synchronized IMethodBinding resolveMethod(MethodReference methodReference) {
 		Object oldNode = this.newAstToOldAst.get(methodReference);
 		if (oldNode instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.ReferenceExpression) {
@@ -1029,9 +997,8 @@ class DefaultBindingResolver extends BindingResolver {
 		}
 		return null;
 	}
-	/*
-	 * Method declared on BindingResolver.
-	 */
+
+	@Override
 	synchronized IMethodBinding resolveMethod(SuperMethodInvocation method) {
 		Object oldNode = this.newAstToOldAst.get(method);
 		if (oldNode instanceof MessageSend) {
@@ -1155,6 +1122,8 @@ class DefaultBindingResolver extends BindingResolver {
 				}
 			}
 		} else if (node instanceof ImportReference) {
+			if ((node.bits & org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode.inModule) != 0)
+				return null;
 			ImportReference importReference = (ImportReference) node;
 			int importReferenceLength = importReference.tokens.length;
 			if (index >= 0) {
@@ -1258,9 +1227,7 @@ class DefaultBindingResolver extends BindingResolver {
 		return null;
 	}
 
-	/*
-	 * Method declared on BindingResolver.
-	 */
+	@Override
 	synchronized IBinding resolveName(Name name) {
 		org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode node = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode) this.newAstToOldAst.get(name);
 		int index = name.index;
@@ -1373,10 +1340,11 @@ class DefaultBindingResolver extends BindingResolver {
 		} else if (node instanceof ImportReference) {
 			ImportReference importReference = (ImportReference) node;
 			int importReferenceLength = importReference.tokens.length;
+			boolean inModule = (importReference.bits & org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode.inModule) != 0;
 			if (index >= 0) {
 				Binding binding = null;
 				if (this.scope == null) return null;
-				if (importReferenceLength == index) {
+				if (importReferenceLength == index && !inModule) {
 					try {
 						binding = this.scope.getImport(CharOperation.subarray(importReference.tokens, 0, index), (importReference.bits & org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode.OnDemand) != 0, importReference.isStatic());
 					} catch (AbortCompilation e) {
@@ -1384,7 +1352,7 @@ class DefaultBindingResolver extends BindingResolver {
 					}
 				} else {
 					try {
-						binding = this.scope.getImport(CharOperation.subarray(importReference.tokens, 0, index), true, importReference.isStatic());
+						binding = this.scope.getImport(inModule ? importReference.tokens : CharOperation.subarray(importReference.tokens, 0, index), true, importReference.isStatic());
 					} catch (AbortCompilation e) {
 						// see https://bugs.eclipse.org/bugs/show_bug.cgi?id=53357
 					}
@@ -1424,6 +1392,18 @@ class DefaultBindingResolver extends BindingResolver {
 			IMethodBinding methodBinding = getMethodBinding(methodDeclaration.binding);
 			if (methodBinding != null) {
 				return methodBinding;
+			}
+		} else if (node instanceof ModuleReference) {
+			ModuleReference moduleReference = (ModuleReference) node;
+			IModuleBinding moduleBinding = getModuleBinding(moduleReference.binding);
+			if (moduleBinding != null) {
+				return moduleBinding;
+			}
+		} else if (node instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.ModuleDeclaration) {
+			org.aspectj.org.eclipse.jdt.internal.compiler.ast.ModuleDeclaration moduleDeclaration = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.ModuleDeclaration) node;
+			IModuleBinding moduleBinding = getModuleBinding(moduleDeclaration.binding);
+			if (moduleBinding != null) {
+				return moduleBinding;
 			}
 		} else if (node instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration) {
 			org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration typeDeclaration = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration) node;
@@ -1474,7 +1454,9 @@ class DefaultBindingResolver extends BindingResolver {
 			QualifiedSuperReference qualifiedSuperReference = (QualifiedSuperReference) node;
 			return this.getTypeBinding(qualifiedSuperReference.qualification.resolvedType);
 		} else if (node instanceof LocalDeclaration) {
-			return this.getVariableBinding(((LocalDeclaration)node).binding);
+			return name.getAST().apiLevel() >= AST.JLS10_INTERNAL && name instanceof SimpleName && ((SimpleName) name).isVar()  ? 
+					resolveTypeBindingForName(name) :
+					this.getVariableBinding(((LocalDeclaration)node).binding);
 		} else if (node instanceof JavadocFieldReference) {
 			JavadocFieldReference fieldRef = (JavadocFieldReference) node;
 			if (fieldRef.methodBinding != null) {
@@ -1521,9 +1503,7 @@ class DefaultBindingResolver extends BindingResolver {
 		return null;
 	}
 
-	/*
-	 * @see BindingResolver#resolvePackage(PackageDeclaration)
-	 */
+	@Override
 	synchronized IPackageBinding resolvePackage(PackageDeclaration pkg) {
 		if (this.scope == null) return null;
 		try {
@@ -1559,10 +1539,7 @@ class DefaultBindingResolver extends BindingResolver {
 		return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see BindingResolver#resolveReference(MemberRef)
-     * @since 3.0
-	 */
+	@Override
 	synchronized IBinding resolveReference(MemberRef ref) {
 		org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression expression = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression) this.newAstToOldAst.get(ref);
 		if (expression instanceof TypeReference) {
@@ -1577,10 +1554,7 @@ class DefaultBindingResolver extends BindingResolver {
 		return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see BindingResolver#resolveMemberValuePair(MemberValuePair)
-     * @since 3.2
-	 */
+	@Override
 	synchronized IMemberValuePairBinding resolveMemberValuePair(org.aspectj.org.eclipse.jdt.core.dom.MemberValuePair memberValuePair) {
 		MemberValuePair valuePair = (MemberValuePair) this.newAstToOldAst.get(memberValuePair);
 		if (valuePair != null) {
@@ -1589,10 +1563,31 @@ class DefaultBindingResolver extends BindingResolver {
 		return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see BindingResolver#resolveReference(MethodRef)
-     * @since 3.0
+	/**
+	 * @see BindingResolver#resolveModule(ModuleDeclaration)
+	 * @since 3.14	
 	 */
+	@Override
+	IModuleBinding resolveModule(ModuleDeclaration module) {
+		Object oldNode = this.newAstToOldAst.get(module);
+		if (oldNode instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.ModuleDeclaration) {
+			org.aspectj.org.eclipse.jdt.internal.compiler.ast.ModuleDeclaration moduleDeclaration = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.ModuleDeclaration) oldNode;
+			IModuleBinding moduleBinding = getModuleBinding(moduleDeclaration.binding);
+			if (moduleBinding == null) {
+				return null;
+			}
+			this.bindingsToAstNodes.put(moduleBinding, module);
+			String key = moduleBinding.getKey();
+			if (key != null) {
+				this.bindingTables.bindingKeysToBindings.put(key, moduleBinding);
+			}
+			return moduleBinding;
+		}
+
+		return null;
+	}
+
+	@Override
 	synchronized IBinding resolveReference(MethodRef ref) {
 		org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression expression = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression) this.newAstToOldAst.get(ref);
 		if (expression instanceof JavadocMessageSend) {
@@ -1604,9 +1599,7 @@ class DefaultBindingResolver extends BindingResolver {
 		return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.BindingResolver#resolveType(org.aspectj.org.eclipse.jdt.core.dom.AnnotationTypeDeclaration)
-	 */
+	@Override
 	ITypeBinding resolveType(AnnotationTypeDeclaration type) {
 		final Object node = this.newAstToOldAst.get(type);
 		if (node instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration) {
@@ -1624,9 +1617,8 @@ class DefaultBindingResolver extends BindingResolver {
 		}
 		return null;
 	}
-	/*
-	 * @see BindingResolver#resolveType(AnonymousClassDeclaration)
-	 */
+
+	@Override
 	synchronized ITypeBinding resolveType(AnonymousClassDeclaration type) {
 		org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode node = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode) this.newAstToOldAst.get(type);
 		if (node != null && (node.bits & org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode.IsAnonymousType) != 0) {
@@ -1646,9 +1638,7 @@ class DefaultBindingResolver extends BindingResolver {
 		return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.BindingResolver#resolveType(org.aspectj.org.eclipse.jdt.core.dom.EnumDeclaration)
-	 */
+	@Override
 	ITypeBinding resolveType(EnumDeclaration type) {
 		final Object node = this.newAstToOldAst.get(type);
 		if (node instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration) {
@@ -1667,13 +1657,14 @@ class DefaultBindingResolver extends BindingResolver {
 		return null;
 	}
 
-	/*
-	 * Method declared on BindingResolver.
-	 */
+	@Override
 	synchronized ITypeBinding resolveType(Type type) {
 		// retrieve the old ast node
 		org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode node = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode) this.newAstToOldAst.get(type);
 		org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding binding = null;
+		if (type.getAST().apiLevel() >= AST.JLS10_INTERNAL && type.isVar()) {
+			return resolveTypeBindingForName(((SimpleType) type).getName());
+		}
 		if (node != null) {
 			if (node instanceof Receiver) {
 				node = ((Receiver) node).type;
@@ -1786,9 +1777,7 @@ class DefaultBindingResolver extends BindingResolver {
 		return newbies;
 	}
 
-	/*
-	 * Method declared on BindingResolver.
-	 */
+	@Override
 	synchronized ITypeBinding resolveType(TypeDeclaration type) {
 		final Object node = this.newAstToOldAst.get(type);
 		if (node instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration) {
@@ -1808,6 +1797,7 @@ class DefaultBindingResolver extends BindingResolver {
 		return null;
 	}
 
+	@Override
 	synchronized ITypeBinding resolveTypeParameter(TypeParameter typeParameter) {
 		final Object node = this.newAstToOldAst.get(typeParameter);
 		if (node instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeParameter) {
@@ -1826,9 +1816,7 @@ class DefaultBindingResolver extends BindingResolver {
 		return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.BindingResolver#resolveVariable(org.aspectj.org.eclipse.jdt.core.dom.EnumConstantDeclaration)
-	 */
+	@Override
 	synchronized IVariableBinding resolveVariable(EnumConstantDeclaration enumConstant) {
 		final Object node = this.newAstToOldAst.get(enumConstant);
 		if (node instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.FieldDeclaration) {
@@ -1846,9 +1834,8 @@ class DefaultBindingResolver extends BindingResolver {
 		}
 		return null;
 	}
-	/*
-	 * Method declared on BindingResolver.
-	 */
+
+	@Override
 	synchronized IVariableBinding resolveVariable(VariableDeclaration variable) {
 		final Object node = this.newAstToOldAst.get(variable);
 		if (node instanceof AbstractVariableDeclaration) {
@@ -1873,9 +1860,7 @@ class DefaultBindingResolver extends BindingResolver {
 		return null;
 	}
 
-	/*
-	 * Method declared on BindingResolver.
-	 */
+	@Override
 	synchronized ITypeBinding resolveWellKnownType(String name) {
 		if (this.scope == null) return null;
 		ITypeBinding typeBinding = null;
@@ -1940,6 +1925,7 @@ class DefaultBindingResolver extends BindingResolver {
 		return null;
 	}
 
+	@Override
 	synchronized IAnnotationBinding resolveAnnotation(final Annotation domASTNode) {
 		Object oldNode = this.newAstToOldAst.get(domASTNode);
 		if (oldNode instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.Annotation) {
@@ -1955,23 +1941,17 @@ class DefaultBindingResolver extends BindingResolver {
 		return null;
 	}
 
-	/*
-	 * Method declared on BindingResolver.
-	 */
+	@Override
 	public CompilationUnitScope scope() {
 		return this.scope;
 	}
 
-	/*
-	 * Method declared on BindingResolver.
-	 */
+	@Override
 	synchronized void store(ASTNode node, org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode oldASTNode) {
 		this.newAstToOldAst.put(node, oldASTNode);
 	}
 
-	/*
-	 * Method declared on BindingResolver.
-	 */
+	@Override
 	synchronized void updateKey(ASTNode node, ASTNode newNode) {
 		Object astNode = this.newAstToOldAst.remove(node);
 		if (astNode != null) {
@@ -1979,25 +1959,7 @@ class DefaultBindingResolver extends BindingResolver {
 		}
 	}
 
-	/**
-	 * Answer an array type binding with the given type binding and the given
-	 * dimensions.
-	 *
-	 * <p>If the given type binding is an array binding, then the resulting dimensions is the given dimensions
-	 * plus the existing dimensions of the array binding. Otherwise the resulting dimensions is the given
-	 * dimensions.</p>
-	 *
-	 * <p>
-	 * The default implementation of this method returns <code>null</code>.
-	 * Subclasses may reimplement.
-	 * </p>
-	 *
-	 * @param typeBinding the given type binding
-	 * @param dimensions the given dimensions
-	 * @return an array type binding with the given type binding and the given
-	 * dimensions
-	 * @throws IllegalArgumentException if the type binding represents the <code>void</code> type binding
-	 */
+	@Override
 	ITypeBinding resolveArrayType(ITypeBinding typeBinding, int dimensions) {
 		if (typeBinding instanceof RecoveredTypeBinding) throw new IllegalArgumentException("Cannot be called on a recovered type binding"); //$NON-NLS-1$
 		ITypeBinding leafComponentType = typeBinding;

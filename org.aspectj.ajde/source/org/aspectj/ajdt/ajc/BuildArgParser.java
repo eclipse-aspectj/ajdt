@@ -12,25 +12,42 @@
 
 package org.aspectj.ajdt.ajc;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
+import java.util.StringTokenizer;
+
 import org.aspectj.ajdt.internal.compiler.lookup.EclipseSourceLocation;
 import org.aspectj.ajdt.internal.core.builder.AjBuildConfig;
-import org.aspectj.bridge.*;
+import org.aspectj.bridge.CountingMessageHandler;
+import org.aspectj.bridge.IMessage;
+import org.aspectj.bridge.IMessageHandler;
+import org.aspectj.bridge.ISourceLocation;
+import org.aspectj.bridge.Message;
+import org.aspectj.bridge.MessageUtil;
+import org.aspectj.bridge.SourceLocation;
+import org.aspectj.bridge.Version;
 import org.aspectj.org.eclipse.jdt.core.compiler.CategorizedProblem;
 import org.aspectj.org.eclipse.jdt.internal.compiler.apt.dispatch.AptProblem;
+import org.aspectj.org.eclipse.jdt.internal.compiler.batch.FileSystem;
 import org.aspectj.org.eclipse.jdt.internal.compiler.batch.Main;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.IModule;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment;
 import org.aspectj.util.FileUtil;
 import org.aspectj.util.LangUtil;
 import org.aspectj.weaver.Constants;
 import org.aspectj.weaver.Dump;
 import org.aspectj.weaver.WeaverMessages;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.util.*;
 
 @SuppressWarnings("unchecked")
 public class BuildArgParser extends Main {
@@ -157,10 +174,15 @@ public class BuildArgParser extends Main {
 			// TODO fix org.eclipse.jdt.internal.compiler.batch.Main so this hack isn't needed
 			javaArgList.add("-classpath");
 			javaArgList.add(parser.classpath == null ? System.getProperty("user.dir") : parser.classpath);
-			javaArgList.add("-bootclasspath");
-			javaArgList.add(parser.bootclasspath == null ? System.getProperty("user.dir") : parser.bootclasspath);
+//			javaArgList.add("-bootclasspath");
+//			javaArgList.add(parser.bootclasspath == null ? System.getProperty("user.dir") : parser.bootclasspath);
 			javaArgList.addAll(parser.getUnparsedArgs());
 			super.configure(javaArgList.toArray(new String[javaArgList.size()]));
+
+			if (parser.getModuleInfoArgument() != null) {
+				IModule moduleDesc = super.getModuleDesc(parser.getModuleInfoArgument());
+				buildConfig.setModuleDesc(moduleDesc);
+			}
 
 			if (!proceed) {
 				buildConfig.doNotProceed();
@@ -181,8 +203,20 @@ public class BuildArgParser extends Main {
 			}
 
 			if (setClasspath) {
+				// This computed classpaths will be missing aspectpaths, inpaths, add those first
 				buildConfig.setClasspath(getClasspath(parser));
+				// Implicit inclusion of jmods on module path
+				if (checkVMVersion(ClassFileConstants.JDK9)) {
+					// Add the default jmods path? javac seems to do this
+					File jmods = new File(getJavaHome(),"jmods");
+					parser.modulepath = (parser.modulepath == null)?jmods.getAbsolutePath():parser.modulepath+File.pathSeparator+jmods.getAbsolutePath();
+				}
+				buildConfig.setModulepath(getModulepath(parser));
+				buildConfig.setModulepathClasspathEntries(handleModulepath(parser.modulepath));
+				buildConfig.setModulesourcepath(getModulesourcepath(parser));
+				buildConfig.setModulesourcepathClasspathEntries(handleModuleSourcepath(parser.modulesourcepath));
 				buildConfig.setBootclasspath(getBootclasspath(parser));
+				// TODO other paths (module/module source)
 			}
 
 			if (incrementalMode && (0 == buildConfig.getSourceRoots().size())) {
@@ -195,28 +229,22 @@ public class BuildArgParser extends Main {
 			File outjar = buildConfig.getOutputJar();
 			if (outjar != null) {
 
-				/* Search injars */
-				for (Iterator i = buildConfig.getInJars().iterator(); i.hasNext();) {
-					File injar = (File) i.next();
+				for (File injar: buildConfig.getInJars()) {
 					if (injar.equals(outjar)) {
 						String message = WeaverMessages.format(WeaverMessages.OUTJAR_IN_INPUT_PATH);
 						MessageUtil.error(handler, message);
 					}
 				}
 
-				/* Search inpath */
-				for (Iterator i = buildConfig.getInpath().iterator(); i.hasNext();) {
-					File inPathElement = (File) i.next();
+				for (File inPathElement: buildConfig.getInpath()) {
 					if (!inPathElement.isDirectory() && inPathElement.equals(outjar)) {
 						String message = WeaverMessages.format(WeaverMessages.OUTJAR_IN_INPUT_PATH);
 						MessageUtil.error(handler, message);
 					}
 				}
 
-				/* Search aspectpath */
-				for (Iterator i = buildConfig.getAspectpath().iterator(); i.hasNext();) {
-					File pathElement = (File) i.next();
-					if (!pathElement.isDirectory() && pathElement.equals(outjar)) {
+				for (File aspectPathElement: buildConfig.getAspectpath()) {
+					if (!aspectPathElement.isDirectory() && aspectPathElement.equals(outjar)) {
 						String message = WeaverMessages.format(WeaverMessages.OUTJAR_IN_INPUT_PATH);
 						MessageUtil.error(handler, message);
 					}
@@ -237,6 +265,29 @@ public class BuildArgParser extends Main {
 		return buildConfig;
 	}
 
+	private void augmentCheckedClasspaths(List<File> extraPathEntries, String encoding) {
+		if (extraPathEntries.size() == 0) {
+			return;
+		}
+		ArrayList<String> asList = toArrayList(extraPathEntries);
+		List<FileSystem.Classpath> newClasspathEntries = handleClasspath(asList, encoding);
+		FileSystem.Classpath[] newCheckedClasspaths = new FileSystem.Classpath[checkedClasspaths.length + newClasspathEntries.size()];
+		System.arraycopy(checkedClasspaths, 0, newCheckedClasspaths, 0, checkedClasspaths.length);
+		for (int i = 0; i < newClasspathEntries.size();i++) {
+			newCheckedClasspaths[i + checkedClasspaths.length] = newClasspathEntries.get(i);
+		}
+		checkedClasspaths = newCheckedClasspaths;
+	}
+
+	private ArrayList<String> toArrayList(java.util.List<File> files) {
+		ArrayList<String> arrayList = new ArrayList<String>();
+		for (File file: files) {
+			arrayList.add(file.getAbsolutePath());
+		}
+		return arrayList;
+	}
+
+	@Override
 	public void printVersion() {
 		final String version = bind("misc.version", //$NON-NLS-1$
 				new String[] { bind("compiler.name"), //$NON-NLS-1$
@@ -315,13 +366,34 @@ public class BuildArgParser extends Main {
 		List<String> ret = new ArrayList<String>();
 
 		if (parser.bootclasspath == null) {
-			addClasspath(System.getProperty("sun.boot.class.path", ""), ret);
+			if (LangUtil.is19VMOrGreater()) {
+				addClasspath(LangUtil.getJrtFsFilePath(),ret);
+			} else {
+				addClasspath(System.getProperty("sun.boot.class.path", ""), ret);
+			}
 		} else {
 			addClasspath(parser.bootclasspath, ret);
 		}
 		return ret;
 	}
+	
+	public List<String> getModulepath(AjcConfigParser parser) {
+		List<String> ret = new ArrayList<String>();
+		addClasspath(parser.modulepath, ret);
+		return ret;
+	}
 
+	public List<String> getModulesourcepath(AjcConfigParser parser) {
+		List<String> ret = new ArrayList<String>();
+		addClasspath(parser.modulesourcepath, ret);
+		return ret;
+	}
+
+	@Override
+	public ArrayList<FileSystem.Classpath> handleClasspath(ArrayList<String> classpaths, String customEncoding) {
+		return super.handleClasspath(classpaths, customEncoding);
+	}
+	
 	/**
 	 * If the classpath is not set, we use the environment's java.class.path, but remove the aspectjtools.jar entry from that list
 	 * in order to prevent wierd bootstrap issues (refer to bug#39959).
@@ -376,6 +448,9 @@ public class BuildArgParser extends Main {
 	}
 
 	private void addClasspath(String classpath, List<String> classpathCollector) {
+		if (classpath == null) {
+			return;
+		}
 		StringTokenizer tokenizer = new StringTokenizer(classpath, File.pathSeparator);
 		while (tokenizer.hasMoreTokens()) {
 			classpathCollector.add(tokenizer.nextToken());
@@ -385,10 +460,13 @@ public class BuildArgParser extends Main {
 	private class AjcConfigParser extends ConfigParser {
 		private String bootclasspath = null;
 		private String classpath = null;
+		private String modulepath = null;
+		private String modulesourcepath = null;
 		private String extdirs = null;
 		private List unparsedArgs = new ArrayList();
 		private AjBuildConfig buildConfig;
 		private IMessageHandler handler;
+		private String moduleInfoArgument;
 
 		public AjcConfigParser(AjBuildConfig buildConfig, IMessageHandler handler) {
 			this.buildConfig = buildConfig;
@@ -398,45 +476,56 @@ public class BuildArgParser extends Main {
 		public List getUnparsedArgs() {
 			return unparsedArgs;
 		}
+		
+		public String getModuleInfoArgument() {
+			return this.moduleInfoArgument;
+		}
 
 		/**
 		 * Extract AspectJ-specific options (except for argfiles). Caller should warn when sourceroots is empty but in incremental
 		 * mode. Signals warnings or errors through handler set in constructor.
 		 */
-		public void parseOption(String arg, LinkedList args) { // XXX use ListIterator.remove()
+		@Override
+		public void parseOption(String arg, LinkedList<Arg> args) { // XXX use ListIterator.remove()
 			int nextArgIndex = args.indexOf(arg) + 1; // XXX assumes unique
 			// trim arg?
 			buildConfig.setXlazyTjp(true); // now default - MINOR could be pushed down and made default at a lower level
 			if (LangUtil.isEmpty(arg)) {
 				showWarning("empty arg found");
+			} else if (arg.endsWith("module-info.java")) {
+				moduleInfoArgument = arg;
 			} else if (arg.equals("-inpath")) {
 				if (args.size() > nextArgIndex) {
 					// buildConfig.getAjOptions().put(AjCompilerOptions.OPTION_Inpath, CompilerOptions.PRESERVE);
 
-					List<File> inPath = buildConfig.getInpath();
-					StringTokenizer st = new StringTokenizer(((ConfigParser.Arg) args.get(nextArgIndex)).getValue(),
+					StringTokenizer st = new StringTokenizer(args.get(nextArgIndex).getValue(),
 							File.pathSeparator);
+					boolean inpathChange = false;
 					while (st.hasMoreTokens()) {
 						String filename = st.nextToken();
 						File file = makeFile(filename);
 						if (FileUtil.isZipFile(file)) {
-							inPath.add(file);
+							buildConfig.addToInpath(file);
+							inpathChange = true;
 						} else {
 							if (file.isDirectory()) {
-								inPath.add(file);
+								buildConfig.addToInpath(file);
+								inpathChange = true;
 							} else {
 								showWarning("skipping missing, empty or corrupt inpath entry: " + filename);
 							}
 						}
 					}
-					buildConfig.setInPath(inPath);
+					if (inpathChange) {
+						buildConfig.processInPath();
+					}
 					args.remove(args.get(nextArgIndex));
 				}
 			} else if (arg.equals("-injars")) {
 				if (args.size() > nextArgIndex) {
 					// buildConfig.getAjOptions().put(AjCompilerOptions.OPTION_InJARs, CompilerOptions.PRESERVE);
 
-					StringTokenizer st = new StringTokenizer(((ConfigParser.Arg) args.get(nextArgIndex)).getValue(),
+					StringTokenizer st = new StringTokenizer(args.get(nextArgIndex).getValue(),
 							File.pathSeparator);
 					while (st.hasMoreTokens()) {
 						String filename = st.nextToken();
@@ -457,13 +546,14 @@ public class BuildArgParser extends Main {
 				}
 			} else if (arg.equals("-aspectpath")) {
 				if (args.size() > nextArgIndex) {
-					StringTokenizer st = new StringTokenizer(((ConfigParser.Arg) args.get(nextArgIndex)).getValue(),
+					StringTokenizer st = new StringTokenizer(args.get(nextArgIndex).getValue(),
 							File.pathSeparator);
 					while (st.hasMoreTokens()) {
 						String filename = st.nextToken();
 						File jarFile = makeFile(filename);
 						if (FileUtil.isZipFile(jarFile) || jarFile.isDirectory()) {
-							buildConfig.getAspectpath().add(jarFile);
+//							buildConfig.getAspectpath().add(jarFile);
+							buildConfig.addToAspectpath(jarFile);
 						} else {
 							showWarning("skipping missing, empty or corrupt aspectpath entry: " + filename);
 						}
@@ -476,7 +566,7 @@ public class BuildArgParser extends Main {
 			} else if (arg.equals("-sourceroots")) {
 				if (args.size() > nextArgIndex) {
 					List<File> sourceRoots = new ArrayList<File>();
-					StringTokenizer st = new StringTokenizer(((ConfigParser.Arg) args.get(nextArgIndex)).getValue(),
+					StringTokenizer st = new StringTokenizer(args.get(nextArgIndex).getValue(),
 							File.pathSeparator);
 					while (st.hasMoreTokens()) {
 						File f = makeFile(st.nextToken());
@@ -496,7 +586,7 @@ public class BuildArgParser extends Main {
 			} else if (arg.equals("-outjar")) {
 				if (args.size() > nextArgIndex) {
 					// buildConfig.getAjOptions().put(AjCompilerOptions.OPTION_OutJAR, CompilerOptions.GENERATE);
-					File jarFile = makeFile(((ConfigParser.Arg) args.get(nextArgIndex)).getValue());
+					File jarFile = makeFile(args.get(nextArgIndex).getValue());
 					if (!jarFile.isDirectory()) {
 						try {
 							if (!jarFile.exists()) {
@@ -517,7 +607,7 @@ public class BuildArgParser extends Main {
 				buildConfig.setOutxmlName(org.aspectj.bridge.Constants.AOP_AJC_XML);
 			} else if (arg.equals("-outxmlfile")) {
 				if (args.size() > nextArgIndex) {
-					String name = ((ConfigParser.Arg) args.get(nextArgIndex)).getValue();
+					String name = args.get(nextArgIndex).getValue();
 					buildConfig.setOutxmlName(name);
 					args.remove(args.get(nextArgIndex));
 				} else {
@@ -533,7 +623,7 @@ public class BuildArgParser extends Main {
 				buildConfig.setIncrementalMode(true);
 			} else if (arg.equals("-XincrementalFile")) {
 				if (args.size() > nextArgIndex) {
-					File file = makeFile(((ConfigParser.Arg) args.get(nextArgIndex)).getValue());
+					File file = makeFile(args.get(nextArgIndex).getValue());
 					buildConfig.setIncrementalFile(file);
 					if (!file.canRead()) {
 						showError("bad -XincrementalFile : " + file);
@@ -604,7 +694,7 @@ public class BuildArgParser extends Main {
 				buildConfig.setShowWeavingInformation(true);
 			} else if (arg.equals("-Xlintfile")) {
 				if (args.size() > nextArgIndex) {
-					File lintSpecFile = makeFile(((ConfigParser.Arg) args.get(nextArgIndex)).getValue());
+					File lintSpecFile = makeFile(args.get(nextArgIndex).getValue());
 					// XXX relax restriction on props file suffix?
 					if (lintSpecFile.canRead() && lintSpecFile.getName().endsWith(".properties")) {
 						buildConfig.setLintSpecFile(lintSpecFile);
@@ -629,7 +719,7 @@ public class BuildArgParser extends Main {
 				}
 			} else if (arg.equals("-bootclasspath")) {
 				if (args.size() > nextArgIndex) {
-					String bcpArg = ((ConfigParser.Arg) args.get(nextArgIndex)).getValue();
+					String bcpArg = args.get(nextArgIndex).getValue();
 					StringBuffer bcp = new StringBuffer();
 					StringTokenizer strTok = new StringTokenizer(bcpArg, File.pathSeparator);
 					while (strTok.hasMoreTokens()) {
@@ -645,7 +735,7 @@ public class BuildArgParser extends Main {
 				}
 			} else if (arg.equals("-classpath") || arg.equals("-cp")) {
 				if (args.size() > nextArgIndex) {
-					String cpArg = ((ConfigParser.Arg) args.get(nextArgIndex)).getValue();
+					String cpArg = args.get(nextArgIndex).getValue();
 					StringBuffer cp = new StringBuffer();
 					StringTokenizer strTok = new StringTokenizer(cpArg, File.pathSeparator);
 					while (strTok.hasMoreTokens()) {
@@ -659,9 +749,25 @@ public class BuildArgParser extends Main {
 				} else {
 					showError("-classpath requires classpath entries");
 				}
+			} else if (arg.equals("--module-path") || arg.equals("-p")) {
+				if (args.size() > nextArgIndex) {
+					String mpArg = args.get(nextArgIndex).getValue();
+					modulepath = mpArg;
+					args.remove(args.get(nextArgIndex));
+				} else {
+					showError("--module-path requires modulepath entries");
+				}
+			} else if (arg.equals("--module-source-path") || arg.equals("-p")) {
+				if (args.size() > nextArgIndex) {
+					String mspArg = args.get(nextArgIndex).getValue();
+					modulesourcepath = mspArg;
+					args.remove(args.get(nextArgIndex));
+				} else {
+					showError("--module-source-path requires modulepath entries");
+				}
 			} else if (arg.equals("-extdirs")) {
 				if (args.size() > nextArgIndex) {
-					String extdirsArg = ((ConfigParser.Arg) args.get(nextArgIndex)).getValue();
+					String extdirsArg = args.get(nextArgIndex).getValue();
 					StringBuffer ed = new StringBuffer();
 					StringTokenizer strTok = new StringTokenizer(extdirsArg, File.pathSeparator);
 					while (strTok.hasMoreTokens()) {
@@ -701,8 +807,10 @@ public class BuildArgParser extends Main {
 					buildConfig.setTargetAspectjRuntimeLevel(Constants.RUNTIME_LEVEL_12);
 				} else if (arg.endsWith(":1.5")) {
 					buildConfig.setTargetAspectjRuntimeLevel(Constants.RUNTIME_LEVEL_15);
+				} else if (arg.endsWith(":1.9")) {
+					buildConfig.setTargetAspectjRuntimeLevel(Constants.RUNTIME_LEVEL_19);
 				} else {
-					showError("-Xajruntimetarget:<level> only supports a target level of 1.2 or 1.5");
+					showError("-Xajruntimetarget:<level> supports a target level of 1.2, 1.5, 1.9");
 				}
 			} else if (arg.equals("-timers")) {
 				buildConfig.setTiming(true);
@@ -721,11 +829,18 @@ public class BuildArgParser extends Main {
 			} else if (arg.equals("-1.8")) {
 				buildConfig.setBehaveInJava5Way(true);
 				unparsedArgs.add("-1.8");
+			} else if (arg.equals("-1.9")) {
+				buildConfig.setBehaveInJava5Way(true);
+				unparsedArgs.add("-1.9");
+			} else if (arg.equals("-10")) {
+				buildConfig.setBehaveInJava5Way(true);
+				unparsedArgs.add("-10");
 			} else if (arg.equals("-source")) {
 				if (args.size() > nextArgIndex) {
-					String level = ((ConfigParser.Arg) args.get(nextArgIndex)).getValue();
+					String level = args.get(nextArgIndex).getValue();
 					if (level.equals("1.5") || level.equals("5") || level.equals("1.6") || level.equals("6") || level.equals("1.7")
-							|| level.equals("7") || level.equals("8") || level.equals("1.8")) {
+							|| level.equals("7") || level.equals("8") || level.equals("1.8")
+							|| level.equals("9") || level.equals("1.9") || level.equals("10")) {
 						buildConfig.setBehaveInJava5Way(true);
 					}
 					unparsedArgs.add("-source");
@@ -759,6 +874,7 @@ public class BuildArgParser extends Main {
 			}
 		}
 
+		@Override
 		public void showError(String message) {
 			ISourceLocation location = null;
 			if (buildConfig.getConfigFile() != null) {
@@ -769,6 +885,7 @@ public class BuildArgParser extends Main {
 			// MessageUtil.error(handler, CONFIG_MSG + message);
 		}
 
+		@Override
 		protected void showWarning(String message) {
 			ISourceLocation location = null;
 			if (buildConfig.getConfigFile() != null) {
@@ -815,4 +932,15 @@ public class BuildArgParser extends Main {
 		}
 
 	}
+	
+	@Override
+	public boolean checkVMVersion(long minimalSupportedVersion) {
+		return super.checkVMVersion(minimalSupportedVersion);
+	}
+	
+	@Override
+	public void initRootModules(LookupEnvironment environment, FileSystem fileSystem) {
+		super.initRootModules(environment, fileSystem);
+	}
+
 }

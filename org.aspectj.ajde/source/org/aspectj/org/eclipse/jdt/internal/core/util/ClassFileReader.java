@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2011, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -154,6 +154,14 @@ public class ClassFileReader extends ClassFileStruct implements IClassFileReader
 						constantPoolOffsets[i] = readOffset;
 						readOffset += IConstantPoolConstant.CONSTANT_InvokeDynamic_SIZE;
 						break;
+					case IConstantPoolConstant.CONSTANT_Module:
+						constantPoolOffsets[i] = readOffset;
+						readOffset += IConstantPoolConstant.CONSTANT_Module_SIZE;
+						break;
+					case IConstantPoolConstant.CONSTANT_Package:
+						constantPoolOffsets[i] = readOffset;
+						readOffset += IConstantPoolConstant.CONSTANT_Package_SIZE;
+						break;
 					default:
 						throw new ClassFormatException(ClassFormatException.INVALID_TAG_CONSTANT);
 				}
@@ -281,6 +289,12 @@ public class ClassFileReader extends ClassFileStruct implements IClassFileReader
 							this.attributes[attributesIndex++] = new RuntimeVisibleTypeAnnotationsAttribute(classFileBytes, this.constantPool, readOffset);
 						} else if (equals(attributeName, IAttributeNamesConstants.RUNTIME_INVISIBLE_TYPE_ANNOTATIONS)) {
 							this.attributes[attributesIndex++] = new RuntimeInvisibleTypeAnnotationsAttribute(classFileBytes, this.constantPool, readOffset);
+						} else if (equals(attributeName, IAttributeNamesConstants.MODULE)) {
+							this.attributes[attributesIndex++] = new ModuleAttribute(classFileBytes, this.constantPool, readOffset);
+						} else if (equals(attributeName, IAttributeNamesConstants.MODULE_PACKAGES)) {
+							this.attributes[attributesIndex++] = new ModulePackagesAttribute(classFileBytes, this.constantPool, readOffset);
+						} else if (equals(attributeName, IAttributeNamesConstants.MODULE_MAIN_CLASS)) {
+							this.attributes[attributesIndex++] = new ModuleMainClassAttribute(classFileBytes, this.constantPool, readOffset);
 						} else {
 							this.attributes[attributesIndex++] = new ClassFileAttribute(classFileBytes, this.constantPool, readOffset);
 						}
@@ -306,12 +320,14 @@ public class ClassFileReader extends ClassFileStruct implements IClassFileReader
 	/**
 	 * @see IClassFileReader#getAccessFlags()
 	 */
+	@Override
 	public int getAccessFlags() {
 		return this.accessFlags;
 	}
 	/**
 	 * @see IClassFileReader#getAttributeCount()
 	 */
+	@Override
 	public int getAttributeCount() {
 		return this.attributesCount;
 	}
@@ -319,6 +335,7 @@ public class ClassFileReader extends ClassFileStruct implements IClassFileReader
 	/**
 	 * @see IClassFileReader#getAttributes()
 	 */
+	@Override
 	public IClassFileAttribute[] getAttributes() {
 		return this.attributes;
 	}
@@ -326,6 +343,7 @@ public class ClassFileReader extends ClassFileStruct implements IClassFileReader
 	/**
 	 * @see IClassFileReader#getClassIndex()
 	 */
+	@Override
 	public int getClassIndex() {
 		return this.classNameIndex;
 	}
@@ -333,6 +351,7 @@ public class ClassFileReader extends ClassFileStruct implements IClassFileReader
 	/**
 	 * @see IClassFileReader#getClassName()
 	 */
+	@Override
 	public char[] getClassName() {
 		return this.className;
 	}
@@ -345,12 +364,14 @@ public class ClassFileReader extends ClassFileStruct implements IClassFileReader
 	/**
 	 * @see IClassFileReader#getConstantPool()
 	 */
+	@Override
 	public IConstantPool getConstantPool() {
 		return this.constantPool;
 	}
 	/**
 	 * @see IClassFileReader#getFieldInfos()
 	 */
+	@Override
 	public IFieldInfo[] getFieldInfos() {
 		return this.fields;
 	}
@@ -358,6 +379,7 @@ public class ClassFileReader extends ClassFileStruct implements IClassFileReader
 	/**
 	 * @see IClassFileReader#getFieldsCount()
 	 */
+	@Override
 	public int getFieldsCount() {
 		return this.fieldsCount;
 	}
@@ -365,6 +387,7 @@ public class ClassFileReader extends ClassFileStruct implements IClassFileReader
 	/**
 	 * @see IClassFileReader#getInnerClassesAttribute()
 	 */
+	@Override
 	public IInnerClassesAttribute getInnerClassesAttribute() {
 		return this.innerClassesAttribute;
 	}
@@ -372,6 +395,7 @@ public class ClassFileReader extends ClassFileStruct implements IClassFileReader
 	/**
 	 * @see IClassFileReader#getInterfaceIndexes()
 	 */
+	@Override
 	public int[] getInterfaceIndexes() {
 		return this.interfaceIndexes;
 	}
@@ -379,6 +403,7 @@ public class ClassFileReader extends ClassFileStruct implements IClassFileReader
 	/**
 	 * @see IClassFileReader#getInterfaceNames()
 	 */
+	@Override
 	public char[][] getInterfaceNames() {
 		return this.interfaceNames;
 	}
@@ -386,6 +411,7 @@ public class ClassFileReader extends ClassFileStruct implements IClassFileReader
 	/**
 	 * @see IClassFileReader#getMagic()
 	 */
+	@Override
 	public int getMagic() {
 		return this.magicNumber;
 	}
@@ -393,6 +419,7 @@ public class ClassFileReader extends ClassFileStruct implements IClassFileReader
 	/**
 	 * @see IClassFileReader#getMajorVersion()
 	 */
+	@Override
 	public int getMajorVersion() {
 		return this.majorVersion;
 	}
@@ -400,6 +427,7 @@ public class ClassFileReader extends ClassFileStruct implements IClassFileReader
 	/**
 	 * @see IClassFileReader#getMethodInfos()
 	 */
+	@Override
 	public IMethodInfo[] getMethodInfos() {
 		return this.methods;
 	}
@@ -407,6 +435,7 @@ public class ClassFileReader extends ClassFileStruct implements IClassFileReader
 	/**
 	 * @see IClassFileReader#getMethodsCount()
 	 */
+	@Override
 	public int getMethodsCount() {
 		return this.methodsCount;
 	}
@@ -414,6 +443,7 @@ public class ClassFileReader extends ClassFileStruct implements IClassFileReader
 	/**
 	 * @see IClassFileReader#getMinorVersion()
 	 */
+	@Override
 	public int getMinorVersion() {
 		return this.minorVersion;
 	}
@@ -421,6 +451,7 @@ public class ClassFileReader extends ClassFileStruct implements IClassFileReader
 	/**
 	 * @see IClassFileReader#getSourceFileAttribute()
 	 */
+	@Override
 	public ISourceAttribute getSourceFileAttribute() {
 		return this.sourceFileAttribute;
 	}
@@ -428,6 +459,7 @@ public class ClassFileReader extends ClassFileStruct implements IClassFileReader
 	/**
 	 * @see IClassFileReader#getSuperclassIndex()
 	 */
+	@Override
 	public int getSuperclassIndex() {
 		return this.superclassNameIndex;
 	}
@@ -435,20 +467,26 @@ public class ClassFileReader extends ClassFileStruct implements IClassFileReader
 	/**
 	 * @see IClassFileReader#getSuperclassName()
 	 */
+	@Override
 	public char[] getSuperclassName() {
 		return this.superclassName;
 	}
 	/**
 	 * @see IClassFileReader#isClass()
 	 */
+	@Override
 	public boolean isClass() {
-		return !isInterface();
+		return !(isInterface() || isModule());
 	}
 
 	/**
 	 * @see IClassFileReader#isInterface()
 	 */
+	@Override
 	public boolean isInterface() {
 		return (getAccessFlags() & IModifierConstants.ACC_INTERFACE) != 0;
+	}
+	private boolean isModule() {
+		return (getAccessFlags() & IModifierConstants.ACC_MODULE) != 0;
 	}
 }

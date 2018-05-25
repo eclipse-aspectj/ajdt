@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -18,6 +18,7 @@ import java.util.Set;
 
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractVariableDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AllocationExpression;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ArrayInitializer;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ArrayQualifiedTypeReference;
@@ -52,6 +53,7 @@ public RecoveredField(FieldDeclaration fieldDeclaration, RecoveredElement parent
 /*
  * Record a local declaration
  */
+@Override
 public RecoveredElement add(LocalDeclaration localDeclaration, int bracketBalanceValue) {
 	if (this.lambdaNestLevel > 0) // current element is really the lambda which is recovered in full elsewhere.
 		return this;
@@ -60,6 +62,7 @@ public RecoveredElement add(LocalDeclaration localDeclaration, int bracketBalanc
 /*
  * Record a field declaration
  */
+@Override
 public RecoveredElement add(FieldDeclaration addedfieldDeclaration, int bracketBalanceValue) {
 
 	/* default behavior is to delegate recording to parent if any */
@@ -81,6 +84,7 @@ public RecoveredElement add(FieldDeclaration addedfieldDeclaration, int bracketB
  * Record an expression statement if field is expecting an initialization expression,
  * used for completion inside field initializers.
  */
+@Override
 public RecoveredElement add(Statement statement, int bracketBalanceValue) {
 
 	if (this.alreadyCompletedFieldInitialization || !(statement instanceof Expression)) {
@@ -89,9 +93,16 @@ public RecoveredElement add(Statement statement, int bracketBalanceValue) {
 		if (statement.sourceEnd > 0)
 				this.alreadyCompletedFieldInitialization = true;
 		// else we may still be inside the initialization, having parsed only a part of it yet
-		this.fieldDeclaration.initialization = (Expression)statement;
-		this.fieldDeclaration.declarationSourceEnd = statement.sourceEnd;
-		this.fieldDeclaration.declarationEnd = statement.sourceEnd;
+		if (!(statement instanceof AllocationExpression) && 
+				this.fieldDeclaration.getKind() == AbstractVariableDeclaration.ENUM_CONSTANT) {
+			AllocationExpression alloc = new AllocationExpression();
+			alloc.arguments = new Expression[] {(Expression) statement};
+			this.fieldDeclaration.initialization = alloc;
+		} else {
+			this.fieldDeclaration.initialization = (Expression) statement;
+			this.fieldDeclaration.declarationSourceEnd = statement.sourceEnd;
+			this.fieldDeclaration.declarationEnd = statement.sourceEnd;
+		}
 		return this;
 	}
 }
@@ -100,6 +111,7 @@ public RecoveredElement add(Statement statement, int bracketBalanceValue) {
  * and the type is an anonymous type.
  * Used for completion inside field initializers.
  */
+@Override
 public RecoveredElement add(TypeDeclaration typeDeclaration, int bracketBalanceValue) {
 
 	if (this.alreadyCompletedFieldInitialization
@@ -153,15 +165,18 @@ public void attach(RecoveredAnnotation[] annots, int annotCount, int mods, int m
 /*
  * Answer the associated parsed structure
  */
+@Override
 public ASTNode parseTree(){
 	return this.fieldDeclaration;
 }
 /*
  * Answer the very source end of the corresponding parse node
  */
+@Override
 public int sourceEnd(){
 	return this.fieldDeclaration.declarationSourceEnd;
 }
+@Override
 public String toString(int tab){
 	StringBuffer buffer = new StringBuffer(tabString(tab));
 	buffer.append("Recovered field:\n"); //$NON-NLS-1$
@@ -241,8 +256,16 @@ public FieldDeclaration updatedFieldDeclaration(int depth, Set<TypeDeclaration> 
 					}
 				}
 			}
-			if (this.anonymousTypeCount > 0) this.fieldDeclaration.bits |= ASTNode.HasLocalType;
-		} else if(this.fieldDeclaration.getKind() == AbstractVariableDeclaration.ENUM_CONSTANT) {
+			if (this.anonymousTypeCount > 0) {
+				this.fieldDeclaration.bits |= ASTNode.HasLocalType;
+				if (recoveredInitializers != null) {
+					recoveredInitializers.sourceStart = this.anonymousTypes[0].typeDeclaration.sourceStart;
+					recoveredInitializers.sourceEnd = this.anonymousTypes[this.anonymousTypeCount-1].
+							typeDeclaration.sourceEnd;
+				}
+			}
+		}
+		else if(this.fieldDeclaration.getKind() == AbstractVariableDeclaration.ENUM_CONSTANT) {
 			// fieldDeclaration is an enum constant
 			for (int i = 0; i < this.anonymousTypeCount; i++){
 				RecoveredType recoveredType = this.anonymousTypes[i];
@@ -265,6 +288,7 @@ public FieldDeclaration updatedFieldDeclaration(int depth, Set<TypeDeclaration> 
  *
  * Fields have no associated braces, thus if matches, then update parent.
  */
+@Override
 public RecoveredElement updateOnClosingBrace(int braceStart, int braceEnd){
 	if (this.bracketBalance > 0){ // was an array initializer
 		this.bracketBalance--;
@@ -291,6 +315,7 @@ public RecoveredElement updateOnClosingBrace(int braceStart, int braceEnd){
  * An opening brace got consumed, might be the expected opening one of the current element,
  * in which case the bodyStart is updated.
  */
+@Override
 public RecoveredElement updateOnOpeningBrace(int braceStart, int braceEnd){
 	if (this.fieldDeclaration.declarationSourceEnd == 0) {
 		if (this.fieldDeclaration.type instanceof ArrayTypeReference || this.fieldDeclaration.type instanceof ArrayQualifiedTypeReference) {
@@ -314,12 +339,14 @@ public RecoveredElement updateOnOpeningBrace(int braceStart, int braceEnd){
 	this.updateSourceEndIfNecessary(braceStart - 1, braceEnd - 1);
 	return this.parent.updateOnOpeningBrace(braceStart, braceEnd);
 }
+@Override
 public void updateParseTree(){
 	updatedFieldDeclaration(0, new HashSet<TypeDeclaration>());
 }
 /*
  * Update the declarationSourceEnd of the corresponding parse node
  */
+@Override
 public void updateSourceEndIfNecessary(int bodyStart, int bodyEnd){
 	if (this.fieldDeclaration.declarationSourceEnd == 0) {
 		this.fieldDeclaration.declarationSourceEnd = bodyEnd;

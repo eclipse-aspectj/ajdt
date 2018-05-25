@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -125,8 +125,8 @@ protected void analyseArguments(BlockScope currentScope, FlowContext flowContext
 			if (methodBinding.isVarargs()) {
 				varArgPos = numParamsToCheck-1;
 				// this if-block essentially copied from generateArguments(..):
+				varArgsType = methodBinding.parameters[varArgPos];
 				if (numParamsToCheck == arguments.length) {
-					varArgsType = methodBinding.parameters[varArgPos];
 					TypeBinding lastType = arguments[varArgPos].resolvedType;
 					if (lastType == TypeBinding.NULL
 							|| (varArgsType.dimensions() == lastType.dimensions()
@@ -240,15 +240,24 @@ public boolean breaksOut(final char[] label) {
 	return new ASTVisitor() {
 		
 		boolean breaksOut;
+		@Override
 		public boolean visit(TypeDeclaration type, BlockScope skope) { return label != null; }
+		@Override
 		public boolean visit(TypeDeclaration type, ClassScope skope) { return label != null; }
+		@Override
 		public boolean visit(LambdaExpression lambda, BlockScope skope) { return label != null;}
+		@Override
 		public boolean visit(WhileStatement whileStatement, BlockScope skope) { return label != null; }
+		@Override
 		public boolean visit(DoStatement doStatement, BlockScope skope) { return label != null; }
+		@Override
 		public boolean visit(ForeachStatement foreachStatement, BlockScope skope) { return label != null; }
+		@Override
 		public boolean visit(ForStatement forStatement, BlockScope skope) { return label != null; }
+		@Override
 		public boolean visit(SwitchStatement switchStatement, BlockScope skope) { return label != null; }
 		
+		@Override
 		public boolean visit(BreakStatement breakStatement, BlockScope skope) {
 			if (label == null || CharOperation.equals(label,  breakStatement.label))
 				this.breaksOut = true;
@@ -269,6 +278,7 @@ public boolean breaksOut(final char[] label) {
 public boolean continuesAtOuterLabel() {
 	return new ASTVisitor() {
 		boolean continuesToLabel;
+		@Override
 		public boolean visit(ContinueStatement continueStatement, BlockScope skope) {
 			if (continueStatement.label != null)
 				this.continuesToLabel = true;
@@ -399,6 +409,7 @@ public boolean isValidJavaStatement() {
 	return true;
 }
 
+@Override
 public StringBuffer print(int indent, StringBuffer output) {
 	return printStatement(indent, output);
 }

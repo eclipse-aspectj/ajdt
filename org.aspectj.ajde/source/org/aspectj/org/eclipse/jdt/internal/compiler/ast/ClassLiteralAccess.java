@@ -1,5 +1,6 @@
+//AspectJ
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -30,13 +31,14 @@ public class ClassLiteralAccess extends Expression {
 		this.sourceEnd = sourceEnd;
 	}
 
+	@Override
 	public FlowInfo analyseCode(
 		BlockScope currentScope,
 		FlowContext flowContext,
 		FlowInfo flowInfo) {
 
 		// if reachable, request the addition of a synthetic field for caching the class descriptor
-		SourceTypeBinding sourceType = currentScope.outerMostClassScope().enclosingSourceType();
+		SourceTypeBinding sourceType = currentScope.outerMostClassScope().invocationType(); // AspectJ Extension - was .enclosingSourceType()
 		// see https://bugs.eclipse.org/bugs/show_bug.cgi?id=22334
 		if (!sourceType.isInterface()
 				&& !this.targetType.isBaseType()
@@ -53,6 +55,7 @@ public class ClassLiteralAccess extends Expression {
 	 * @param codeStream org.aspectj.org.eclipse.jdt.internal.compiler.codegen.CodeStream
 	 * @param valueRequired boolean
 	 */
+	@Override
 	public void generateCode(
 		BlockScope currentScope,
 		CodeStream codeStream,
@@ -67,11 +70,13 @@ public class ClassLiteralAccess extends Expression {
 		codeStream.recordPositionsFrom(pc, this.sourceStart);
 	}
 
+	@Override
 	public StringBuffer printExpression(int indent, StringBuffer output) {
 
 		return this.type.print(0, output).append(".class"); //$NON-NLS-1$
 	}
 
+	@Override
 	public TypeBinding resolveType(BlockScope scope) {
 
 		this.constant = Constant.NotAConstant;
@@ -107,7 +112,7 @@ public class ClassLiteralAccess extends Expression {
 			// Integer.class --> Class<Integer>, perform boxing of base types (int.class --> Class<Integer>)
 			TypeBinding boxedType = null;
 			if (this.targetType.id == T_void) {
-				boxedType = environment.getResolvedType(JAVA_LANG_VOID, scope);
+				boxedType = environment.getResolvedJavaBaseType(JAVA_LANG_VOID, scope);
 			} else {
 				boxedType = scope.boxing(this.targetType);
 			}
@@ -120,6 +125,7 @@ public class ClassLiteralAccess extends Expression {
 		return this.resolvedType;
 	}
 
+	@Override
 	public void traverse(
 		ASTVisitor visitor,
 		BlockScope blockScope) {

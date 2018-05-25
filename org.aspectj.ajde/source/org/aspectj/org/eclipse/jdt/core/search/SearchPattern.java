@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,6 +11,7 @@
 package org.aspectj.org.eclipse.jdt.core.search;
 
 import java.io.IOException;
+import java.util.regex.Pattern;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
@@ -77,7 +78,8 @@ public abstract class SearchPattern {
 
 	/**
 	 * Match rule: The search pattern contains a regular expression.
-	 * <p><b>Warning:</b> The support for this rule is <b>not yet implemented</b></p>
+	 * <p><b>Warning:</b> Implemented only for module declaration search.
+	 * The support for this rule is <b>not yet implemented for others</b></p>
 	 */
 	public static final int R_REGEXP_MATCH = 0x0004;
 
@@ -1373,6 +1375,10 @@ private static SearchPattern createMethodOrConstructorPattern(String patternStri
 	}
 }
 
+private static SearchPattern createModulePattern(String patternString, int limitTo, int matchRule) {
+	return new ModulePattern(patternString.toCharArray(), limitTo, matchRule);
+}
+
 /**
  * Returns a search pattern that combines the given two patterns into an
  * "or" pattern. The search result will match either the left pattern or the
@@ -1436,6 +1442,28 @@ private static SearchPattern createPackagePattern(String patternString, int limi
  * 			<li>'?' is treated as a wildcard when it is inside &lt;&gt; (i.e. it must be put on first position of the type argument)</li>
  * 		</ul>
  * 		</div>
+ * 		Since 3.14 for Java 9, Type Declaration Patterns can have module names also embedded with the following syntax
+ * 		<p><b><code>[moduleName1[,moduleName2,..]]/[qualification '.']typeName ['&lt;' typeArguments '&gt;']</code></b>
+ *      </p>
+ *      <p>
+ *      Unnamed modules can also be included and are represented either by an absence of module name implicitly
+ *      or explicitly by specifying ALL-UNNAMED for module name.
+ * 		Module graph search is also supported with the limitTo option set to <code>IJavaSearchConstants.MODULE_GRAPH</code>.
+ *      In the module graph case, the given type is searched in all the modules required directly as well 
+ *      as indirectly by the given module(s).
+ *      </p>
+ *      <p>
+ *      Note that whitespaces are ignored in between module names. It is an error to give multiple module separators - in such
+ *      cases a null pattern will be returned.
+ *      </p>
+ *			<p>Examples:</p>
+ *			<ul>
+ * 				<li><code>java.base/java.lang.Object</code></li>
+ *				<li><code>mod.one, mod.two/pack.X</code> find declaration in the list of given modules.</li>
+ *				<li><code>/pack.X</code> find in the unnamed module.</li>
+ *				<li><code>ALL-UNNAMED/pack.X</code> find in the unnamed module.</li> 
+ *			</ul>
+ *			<p>
  * 	</li>
  * 	<li>Method patterns have the following syntax:
  * 		<p><b><code>[declaringType '.'] ['&lt;' typeArguments '&gt;'] methodName ['(' parameterTypes ')'] [returnType]</code></b></p>
@@ -1489,6 +1517,7 @@ private static SearchPattern createPackagePattern(String patternString, int limi
  *	<li>{@link IJavaSearchConstants#METHOD}: look for methods</li>
  *	<li>{@link IJavaSearchConstants#CONSTRUCTOR}: look for constructors</li>
  *	<li>{@link IJavaSearchConstants#PACKAGE}: look for packages</li>
+ *	<li>{@link IJavaSearchConstants#MODULE}: look for modules</li>
  *	</ul>
  * @param limitTo determines the nature of the expected matches
  *	<ul>
@@ -1507,6 +1536,10 @@ private static SearchPattern createPackagePattern(String patternString, int limi
  *				which directly implement/extend a given interface.
  *				Note that types may be only classes or only interfaces if {@link IJavaSearchConstants#CLASS CLASS} or
  *				{@link IJavaSearchConstants#INTERFACE INTERFACE} is respectively used instead of {@link IJavaSearchConstants#TYPE TYPE}.
+ *		</li>
+ *		 <li>{@link IJavaSearchConstants#MODULE_GRAPH MODULE_GRAPH}: for types with a module prefix, 
+ *             will find all types present in required modules (directly or indirectly required) ie
+ *             in any module present in the module graph of the given module.
  *		</li>
  *		 <li>All other fine grain constants defined in the <b>limitTo</b> category
  *				of the {@link IJavaSearchConstants} are also accepted nature: 
@@ -1601,6 +1634,10 @@ private static SearchPattern createPackagePattern(String patternString, int limi
  *		</ul>
  * 	<p>Note that {@link #R_ERASURE_MATCH} or {@link #R_EQUIVALENT_MATCH} has no effect
  * 	on non-generic types/methods search.</p>
+ *
+ * 	<p>Note that {@link #R_REGEXP_MATCH} is supported since 3.14  for the special case of
+ * {@link IJavaSearchConstants#DECLARATIONS DECLARATIONS} search of 
+ * {@link IJavaSearchConstants#MODULE MODULE}</p>
  * 	<p>
  * 	Note also that the default behavior for generic types/methods search is to find exact matches.</p>
  * @return a search pattern on the given string pattern, or <code>null</code> if the string pattern is ill-formed
@@ -1608,7 +1645,7 @@ private static SearchPattern createPackagePattern(String patternString, int limi
 public static SearchPattern createPattern(String stringPattern, int searchFor, int limitTo, int matchRule) {
 	if (stringPattern == null || stringPattern.length() == 0) return null;
 
-	if ((matchRule = validateMatchRule(stringPattern, matchRule)) == -1) {
+	if ((matchRule = validateMatchRule(stringPattern, searchFor, limitTo, matchRule)) == -1) {
 		return null;
 	}
 
@@ -1640,6 +1677,8 @@ public static SearchPattern createPattern(String stringPattern, int searchFor, i
 			return createFieldPattern(stringPattern, limitTo, matchRule);
 		case IJavaSearchConstants.PACKAGE:
 			return createPackagePattern(stringPattern, limitTo, matchRule);
+		case IJavaSearchConstants.MODULE :
+			return createModulePattern(stringPattern, limitTo, matchRule);
 	}
 	return null;
 }
@@ -2113,6 +2152,9 @@ public static SearchPattern createPattern(IJavaElement element, int limitTo, int
 		case IJavaElement.PACKAGE_FRAGMENT :
 			searchPattern = createPackagePattern(element.getElementName(), maskedLimitTo, matchRule);
 			break;
+		case IJavaElement.JAVA_MODULE :
+			searchPattern = createModulePattern(element.getElementName(), maskedLimitTo, matchRule);
+			break;
 	}
 	if (searchPattern != null)
 		MatchLocator.setFocus(searchPattern, element);
@@ -2179,8 +2221,14 @@ private static SearchPattern createTypePattern(char[] simpleName, char[] package
 	}
 	return null;
 }
-
 private static SearchPattern createTypePattern(String patternString, int limitTo, int matchRule, char indexSuffix) {
+	String[] arr = patternString.split(String.valueOf(IIndexConstants.SEPARATOR));
+	String moduleName = null;
+	if (arr.length == 2) {
+		moduleName = arr[0];
+		patternString = arr[1];
+	}
+	char[] patModName = moduleName != null ? moduleName.toCharArray() : null;
 	// use 1.7 as the source level as there are more valid tokens in 1.7 mode
 	// https://bugs.eclipse.org/bugs/show_bug.cgi?id=376673
 	Scanner scanner = new Scanner(false /*comment*/, true /*whitespace*/, false /*nls*/, ClassFileConstants.JDK1_7/*sourceLevel*/, null /*taskTags*/, null/*taskPriorities*/, true/*taskCaseSensitive*/);
@@ -2259,16 +2307,22 @@ private static SearchPattern createTypePattern(String patternString, int limitTo
 	if (typeChars.length == 1 && typeChars[0] == '*') {
 		typeChars = null;
 	}
+	boolean modGraph = false;
 	switch (limitTo) {
+		case IJavaSearchConstants.MODULE_GRAPH :
+			modGraph = true;
+			//$FALL-THROUGH$
 		case IJavaSearchConstants.DECLARATIONS : // cannot search for explicit member types
-			return new QualifiedTypeDeclarationPattern(qualificationChars, typeChars, indexSuffix, matchRule);
+			TypeDeclarationPattern typeDeclarationPattern = new QualifiedTypeDeclarationPattern(patModName, qualificationChars, typeChars, indexSuffix, matchRule);
+			typeDeclarationPattern.moduleGraph = modGraph;
+			return typeDeclarationPattern;
 		case IJavaSearchConstants.REFERENCES :
 			return new TypeReferencePattern(qualificationChars, typeChars, typeSignature, indexSuffix, matchRule);
 		case IJavaSearchConstants.IMPLEMENTORS :
 			return new SuperTypeReferencePattern(qualificationChars, typeChars, SuperTypeReferencePattern.ONLY_SUPER_INTERFACES, indexSuffix, matchRule);
 		case IJavaSearchConstants.ALL_OCCURRENCES :
 			return new OrPattern(
-				new QualifiedTypeDeclarationPattern(qualificationChars, typeChars, indexSuffix, matchRule),// cannot search for explicit member types
+				new QualifiedTypeDeclarationPattern(patModName, qualificationChars, typeChars, indexSuffix, matchRule),// cannot search for explicit member types
 				new TypeReferencePattern(qualificationChars, typeChars, typeSignature, indexSuffix, matchRule));
 		default:
 			return new TypeReferencePattern(qualificationChars, typeChars, typeSignature, limitTo, indexSuffix, matchRule);
@@ -2281,6 +2335,8 @@ private static char[][] enclosingTypeNames(IType type) {
 	IJavaElement parent = type.getParent();
 	switch (parent.getElementType()) {
 		case IJavaElement.CLASS_FILE:
+			if (parent instanceof IModularClassFile)
+				return null;
 			// For a binary type, the parent is not the enclosing type, but the declaring type is.
 			// (see bug 20532  Declaration of member binary type not found)
 			IType declaringType = type.getDeclaringType();
@@ -2478,8 +2534,7 @@ public boolean matchesName(char[] pattern, char[] name) {
 				return matchFirstChar && CharOperation.camelCaseMatch(pattern, name, true);
 
 			case R_REGEXP_MATCH :
-				// TODO implement regular expression match
-				return true;
+				return Pattern.matches(new String(pattern), new String(name));
 		}
 	}
 	return false;
@@ -2539,7 +2594,7 @@ public static int validateMatchRule(String stringPattern, int matchRule) {
 	// Verify Regexp match rule
 	if ((matchRule & R_REGEXP_MATCH) != 0) {
 		// regexp is not supported yet
-		return -1;
+		return -1; // need to enable for module declaration
 	}
 
 	// Verify Pattern match rule
@@ -2592,6 +2647,15 @@ public static int validateMatchRule(String stringPattern, int matchRule) {
 	return matchRule;
 }
 
+// enabling special cases (read regular expressions) based on searchFor and limitTo
+private static int validateMatchRule(String stringPattern, int searchFor, int limitTo, int matchRule) {
+	if (searchFor == IJavaSearchConstants.MODULE && 
+			limitTo == IJavaSearchConstants.DECLARATIONS &&
+			matchRule == SearchPattern.R_REGEXP_MATCH)
+		return matchRule;
+	return validateMatchRule(stringPattern, matchRule);
+}
+
 /*
  * Validate pattern for a camel case match rule
  * @return
@@ -2628,6 +2692,7 @@ public EntryResult[] queryIn(Index index) throws IOException {
 /**
  * @see java.lang.Object#toString()
  */
+@Override
 public String toString() {
 	return "SearchPattern"; //$NON-NLS-1$
 }

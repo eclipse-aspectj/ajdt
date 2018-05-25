@@ -36,6 +36,7 @@ public class ExtendedStringLiteral extends StringLiteral {
 	/**
 	 * Add the lit source to mine, just as if it was mine
 	 */
+	@Override
 	public ExtendedStringLiteral extendWith(CharLiteral lit) {
 
 		//update the source
@@ -50,6 +51,7 @@ public class ExtendedStringLiteral extends StringLiteral {
 	/**
 	 *  Add the lit source to mine, just as if it was mine
 	 */
+	@Override
 	public ExtendedStringLiteral extendWith(StringLiteral lit) {
 
 		//uddate the source
@@ -66,6 +68,7 @@ public class ExtendedStringLiteral extends StringLiteral {
 		return this;
 	}
 
+	@Override
 	public StringBuffer printExpression(int indent, StringBuffer output) {
 		// AspectJ extension - replaced this line (pr255421)
 		// return output.append("ExtendedStringLiteral{").append(this.source).append('}'); //$NON-NLS-1$
@@ -74,6 +77,7 @@ public class ExtendedStringLiteral extends StringLiteral {
 		// End AspectJ extension
 	}
 
+	@Override
 	public void traverse(ASTVisitor visitor, BlockScope scope) {
 
 		visitor.visit(this, scope);

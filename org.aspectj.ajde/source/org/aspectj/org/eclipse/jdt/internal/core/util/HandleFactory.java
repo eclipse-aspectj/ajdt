@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -38,6 +38,8 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ClassScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ProblemMethodBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Scope;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
+import org.aspectj.org.eclipse.jdt.internal.compiler.util.HashtableOfObjectToInt;
 import org.aspectj.org.eclipse.jdt.internal.core.*;
 import org.aspectj.org.eclipse.jdt.internal.core.search.AbstractJavaSearchScope;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
@@ -61,6 +63,8 @@ public class HandleFactory {
 
 	private JavaModel javaModel;
 
+	private HashtableOfObjectToInt localOccurrenceCounts = new HashtableOfObjectToInt(5);
+
 	public HandleFactory() {
 		this.javaModel = JavaModelManager.getJavaModelManager().getJavaModel();
 	}
@@ -82,11 +86,12 @@ public class HandleFactory {
 			// path to a class file inside a jar
 			// Optimization: cache package fragment root handle and package handles
 			int rootPathLength;
+			PackageFragmentRoot root = null;
 			if (this.lastPkgFragmentRootPath == null
 					|| (rootPathLength = this.lastPkgFragmentRootPath.length()) != resourcePath.length()
 					|| !resourcePath.regionMatches(0, this.lastPkgFragmentRootPath, 0, rootPathLength)) {
 				String jarPath= resourcePath.substring(0, separatorIndex);
-				PackageFragmentRoot root= getJarPkgFragmentRoot(resourcePath, separatorIndex, jarPath, scope);
+				root= getJarPkgFragmentRoot(resourcePath, separatorIndex, jarPath, scope);
 				if (root == null)
 					return null; // match is outside classpath
 				this.lastPkgFragmentRootPath= jarPath;
@@ -94,7 +99,15 @@ public class HandleFactory {
 				this.packageHandles= new HashtableOfArrayToObject(5);
 			}
 			// create handle
+			String module = null;
+			String rootPath = this.lastPkgFragmentRoot.getPath().toOSString();
+			if (org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.isJrt(rootPath)) {
+				module = resourcePath.substring(separatorIndex + 1, 
+						(separatorIndex = resourcePath.lastIndexOf(IJavaSearchScope.JAR_FILE_ENTRY_SEPARATOR)));
+			}
 			String classFilePath= resourcePath.substring(separatorIndex + 1);
+			if (classFilePath.endsWith(TypeConstants.AUTOMATIC_MODULE_NAME))
+				return root;
 			String[] simpleNames = new Path(classFilePath).segments();
 			String[] pkgName;
 			int length = simpleNames.length-1;
@@ -106,7 +119,7 @@ public class HandleFactory {
 			}
 			IPackageFragment pkgFragment= (IPackageFragment) this.packageHandles.get(pkgName);
 			if (pkgFragment == null) {
-				pkgFragment= this.lastPkgFragmentRoot.getPackageFragment(pkgName);
+				pkgFragment= this.lastPkgFragmentRoot.getPackageFragment(pkgName, module);
 				this.packageHandles.put(pkgName, pkgFragment);
 			}
 			IClassFile classFile= pkgFragment.getClassFile(simpleNames[length]);
@@ -166,6 +179,21 @@ public class HandleFactory {
 	 */
 	public IJavaElement createLambdaTypeElement(LambdaExpression expression, ICompilationUnit unit, HashSet existingElements, HashMap knownScopes) {
 		return createElement(expression.scope, expression.sourceStart(), unit, existingElements, knownScopes).getParent();
+	}
+	protected void resolveDuplicates(IJavaElement handle) {
+
+		// For anonymous source types, the occurrence count should be in the context
+		// of the enclosing type.
+		if (handle instanceof SourceType && ((SourceType) handle).isAnonymous()) {
+			Object key = handle.getParent().getAncestor(IJavaElement.TYPE);
+			int occurenceCount = this.localOccurrenceCounts.get(key);
+			if (occurenceCount == -1)
+				this.localOccurrenceCounts.put(key, 1);
+			else {
+				this.localOccurrenceCounts.put(key, ++occurenceCount);
+				((SourceType)handle).localOccurrenceCount = occurenceCount;
+			}
+		}
 	}
 	/**
 	 * Create handle by adding child to parent obtained by recursing into parent scopes.
@@ -257,6 +285,7 @@ public class HandleFactory {
 				newElement = createElement(scope.parent, elementPosition, unit, existingElements, knownScopes);
 				break;
 		}
+		resolveDuplicates(newElement);
 		return newElement;
 	}
 	/**

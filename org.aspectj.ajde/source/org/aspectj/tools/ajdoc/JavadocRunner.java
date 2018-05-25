@@ -16,6 +16,14 @@ package org.aspectj.tools.ajdoc;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.List;
+import java.util.Vector;
+
+import javax.tools.DocumentationTool;
+import javax.tools.DocumentationTool.DocumentationTask;
+import javax.tools.JavaFileObject;
+import javax.tools.StandardJavaFileManager;
+import javax.tools.ToolProvider;
 
 /**
  * @author Mik Kersten
@@ -62,7 +70,7 @@ class JavadocRunner {
 		// defaultSecurityManager.checkPermission( permission, context );
 		// }
 		// } );
-
+		
 		try {
 			// for JDK 1.4 and above call the execute method...
 			Class jdMainClass = com.sun.tools.javadoc.Main.class;
@@ -91,5 +99,14 @@ class JavadocRunner {
 		}
 		// Set the security manager back
 		// System.setSecurityManager(defaultSecurityManager);
+	}
+
+	public static void callJavadocViaToolProvider(Vector<String> options, List<String> files) {
+		DocumentationTool doctool = ToolProvider.getSystemDocumentationTool();
+		StandardJavaFileManager fm = doctool.getStandardFileManager(null, null, null);
+		Iterable<? extends JavaFileObject> jfos = fm.getJavaFileObjects(files.toArray(new String[0]));
+		DocumentationTask task = doctool.getTask(null/*standard System.err*/, null/*standard file manager*/,
+				null/*default diagnostic listener*/, null/*standard doclet*/, options, jfos);
+		task.call();
 	}
 }

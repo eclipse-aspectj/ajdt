@@ -11,6 +11,15 @@
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.core;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
@@ -18,13 +27,22 @@ import org.aspectj.org.eclipse.jdt.core.*;
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.core.search.*;
 import org.aspectj.org.eclipse.jdt.internal.codeassist.ISearchRequestor;
+import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.AccessRestriction;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryType;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit;
-import org.aspectj.org.eclipse.jdt.internal.compiler.env.INameEnvironment;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.IModule;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.IModule.IModuleReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.IModule.IPackageExport;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.IModuleAwareNameEnvironment;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.ISourceType;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.IUpdatableModule;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.NameEnvironmentAnswer;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.IUpdatableModule.UpdateKind;
+import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ModuleBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
+import org.aspectj.org.eclipse.jdt.internal.core.NameLookup.Answer;
 import org.aspectj.org.eclipse.jdt.internal.core.search.BasicSearchEngine;
 import org.aspectj.org.eclipse.jdt.internal.core.search.IRestrictedAccessConstructorRequestor;
 import org.aspectj.org.eclipse.jdt.internal.core.search.IRestrictedAccessTypeRequestor;
@@ -37,7 +55,7 @@ import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
  *	uses the Java model as a search tool.
  */
 public class SearchableEnvironment
-	implements INameEnvironment, IJavaSearchConstants {
+	implements IModuleAwareNameEnvironment, IJavaSearchConstants {
 
 	public NameLookup nameLookup;
 	protected ICompilationUnit unitToSkip;
@@ -48,24 +66,54 @@ public class SearchableEnvironment
 	protected IJavaSearchScope searchScope;
 
 	protected boolean checkAccessRestrictions;
+	// moduleName -> IPackageFragmentRoot[](lazily populated)
+	private Map<String,IPackageFragmentRoot[]> knownModuleLocations; // null indicates: not using JPMS
+	private boolean excludeTestCode;
 
+	private ModuleUpdater moduleUpdater;
+	private Map<IPackageFragmentRoot,IModuleDescription> rootToModule;
+
+	@Deprecated
+	public SearchableEnvironment(JavaProject project, org.aspectj.org.eclipse.jdt.core.ICompilationUnit[] workingCopies) throws JavaModelException {
+		this(project, workingCopies, false);
+	}
 	/**
 	 * Creates a SearchableEnvironment on the given project
 	 */
-	public SearchableEnvironment(JavaProject project, org.aspectj.org.eclipse.jdt.core.ICompilationUnit[] workingCopies) throws JavaModelException {
+	public SearchableEnvironment(JavaProject project, org.aspectj.org.eclipse.jdt.core.ICompilationUnit[] workingCopies, boolean excludeTestCode) throws JavaModelException {
 		this.project = project;
+		this.excludeTestCode = excludeTestCode;
 		this.checkAccessRestrictions =
 			!JavaCore.IGNORE.equals(project.getOption(JavaCore.COMPILER_PB_FORBIDDEN_REFERENCE, true))
 			|| !JavaCore.IGNORE.equals(project.getOption(JavaCore.COMPILER_PB_DISCOURAGED_REFERENCE, true));
 		this.workingCopies = workingCopies;
-		this.nameLookup = project.newNameLookup(workingCopies);
+		this.nameLookup = project.newNameLookup(workingCopies, excludeTestCode);
+		if (CompilerOptions.versionToJdkLevel(project.getOption(JavaCore.COMPILER_COMPLIANCE, true)) >= ClassFileConstants.JDK9) {
+			for (IPackageFragmentRoot root : project.getPackageFragmentRoots()) {
+				if (root.getModuleDescription() != null) {
+					this.knownModuleLocations = new HashMap<>();
+					break;
+				}
+			}
+		}
+		if (CompilerOptions.versionToJdkLevel(project.getOption(JavaCore.COMPILER_COMPLIANCE, true)) >= ClassFileConstants.JDK9) {
+			this.moduleUpdater = new ModuleUpdater(project);
+			if (!excludeTestCode) {
+				IClasspathEntry[] expandedClasspath = project.getExpandedClasspath();
+				if(Arrays.stream(expandedClasspath).anyMatch(e -> e.isTest())) {
+					this.moduleUpdater.addReadUnnamedForNonEmptyClasspath(project, expandedClasspath);
+				}
+			}
+			for (IClasspathEntry entry : project.getRawClasspath())
+				if(!excludeTestCode || !entry.isTest())
+					this.moduleUpdater.computeModuleUpdates(entry);
+		}
 	}
-
 	/**
 	 * Creates a SearchableEnvironment on the given project
 	 */
-	public SearchableEnvironment(JavaProject project, WorkingCopyOwner owner) throws JavaModelException {
-		this(project, owner == null ? null : JavaModelManager.getJavaModelManager().getWorkingCopies(owner, true/*add primary WCs*/));
+	public SearchableEnvironment(JavaProject project, WorkingCopyOwner owner, boolean excludeTestCode) throws JavaModelException {
+		this(project, owner == null ? null : JavaModelManager.getJavaModelManager().getWorkingCopies(owner, true/*add primary WCs*/), excludeTestCode);
 		this.owner = owner;
 	}
 
@@ -91,13 +139,18 @@ public class SearchableEnvironment
 	 * Returns the given type in the the given package if it exists,
 	 * otherwise <code>null</code>.
 	 */
-	protected NameEnvironmentAnswer find(String typeName, String packageName) {
+	protected NameEnvironmentAnswer find(String typeName, String packageName, IPackageFragmentRoot[] moduleContext) {
 		if (packageName == null)
 			packageName = IPackageFragment.DEFAULT_PACKAGE_NAME;
 		if (this.owner != null) {
 			String source = this.owner.findSource(typeName, packageName);
 			if (source != null) {
-				ICompilationUnit cu = new BasicCompilationUnit(source.toCharArray(), CharOperation.splitOn('.', packageName.toCharArray()), typeName + Util.defaultJavaExtension());
+				IJavaElement moduleElement = (moduleContext != null && moduleContext.length > 0) ? moduleContext[0] : null;
+				ICompilationUnit cu = new BasicCompilationUnit(
+						source.toCharArray(),
+						CharOperation.splitOn('.', packageName.toCharArray()),
+						typeName + Util.defaultJavaExtension(),
+						moduleElement);
 				return new NameEnvironmentAnswer(cu, null);
 			}
 		}
@@ -107,12 +160,14 @@ public class SearchableEnvironment
 				packageName,
 				false/*exact match*/,
 				NameLookup.ACCEPT_ALL,
-				this.checkAccessRestrictions);
+				this.checkAccessRestrictions,
+				moduleContext);
 		if (answer != null) {
 			// construct name env answer
 			if (answer.type instanceof BinaryType) { // BinaryType
 				try {
-					return new NameEnvironmentAnswer((IBinaryType) ((BinaryType) answer.type).getElementInfo(), answer.restriction);
+					char[] moduleName = answer.module != null ? answer.module.getElementName().toCharArray() : null;
+					return new NameEnvironmentAnswer((IBinaryType) ((BinaryType) answer.type).getElementInfo(), answer.restriction, moduleName);
 				} catch (JavaModelException npe) {
 					// fall back to using owner
 				}
@@ -137,7 +192,8 @@ public class SearchableEnvironment
 						if (!otherType.equals(topLevelType) && index < length) // check that the index is in bounds (see https://bugs.eclipse.org/bugs/show_bug.cgi?id=62861)
 							sourceTypes[index++] = otherType;
 					}
-					return new NameEnvironmentAnswer(sourceTypes, answer.restriction, getExternalAnnotationPath(answer.entry));
+					char[] moduleName = answer.module != null ? answer.module.getElementName().toCharArray() : null;
+					return new NameEnvironmentAnswer(sourceTypes, answer.restriction, getExternalAnnotationPath(answer.entry), moduleName);
 				} catch (JavaModelException jme) {
 					if (jme.isDoesNotExist() && String.valueOf(TypeConstants.PACKAGE_INFO_NAME).equals(typeName)) {
 						// in case of package-info.java the type doesn't exist in the model,
@@ -161,6 +217,17 @@ public class SearchableEnvironment
 	}
 
 	/**
+	 * Find the modules that start with the given prefix.
+	 * A valid prefix is a qualified name separated by periods
+	 * (ex. java.util).
+	 * The packages found are passed to:
+	 *    ISearchRequestor.acceptModule(char[][] moduleName)
+	 */
+	public void findModules(char[] prefix, ISearchRequestor requestor, IJavaProject javaProject) {
+		this.nameLookup.seekModule(prefix, true, new SearchableEnvironmentRequestor(requestor));
+	}
+
+	/**
 	 * Find the packages that start with the given prefix.
 	 * A valid prefix is a qualified name separated by periods
 	 * (ex. java.util).
@@ -174,6 +241,66 @@ public class SearchableEnvironment
 			new SearchableEnvironmentRequestor(requestor));
 	}
 
+	/**
+	 * Find the packages that start with the given prefix and belong to the given module.
+	 * A valid prefix is a qualified name separated by periods
+	 * (ex. java.util).
+	 * The packages found are passed to:
+	 *    ISearchRequestor.acceptPackage(char[][] packageName)
+	 */
+	public void findPackages(char[] prefix, ISearchRequestor requestor, IPackageFragmentRoot[] moduleContext, boolean followRequires) {
+		this.nameLookup.seekPackageFragments(
+			new String(prefix),
+			true,
+			new SearchableEnvironmentRequestor(requestor), moduleContext);
+	if (followRequires && this.knownModuleLocations != null) {
+		try {
+			boolean isMatchAllPrefix = CharOperation.equals(CharOperation.ALL_PREFIX, prefix);
+			Set<IModuleDescription> modDescs = new HashSet<>();
+			for (IPackageFragmentRoot root : moduleContext) {
+				IModuleDescription desc = root.getJavaProject().getModuleDescription();
+				if (desc instanceof AbstractModule)
+					modDescs.add(desc);
+			}
+			for (IModuleDescription md : modDescs) {
+				IModuleReference[] reqModules = ((AbstractModule) md).getRequiredModules();
+				char[] modName = md.getElementName().toCharArray();
+				for (IModuleReference moduleReference : reqModules) {
+					findPackagesFromRequires(prefix, isMatchAllPrefix, requestor, moduleReference, modName);
+				}
+			}
+		} catch (JavaModelException e) {
+			// silent
+		}
+	}
+}
+
+private void findPackagesFromRequires(char[] prefix, boolean isMatchAllPrefix, ISearchRequestor requestor, IModuleReference moduleReference, char[] clientModuleName) {
+	IPackageFragmentRoot[] fragmentRoots = findModuleContext(moduleReference.name());
+	if (fragmentRoots == null) return;
+	for (IPackageFragmentRoot root : fragmentRoots) {
+		IJavaProject requiredProject = root.getJavaProject();
+		try {
+			IModuleDescription module = requiredProject.getModuleDescription();
+			if (module instanceof AbstractModule) {
+				AbstractModule requiredModule = (AbstractModule) module;
+				for (IPackageExport packageExport : requiredModule.getExportedPackages()) {
+					if (!packageExport.isQualified() || CharOperation.containsEqual(packageExport.targets(), clientModuleName)) {
+						char[] exportName = packageExport.name();
+						if (isMatchAllPrefix || CharOperation.prefixEquals(prefix, exportName))
+							requestor.acceptPackage(exportName);
+					}
+				}
+				for (IModuleReference moduleRef2 : requiredModule.getRequiredModules()) {
+					if (moduleRef2.isTransitive())
+						findPackagesFromRequires(prefix, isMatchAllPrefix, requestor, moduleRef2, clientModuleName);
+				}
+			}
+		} catch (JavaModelException e) {
+			// silent
+		}
+	}
+}
 	/**
 	 * Find the top-level types that are defined
 	 * in the current environment and whose simple name matches the given name.
@@ -207,32 +334,41 @@ public class SearchableEnvironment
 
 			IProgressMonitor progressMonitor = new IProgressMonitor() {
 				boolean isCanceled = false;
+				@Override
 				public void beginTask(String n, int totalWork) {
 					// implements interface method
 				}
+				@Override
 				public void done() {
 					// implements interface method
 				}
+				@Override
 				public void internalWorked(double work) {
 					// implements interface method
 				}
+				@Override
 				public boolean isCanceled() {
 					return this.isCanceled;
 				}
+				@Override
 				public void setCanceled(boolean value) {
 					this.isCanceled = value;
 				}
+				@Override
 				public void setTaskName(String n) {
 					// implements interface method
 				}
+				@Override
 				public void subTask(String n) {
 					// implements interface method
 				}
+				@Override
 				public void worked(int work) {
 					// implements interface method
 				}
 			};
 			IRestrictedAccessTypeRequestor typeRequestor = new IRestrictedAccessTypeRequestor() {
+				@Override
 				public void acceptType(int modifiers, char[] packageName, char[] simpleTypeName, char[][] enclosingTypeNames, String path, AccessRestriction access) {
 					if (excludePath != null && excludePath.equals(path))
 						return;
@@ -276,15 +412,41 @@ public class SearchableEnvironment
 	}
 
 	/**
-	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.env.INameEnvironment#findType(char[][])
+	 * Find a type in the given module or any module read by it.
+	 * Does not check accessibility / unique visibility, but returns the first observable type found.
+	 * @param compoundTypeName name of the sought type
+	 * @param module start into the module graph
+	 * @return the answer :)
 	 */
-	public NameEnvironmentAnswer findType(char[][] compoundTypeName) {
+	public NameEnvironmentAnswer findTypeInModules(char[][] compoundTypeName, ModuleBinding module) {
+		char[] nameForLookup = module.nameForLookup();
+		NameEnvironmentAnswer answer = findType(compoundTypeName, nameForLookup);
+		if (answer != null)
+			return answer;
+		if (LookupStrategy.get(nameForLookup) == LookupStrategy.Named) {
+			for (ModuleBinding required : module.getAllRequiredModules()) {
+				answer = findType(compoundTypeName, required.nameForLookup());
+				if (answer != null)
+					return answer;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.env.IModuleAwareNameEnvironment#findType(char[][],char[])
+	 */
+	@Override
+	public NameEnvironmentAnswer findType(char[][] compoundTypeName, char[] moduleName) {
 		if (compoundTypeName == null) return null;
+
+		boolean isNamedStrategy = LookupStrategy.get(moduleName) == LookupStrategy.Named;
+		IPackageFragmentRoot[] moduleLocations = isNamedStrategy ? findModuleContext(moduleName) : null;
 
 		int length = compoundTypeName.length;
 		if (length <= 1) {
 			if (length == 0) return null;
-			return find(new String(compoundTypeName[0]), null);
+			return find(new String(compoundTypeName[0]), null, moduleLocations);
 		}
 
 		int lengthM1 = length - 1;
@@ -293,18 +455,23 @@ public class SearchableEnvironment
 
 		return find(
 			new String(compoundTypeName[lengthM1]),
-			CharOperation.toString(packageName));
+			CharOperation.toString(packageName),
+			moduleLocations);
 	}
 
 	/**
-	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.env.INameEnvironment#findType(char[], char[][])
+	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.env.IModuleAwareNameEnvironment#findType(char[],char[][],char[])
 	 */
-	public NameEnvironmentAnswer findType(char[] name, char[][] packageName) {
+	@Override
+	public NameEnvironmentAnswer findType(char[] name, char[][] packageName, char[] moduleName) {
 		if (name == null) return null;
 
+		boolean isNamedStrategy = LookupStrategy.get(moduleName) == LookupStrategy.Named;
+		IPackageFragmentRoot[] moduleLocations = isNamedStrategy ? findModuleContext(moduleName) : null;
 		return find(
 			new String(name),
-			packageName == null || packageName.length == 0 ? null : CharOperation.toString(packageName));
+			packageName == null || packageName.length == 0 ? null : CharOperation.toString(packageName),
+			moduleLocations);
 	}
 
 	/**
@@ -388,32 +555,41 @@ public class SearchableEnvironment
 
 			IProgressMonitor progressMonitor = new IProgressMonitor() {
 				boolean isCanceled = false;
+				@Override
 				public void beginTask(String name, int totalWork) {
 					// implements interface method
 				}
+				@Override
 				public void done() {
 					// implements interface method
 				}
+				@Override
 				public void internalWorked(double work) {
 					// implements interface method
 				}
+				@Override
 				public boolean isCanceled() {
 					return this.isCanceled;
 				}
+				@Override
 				public void setCanceled(boolean value) {
 					this.isCanceled = value;
 				}
+				@Override
 				public void setTaskName(String name) {
 					// implements interface method
 				}
+				@Override
 				public void subTask(String name) {
 					// implements interface method
 				}
+				@Override
 				public void worked(int work) {
 					// implements interface method
 				}
 			};
 			IRestrictedAccessTypeRequestor typeRequestor = new IRestrictedAccessTypeRequestor() {
+				@Override
 				public void acceptType(int modifiers, char[] packageName, char[] simpleTypeName, char[][] enclosingTypeNames, String path, AccessRestriction access) {
 					if (excludePath != null && excludePath.equals(path))
 						return;
@@ -539,33 +715,42 @@ public class SearchableEnvironment
 
 			IProgressMonitor progressMonitor = new IProgressMonitor() {
 				boolean isCanceled = false;
+				@Override
 				public void beginTask(String name, int totalWork) {
 					// implements interface method
 				}
+				@Override
 				public void done() {
 					// implements interface method
 				}
+				@Override
 				public void internalWorked(double work) {
 					// implements interface method
 				}
+				@Override
 				public boolean isCanceled() {
 					return this.isCanceled;
 				}
+				@Override
 				public void setCanceled(boolean value) {
 					this.isCanceled = value;
 				}
+				@Override
 				public void setTaskName(String name) {
 					// implements interface method
 				}
+				@Override
 				public void subTask(String name) {
 					// implements interface method
 				}
+				@Override
 				public void worked(int work) {
 					// implements interface method
 				}
 			};
 			
 			IRestrictedAccessConstructorRequestor constructorRequestor = new IRestrictedAccessConstructorRequestor() {
+				@Override
 				public void acceptConstructor(
 						int modifiers,
 						char[] simpleTypeName,
@@ -686,31 +871,179 @@ public class SearchableEnvironment
 		if (this.searchScope == null) {
 			// Create search scope with visible entry on the project's classpath
 			if(this.checkAccessRestrictions) {
-				this.searchScope = BasicSearchEngine.createJavaSearchScope(new IJavaElement[] {this.project});
+				this.searchScope = BasicSearchEngine.createJavaSearchScope(this.excludeTestCode, new IJavaElement[] {this.project});
 			} else {
-				this.searchScope = BasicSearchEngine.createJavaSearchScope(this.nameLookup.packageFragmentRoots);
+				this.searchScope = BasicSearchEngine.createJavaSearchScope(this.excludeTestCode, this.nameLookup.packageFragmentRoots);
 			}
 		}
 		return this.searchScope;
 	}
 
 	/**
-	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.env.INameEnvironment#isPackage(char[][], char[])
+	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.env.IModuleAwareNameEnvironment#getModulesDeclaringPackage(char[][], char[], char[])
 	 */
-	public boolean isPackage(char[][] parentPackageName, char[] subPackageName) {
+	@Override
+	public char[][] getModulesDeclaringPackage(char[][] parentPackageName, char[] name, char[] moduleName) {
 		String[] pkgName;
 		if (parentPackageName == null)
-			pkgName = new String[] {new String(subPackageName)};
+			pkgName = new String[] {new String(name)};
 		else {
 			int length = parentPackageName.length;
 			pkgName = new String[length+1];
 			for (int i = 0; i < length; i++)
 				pkgName[i] = new String(parentPackageName[i]);
-			pkgName[length] = new String(subPackageName);
+			pkgName[length] = new String(name);
 		}
-		return 
-			(this.owner != null && this.owner.isPackage(pkgName))
-			|| this.nameLookup.isPackage(pkgName);
+		LookupStrategy strategy = LookupStrategy.get(moduleName);
+		switch (strategy) {
+			case Named:
+				if (this.knownModuleLocations != null) {
+					IPackageFragmentRoot[] moduleContext = findModuleContext(moduleName);
+					if (moduleContext != null) {
+						// (this.owner != null && this.owner.isPackage(pkgName)) // TODO(SHMOD) see old isPackage
+						if (this.nameLookup.isPackage(pkgName, moduleContext)) {
+							return new char[][] { moduleName };
+						}
+					}
+				}
+				return null;
+			case Unnamed:
+			case Any:
+				// if in pre-9 mode we may still search the unnamed module 
+				if (this.knownModuleLocations == null) {
+					if ((this.owner != null && this.owner.isPackage(pkgName))
+							|| this.nameLookup.isPackage(pkgName))
+						return new char[][] { ModuleBinding.UNNAMED };
+					return null;
+				}
+				//$FALL-THROUGH$
+			case AnyNamed:
+				char[][] names = CharOperation.NO_CHAR_CHAR;
+				IPackageFragmentRoot[] packageRoots = this.nameLookup.packageFragmentRoots;
+				boolean containsUnnamed = false;
+				for (IPackageFragmentRoot packageRoot : packageRoots) {
+					IPackageFragmentRoot[] singleton = { packageRoot };
+					if (strategy.matches(singleton, locs -> locs[0] instanceof JrtPackageFragmentRoot || getModuleDescription(locs) != null)) {
+						if (this.nameLookup.isPackage(pkgName, singleton)) {
+							IModuleDescription moduleDescription = getModuleDescription(singleton);
+							char[] aName;
+							if (moduleDescription != null) {
+								aName = moduleDescription.getElementName().toCharArray();
+							} else {
+								if (containsUnnamed)
+									continue;
+								containsUnnamed = true;
+								aName = ModuleBinding.UNNAMED;
+							}
+							names = CharOperation.arrayConcat(names, aName);
+						}
+					}
+				}
+				return names == CharOperation.NO_CHAR_CHAR ? null : names;
+			default:
+				throw new IllegalArgumentException("Unexpected LookupStrategy "+strategy); //$NON-NLS-1$
+		}
+	}
+	@Override
+	public boolean hasCompilationUnit(char[][] pkgName, char[] moduleName, boolean checkCUs) {
+		LookupStrategy strategy = LookupStrategy.get(moduleName);
+		switch (strategy) {
+			case Named:
+				if (this.knownModuleLocations != null) {
+					IPackageFragmentRoot[] moduleContext = findModuleContext(moduleName);
+					if (moduleContext != null) {
+						// (this.owner != null && this.owner.isPackage(pkgName)) // TODO(SHMOD) see old isPackage
+						if (this.nameLookup.hasCompilationUnit(pkgName, moduleContext))
+							return true;
+					}
+				}
+				return false;
+			case Unnamed:
+			case Any:
+				// if in pre-9 mode we may still search the unnamed module 
+				if (this.knownModuleLocations == null) {
+					if (this.nameLookup.hasCompilationUnit(pkgName, null))
+						return true;
+				}
+				//$FALL-THROUGH$
+			case AnyNamed:
+				IPackageFragmentRoot[] packageRoots = this.nameLookup.packageFragmentRoots;
+				for (IPackageFragmentRoot packageRoot : packageRoots) {
+					IPackageFragmentRoot[] singleton = { packageRoot };
+					if (strategy.matches(singleton, locs -> locs[0] instanceof JrtPackageFragmentRoot || getModuleDescription(locs) != null)) {
+						if (this.nameLookup.hasCompilationUnit(pkgName, singleton))
+							return true;
+					}
+				}
+				return false;
+			default:
+				throw new IllegalArgumentException("Unexpected LookupStrategy "+strategy); //$NON-NLS-1$
+		}
+	}
+
+	private IModuleDescription getModuleDescription(IPackageFragmentRoot[] roots) {
+		if (this.rootToModule == null) {
+			this.rootToModule = new HashMap<>();
+		}
+		for (IPackageFragmentRoot root : roots) {
+			IModuleDescription moduleDescription = NameLookup.getModuleDescription(root, this.rootToModule, this.nameLookup.rootToResolvedEntries::get);
+			if (moduleDescription != null)
+				return moduleDescription;
+		}
+		return null;
+	}
+
+	private IPackageFragmentRoot[] findModuleContext(char[] moduleName) {
+		IPackageFragmentRoot[] moduleContext = null;
+		if (this.knownModuleLocations != null && moduleName != null && moduleName.length > 0) {
+			moduleContext = this.knownModuleLocations.get(String.valueOf(moduleName));
+			if (moduleContext == null) {
+				Answer moduleAnswer = this.nameLookup.findModule(moduleName);
+				if (moduleAnswer != null) {
+					IProject currentProject = moduleAnswer.module.getJavaProject().getProject();
+					IJavaElement current = moduleAnswer.module.getParent();
+					while (moduleContext == null && current != null) {
+						switch (current.getElementType()) {
+							case IJavaElement.PACKAGE_FRAGMENT_ROOT:
+								if (!((IPackageFragmentRoot) current).isExternal() && !(current instanceof JarPackageFragmentRoot)) {
+									current = current.getJavaProject();
+								} else {
+									moduleContext = new IPackageFragmentRoot[] { (IPackageFragmentRoot) current }; // TODO: validate
+									break;
+								}
+								//$FALL-THROUGH$
+							case IJavaElement.JAVA_PROJECT:
+								try {
+									moduleContext = getOwnedPackageFragmentRoots((IJavaProject) current);
+								} catch (JavaModelException e) {
+									// silent?
+								}
+								break;
+							default:
+								current = current.getParent();
+								if (current != null) {
+									try {
+										// detect when an element refers to a resource owned by another project:
+										IResource resource = current.getUnderlyingResource();
+										if (resource != null) {
+											IProject otherProject = resource.getProject();
+											if (otherProject != null && !otherProject.equals(currentProject)) {
+												IJavaProject otherJavaProject = JavaCore.create(otherProject);
+												if (otherJavaProject.exists())
+													moduleContext = getRootsForOutputLocation(otherJavaProject, resource);
+											}
+										}
+									} catch (JavaModelException e) {
+										Util.log(e, "Failed to find package fragment root for " + current); //$NON-NLS-1$
+									}
+								}
+						}
+					}
+					this.knownModuleLocations.put(String.valueOf(moduleName), moduleContext);
+				}
+			}
+		}
+		return moduleContext;
 	}
 
 	/**
@@ -732,7 +1065,77 @@ public class SearchableEnvironment
 		return result.toString();
 	}
 
+	@Override
 	public void cleanup() {
 		// nothing to do
+	}
+
+	@Override
+	public org.aspectj.org.eclipse.jdt.internal.compiler.env.IModule getModule(char[] name) {
+		NameLookup.Answer answer = this.nameLookup.findModule(name);
+		IModule module = null;
+		if (answer != null) {
+			module = NameLookup.getModuleDescriptionInfo(answer.module);
+		}
+		return module;
+	}
+
+	@Override
+	public char[][] getAllAutomaticModules() {
+		return CharOperation.NO_CHAR_CHAR;
+	}
+
+	@Override
+	public void applyModuleUpdates(IUpdatableModule module, UpdateKind kind) {
+		if (this.moduleUpdater != null)
+			this.moduleUpdater.applyModuleUpdates(module, kind);
+	}
+
+	private IPackageFragmentRoot[] getRootsForOutputLocation(IJavaProject otherJavaProject, IResource outputLocation) throws JavaModelException {
+		IPath outputPath = outputLocation.getFullPath();
+		List<IPackageFragmentRoot> result = new ArrayList<>();
+		if (outputPath.equals(otherJavaProject.getOutputLocation())) {
+			// collect roots reporting to the default output location:
+			for (IClasspathEntry classpathEntry : otherJavaProject.getRawClasspath()) {
+				if (classpathEntry.getOutputLocation() == null) {
+					for (IPackageFragmentRoot root : otherJavaProject.findPackageFragmentRoots(classpathEntry)) {
+						IResource rootResource = root.getResource();
+						if (rootResource == null || !rootResource.getProject().equals(otherJavaProject.getProject()))
+							continue; // outside this project
+						result.add(root);
+					}
+				}
+			}			
+		}
+		if (!result.isEmpty())
+			return result.toArray(new IPackageFragmentRoot[result.size()]);
+		// search an entry that specifically (and exclusively) reports to the output location:
+		for (IClasspathEntry classpathEntry : otherJavaProject.getRawClasspath()) {
+			if (outputPath.equals(classpathEntry.getOutputLocation()))
+				return otherJavaProject.findPackageFragmentRoots(classpathEntry);
+		}
+		return null;
+	}
+
+	public static IPackageFragmentRoot[] getOwnedPackageFragmentRoots(IJavaProject javaProject) throws JavaModelException {
+		IPackageFragmentRoot[] allRoots = javaProject.getPackageFragmentRoots();
+		IPackageFragmentRoot[] sourceRoots = Arrays.copyOf(allRoots, allRoots.length);
+		int count = 0;
+		for (int i = 0; i < allRoots.length; i++) {
+			IPackageFragmentRoot root = allRoots[i];
+			if (root.getKind() == IPackageFragmentRoot.K_BINARY) {
+				if(root instanceof JarPackageFragmentRoot) {
+					// don't treat jars in a project as part of the project's module
+					continue;
+				}
+				IResource resource = root.getResource();
+				if (resource == null || !resource.getProject().equals(javaProject.getProject()))
+					continue; // outside this project
+			}
+			sourceRoots[count++] = root;
+		}
+		if (count < allRoots.length)
+			return Arrays.copyOf(sourceRoots, count);
+		return sourceRoots;
 	}
 }

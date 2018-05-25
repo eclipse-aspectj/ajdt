@@ -62,8 +62,12 @@ public class TypeBound extends ReductionResult {
 	private TypeBinding safeType(TypeBinding type) {
 		if (type != null && type.isLocalType()) {
 			MethodBinding enclosingMethod = ((LocalTypeBinding) type.original()).enclosingMethod;
-			if (enclosingMethod != null && CharOperation.prefixEquals(TypeConstants.ANONYMOUS_METHOD, enclosingMethod.selector))
-				return type.superclass(); // don't use local class inside lambda: lambda is copied, type will be re-created and thus is unmatchable
+			if (enclosingMethod != null && CharOperation.prefixEquals(TypeConstants.ANONYMOUS_METHOD, enclosingMethod.selector)) {
+				// don't use local class inside lambda: lambda is copied, type will be re-created and thus is unmatchable
+				if (type.superclass().id == TypeIds.T_JavaLangObject && type.superInterfaces().length > 0)
+					return type.superInterfaces()[0];
+				return type.superclass();
+			}
 		}
 		return type;
 	}
@@ -73,9 +77,13 @@ public class TypeBound extends ReductionResult {
 	boolean isBound() {
 		return this.right.isProperType(true);
 	}
+	
+	@Override
 	public int hashCode() {
 		return this.left.hashCode() + this.right.hashCode() + this.relation;
 	}
+	
+	@Override
 	public boolean equals(Object obj) {
 		if (obj instanceof TypeBound) {
 			TypeBound other = (TypeBound) obj;
@@ -85,6 +93,7 @@ public class TypeBound extends ReductionResult {
 	}
 	
 	// debugging:
+	@Override
 	public String toString() {
 		boolean isBound = this.right.isProperType(true);
 		StringBuffer buf = new StringBuffer();

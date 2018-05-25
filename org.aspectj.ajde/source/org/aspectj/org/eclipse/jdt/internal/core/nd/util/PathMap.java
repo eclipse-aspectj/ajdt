@@ -60,6 +60,10 @@ public class PathMap<T> {
 			return next;
 		}
 
+		/**
+		 * Returns this node or one of its descendants whose path is the longest-possible prefix of the given key (or
+		 * equal to it).
+		 */
 		public Node<T> getMostSpecificNode(IPath key) {
 			if (this.depth == key.segmentCount()) {
 				return this;
@@ -144,6 +148,7 @@ public class PathMap<T> {
 			return super.createChild(nextSegment);
 		}
 
+		@Override
 		Node<T> getChild(String nextSegment) {
 			if (nextSegment == null) {
 				return this.noDevice;
@@ -221,5 +226,13 @@ public class PathMap<T> {
 		
 		this.root.toString(builder, Path.EMPTY);
 		return builder.toString();
+	}
+
+	/**
+	 * Returns true iff this map contains any key that starts with the given prefix.
+	 */
+	public boolean containsKeyStartingWith(IPath next) {
+		Node<T> node = this.root.getMostSpecificNode(next);
+		return node.depth == next.segmentCount();
 	}
 }

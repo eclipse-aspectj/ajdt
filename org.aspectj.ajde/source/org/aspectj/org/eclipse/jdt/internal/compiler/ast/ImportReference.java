@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,6 +9,9 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
+
+import java.util.HashSet;
+import java.util.Set;
 
 import org.aspectj.org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
@@ -54,6 +57,22 @@ public class ImportReference extends ASTNode {
 		return this.tokens;
 	}
 
+	public void checkPackageConflict(CompilationUnitScope scope) {
+		ModuleBinding module = scope.module();
+		PackageBinding visiblePackage = module.getVisiblePackage(this.tokens);
+		if (visiblePackage instanceof SplitPackageBinding) {
+			Set<ModuleBinding> declaringMods = new HashSet<>();
+			for (PackageBinding incarnation : ((SplitPackageBinding) visiblePackage).incarnations) {
+				if (incarnation.enclosingModule != module && module.canAccess(incarnation))
+					declaringMods.add(incarnation.enclosingModule);
+			}
+			if (!declaringMods.isEmpty()) {
+				scope.problemReporter().conflictingPackagesFromOtherModules(this, declaringMods);
+			}
+		}
+	}
+
+	@Override
 	public StringBuffer print(int indent, StringBuffer output) {
 
 		return print(indent, output, true);

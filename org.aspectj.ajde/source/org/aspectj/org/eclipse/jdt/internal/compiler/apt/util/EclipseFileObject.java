@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2006, 2011 IBM Corporation and others.
+ * Copyright (c) 2006, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -37,7 +37,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFormatExcepti
  * Implementation of a Java file object that corresponds to a file on the file system
  */
 public class EclipseFileObject extends SimpleJavaFileObject {
-	private File f;
+	File f;
 	private Charset charset;
 	private boolean parentsExist; // parent directories exist
 	
@@ -51,6 +51,7 @@ public class EclipseFileObject extends SimpleJavaFileObject {
 	/* (non-Javadoc)
 	 * @see javax.tools.JavaFileObject#getAccessLevel()
 	 */
+	@Override
 	public Modifier getAccessLevel() {
 		// cannot express multiple modifier
 		if (getKind() != Kind.CLASS) {
@@ -83,6 +84,7 @@ public class EclipseFileObject extends SimpleJavaFileObject {
 	/* (non-Javadoc)
 	 * @see javax.tools.JavaFileObject#getNestingKind()
 	 */
+	@Override
 	public NestingKind getNestingKind() {
 		switch(kind) {
 			case SOURCE :
@@ -117,10 +119,12 @@ public class EclipseFileObject extends SimpleJavaFileObject {
 	/* (non-Javadoc)
 	 * @see javax.tools.FileObject#delete()
 	 */
+	@Override
 	public boolean delete() {
 		return this.f.delete();
 	}
 	
+	@Override
 	public boolean equals(Object o) {
 		if (!(o instanceof EclipseFileObject)) {
 			return false;
@@ -132,6 +136,7 @@ public class EclipseFileObject extends SimpleJavaFileObject {
 	/* (non-Javadoc)
 	 * @see javax.tools.FileObject#getCharContent(boolean)
 	 */
+	@Override
 	public CharSequence getCharContent(boolean ignoreEncodingErrors) throws IOException {
 		return Util.getCharContents(this, ignoreEncodingErrors, org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.getFileByteContent(this.f), this.charset.name());
 	}
@@ -139,14 +144,17 @@ public class EclipseFileObject extends SimpleJavaFileObject {
 	/* (non-Javadoc)
 	 * @see javax.tools.FileObject#getLastModified()
 	 */
+	@Override
 	public long getLastModified() {
 		return this.f.lastModified();
 	}
 
+	@Override
 	public String getName() {
         return this.f.getPath();
     }
     
+	@Override
 	public int hashCode() {
 		return f.hashCode();
 	}
@@ -154,6 +162,7 @@ public class EclipseFileObject extends SimpleJavaFileObject {
 	/* (non-Javadoc)
 	 * @see javax.tools.FileObject#openInputStream()
 	 */
+	@Override
 	public InputStream openInputStream() throws IOException {
 		// TODO (olivier) should be used buffered input stream
 		return new FileInputStream(this.f);
@@ -162,6 +171,7 @@ public class EclipseFileObject extends SimpleJavaFileObject {
 	/* (non-Javadoc)
 	 * @see javax.tools.FileObject#openOutputStream()
 	 */
+	@Override
 	public OutputStream openOutputStream() throws IOException {
 		ensureParentDirectoriesExist();
 		return new FileOutputStream(this.f);
@@ -170,6 +180,7 @@ public class EclipseFileObject extends SimpleJavaFileObject {
 	/* (non-Javadoc)
 	 * @see javax.tools.FileObject#openReader(boolean)
 	 */
+	@Override
 	public Reader openReader(boolean ignoreEncodingErrors) throws IOException {
 		return new FileReader(this.f);
 	}
@@ -177,6 +188,7 @@ public class EclipseFileObject extends SimpleJavaFileObject {
 	/* (non-Javadoc)
 	 * @see javax.tools.FileObject#openWriter()
 	 */
+	@Override
 	public Writer openWriter() throws IOException {
 		ensureParentDirectoriesExist();
 		return new FileWriter(this.f);

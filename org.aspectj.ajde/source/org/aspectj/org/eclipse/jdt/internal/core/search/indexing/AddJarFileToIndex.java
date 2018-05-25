@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -13,6 +13,7 @@ package org.aspectj.org.eclipse.jdt.internal.core.search.indexing;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.Charset;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipError;
@@ -23,15 +24,13 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
-import org.aspectj.org.eclipse.jdt.core.compiler.InvalidInputException;
+import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.aspectj.org.eclipse.jdt.core.search.SearchEngine;
 import org.aspectj.org.eclipse.jdt.core.search.SearchParticipant;
-import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
-import org.aspectj.org.eclipse.jdt.internal.compiler.parser.Scanner;
-import org.aspectj.org.eclipse.jdt.internal.compiler.parser.TerminalTokens;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.AutomaticModuleNaming;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.SimpleLookupTable;
-import org.aspectj.org.eclipse.jdt.internal.compiler.util.SuffixConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
 import org.aspectj.org.eclipse.jdt.internal.core.JavaModelManager;
 import org.aspectj.org.eclipse.jdt.internal.core.index.Index;
@@ -40,11 +39,10 @@ import org.aspectj.org.eclipse.jdt.internal.core.search.JavaSearchDocument;
 import org.aspectj.org.eclipse.jdt.internal.core.search.processing.JobManager;
 
 @SuppressWarnings("rawtypes")
-class AddJarFileToIndex extends IndexRequest {
+class AddJarFileToIndex extends BinaryContainer {
 
 	private static final char JAR_SEPARATOR = IJavaSearchScope.JAR_FILE_ENTRY_SEPARATOR.charAt(0);
 	IFile resource;
-	Scanner scanner;
 	private IndexLocation indexFileURL;
 	private final boolean forceIndexUpdate;
 
@@ -66,6 +64,7 @@ class AddJarFileToIndex extends IndexRequest {
 		this.indexFileURL = indexFile;
 		this.forceIndexUpdate = updateIndex;
 	}
+	@Override
 	public boolean equals(Object o) {
 		if (o instanceof AddJarFileToIndex) {
 			if (this.resource != null)
@@ -75,6 +74,7 @@ class AddJarFileToIndex extends IndexRequest {
 		}
 		return false;
 	}
+	@Override
 	public int hashCode() {
 		if (this.resource != null)
 			return this.resource.hashCode();
@@ -82,6 +82,7 @@ class AddJarFileToIndex extends IndexRequest {
 			return this.containerPath.hashCode();
 		return -1;
 	}
+	@Override
 	public boolean execute(IProgressMonitor progressMonitor) {
 
 		if (this.isCancelled || progressMonitor != null && progressMonitor.isCanceled()) return true;
@@ -141,6 +142,8 @@ class AddJarFileToIndex extends IndexRequest {
 							org.aspectj.org.eclipse.jdt.internal.core.util.Util.verbose("-> failed to index " + location.getPath() + " because the file could not be fetched"); //$NON-NLS-1$ //$NON-NLS-2$
 						return false;
 					}
+					if (JavaModelManager.ZIP_ACCESS_VERBOSE)
+						System.out.println("(" + Thread.currentThread() + ") [AddJarFileToIndex.execute()] Creating ZipFile on " + this.containerPath); //$NON-NLS-1$	//$NON-NLS-2$
 					zip = new ZipFile(file);
 					zipFilePath = (Path) this.resource.getFullPath().makeRelative();
 					// absolute path relative to the workspace
@@ -180,7 +183,7 @@ class AddJarFileToIndex extends IndexRequest {
 						// iterate each entry to index it
 						ZipEntry ze = (ZipEntry) e.nextElement();
 						String zipEntryName = ze.getName();
-						if (Util.isClassFileName(zipEntryName) && isValidPackageNameForClass(zipEntryName))
+						if (Util.isClassFileName(zipEntryName) && isValidPackageNameForClassOrisModule(zipEntryName))
 								// the class file may not be there if the package name is not valid
 							indexedFileNames.put(zipEntryName, EXISTS);
 					}
@@ -218,6 +221,7 @@ class AddJarFileToIndex extends IndexRequest {
 				if ((indexLocation = index.getIndexLocation()) != null) {
 					indexPath = new Path(indexLocation.getCanonicalFilePath());
 				}
+				boolean hasModuleInfoClass = false;
 				for (Enumeration e = zip.entries(); e.hasMoreElements();) {
 					if (this.isCancelled) {
 						if (JobManager.VERBOSE)
@@ -229,11 +233,28 @@ class AddJarFileToIndex extends IndexRequest {
 					ZipEntry ze = (ZipEntry) e.nextElement();
 					String zipEntryName = ze.getName();
 					if (Util.isClassFileName(zipEntryName) && 
-							isValidPackageNameForClass(zipEntryName)) {
+							isValidPackageNameForClassOrisModule(zipEntryName)) {
+						hasModuleInfoClass |= zipEntryName.contains(TypeConstants.MODULE_INFO_NAME_STRING);
 						// index only classes coming from valid packages - https://bugs.eclipse.org/bugs/show_bug.cgi?id=293861
 						final byte[] classFileBytes = org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.getZipEntryByteContent(ze, zip);
 						JavaSearchDocument entryDocument = new JavaSearchDocument(ze, zipFilePath, classFileBytes, participant);
 						this.manager.indexDocument(entryDocument, participant, index, indexPath);
+					}
+				}
+				if (!hasModuleInfoClass) {
+					String s;
+					try {
+						s = this.resource == null ? this.containerPath.toOSString() :
+							JavaModelManager.getLocalFile(this.resource.getFullPath()).toPath().toAbsolutePath().toString();
+						char[] autoModuleName = AutomaticModuleNaming.determineAutomaticModuleName(s);
+						final char[] contents = CharOperation.append(CharOperation.append(TypeConstants.AUTOMATIC_MODULE_NAME.toCharArray(), ':'), autoModuleName);
+						// adding only the automatic module entry here - can be extended in the future to include other fields.
+						ZipEntry ze = new ZipEntry(TypeConstants.AUTOMATIC_MODULE_NAME);
+						JavaSearchDocument entryDocument = new JavaSearchDocument(ze, zipFilePath, new String(contents).getBytes(Charset.defaultCharset()), participant);
+						this.manager.indexDocument(entryDocument, participant, index, indexPath);
+					} catch (CoreException e) {
+						// TODO Auto-generated catch block
+//						e.printStackTrace();
 					}
 				}
 				if(this.forceIndexUpdate) {
@@ -249,19 +270,12 @@ class AddJarFileToIndex extends IndexRequest {
 			} finally {
 				if (zip != null) {
 					if (JavaModelManager.ZIP_ACCESS_VERBOSE)
-						System.out.println("(" + Thread.currentThread() + ") [AddJarFileToIndex.execute()] Closing ZipFile " + zip); //$NON-NLS-1$	//$NON-NLS-2$
+						System.out.println("(" + Thread.currentThread() + ") [AddJarFileToIndex.execute()] Closing ZipFile " + this.containerPath); //$NON-NLS-1$	//$NON-NLS-2$
 					zip.close();
 				}
 				monitor.exitWrite(); // free write lock
 			}
-		} catch (IOException e) {
-			if (JobManager.VERBOSE) {
-				org.aspectj.org.eclipse.jdt.internal.core.util.Util.verbose("-> failed to index " + this.containerPath + " because of the following exception:"); //$NON-NLS-1$ //$NON-NLS-2$
-				e.printStackTrace();
-			}
-			this.manager.removeIndex(this.containerPath);
-			return false;
-		} catch (ZipError e) { // merge with the code above using '|' when we move to 1.7
+		} catch (IOException | ZipError e) {
 			if (JobManager.VERBOSE) {
 				org.aspectj.org.eclipse.jdt.internal.core.util.Util.verbose("-> failed to index " + this.containerPath + " because of the following exception:"); //$NON-NLS-1$ //$NON-NLS-2$
 				e.printStackTrace();
@@ -271,48 +285,13 @@ class AddJarFileToIndex extends IndexRequest {
 		}
 		return true;
 	}
+	@Override
 	public String getJobFamily() {
 		if (this.resource != null)
 			return super.getJobFamily();
 		return this.containerPath.toOSString(); // external jar
 	}	
-	private boolean isIdentifier() throws InvalidInputException {
-		switch(this.scanner.scanIdentifier()) {
-			// assert and enum will not be recognized as java identifiers 
-			// in 1.7 mode, which are in 1.3.
-			case TerminalTokens.TokenNameIdentifier:
-			case TerminalTokens.TokenNameassert:
-			case TerminalTokens.TokenNameenum:
-				return true;
-			default:
-				return false;
-		}
-	}
-	private  boolean isValidPackageNameForClass(String className) {
-		char[] classNameArray = className.toCharArray();
-		// use 1.7 as the source level as there are more valid identifiers in 1.7 mode
-		// https://bugs.eclipse.org/bugs/show_bug.cgi?id=376673
-		if (this.scanner == null)
-			this.scanner = new Scanner(false /* comment */, true /* whitespace */, false /* nls */,
-					ClassFileConstants.JDK1_7/* sourceLevel */, null/* taskTag */, null/* taskPriorities */, true /* taskCaseSensitive */);
-		
-		this.scanner.setSource(classNameArray); 
-		this.scanner.eofPosition = classNameArray.length - SuffixConstants.SUFFIX_CLASS.length;
-		try {
-			if (isIdentifier()) {
-				while (this.scanner.eofPosition > this.scanner.currentPosition) {
-					if (this.scanner.getNextChar() != '/' || this.scanner.eofPosition <= this.scanner.currentPosition) {
-						return false;
-					}
-					if (!isIdentifier()) return false;
-				}
-				return true;
-			}
-		} catch (InvalidInputException e) {
-			// invalid class name
-		}
-		return false;
-	}
+	@Override
 	protected Integer updatedIndexState() {
 
 		Integer updateState = null;
@@ -324,6 +303,7 @@ class AddJarFileToIndex extends IndexRequest {
 		}
 		return updateState;
 	}
+	@Override
 	public String toString() {
 		return "indexing " + this.containerPath.toString(); //$NON-NLS-1$
 	}

@@ -1,10 +1,11 @@
+// ASPECTJ
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- *
+ * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann - Contribution for
@@ -2542,7 +2543,6 @@ public void generateSyntheticBodyForDeserializeLambda(SyntheticMethodBinding met
 	}
 	ClassScope scope = ((SourceTypeBinding)methodBinding.declaringClass).scope;
 	
-	
 	// Generate the first switch, on method name hashcode
 	aload_0();
 	invoke(Opcodes.OPC_invokevirtual, 1, 1, ConstantPool.JavaLangInvokeSerializedLambdaConstantPoolName, ConstantPool.GetImplMethodName, ConstantPool.GetImplMethodNameSignature);
@@ -2635,81 +2635,81 @@ public void generateSyntheticBodyForDeserializeLambda(SyntheticMethodBinding met
 		// Loop through all lambdas that share the same hashcode
 		for (int j = 0, count = synthetics.size(); j < count; j++) {
 			SyntheticMethodBinding syntheticMethodBinding = (SyntheticMethodBinding) synthetics.get(j);
-		// Compare ImplMethodKind
-		aload_0();
+			// Compare ImplMethodKind
+			aload_0();
 			FunctionalExpression funcEx = syntheticMethodBinding.lambda != null ? syntheticMethodBinding.lambda
 					: syntheticMethodBinding.serializableMethodRef;
 			MethodBinding mb = funcEx.binding;
-		invoke(Opcodes.OPC_invokevirtual, 1, 1, ConstantPool.JavaLangInvokeSerializedLambdaConstantPoolName, 
-				ConstantPool.GetImplMethodKind, ConstantPool.GetImplMethodKindSignature);
-		byte methodKind = 0;
-		if (mb.isStatic()) {
-			methodKind = ClassFileConstants.MethodHandleRefKindInvokeStatic;
-		} else if (mb.isPrivate()) {
-			methodKind = ClassFileConstants.MethodHandleRefKindInvokeSpecial;
+			invoke(Opcodes.OPC_invokevirtual, 1, 1, ConstantPool.JavaLangInvokeSerializedLambdaConstantPoolName,
+					ConstantPool.GetImplMethodKind, ConstantPool.GetImplMethodKindSignature);
+			byte methodKind = 0;
+			if (mb.isStatic()) {
+				methodKind = ClassFileConstants.MethodHandleRefKindInvokeStatic;
+			} else if (mb.isPrivate()) {
+				methodKind = ClassFileConstants.MethodHandleRefKindInvokeSpecial;
 			} else if (mb.isConstructor()) {
 				methodKind = ClassFileConstants.MethodHandleRefKindNewInvokeSpecial;
 			} else if (mb.declaringClass.isInterface()) {
 				methodKind = ClassFileConstants.MethodHandleRefKindInvokeInterface;
-		} else {
-			methodKind = ClassFileConstants.MethodHandleRefKindInvokeVirtual;
-		}
-		bipush(methodKind);// TODO see table below
+			} else {
+				methodKind = ClassFileConstants.MethodHandleRefKindInvokeVirtual;
+			}
+			bipush(methodKind);// TODO see table below
 			if_icmpne(nextOne);
 
-		// Compare FunctionalInterfaceClass
-		aload_0();
-		invoke(Opcodes.OPC_invokevirtual, 1, 1, ConstantPool.JavaLangInvokeSerializedLambdaConstantPoolName, 
-				ConstantPool.GetFunctionalInterfaceClass, ConstantPool.GetFunctionalInterfaceClassSignature);
-		String functionalInterface = null;
+			// Compare FunctionalInterfaceClass
+			aload_0();
+			invoke(Opcodes.OPC_invokevirtual, 1, 1, ConstantPool.JavaLangInvokeSerializedLambdaConstantPoolName,
+					ConstantPool.GetFunctionalInterfaceClass, ConstantPool.GetFunctionalInterfaceClassSignature);
+			String functionalInterface = null;
 			final TypeBinding expectedType = funcEx.expectedType();
-		if (expectedType instanceof IntersectionTypeBinding18) {
+			if (expectedType instanceof IntersectionTypeBinding18) {
 				functionalInterface = new String(
 						((IntersectionTypeBinding18) expectedType).getSAMType(scope).constantPoolName());
-		} else {
-			functionalInterface = new String(expectedType.constantPoolName());
-		}
-		ldc(functionalInterface);// e.g. "com/foo/X$Foo"
-		invokeObjectEquals();
+			} else {
+				functionalInterface = new String(expectedType.constantPoolName());
+			}
+			ldc(functionalInterface);// e.g. "com/foo/X$Foo"
+			invokeObjectEquals();
 			ifeq(nextOne);
-		
-		// Compare FunctionalInterfaceMethodName
-		aload_0();
-		invoke(Opcodes.OPC_invokevirtual, 1, 1, ConstantPool.JavaLangInvokeSerializedLambdaConstantPoolName, 
+
+			// Compare FunctionalInterfaceMethodName
+			aload_0();
+			invoke(Opcodes.OPC_invokevirtual, 1, 1, ConstantPool.JavaLangInvokeSerializedLambdaConstantPoolName,
 					ConstantPool.GetFunctionalInterfaceMethodName,
 					ConstantPool.GetFunctionalInterfaceMethodNameSignature);
 			ldc(new String(funcEx.descriptor.selector)); // e.g. "m"
-		invokeObjectEquals();
+			invokeObjectEquals();
 			ifeq(nextOne);
 
-		// Compare FunctionalInterfaceMethodSignature
-		aload_0();
-		invoke(Opcodes.OPC_invokevirtual, 1, 1, ConstantPool.JavaLangInvokeSerializedLambdaConstantPoolName, 
+			// Compare FunctionalInterfaceMethodSignature
+			aload_0();
+			invoke(Opcodes.OPC_invokevirtual, 1, 1, ConstantPool.JavaLangInvokeSerializedLambdaConstantPoolName,
 					ConstantPool.GetFunctionalInterfaceMethodSignature,
 					ConstantPool.GetFunctionalInterfaceMethodSignatureSignature);
 			ldc(new String(funcEx.descriptor.original().signature())); // e.g "()I"
-		invokeObjectEquals();
+			invokeObjectEquals();
 			ifeq(nextOne);
 
-		// Compare ImplClass
-		aload_0();
-		invoke(Opcodes.OPC_invokevirtual, 1, 1, ConstantPool.JavaLangInvokeSerializedLambdaConstantPoolName, 
-				ConstantPool.GetImplClass, ConstantPool.GetImplClassSignature);
-		ldc(new String(mb.declaringClass.constantPoolName())); // e.g. "com/foo/X"
-		invokeObjectEquals();
+			// Compare ImplClass
+			aload_0();
+			invoke(Opcodes.OPC_invokevirtual, 1, 1, ConstantPool.JavaLangInvokeSerializedLambdaConstantPoolName,
+					ConstantPool.GetImplClass, ConstantPool.GetImplClassSignature);
+			ldc(new String(mb.declaringClass.constantPoolName())); // e.g. "com/foo/X"
+			invokeObjectEquals();
 			ifeq(nextOne);
 
-		// Compare ImplMethodSignature
-		aload_0();
-		invoke(Opcodes.OPC_invokevirtual, 1, 1, ConstantPool.JavaLangInvokeSerializedLambdaConstantPoolName, 
-				ConstantPool.GetImplMethodSignature, ConstantPool.GetImplMethodSignatureSignature);
-		ldc(new String(mb.signature())); // e.g. "(I)I"
-		invokeObjectEquals();
+			// Compare ImplMethodSignature
+			aload_0();
+			invoke(Opcodes.OPC_invokevirtual, 1, 1, ConstantPool.JavaLangInvokeSerializedLambdaConstantPoolName,
+					ConstantPool.GetImplMethodSignature, ConstantPool.GetImplMethodSignatureSignature);
+			ldc(new String(mb.signature())); // e.g. "(I)I"
+			invokeObjectEquals();
 			ifeq(nextOne);
 
-		// Captured arguments
-		StringBuffer sig = new StringBuffer("("); //$NON-NLS-1$
-		index = 0;
+			// Captured arguments
+			StringBuffer sig = new StringBuffer("("); //$NON-NLS-1$
+			index = 0;
 			boolean isLambda = funcEx instanceof LambdaExpression;
 			TypeBinding receiverType = null;
 			SyntheticArgumentBinding[] outerLocalVariables = null;
@@ -2725,47 +2725,47 @@ public void generateSyntheticBodyForDeserializeLambda(SyntheticMethodBinding met
 				// Should never have outer locals
 			}
 			if (receiverType != null) {
-			aload_0();
-			loadInt(index++);
+				aload_0();
+				loadInt(index++);
 				invoke(Opcodes.OPC_invokevirtual, 1, 1,
 						ConstantPool.JavaLangInvokeSerializedLambdaConstantPoolName,
-					ConstantPool.GetCapturedArg, ConstantPool.GetCapturedArgSignature);
-				checkcast(mb.declaringClass);
-			sig.append(mb.declaringClass.signature());
-		}
+						ConstantPool.GetCapturedArg, ConstantPool.GetCapturedArgSignature);
+				checkcast(receiverType);
+				sig.append(receiverType.signature());
+			}
 			for (int p = 0, max = outerLocalVariables == null ? 0 : outerLocalVariables.length; p < max; p++) {
 				TypeBinding varType = outerLocalVariables[p].type;
-			aload_0();
-			loadInt(index);
+				aload_0();
+				loadInt(index);
 				invoke(Opcodes.OPC_invokevirtual, 1, 1,
 						ConstantPool.JavaLangInvokeSerializedLambdaConstantPoolName,
-					ConstantPool.GetCapturedArg, ConstantPool.GetCapturedArgSignature);
-			if (varType.isBaseType()) {
-				checkcast(scope.boxing(varType));
-				generateUnboxingConversion(varType.id);
-				if (varType.id == TypeIds.T_JavaLangLong || varType.id == TypeIds.T_JavaLangDouble) {
-					index++;
+						ConstantPool.GetCapturedArg, ConstantPool.GetCapturedArgSignature);
+				if (varType.isBaseType()) {
+					checkcast(scope.boxing(varType));
+					generateUnboxingConversion(varType.id);
+					if (varType.id == TypeIds.T_JavaLangLong || varType.id == TypeIds.T_JavaLangDouble) {
+						index++;
+					}
+				} else {
+					checkcast(varType);
 				}
-			} else {
-				checkcast(varType);
+				index++;
+				sig.append(varType.signature());
 			}
-			index++;
-			sig.append(varType.signature());
-		}
-		sig.append(")"); //$NON-NLS-1$
+			sig.append(")"); //$NON-NLS-1$
 			if (funcEx.resolvedType instanceof IntersectionTypeBinding18) {
 				sig.append(((IntersectionTypeBinding18) funcEx.resolvedType).getSAMType(scope).signature());
-		} else {
+			} else {
 				sig.append(funcEx.resolvedType.signature());
-		}
-		// Example: invokeDynamic(0, 0, 1, "m".toCharArray(), "()Lcom/foo/X$Foo;".toCharArray());
+			}
+			// Example: invokeDynamic(0, 0, 1, "m".toCharArray(), "()Lcom/foo/X$Foo;".toCharArray());
 			invokeDynamic(funcEx.bootstrapMethodNumber, index, 1, funcEx.descriptor.selector,
 					sig.toString().toCharArray());
-		areturn();
+			areturn();
 			if (j < count - 1) {
 				nextOne.place();
 				nextOne = j < count - 2 ? new BranchLabel(this) : errorLabel;
-	}
+			}
 		}
 	}
 	
@@ -3071,8 +3071,11 @@ public void generateSyntheticBodyForSwitchTable(SyntheticMethodBinding methodBin
 		}
 	}
 	aload_0();
-	dup();
-	fieldAccess(Opcodes.OPC_putstatic, syntheticFieldBinding, null /* default declaringClass */);
+	if (scope.compilerOptions().complianceLevel < ClassFileConstants.JDK9) {
+		// Modifying a final field outside of the <clinit> method is not allowed in 9
+		dup();
+		fieldAccess(Opcodes.OPC_putstatic, syntheticFieldBinding, null /* default declaringClass */);
+	}
 	areturn();
 	removeVariable(localVariableBinding);
 }
@@ -3106,11 +3109,23 @@ public void generateSyntheticEnclosingInstanceValues(BlockScope currentScope, Re
 		} else if (compliance == ClassFileConstants.JDK1_4){
 			denyEnclosingArgInConstructorCall = invocationSite instanceof AllocationExpression
 				|| invocationSite instanceof ExplicitConstructorCall && ((ExplicitConstructorCall)invocationSite).isSuperAccess();
-		} else {
+		} else if (compliance < ClassFileConstants.JDK1_7) {
 			//compliance >= JDK1_5
 			denyEnclosingArgInConstructorCall = (invocationSite instanceof AllocationExpression
 					|| invocationSite instanceof ExplicitConstructorCall && ((ExplicitConstructorCall)invocationSite).isSuperAccess())
 				&& !targetType.isLocalType();
+		} else {
+			//compliance >= JDK1_7
+			if (invocationSite instanceof AllocationExpression) {
+				denyEnclosingArgInConstructorCall = !targetType.isLocalType();
+			} else if (invocationSite instanceof ExplicitConstructorCall && 
+					((ExplicitConstructorCall)invocationSite).isSuperAccess()) {
+				MethodScope enclosingMethodScope = currentScope.enclosingMethodScope();
+				denyEnclosingArgInConstructorCall = !targetType.isLocalType() && enclosingMethodScope != null
+						&& enclosingMethodScope.isConstructorCall; 
+			} else {
+				denyEnclosingArgInConstructorCall = false;
+			}
 		}
 
 		boolean complyTo14 = compliance >= ClassFileConstants.JDK1_4;
@@ -3417,8 +3432,9 @@ public static TypeBinding getConstantPoolDeclaringClass(Scope currentScope, Meth
 						&& (options.complianceLevel >= ClassFileConstants.JDK1_4 || !(isImplicitThisReceiver && codegenBinding.isStatic()))
 						&& codegenBinding.declaringClass.id != TypeIds.T_JavaLangObject) // no change for Object methods
 					|| !codegenBinding.declaringClass.canBeSeenBy(currentScope)) {
-				if (actualReceiverType.isIntersectionType18()) {
-					TypeBinding[] intersectingTypes = ((IntersectionTypeBinding18)actualReceiverType).getIntersectingTypes();
+				TypeBinding erasure = actualReceiverType.erasure();
+				if (erasure.isIntersectionType18()) {
+					TypeBinding[] intersectingTypes = ((IntersectionTypeBinding18)erasure).getIntersectingTypes();
 					for(int i = 0; i < intersectingTypes.length; i++) {
 						if (intersectingTypes[i].findSuperTypeOriginatingFrom(constantPoolDeclaringClass) != null) {
 							constantPoolDeclaringClass = intersectingTypes[i];
@@ -3426,10 +3442,10 @@ public static TypeBinding getConstantPoolDeclaringClass(Scope currentScope, Meth
 						}
 					}
 				} else {
-					constantPoolDeclaringClass = actualReceiverType.erasure();
+					constantPoolDeclaringClass = erasure;
+				}
 			}
 		}				
-	}
 	}
 	return constantPoolDeclaringClass;
 }
@@ -4129,14 +4145,6 @@ public void imul() {
 	}
 	this.position++;
 	this.bCodeStream[this.classFileOffset++] = Opcodes.OPC_imul;
-}
-
-public int indexOfSameLineEntrySincePC(int pc, int line) {
-	for (int index = pc, max = this.pcToSourceMapSize; index < max; index+=2) {
-		if (this.pcToSourceMap[index+1] == line)
-			return index;
-	}
-	return -1;
 }
 
 public void ineg() {
@@ -6321,7 +6329,7 @@ public void recordPositionsFrom(int startPC, int sourcePos, boolean widen) {
 	}
 	// lastEntryPC represents the endPC of the lastEntry.
 	if (this.pcToSourceMapSize > 0) {
-		int lineNumber;
+		int lineNumber = -1;
 		int previousLineNumber = this.pcToSourceMap[this.pcToSourceMapSize - 1];
 		if (this.lineNumberStart == this.lineNumberEnd) {
 			// method on one line
@@ -6333,218 +6341,23 @@ public void recordPositionsFrom(int startPC, int sourcePos, boolean widen) {
 			if (previousLineNumber == 1) {
 				if (sourcePos < lineSeparatorPositions2[0]) {
 					lineNumber = 1;
-					/* the last recorded entry is on the same line. But it could be relevant to widen this entry.
-					   we want to extend this entry forward in case we generated some bytecode before the last entry that are not related to any statement
-					*/
-					if (startPC < this.pcToSourceMap[this.pcToSourceMapSize - 2]) {
-						int insertionIndex = insertionIndex(this.pcToSourceMap, this.pcToSourceMapSize, startPC);
-						if (insertionIndex != -1) {
-							// widen the existing entry
-							// we have to figure out if we need to move the last entry at another location to keep a sorted table
-							/* First we need to check if at the insertion position there is not an existing entry
-							 * that includes the one we want to insert. This is the case if pcToSourceMap[insertionIndex - 1] == newLine.
-							 * In this case we don't want to change the table. If not, we want to insert a new entry. Prior to insertion
-							 * we want to check if it is worth doing an arraycopy. If not we simply update the recorded pc.
-							 */
-							if (!((insertionIndex > 1) && (this.pcToSourceMap[insertionIndex - 1] == lineNumber))) {
-								if ((this.pcToSourceMapSize > 4) && (this.pcToSourceMap[this.pcToSourceMapSize - 4] > startPC)) {
-									System.arraycopy(this.pcToSourceMap, insertionIndex, this.pcToSourceMap, insertionIndex + 2, this.pcToSourceMapSize - 2 - insertionIndex);
-									this.pcToSourceMap[insertionIndex++] = startPC;
-									this.pcToSourceMap[insertionIndex] = lineNumber;
-								} else {
-									this.pcToSourceMap[this.pcToSourceMapSize - 2] = startPC;
-								}
-							}
-						}
-					}
-					this.lastEntryPC = this.position;
-					return;
 				} else if (length == 1 || sourcePos < lineSeparatorPositions2[1]) {
 					lineNumber = 2;
-					if (startPC <= this.lastEntryPC) {
-						// we forgot to add an entry.
-						// search if an existing entry exists for startPC
-						int insertionIndex = insertionIndex(this.pcToSourceMap, this.pcToSourceMapSize, startPC);
-						if (insertionIndex != -1) {
-							// there is no existing entry starting with startPC.
-							int existingEntryIndex = indexOfSameLineEntrySincePC(startPC, lineNumber); // index for PC
-							/* the existingEntryIndex corresponds to an entry with the same line and a PC >= startPC.
-								in this case it is relevant to widen this entry instead of creating a new one.
-								line1: this(a,
-								  b,
-								  c);
-								with this code we generate each argument. We generate a aload0 to invoke the constructor. There is no entry for this
-								aload0 bytecode. The first entry is the one for the argument a.
-								But we want the constructor call to start at the aload0 pc and not just at the pc of the first argument.
-								So we widen the existing entry (if there is one) or we create a new entry with the startPC.
-							*/
-							if (existingEntryIndex != -1) {
-								// widen existing entry
-								this.pcToSourceMap[existingEntryIndex] = startPC;
-							} else if (insertionIndex < 1 || this.pcToSourceMap[insertionIndex - 1] != lineNumber) {
-								// we have to add an entry that won't be sorted. So we sort the pcToSourceMap.
-								System.arraycopy(this.pcToSourceMap, insertionIndex, this.pcToSourceMap, insertionIndex + 2, this.pcToSourceMapSize - insertionIndex);
-								this.pcToSourceMap[insertionIndex++] = startPC;
-								this.pcToSourceMap[insertionIndex] = lineNumber;
-								this.pcToSourceMapSize += 2;
-							}
-						} else if (this.position != this.lastEntryPC) { // no bytecode since last entry pc
-							if (this.lastEntryPC == startPC || this.lastEntryPC == this.pcToSourceMap[this.pcToSourceMapSize - 2]) {
-								this.pcToSourceMap[this.pcToSourceMapSize - 1] = lineNumber;
-							} else {
-								this.pcToSourceMap[this.pcToSourceMapSize++] = this.lastEntryPC;
-								this.pcToSourceMap[this.pcToSourceMapSize++] = lineNumber;
-							}
-						} else if (this.pcToSourceMap[this.pcToSourceMapSize - 1] < lineNumber && widen) {
-							// see if we can widen the existing entry
-							this.pcToSourceMap[this.pcToSourceMapSize - 1] = lineNumber;
-						}
-					} else {
-						// we can safely add the new entry. The endPC of the previous entry is not in conflit with the startPC of the new entry.
-						this.pcToSourceMap[this.pcToSourceMapSize++] = startPC;
-						this.pcToSourceMap[this.pcToSourceMapSize++] = lineNumber;
-					}
-					this.lastEntryPC = this.position;
-					return;
-				} else {
-					// since lineSeparatorPositions is zero-based, we pass this.lineNumberStart - 1 and this.lineNumberEnd - 1
-					lineNumber = Util.getLineNumber(sourcePos, this.lineSeparatorPositions, this.lineNumberStart - 1, this.lineNumberEnd - 1);
 				}
 			} else if (previousLineNumber < length) {
 				if (lineSeparatorPositions2[previousLineNumber - 2] < sourcePos) {
 					if (sourcePos < lineSeparatorPositions2[previousLineNumber - 1]) {
 						lineNumber = previousLineNumber;
-						/* the last recorded entry is on the same line. But it could be relevant to widen this entry.
-						   we want to extend this entry forward in case we generated some bytecode before the last entry that are not related to any statement
-						*/
-						if (startPC < this.pcToSourceMap[this.pcToSourceMapSize - 2]) {
-							int insertionIndex = insertionIndex(this.pcToSourceMap, this.pcToSourceMapSize, startPC);
-							if (insertionIndex != -1) {
-								// widen the existing entry
-								// we have to figure out if we need to move the last entry at another location to keep a sorted table
-								/* First we need to check if at the insertion position there is not an existing entry
-								 * that includes the one we want to insert. This is the case if pcToSourceMap[insertionIndex - 1] == newLine.
-								 * In this case we don't want to change the table. If not, we want to insert a new entry. Prior to insertion
-								 * we want to check if it is worth doing an arraycopy. If not we simply update the recorded pc.
-								 */
-								if (!((insertionIndex > 1) && (this.pcToSourceMap[insertionIndex - 1] == lineNumber))) {
-									if ((this.pcToSourceMapSize > 4) && (this.pcToSourceMap[this.pcToSourceMapSize - 4] > startPC)) {
-										System.arraycopy(this.pcToSourceMap, insertionIndex, this.pcToSourceMap, insertionIndex + 2, this.pcToSourceMapSize - 2 - insertionIndex);
-										this.pcToSourceMap[insertionIndex++] = startPC;
-										this.pcToSourceMap[insertionIndex] = lineNumber;
-									} else {
-										this.pcToSourceMap[this.pcToSourceMapSize - 2] = startPC;
-									}
-								}
-							}
-						}
-						this.lastEntryPC = this.position;
-						return;
 					} else if (sourcePos < lineSeparatorPositions2[previousLineNumber]) {
 						lineNumber = previousLineNumber + 1;
-						if (startPC <= this.lastEntryPC) {
-							// we forgot to add an entry.
-							// search if an existing entry exists for startPC
-							int insertionIndex = insertionIndex(this.pcToSourceMap, this.pcToSourceMapSize, startPC);
-							if (insertionIndex != -1) {
-								// there is no existing entry starting with startPC.
-								int existingEntryIndex = indexOfSameLineEntrySincePC(startPC, lineNumber); // index for PC
-								/* the existingEntryIndex corresponds to an entry with the same line and a PC >= startPC.
-									in this case it is relevant to widen this entry instead of creating a new one.
-									line1: this(a,
-									  b,
-									  c);
-									with this code we generate each argument. We generate a aload0 to invoke the constructor. There is no entry for this
-									aload0 bytecode. The first entry is the one for the argument a.
-									But we want the constructor call to start at the aload0 pc and not just at the pc of the first argument.
-									So we widen the existing entry (if there is one) or we create a new entry with the startPC.
-								*/
-								if (existingEntryIndex != -1) {
-									// widen existing entry
-									this.pcToSourceMap[existingEntryIndex] = startPC;
-								} else if (insertionIndex < 1 || this.pcToSourceMap[insertionIndex - 1] != lineNumber) {
-									// we have to add an entry that won't be sorted. So we sort the pcToSourceMap.
-									System.arraycopy(this.pcToSourceMap, insertionIndex, this.pcToSourceMap, insertionIndex + 2, this.pcToSourceMapSize - insertionIndex);
-									this.pcToSourceMap[insertionIndex++] = startPC;
-									this.pcToSourceMap[insertionIndex] = lineNumber;
-									this.pcToSourceMapSize += 2;
-								}
-							} else if (this.position != this.lastEntryPC) { // no bytecode since last entry pc
-								if (this.lastEntryPC == startPC || this.lastEntryPC == this.pcToSourceMap[this.pcToSourceMapSize - 2]) {
-									this.pcToSourceMap[this.pcToSourceMapSize - 1] = lineNumber;
-								} else {
-									this.pcToSourceMap[this.pcToSourceMapSize++] = this.lastEntryPC;
-									this.pcToSourceMap[this.pcToSourceMapSize++] = lineNumber;
-								}
-							} else if (this.pcToSourceMap[this.pcToSourceMapSize - 1] < lineNumber && widen) {
-								// see if we can widen the existing entry
-								this.pcToSourceMap[this.pcToSourceMapSize - 1] = lineNumber;
-							}
-						} else {
-							// we can safely add the new entry. The endPC of the previous entry is not in conflit with the startPC of the new entry.
-							this.pcToSourceMap[this.pcToSourceMapSize++] = startPC;
-							this.pcToSourceMap[this.pcToSourceMapSize++] = lineNumber;
-						}
-						this.lastEntryPC = this.position;
-						return;
-					} else {
-						// since lineSeparatorPositions is zero-based, we pass this.lineNumberStart - 1 and this.lineNumberEnd - 1
-						lineNumber = Util.getLineNumber(sourcePos, this.lineSeparatorPositions, this.lineNumberStart - 1, this.lineNumberEnd - 1);
 					}
-				} else {
-					// since lineSeparatorPositions is zero-based, we pass this.lineNumberStart - 1 and this.lineNumberEnd - 1
-					lineNumber = Util.getLineNumber(sourcePos, this.lineSeparatorPositions, this.lineNumberStart - 1, this.lineNumberEnd - 1);
 				}
 			} else if (lineSeparatorPositions2[length - 1] < sourcePos) {
 				lineNumber = length + 1;
-				if (startPC <= this.lastEntryPC) {
-					// we forgot to add an entry.
-					// search if an existing entry exists for startPC
-					int insertionIndex = insertionIndex(this.pcToSourceMap, this.pcToSourceMapSize, startPC);
-					if (insertionIndex != -1) {
-						// there is no existing entry starting with startPC.
-						int existingEntryIndex = indexOfSameLineEntrySincePC(startPC, lineNumber); // index for PC
-						/* the existingEntryIndex corresponds to an entry with the same line and a PC >= startPC.
-							in this case it is relevant to widen this entry instead of creating a new one.
-							line1: this(a,
-							  b,
-							  c);
-							with this code we generate each argument. We generate a aload0 to invoke the constructor. There is no entry for this
-							aload0 bytecode. The first entry is the one for the argument a.
-							But we want the constructor call to start at the aload0 pc and not just at the pc of the first argument.
-							So we widen the existing entry (if there is one) or we create a new entry with the startPC.
-						*/
-						if (existingEntryIndex != -1) {
-							// widen existing entry
-							this.pcToSourceMap[existingEntryIndex] = startPC;
-						} else if (insertionIndex < 1 || this.pcToSourceMap[insertionIndex - 1] != lineNumber) {
-							// we have to add an entry that won't be sorted. So we sort the pcToSourceMap.
-							System.arraycopy(this.pcToSourceMap, insertionIndex, this.pcToSourceMap, insertionIndex + 2, this.pcToSourceMapSize - insertionIndex);
-							this.pcToSourceMap[insertionIndex++] = startPC;
-							this.pcToSourceMap[insertionIndex] = lineNumber;
-							this.pcToSourceMapSize += 2;
-						}
-					} else if (this.position != this.lastEntryPC) { // no bytecode since last entry pc
-						if (this.lastEntryPC == startPC || this.lastEntryPC == this.pcToSourceMap[this.pcToSourceMapSize - 2]) {
-							this.pcToSourceMap[this.pcToSourceMapSize - 1] = lineNumber;
-						} else {
-							this.pcToSourceMap[this.pcToSourceMapSize++] = this.lastEntryPC;
-							this.pcToSourceMap[this.pcToSourceMapSize++] = lineNumber;
-						}
-					} else if (this.pcToSourceMap[this.pcToSourceMapSize - 1] < lineNumber && widen) {
-						// see if we can widen the existing entry
-						this.pcToSourceMap[this.pcToSourceMapSize - 1] = lineNumber;
-					}
-				} else {
-					// we can safely add the new entry. The endPC of the previous entry is not in conflit with the startPC of the new entry.
-					this.pcToSourceMap[this.pcToSourceMapSize++] = startPC;
-					this.pcToSourceMap[this.pcToSourceMapSize++] = lineNumber;
-				}
-				this.lastEntryPC = this.position;
-				return;
-			} else {
+			}
+			if(lineNumber == -1) {
 				// since lineSeparatorPositions is zero-based, we pass this.lineNumberStart - 1 and this.lineNumberEnd - 1
-				lineNumber = Util.getLineNumber(sourcePos, this.lineSeparatorPositions, this.lineNumberStart - 1, this.lineNumberEnd - 1);
+				lineNumber = Util.getLineNumber(sourcePos, lineSeparatorPositions2, this.lineNumberStart - 1, this.lineNumberEnd - 1);
 			}
 		}
 		// in this case there is already an entry in the table
@@ -6555,26 +6368,26 @@ public void recordPositionsFrom(int startPC, int sourcePos, boolean widen) {
 				int insertionIndex = insertionIndex(this.pcToSourceMap, this.pcToSourceMapSize, startPC);
 				if (insertionIndex != -1) {
 					// there is no existing entry starting with startPC.
-					int existingEntryIndex = indexOfSameLineEntrySincePC(startPC, lineNumber); // index for PC
-					/* the existingEntryIndex corresponds to an entry with the same line and a PC >= startPC.
-						in this case it is relevant to widen this entry instead of creating a new one.
-						line1: this(a,
-						  b,
-						  c);
-						with this code we generate each argument. We generate a aload0 to invoke the constructor. There is no entry for this
-						aload0 bytecode. The first entry is the one for the argument a.
-						But we want the constructor call to start at the aload0 pc and not just at the pc of the first argument.
-						So we widen the existing entry (if there is one) or we create a new entry with the startPC.
-					*/
-					if (existingEntryIndex != -1) {
-						// widen existing entry
-						this.pcToSourceMap[existingEntryIndex] = startPC;
-					} else if (insertionIndex < 1 || this.pcToSourceMap[insertionIndex - 1] != lineNumber) {
-						// we have to add an entry that won't be sorted. So we sort the pcToSourceMap.
-						System.arraycopy(this.pcToSourceMap, insertionIndex, this.pcToSourceMap, insertionIndex + 2, this.pcToSourceMapSize - insertionIndex);
-						this.pcToSourceMap[insertionIndex++] = startPC;
-						this.pcToSourceMap[insertionIndex] = lineNumber;
-						this.pcToSourceMapSize += 2;
+					if (!((insertionIndex > 1) && (this.pcToSourceMap[insertionIndex - 1] == lineNumber))) {
+						if(insertionIndex< this.pcToSourceMapSize && this.pcToSourceMap[insertionIndex + 1] == lineNumber) {
+							/* the entry at insertionIndex corresponds to an entry with the same line and a PC >= startPC.
+							in this case it is relevant to widen this entry instead of creating a new one.
+							line1: this(a,
+							  b,
+							  c);
+							with this code we generate each argument. We generate a aload0 to invoke the constructor. There is no entry for this
+							aload0 bytecode. The first entry is the one for the argument a.
+							But we want the constructor call to start at the aload0 pc and not just at the pc of the first argument.
+							So we widen the existing entry
+							 */
+							this.pcToSourceMap[insertionIndex] = startPC;
+						} else {
+							// we have to add an entry that won't be sorted. So we sort the pcToSourceMap.
+							System.arraycopy(this.pcToSourceMap, insertionIndex, this.pcToSourceMap, insertionIndex + 2, this.pcToSourceMapSize - insertionIndex);
+							this.pcToSourceMap[insertionIndex++] = startPC;
+							this.pcToSourceMap[insertionIndex] = lineNumber;
+							this.pcToSourceMapSize += 2;
+						}
 					}
 				} else if (this.position != this.lastEntryPC) { // no bytecode since last entry pc
 					if (this.lastEntryPC == startPC || this.lastEntryPC == this.pcToSourceMap[this.pcToSourceMapSize - 2]) {
@@ -6607,12 +6420,13 @@ public void recordPositionsFrom(int startPC, int sourcePos, boolean widen) {
 					 * we want to check if it is worth doing an arraycopy. If not we simply update the recorded pc.
 					 */
 					if (!((insertionIndex > 1) && (this.pcToSourceMap[insertionIndex - 1] == lineNumber))) {
-						if ((this.pcToSourceMapSize > 4) && (this.pcToSourceMap[this.pcToSourceMapSize - 4] > startPC)) {
-							System.arraycopy(this.pcToSourceMap, insertionIndex, this.pcToSourceMap, insertionIndex + 2, this.pcToSourceMapSize - 2 - insertionIndex);
+						if (this.pcToSourceMap[insertionIndex + 1] != lineNumber) {
+							System.arraycopy(this.pcToSourceMap, insertionIndex, this.pcToSourceMap, insertionIndex + 2, this.pcToSourceMapSize - insertionIndex);
 							this.pcToSourceMap[insertionIndex++] = startPC;
 							this.pcToSourceMap[insertionIndex] = lineNumber;
+							this.pcToSourceMapSize += 2;
 						} else {
-							this.pcToSourceMap[this.pcToSourceMapSize - 2] = startPC;
+							this.pcToSourceMap[insertionIndex] = startPC;
 						}
 					}
 				}
@@ -6634,7 +6448,6 @@ public void recordPositionsFrom(int startPC, int sourcePos, boolean widen) {
 		this.lastEntryPC = this.position;
 	}
 }
-
 /**
  * @param anExceptionLabel org.aspectj.org.eclipse.jdt.internal.compiler.codegen.ExceptionLabel
  */
@@ -6750,7 +6563,7 @@ public void reset(ClassFile givenClassFile) {
 	this.targetLevel = givenClassFile.targetJDK;
 	int produceAttributes = givenClassFile.produceAttributes;
 	this.generateAttributes = produceAttributes;
-	if ((produceAttributes & ClassFileConstants.ATTR_LINES) != 0) {
+	if ((produceAttributes & ClassFileConstants.ATTR_LINES) != 0 && givenClassFile.referenceBinding != null) {
 		this.lineSeparatorPositions = givenClassFile.referenceBinding.scope.referenceCompilationUnit().compilationResult.getLineSeparatorPositions();
 	} else {
 		this.lineSeparatorPositions = null;
@@ -7136,6 +6949,7 @@ public void throwAnyException(LocalVariableBinding anyExceptionVariable) {
 	athrow();
 }
 
+@Override
 public String toString() {
 	StringBuffer buffer = new StringBuffer("( position:"); //$NON-NLS-1$
 	buffer.append(this.position);

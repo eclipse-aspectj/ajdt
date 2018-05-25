@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -17,6 +17,7 @@ import org.aspectj.org.eclipse.jdt.core.JavaCore;
 import org.aspectj.org.eclipse.jdt.core.compiler.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ClassFile;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerStats;
+import org.aspectj.org.eclipse.jdt.internal.core.CompilationGroup;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Messages;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
 
@@ -27,15 +28,27 @@ public class BatchImageBuilder extends AbstractImageBuilder {
 
 	IncrementalImageBuilder incrementalBuilder; // if annotations or secondary types have to be processed after the compile loop
 	ArrayList secondaryTypes; // qualified names for all secondary types found during batch compile
-	StringSet typeLocatorsWithUndefinedTypes; // type locators for all source files with errors that may be caused by 'not found' secondary types
+	Set<String> typeLocatorsWithUndefinedTypes; // type locators for all source files with errors that may be caused by 'not found' secondary types
+	final CompilationGroup compilationGroup;
 
-protected BatchImageBuilder(JavaBuilder javaBuilder, boolean buildStarting) {
-	super(javaBuilder, buildStarting, null);
+protected BatchImageBuilder(JavaBuilder javaBuilder, boolean buildStarting, CompilationGroup compilationGroup) {
+	super(javaBuilder, buildStarting, null, compilationGroup);
+	this.compilationGroup = compilationGroup;
 	this.nameEnvironment.isIncrementalBuild = false;
 	this.incrementalBuilder = null;
 	this.secondaryTypes = null;
 	this.typeLocatorsWithUndefinedTypes = null;
 }
+
+protected BatchImageBuilder(BatchImageBuilder batchImageBuilder, boolean buildStarting, CompilationGroup compilationGroup) {
+	super(batchImageBuilder.javaBuilder, buildStarting, batchImageBuilder.newState, compilationGroup);
+	this.compilationGroup = compilationGroup;
+	this.nameEnvironment.isIncrementalBuild = false;
+	this.incrementalBuilder = null;
+	this.secondaryTypes = null;
+	this.typeLocatorsWithUndefinedTypes = null;
+}
+
 
 public void build() {
 	if (JavaBuilder.DEBUG)
@@ -43,12 +56,14 @@ public void build() {
 
 	try {
 		this.notifier.subTask(Messages.bind(Messages.build_cleaningOutput, this.javaBuilder.currentProject.getName()));
-		JavaBuilder.removeProblemsAndTasksFor(this.javaBuilder.currentProject);
+		if(this.compilationGroup != CompilationGroup.TEST) {
+			JavaBuilder.removeProblemsAndTasksFor(this.javaBuilder.currentProject);
+		}
 		cleanOutputFolders(true);
 		this.notifier.updateProgressDelta(0.05f);
 
 		this.notifier.subTask(Messages.build_analyzingSources);
-		ArrayList sourceFiles = new ArrayList(33);
+		LinkedHashSet<SourceFile> sourceFiles = new LinkedHashSet<>(33);
 		addAllSourceFiles(sourceFiles);
 		this.notifier.updateProgressDelta(0.10f);
 
@@ -78,6 +93,7 @@ public void build() {
 	}
 }
 
+@Override
 protected void acceptSecondaryType(ClassFile classFile) {
 	if (this.secondaryTypes != null)
 		this.secondaryTypes.add(classFile.fileName());
@@ -87,11 +103,15 @@ protected void cleanOutputFolders(boolean copyBack) throws CoreException {
 	boolean deleteAll = JavaCore.CLEAN.equals(
 		this.javaBuilder.javaProject.getOption(JavaCore.CORE_JAVA_BUILD_CLEAN_OUTPUT_FOLDER, true));
 	if (deleteAll) {
-		if (this.javaBuilder.participants != null)
-			for (int i = 0, l = this.javaBuilder.participants.length; i < l; i++)
-				this.javaBuilder.participants[i].cleanStarting(this.javaBuilder.javaProject);
+		if (this.compilationGroup != CompilationGroup.TEST) {
+			// CompilationGroup.MAIN is done first, so this notifies the participants only once
+			// calling this for CompilationGroup.TEST could cases generated files for CompilationGroup.MAIN to be deleted. 
+			if (this.javaBuilder.participants != null)
+				for (int i = 0, l = this.javaBuilder.participants.length; i < l; i++)
+					this.javaBuilder.participants[i].cleanStarting(this.javaBuilder.javaProject);
+		}
 
-		ArrayList visited = new ArrayList(this.sourceLocations.length);
+		Set<IContainer> visited = new LinkedHashSet<>(this.sourceLocations.length);
 		for (int i = 0, l = this.sourceLocations.length; i < l; i++) {
 			this.notifier.subTask(Messages.bind(Messages.build_cleaningOutput, this.javaBuilder.currentProject.getName()));
 			ClasspathMultiDirectory sourceLocation = this.sourceLocations[i];
@@ -105,6 +125,7 @@ protected void cleanOutputFolders(boolean copyBack) throws CoreException {
 						if (!member.isDerived()) {
 							member.accept(
 								new IResourceVisitor() {
+									@Override
 									public boolean visit(IResource resource) throws CoreException {
 										resource.setDerived(true, null);
 										return resource.getType() != IResource.FILE;
@@ -134,6 +155,7 @@ protected void cleanOutputFolders(boolean copyBack) throws CoreException {
 						: null; // ignore inclusionPatterns if output folder == another source folder... not this one
 				sourceLocation.binaryFolder.accept(
 					new IResourceProxyVisitor() {
+						@Override
 						public boolean visit(IResourceProxy proxy) throws CoreException {
 							if (proxy.getType() == IResource.FILE) {
 								if (org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.isClassFileName(proxy.getName())) {
@@ -174,6 +196,7 @@ protected void cleanOutputFolders(boolean copyBack) throws CoreException {
 	}
 }
 
+@Override
 protected void cleanUp() {
 	this.incrementalBuilder = null;
 	this.secondaryTypes = null;
@@ -181,6 +204,7 @@ protected void cleanUp() {
 	super.cleanUp();
 }
 
+@Override
 protected void compile(SourceFile[] units, SourceFile[] additionalUnits, boolean compilingFirstGroup) {
 	if (additionalUnits != null && this.secondaryTypes == null)
 		this.secondaryTypes = new ArrayList(7);
@@ -199,6 +223,7 @@ protected void copyExtraResourcesBack(ClasspathMultiDirectory sourceLocation, fi
 	final boolean isAlsoProject = sourceLocation.sourceFolder.equals(this.javaBuilder.currentProject);
 	sourceLocation.sourceFolder.accept(
 		new IResourceProxyVisitor() {
+			@Override
 			public boolean visit(IResourceProxy proxy) throws CoreException {
 				IResource resource = null;
 				switch(proxy.getType()) {
@@ -270,11 +295,12 @@ private void printStats() {
 	System.out.println(", generate: " + compilerStats.generateTime + " ms (" + ((int) (compilerStats.generateTime * 1000.0 / time)) / 10.0 + "%)"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 }
 
+@Override
 protected void processAnnotationResults(CompilationParticipantResult[] results) {
 	// to compile the compilation participant results, we need to incrementally recompile all affected types
 	// whenever the generated types are initially added or structurally changed
 	if (this.incrementalBuilder == null)
-		this.incrementalBuilder = new IncrementalImageBuilder(this);
+		this.incrementalBuilder = new IncrementalImageBuilder(this, this.compilationGroup);
 	this.incrementalBuilder.processAnnotationResults(results);
 }
 
@@ -283,12 +309,12 @@ protected void rebuildTypesAffectedBySecondaryTypes() {
 	// compile groups, we need to incrementally recompile all affected types as if the missing
 	// secondary types have just been added, see bug 146324
 	if (this.incrementalBuilder == null)
-		this.incrementalBuilder = new IncrementalImageBuilder(this);
+		this.incrementalBuilder = new IncrementalImageBuilder(this, this.compilationGroup);
 
 	int count = this.secondaryTypes.size();
-	StringSet qualifiedNames = new StringSet(count * 2);
-	StringSet simpleNames = new StringSet(count);
-	StringSet rootNames = new StringSet(3);
+	Set<String> qualifiedNames = new HashSet<>(count * 2);
+	Set<String> simpleNames = new HashSet<>(count);
+	Set<String> rootNames = new HashSet<>(3);
 	while (--count >=0) {
 		char[] secondaryTypeName = (char[]) this.secondaryTypes.get(count);
 		IPath path = new Path(null, new String(secondaryTypeName));
@@ -301,6 +327,7 @@ protected void rebuildTypesAffectedBySecondaryTypes() {
 		this.typeLocatorsWithUndefinedTypes);
 }
 
+@Override
 protected void storeProblemsFor(SourceFile sourceFile, CategorizedProblem[] problems) throws CoreException {
 	if (sourceFile == null || problems == null || problems.length == 0) return;
 
@@ -308,7 +335,7 @@ protected void storeProblemsFor(SourceFile sourceFile, CategorizedProblem[] prob
 		CategorizedProblem problem = problems[i];
 		if (problem != null && problem.getID() == IProblem.UndefinedType) {
 			if (this.typeLocatorsWithUndefinedTypes == null)
-				this.typeLocatorsWithUndefinedTypes = new StringSet(3);
+				this.typeLocatorsWithUndefinedTypes = new HashSet<>(3);
 			this.typeLocatorsWithUndefinedTypes.add(sourceFile.typeLocator());
 			break;
 		}
@@ -317,6 +344,7 @@ protected void storeProblemsFor(SourceFile sourceFile, CategorizedProblem[] prob
 	super.storeProblemsFor(sourceFile, problems);
 }
 
+@Override
 public String toString() {
 	return "batch image builder for:\n\tnew state: " + this.newState; //$NON-NLS-1$
 }

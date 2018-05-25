@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -58,10 +58,11 @@ public CodeSnippetMessageSend(EvaluationContext evaluationContext) {
  * @param codeStream org.aspectj.org.eclipse.jdt.internal.compiler.codegen.CodeStream
  * @param valueRequired boolean
  */
+@Override
 public void generateCode(BlockScope currentScope, CodeStream codeStream, boolean valueRequired) {
 	int pc = codeStream.position;
 	MethodBinding codegenBinding = this.binding.original();
-	if (codegenBinding.canBeSeenBy(this.actualReceiverType, this, currentScope)) {
+	if (codegenBinding.canBeSeenBy(this.actualReceiverType.original(), this, currentScope)) {
 		// generate receiver/enclosing instance access
 		boolean isStatic = codegenBinding.isStatic();
 		// outer access ?
@@ -175,6 +176,7 @@ public void generateCode(BlockScope currentScope, CodeStream codeStream, boolean
 	}
 	codeStream.recordPositionsFrom(pc, (int)(this.nameSourcePosition >>> 32)); // highlight selector
 }
+@Override
 public void manageSyntheticAccessIfNecessary(BlockScope currentScope, FlowInfo flowInfo) {
 
 	if ((flowInfo.tagBits & FlowInfo.UNREACHABLE_OR_DEAD) == 0) {
@@ -191,6 +193,7 @@ public void manageSyntheticAccessIfNecessary(BlockScope currentScope, FlowInfo f
 		}
 	}
 }
+@Override
 public TypeBinding resolveType(BlockScope scope) {
 	// Answer the signature return type
 	// Base type promotion

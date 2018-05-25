@@ -26,16 +26,19 @@ public class TypeParameter extends SourceRefElement implements ITypeParameter {
 		this.name = name;
 	}
 
+	@Override
 	public boolean equals(Object o) {
 		if (!(o instanceof TypeParameter)) return false;
 		return super.equals(o);
 	}
 
+	@Override
 	public String[] getBounds() throws JavaModelException {
 		TypeParameterElementInfo info = (TypeParameterElementInfo) getElementInfo();
 		return CharOperation.toStrings(info.bounds);
 	}
 	
+	@Override
 	public String[] getBoundsSignatures() throws JavaModelException {
 		
 		String[] boundSignatures = null;
@@ -64,18 +67,22 @@ public class TypeParameter extends SourceRefElement implements ITypeParameter {
 		return boundSignatures;
 	}
 	
+	@Override
 	public IMember getDeclaringMember() {
 		return (IMember) getParent();
 	}
 
+	@Override
 	public String getElementName() {
 		return this.name;
 	}
 
+	@Override
 	public int getElementType() {
 		return TYPE_PARAMETER;
 	}
 
+	@Override
 	protected char getHandleMementoDelimiter() {
 		return JavaElement.JEM_TYPE_PARAMETER;
 	}
@@ -99,11 +106,12 @@ public class TypeParameter extends SourceRefElement implements ITypeParameter {
 		return buf.toString();
 	}
 
+	@Override
 	public ISourceRange getNameRange() throws JavaModelException {
 		SourceMapper mapper= getSourceMapper();
 		if (mapper != null) {
 			// ensure the class file's buffer is open so that source ranges are computed
-			ClassFile classFile = (ClassFile)getClassFile();
+			IClassFile classFile = getClassFile();
 			if (classFile != null) {
 				classFile.getBuffer();
 				return mapper.getNameRange(this);
@@ -116,11 +124,12 @@ public class TypeParameter extends SourceRefElement implements ITypeParameter {
 	/*
 	 * @see ISourceReference
 	 */
+	@Override
 	public ISourceRange getSourceRange() throws JavaModelException {
 		SourceMapper mapper= getSourceMapper();
 		if (mapper != null) {
 			// ensure the class file's buffer is open so that source ranges are computed
-			ClassFile classFile = (ClassFile)getClassFile();
+			IClassFile classFile = getClassFile();
 			if (classFile != null) {
 				classFile.getBuffer();
 				return mapper.getSourceRange(this);
@@ -129,6 +138,7 @@ public class TypeParameter extends SourceRefElement implements ITypeParameter {
 		return super.getSourceRange();
 	}
 
+	@Override
 	public IClassFile getClassFile() {
 		return ((JavaElement)getParent()).getClassFile();
 	}
@@ -137,10 +147,12 @@ public class TypeParameter extends SourceRefElement implements ITypeParameter {
 	 * {@inheritDoc}
 	 * @since 3.7
 	 */
+	@Override
 	public ITypeRoot getTypeRoot() {
 		return this.getDeclaringMember().getTypeRoot();
 	}
 
+	@Override
 	protected void toStringName(StringBuffer buffer) {
 		buffer.append('<');
 		buffer.append(getElementName());

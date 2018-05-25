@@ -1,10 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2006, 2015 BEA Systems, Inc. and others
+ * Copyright (c) 2006, 2017 BEA Systems, Inc. and others
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- *
+ * 
  * Contributors:
  *    wharley@bea.com - initial API and implementation
  *    IBM Corporation - Fix for bug 341494
@@ -27,6 +27,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.lang.model.SourceVersion;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
@@ -58,22 +59,28 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TagBits;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
 
 /**
- * Utilities for working with language elements.
+ * Utilities for working with java8 and earlier language elements.
  * There is one of these for every ProcessingEnvironment.
+ * 
+ * @see ElementsImpl9
  */
 public class ElementsImpl implements Elements {
 
 	// Used for parsing Javadoc comments: matches initial delimiter, followed by whitespace
 	private static final Pattern INITIAL_DELIMITER = Pattern.compile("^\\s*/\\*+"); //$NON-NLS-1$
 
-	private final BaseProcessingEnvImpl _env;
+	protected final BaseProcessingEnvImpl _env;
 
 	/*
 	 * The processing env creates and caches an ElementsImpl.  Other clients should
 	 * not create their own; they should ask the env for it.
 	 */
-	public ElementsImpl(BaseProcessingEnvImpl env) {
+	protected ElementsImpl(BaseProcessingEnvImpl env) {
 		_env = env;
+	}
+
+	public static ElementsImpl create(BaseProcessingEnvImpl env) {
+		return (SourceVersion.latest().compareTo(SourceVersion.RELEASE_8) <= 0)? new ElementsImpl(env): new ElementsImpl9(env);
 	}
 
 	/**
@@ -553,16 +560,16 @@ public class ElementsImpl implements Elements {
 
 	@Override
 	public PackageElement getPackageElement(CharSequence name) {
-		LookupEnvironment le = _env.getLookupEnvironment();
+		LookupEnvironment le = _env.getLookupEnvironment(); // FIXME(SHMOD): does this lookup need to be module-aware?
 		if (name.length() == 0) {
-			return new PackageElementImpl(_env, le.defaultPackage);
+			return (PackageElement) _env.getFactory().newElement(le.defaultPackage);
 		}
 		char[] packageName = name.toString().toCharArray();
 		PackageBinding packageBinding = le.createPackage(CharOperation.splitOn('.', packageName));
 		if (packageBinding == null) {
 			return null;
 		}
-		return new PackageElementImpl(_env, packageBinding);
+		return (PackageElement) _env.getFactory().newElement(packageBinding);
 	}
 
 	@Override
@@ -702,6 +709,7 @@ public class ElementsImpl implements Elements {
 		}
 	}
 
+	@Override
 	public boolean isFunctionalInterface(TypeElement type) {
 		if (type != null && type.getKind() == ElementKind.INTERFACE) {
 			ReferenceBinding binding = (ReferenceBinding)((TypeElementImpl) type)._binding;

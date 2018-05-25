@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -57,6 +57,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.util.HashtableOfObjectToInt
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.Messages;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
 import org.aspectj.org.eclipse.jdt.internal.core.BinaryMember;
+import org.aspectj.org.eclipse.jdt.internal.core.BinaryModule;
 import org.aspectj.org.eclipse.jdt.internal.core.CancelableNameEnvironment;
 import org.aspectj.org.eclipse.jdt.internal.core.CancelableProblemFactory;
 import org.aspectj.org.eclipse.jdt.internal.core.INameEnvironmentWithProgress;
@@ -167,6 +168,7 @@ class CompilationUnitResolver extends Compiler {
 	/*
 	 * Add additional source types
 	 */
+	@Override
 	public void accept(ISourceType[] sourceTypes, PackageBinding packageBinding, AccessRestriction accessRestriction) {
 		// Need to reparse the entire source of the compilation unit so as to get source positions
 		// (case of processing a source that was not known by beginToCompile (e.g. when asking to createBinding))
@@ -174,6 +176,7 @@ class CompilationUnitResolver extends Compiler {
 		accept((org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit) sourceType.getHandle().getCompilationUnit(), accessRestriction);
 	}
 	
+	@Override
 	public synchronized void accept(org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit sourceUnit, AccessRestriction accessRestriction) {
 		super.accept(sourceUnit, accessRestriction);
 	}
@@ -206,6 +209,9 @@ class CompilationUnitResolver extends Compiler {
 							String.valueOf(maxUnits),
 							new String(sourceUnit.getFileName())
 						}));
+				}
+				if (this.parser instanceof CommentRecorderParser) {
+					((CommentRecorderParser) this.parser).resetComments();
 				}
 				// diet parsing for large collection of units
 				if (this.totalUnits < this.parseThreshold) {
@@ -248,6 +254,8 @@ class CompilationUnitResolver extends Compiler {
 			} else {
 				char[] key = resolver.hasTypeName()
 					? resolver.getKey().toCharArray() // binary binding
+					: resolver.hasModuleName()
+					    ? resolver.moduleName()
 					: CharOperation.concatWith(resolver.compoundName(), '.'); // package binding or base type binding
 				this.requestedKeys.put(key, resolver);
 			}
@@ -326,12 +334,15 @@ class CompilationUnitResolver extends Compiler {
 
 		// passes the initial set of files to the batch oracle (to avoid finding more than once the same units when case insensitive match)
 		return new IErrorHandlingPolicy() {
+			@Override
 			public boolean stopOnFirstError() {
 				return false;
 			}
+			@Override
 			public boolean proceedOnErrors() {
 				return false; // stop if there are some errors
 			}
+			@Override
 			public boolean ignoreAllErrors() {
 				return false;
 			}
@@ -343,18 +354,18 @@ class CompilationUnitResolver extends Compiler {
 	 */
 	protected static ICompilerRequestor getRequestor() {
 		return new ICompilerRequestor() {
+			@Override
 			public void acceptResult(CompilationResult compilationResult) {
 				// do nothing
 			}
 		};
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.Compiler#initializeParser()
-	 */
+	@Override
 	public void initializeParser() {
 		this.parser = new CommentRecorderParser(this.problemReporter, false);
 	}
+	@Override
 	public void process(CompilationUnitDeclaration unit, int i) {
 		// don't resolve a second time the same unit (this would create the same binding twice)
 		char[] fileName = unit.compilationResult.getFileName();
@@ -364,6 +375,7 @@ class CompilationUnitResolver extends Compiler {
 	/*
 	 * Compiler crash recovery in case of unexpected runtime exceptions
 	 */
+	@Override
 	protected void handleInternalException(
 			Throwable internalException,
 			CompilationUnitDeclaration unit,
@@ -377,6 +389,7 @@ class CompilationUnitResolver extends Compiler {
 	/*
 	 * Compiler recovery in case of internal AbortCompilation event
 	 */
+	@Override
 	protected void handleInternalException(
 			AbortCompilation abortException,
 			CompilationUnitDeclaration unit) {
@@ -429,8 +442,8 @@ class CompilationUnitResolver extends Compiler {
 
 				// accept AST
 				astRequestor.acceptAST(compilationUnits[i], node);
-			}
 		}
+	}
 	public static void parse(
 			String[] sourceUnits,
 			String[] encodings,
@@ -765,6 +778,8 @@ class CompilationUnitResolver extends Compiler {
 						key = ((LocalVariable) element).getKey(true/*open to get resolved info*/);
 					else if (element instanceof org.aspectj.org.eclipse.jdt.internal.core.TypeParameter)
 						key = ((org.aspectj.org.eclipse.jdt.internal.core.TypeParameter) element).getKey(true/*open to get resolved info*/);
+					else if (element instanceof BinaryModule)
+						key = ((BinaryModule) element).getKey(true);
 					else
 						throw new IllegalArgumentException(element + " has an unexpected type"); //$NON-NLS-1$
 					binaryElementPositions.put(key, i);
@@ -782,6 +797,7 @@ class CompilationUnitResolver extends Compiler {
 
 		class Requestor extends ASTRequestor {
 			IBinding[] bindings = new IBinding[length];
+			@Override
 			public void acceptAST(ICompilationUnit source, CompilationUnit ast) {
 				// TODO (jerome) optimize to visit the AST only once
 				IntArrayList intList = (IntArrayList) sourceElementPositions.get(source);
@@ -797,6 +813,7 @@ class CompilationUnitResolver extends Compiler {
 					this.bindings[index] = finder.foundBinding;
 				}
 			}
+			@Override
 			public void acceptBinding(String bindingKey, IBinding binding) {
 				int index = binaryElementPositions.get(bindingKey);
 				this.bindings[index] = binding;
@@ -1264,6 +1281,7 @@ class CompilationUnitResolver extends Compiler {
 	/*
 	 * Internal API used to resolve a given compilation unit. Can run a subset of the compilation process
 	 */
+	@Override
 	public CompilationUnitDeclaration resolve(
 			org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit sourceUnit,
 			boolean verifyMethods,
@@ -1295,6 +1313,7 @@ class CompilationUnitResolver extends Compiler {
 	/*
 	 * Internal API used to resolve a given compilation unit. Can run a subset of the compilation process
 	 */
+	@Override
 	public CompilationUnitDeclaration resolve(
 			CompilationUnitDeclaration unit,
 			org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit sourceUnit,

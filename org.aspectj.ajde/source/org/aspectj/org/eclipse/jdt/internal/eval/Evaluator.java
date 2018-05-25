@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -90,6 +90,7 @@ ClassFile[] getClasses() {
 	// The requestor collects the class definitions and problems
 	class CompilerRequestor implements ICompilerRequestor {
 		boolean hasErrors = false;
+		@Override
 		public void acceptResult(CompilationResult result) {
 			if (result.hasProblems()) {
 				EvaluationResult[] evalResults = evaluationResultsForCompilationProblems(result, source);
@@ -129,21 +130,31 @@ ClassFile[] getClasses() {
 	CompilerRequestor compilerRequestor = new CompilerRequestor();
 	Compiler compiler = getCompiler(compilerRequestor);
 	compiler.compile(new ICompilationUnit[] {new ICompilationUnit() {
+		@Override
 		public char[] getFileName() {
 			 // Name of class is name of CU
 			return CharOperation.concat(Evaluator.this.getClassName(), Util.defaultJavaExtension().toCharArray());
 		}
+		@Override
 		public char[] getContents() {
 			return source;
 		}
+		@Override
 		public char[] getMainTypeName() {
 			return Evaluator.this.getClassName();
 		}
+		@Override
 		public char[][] getPackageName() {
 			return null;
 		}
+		@Override
 		public boolean ignoreOptionalProblems() {
 			return false;
+		}
+		@Override
+		public char[] getModuleName() {
+			// TODO Java 9 Auto-generated method stub
+			return null;
 		}
 	}});
 	if (compilerRequestor.hasErrors) {

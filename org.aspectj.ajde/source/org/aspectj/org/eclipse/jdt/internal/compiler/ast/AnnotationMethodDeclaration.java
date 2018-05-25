@@ -1,10 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- *
+ * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -29,6 +29,7 @@ public class AnnotationMethodDeclaration extends MethodDeclaration {
 		super(compilationResult);
 	}
 
+	@Override
 	public void generateCode(ClassFile classFile) {
 		classFile.generateMethodInfoHeader(this.binding);
 		int methodAttributeOffset = classFile.contentsOffset;
@@ -36,21 +37,25 @@ public class AnnotationMethodDeclaration extends MethodDeclaration {
 		classFile.completeMethodInfo(this.binding, methodAttributeOffset, attributeNumber);
 	}
 
+	@Override
 	public boolean isAnnotationMethod() {
 
 		return true;
 	}
 
+	@Override
 	public boolean isMethod() {
 
 		return false;
 	}
 
+	@Override
 	public void parseStatements(Parser parser, CompilationUnitDeclaration unit) {
 		// nothing to do
 		// annotation type member declaration don't have any body
 	}
 
+	@Override
 	public StringBuffer print(int tab, StringBuffer output) {
 
 		printIndent(tab, output);
@@ -97,10 +102,11 @@ public class AnnotationMethodDeclaration extends MethodDeclaration {
 		return output;
 	}
 
+	@Override
 	public void resolveStatements() {
 
 		super.resolveStatements();
-		if (this.arguments != null) {
+		if (this.arguments != null || this.receiver != null) {
 			this.scope.problemReporter().annotationMembersCannotHaveParameters(this);
 		}
 		if (this.typeParameters != null) {
@@ -147,6 +153,7 @@ public class AnnotationMethodDeclaration extends MethodDeclaration {
 		}
 	}
 
+	@Override
 	public void traverse(
 		ASTVisitor visitor,
 		ClassScope classScope) {

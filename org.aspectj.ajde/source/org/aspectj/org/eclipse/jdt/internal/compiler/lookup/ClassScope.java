@@ -1,5 +1,6 @@
+// ASPECTJ
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -468,6 +469,7 @@ public class ClassScope extends Scope {
 		}
 
 		SourceTypeBinding sourceType = this.referenceContext.binding;
+		sourceType.module = module();
 		environment().setAccessRestriction(sourceType, accessRestriction);
 		
 		TypeParameter[] typeParameters = this.referenceContext.typeParameters;
@@ -499,6 +501,7 @@ public class ClassScope extends Scope {
 		sourceType.modifiers |= ExtraCompilerModifiers.AccGenericSignature;
 	}
 
+	@Override
 	void resolveTypeParameter(TypeParameter typeParameter) {
 		typeParameter.resolve(this);
 	}
@@ -532,6 +535,7 @@ public class ClassScope extends Scope {
 				return;
 			}
 			if (sourceType.isAnonymousType()) {
+				if (compilerOptions().complianceLevel < ClassFileConstants.JDK9)
 			    modifiers |= ClassFileConstants.AccFinal;
 			    // set AccEnum flag for anonymous body of enum constants
 			    if (this.referenceContext.allocation.type == null)
@@ -572,8 +576,10 @@ public class ClassScope extends Scope {
 						// local member
 						if (enclosingType.isStrictfp())
 							modifiers |= ClassFileConstants.AccStrictfp;
-						if (enclosingType.isViewedAsDeprecated() && !sourceType.isDeprecated())
+						if (enclosingType.isViewedAsDeprecated() && !sourceType.isDeprecated()) {
 							modifiers |= ExtraCompilerModifiers.AccDeprecatedImplicitly;
+							sourceType.tagBits |= enclosingType.tagBits & TagBits.AnnotationTerminallyDeprecated;
+						}
 						break;
 				}
 				scope = scope.parent;
@@ -1215,19 +1221,19 @@ public class ClassScope extends Scope {
 		boolean wasAlreadyConnecting = compilationUnitScope.connectingHierarchy;
 		compilationUnitScope.connectingHierarchy = true;
 		try {
-		sourceType.tagBits |= TagBits.BeginHierarchyCheck;
-		environment().typesBeingConnected.add(sourceType);
-		boolean noProblems = connectSuperclass();
-		noProblems &= connectSuperInterfaces();
-		environment().typesBeingConnected.remove(sourceType);
-		sourceType.tagBits |= TagBits.EndHierarchyCheck;
-		noProblems &= connectTypeVariables(this.referenceContext.typeParameters, false);
-		sourceType.tagBits |= TagBits.TypeVariablesAreConnected;
-		if (noProblems && sourceType.isHierarchyInconsistent())
-			problemReporter().hierarchyHasProblems(sourceType);
+			sourceType.tagBits |= TagBits.BeginHierarchyCheck;
+			environment().typesBeingConnected.add(sourceType);
+			boolean noProblems = connectSuperclass();
+			noProblems &= connectSuperInterfaces();
+			environment().typesBeingConnected.remove(sourceType);
+			sourceType.tagBits |= TagBits.EndHierarchyCheck;
+			noProblems &= connectTypeVariables(this.referenceContext.typeParameters, false);
+			sourceType.tagBits |= TagBits.TypeVariablesAreConnected;
+			if (noProblems && sourceType.isHierarchyInconsistent())
+				problemReporter().hierarchyHasProblems(sourceType);
 		} finally {
 			compilationUnitScope.connectingHierarchy = wasAlreadyConnecting;
-	}
+		}
 	}
 
 	public boolean detectHierarchyCycle(TypeBinding superType, TypeReference reference) {
@@ -1269,7 +1275,7 @@ public class ClassScope extends Scope {
 		if (superType.isMemberType()) {
 			ReferenceBinding current = superType.enclosingType();
 			do {
-				if (current.isHierarchyBeingActivelyConnected() && TypeBinding.equalsEquals(current, sourceType)) {
+				if (current.isHierarchyBeingActivelyConnected()) {
 					problemReporter().hierarchyCircularity(sourceType, current, reference);
 					sourceType.tagBits |= TagBits.HierarchyHasProblems;
 					current.tagBits |= TagBits.HierarchyHasProblems;
@@ -1331,11 +1337,16 @@ public class ClassScope extends Scope {
 			org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeReference ref = ((SourceTypeBinding) superType).scope.superTypeReference;
 			// https://bugs.eclipse.org/bugs/show_bug.cgi?id=133071
 			// https://bugs.eclipse.org/bugs/show_bug.cgi?id=121734
-			if (ref != null && ref.resolvedType != null && ((ReferenceBinding) ref.resolvedType).isHierarchyBeingActivelyConnected()) {
+			if (ref != null && ref.resolvedType != null) {
+				ReferenceBinding s = (ReferenceBinding) ref.resolvedType;
+				do {
+					if (s.isHierarchyBeingActivelyConnected()) {
 				problemReporter().hierarchyCircularity(sourceType, superType, reference);
 				sourceType.tagBits |= TagBits.HierarchyHasProblems;
 				superType.tagBits |= TagBits.HierarchyHasProblems;
 				return true;
+			}
+				} while ((s = s.enclosingType()) != null);
 			}
 			if (ref != null && ref.resolvedType == null) {
 				// https://bugs.eclipse.org/bugs/show_bug.cgi?id=319885 Don't cry foul prematurely.
@@ -1352,9 +1363,11 @@ public class ClassScope extends Scope {
 				}
 			}
 		}
-		if ((superType.tagBits & TagBits.BeginHierarchyCheck) == 0)
+		if ((superType.tagBits & TagBits.BeginHierarchyCheck) == 0) {
 			// ensure if this is a source superclass that it has already been checked
+			if (superType.isValidBinding() && !superType.isUnresolvedType())
 			((SourceTypeBinding) superType).scope.connectTypeHierarchyWithoutMembers();
+		}
 		if ((superType.tagBits & TagBits.HierarchyHasProblems) != 0)
 			sourceType.tagBits |= TagBits.HierarchyHasProblems;
 		return false;
@@ -1387,6 +1400,7 @@ public class ClassScope extends Scope {
 	* (unit, type or method) in case the problem handler decides it is necessary
 	* to abort.
 	*/
+	@Override
 	public ProblemReporter problemReporter() {
 		MethodScope outerMethodScope;
 		if ((outerMethodScope = outerMostMethodScope()) == null) {
@@ -1405,16 +1419,38 @@ public class ClassScope extends Scope {
 	}
 
 	@Override
-	public boolean hasDefaultNullnessFor(int location) {
+	public boolean hasDefaultNullnessFor(int location, int sourceStart) {
+		int nonNullByDefaultValue = localNonNullByDefaultValue(sourceStart);
+		if (nonNullByDefaultValue != 0) {
+			return (nonNullByDefaultValue & location) != 0;
+		}
 		SourceTypeBinding binding = this.referenceContext.binding;
 		if (binding != null) {
 			int nullDefault = binding.getNullDefault();
-			if (nullDefault != 0)
+			if (nullDefault != 0) {
 				return (nullDefault & location) != 0;
 		}
-		return this.parent.hasDefaultNullnessFor(location);
+	}
+		return this.parent.hasDefaultNullnessFor(location, sourceStart);
 	}
 
+	@Override
+	public /* @Nullable */ Binding checkRedundantDefaultNullness(int nullBits, int sourceStart) {
+		Binding target = localCheckRedundantDefaultNullness(nullBits, sourceStart);
+		if (target != null) {
+			return target;
+		}
+		SourceTypeBinding binding = this.referenceContext.binding;
+		if (binding != null) {
+			int nullDefault = binding.getNullDefault();
+			if (nullDefault != 0) {
+				return (nullDefault == nullBits) ? binding : null;
+			}
+		}
+		return this.parent.checkRedundantDefaultNullness(nullBits, sourceStart);
+	}
+	
+	@Override
 	public String toString() {
 		if (this.referenceContext != null)
 			return "--- Class Scope ---\n\n"  //$NON-NLS-1$
@@ -1427,6 +1463,7 @@ public class ClassScope extends Scope {
 		return 1;
     }
     
+	@Override
 	public SourceTypeBinding invocationType() {
 		return referenceContext.binding;
 	}

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -32,6 +32,7 @@ public class ConstantPool extends ClassFileStruct implements IConstantPool {
 	/**
 	 * @see IConstantPool#decodeEntry(int)
 	 */
+	@Override
 	public IConstantPoolEntry decodeEntry(int index) {
 		ConstantPoolEntry constantPoolEntry = null;
 		int kind = getEntryKind(index);
@@ -151,6 +152,24 @@ public class ConstantPool extends ClassFileStruct implements IConstantPool {
 				constantPoolEntry2.setMethodDescriptor(getUtf8ValueAt(methodDescriptorIndex));
 				constantPoolEntry = constantPoolEntry2;
 				break;
+			case IConstantPoolConstant.CONSTANT_Module :
+				constantPoolEntry2 = new ConstantPoolEntry2();
+				constantPoolEntry2.reset();
+				constantPoolEntry2.setKind(kind);
+				int moduleIndex = u2At(this.classFileBytes,  1, this.constantPoolOffset[index]);
+				constantPoolEntry2.setModuleIndex(moduleIndex);
+				constantPoolEntry2.setModuleName(getUtf8ValueAt(moduleIndex));
+				constantPoolEntry = constantPoolEntry2;
+				break;
+			case IConstantPoolConstant.CONSTANT_Package :
+				constantPoolEntry2 = new ConstantPoolEntry2();
+				constantPoolEntry2.reset();
+				constantPoolEntry2.setKind(kind);
+				int packageIndex = u2At(this.classFileBytes,  1, this.constantPoolOffset[index]);
+				constantPoolEntry2.setPackageIndex(packageIndex);
+				constantPoolEntry2.setPackageName(getUtf8ValueAt(packageIndex));
+				constantPoolEntry = constantPoolEntry2;
+				break;
 		}
 		return constantPoolEntry;
 	}
@@ -158,6 +177,7 @@ public class ConstantPool extends ClassFileStruct implements IConstantPool {
 	/**
 	 * @see IConstantPool#getConstantPoolCount()
 	 */
+	@Override
 	public int getConstantPoolCount() {
 		return this.constantPoolCount;
 	}
@@ -165,6 +185,7 @@ public class ConstantPool extends ClassFileStruct implements IConstantPool {
 	/**
 	 * @see IConstantPool#getEntryKind(int)
 	 */
+	@Override
 	public int getEntryKind(int index) {
 		return u1At(this.classFileBytes, 0, this.constantPoolOffset[index]);
 	}

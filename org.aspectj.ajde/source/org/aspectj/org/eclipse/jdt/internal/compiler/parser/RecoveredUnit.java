@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -20,9 +20,11 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclarati
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Block;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ExportsStatement;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ImportReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Initializer;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ModuleDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 
 public class RecoveredUnit extends RecoveredElement {
@@ -31,6 +33,7 @@ public class RecoveredUnit extends RecoveredElement {
 
 	public RecoveredImport[] imports;
 	public int importCount;
+	public RecoveredModule module;
 	public RecoveredType[] types;
 	public int typeCount;
 
@@ -43,6 +46,7 @@ public RecoveredUnit(CompilationUnitDeclaration unitDeclaration, int bracketBala
 	super(null, bracketBalance, parser);
 	this.unitDeclaration = unitDeclaration;
 }
+@Override
 public RecoveredElement addAnnotationName(int identifierPtr, int identifierLengthPtr, int annotationStart, int bracketBalanceValue) {
 	if (this.pendingAnnotations == null) {
 		this.pendingAnnotations = new RecoveredAnnotation[5];
@@ -64,6 +68,7 @@ public RecoveredElement addAnnotationName(int identifierPtr, int identifierLengt
 
 	return element;
 }
+@Override
 public void addModifier(int flag, int modifiersSourceStart) {
 	this.pendingModifiers |= flag;
 
@@ -74,6 +79,7 @@ public void addModifier(int flag, int modifiersSourceStart) {
 /*
  *	Record a method declaration: should be attached to last type
  */
+@Override
 public RecoveredElement add(AbstractMethodDeclaration methodDeclaration, int bracketBalanceValue) {
 
 	/* attach it to last type - if any */
@@ -112,6 +118,7 @@ public RecoveredElement add(AbstractMethodDeclaration methodDeclaration, int bra
 /*
  *	Record a field declaration: should be attached to last type
  */
+@Override
 public RecoveredElement add(FieldDeclaration fieldDeclaration, int bracketBalanceValue) {
 
 	/* attach it to last type - if any */
@@ -127,6 +134,11 @@ public RecoveredElement add(FieldDeclaration fieldDeclaration, int bracketBalanc
 	}
 	return this; // ignore
 }
+public RecoveredElement add(ExportsStatement exportReference, int bracketBalanceValue) {
+	return this.module != null ? this.module.add(exportReference, bracketBalanceValue) : null;
+}
+
+@Override
 public RecoveredElement add(ImportReference importReference, int bracketBalanceValue) {
 	resetPendingModifiers();
 
@@ -150,8 +162,14 @@ public RecoveredElement add(ImportReference importReference, int bracketBalanceV
 	if (importReference.declarationSourceEnd == 0) return element;
 	return this;
 }
+@Override
+public RecoveredElement add(ModuleDeclaration moduleDeclaration, int bracketBalanceValue){
+	this.module = new RecoveredModule(moduleDeclaration, this, bracketBalanceValue);
+	return this.module;
+}
+@Override
 public RecoveredElement add(TypeDeclaration typeDeclaration, int bracketBalanceValue) {
-
+	
 	if ((typeDeclaration.bits & ASTNode.IsAnonymousType) != 0){
 		if (this.typeCount > 0) {
 			// add it to the last type
@@ -198,9 +216,11 @@ public RecoveredElement add(TypeDeclaration typeDeclaration, int bracketBalanceV
 /*
  * Answer the associated parsed structure
  */
+@Override
 public ASTNode parseTree(){
 	return this.unitDeclaration;
 }
+@Override
 public void resetPendingModifiers() {
 	this.pendingAnnotations = null;
 	this.pendingAnnotationCount = 0;
@@ -210,9 +230,23 @@ public void resetPendingModifiers() {
 /*
  * Answer the very source end of the corresponding parse node
  */
+@Override
 public int sourceEnd(){
 	return this.unitDeclaration.sourceEnd;
 }
+@Override
+public int getLastStart() {
+	int lastTypeStart = -1;
+
+	if (this.typeCount > 0) {
+		TypeDeclaration lastType = this.types[this.typeCount - 1].typeDeclaration;
+		if (lastTypeStart < lastType.declarationSourceStart && lastType.declarationSourceStart != 0) {
+			lastTypeStart = lastType.declarationSourceStart;
+		}
+	}
+	return lastTypeStart;
+}
+@Override
 public String toString(int tab) {
 	StringBuffer result = new StringBuffer(tabString(tab));
 	result.append("Recovered unit: [\n"); //$NON-NLS-1$
@@ -242,6 +276,9 @@ public CompilationUnitDeclaration updatedCompilationUnitDeclaration(){
 			importRefences[i] = this.imports[i].updatedImportReference();
 		}
 		this.unitDeclaration.imports = importRefences;
+	}
+	if (this.module != null) {
+		this.unitDeclaration.moduleDeclaration = this.module.updatedModuleDeclaration();
 	}
 	/* update types */
 	if (this.typeCount > 0){
@@ -277,12 +314,14 @@ public CompilationUnitDeclaration updatedCompilationUnitDeclaration(){
 	}
 	return this.unitDeclaration;
 }
+@Override
 public void updateParseTree(){
 	updatedCompilationUnitDeclaration();
 }
 /*
  * Update the sourceEnd of the corresponding parse node
  */
+@Override
 public void updateSourceEndIfNecessary(int bodyStart, int bodyEnd){
 	if (this.unitDeclaration.sourceEnd == 0)
 		this.unitDeclaration.sourceEnd = bodyEnd;

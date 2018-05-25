@@ -43,26 +43,34 @@ public class ReflectionWorld extends World implements IReflectionWorld {
 	private Map<String,Class<?>> inProgressResolutionClasses = new HashMap<String,Class<?>>();
 	
 	public static ReflectionWorld getReflectionWorldFor(WeakClassLoaderReference classLoaderReference) {
+		
+		// Temporarily do as before. Although the cache makes things faster it needs a bit more thought because
+		// if the world has pointcutdesignators registered then someone may inadvertently register additional
+		// ones on reusing a world (when they would be expecting a clean world). We can't automatically
+		// clear them because we don't know when they are finished with.
 		return new ReflectionWorld(classLoaderReference);
-//		synchronized (rworlds) {
-//			// Tidyup any no longer relevant entries...
-//			for (Iterator<Map.Entry<WeakClassLoaderReference, ReflectionWorld>> it = rworlds.entrySet().iterator();
-//					it.hasNext();) {
-//				Map.Entry<WeakClassLoaderReference, ReflectionWorld> entry = it.next();
-//				if (entry.getKey().getClassLoader() == null) {
-//					it.remove();
-//				}
-//			}
-//			ReflectionWorld rworld = null;
-//			if (classLoaderReference.getClassLoader() != null) {
-//				rworld = rworlds.get(classLoaderReference);
-//				if (rworld == null) {
-//					rworld = new ReflectionWorld(classLoaderReference);
-//					rworlds.put(classLoaderReference, rworld);
-//				}
-//			}
-//			return rworld;
-//		}
+		
+		/*
+		synchronized (rworlds) {
+			// Tidyup any no longer relevant entries...
+			for (Iterator<Map.Entry<WeakClassLoaderReference, ReflectionWorld>> it = rworlds.entrySet().iterator();
+					it.hasNext();) {
+				Map.Entry<WeakClassLoaderReference, ReflectionWorld> entry = it.next();
+				if (entry.getKey().getClassLoader() == null) {
+					it.remove();
+				}
+			}
+			ReflectionWorld rworld = null;
+			if (classLoaderReference.getClassLoader() != null) {
+				rworld = rworlds.get(classLoaderReference);
+				if (rworld == null) {
+					rworld = new ReflectionWorld(classLoaderReference);
+					rworlds.put(classLoaderReference, rworld);
+				}
+			}
+			return rworld;
+		}
+		*/
 	}
 	
 	public static void cleanUpWorlds() {

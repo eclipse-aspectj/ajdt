@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -134,7 +134,11 @@ public class ClasspathChange {
 								continue;
 						} else if (annotationPath != otherAnnotationPath) {
 							continue; // null and not-null
-						}						
+						}
+					}
+					if (((ClasspathEntry) entry).isModular() !=
+							((ClasspathEntry) other).isModular()) {
+						continue nextEntry;
 					}
 					return i;
 			}
@@ -205,6 +209,7 @@ public class ClasspathChange {
 		return fragments;
 	}
 
+	@Override
 	public boolean equals(Object obj) {
 		if (!(obj instanceof ClasspathChange))
 			return false;
@@ -333,19 +338,21 @@ public class ClasspathChange {
 						ObjectVector accumulatedRoots = new ObjectVector();
 						HashSet rootIDs = new HashSet(5);
 						rootIDs.add(this.project.rootID());
+						JrtPackageFragmentRoot.workingOnOldClasspath.set(Boolean.TRUE);
 						this.project.computePackageFragmentRoots(
 							this.oldResolvedClasspath[i],
 							accumulatedRoots,
 							rootIDs,
 							null, // inside original project
 							false, // don't retrieve exported roots
+							true, // filter module roots
 							null); /*no reverse map*/
 						// https://bugs.eclipse.org/bugs/show_bug.cgi?id=335986
-						// When a package fragment's corresponding resource is removed from the project, 
-						// IJavaProject#computePackageFragmentRoots() doesn't include that entry. Hence 
-						// the cache become necessary in such cases. Add the cache to the accumulatedRoots 
+						// When a package fragment's corresponding resource is removed from the project,
+						// IJavaProject#computePackageFragmentRoots() doesn't include that entry. Hence
+						// the cache become necessary in such cases. Add the cache to the accumulatedRoots
 						// only when it's not already present.
-						RootInfo rootInfo = (RootInfo) state.oldRoots.get(this.oldResolvedClasspath[i].getPath());
+						RootInfo rootInfo = state.oldRoots.get(this.oldResolvedClasspath[i].getPath());
 						if (rootInfo != null && rootInfo.cache != null) {
 							IPackageFragmentRoot oldRoot = rootInfo.cache;
 							boolean found = false;
@@ -364,6 +371,8 @@ public class ClasspathChange {
 						accumulatedRoots.copyInto(pkgFragmentRoots);
 					} catch (JavaModelException e) {
 						pkgFragmentRoots =  new PackageFragmentRoot[] {};
+					} finally {
+						JrtPackageFragmentRoot.workingOnOldClasspath.set(null);
 					}
 				}
 				addClasspathDeltas(delta, pkgFragmentRoots, IJavaElementDelta.F_REMOVED_FROM_CLASSPATH);
@@ -471,6 +480,7 @@ public class ClasspathChange {
 		}
 	}
 
+	@Override
 	public int hashCode() {
 		return this.project.hashCode();
 	}
@@ -570,6 +580,7 @@ public class ClasspathChange {
 		}
 	}
 
+	@Override
 	public String toString() {
 		return "ClasspathChange: " + this.project.getElementName(); //$NON-NLS-1$
 	}

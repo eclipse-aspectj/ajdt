@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -14,6 +14,8 @@
  *								Bug 456497 - [1.8][null] during inference nullness from target type is lost against weaker hint from applicability analysis
  *								Bug 456924 - StackOverflowError during compilation
  *								Bug 462790 - [null] NPE in Expression.computeConversion()
+ *     Jesper S Møller - Contributions for bug 381345 : [1.8] Take care of the Java 8 major version
+ *								Bug 527554 - [18.3] Compiler support for JEP 286 Local-Variable Type
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
 
@@ -60,8 +62,11 @@ public class CaptureBinding extends TypeVariableBinding {
 			super.setTypeAnnotations(wildcard.getTypeAnnotations(), wildcard.environment.globalOptions.isAnnotationBasedNullAnalysisEnabled);
 			if (wildcard.hasNullTypeAnnotations())
 				this.tagBits |= TagBits.HasNullTypeAnnotation;
-		} else {			
+		} else {
 			computeId(this.environment);
+			if(wildcard.hasNullTypeAnnotations()) {
+				this.tagBits |= (wildcard.tagBits & TagBits.AnnotationNullMASK) | TagBits.HasNullTypeAnnotation;
+			}
 		}
 	}
 	
@@ -88,6 +93,7 @@ public class CaptureBinding extends TypeVariableBinding {
 	}
 	
 	// Captures may get cloned and annotated during type inference.
+	@Override
 	public TypeBinding clone(TypeBinding enclosingType) {
 		return new CaptureBinding(this);
 	}
@@ -97,6 +103,7 @@ public class CaptureBinding extends TypeVariableBinding {
 	 * p.X { capture of ? } --> !*123; (Lp/X; in declaring type except if leaf)
 	 * p.X { capture of ? extends p.Y } --> !+Lp/Y;123; (Lp/X; in declaring type except if leaf)
 	 */
+	@Override
 	public char[] computeUniqueKey(boolean isLeaf) {
 		StringBuffer buffer = new StringBuffer();
 		if (isLeaf) {
@@ -113,6 +120,7 @@ public class CaptureBinding extends TypeVariableBinding {
 		return uniqueKey;
 	}
 
+	@Override
 	public String debugName() {
 
 		if (this.wildcard != null) {
@@ -132,11 +140,20 @@ public class CaptureBinding extends TypeVariableBinding {
 		return super.debugName();
 	}
 
+	@Override
 	public char[] genericTypeSignature() {
-		if (this.genericTypeSignature == null) {
-			this.genericTypeSignature = CharOperation.concat(TypeConstants.WILDCARD_CAPTURE, this.wildcard.genericTypeSignature());
+		// captures have no signature per JVMS 4.7.9.1, approximate one by erasure:
+		if (this.inRecursiveFunction) {
+			// catch "capture#1 of X<capture#1 ...>":
+			// prefer answering "Ljava.lang.Object;" instead of throwing StackOverflowError:
+			return CharOperation.concat(new char[] {'L'}, CharOperation.concatWith(TypeConstants.JAVA_LANG_OBJECT, '.'), new char[] {';'});
 		}
-		return this.genericTypeSignature;
+		this.inRecursiveFunction = true;
+		try {
+			return erasure().genericTypeSignature();
+		} finally {
+			this.inRecursiveFunction = false;
+		}
 	}
 
 	/**
@@ -231,6 +248,8 @@ public class CaptureBinding extends TypeVariableBinding {
 						if (this.superclass.isSuperclassOf(substitutedVariableSuperclass)) {
 							this.setSuperClass(substitutedVariableSuperclass);
 						}
+						// TODO: there are cases were we need to compute glb(capturedWildcardBound, substitutedVariableSuperclass)
+						//       but then when glb (perhaps triggered inside setFirstBound()) fails, how to report the error??
 					}
 					this.setSuperInterfaces(substitutedVariableInterfaces);
 				}
@@ -258,10 +277,74 @@ public class CaptureBinding extends TypeVariableBinding {
 			evaluateNullAnnotations(scope, null);
 		}
 	}
+	@Override
+	public ReferenceBinding upwardsProjection(Scope scope, TypeBinding[] mentionedTypeVariables) {
+		if (enterRecursiveProjectionFunction()) {
+			try {
+				for (int i = 0; i < mentionedTypeVariables.length; ++i) {
+					if (TypeBinding.equalsEquals(this, mentionedTypeVariables[i])) {
+						TypeBinding upperBoundForProjection = this.upperBoundForProjection();
+						return ((ReferenceBinding)upperBoundForProjection).upwardsProjection(scope, mentionedTypeVariables);
+					}
+				}
+				return this;
+			} finally {
+				exitRecursiveProjectionFunction();
+			}
+		} else {
+			return scope.getJavaLangObject();
+		}
+	}
+	public TypeBinding upperBoundForProjection() {
+		TypeBinding upperBound = null;
+		if (this.wildcard != null) {
+			ReferenceBinding[] supers = this.superInterfaces();
+			if (this.wildcard.boundKind == Wildcard.EXTENDS) {
+				if (supers.length > 0) {
+					ReferenceBinding[] allBounds = new ReferenceBinding[supers.length + 1];
+					System.arraycopy(supers, 0, allBounds, 1, supers.length);
+					allBounds[0] = this.superclass();
+					ReferenceBinding[] glbs = Scope.greaterLowerBound(allBounds);
+					if (glbs == null) {
+						upperBound = new ProblemReferenceBinding(null, null, ProblemReasons.ParameterBoundMismatch);
+					} else if (glbs.length == 1) {
+						upperBound = glbs[0];
+					} else {
+						upperBound = this.environment.createIntersectionType18(glbs);
+					}
+				} else {
+					upperBound = this.superclass;
+				}
+			} else {
+				// ITB18.isCompatibleWith does not handle the presence of j.l.Object among intersecting types,
+				// so it returns false when checking (I&J).isCompatibleWith(Object&I&J)
+				// TODO see if this can be handled in ITB18.isCompatibleWith() itself
+				boolean superClassIsObject = TypeBinding.equalsEquals(this.superclass(), this.environment.getResolvedJavaBaseType(TypeConstants.JAVA_LANG_OBJECT, null));
+				if (supers.length == 0) {
+					upperBound = this.superclass();
+				} else if (supers.length == 1) {
+					upperBound = superClassIsObject ? supers[0] : this.environment.createIntersectionType18(new ReferenceBinding[] {this.superclass(), supers[0]});
+				} else {
+					if (superClassIsObject) {
+						upperBound = this.environment.createIntersectionType18(supers);
+					} else {
+						ReferenceBinding[] allBounds = new ReferenceBinding[supers.length + 1];
+						System.arraycopy(supers, 0, allBounds, 1, supers.length);
+						allBounds[0] = this.superclass();
+						upperBound = this.environment.createIntersectionType18(allBounds);
+					}
+				}
+			}
+		} else {
+			upperBound = super.upperBound();
+		}
+		return upperBound;
+	}
 
 	/**
 	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding#isCapture()
 	 */
+	@Override
 	public boolean isCapture() {
 		return true;
 	}
@@ -269,6 +352,7 @@ public class CaptureBinding extends TypeVariableBinding {
 	/**
 	 * @see TypeBinding#isEquivalentTo(TypeBinding)
 	 */
+	@Override
 	public boolean isEquivalentTo(TypeBinding otherType) {
 	    if (equalsEquals(this, otherType)) return true;
 	    if (otherType == null) return false;
@@ -294,6 +378,7 @@ public class CaptureBinding extends TypeVariableBinding {
 		return super.isProperType(admitCapture18);
 	}
 
+	@Override
 	public char[] readableName() {
 		if (this.wildcard != null) {
 			StringBuffer buffer = new StringBuffer(10);
@@ -310,6 +395,7 @@ public class CaptureBinding extends TypeVariableBinding {
 		return super.readableName();
 	}
 	
+	@Override
 	public char[] signableName() {
 		if (this.wildcard != null) {
 			StringBuffer buffer = new StringBuffer(10);
@@ -324,6 +410,7 @@ public class CaptureBinding extends TypeVariableBinding {
 		return super.readableName();
 	}
 
+	@Override
 	public char[] shortReadableName() {
 		if (this.wildcard != null) {
 			StringBuffer buffer = new StringBuffer(10);
@@ -439,6 +526,23 @@ public class CaptureBinding extends TypeVariableBinding {
 		return this.wildcard;
 	}
 
+	@Override
+	public ReferenceBinding downwardsProjection(Scope scope, TypeBinding[] mentionedTypeVariables) {
+		ReferenceBinding result = null;
+		if (enterRecursiveProjectionFunction()) {
+			for (int i = 0; i < mentionedTypeVariables.length; ++i) {
+				if (TypeBinding.equalsEquals(this, mentionedTypeVariables[i])) {
+					if (this.lowerBound != null) {
+						result = (ReferenceBinding) this.lowerBound.downwardsProjection(scope, mentionedTypeVariables);
+					}
+					break;
+				}
+			}
+			exitRecursiveProjectionFunction();
+		}
+		return result;
+	}
+
 	/*
 	 * CaptureBinding needs even more propagation, because we are creating a naked type
 	 * (during CaptureBinding(WildcardBinding,ReferenceBinding,int,int,ASTNode,int)
@@ -459,6 +563,7 @@ public class CaptureBinding extends TypeVariableBinding {
 		return derived;
 	}
 
+	@Override
 	public String toString() {
 		if (this.wildcard != null) {
 			StringBuffer buffer = new StringBuffer(10);

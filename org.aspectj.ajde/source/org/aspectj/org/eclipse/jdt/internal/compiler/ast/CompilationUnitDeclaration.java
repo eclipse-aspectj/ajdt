@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -22,6 +22,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ClassFile;
 import org.aspectj.org.eclipse.jdt.internal.compiler.CompilationResult;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.Constant;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.IrritantSet;
@@ -29,13 +30,16 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.impl.ReferenceContext;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.CompilationUnitScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ImportBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LocalTypeBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodScope;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ModuleBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeIds;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.NLSTag;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.AbortCompilationUnit;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.AbortMethod;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.AbortType;
+import org.aspectj.org.eclipse.jdt.internal.compiler.problem.DefaultProblem;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemSeverities;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.HashSetOfInt;
@@ -44,6 +48,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.util.HashSetOfInt;
 public class CompilationUnitDeclaration extends ASTNode implements ProblemSeverities, ReferenceContext {
 
 	private static final Comparator STRING_LITERAL_COMPARATOR = new Comparator() {
+		@Override
 		public int compare(Object o1, Object o2) {
 			StringLiteral literal1 = (StringLiteral) o1;
 			StringLiteral literal2 = (StringLiteral) o2;
@@ -55,6 +60,7 @@ public class CompilationUnitDeclaration extends ASTNode implements ProblemSeveri
 	public ImportReference currentPackage;
 	public ImportReference[] imports;
 	public TypeDeclaration[] types;
+	public ModuleDeclaration moduleDeclaration;
 	public int[][] comments;
 
 	public boolean ignoreFurtherInvestigation = false; // once pointless to investigate due to errors
@@ -95,6 +101,7 @@ public CompilationUnitDeclaration(ProblemReporter problemReporter, CompilationRe
 /*
  *	We cause the compilation task to abort to a given extent.
  */
+@Override
 public void abort(int abortLevel, CategorizedProblem problem) {
 	switch (abortLevel) {
 		case AbortType :
@@ -118,6 +125,9 @@ public void analyseCode() {
 				this.types[i].analyseCode(this.scope);
 			}
 		}
+		if (this.moduleDeclaration != null) {
+			this.moduleDeclaration.analyseCode(this.scope);
+		}
 		// request inner emulation propagation
 		propagateInnerEmulationForAllLocalTypes();
 	} catch (AbortCompilationUnit e) {
@@ -140,6 +150,11 @@ public void cleanUp() {
 			// null out the type's scope backpointers
 			localType.scope = null; // local members are already in the list
 			localType.enclosingCase = null;
+		}
+	}
+	if (this.functionalExpressionsCount > 0) {
+		for (int i = 0, max = this.functionalExpressionsCount; i < max; i++) {
+			this.functionalExpressions[i].cleanUp();
 		}
 	}
 
@@ -189,6 +204,7 @@ public void checkUnusedImports(){
 	}
 }
 
+@Override
 public CompilationResult compilationResult() {
 	return this.compilationResult;
 }
@@ -218,10 +234,17 @@ public TypeDeclaration declarationOfType(char[][] typeName) {
 }
 
 public void finalizeProblems() {
-	if (this.suppressWarningsCount == 0) return;
-	int removed = 0;
-	CategorizedProblem[] problems = this.compilationResult.problems;
 	int problemCount = this.compilationResult.problemCount;
+	CategorizedProblem[] problems = this.compilationResult.problems;
+	if (this.suppressWarningsCount == 0) {
+		 for (int iProblem = 0, length = problemCount; iProblem < length; iProblem++) {
+			 if (problems[iProblem] instanceof DefaultProblem) {
+				 ((DefaultProblem)problems[iProblem]).reportError();
+			 }
+		 }
+		return;
+	}
+	int removed = 0;
 	IrritantSet[] foundIrritants = new IrritantSet[this.suppressWarningsCount];
 	CompilerOptions options = this.scope.compilerOptions();
 	boolean hasMandatoryErrors = false;
@@ -248,8 +271,12 @@ public void finalizeProblems() {
 			int endSuppress = (int) position;
 			if (start < startSuppress) continue nextSuppress;
 			if (end > endSuppress) continue nextSuppress;
-			if (!this.suppressWarningIrritants[iSuppress].isSet(irritant))
+			if (!this.suppressWarningIrritants[iSuppress].isSet(irritant)) {
+				if (problem instanceof DefaultProblem) {
+					((DefaultProblem) problem).reportError();
+				}
 				continue nextSuppress;
+			}
 			// discard suppressed warning
 			removed++;
 			problems[iProblem] = null;
@@ -382,11 +409,15 @@ public void generateCode() {
 			for (int i = 0, count = this.types.length; i < count; i++)
 				this.types[i].generateCode(this.scope);
 		}
+		if (this.moduleDeclaration != null) {
+			this.moduleDeclaration.generateCode();
+		}
 	} catch (AbortCompilationUnit e) {
 		// ignore
 	}
 }
 
+@Override
 public CompilationUnitDeclaration getCompilationUnitDeclaration() {
 	return this;
 }
@@ -421,6 +452,10 @@ public boolean isPackageInfo() {
 	return CharOperation.equals(getMainTypeName(), TypeConstants.PACKAGE_INFO_NAME);
 }
 
+public boolean isModuleInfo() {
+	return CharOperation.equals(getMainTypeName(), TypeConstants.MODULE_INFO_NAME);
+}
+
 public boolean isSuppressed(CategorizedProblem problem) {
 	if (this.suppressWarningsCount == 0) return false;
 	int irritant = ProblemReporter.getIrritant(problem.getID());
@@ -443,10 +478,12 @@ public boolean hasFunctionalTypes() {
 	return this.compilationResult.hasFunctionalTypes;
 }
 
+@Override
 public boolean hasErrors() {
 	return this.ignoreFurtherInvestigation;
 }
 
+@Override
 public StringBuffer print(int indent, StringBuffer output) {
 	if (this.currentPackage != null) {
 		printIndent(indent, output).append("package "); //$NON-NLS-1$
@@ -461,8 +498,9 @@ public StringBuffer print(int indent, StringBuffer output) {
 			}
 			currentImport.print(0, output).append(";\n"); //$NON-NLS-1$
 		}
-
-	if (this.types != null) {
+	if (this.moduleDeclaration != null) {
+		this.moduleDeclaration.print(indent, output).append("\n"); //$NON-NLS-1$
+	} else if (this.types != null) {
 		for (int i = 0; i < this.types.length; i++) {
 			this.types[i].print(indent, output).append("\n"); //$NON-NLS-1$
 		}
@@ -712,10 +750,12 @@ private void reportNLSProblems() {
 	}
 }
 
+@Override
 public void tagAsHavingErrors() {
 	this.ignoreFurtherInvestigation = true;
 }
 
+@Override
 public void tagAsHavingIgnoredMandatoryErrors(int problemId) {
 	// Nothing to do for this context;
 }
@@ -763,10 +803,26 @@ public void traverse(ASTVisitor visitor, CompilationUnitScope unitScope, boolean
 					this.types[i].traverse(visitor, this.scope);
 				}
 			}
+			if (this.isModuleInfo() && this.moduleDeclaration != null) {
+				this.moduleDeclaration.traverse(visitor, this.scope);
+			}
 		}
 		visitor.endVisit(this, this.scope);
 	} catch (AbortCompilationUnit e) {
 		// ignore
 	}
+}
+public ModuleBinding module(LookupEnvironment environment) {
+	if (this.moduleDeclaration != null) {
+		ModuleBinding binding = this.moduleDeclaration.binding;
+		if (binding != null)
+			return binding;
+	}
+	if (this.compilationResult != null) {
+		ICompilationUnit compilationUnit = this.compilationResult.compilationUnit;
+		if (compilationUnit != null)
+			return compilationUnit.module(environment);
+	}
+	return environment.module;
 }
 }

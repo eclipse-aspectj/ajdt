@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014, 2016 GK Software AG.
+ * Copyright (c) 2014, 2017 GK Software AG.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -118,7 +118,7 @@ public class ExternalAnnotationProvider {
 				}
 				if (rawSig == null || annotSig == null) {
 					if (errLine == -1) errLine = reader.getLineNumber();
-					throw new IOException("Illegal format for annotation file at line "+errLine); //$NON-NLS-1$
+					throw new IOException("Illegal format in annotation file for "+this.typeName+" at line "+errLine); //$NON-NLS-1$ //$NON-NLS-2$
 				}
 				// discard optional meta data (separated by whitespace):
 				annotSig = trimTail(annotSig);
@@ -146,7 +146,7 @@ public class ExternalAnnotationProvider {
 		if (line != null && line.startsWith(CLASS_PREFIX)) {
 			line = line.substring(CLASS_PREFIX.length());
 		} else {
-			throw new IOException("missing class header in annotation file"); //$NON-NLS-1$
+			throw new IOException("missing class header in annotation file for "+typeName); //$NON-NLS-1$
 		}
 		if (!trimTail(line).equals(typeName)) {
 			throw new IOException("mismatching class name in annotation file, expected "+typeName+", but header said "+line); //$NON-NLS-1$ //$NON-NLS-2$
@@ -198,6 +198,7 @@ public class ExternalAnnotationProvider {
 		return ITypeAnnotationWalker.EMPTY_ANNOTATION_WALKER;
 	}
 
+	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("External Annotations for ").append(this.typeName).append('\n'); //$NON-NLS-1$
@@ -212,6 +213,10 @@ public class ExternalAnnotationProvider {
 		@Override
 		public IBinaryElementValuePair[] getElementValuePairs() {
 			return ElementValuePairInfo.NoMembers;
+		}
+		@Override
+		public boolean isExternalAnnotation() {
+			return true;
 		}
 		protected char[] getBinaryTypeName(char[][] name) {
 			return CharOperation.concat('L', CharOperation.concatWith(name, '/'), ';');
@@ -245,6 +250,7 @@ public class ExternalAnnotationProvider {
 		public DispatchingAnnotationWalker(LookupEnvironment environment) {
 			this.environment = environment;
 		}
+		@Override
 		public ITypeAnnotationWalker toTypeParameter(boolean isClassTypeParameter, int rank) {
 			String source = ExternalAnnotationProvider.this.typeParametersAnnotationSource;
 			if (source != null) {
@@ -254,11 +260,13 @@ public class ExternalAnnotationProvider {
 			}
 			return this;
 		}
+		@Override
 		public ITypeAnnotationWalker toTypeParameterBounds(boolean isClassTypeParameter, int parameterRank) {
 			if (this.typeParametersWalker != null)
 				return this.typeParametersWalker.toTypeParameterBounds(isClassTypeParameter, parameterRank);
 			return this;
 		}
+		@Override
 		public ITypeAnnotationWalker toSupertype(short index, char[] superTypeSignature) {
 			Map<String, String> sources = ExternalAnnotationProvider.this.supertypeAnnotationSources;
 			if (sources != null) {
@@ -269,17 +277,28 @@ public class ExternalAnnotationProvider {
 			return this;
 		}
 		// the rest is borrowed from EMPTY_ANNOTATION_WALKER:
+		@Override
 		public ITypeAnnotationWalker toField() { return this; }
+		@Override
 		public ITypeAnnotationWalker toThrows(int rank) { return this; }
+		@Override
 		public ITypeAnnotationWalker toTypeArgument(int rank) { return this; }
+		@Override
 		public ITypeAnnotationWalker toMethodParameter(short index) { return this; }
+		@Override
 		public ITypeAnnotationWalker toTypeBound(short boundIndex) { return this; }
+		@Override
 		public ITypeAnnotationWalker toMethodReturn() { return this; }
+		@Override
 		public ITypeAnnotationWalker toReceiver() { return this; }
+		@Override
 		public ITypeAnnotationWalker toWildcardBound() { return this; }
+		@Override
 		public ITypeAnnotationWalker toNextArrayDimension() { return this; }
+		@Override
 		public ITypeAnnotationWalker toNextNestedType() { return this; }
-		public IBinaryAnnotation[] getAnnotationsAtCursor(int currentTypeId) { return NO_ANNOTATIONS; }
+		@Override
+		public IBinaryAnnotation[] getAnnotationsAtCursor(int currentTypeId, boolean mayApplyArrayContentsDefaultNullness) { return NO_ANNOTATIONS; }
 	}
 
 	abstract class BasicAnnotationWalker implements ITypeAnnotationWalker {
@@ -302,6 +321,7 @@ public class ExternalAnnotationProvider {
 			if (this.wrapper == null)
 				this.wrapper = new SignatureWrapper(this.source);
 			this.wrapper.start = start;
+			this.wrapper.bracket = -1;
 			return this.wrapper;
 		}
 
@@ -340,16 +360,17 @@ public class ExternalAnnotationProvider {
 			int next = this.prevTypeArgStart;
 			switch (this.source[next]) {
 				case '*': 
+					next = skipNullAnnotation(next+1);
 					break;
 				case '-': 
 				case '+':
-					next++;
+					next = skipNullAnnotation(next+1);
 					//$FALL-THROUGH$
 				default:
 					next = wrapperWithStart(next).computeEnd();
+					next++;
 			}
-			next++;
-		    this.prevTypeArgStart = next;
+			this.prevTypeArgStart = next;
 		    return new MethodAnnotationWalker(this.source, next,	this.environment);
 		}
 
@@ -358,7 +379,8 @@ public class ExternalAnnotationProvider {
 			switch (this.source[this.pos]) {
 				case '-': 
 				case '+':
-					return new MethodAnnotationWalker(this.source, this.pos+1, this.environment);
+					int newPos = skipNullAnnotation(this.pos+1);
+					return new MethodAnnotationWalker(this.source, newPos, this.environment);
 				default: // includes unbounded '*'
 					return ITypeAnnotationWalker.EMPTY_ANNOTATION_WALKER;
 			}			
@@ -367,10 +389,7 @@ public class ExternalAnnotationProvider {
 		@Override
 		public ITypeAnnotationWalker toNextArrayDimension() {
 			if (this.source[this.pos] == '[') {
-				int newPos = this.pos+1;
-				switch (this.source[newPos]) {
-					case NULLABLE: case NONNULL: newPos++; break;
-				}
+				int newPos = skipNullAnnotation(this.pos+1);
 				return new MethodAnnotationWalker(this.source, newPos, this.environment);
 			}
 			return ITypeAnnotationWalker.EMPTY_ANNOTATION_WALKER;
@@ -382,7 +401,7 @@ public class ExternalAnnotationProvider {
 		}
 
 		@Override
-		public IBinaryAnnotation[] getAnnotationsAtCursor(int currentTypeId) {
+		public IBinaryAnnotation[] getAnnotationsAtCursor(int currentTypeId, boolean mayApplyArrayContentsDefaultNullness) {
 			if (this.pos != -1 && this.pos < this.source.length-2) {
 				switch (this.source[this.pos]) {
 					case 'T':
@@ -400,6 +419,17 @@ public class ExternalAnnotationProvider {
 				}				
 			}
 			return NO_ANNOTATIONS;
+		}
+		int skipNullAnnotation(int cur) {
+			if (cur >= this.source.length)
+				return cur;
+			switch (this.source[cur]) {
+				case NONNULL:
+				case NULLABLE:
+					return cur+1;
+				default:
+					return cur; 
+			}
 		}
 	}
 
@@ -524,7 +554,7 @@ public class ExternalAnnotationProvider {
 		}
 
 		@Override
-		public IBinaryAnnotation[] getAnnotationsAtCursor(int currentTypeId) {
+		public IBinaryAnnotation[] getAnnotationsAtCursor(int currentTypeId, boolean mayApplyArrayContentsDefaultNullness) {
 			if (this.pos != -1 && this.pos < this.source.length-1) {
 				switch (this.source[this.pos]) {
 					case NULLABLE:
@@ -533,7 +563,7 @@ public class ExternalAnnotationProvider {
 						return new IBinaryAnnotation[]{ ExternalAnnotationProvider.this.NONNULL_ANNOTATION };
 				}				
 			}
-			return super.getAnnotationsAtCursor(currentTypeId);
+			return super.getAnnotationsAtCursor(currentTypeId, mayApplyArrayContentsDefaultNullness);
 		}
 	}
 
@@ -582,9 +612,7 @@ public class ExternalAnnotationProvider {
 		int typeEnd(int start) {
 			while (this.source[start] == '[') {
 				start++;
-				char an = this.source[start];
-				if (an == NULLABLE || an == NONNULL)
-					start++;
+				start = skipNullAnnotation(start);
 			}
 			SignatureWrapper wrapper1 = wrapperWithStart(start);
 			int end = wrapper1.skipAngleContents(wrapper1.computeEnd());

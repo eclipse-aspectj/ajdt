@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -39,6 +39,7 @@ public class ArrayAllocationExpression extends Expression {
 	public Annotation [][] annotationsOnDimensions; // jsr308 style annotations.
 	public ArrayInitializer initializer;
 
+	@Override
 	public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, FlowInfo flowInfo) {
 		for (int i = 0, max = this.dimensions.length; i < max; i++) {
 			Expression dim;
@@ -58,6 +59,7 @@ public class ArrayAllocationExpression extends Expression {
 	/**
 	 * Code generation for a array allocation expression
 	 */
+	@Override
 	public void generateCode(BlockScope currentScope, 	CodeStream codeStream, boolean valueRequired) {
 
 		int pc = codeStream.position;
@@ -92,6 +94,7 @@ public class ArrayAllocationExpression extends Expression {
 	}
 
 
+	@Override
 	public StringBuffer printExpression(int indent, StringBuffer output) {
 		output.append("new "); //$NON-NLS-1$
 		this.type.print(0, output);
@@ -113,6 +116,7 @@ public class ArrayAllocationExpression extends Expression {
 		return output;
 	}
 
+	@Override
 	public TypeBinding resolveType(BlockScope scope) {
 		// Build an array type reference using the current dimensions
 		// The parser does not check for the fact that dimension may be null
@@ -192,6 +196,7 @@ public class ArrayAllocationExpression extends Expression {
 
 			// check the initializer
 			if (this.initializer != null) {
+				this.resolvedType = ArrayTypeReference.maybeMarkArrayContentsNonNull(scope, this.resolvedType, this.sourceStart, this.dimensions.length, null);
 				if ((this.initializer.resolveTypeExpecting(scope, this.resolvedType)) != null)
 					this.initializer.binding = (ArrayBinding)this.resolvedType;
 			}
@@ -202,7 +207,7 @@ public class ArrayAllocationExpression extends Expression {
 		return this.resolvedType;
 	}
 
-
+	@Override
 	public void traverse(ASTVisitor visitor, BlockScope scope) {
 		if (visitor.visit(this, scope)) {
 			int dimensionsLength = this.dimensions.length;

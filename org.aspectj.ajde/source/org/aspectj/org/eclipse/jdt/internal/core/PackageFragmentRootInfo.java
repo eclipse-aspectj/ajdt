@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -37,13 +37,9 @@ class PackageFragmentRootInfo extends OpenableElementInfo {
 	 */
 	protected int rootKind= IPackageFragmentRoot.K_SOURCE;
 
-	/**
-	 * A array with all the non-java resources contained by this PackageFragment
-	 */
-	protected Object[] nonJavaResources;
-
 	private boolean ignoreOptionalProblems;
 	private boolean initialized;
+
 /**
  * Create and initialize a new instance of the receiver
  */
@@ -150,6 +146,7 @@ synchronized Object[] getNonJavaResources(IJavaProject project, IResource underl
 	}
 	return resources;
 }
+
 /**
  * Returns the kind of this root.
  */
@@ -178,12 +175,6 @@ private static boolean isClasspathEntry(IPath path, IClasspathEntry[] resolvedCl
 		}
 	}
 	return false;
-}
-/**
- * Set the fNonJavaResources to res value
- */
-void setNonJavaResources(Object[] resources) {
-	this.nonJavaResources = resources;
 }
 /**
  * Sets the kind of this root.

@@ -110,8 +110,9 @@ public abstract class World implements Dump.INode {
 	private boolean incrementalCompileCouldFollow = false;
 
 	/** The level of the aspectjrt.jar the code we generate needs to run on */
-	private String targetAspectjRuntimeLevel = Constants.RUNTIME_LEVEL_DEFAULT;
-
+	public static final RuntimeVersion RUNTIME_LEVEL_DEFAULT = RuntimeVersion.V1_5;
+	private RuntimeVersion targetAspectjRuntimeLevel = RUNTIME_LEVEL_DEFAULT;
+	
 	/** Flags for the new joinpoints that are 'optional': -Xjoinpoints:arrayconstruction -Xjoinpoints:synchronization */
 	private boolean optionalJoinpoint_ArrayConstruction = false; 
 	private boolean optionalJoinpoint_Synchronization = false; 
@@ -202,6 +203,7 @@ public abstract class World implements Dump.INode {
 	/**
 	 * Dump processing when a fatal error occurs
 	 */
+	@Override
 	public void accept(Dump.IVisitor visitor) {
 		// visitor.visitObject("Extra configuration:");
 		// visitor.visitList(extraConfiguration.);
@@ -462,6 +464,9 @@ public abstract class World implements Dump.INode {
 		} else if (ty.isGenericType()) {
 			// ======= generic types ======================
 			ResolvedType rt = resolveGenericTypeFor(ty, false);
+			if (rt.isMissing()) {
+				return rt;
+			}
 			ReferenceType genericType = (ReferenceType) rt;
 			if (rt.isMissing()) {
 				return rt;
@@ -979,7 +984,7 @@ public abstract class World implements Dump.INode {
 	}
 
 	public void setTargetAspectjRuntimeLevel(String s) {
-		targetAspectjRuntimeLevel = s;
+		targetAspectjRuntimeLevel = RuntimeVersion.getVersionFor(s);
 	}
 
 	public void setOptionalJoinpoints(String jps) {
@@ -1002,20 +1007,18 @@ public abstract class World implements Dump.INode {
 		return optionalJoinpoint_Synchronization;
 	}
 
-	public String getTargetAspectjRuntimeLevel() {
+	public RuntimeVersion getTargetAspectjRuntimeLevel() {
 		return targetAspectjRuntimeLevel;
 	}
 
-	// OPTIMIZE are users falling foul of not supplying -1.5 and so targetting
-	// the old runtime?
+	// OPTIMIZE are users falling foul of not supplying -1.5 and so targetting the old runtime?
 	public boolean isTargettingAspectJRuntime12() {
 		boolean b = false; // pr116679
 		if (!isInJava5Mode()) {
 			b = true;
 		} else {
-			b = getTargetAspectjRuntimeLevel().equals(org.aspectj.weaver.Constants.RUNTIME_LEVEL_12);
+			b = (getTargetAspectjRuntimeLevel() == RuntimeVersion.V1_2);
 		}
-		// System.err.println("Asked if targetting runtime 1.2 , returning: "+b);
 		return b;
 	}
 

@@ -37,6 +37,7 @@ public abstract class TagTreeReader {
 			// Nothing to do by default
 		}
 
+		@Override
 		public final T read(Nd nd, long address, TagTreeReader reader, int[] bytesRead) {
 			bytesRead[0] = getSize();
 			return read(nd, address);
@@ -78,7 +79,9 @@ public abstract class TagTreeReader {
 		readAddress += Database.BYTE_SIZE;
 		TagHandler<?> reader = this.readers[nextByte];
 		if (reader == null) {
-			throw new IndexException("Found unknown tag with value " + nextByte + " at address " + address); //$NON-NLS-1$//$NON-NLS-2$
+			throw nd.describeProblem()
+				.addProblemAddress("tag", address, 1) //$NON-NLS-1$
+				.build("Found unknown tag with value " + nextByte + " at address " + address); //$NON-NLS-1$//$NON-NLS-2$
 		}
 
 		return reader.read(nd, readAddress, this, bytesRead);
@@ -98,7 +101,7 @@ public abstract class TagTreeReader {
 		TagHandler handler = this.readers[key];
 
 		if (handler == null) {
-			throw new IndexException("Invalid key " + key + " returned from getKeyFor(...)"); //$NON-NLS-1$//$NON-NLS-2$
+			throw nd.describeProblem().build("Invalid key " + key + " returned from getKeyFor(...)"); //$NON-NLS-1$//$NON-NLS-2$
 		}
 
 		handler.write(nd, address, this, toWrite, bytesWritten);
@@ -112,7 +115,9 @@ public abstract class TagTreeReader {
 
 		TagHandler<?> handler = this.readers[nextByte];
 		if (handler == null) {
-			throw new IndexException("Found unknown tag with value " + nextByte + " at address " + address); //$NON-NLS-1$//$NON-NLS-2$
+			throw nd.describeProblem()
+				.addProblemAddress("tag", address, 1) //$NON-NLS-1$
+				.build("Found unknown tag with value " + nextByte + " at address " + address); //$NON-NLS-1$//$NON-NLS-2$
 		}
 
 		handler.destruct(nd, readAddress, this);

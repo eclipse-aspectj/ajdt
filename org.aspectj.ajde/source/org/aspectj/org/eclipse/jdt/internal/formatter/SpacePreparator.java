@@ -14,6 +14,7 @@ package org.aspectj.org.eclipse.jdt.internal.formatter;
 
 import static org.aspectj.org.eclipse.jdt.internal.compiler.parser.TerminalTokens.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.aspectj.org.eclipse.jdt.core.dom.ASTNode;
@@ -40,6 +41,7 @@ import org.aspectj.org.eclipse.jdt.core.dom.DoStatement;
 import org.aspectj.org.eclipse.jdt.core.dom.EnhancedForStatement;
 import org.aspectj.org.eclipse.jdt.core.dom.EnumConstantDeclaration;
 import org.aspectj.org.eclipse.jdt.core.dom.EnumDeclaration;
+import org.aspectj.org.eclipse.jdt.core.dom.ExportsDirective;
 import org.aspectj.org.eclipse.jdt.core.dom.Expression;
 import org.aspectj.org.eclipse.jdt.core.dom.ExpressionMethodReference;
 import org.aspectj.org.eclipse.jdt.core.dom.ExpressionStatement;
@@ -56,12 +58,16 @@ import org.aspectj.org.eclipse.jdt.core.dom.MarkerAnnotation;
 import org.aspectj.org.eclipse.jdt.core.dom.MemberValuePair;
 import org.aspectj.org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.aspectj.org.eclipse.jdt.core.dom.MethodInvocation;
+import org.aspectj.org.eclipse.jdt.core.dom.ModuleDeclaration;
+import org.aspectj.org.eclipse.jdt.core.dom.Name;
 import org.aspectj.org.eclipse.jdt.core.dom.NormalAnnotation;
+import org.aspectj.org.eclipse.jdt.core.dom.OpensDirective;
 import org.aspectj.org.eclipse.jdt.core.dom.PackageDeclaration;
 import org.aspectj.org.eclipse.jdt.core.dom.ParameterizedType;
 import org.aspectj.org.eclipse.jdt.core.dom.ParenthesizedExpression;
 import org.aspectj.org.eclipse.jdt.core.dom.PostfixExpression;
 import org.aspectj.org.eclipse.jdt.core.dom.PrefixExpression;
+import org.aspectj.org.eclipse.jdt.core.dom.ProvidesDirective;
 import org.aspectj.org.eclipse.jdt.core.dom.PrefixExpression.Operator;
 import org.aspectj.org.eclipse.jdt.core.dom.ReturnStatement;
 import org.aspectj.org.eclipse.jdt.core.dom.SingleMemberAnnotation;
@@ -221,13 +227,21 @@ public class SpacePreparator extends ASTVisitor {
 				: this.options.insert_space_before_opening_brace_in_method_declaration) && node.getBody() != null)
 			this.tm.firstTokenIn(node.getBody(), TokenNameLBRACE).spaceBefore();
 
+		if (node.getReceiverType() != null)
+			this.tm.lastTokenIn(node.getReceiverType(), -1).spaceAfter();
+
 		boolean beforeComma = node.isConstructor()
 				? this.options.insert_space_before_comma_in_constructor_declaration_parameters
 				: this.options.insert_space_before_comma_in_method_declaration_parameters;
 		boolean afterComma = node.isConstructor()
 				? this.options.insert_space_after_comma_in_constructor_declaration_parameters
 				: this.options.insert_space_after_comma_in_method_declaration_parameters;
-		handleCommas(node.parameters(), beforeComma, afterComma);
+		List<SingleVariableDeclaration> params = node.parameters();
+		if (node.getReceiverType() != null) {
+			params = new ArrayList<>(params);
+			params.add(0, null); // space for explicit receiver, null OK - first value not read in handleCommas 
+		}
+		handleCommas(params, beforeComma, afterComma);
 
 		List<Type> thrownExceptionTypes = node.thrownExceptionTypes();
 		if (!thrownExceptionTypes.isEmpty()) {
@@ -363,7 +377,7 @@ public class SpacePreparator extends ASTVisitor {
 
 	@Override
 	public boolean visit(TryStatement node) {
-		List<VariableDeclarationExpression> resources = node.resources();
+		List<Expression> resources = node.resources();
 		if (!resources.isEmpty()) {
 			handleToken(node, TokenNameLPAREN, this.options.insert_space_before_opening_paren_in_try,
 					this.options.insert_space_after_opening_paren_in_try);
@@ -951,6 +965,37 @@ public class SpacePreparator extends ASTVisitor {
 		return true;
 	}
 
+	@Override
+	public boolean visit(ModuleDeclaration node) {
+		handleToken(node.getName(), TokenNameLBRACE,
+				this.options.insert_space_before_opening_brace_in_type_declaration, false);
+		return true;
+	}
+
+	@Override
+	public boolean visit(ExportsDirective node) {
+		handleModuleStatementCommas(node.modules());
+		return true;
+	}
+	
+	@Override
+	public boolean visit(OpensDirective node) {
+		handleModuleStatementCommas(node.modules());
+		return true;
+	}
+
+	@Override
+	public boolean visit(ProvidesDirective node) {
+		handleModuleStatementCommas(node.implementations());
+		return true;
+	}
+
+	private void handleModuleStatementCommas(List<Name> names) {
+		// using settings for fields for now, add new settings if necessary
+		handleCommas(names, this.options.insert_space_before_comma_in_multiple_field_declarations,
+				this.options.insert_space_after_comma_in_multiple_field_declarations);
+	}
+
 	private void handleCommas(List<? extends ASTNode> nodes, boolean spaceBefore, boolean spaceAfter) {
 		if (spaceBefore || spaceAfter) {
 			for (int i = 1; i < nodes.size(); i++) {
@@ -975,21 +1020,21 @@ public class SpacePreparator extends ASTVisitor {
 	}
 
 	private void handleTokenAfter(ASTNode node, int tokenType, boolean spaceBefore, boolean spaceAfter) {
-		if (spaceBefore || spaceAfter) {
-			if (tokenType == TokenNameGREATER) {
-				// there could be ">>" or ">>>" instead, get rid of them
-				int index = this.tm.lastIndexIn(node, -1);
-				for (int i = index; i < index + 2; i++) {
-					Token token = this.tm.get(i);
-					if (token.tokenType == TokenNameRIGHT_SHIFT || token.tokenType == TokenNameUNSIGNED_RIGHT_SHIFT) {
-						this.tm.remove(i);
-						for (int j = 0; j < (token.tokenType == TokenNameRIGHT_SHIFT ? 2 : 3); j++) {
-							this.tm.insert(i + j, new Token(token.originalStart + j, token.originalStart + j,
-									TokenNameGREATER));
-						}
+		if (tokenType == TokenNameGREATER) {
+			// there could be ">>" or ">>>" instead, get rid of them
+			int index = this.tm.lastIndexIn(node, -1);
+			for (int i = index; i < index + 2; i++) {
+				Token token = this.tm.get(i);
+				if (token.tokenType == TokenNameRIGHT_SHIFT || token.tokenType == TokenNameUNSIGNED_RIGHT_SHIFT) {
+					this.tm.remove(i);
+					for (int j = 0; j < (token.tokenType == TokenNameRIGHT_SHIFT ? 2 : 3); j++) {
+						this.tm.insert(i + j, new Token(token.originalStart + j, token.originalStart + j,
+								TokenNameGREATER));
 					}
 				}
 			}
+		}
+		if (spaceBefore || spaceAfter) {
 			Token token = this.tm.firstTokenAfter(node, tokenType);
 			handleToken(token, spaceBefore, spaceAfter);
 		}

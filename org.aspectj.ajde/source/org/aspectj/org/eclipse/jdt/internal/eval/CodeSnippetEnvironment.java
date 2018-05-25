@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2006 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -37,6 +37,7 @@ public CodeSnippetEnvironment(INameEnvironment env, EvaluationContext context) {
 /**
  * @see INameEnvironment#findType(char[][])
  */
+@Override
 public NameEnvironmentAnswer findType(char[][] compoundTypeName) {
 	NameEnvironmentAnswer result = this.env.findType(compoundTypeName);
 	if (result != null) {
@@ -70,6 +71,7 @@ public NameEnvironmentAnswer findType(char[][] compoundTypeName) {
 /**
  * @see INameEnvironment#findType(char[], char[][])
  */
+@Override
 public NameEnvironmentAnswer findType(char[] typeName, char[][] packageName) {
 	NameEnvironmentAnswer result = this.env.findType(typeName, packageName);
 	if (result != null) {
@@ -80,9 +82,11 @@ public NameEnvironmentAnswer findType(char[] typeName, char[][] packageName) {
 /**
  * @see INameEnvironment#isPackage(char[][], char[])
  */
+@Override
 public boolean isPackage(char[][] parentPackageName, char[] packageName) {
 	return this.env.isPackage(parentPackageName, packageName);
 }
+@Override
 public void cleanup() {
 	this.env.cleanup();
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -86,6 +86,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 	public static final char JEM_INITIALIZER = '|';
 	public static final char JEM_COMPILATIONUNIT = '{';
 	public static final char JEM_CLASSFILE = '(';
+	public static final char JEM_MODULAR_CLASSFILE = '\'';
 	public static final char JEM_TYPE = '[';
 	public static final char JEM_PACKAGEDECLARATION = '%';
 	public static final char JEM_IMPORTDECLARATION = '#';
@@ -96,6 +97,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 	public static final char JEM_LAMBDA_EXPRESSION = ')';
 	public static final char JEM_LAMBDA_METHOD = '&';
 	public static final char JEM_STRING = '"';
+	public static final char JEM_MODULE = '`';
 	
 	/**
 	 * Before ')', '&' and '"' became the newest additions as delimiters, the former two
@@ -120,6 +122,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 	 */
 	protected JavaElement parent;
 
+	protected static final String[] NO_STRINGS = new String[0];
 	protected static final JavaElement[] NO_ELEMENTS = new JavaElement[0];
 	protected static final Object NO_INFO = new Object();
 	
@@ -164,6 +167,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 	 *
 	 * @see Object#equals
 	 */
+	@Override
 	public boolean equals(Object o) {
 
 		if (this == o) return true;
@@ -200,6 +204,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 				case JEM_INITIALIZER:
 				case JEM_COMPILATIONUNIT:
 				case JEM_CLASSFILE:
+				case JEM_MODULAR_CLASSFILE:
 				case JEM_TYPE:
 				case JEM_PACKAGEDECLARATION:
 				case JEM_IMPORTDECLARATION:
@@ -214,6 +219,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 	/**
 	 * @see IJavaElement
 	 */
+	@Override
 	public boolean exists() {
 
 		try {
@@ -241,6 +247,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 	/**
 	 * @see IJavaElement
 	 */
+	@Override
 	public IJavaElement getAncestor(int ancestorType) {
 
 		IJavaElement element = this;
@@ -318,6 +325,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 	/**
 	 * @see IAdaptable
 	 */
+	@Override
 	public String getElementName() {
 		return ""; //$NON-NLS-1$
 	}
@@ -339,6 +347,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 	/**
 	 * @see IJavaElement
 	 */
+	@Override
 	public String getHandleIdentifier() {
 		return getHandleMemento();
 	}
@@ -363,6 +372,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 	/**
 	 * @see IJavaElement
 	 */
+	@Override
 	public IJavaModel getJavaModel() {
 		IJavaElement current = this;
 		do {
@@ -374,6 +384,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 	/**
 	 * @see IJavaElement
 	 */
+	@Override
 	public IJavaProject getJavaProject() {
 		IJavaElement current = this;
 		do {
@@ -381,9 +392,8 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 		} while ((current = current.getParent()) != null);
 		return null;
 	}
-	/*
-	 * @see IJavaElement
-	 */
+
+	@Override
 	public IOpenable getOpenable() {
 		return getOpenableParent();
 	}
@@ -399,12 +409,12 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 	/**
 	 * @see IJavaElement
 	 */
+	@Override
 	public IJavaElement getParent() {
 		return this.parent;
 	}
-	/*
-	 * @see IJavaElement#getPrimaryElement()
-	 */
+
+	@Override
 	public IJavaElement getPrimaryElement() {
 		return getPrimaryElement(true);
 	}
@@ -415,6 +425,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 	public IJavaElement getPrimaryElement(boolean checkOwner) {
 		return this;
 	}
+	@Override
 	public IResource getResource() {
 		return resource();
 	}
@@ -475,9 +486,8 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 	public SourceMapper getSourceMapper() {
 		return ((JavaElement)getParent()).getSourceMapper();
 	}
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.IJavaElement#getSchedulingRule()
-	 */
+
+	@Override
 	public ISchedulingRule getSchedulingRule() {
 		IResource resource = resource();
 		if (resource == null) {
@@ -486,6 +496,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 				public NoResourceSchedulingRule(IPath path) {
 					this.path = path;
 				}
+				@Override
 				public boolean contains(ISchedulingRule rule) {
 					if (rule instanceof NoResourceSchedulingRule) {
 						return this.path.isPrefixOf(((NoResourceSchedulingRule)rule).path);
@@ -493,6 +504,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 						return false;
 					}
 				}
+				@Override
 				public boolean isConflicting(ISchedulingRule rule) {
 					if (rule instanceof NoResourceSchedulingRule) {
 						IPath otherPath = ((NoResourceSchedulingRule)rule).path;
@@ -527,6 +539,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 	 * and parent's hash code. Elements with other requirements must
 	 * override this method.
 	 */
+	@Override
 	public int hashCode() {
 		if (this.parent == null) return super.hashCode();
 		return Util.combineHashCodes(getElementName().hashCode(), this.parent.hashCode());
@@ -546,6 +559,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 	/**
 	 * @see IJavaElement
 	 */
+	@Override
 	public boolean isReadOnly() {
 		return false;
 	}
@@ -575,7 +589,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 		JavaModelManager manager = JavaModelManager.getJavaModelManager();
 		boolean hadTemporaryCache = manager.hasTemporaryCache();
 		try {
-			HashMap newElements = manager.getTemporaryCache();
+			HashMap<IJavaElement, Object> newElements = manager.getTemporaryCache();
 			generateInfos(info, newElements, monitor);
 			if (info == null) {
 				info = newElements.get(this);
@@ -627,6 +641,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 	/**
 	 *  Debugging purposes
 	 */
+	@Override
 	public String toString() {
 		StringBuffer buffer = new StringBuffer();
 		toString(0, buffer);
@@ -761,9 +776,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 		return null;
 	}
 
-	/*
-	 * @see IJavaElement#getAttachedJavadoc(IProgressMonitor)
-	 */
+	@Override
 	public String getAttachedJavadoc(IProgressMonitor monitor) throws JavaModelException {
 		return null;
 	}

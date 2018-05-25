@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,6 +12,7 @@ package org.aspectj.org.eclipse.jdt.internal.core.search.matching;
 
 import java.util.Iterator;
 import java.util.Map;
+import java.util.function.Predicate;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -23,14 +24,14 @@ import org.aspectj.org.eclipse.jdt.core.IJavaProject;
 import org.aspectj.org.eclipse.jdt.core.IType;
 import org.aspectj.org.eclipse.jdt.core.JavaCore;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.NameEnvironmentAnswer;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.IModulePathEntry;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.SimpleLookupTable;
 import org.aspectj.org.eclipse.jdt.internal.core.JavaModelManager;
 import org.aspectj.org.eclipse.jdt.internal.core.builder.ClasspathLocation;
 import org.aspectj.org.eclipse.jdt.internal.core.util.ResourceCompilationUnit;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
 
-@SuppressWarnings("rawtypes")
-public class ClasspathSourceDirectory extends ClasspathLocation {
+public class ClasspathSourceDirectory extends ClasspathLocation implements IModulePathEntry {
 
 	IContainer sourceFolder;
 	SimpleLookupTable directoryCache;
@@ -45,6 +46,7 @@ ClasspathSourceDirectory(IContainer sourceFolder, char[][] fullExclusionPatternC
 	this.fulInclusionPatternChars = fulInclusionPatternChars;
 }
 
+@Override
 public void cleanup() {
 	this.directoryCache = null;
 }
@@ -74,13 +76,13 @@ SimpleLookupTable directoryTable(String qualifiedPackageName) {
 			}
 			// look for secondary types, see https://bugs.eclipse.org/bugs/show_bug.cgi?id=382778
 			IJavaProject project = JavaCore.create(container.getProject());
-			Map secondaryTypePaths = JavaModelManager.getJavaModelManager().secondaryTypes(project, false, null);
+			Map<String, Map<String, IType>> secondaryTypePaths = JavaModelManager.getJavaModelManager().secondaryTypes(project, false, null);
 			if (secondaryTypePaths.size() > 0) {
-				Map typesInPackage = (Map) secondaryTypePaths.get(qualifiedPackageName.replace('/', '.'));
+				Map<String, IType> typesInPackage = secondaryTypePaths.get(qualifiedPackageName.replace('/', '.'));
 				if (typesInPackage != null && typesInPackage.size() > 0) {
-					for (Iterator j = typesInPackage.keySet().iterator(); j.hasNext();) {
-						String secondaryTypeName = (String) j.next();
-						IType secondaryType = (IType) typesInPackage.get(secondaryTypeName);
+					for (Iterator<String> j = typesInPackage.keySet().iterator(); j.hasNext();) {
+						String secondaryTypeName = j.next();
+						IType secondaryType = typesInPackage.get(secondaryTypeName);
 						IJavaElement parent = secondaryType.getParent();
 						String fullPath = parent.getResource().getFullPath().toString();
 						if (!org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.isExcluded(fullPath.toCharArray(), this.fulInclusionPatternChars, this.fullExclusionPatternChars, false/*not a folder path*/)) {
@@ -99,6 +101,7 @@ SimpleLookupTable directoryTable(String qualifiedPackageName) {
 	return null;
 }
 
+@Override
 public boolean equals(Object o) {
 	if (this == o) return true;
 	if (!(o instanceof ClasspathSourceDirectory)) return false;
@@ -106,39 +109,61 @@ public boolean equals(Object o) {
 	return this.sourceFolder.equals(((ClasspathSourceDirectory) o).sourceFolder);
 }
 
-public NameEnvironmentAnswer findClass(String sourceFileWithoutExtension, String qualifiedPackageName, String qualifiedSourceFileWithoutExtension) {
+@Override
+public NameEnvironmentAnswer findClass(String typeName, String qualifiedPackageName, String moduleName, String qualifiedBinaryFileName, boolean asBinaryOnly, Predicate<String> moduleNameFilter) {
+	return findClass(typeName, qualifiedPackageName, moduleName, qualifiedBinaryFileName);
+}
+@Override
+public NameEnvironmentAnswer findClass(String sourceFileWithoutExtension, String qualifiedPackageName, String moduleName, String qualifiedSourceFileWithoutExtension) {
 	SimpleLookupTable dirTable = directoryTable(qualifiedPackageName);
 	if (dirTable != null && dirTable.elementSize > 0) {
 		IFile file = (IFile) dirTable.get(sourceFileWithoutExtension);
 		if (file != null) {
-			return new NameEnvironmentAnswer(new ResourceCompilationUnit(file), null /* no access restriction */);
+			return new NameEnvironmentAnswer(new ResourceCompilationUnit(file,
+					this.module == null ? null : this.module.name()), null /* no access restriction */);
 		}
 	}
 	return null;
 }
 
+@Override
 public IPath getProjectRelativePath() {
 	return this.sourceFolder.getProjectRelativePath();
 }
 
+@Override
 public int hashCode() {
 	return this.sourceFolder == null ? super.hashCode() : this.sourceFolder.hashCode();
 }
 
-public boolean isPackage(String qualifiedPackageName) {
+@Override
+public boolean isPackage(String qualifiedPackageName, String moduleName) {
+	if (moduleName != null) {
+		if (this.module == null || !moduleName.equals(String.valueOf(this.module.name())))
+			return false;
+	}
 	return directoryTable(qualifiedPackageName) != null;
 }
+@Override
+public boolean hasCompilationUnit(String qualifiedPackageName, String moduleName) {
+	SimpleLookupTable dirTable = directoryTable(qualifiedPackageName);
+	if (dirTable != null && dirTable.elementSize > 0)
+		return true;
+	return false;
+}
 
+@Override
 public void reset() {
 	this.directoryCache = new SimpleLookupTable(5);
 }
 
+@Override
 public String toString() {
 	return "Source classpath directory " + this.sourceFolder.getFullPath().toString(); //$NON-NLS-1$
 }
 
+@Override
 public String debugPathString() {
 	return this.sourceFolder.getFullPath().toString();
 }
-
 }

@@ -73,6 +73,7 @@ public class Scanner extends TheOriginalJDTScannerClass implements TerminalToken
 	
 	
 	
+	@Override
 	public int scanIdentifierOrKeyword() {
 		int kind = super.scanIdentifierOrKeyword();
 		if (kind != TerminalTokens.TokenNameIdentifier) return kind;

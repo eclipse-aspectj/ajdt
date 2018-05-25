@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -65,6 +65,7 @@ public class ParameterizedQualifiedTypeReference extends ArrayQualifiedTypeRefer
 			this.bits |= ASTNode.HasTypeAnnotations;
 		}
 	}
+	@Override
 	public void checkBounds(Scope scope) {
 		if (this.resolvedType == null || !this.resolvedType.isValidBinding()) return;
 
@@ -89,6 +90,7 @@ public class ParameterizedQualifiedTypeReference extends ArrayQualifiedTypeRefer
 			}
 		}
 	}
+	@Override
 	public TypeReference augmentTypeWithAdditionalDimensions(int additionalDimensions, Annotation[][] additionalAnnotations, boolean isVarargs) {
 		int totalDimensions = this.dimensions() + additionalDimensions;
 		Annotation [][] allAnnotations = getMergedAnnotationsOnDimensions(additionalDimensions, additionalAnnotations);
@@ -99,6 +101,7 @@ public class ParameterizedQualifiedTypeReference extends ArrayQualifiedTypeRefer
 			pqtr.extendedDimensions = additionalDimensions;
 		return pqtr;
 	}
+	@Override
 	public boolean isParameterizedTypeReference() {
 		return true;
 	}
@@ -128,6 +131,7 @@ public class ParameterizedQualifiedTypeReference extends ArrayQualifiedTypeRefer
 	/**
 	 * @return char[][]
 	 */
+	@Override
 	public char [][] getParameterizedTypeName(){
 		int length = this.tokens.length;
 		char[][] qParamName = new char[length][];
@@ -162,14 +166,13 @@ public class ParameterizedQualifiedTypeReference extends ArrayQualifiedTypeRefer
 		return qParamName;
 	}
 
+	@Override
 	public TypeReference[][] getTypeArguments() {
 		return this.typeArguments;
 	}
 	
-	/* (non-Javadoc)
-     * @see org.aspectj.org.eclipse.jdt.internal.compiler.ast.ArrayQualifiedTypeReference#getTypeBinding(org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Scope)
-     */
-    protected TypeBinding getTypeBinding(Scope scope) {
+    @Override
+	protected TypeBinding getTypeBinding(Scope scope) {
         return null; // not supported here - combined with resolveType(...)
     }
 
@@ -200,6 +203,10 @@ public class ParameterizedQualifiedTypeReference extends ArrayQualifiedTypeRefer
 		TypeBinding type = internalResolveLeafType(scope, checkBounds);
 		createArrayType(scope);
 		resolveAnnotations(scope, location);
+		if(this.dimensions > 0) {
+			this.resolvedType = ArrayTypeReference.maybeMarkArrayContentsNonNull(scope, this.resolvedType, this.sourceStart, this.dimensions, null);
+		}
+
 		if (this.typeArguments != null)
 			// relevant null annotations are on the inner most type:
 			checkIllegalNullAnnotations(scope, this.typeArguments[this.typeArguments.length-1]);
@@ -383,6 +390,7 @@ public class ParameterizedQualifiedTypeReference extends ArrayQualifiedTypeRefer
 		}
 	}
 
+	@Override
 	public StringBuffer printExpression(int indent, StringBuffer output) {
 		int length = this.tokens.length;
 		for (int i = 0; i < length - 1; i++) {
@@ -456,12 +464,15 @@ public class ParameterizedQualifiedTypeReference extends ArrayQualifiedTypeRefer
 		return output;
 	}
 
+	@Override
 	public TypeBinding resolveType(BlockScope scope, boolean checkBounds, int location) {
 	    return internalResolveType(scope, checkBounds, location);
 	}
+	@Override
 	public TypeBinding resolveType(ClassScope scope, int location) {
 	    return internalResolveType(scope, false, location);
 	}
+	@Override
 	public void traverse(ASTVisitor visitor, BlockScope scope) {
 		if (visitor.visit(this, scope)) {
 			if (this.annotations != null) {
@@ -493,6 +504,7 @@ public class ParameterizedQualifiedTypeReference extends ArrayQualifiedTypeRefer
 		visitor.endVisit(this, scope);
 	}
 
+	@Override
 	public void traverse(ASTVisitor visitor, ClassScope scope) {
 		if (visitor.visit(this, scope)) {
 			if (this.annotations != null) {
