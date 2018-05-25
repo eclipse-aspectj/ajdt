@@ -675,9 +675,23 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 			}
 		}
 		StringBuilder fcp = new StringBuilder();
-		for (File f: fileList) {
+		for (int i=0;i<fileList.size();i++) {
+			if (i>0) {
+				fcp.append(File.pathSeparatorChar);
+			}
+			File f = fileList.get(i);
 			fcp.append(f.getAbsolutePath());
 		}
 		return fcp.toString();
     }
+
+	public String getModulepath() {
+		// not yet implemented
+		return null;
+	}
+
+	public String getModuleSourcepath() {
+		// not yet implemented
+		return null;
+	}
 }
