@@ -71,7 +71,6 @@ import org.eclipse.jdt.internal.corext.dom.ASTNodes;
 import org.eclipse.jdt.internal.corext.dom.TokenScanner;
 import org.eclipse.jdt.internal.corext.refactoring.StubTypeContext;
 import org.eclipse.jdt.internal.corext.refactoring.TypeContextChecker;
-import org.eclipse.jdt.internal.corext.refactoring.util.JavaElementUtil;
 import org.eclipse.jdt.internal.corext.template.java.JavaContext;
 import org.eclipse.jdt.internal.corext.util.CodeFormatterUtil;
 import org.eclipse.jdt.internal.corext.util.JavaConventionsUtil;
@@ -230,7 +229,7 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 				
 		/* package */ void create(boolean needsSave, IProgressMonitor monitor) throws CoreException {
 			TextEdit edit= fImportsRewrite.rewriteImports(monitor);
-			JavaElementUtil.applyEdit(fImportsRewrite.getCompilationUnit(), edit, needsSave, null);
+			JavaModelUtil.applyEdit(fImportsRewrite.getCompilationUnit(), edit, needsSave, null);
 		}
 		
 		/* package */ void removeImport(String qualifiedName) {
@@ -282,10 +281,12 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 			this.interfaceName= interfaceName;
 		}
 
+		@Override
 		public int hashCode() {
 			return interfaceName.hashCode();
 		}
 
+		@Override
 		public boolean equals(Object obj) {
 			return obj != null && getClass().equals(obj.getClass()) && ((InterfaceWrapper) obj).interfaceName.equals(interfaceName);
 		}
@@ -298,10 +299,12 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 			fInterfaceImage= JavaPluginImages.get(JavaPluginImages.IMG_OBJS_INTERFACE);
 		}
 		
+		@Override
 		public String getText(Object element) {
 			return BasicElementLabels.getJavaElementName(((InterfaceWrapper) element).interfaceName);
 		}
 		
+		@Override
 		public Image getImage(Object element) {
 			return fInterfaceImage;
 		}
@@ -769,6 +772,7 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 		
 		JavaTypeCompletionProcessor superClassCompletionProcessor= new JavaTypeCompletionProcessor(false, false, true);
 		superClassCompletionProcessor.setCompletionContextRequestor(new CompletionContextRequestor() {
+			@Override
 			public StubTypeContext getStubTypeContext() {
 				return getSuperClassStubTypeContext();
 			}
@@ -792,7 +796,8 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 		tableViewer.setColumnProperties(new String[] {INTERFACE});
 		
 		TableTextCellEditor cellEditor= new TableTextCellEditor(tableViewer, 0) {
-		    protected void doSetFocus() {
+		    @Override
+			protected void doSetFocus() {
 		        if (text != null) {
 		            text.setFocus();
 		            text.setSelection(text.getText().length());
@@ -804,6 +809,7 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 		};
 		JavaTypeCompletionProcessor superInterfaceCompletionProcessor= new JavaTypeCompletionProcessor(false, false, true);
 		superInterfaceCompletionProcessor.setCompletionContextRequestor(new CompletionContextRequestor() {
+			@Override
 			public StubTypeContext getStubTypeContext() {
 				return getSuperInterfacesStubTypeContext();
 			}
@@ -831,6 +837,7 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 			}
 		});
 		tableViewer.getTable().addKeyListener(new KeyAdapter() {
+			@Override
 			public void keyPressed(KeyEvent event) {
 				if (event.keyCode == SWT.F2 && event.stateMask == 0) {
 					ISelection selection= tableViewer.getSelection();
@@ -1018,6 +1025,7 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 	/*
 	 * @see org.eclipse.jdt.ui.wizards.NewContainerWizardPage#handleFieldChanged(String)
 	 */
+	@Override
 	protected void handleFieldChanged(String fieldName) {
 		super.handleFieldChanged(fieldName);
 		if (fieldName.equals(CONTAINER)) {
@@ -1349,6 +1357,7 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 	/*
 	 * @see org.eclipse.jdt.ui.wizards.NewContainerWizardPage#containerChanged()
 	 */
+	@Override
 	protected IStatus containerChanged() {
 		IStatus status= super.containerChanged();
 	    IPackageFragmentRoot root= getPackageFragmentRoot();
@@ -2336,6 +2345,7 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 	 * @deprecated Instead of file templates, the new type code template
 	 * specifies the stub for a compilation unit.
 	 */		
+	@Deprecated
 	protected String getFileComment(ICompilationUnit parentCU) {
 		return null;
 	}
@@ -2412,6 +2422,7 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 	 * @return returns the template or <code>null</code>
 	 * @deprecated Use getTypeComment(ICompilationUnit, String)
 	 */
+	@Deprecated
 	protected String getTypeComment(ICompilationUnit parentCU) {
 		if (StubUtility.doAddComments(parentCU.getJavaProject()))
 			return getTypeComment(parentCU, StubUtility.getLineDelimiterUsed(parentCU));
@@ -2424,6 +2435,7 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 	 * @return returns the template or <code>null</code>
 	 * @deprecated Use getTemplate(String,ICompilationUnit,int)
 	 */
+	@Deprecated
 	protected String getTemplate(String name, ICompilationUnit parentCU) {
 		return getTemplate(name, parentCU, 0);
 	}

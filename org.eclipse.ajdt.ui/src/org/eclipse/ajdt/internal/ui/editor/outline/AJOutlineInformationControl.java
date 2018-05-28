@@ -50,6 +50,9 @@ import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.bindings.TriggerSequence;
+import org.eclipse.jface.bindings.keys.KeySequence;
+import org.eclipse.jface.bindings.keys.SWTKeySupport;
 import org.eclipse.jface.viewers.AbstractTreeViewer;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
@@ -70,8 +73,6 @@ import org.eclipse.ui.IDecoratorManager;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.keys.KeySequence;
-import org.eclipse.ui.keys.SWTKeySupport;
 
 // Copied from org.eclipse.jdt.internal.ui.text.JavaOutlineInformationControl
 // to allow use of a decorating label provider which will make use of our registered
@@ -119,6 +120,7 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 		/*
 		 * @see ILabelProvider#getText
 		 */ 	
+		@Override
 		public String getText(Object element) {
 			String text= super.getText(element);
 			if (fShowDefiningType) {
@@ -139,6 +141,7 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 		/*
 		 * @see org.eclipse.jdt.internal.ui.viewsupport.JavaUILabelProvider#getForeground(java.lang.Object)
 		 */
+		@Override
 		public Color getForeground(Object element) {
 			if (fOutlineContentProvider.isShowingInheritedMembers()) {
 				if (element instanceof IJavaElement) {
@@ -228,6 +231,7 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 		/**
 		 * {@inheritDoc}
 		 */
+		@Override
 		protected Object[] getFilteredChildren(Object parent) {
 			Object[] result = getRawChildren(parent);
 			int unfilteredChildren= result.length;
@@ -243,6 +247,7 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 		/**
 		 * {@inheritDoc}
 		 */
+		@Override
 		protected void internalExpandToLevel(Widget node, int level) {
 			if (!fIsFiltering && node instanceof Item) {
 				Item i= (Item) node;
@@ -312,6 +317,7 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 		/**
 		 * {@inheritDoc}
 		 */
+		@Override
 		public Object[] getChildren(Object element) {
 			// AspectJ Change begin
 			if (element instanceof ICompilationUnit) {
@@ -350,6 +356,7 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 		/**
 		 * {@inheritDoc}
 		 */
+		@Override
 		public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
 			super.inputChanged(viewer, oldInput, newInput);
 			fTypeHierarchies.clear();
@@ -358,6 +365,7 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 		/**
 		 * {@inheritDoc}
 		 */
+		@Override
 		public void dispose() {
 			super.dispose();
 			fTypeHierarchies.clear();
@@ -417,6 +425,7 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 		/*
 		 * @see org.eclipse.jface.action.Action#run()
 		 */
+		@Override
 		public void run() {
 			setTopLevelTypeOnly(!fShowOnlyMainType);
 		}
@@ -449,6 +458,7 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 		/* (non-Javadoc)
 		 * @see org.eclipse.jdt.internal.ui.typehierarchy.AbstractHierarchyViewerSorter#getHierarchy(org.eclipse.jdt.core.IType)
 		 */
+		@Override
 		protected ITypeHierarchy getHierarchy(IType type) {
 			return getSuperTypeHierarchy(type);
 		}
@@ -456,6 +466,7 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 		/* (non-Javadoc)
 		 * @see org.eclipse.jdt.internal.ui.typehierarchy.AbstractHierarchyViewerSorter#isSortByDefiningType()
 		 */
+		@Override
 		public boolean isSortByDefiningType() {
 			return fSortByDefiningTypeAction.isChecked();
 		}
@@ -463,6 +474,7 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 		/* (non-Javadoc)
 		 * @see org.eclipse.jdt.internal.ui.typehierarchy.AbstractHierarchyViewerSorter#isSortAlphabetically()
 		 */
+		@Override
 		public boolean isSortAlphabetically() {
 			return fLexicalSortingAction.isChecked();
 		}
@@ -489,6 +501,7 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 			AspectJUIPlugin.getDefault().getWorkbench().getHelpSystem().setHelp(this, IJavaHelpContextIds.LEXICAL_SORTING_BROWSING_ACTION);
 		}
 
+		@Override
 		public void run() {
 			valueChanged(isChecked(), true);
 		}
@@ -537,6 +550,7 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 		/*
 		 * @see Action#actionPerformed
 		 */
+		@Override
 		public void run() {
 			BusyIndicator.showWhile(fOutlineViewer.getControl().getDisplay(), new Runnable() {
 				public void run() {
@@ -574,6 +588,7 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	protected Text createFilterText(Composite parent) {
 		Text text= super.createFilterText(parent);
 		text.addKeyListener(getKeyAdapter());
@@ -583,6 +598,7 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	protected TreeViewer createTreeViewer(Composite parent, int style) {
 		Tree tree= new Tree(parent, SWT.SINGLE | (style & ~SWT.MULTI));
 		GridData gd= new GridData(GridData.FILL_BOTH);
@@ -627,8 +643,9 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	protected String getStatusFieldText() {
-	    KeySequence[] sequences= getInvokingCommandKeySequences();
+	    TriggerSequence[] sequences= getInvokingCommandKeySequences();
 		if (sequences == null || sequences.length == 0)
 			return ""; //$NON-NLS-1$
 
@@ -644,6 +661,7 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 	 * @see org.eclipse.jdt.internal.ui.text.AbstractInformationControl#getId()
 	 * @since 3.0
 	 */
+	@Override
 	protected String getId() {
 		return "org.eclipse.jdt.internal.ui.text.QuickOutline"; //$NON-NLS-1$
 	}
@@ -651,6 +669,7 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	public void setInput(Object information) {
 		if (information == null || information instanceof String) {
 			inputChanged(null, null);
@@ -669,10 +688,14 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 	private KeyAdapter getKeyAdapter() {
 		if (fKeyAdapter == null) {
 			fKeyAdapter= new KeyAdapter() {
+				@Override
 				public void keyPressed(KeyEvent e) {
 					int accelerator = SWTKeySupport.convertEventToUnmodifiedAccelerator(e);
 					KeySequence keySequence = KeySequence.getInstance(SWTKeySupport.convertAcceleratorToKeyStroke(accelerator));
-					KeySequence[] sequences= getInvokingCommandKeySequences();
+					TriggerSequence[] sequences = getInvokingCommandKeySequences();
+//					int accelerator = SWTKeySupport.convertEventToUnmodifiedAccelerator(e);
+//					KeySequence keySequence = KeySequence.getInstance(SWTKeySupport.convertAcceleratorToKeyStroke(accelerator));
+//					KeySequence[] sequences= getInvokingCommandKeySequences();
 					if (sequences == null)
 						return;
 					for (int i= 0; i < sequences.length; i++) {
@@ -709,6 +732,7 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 	/*
 	 * @see org.eclipse.jdt.internal.ui.text.AbstractInformationControl#fillViewMenu(org.eclipse.jface.action.IMenuManager)
 	 */
+	@Override
 	protected void fillViewMenu(IMenuManager viewMenu) {
 		super.fillViewMenu(viewMenu);
 		viewMenu.add(fShowOnlyMainTypeAction); 

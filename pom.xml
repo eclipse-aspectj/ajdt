@@ -102,6 +102,21 @@
 		</profile>
 
 		<profile>
+			<id>e48</id>
+			<properties>
+				<platform.version>e48</platform.version>
+				<weaving.hook.version>1.2.0.v20160929-1449</weaving.hook.version>
+			</properties>
+			<repositories>
+				<repository>
+					<id>photon-releases</id>
+					<layout>p2</layout>
+					<url>http://download.eclipse.org/releases/photon/</url>
+				</repository>
+			</repositories>
+		</profile>
+
+		<profile>
 			<id>os-macosx</id>
 			<activation>
 				<os>

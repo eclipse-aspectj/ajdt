@@ -47,7 +47,8 @@ import org.eclipse.jdt.internal.core.search.JavaSearchScope;
 public class AbstractITDSearchTest extends AJDTCoreTestCase {
     class ITDAwareSearchRequestor extends SearchRequestor {
         List<SearchMatch> matches = new ArrayList<SearchMatch>();
-        public void acceptSearchMatch(SearchMatch match) throws CoreException {
+        @Override
+		public void acceptSearchMatch(SearchMatch match) throws CoreException {
             // order matches by offset
             for (int i = 0; i < matches.size(); i++) {
                 if (matches.get(i).getOffset() > match.getOffset()) {
@@ -65,7 +66,8 @@ public class AbstractITDSearchTest extends AJDTCoreTestCase {
 
     public IJavaProject javaProject;
 
-    protected void setUp() throws Exception {
+    @Override
+	protected void setUp() throws Exception {
         super.setUp();
         javaProject = JavaCore.create(createPredefinedProject("DefaultEmptyProject"));
     }
@@ -111,7 +113,7 @@ public class AbstractITDSearchTest extends AJDTCoreTestCase {
         AspectJCoreTestPlugin.logInfo("About to create Search pattern in " + name);
         SearchPattern pattern = SearchPattern.createPattern(elt, flags);
         SearchEngine engine = new SearchEngine();
-        JavaSearchScope scope = new JavaSearchScope();
+        JavaSearchScope scope = new JavaSearchScope(false);
         scope.add(javaProject);
 
         AspectJCoreTestPlugin.logInfo("About to perform search in " + name);
@@ -136,7 +138,7 @@ public class AbstractITDSearchTest extends AJDTCoreTestCase {
     private String printMatches(List<SearchMatch> matches) {
         StringBuffer sb = new StringBuffer();
         for (Iterator<SearchMatch> matchIter = matches.iterator(); matchIter.hasNext();) {
-            SearchMatch match = (SearchMatch) matchIter.next();
+            SearchMatch match = matchIter.next();
             sb.append("\n\n" + match);
             
         }
@@ -171,7 +173,7 @@ public class AbstractITDSearchTest extends AJDTCoreTestCase {
         assertEquals("Wrong match location", contents.indexOf(matchName), match.getOffset());
         assertEquals("Wrong match length", matchName.length(), match.getLength());
         
-        match = (SearchMatch) matches.get(1);
+        match = matches.get(1);
         assertEquals("Wrong match location", contents.lastIndexOf(matchName), match.getOffset());
         assertEquals("Wrong match length", matchName.length(), match.getLength());
         
@@ -183,7 +185,7 @@ public class AbstractITDSearchTest extends AJDTCoreTestCase {
     protected void assertDeclarationMatches(IMember declaration, List<SearchMatch> matches) throws JavaModelException {
         boolean found = false;
         for (Iterator<SearchMatch> searchIter = matches.iterator(); searchIter.hasNext();) {
-            SearchMatch match = (SearchMatch) searchIter.next();
+            SearchMatch match = searchIter.next();
             if (match.getElement().equals(declaration)) {
                 found = true;
                 assertDeclarationMatch(declaration, match);

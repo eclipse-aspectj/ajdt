@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.aspectj.asm.IProgramElement;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ModuleBinding;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
@@ -121,15 +122,18 @@ public class ITDInserter extends ASTVisitor {
         this.env = env;
     }
     
-    public boolean visit(TypeDeclaration type, BlockScope blockScope) {
+    @Override
+	public boolean visit(TypeDeclaration type, BlockScope blockScope) {
         augmentType(type);
         return false; // no local/anonymous type
     }
-    public boolean visit(TypeDeclaration type, CompilationUnitScope compilationUnitScope) {
+    @Override
+	public boolean visit(TypeDeclaration type, CompilationUnitScope compilationUnitScope) {
         augmentType(type);
         return true;
     }
-    public boolean visit(TypeDeclaration memberType, ClassScope classScope) {
+    @Override
+	public boolean visit(TypeDeclaration memberType, ClassScope classScope) {
         augmentType(memberType);
         return true;
     }
@@ -282,8 +286,8 @@ public class ITDInserter extends ASTVisitor {
                         getParameterBindings(elt, ititAST.binding), new ReferenceBinding[0], ititAST.binding));
             }
         }
-        ititAST.fields = (FieldDeclaration[]) fields.toArray(new FieldDeclaration[0]);
-        ititAST.methods = (AbstractMethodDeclaration[]) methods.toArray(new MethodDeclaration[0]);
+        ititAST.fields = fields.toArray(new FieldDeclaration[0]);
+        ititAST.methods = methods.toArray(new MethodDeclaration[0]);
         
         
         // figure out how to make type bindings and figure out method bindings
@@ -392,7 +396,7 @@ public class ITDInserter extends ASTVisitor {
             if (sig == null) {
                 String[] params = new String[method.getParameterTypes().size()];
                 for (int i = 0; i < params.length; i++) {
-                    params[i] = new String(Signature.getTypeErasure((char[]) method.getParameterTypes().get(i)));
+                    params[i] = new String(Signature.getTypeErasure(method.getParameterTypes().get(i)));
                 }
                 sig = new ErasedTypeSignature(method.getCorrespondingTypeSignature(), params);
             }
@@ -407,7 +411,7 @@ public class ITDInserter extends ASTVisitor {
                 }
             }
             for (int i = 0; i < args.length; i++) {
-                args[i] = new Argument(((String) pNames.get(i)).toCharArray(),
+                args[i] = new Argument(pNames.get(i).toCharArray(),
                         0,
                         createTypeReference(Signature.getElementType(sig.paramTypes[i])),
                         0);
@@ -428,9 +432,9 @@ public class ITDInserter extends ASTVisitor {
                 }
             }
             for (int i = 0; i < args.length; i++) {
-                args[i] = new Argument(((String) pNames.get(i)).toCharArray(),
+                args[i] = new Argument(pNames.get(i).toCharArray(),
                         0,
-                        createTypeReference(new String((char[]) method.getParameterTypes().get(i))),
+                        createTypeReference(new String(method.getParameterTypes().get(i))),
                         0);
             }
         }
@@ -481,7 +485,7 @@ public class ITDInserter extends ASTVisitor {
        for (int i = 0; i < args.length; i++) {
             args[i] = new Argument(pNames.get(i).toCharArray(),
                     0,
-                    createTypeReference(new String((char[]) constructor.getParameterTypes().get(i))),
+                    createTypeReference(new String(constructor.getParameterTypes().get(i))),
                     0);
         }
         decl.arguments = args;
@@ -509,7 +513,7 @@ public class ITDInserter extends ASTVisitor {
             newSuper = newSuper.substring(0, genericsIndex);
         }
         newSuper = newSuper.replace('$', '.');
-        return env.askForType(CharOperation.splitOn('.', newSuper.toCharArray()));
+        return env.askForType(CharOperation.splitOn('.', newSuper.toCharArray()),env.getModule(ModuleBinding.ANY));
     }
 
     private void addSuperInterfaces(IProgramElement ipe, TypeDeclaration decl) {

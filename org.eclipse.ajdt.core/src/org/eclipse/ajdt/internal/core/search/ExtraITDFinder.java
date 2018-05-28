@@ -25,6 +25,7 @@ import org.aspectj.org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.aspectj.org.eclipse.jdt.core.dom.CompilationUnit;
 import org.aspectj.org.eclipse.jdt.core.dom.InterTypeFieldDeclaration;
 import org.aspectj.org.eclipse.jdt.core.dom.InterTypeMethodDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ModuleBinding;
 import org.eclipse.ajdt.core.ReflectionUtils;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
@@ -48,7 +49,6 @@ import org.eclipse.jdt.internal.core.search.matching.ConstructorPattern;
 import org.eclipse.jdt.internal.core.search.matching.FieldPattern;
 import org.eclipse.jdt.internal.core.search.matching.MethodPattern;
 import org.eclipse.jdt.internal.core.search.matching.PossibleMatch;
-import org.eclipse.jdt.internal.core.search.matching.TypeReferencePattern;
 import org.eclipse.jdt.internal.core.search.matching.VariablePattern;
 
 /**
@@ -249,9 +249,9 @@ public class ExtraITDFinder implements IExtraMatchFinder<SearchPattern> {
             return true;
         }
         if (resolver != null) {
+        	LookupEnvironment env =  ((LookupEnvironment) ReflectionUtils.getPrivateField(HierarchyResolver.class, "lookupEnvironment", resolver));
             ReferenceBinding targetBinding = 
-                    ((LookupEnvironment) ReflectionUtils.getPrivateField(HierarchyResolver.class, "lookupEnvironment", resolver)).
-                    askForType(CharOperation.splitOn('.', itdTargetTypeName));
+                   env.askForType(CharOperation.splitOn('.', itdTargetTypeName),env.getModule(ModuleBinding.ANY));
             if (targetBinding != null) {
                 return resolver.subOrSuperOfFocus(targetBinding);
             }

@@ -38,13 +38,14 @@ import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jdt.core.manipulation.CoreASTProvider;
 import org.eclipse.jdt.core.search.TypeNameMatch;
-import org.eclipse.jdt.internal.corext.ValidateEditException;
 import org.eclipse.jdt.internal.corext.codemanipulation.CodeGenerationSettings;
 import org.eclipse.jdt.internal.corext.util.History;
 import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
 import org.eclipse.jdt.internal.corext.util.Messages;
 import org.eclipse.jdt.internal.corext.util.QualifiedTypeNameHistory;
+import org.eclipse.jdt.internal.corext.util.ValidateEditException;
 import org.eclipse.jdt.internal.ui.IJavaHelpContextIds;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.actions.ActionMessages;
@@ -52,7 +53,6 @@ import org.eclipse.jdt.internal.ui.actions.ActionUtil;
 import org.eclipse.jdt.internal.ui.actions.WorkbenchRunnableAdapter;
 import org.eclipse.jdt.internal.ui.browsing.LogicalPackage;
 import org.eclipse.jdt.internal.ui.dialogs.MultiElementListSelectionDialog;
-import org.eclipse.jdt.internal.ui.javaeditor.ASTProvider;
 import org.eclipse.jdt.internal.ui.javaeditor.EditorUtility;
 import org.eclipse.jdt.internal.ui.javaeditor.JavaEditor;
 import org.eclipse.jdt.internal.ui.preferences.JavaPreferencesSettings;
@@ -174,6 +174,7 @@ public class AJOrganizeImportsAction extends SelectionDispatchAction {
 	/* (non-Javadoc)
 	 * Method declared on SelectionDispatchAction.
 	 */
+	@Override
 	public void selectionChanged(ITextSelection selection) {
 		setEnabled(getCompilationUnit(fEditor) != null);
 	}
@@ -181,6 +182,7 @@ public class AJOrganizeImportsAction extends SelectionDispatchAction {
 	/* (non-Javadoc)
 	 * Method declared on SelectionDispatchAction.
 	 */
+	@Override
 	public void selectionChanged(IStructuredSelection selection) {
 		setEnabled(isEnabled(selection));
 	}
@@ -289,6 +291,7 @@ public class AJOrganizeImportsAction extends SelectionDispatchAction {
 	/* (non-Javadoc)
 	 * Method declared on SelectionDispatchAction.
 	 */
+	@Override
 	public void run(ITextSelection selection) {
 		ICompilationUnit cu= getCompilationUnit(fEditor);
 		if (cu != null) {
@@ -305,6 +308,7 @@ public class AJOrganizeImportsAction extends SelectionDispatchAction {
 	/* (non-Javadoc)
 	 * Method declared on SelectionDispatchAction.
 	 */
+	@Override
 	public void run(IStructuredSelection selection) {
 		ICompilationUnit[] cus= getCompilationUnits(selection);
 		if (cus.length == 0)
@@ -463,14 +467,12 @@ public class AJOrganizeImportsAction extends SelectionDispatchAction {
 					fEditor= (JavaEditor) editor;
 				}			
 			}
-			
-			CompilationUnit astRoot= JavaPlugin.getDefault().getASTProvider().getAST(cu, ASTProvider.WAIT_ACTIVE_ONLY, null);
-			
+			CompilationUnit astRoot = CoreASTProvider.getInstance().getAST(cu, CoreASTProvider.WAIT_ACTIVE_ONLY, null);
 			AJOrganizeImportsOperation op= new AJOrganizeImportsOperation(cu, astRoot, settings.importIgnoreLowercase, !cu.isWorkingCopy(), true, createChooseImportQuery());
 		
 			IRewriteTarget target= null;
 			if (fEditor != null) {
-				target= (IRewriteTarget) fEditor.getAdapter(IRewriteTarget.class);
+				target= fEditor.getAdapter(IRewriteTarget.class);
 				if (target != null) {
 					target.beginCompoundChange();
 				}
@@ -534,6 +536,7 @@ public class AJOrganizeImportsAction extends SelectionDispatchAction {
 		ILabelProvider labelProvider= new TypeNameMatchLabelProvider(TypeNameMatchLabelProvider.SHOW_FULLYQUALIFIED);
 		
 		MultiElementListSelectionDialog dialog= new MultiElementListSelectionDialog(getShell(), labelProvider) {
+			@Override
 			protected void handleSelectionChanged() {
 				super.handleSelectionChanged();
 				// show choices in editor

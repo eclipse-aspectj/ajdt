@@ -52,22 +52,21 @@ import org.eclipse.jdt.core.dom.Name;
 import org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.rewrite.ImportRewrite;
+import org.eclipse.jdt.core.manipulation.ImportReferencesCollector;
+import org.eclipse.jdt.core.manipulation.TypeKinds;
+import org.eclipse.jdt.core.manipulation.TypeNameMatchCollector;
 import org.eclipse.jdt.core.search.IJavaSearchConstants;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.eclipse.jdt.core.search.SearchEngine;
 import org.eclipse.jdt.core.search.TypeNameMatch;
-import org.eclipse.jdt.internal.corext.codemanipulation.CodeGenerationMessages;
-import org.eclipse.jdt.internal.corext.codemanipulation.ImportReferencesCollector;
+import org.eclipse.jdt.internal.core.manipulation.JavaManipulationMessages;
 import org.eclipse.jdt.internal.corext.codemanipulation.StubUtility;
 import org.eclipse.jdt.internal.corext.dom.Bindings;
 import org.eclipse.jdt.internal.corext.dom.ScopeAnalyzer;
 import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
 import org.eclipse.jdt.internal.corext.util.Messages;
 import org.eclipse.jdt.internal.corext.util.Strings;
-import org.eclipse.jdt.internal.corext.util.TypeNameMatchCollector;
-import org.eclipse.jdt.internal.corext.refactoring.util.JavaElementUtil;
 import org.eclipse.jdt.internal.ui.text.correction.ASTResolving;
-import org.eclipse.jdt.internal.ui.text.correction.SimilarElementsRequestor;
 import org.eclipse.jdt.ui.SharedASTProvider;
 import org.eclipse.text.edits.TextEdit;
 
@@ -104,7 +103,7 @@ public class AJOrganizeImportsOperation implements IWorkspaceRunnable {
 			
 			public void addInfo(TypeNameMatch info) {
 				for (int i= this.foundInfos.size() - 1; i >= 0; i--) {
-					TypeNameMatch curr= (TypeNameMatch) this.foundInfos.get(i);
+					TypeNameMatch curr= this.foundInfos.get(i);
 					if (curr.getTypeContainerName().equals(info.getTypeContainerName())) {
 						return; // not added. already contains type with same name
 					}
@@ -255,7 +254,7 @@ public class AJOrganizeImportsOperation implements IWorkspaceRunnable {
 				
 				for (i= 0; i < typesFound.size(); i++) {
 					TypeNameMatch curr= typesFound.get(i);
-					UnresolvedTypeData data= (UnresolvedTypeData) fUnresolvedTypes.get(curr.getSimpleTypeName());
+					UnresolvedTypeData data= fUnresolvedTypes.get(curr.getSimpleTypeName());
 					if (data != null && isVisible(curr) && isOfKind(curr, data.typeKinds, is50OrHigher)) {
 						if (fAllowDefaultPackageImports || curr.getPackageName().length() > 0) {
 							data.addInfo(curr);
@@ -276,8 +275,8 @@ public class AJOrganizeImportsOperation implements IWorkspaceRunnable {
 				if (openChoices.isEmpty()) {
 					return false;
 				}
-				fOpenChoices= (TypeNameMatch[][]) openChoices.toArray(new TypeNameMatch[openChoices.size()][]);
-				fSourceRanges= (SourceRange[]) sourceRanges.toArray(new SourceRange[sourceRanges.size()]);
+				fOpenChoices= openChoices.toArray(new TypeNameMatch[openChoices.size()][]);
+				fSourceRanges= sourceRanges.toArray(new SourceRange[sourceRanges.size()]);
 				return true;
 			} finally {
 				monitor.done();
@@ -341,7 +340,7 @@ public class AJOrganizeImportsOperation implements IWorkspaceRunnable {
 				// nothing found
 				return null;
 			} else if (nFound == 1) {
-				TypeNameMatch typeRef= (TypeNameMatch) typeRefsFound.get(0);
+				TypeNameMatch typeRef= typeRefsFound.get(0);
 				fImpStructure.addImport(typeRef.getFullyQualifiedName());
 				return null;
 			} else {
@@ -350,7 +349,7 @@ public class AJOrganizeImportsOperation implements IWorkspaceRunnable {
 				
 				// multiple found, use old imports to find an entry
 				for (int i= 0; i < nFound; i++) {
-					TypeNameMatch typeRef= (TypeNameMatch) typeRefsFound.get(i);
+					TypeNameMatch typeRef= typeRefsFound.get(i);
 					String fullName= typeRef.getFullyQualifiedName();
 					String containerName= typeRef.getTypeContainerName();
 					if (fOldSingleImports.contains(fullName)) {
@@ -371,22 +370,22 @@ public class AJOrganizeImportsOperation implements IWorkspaceRunnable {
 					return null;
 				}
 				// return the open choices
-				return (TypeNameMatch[]) typeRefsFound.toArray(new TypeNameMatch[nFound]);
+				return typeRefsFound.toArray(new TypeNameMatch[nFound]);
 			}
 		}
 		
 		private boolean isOfKind(TypeNameMatch curr, int typeKinds, boolean is50OrHigher) {
 			int flags= curr.getModifiers();
 			if (Flags.isAnnotation(flags)) {
-				return is50OrHigher && ((typeKinds & SimilarElementsRequestor.ANNOTATIONS) != 0);
+				return is50OrHigher && ((typeKinds & TypeKinds.ANNOTATIONS) != 0);
 			}
 			if (Flags.isEnum(flags)) {
-				return is50OrHigher && ((typeKinds & SimilarElementsRequestor.ENUMS) != 0);
+				return is50OrHigher && ((typeKinds & TypeKinds.ENUMS) != 0);
 			}
 			if (Flags.isInterface(flags)) {
-				return (typeKinds & SimilarElementsRequestor.INTERFACES) != 0;
+				return (typeKinds & TypeKinds.INTERFACES) != 0;
 			}
-			return (typeKinds & SimilarElementsRequestor.CLASSES) != 0;
+			return (typeKinds & TypeKinds.CLASSES) != 0;
 		}
 
 		private boolean isVisible(TypeNameMatch curr) {
@@ -449,7 +448,7 @@ public class AJOrganizeImportsOperation implements IWorkspaceRunnable {
 			fNumberOfImportsAdded= 0;
 			fNumberOfImportsRemoved= 0;
 			
-			monitor.beginTask(Messages.format(CodeGenerationMessages.OrganizeImportsOperation_description, fCompilationUnit.getElementName()), 10);
+			monitor.beginTask(Messages.format(JavaManipulationMessages.OrganizeImportsOperation_description, fCompilationUnit.getElementName()), 10);
 			
 			CompilationUnit astRoot= fASTRoot;
 			if (astRoot == null) {
@@ -497,7 +496,8 @@ public class AJOrganizeImportsOperation implements IWorkspaceRunnable {
 			}
 			
 			TextEdit edit= importsRewrite.rewriteImports(new SubProgressMonitor(monitor, 3));
-			JavaElementUtil.applyEdit(fCompilationUnit, edit, fDoSave, new SubProgressMonitor(monitor, 1));
+
+			JavaModelUtil.applyEdit(fCompilationUnit, edit, fDoSave, new SubProgressMonitor(monitor, 1));
 						
 			determineImportDifferences(importsRewrite, oldSingleImports, oldDemandImports);
 			processor= null;

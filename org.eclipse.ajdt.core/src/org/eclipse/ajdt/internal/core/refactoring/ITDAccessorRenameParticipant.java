@@ -270,7 +270,7 @@ public class ITDAccessorRenameParticipant extends RenameParticipant {
     private List<SearchMatch> findReferences(IMember accessor) {
         SearchPattern pattern = SearchPattern.createPattern(accessor, IJavaSearchConstants.REFERENCES);
         SearchEngine engine = new SearchEngine();
-        JavaSearchScope scope = new JavaSearchScope();
+        JavaSearchScope scope = new JavaSearchScope(false);
         try {
             scope.add(accessor.getJavaProject());
             CollectingSearchRequestor requestor = new CollectingSearchRequestor();

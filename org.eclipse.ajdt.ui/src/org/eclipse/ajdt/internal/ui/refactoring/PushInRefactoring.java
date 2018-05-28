@@ -78,11 +78,11 @@ import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 import org.eclipse.jdt.core.dom.rewrite.ImportRewrite;
 import org.eclipse.jdt.core.dom.rewrite.ListRewrite;
+import org.eclipse.jdt.core.manipulation.ImportReferencesCollector;
 import org.eclipse.jdt.internal.core.DefaultWorkingCopyOwner;
 import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.jdt.internal.core.NameLookup;
 import org.eclipse.jdt.internal.core.NameLookup.Answer;
-import org.eclipse.jdt.internal.corext.codemanipulation.ImportReferencesCollector;
 import org.eclipse.jface.text.Region;
 import org.eclipse.ltk.core.refactoring.Change;
 import org.eclipse.ltk.core.refactoring.ChangeDescriptor;
@@ -132,7 +132,7 @@ public class PushInRefactoring extends Refactoring {
         // does not handle imports for declare parents
         void rewriteImports() throws CoreException {
             // first check to see if this unit has been deleted.
-            Change change = (Change) allChanges.get(unit);
+            Change change = allChanges.get(unit);
             if (! (change instanceof TextFileChange)) {
                 return;
             }
@@ -213,7 +213,7 @@ public class PushInRefactoring extends Refactoring {
             List<BodyDeclaration> bodyDecls = lastType.bodyDeclarations();
             List<Type> extraSimpleNames = new LinkedList<Type>();
             for (int i = bodyDecls.size()-1; i >= 0; i--) {
-                BodyDeclaration decl = (BodyDeclaration) bodyDecls.get(i);
+                BodyDeclaration decl = bodyDecls.get(i);
                 if (decl.getNodeType() == ASTNode.FIELD_DECLARATION) {
                     FieldDeclaration fDecl = (FieldDeclaration) decl;
                     if (fDecl.fragments().size() == 1) {
@@ -284,7 +284,8 @@ public class PushInRefactoring extends Refactoring {
     }
     
 
-    public RefactoringStatus checkFinalConditions(IProgressMonitor monitor)
+    @Override
+	public RefactoringStatus checkFinalConditions(IProgressMonitor monitor)
             throws CoreException, OperationCanceledException {
         final RefactoringStatus status = new RefactoringStatus();
         try {
@@ -392,13 +393,14 @@ public class PushInRefactoring extends Refactoring {
         
         // this requestor performs the real work
         ASTRequestor requestors = new ASTRequestor() {
-            public void acceptAST(ICompilationUnit source, CompilationUnit ast) {
+            @Override
+			public void acceptAST(ICompilationUnit source, CompilationUnit ast) {
                 try {
                     
                     // compute the imports that this itd adds to this unit
                     PerUnitInformation holder;
                     if (imports.containsKey(source)) {
-                        holder = (PerUnitInformation) imports.get(source);
+                        holder = imports.get(source);
                     } else {
                         holder = new PerUnitInformation(source);
                         imports.put(source, holder);
@@ -412,7 +414,7 @@ public class PushInRefactoring extends Refactoring {
                     // make the simplifying assumption that the CU that contains the
                     // ITD does not also contain a target type
                     // Bug 310020
-                    if (isCUnitContainingITD(source, (IMember) itdsForUnit.get(0))) {
+                    if (isCUnitContainingITD(source, itdsForUnit.get(0))) {
                         // this is an AJCU.
                         rewriteAspectType(itdsForUnit, source, ast);
                     } else {
@@ -470,7 +472,7 @@ public class PushInRefactoring extends Refactoring {
                     parser.setProject(project);
                     parser.setResolveBindings(true);
                     Collection<ICompilationUnit> collection= projects.get(project);
-                    parser.createASTs((ICompilationUnit[]) collection.toArray(
+                    parser.createASTs(collection.toArray(
                             new ICompilationUnit[collection.size()]), new String[0], 
                             requestors, new SubProgressMonitor(subMonitor, 1));
                 }
@@ -509,7 +511,7 @@ public class PushInRefactoring extends Refactoring {
             IType parentAspectType = (IType) itd.getParent();
             int numRemovals;
             if (removalStored.containsKey(parentAspectType)) {
-                numRemovals = ((Integer) removalStored.get(parentAspectType)).intValue();
+                numRemovals = removalStored.get(parentAspectType).intValue();
                 removalStored.put(parentAspectType, new Integer(++numRemovals));
             } else {
                 removalStored.put(parentAspectType, new Integer(1));
@@ -1047,7 +1049,8 @@ public class PushInRefactoring extends Refactoring {
         return unitToTypes;
     }
 
-    public RefactoringStatus checkInitialConditions(IProgressMonitor monitor)
+    @Override
+	public RefactoringStatus checkInitialConditions(IProgressMonitor monitor)
             throws CoreException, OperationCanceledException {
         if (monitor == null) {
             monitor = new NullProgressMonitor();
@@ -1128,14 +1131,16 @@ public class PushInRefactoring extends Refactoring {
     }
 
 
-    public Change createChange(IProgressMonitor monitor) throws CoreException,
+    @Override
+	public Change createChange(IProgressMonitor monitor) throws CoreException,
             OperationCanceledException {
         monitor.beginTask("Creating change...", 1);
         try {
             final Collection<Change> changes= allChanges.values();
-            CompositeChange change= new CompositeChange(getName(), (Change[]) changes.toArray(new Change[changes.size()])) {
+            CompositeChange change= new CompositeChange(getName(), changes.toArray(new Change[changes.size()])) {
     
-                public ChangeDescriptor getDescriptor() {
+                @Override
+				public ChangeDescriptor getDescriptor() {
                     return new RefactoringChangeDescriptor(createDescriptor());
                 }
 
@@ -1168,7 +1173,8 @@ public class PushInRefactoring extends Refactoring {
     }
 
     
-    public String getName() {
+    @Override
+	public String getName() {
         return "Push-In";
     }
 
@@ -1206,7 +1212,7 @@ public class PushInRefactoring extends Refactoring {
      * @throws JavaModelException
      */
     private IMember[] getTargets(List<IMember> itds) throws JavaModelException {
-        AJProjectModelFacade model = getModel((IJavaElement) itds.get(0));
+        AJProjectModelFacade model = getModel(itds.get(0));
         List<IMember> targets = new ArrayList<IMember>();
         
         for (IMember itd : itds) {
@@ -1221,7 +1227,7 @@ public class PushInRefactoring extends Refactoring {
                 targets.add((IMember) elt);
             }
         }
-        return (IMember[]) targets.toArray(new IMember[targets.size()]);
+        return targets.toArray(new IMember[targets.size()]);
     }
 
     private boolean isEmptyEdit(TextEdit edit) {

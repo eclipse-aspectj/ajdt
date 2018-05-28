@@ -17,10 +17,10 @@ import java.util.Iterator;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.manipulation.CoreASTProvider;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.text.correction.QuickAssistLightBulbUpdater;
 import org.eclipse.jdt.ui.JavaUI;
-import org.eclipse.jdt.ui.SharedASTProvider;
 import org.eclipse.jdt.ui.text.IColorManager;
 import org.eclipse.jdt.ui.text.JavaTextTools;
 import org.eclipse.jface.internal.text.html.HTMLTextPresenter;
@@ -110,6 +110,7 @@ public class JavaCorrectionAssistant extends QuickAssistAssistant {
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.text.contentassist.IContentAssistant#install(org.eclipse.jface.text.ITextViewer)
 	 */
+	@Override
 	public void install(ISourceViewer sourceViewer) {
 		super.install(sourceViewer);
 		fViewer= sourceViewer;
@@ -123,6 +124,7 @@ public class JavaCorrectionAssistant extends QuickAssistAssistant {
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.text.contentassist.ContentAssistant#uninstall()
 	 */
+	@Override
 	public void uninstall() {
 		if (fLightBulbUpdater != null) {
 			fLightBulbUpdater.uninstall();
@@ -145,6 +147,7 @@ public class JavaCorrectionAssistant extends QuickAssistAssistant {
 	 *
 	 * @see IQuickAssistAssistant#showPossibleQuickAssists()
 	 */
+	@Override
 	public String showPossibleQuickAssists() {
 		fPosition= null;
 		fCurrentAnnotations= null;
@@ -246,7 +249,7 @@ public class JavaCorrectionAssistant extends QuickAssistAssistant {
 	private static void ensureUpdatedAnnotations(ITextEditor editor) {
 		Object inputElement= editor.getEditorInput().getAdapter(IJavaElement.class);
 		if (inputElement instanceof ICompilationUnit) {
-			JavaPlugin.getDefault().getASTProvider().getAST((ICompilationUnit) inputElement, SharedASTProvider.WAIT_ACTIVE_ONLY, null);
+			CoreASTProvider.getInstance().getAST((ICompilationUnit) inputElement, CoreASTProvider.WAIT_ACTIVE_ONLY, null);
 		}
 	}
 
@@ -302,6 +305,7 @@ public class JavaCorrectionAssistant extends QuickAssistAssistant {
 	/*
 	 * @see org.eclipse.jface.text.contentassist.ContentAssistant#possibleCompletionsClosed()
 	 */
+	@Override
 	protected void possibleCompletionsClosed() {
 		super.possibleCompletionsClosed();
 		restorePosition();

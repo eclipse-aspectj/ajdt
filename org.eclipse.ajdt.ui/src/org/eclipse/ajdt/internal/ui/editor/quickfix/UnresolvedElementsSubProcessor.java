@@ -66,6 +66,7 @@ import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 import org.eclipse.jdt.core.dom.rewrite.ImportRewrite;
+import org.eclipse.jdt.core.manipulation.TypeKinds;
 import org.eclipse.jdt.internal.corext.codemanipulation.StubUtility;
 import org.eclipse.jdt.internal.corext.dom.ASTNodeFactory;
 import org.eclipse.jdt.internal.corext.dom.ASTNodes;
@@ -153,7 +154,7 @@ public class UnresolvedElementsSubProcessor {
 				ASTNode parent= node.getParent();
 				StructuralPropertyDescriptor locationInParent= node.getLocationInParent();
 				if (locationInParent == MethodInvocation.EXPRESSION_PROPERTY) {
-					typeKind= SimilarElementsRequestor.CLASSES;
+					typeKind = TypeKinds.CLASSES;
 				} else if (locationInParent == FieldAccess.NAME_PROPERTY) {
 					Expression expression= ((FieldAccess) parent).getExpression();
 					if (expression != null) {
@@ -164,20 +165,20 @@ public class UnresolvedElementsSubProcessor {
 					}
 				} else if (parent instanceof SimpleType) {
 					suggestVariableProposals= false;
-					typeKind= SimilarElementsRequestor.REF_TYPES;
+					typeKind= TypeKinds.REF_TYPES;
 				} else if (parent instanceof QualifiedName) {
 					Name qualifier= ((QualifiedName) parent).getQualifier();
 					if (qualifier != node) {
 						binding= qualifier.resolveTypeBinding();
 					} else {
-						typeKind= SimilarElementsRequestor.REF_TYPES & ~SimilarElementsRequestor.VARIABLES;
+						typeKind= TypeKinds.REF_TYPES & ~TypeKinds.VARIABLES;
 					}
 					ASTNode outerParent= parent.getParent();
 					while (outerParent instanceof QualifiedName) {
 						outerParent= outerParent.getParent();
 					}
 					if (outerParent instanceof SimpleType) {
-						typeKind= SimilarElementsRequestor.REF_TYPES & ~SimilarElementsRequestor.VARIABLES;
+						typeKind= TypeKinds.REF_TYPES & ~TypeKinds.VARIABLES;
 						suggestVariableProposals= false;
 					}
 				} else if (locationInParent == SwitchCase.EXPRESSION_PROPERTY) {
@@ -197,11 +198,11 @@ public class UnresolvedElementsSubProcessor {
 					binding= qualifierBinding;
 				} else {
 					node= qualifierName.getQualifier();
-					typeKind= SimilarElementsRequestor.REF_TYPES & ~SimilarElementsRequestor.VARIABLES;
+					typeKind= TypeKinds.REF_TYPES & ~TypeKinds.VARIABLES;
 					suggestVariableProposals= node.isSimpleName();
 				}
 				if (selectedNode.getParent() instanceof SimpleType) {
-					typeKind= SimilarElementsRequestor.REF_TYPES & ~SimilarElementsRequestor.VARIABLES;
+					typeKind= TypeKinds.REF_TYPES & ~TypeKinds.VARIABLES;
 					suggestVariableProposals= false;
 				}
 				break;
@@ -229,7 +230,7 @@ public class UnresolvedElementsSubProcessor {
 		// add type proposals
 		if (typeKind != 0) {
 			if (!JavaModelUtil.is50OrHigher(cu.getJavaProject())) {
-				typeKind= typeKind & ~(SimilarElementsRequestor.ANNOTATIONS | SimilarElementsRequestor.ENUMS | SimilarElementsRequestor.VARIABLES);
+				typeKind= typeKind & ~(TypeKinds.ANNOTATIONS | TypeKinds.ENUMS | TypeKinds.VARIABLES);
 			}
 
 			int relevance= Character.isUpperCase(ASTNodes.getSimpleNameIdentifier(node).charAt(0)) ? 5 : -2;
@@ -611,7 +612,7 @@ public class UnresolvedElementsSubProcessor {
 		// add all similar elements
 		for (int i= 0; i < elements.length; i++) {
 			SimilarElement elem= elements[i];
-			if ((elem.getKind() & SimilarElementsRequestor.ALL_TYPES) != 0) {
+			if ((elem.getKind() & TypeKinds.ALL_TYPES) != 0) {
 				String fullName= elem.getName();
 				if (!fullName.equals(resolvedTypeName)) {
 					proposals.add(createTypeRefChangeProposal(cu, fullName, node, relevance, elements.length));
@@ -737,16 +738,16 @@ public class UnresolvedElementsSubProcessor {
 						|| (enclosingType != null && !enclosingType.isReadOnly() && !enclosingType.getType(typeName).exists())) { // new member type
 					IJavaElement enclosing= enclosingPackage != null ? (IJavaElement) enclosingPackage : enclosingType;
 
-					if ((kind & SimilarElementsRequestor.CLASSES) != 0) {
+					if ((kind & TypeKinds.CLASSES) != 0) {
 			            proposals.add(new NewCUUsingWizardProposal(cu, node, NewCUUsingWizardProposal.K_CLASS, enclosing, rel+2));
 					}
-					if ((kind & SimilarElementsRequestor.INTERFACES) != 0) {
+					if ((kind & TypeKinds.INTERFACES) != 0) {
 			            proposals.add(new NewCUUsingWizardProposal(cu, node, NewCUUsingWizardProposal.K_INTERFACE, enclosing, rel+1));
 					}
-					if ((kind & SimilarElementsRequestor.ENUMS) != 0) {
+					if ((kind & TypeKinds.ENUMS) != 0) {
 			            proposals.add(new NewCUUsingWizardProposal(cu, node, NewCUUsingWizardProposal.K_ENUM, enclosing, rel));
 					}
-					if (kind == SimilarElementsRequestor.ANNOTATIONS) { // only when in annotation
+					if (kind == TypeKinds.ANNOTATIONS) { // only when in annotation
 			            proposals.add(new NewCUUsingWizardProposal(cu, node, NewCUUsingWizardProposal.K_ANNOTATION, enclosing, rel+4));
 					}
 				}
@@ -755,7 +756,7 @@ public class UnresolvedElementsSubProcessor {
 		} while (node != null);
 
 		// type parameter proposals
-		if (refNode.isSimpleName() && ((kind & SimilarElementsRequestor.VARIABLES)  != 0)) {
+		if (refNode.isSimpleName() && ((kind & TypeKinds.VARIABLES)  != 0)) {
 			CompilationUnit root= (CompilationUnit) refNode.getRoot();
 			String name= ((SimpleName) refNode).getIdentifier();
 			BodyDeclaration declaration= ASTResolving.findParentBodyDeclaration(refNode);
