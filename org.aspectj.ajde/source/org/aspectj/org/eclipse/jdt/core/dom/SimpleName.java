@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2018 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -156,7 +159,11 @@ public class SimpleName extends Name {
 			if (get) {
 				return isVar();
 			} else {
+				if (Long.compare(this.ast.scanner.complianceLevel, ClassFileConstants.JDK10) < 0) {
+					setVar(false);
+				} else {
 				setVar(value);
+				}
 				return false;
 			}
 		}
@@ -174,7 +181,7 @@ public class SimpleName extends Name {
 		SimpleName result = new SimpleName(target);
 		result.setSourceRange(getStartPosition(), getLength());
 		result.setIdentifier(getIdentifier());
-		if (this.ast.apiLevel >= AST.JLS10_INTERNAL) {
+		if (this.ast.apiLevel >= AST.JLS10_INTERNAL && Long.compare(this.ast.scanner.complianceLevel, 10) >= 0) {
 			result.setVar(isVar());
 		}
 		return result;

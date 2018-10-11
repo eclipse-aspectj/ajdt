@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -76,7 +79,7 @@ public static AnnotationBinding[] addStandardAnnotations(AnnotationBinding[] rec
 		result[index++] = buildTargetAnnotation(annotationTagBits, env);
 	if ((annotationTagBits & TagBits.AnnotationRetentionMASK) != 0)
 		result[index++] = buildRetentionAnnotation(annotationTagBits, env);
-	if ((annotationTagBits & TagBits.AnnotationDeprecated) != 0)
+	if (!haveDeprecated && (annotationTagBits & TagBits.AnnotationDeprecated) != 0)
 		result[index++] = buildMarkerAnnotation(TypeConstants.JAVA_LANG_DEPRECATED, env.javaBaseModule(), env);
 	if ((annotationTagBits & TagBits.AnnotationDocumented) != 0)
 		result[index++] = buildMarkerAnnotation(TypeConstants.JAVA_LANG_ANNOTATION_DOCUMENTED, env.javaBaseModule(), env);

@@ -1,10 +1,13 @@
 // AspectJ
 /*******************************************************************************
  * Copyright (c) 2000, 2018 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -154,6 +157,7 @@ import org.eclipse.core.runtime.Plugin;
 import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
+import org.eclipse.core.runtime.jobs.MultiRule;
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.core.compiler.IProblem;
 import org.aspectj.org.eclipse.jdt.core.search.IJavaSearchConstants;
@@ -338,7 +342,7 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	 * <p><code>"cldc1.1"</code> requires the source version to be <code>"1.3"</code> and the compliance version to be <code>"1.4"</code> or lower.</p>
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.codegen.targetPlatform"</code></dd>
-	 * <dt>Possible values:</dt><dd><code>{ "1.1", "cldc1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "9", "10" }</code></dd>
+	 * <dt>Possible values:</dt><dd><code>{ "1.1", "cldc1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "9", "10", "11" }</code></dd>
 	 * <dt>Default:</dt><dd><code>"1.2"</code></dd>
 	 * </dl>
 	 * @category CompilerOptionID
@@ -2058,7 +2062,7 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	 *    set to the same version as the source level.</p>
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.source"</code></dd>
-	 * <dt>Possible values:</dt><dd><code>{ "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "10" }</code></dd>
+	 * <dt>Possible values:</dt><dd><code>{ "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "9", "10", "11" }</code></dd>
 	 * <dt>Default:</dt><dd><code>"1.3"</code></dd>
 	 * </dl>
 	 * @since 2.0
@@ -2076,7 +2080,7 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	 *    should match the compliance setting.</p>
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.compliance"</code></dd>
-	 * <dt>Possible values:</dt><dd><code>{ "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "9", "10" }</code></dd>
+	 * <dt>Possible values:</dt><dd><code>{ "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "9", "10", "11" }</code></dd>
 	 * <dt>Default:</dt><dd><code>"1.4"</code></dd>
 	 * </dl>
 	 * @since 2.0
@@ -3005,20 +3009,28 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	public static final String VERSION_10 = "10"; //$NON-NLS-1$
 	/**
 	 * Configurable option value: {@value}.
+	 * @since 3.16
+	 * @category OptionValue
+	 */
+	public static final String VERSION_11 = "11"; //$NON-NLS-1$
+	/**
+	 * Configurable option value: {@value}.
 	 * @since 3.4
 	 * @category OptionValue
 	 */
 	public static final String VERSION_CLDC_1_1 = "cldc1.1"; //$NON-NLS-1$
+	private static List<String> allVersions = Arrays.asList(VERSION_CLDC_1_1, VERSION_1_1, VERSION_1_2, VERSION_1_3, VERSION_1_4, VERSION_1_5,
+			VERSION_1_6, VERSION_1_7, VERSION_1_8, VERSION_9, VERSION_10, VERSION_11);
 
 	/**
-	 * Returns all {@link JavaCore}{@code #VERSION_*} levels.
+	 * Returns all {@link JavaCore}{@code #VERSION_*} levels in the order of their 
+	 * introduction. For e.g., {@link JavaCore#VERSION_1_8} appears before {@link JavaCore#VERSION_10}
 	 * 
 	 * @return all available versions
 	 * @since 3.14
 	 */
 	public static List<String> getAllVersions() {
-		return Arrays.asList(VERSION_CLDC_1_1, VERSION_1_1, VERSION_1_2, VERSION_1_3, VERSION_1_4, VERSION_1_5,
-				VERSION_1_6, VERSION_1_7, VERSION_1_8, VERSION_9, VERSION_10);
+		return allVersions;
 	}
 
 	/**
@@ -4496,7 +4508,11 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 			};
 			mainMonitor.subTask(Messages.javamodel_building_after_upgrade);
 			try {
-				ResourcesPlugin.getWorkspace().run(runnable, mainMonitor.split(1));
+				ResourcesPlugin.getWorkspace().run(
+					runnable,
+					new MultiRule(Arrays.stream(projects).map(IJavaProject::getResource).toArray(ISchedulingRule[]::new)),
+					IWorkspace.AVOID_UPDATE,
+					mainMonitor.split(1));
 			} catch (CoreException e) {
 				// could not touch all projects
 			}
@@ -5924,7 +5940,9 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	 * @since 3.3
 	 */
 	public static void setComplianceOptions(String compliance, Map options) {
-		switch((int) (CompilerOptions.versionToJdkLevel(compliance) >>> 16)) {
+		long jdkLevel = CompilerOptions.versionToJdkLevel(compliance);
+		int major = (int) (jdkLevel >>> 16);
+		switch(major) {
 			case ClassFileConstants.MAJOR_VERSION_1_3:
 				options.put(JavaCore.COMPILER_COMPLIANCE, JavaCore.VERSION_1_3);
 				options.put(JavaCore.COMPILER_SOURCE, JavaCore.VERSION_1_3);
@@ -5989,6 +6007,18 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 				options.put(JavaCore.COMPILER_CODEGEN_INLINE_JSR_BYTECODE, JavaCore.ENABLED);
 				options.put(JavaCore.COMPILER_RELEASE, JavaCore.ENABLED);
 				break;
+			default:
+				if(major > ClassFileConstants.MAJOR_VERSION_10) {
+					String version = CompilerOptions.versionFromJdkLevel(jdkLevel);
+					options.put(JavaCore.COMPILER_COMPLIANCE, version);
+					options.put(JavaCore.COMPILER_SOURCE, version);
+					options.put(JavaCore.COMPILER_CODEGEN_TARGET_PLATFORM, version);
+					options.put(JavaCore.COMPILER_PB_ASSERT_IDENTIFIER, JavaCore.ERROR);
+					options.put(JavaCore.COMPILER_PB_ENUM_IDENTIFIER, JavaCore.ERROR);
+					options.put(JavaCore.COMPILER_CODEGEN_INLINE_JSR_BYTECODE, JavaCore.ENABLED);
+					options.put(JavaCore.COMPILER_RELEASE, JavaCore.ENABLED);
+		}
+				break;
 		}
 	}
 
@@ -6015,6 +6045,16 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 		JavaModelManager.getJavaModelManager().setOptions(newOptions);
 	}
 
+	/**
+	 * Returns the latest version of Java supported by the Java Model. This is usually the last entry
+	 * from {@link JavaCore#getAllVersions()}.
+	 *
+	 * @since 3.16
+	 * @return the latest Java version support by Java Model
+	 */
+	public static String latestSupportedJavaVersion() {
+		return allVersions.get(allVersions.size() - 1);
+	}
 	/**
 	 * Compares two given versions of the Java platform. The versions being compared must both be
 	 * one of the supported values mentioned in

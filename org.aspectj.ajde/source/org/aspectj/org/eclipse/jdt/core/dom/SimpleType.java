@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2018 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -13,6 +16,8 @@ package org.aspectj.org.eclipse.jdt.core.dom;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 
 /**
  * Type node for a named class type, a named interface type, or a type variable.
@@ -238,6 +243,8 @@ public class SimpleType extends AnnotatableType {
 	@Override
 	public boolean isVar() {
 		unsupportedBelow10();
+		if (Long.compare(this.ast.scanner.complianceLevel, ClassFileConstants.JDK10) < 0)
+			return false;
 		if (this.typeName == null) getName();
 		String qName = this.typeName.getFullyQualifiedName();
 		return qName != null && qName.equals("var"); //$NON-NLS-1$

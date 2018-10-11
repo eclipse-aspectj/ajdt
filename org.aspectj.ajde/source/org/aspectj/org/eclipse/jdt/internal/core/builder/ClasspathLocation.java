@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2018 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -16,15 +19,18 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.zip.ZipFile;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IPath;
+import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.AccessRuleSet;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IModule;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IUpdatableModule;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.NameEnvironmentAnswer;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IUpdatableModule.UpdateKind;
+import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ModuleBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
 
@@ -128,15 +134,15 @@ static ClasspathLocation forLibrary(String libraryPathname,
 										IPath annotationsPath,
 										boolean autoModule,
 										String compliance) {
-	return Util.isJrt(libraryPathname) ?
-			new ClasspathJrt(libraryPathname, accessRuleSet, annotationsPath, compliance) :
-				Util.archiveFormat(libraryPathname) == Util.JMOD_FILE ?
+	return Util.archiveFormat(libraryPathname) == Util.JMOD_FILE ?
 					new ClasspathJMod(libraryPathname, lastModified, accessRuleSet, annotationsPath) :
-			new ClasspathJar(libraryPathname, lastModified, accessRuleSet, annotationsPath, autoModule);
+						(compliance == null || (CompilerOptions.versionToJdkLevel(compliance) < ClassFileConstants.JDK9) ?
+			new ClasspathJar(libraryPathname, lastModified, accessRuleSet, annotationsPath, autoModule) :
+				new ClasspathMultiReleaseJar(libraryPathname, lastModified, accessRuleSet, annotationsPath, autoModule, compliance));
 
 }
-static ClasspathJrt forJrtSystem(String jdkHome, AccessRuleSet accessRuleSet, IPath annotationsPath, String release) {
-	return new ClasspathJrt(jdkHome, accessRuleSet, annotationsPath, release);
+static ClasspathJrt forJrtSystem(String jrtPath, AccessRuleSet accessRuleSet, IPath annotationsPath, String release) {
+	return new ClasspathJrt(jrtPath, accessRuleSet, annotationsPath, release);
 }
 
 public static ClasspathLocation forLibrary(String libraryPathname, AccessRuleSet accessRuleSet, IPath annotationsPath,
@@ -145,8 +151,15 @@ public static ClasspathLocation forLibrary(String libraryPathname, AccessRuleSet
 }
 
 static ClasspathLocation forLibrary(IFile library, AccessRuleSet accessRuleSet, IPath annotationsPath,
-										boolean autoModule) {
-	return new ClasspathJar(library, accessRuleSet, annotationsPath, autoModule);
+										boolean autoModule, String compliance) {
+	return (CompilerOptions.versionToJdkLevel(compliance) < ClassFileConstants.JDK9) ?
+		new ClasspathJar(library, accessRuleSet, annotationsPath, autoModule) :
+					new ClasspathMultiReleaseJar(library, accessRuleSet, annotationsPath, autoModule, compliance);
+}
+public static ClasspathLocation forLibrary(ZipFile zipFile, AccessRuleSet accessRuleSet, IPath externalAnnotationPath, boolean isOnModulePath, String compliance) {
+	return (CompilerOptions.versionToJdkLevel(compliance) < ClassFileConstants.JDK9) ?
+			new ClasspathJar(zipFile, accessRuleSet, externalAnnotationPath, isOnModulePath) :
+				new ClasspathMultiReleaseJar(zipFile, accessRuleSet, externalAnnotationPath, isOnModulePath, compliance);
 }
 
 public abstract IPath getProjectRelativePath();

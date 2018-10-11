@@ -1,10 +1,13 @@
 // ASPECTJ
 /*******************************************************************************
  * Copyright (c) 2000, 2018 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -53,7 +56,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.IErrorHandlingPolicy;
@@ -134,6 +140,10 @@ public class SourceTypeBinding extends ReferenceBinding {
   // End AspectJ Extension
 	
 	public ExternalAnnotationProvider externalAnnotationProvider;
+	
+	// AspectJ private to protected
+	protected SourceTypeBinding nestHost;
+	public HashSet<SourceTypeBinding> nestMembers;
 	
 public SourceTypeBinding(char[][] compoundName, PackageBinding fPackage, ClassScope scope) {
 	this.compoundName = compoundName;
@@ -2724,6 +2734,42 @@ public ModuleBinding module() {
 	return this.module;
 }
 
+public SourceTypeBinding getNestHost() {
+	return this.nestHost;
+}
+
+public void setNestHost(SourceTypeBinding nestHost) {
+	this.nestHost = nestHost;
+}
+
+public boolean isNestmateOf(SourceTypeBinding other) {
+
+	CompilerOptions options = this.scope.compilerOptions();
+	if (options.targetJDK < ClassFileConstants.JDK11 ||
+		options.complianceLevel < ClassFileConstants.JDK11)
+		return false; // default false if level less than 11
+
+	SourceTypeBinding otherHost = other.getNestHost();
+	return TypeBinding.equalsEquals(this, other) ||
+			TypeBinding.equalsEquals(this.nestHost == null ? this : this.nestHost, 
+					otherHost == null ? other : otherHost);
+}
+public void addNestMember(SourceTypeBinding member) {
+	if (this.nestMembers == null) {
+		this.nestMembers = new HashSet<>();
+	}
+	this.nestMembers.add(member);
+}
+public List<String> getNestMembers() {
+	if (this.nestMembers == null)
+		return null;
+	List<String> list = this.nestMembers
+							.stream()
+							.map(s -> new String(s.constantPoolName()))
+							.sorted()
+							.collect(Collectors.toList());
+	return list;
+}
 //AspectJ Extension
 public void addField(FieldBinding binding) {
    if (fields == null) {

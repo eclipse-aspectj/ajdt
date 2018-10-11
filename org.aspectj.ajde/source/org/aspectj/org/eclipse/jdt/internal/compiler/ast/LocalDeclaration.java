@@ -1,10 +1,13 @@
 // ASPECTJ
 /*******************************************************************************
  * Copyright (c) 2000, 2018 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -360,7 +363,20 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 			return;
 		}
 
-		// store the constant for final locals
+		boolean resolveAnnotationsEarly = false;
+		if (scope.environment().usesNullTypeAnnotations() 
+				&& !isTypeNameVar // 'var' does not provide a target type
+				&& variableType.isValidBinding()) { 
+			resolveAnnotationsEarly = this.initialization instanceof Invocation
+					|| this.initialization instanceof ConditionalExpression
+					|| this.initialization instanceof ArrayInitializer;
+		}
+		if (resolveAnnotationsEarly) {
+			// these are definitely no constants, so resolving annotations early should be safe
+			resolveAnnotations(scope, this.annotations, this.binding, true);
+			// for type inference having null annotations upfront gives better results
+			variableType = this.type.resolvedType;
+		}
 		if (this.initialization != null) {
 			if (this.initialization instanceof ArrayInitializer) {
 				TypeBinding initializationType = this.initialization.resolveTypeExpecting(scope, variableType);
@@ -411,9 +427,14 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 					? this.initialization.constant.castTo((variableType.id << 4) + this.initialization.constant.typeID())
 					: Constant.NotAConstant);
 		}
-		// only resolve annotation at the end, for constant to be positioned before (96991)
+		// if init could be a constant only resolve annotation at the end, for constant to be positioned before (96991)
+		if (!resolveAnnotationsEarly)
 		resolveAnnotations(scope, this.annotations, this.binding, true);
 		Annotation.isTypeUseCompatible(this.type, scope, this.annotations);
+		validateNullAnnotations(scope);
+	}
+
+	void validateNullAnnotations(BlockScope scope) {
 		if (!scope.validateNullAnnotation(this.binding.tagBits, this.type, this.annotations))
 			this.binding.tagBits &= ~TagBits.AnnotationNullMASK;
 	}

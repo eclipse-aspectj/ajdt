@@ -1,10 +1,13 @@
 // ASPECTJ
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -156,7 +159,7 @@ void buildTypeBindings(AccessRestriction accessRestriction) {
 	int count = 0;
 	nextType: for (int i = 0; i < typeLength; i++) {
 		TypeDeclaration typeDecl = types[i];
-		if (this.environment.isProcessingAnnotations && this.environment.isMissingType(typeDecl.name))
+		if (this.environment.root.isProcessingAnnotations && this.environment.isMissingType(typeDecl.name))
 			throw new SourceTypeCollisionException(); // resolved a type ref before APT generated the type
 		ReferenceBinding typeBinding = this.fPackage.getType0(typeDecl.name);
 		if (Binding.isValid(typeBinding) && this.fPackage instanceof SplitPackageBinding && !this.environment.module.canAccess(typeBinding.fPackage))
@@ -164,7 +167,7 @@ void buildTypeBindings(AccessRestriction accessRestriction) {
 		recordSimpleReference(typeDecl.name); // needed to detect collision cases
 		if (Binding.isValid(typeBinding) && !(typeBinding instanceof UnresolvedReferenceBinding)) {
 			// if its an unresolved binding - its fixed up whenever its needed, see UnresolvedReferenceBinding.resolve()
-			if (this.environment.isProcessingAnnotations)
+			if (this.environment.root.isProcessingAnnotations)
 				throw new SourceTypeCollisionException(); // resolved a type ref before APT generated the type
 			// if a type exists, check that its a valid type
 			// it can be a NotFound problem type if its a secondary type referenced before its primary type found in additional units

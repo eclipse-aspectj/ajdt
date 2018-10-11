@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2018 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -274,6 +277,8 @@ public final class Messages extends NLS {
 	public static String disassembler_outer_class_info_name;
 	public static String disassembler_inner_name;
 	public static String disassembler_inner_accessflags;
+	public static String disassembler_nesthost;
+	public static String disassembler_nestmembers;
 	public static String disassembler_genericattributeheader;
 	public static String disassembler_signatureattributeheader;
 	public static String disassembler_bootstrapmethodattributesheader;
@@ -301,6 +306,7 @@ public final class Messages extends NLS {
 	public static String disassembler_constantpool_methodhandle;
 	public static String disassembler_constantpool_methodtype;
 	public static String disassembler_constantpool_invokedynamic;
+	public static String disassembler_constantpool_dynamic;
 	public static String disassembler_annotationdefaultheader;
 	public static String disassembler_annotationdefaultvalue;
 	public static String disassembler_annotationenumvalue;
@@ -360,6 +366,9 @@ public final class Messages extends NLS {
 	public static String classformat_checkcast;
 	public static String classformat_instanceof;
 	public static String classformat_ldc_w_class;
+	public static String classformat_ldc_w_methodtype;
+	public static String classformat_ldc_w_methodhandle;
+	public static String classformat_ldc_w_dynamic;
 	public static String classformat_ldc_w_float;
 	public static String classformat_ldc_w_integer;
 	public static String classformat_ldc_w_string;

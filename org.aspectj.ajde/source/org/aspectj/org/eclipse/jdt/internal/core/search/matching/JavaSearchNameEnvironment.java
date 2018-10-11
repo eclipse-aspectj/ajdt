@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2018 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -46,7 +49,6 @@ import org.aspectj.org.eclipse.jdt.internal.core.JavaProject;
 import org.aspectj.org.eclipse.jdt.internal.core.JrtPackageFragmentRoot;
 import org.aspectj.org.eclipse.jdt.internal.core.NameLookup;
 import org.aspectj.org.eclipse.jdt.internal.core.PackageFragmentRoot;
-import org.aspectj.org.eclipse.jdt.internal.core.builder.ClasspathJar;
 import org.aspectj.org.eclipse.jdt.internal.core.builder.ClasspathJrt;
 import org.aspectj.org.eclipse.jdt.internal.core.builder.ClasspathLocation;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
@@ -162,10 +164,10 @@ private ClasspathLocation mapToClassPathLocation(JavaModelManager manager, Packa
 			cp = (root instanceof JrtPackageFragmentRoot) ? 
 					new ClasspathJrt(path.toOSString(), rawClasspathEntry.getAccessRuleSet(), 
 							ClasspathEntry.getExternalAnnotationPath(rawClasspathEntry, project.getProject(), true), compliance) :
-						new ClasspathJar(manager.getZipFile(path), rawClasspathEntry.getAccessRuleSet(),
-								ClasspathEntry.getExternalAnnotationPath(rawClasspathEntry,
-										((IJavaProject) root.getParent()).getProject(), true),
-								rawClasspathEntry.isModular());
+									ClasspathLocation.forLibrary(manager.getZipFile(path), rawClasspathEntry.getAccessRuleSet(),
+												ClasspathEntry.getExternalAnnotationPath(rawClasspathEntry,
+														((IJavaProject) root.getParent()).getProject(), true),
+												rawClasspathEntry.isModular(), compliance) ;
 		} else {
 			Object target = JavaModel.getTarget(path, true);
 			if (target != null) {

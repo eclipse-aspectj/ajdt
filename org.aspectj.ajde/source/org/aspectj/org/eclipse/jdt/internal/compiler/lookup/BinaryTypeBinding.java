@@ -1,10 +1,13 @@
 // ASPECTJ
 /*******************************************************************************
  * Copyright (c) 2000, 2018 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -555,14 +558,12 @@ void cachePartsFrom(IBinaryType binaryType, boolean needFieldsAndMethods) {
 					FieldBinding field = this.fields[i];
 					if (!field.isDeprecated()) {
 						field.modifiers |= ExtraCompilerModifiers.AccDeprecatedImplicitly;
-						field.tagBits |= this.tagBits & TagBits.AnnotationTerminallyDeprecated;
 					}
 				}
 				for (int i = 0, max = this.methods.length; i < max; i++) {
 					MethodBinding method = this.methods[i];
 					if (!method.isDeprecated()) {
 						method.modifiers |= ExtraCompilerModifiers.AccDeprecatedImplicitly;
-						method.tagBits |= this.tagBits & TagBits.AnnotationTerminallyDeprecated;
 					}
 				}
 			}
@@ -730,6 +731,22 @@ private void createFields(IBinaryField[] iFields, IBinaryType binaryType, long s
 //AspectJ Extension
 private static char[] ajcInterMethod = "ajc$interMethod$".toCharArray(); //$NON-NLS-1$
 private static char[] ajcInterField = "ajc$interFieldInit$".toCharArray(); //$NON-NLS-1$
+
+// Override super because scope not set in binary type binding
+@Override
+public boolean isNestmateOf(SourceTypeBinding other) {
+
+//	CompilerOptions options = this.scope.compilerOptions();
+	CompilerOptions options = this.environment.globalOptions;
+	if (options.targetJDK < ClassFileConstants.JDK11 ||
+		options.complianceLevel < ClassFileConstants.JDK11)
+		return false; // default false if level less than 11
+
+	SourceTypeBinding otherHost = other.getNestHost();
+	return TypeBinding.equalsEquals(this, other) ||
+			TypeBinding.equalsEquals(this.nestHost == null ? this : this.nestHost, 
+					otherHost == null ? other : otherHost);
+}
 //End AspectJ Extension
 
 

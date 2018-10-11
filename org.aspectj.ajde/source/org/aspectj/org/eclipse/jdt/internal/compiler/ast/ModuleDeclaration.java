@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2015, 2018 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -116,6 +119,10 @@ public class ModuleDeclaration extends ASTNode implements ReferenceContext {
 			@Override
 			public ReferenceContext referenceContext() {
 				return ModuleDeclaration.this;
+			}
+			@Override
+			public boolean isModuleScope() {
+				return true;
 			}
 		};
 	}
@@ -276,29 +283,16 @@ public class ModuleDeclaration extends ASTNode implements ReferenceContext {
 	private void analyseReferencedPackages(CompilationUnitScope skope) {
 		if (this.exports != null) {
 			for (ExportsStatement export : this.exports) {
-				PackageBinding pb = analysePackageStatement(skope, export);
-				if (pb != null && !pb.hasCompilationUnit(true))
-					skope.problemReporter().invalidPackageReference(IProblem.PackageDoesNotExistOrIsEmpty, export);					
+				PackageBinding pb = export.resolvedPackage;
+				if (pb == null)
+					continue;
+				if (pb instanceof SplitPackageBinding)
+					pb = ((SplitPackageBinding) pb).getIncarnation(this.binding);
+				if (pb.hasCompilationUnit(true))
+					continue;
+				skope.problemReporter().invalidPackageReference(IProblem.PackageDoesNotExistOrIsEmpty, export);
 			}
 		}
-		if (this.opens != null) {
-			for (OpensStatement opensStat : this.opens)
-				analysePackageStatement(skope, opensStat);
-			// it is legal for opens to refer to a "non-existing" or empty package
-		}
-	}
-
-	protected PackageBinding analysePackageStatement(CompilationUnitScope skope, PackageVisibilityStatement statement) {
-		PackageBinding pb = statement.resolvedPackage;
-		if (pb != null) {
-			if (pb instanceof SplitPackageBinding)
-				pb = ((SplitPackageBinding) pb).getIncarnation(this.binding);
-			if (pb.isViewedAsDeprecated()) {
-				TypeBinding packageInfo = pb.getType(PACKAGE_INFO_NAME, this.binding); // for annotations with details
-				skope.problemReporter().deprecatedPackage(statement.pkgRef, pb, packageInfo);
-			}
-		}
-		return pb;
 	}
 
 	public void analyseModuleGraph(CompilationUnitScope skope) {

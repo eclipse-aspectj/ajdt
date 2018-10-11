@@ -1,10 +1,13 @@
 // AspectJ
 /*******************************************************************************
  * Copyright (c) 2000, 2018 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -248,14 +251,12 @@ public static int getIrritant(int problemID) {
 		case IProblem.UsingDeprecatedMethod :
 		case IProblem.UsingDeprecatedConstructor :
 		case IProblem.UsingDeprecatedField :
-		case IProblem.UsingDeprecatedPackage :
 		case IProblem.UsingDeprecatedModule :
 		case IProblem.OverridingDeprecatedSinceVersionMethod :
 		case IProblem.UsingDeprecatedSinceVersionType :
 		case IProblem.UsingDeprecatedSinceVersionMethod :
 		case IProblem.UsingDeprecatedSinceVersionConstructor :
 		case IProblem.UsingDeprecatedSinceVersionField :
-		case IProblem.UsingDeprecatedSinceVersionPackage :
 		case IProblem.UsingDeprecatedSinceVersionModule :
 			return CompilerOptions.UsingDeprecatedAPI;
 
@@ -264,14 +265,12 @@ public static int getIrritant(int problemID) {
 		case IProblem.UsingTerminallyDeprecatedMethod :
 		case IProblem.UsingTerminallyDeprecatedConstructor :
 		case IProblem.UsingTerminallyDeprecatedField :
-		case IProblem.UsingTerminallyDeprecatedPackage :
 		case IProblem.UsingTerminallyDeprecatedModule :
 		case IProblem.OverridingTerminallyDeprecatedSinceVersionMethod :
 		case IProblem.UsingTerminallyDeprecatedSinceVersionType :
 		case IProblem.UsingTerminallyDeprecatedSinceVersionMethod :
 		case IProblem.UsingTerminallyDeprecatedSinceVersionConstructor :
 		case IProblem.UsingTerminallyDeprecatedSinceVersionField :
-		case IProblem.UsingTerminallyDeprecatedSinceVersionPackage :
 		case IProblem.UsingTerminallyDeprecatedSinceVersionModule :
 			return CompilerOptions.UsingTerminallyDeprecatedAPI;
 
@@ -1856,6 +1855,7 @@ public void deprecatedType(TypeBinding type, ASTNode location, int index) {
 			nodeSourceEnd(null, location, index));
 	}
 }
+/*
 public void deprecatedPackage(ImportReference pkgRef, PackageBinding resolvedPackage, TypeBinding packageInfo) {
 	String sinceValue = deprecatedSinceValue(() -> packageInfo.isValidBinding() ? packageInfo.getAnnotations() : Binding.NO_ANNOTATIONS);
 	boolean isTerminally = (resolvedPackage.tagBits & TagBits.AnnotationTerminallyDeprecated) != 0;
@@ -1874,7 +1874,7 @@ public void deprecatedPackage(ImportReference pkgRef, PackageBinding resolvedPac
 				pkgRef.sourceStart,
 				pkgRef.sourceEnd);
 	}
-}
+}*/
 public void deprecatedModule(ModuleReference moduleReference, ModuleBinding requiredModule) {
 	String sinceValue = deprecatedSinceValue(() -> requiredModule.getAnnotations());
 	boolean isTerminally = (requiredModule.tagBits & TagBits.AnnotationTerminallyDeprecated) != 0;
@@ -1896,6 +1896,8 @@ public void deprecatedModule(ModuleReference moduleReference, ModuleBinding requ
 }
 String deprecatedSinceValue(Supplier<AnnotationBinding[]> annotations) {
 	if (this.options != null && this.options.complianceLevel >= ClassFileConstants.JDK9) {
+		ReferenceContext contextSave = this.referenceContext;
+		try {
 		for (AnnotationBinding annotationBinding : annotations.get()) {
 			if (annotationBinding.getAnnotationType().id == TypeIds.T_JavaLangDeprecated) {
 				for (ElementValuePair elementValuePair : annotationBinding.getElementValuePairs()) {
@@ -1904,6 +1906,9 @@ String deprecatedSinceValue(Supplier<AnnotationBinding[]> annotations) {
 				}
 				break;
 			}
+		}
+		} finally {
+			this.referenceContext = contextSave;
 		}
 	}
 	return null;
@@ -8545,8 +8550,8 @@ public void uninitializedNonNullField(FieldBinding field, ASTNode location) {
 		nodeSourceStart(field, location),
 		nodeSourceEnd(field, location));
 }
-public void uninitializedLocalVariable(LocalVariableBinding binding, ASTNode location) {
-	binding.tagBits |= TagBits.NotInitialized;
+public void uninitializedLocalVariable(LocalVariableBinding binding, ASTNode location, Scope scope) {
+	binding.markAsUninitializedIn(scope);
 	String[] arguments = new String[] {new String(binding.readableName())};
 	this.handle(
 		methodHasMissingSwitchDefault() ? IProblem.UninitializedLocalVariableHintMissingDefault : IProblem.UninitializedLocalVariable,
@@ -9490,6 +9495,14 @@ public void varIsNotAllowedHere(ASTNode astNode) {
 		astNode.sourceStart,
 		astNode.sourceEnd);
 }
+public void varCannotBeMixedWithNonVarParams(ASTNode astNode) {
+	this.handle(
+		IProblem.VarCannotBeMixedWithNonVarParams,
+		NoArgument,
+		NoArgument,
+		astNode.sourceStart,
+		astNode.sourceEnd);
+}
 public void variableTypeCannotBeVoidArray(AbstractVariableDeclaration varDecl) {
 	this.handle(
 		IProblem.CannotAllocateVoidArray,
@@ -10257,7 +10270,8 @@ public void illegalAnnotationForBaseType(TypeReference type, Annotation[] annota
 	char[][] annotationNames = (nullAnnotationTagBit == TagBits.AnnotationNonNull)
 			? this.options.nonNullAnnotationName
 			: this.options.nullableAnnotationName;
-	String[] args = new String[] { new String(annotationNames[annotationNames.length-1]), new String(type.getLastToken()) };
+	String typeName = new String(type.resolvedType.leafComponentType().readableName()); // use the actual name (accounting for 'var')
+	String[] args = new String[] { new String(annotationNames[annotationNames.length-1]), typeName };
 	Annotation annotation = findAnnotation(annotations, typeBit);
 	int start = annotation != null ? annotation.sourceStart : type.sourceStart;
 	int end = annotation != null ? annotation.sourceEnd : type.sourceEnd;
@@ -10389,6 +10403,7 @@ public void arrayReferencePotentialNullReference(ArrayReference arrayReference) 
 }
 public void nullityMismatchingTypeAnnotation(Expression expression, TypeBinding providedType, TypeBinding requiredType, NullAnnotationMatching status) 
 {
+	if (providedType == requiredType) return; //$IDENTITY-COMPARISON$
 	// try to improve nonnull vs. null:
 	if (providedType.id == TypeIds.T_null || status.nullStatus == FlowInfo.NULL) {
 		nullityMismatchIsNull(expression, requiredType);
@@ -11010,7 +11025,6 @@ public void unnamedPackageInNamedModule(ModuleBinding module) {
 	handle(IProblem.UnnamedPackageInNamedModule,
 			args,
 			args,
-			ProblemSeverities.Warning,
 			0,
 			0);
 }

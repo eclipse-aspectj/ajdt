@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2018 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  * 
  * Contributors:
  *		IBM Corporation - initial API and implementation
@@ -181,7 +184,8 @@ public class CompletionParser extends AssistParser {
 	private boolean inReferenceExpression;
 	private IProgressMonitor monitor;
 	private int resumeOnSyntaxError = 0;
-
+	private boolean consumedEnhancedFor;
+	
 public CompletionParser(ProblemReporter problemReporter, boolean storeExtraSourceEnds) {
 	super(problemReporter);
 	this.reportSyntaxErrorIsRequired = false;
@@ -626,7 +630,9 @@ protected void attachOrphanCompletionNode(){
 				|| (expression instanceof AllocationExpression
 					&& ((AllocationExpression)expression).type == this.assistNode)
 				|| (expression instanceof AND_AND_Expression
-						&& (this.elementPtr >= 0 && this.elementObjectInfoStack[this.elementPtr] instanceof InstanceOfExpression))){
+						&& (this.elementPtr >= 0 && this.elementObjectInfoStack[this.elementPtr] instanceof InstanceOfExpression))
+				|| (expression instanceof ConditionalExpression
+						  && ((ConditionalExpression) expression).valueIfFalse == this.assistNode)){
 				buildMoreCompletionContext(expression);
 				if (this.assistNodeParent == null
 					&& expression instanceof Assignment) {
@@ -2617,6 +2623,13 @@ protected void consumeEnhancedForStatement() {
 	}
 }
 @Override
+protected void consumeEnhancedForStatementHeader(){
+	this.consumedEnhancedFor = true;
+	super.consumeEnhancedForStatementHeader();
+
+}
+
+@Override
 protected void consumeEnhancedForStatementHeaderInit(boolean hasModifiers) {
 	super.consumeEnhancedForStatementHeaderInit(hasModifiers);
 	this.hasUnusedModifiers = false;
@@ -3791,6 +3804,8 @@ protected void consumeToken(int token) {
 	int previous = this.previousToken;
 	int prevIdentifierPtr = this.previousIdentifierPtr;
 
+	isInsideEnhancedForLoopWithoutBlock(token);
+	
 	if (isInsideMethod() || isInsideFieldInitialization() || isInsideAnnotation() || isInsideEnumConstantnitialization()) {
 		switch(token) {
 			case TokenNameLPAREN:
@@ -4343,6 +4358,13 @@ protected void consumeToken(int token) {
 		}
 	}
 }
+private void isInsideEnhancedForLoopWithoutBlock(int token) {
+	if( this.consumedEnhancedFor == true && token != TokenNameLBRACE) {
+		consumeOpenFakeBlock();
+	}
+	this.consumedEnhancedFor = false;
+	
+}
 @Override
 protected void consumeInvocationExpression() { // on error, a message send's error reductions will take the expression path rather than the statement path since that is a dead end.
 	super.consumeInvocationExpression();
@@ -4860,6 +4882,9 @@ public NameReference createSingleAssistNameReference(char[] assistName, long pos
 					keywords[count++]= Keywords.VAR;
 				}
 			} else if(kind != K_BETWEEN_CASE_AND_COLON && kind != K_BETWEEN_DEFAULT_AND_COLON) {
+				if (kind == K_LOCAL_INITIALIZER_DELIMITER && this.options.complianceLevel >= ClassFileConstants.JDK11) {
+					keywords[count++]= Keywords.VAR;
+				}
 				keywords[count++]= Keywords.TRUE;
 				keywords[count++]= Keywords.FALSE;
 				keywords[count++]= Keywords.NULL;
@@ -5719,6 +5744,23 @@ private boolean foundToken(int token) {
 		i--;
 	}
 	return false;
+}
+@Override
+protected int actFromTokenOrSynthetic(int previousAct) {
+	int newAct = tAction(previousAct, this.currentToken);
+	if (this.hasError && !this.diet && newAct == ERROR_ACTION && this.currentToken == TerminalTokens.TokenNameEOF) {
+		if (requireExtendedRecovery()) {
+			// during extended recovery, if EOF would be wrong, try a few things to reduce our stacks:
+			for (int tok : RECOVERY_TOKENS) {
+				newAct = tAction(previousAct, tok);
+				if (newAct != ERROR_ACTION) {
+					this.currentToken = tok; // this worked, pretend we really got this from the Scanner
+					return newAct;
+				}
+			}
+		}
+	}
+	return newAct;
 }
 
 protected boolean isInImportStatement() {

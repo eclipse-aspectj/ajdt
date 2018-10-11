@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2018 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -206,9 +209,13 @@ protected boolean computeChildren(OpenableElementInfo info, IResource underlying
 //			if (module != null && module.exists()) {
 //				vChildren.add(new ClassFile(getPackageFragment(CharOperation.NO_STRINGS), String.valueOf(TypeConstants.MODULE_INFO_NAME)));
 //			}
-			IJavaElement[] children = new IJavaElement[vChildren.size()];
-			vChildren.toArray(children);
-			info.setChildren(children);
+			if (!vChildren.isEmpty()) {
+				IJavaElement[] children = new IJavaElement[vChildren.size()];
+				vChildren.toArray(children);
+				info.setChildren(children);
+			} else {
+				info.setChildren(JavaElement.NO_ELEMENTS);
+			}
 		}
 	} catch (JavaModelException e) {
 		//problem resolving children; structure remains unknown

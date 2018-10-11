@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2016, 2018 IBM Corporation.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -19,6 +22,7 @@ import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
+import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import org.aspectj.org.eclipse.jdt.internal.compiler.CompilationResult;
@@ -35,45 +39,46 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
 
 public class ModuleFinder {
 
-	public static List<FileSystem.Classpath> findModules(File f, String destinationPath, Parser parser, Map<String, String> options, boolean isModulepath) {
+	public static List<FileSystem.Classpath> findModules(File f, String destinationPath, Parser parser, Map<String, String> options, boolean isModulepath, String release) {
 		List<FileSystem.Classpath> collector = new ArrayList<>();
-		scanForModules(destinationPath, parser, options, isModulepath, false, collector, f);
+		scanForModules(destinationPath, parser, options, isModulepath, false, collector, f, release);
 		return collector;
 	}
 
 	protected static FileSystem.Classpath findModule(final File file, String destinationPath, Parser parser,
-			Map<String, String> options, boolean isModulepath) {
+			Map<String, String> options, boolean isModulepath, String release) {
 		FileSystem.Classpath modulePath = FileSystem.getClasspath(file.getAbsolutePath(), null, !isModulepath, null,
-				destinationPath == null ? null : (destinationPath + File.separator + file.getName()), options);
+				destinationPath == null ? null : (destinationPath + File.separator + file.getName()), options, release);
 		if (modulePath != null) {
-			scanForModule(modulePath, file, parser, isModulepath);
+			scanForModule(modulePath, file, parser, isModulepath, release);
 		}
 		return modulePath;
 	}
 	protected static void scanForModules(String destinationPath, Parser parser, Map<String, String> options, boolean isModulepath, 
-			boolean thisAnAutomodule, List<FileSystem.Classpath> collector, final File file) {
+			boolean thisAnAutomodule, List<FileSystem.Classpath> collector, final File file, String release) {
 		FileSystem.Classpath entry = FileSystem.getClasspath(
 				file.getAbsolutePath(),
 				null,
 				!isModulepath,
 				null,
 				destinationPath == null ? null : (destinationPath + File.separator + file.getName()), 
-				options);
+				options,
+				release);
 		if (entry != null) {
-			IModule module = scanForModule(entry, file, parser, thisAnAutomodule);
+			IModule module = scanForModule(entry, file, parser, thisAnAutomodule, release);
 			if (module != null) {
 				collector.add(entry);
 			} else {
 				if (file.isDirectory()) {
 					File[] files = file.listFiles();
 					for (File f : files) {
-						scanForModules(destinationPath, parser, options, isModulepath, isModulepath, collector, f);
+						scanForModules(destinationPath, parser, options, isModulepath, isModulepath, collector, f, release);
 					}
 				}
 			}
 		}
 	}
-	protected static IModule scanForModule(FileSystem.Classpath modulePath, final File file, Parser parser, boolean considerAutoModules) {
+	protected static IModule scanForModule(FileSystem.Classpath modulePath, final File file, Parser parser, boolean considerAutoModules, String release) {
 		IModule module = null;
 		if (file.isDirectory()) {
 			String[] list = file.list(new FilenameFilter() {
@@ -106,7 +111,7 @@ public class ModuleFinder {
 		} else {
 			String moduleDescPath = getModulePathForArchive(file);
 			if (moduleDescPath != null) {
-				module = extractModuleFromArchive(file, modulePath, moduleDescPath);
+				module = extractModuleFromArchive(file, modulePath, moduleDescPath, release);
 			}
 		}
 		if (considerAutoModules && module == null && !(modulePath instanceof ClasspathJrt)) {
@@ -224,10 +229,17 @@ public class ModuleFinder {
 		}
 		return null;
 	}
-	private static IModule extractModuleFromArchive(File file, Classpath pathEntry, String path) {
+	private static IModule extractModuleFromArchive(File file, Classpath pathEntry, String path, String release) {
 		ZipFile zipFile = null;
 		try {
 			zipFile = new ZipFile(file);
+			if (release != null) {
+				String releasePath = "META-INF/versions/" + release + "/" + path; //$NON-NLS-1$ //$NON-NLS-2$
+				ZipEntry entry = zipFile.getEntry(releasePath);
+				if (entry != null) {
+					path = releasePath;
+				}
+			}
 			ClassFileReader reader = ClassFileReader.read(zipFile, path);
 			IModule module = getModule(reader);
 			if (module != null) {
@@ -268,7 +280,7 @@ public class ModuleFinder {
 		return null;
 	}
 	private static IModule extractModuleFromSource(File file, Parser parser, Classpath pathEntry) {
-		ICompilationUnit cu = new CompilationUnit(null, file.getAbsolutePath(), null);
+		ICompilationUnit cu = new CompilationUnit(null, file.getAbsolutePath(), null, pathEntry.getDestinationPath());
 		CompilationResult compilationResult = new CompilationResult(cu, 0, 1, 10);
 		CompilationUnitDeclaration unit = parser.parse(cu, compilationResult);
 		if (unit.isModuleInfo() && unit.moduleDeclaration != null) {

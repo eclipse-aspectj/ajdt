@@ -1,10 +1,13 @@
 // AspectJ
 /*******************************************************************************
  * Copyright (c) 2000, 2018 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -1275,6 +1278,17 @@ public void resolve() {
 				reporter.javadocMissing(this.sourceStart, this.sourceEnd, severity, javadocModifiers);
 			}
 		}
+		updateNestInfo();
+		FieldDeclaration[] fieldsDecls = this.fields;
+		if (fieldsDecls != null) {
+			for (FieldDeclaration fieldDeclaration : fieldsDecls)
+				fieldDeclaration.resolveJavadoc(this.initializerScope);
+		}
+		AbstractMethodDeclaration[] methodDecls = this.methods;
+		if (methodDecls != null) {
+			for (AbstractMethodDeclaration methodDeclaration : methodDecls)
+				methodDeclaration.resolveJavadoc();
+		}
 	} catch (AbortType e) {
 		this.ignoreFurtherInvestigation = true;
 		return;
@@ -1570,6 +1584,20 @@ void updateMaxFieldCount() {
 	}
 }
 
+private SourceTypeBinding findNestHost() {
+	ClassScope classScope = this.scope.enclosingTopMostClassScope();
+	return classScope != null ? classScope.referenceContext.binding : null;
+}
+
+void updateNestInfo() {
+	if (this.binding == null)
+		return;
+	SourceTypeBinding nestHost = findNestHost();
+	if (nestHost != null && !this.binding.equals(nestHost)) {// member
+		this.binding.setNestHost(nestHost);
+		nestHost.addNestMember(this.binding);
+	}
+}
 public boolean isPackageInfo() {
 	return CharOperation.equals(this.name,  TypeConstants.PACKAGE_INFO_NAME);
 }

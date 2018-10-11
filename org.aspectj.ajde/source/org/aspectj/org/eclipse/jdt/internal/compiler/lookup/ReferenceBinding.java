@@ -1,10 +1,13 @@
 // ASPECTJ
 /*******************************************************************************
  * Copyright (c) 2000, 2018 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -445,7 +448,7 @@ public final boolean innerCanBeSeenBy(Scope scope) {
 
 public char[] computeGenericTypeSignature(TypeVariableBinding[] typeVariables) {
 
-	boolean isMemberOfGeneric = isMemberType() && !isStatic() && (enclosingType().modifiers & ExtraCompilerModifiers.AccGenericSignature) != 0;
+	boolean isMemberOfGeneric = isMemberType() && hasEnclosingInstanceContext() && (enclosingType().modifiers & ExtraCompilerModifiers.AccGenericSignature) != 0;
 	if (typeVariables == Binding.NO_TYPE_VARIABLES && !isMemberOfGeneric) {
 		return signature();
 	}
@@ -1328,6 +1331,23 @@ public boolean isClass() {
 	return (this.modifiers & (ClassFileConstants.AccInterface | ClassFileConstants.AccAnnotation | ClassFileConstants.AccEnum)) == 0;
 }
 
+private static SourceTypeBinding getSourceTypeBinding(ReferenceBinding ref) {
+	if (ref instanceof SourceTypeBinding)
+		return (SourceTypeBinding) ref;
+	if (ref instanceof ParameterizedTypeBinding) {
+		ParameterizedTypeBinding ptb = (ParameterizedTypeBinding) ref;
+		return ptb.type instanceof SourceTypeBinding ? (SourceTypeBinding) ptb.type : null;
+	}
+	return null;
+}
+public  boolean isNestmateOf(ReferenceBinding other) {
+	SourceTypeBinding s1 = getSourceTypeBinding(this);
+	SourceTypeBinding s2 = getSourceTypeBinding(other);
+	if (s1 == null || s2 == null) return false;
+
+	return s1.isNestmateOf(s2);
+}
+
 @Override
 public boolean isProperType(boolean admitCapture18) {
 	ReferenceBinding outer = enclosingType();
@@ -1750,7 +1770,7 @@ public char[] readableName() /*java.lang.Object,  p.X<T> */ {
 public char[] readableName(boolean showGenerics) /*java.lang.Object,  p.X<T> */ {
     char[] readableName;
 	if (isMemberType()) {
-		readableName = CharOperation.concat(enclosingType().readableName(showGenerics && !isStatic()), this.sourceName, '.');
+		readableName = CharOperation.concat(enclosingType().readableName(showGenerics && hasEnclosingInstanceContext()), this.sourceName, '.');
 	} else {
 		readableName = CharOperation.concatWith(this.compoundName, '.');
 	}
@@ -1901,7 +1921,7 @@ public char[] shortReadableName() /*Object*/ {
 public char[] shortReadableName(boolean showGenerics) /*Object*/ {
 	char[] shortReadableName;
 	if (isMemberType()) {
-		shortReadableName = CharOperation.concat(enclosingType().shortReadableName(showGenerics && !isStatic()), this.sourceName, '.');
+		shortReadableName = CharOperation.concat(enclosingType().shortReadableName(showGenerics && hasEnclosingInstanceContext()), this.sourceName, '.');
 	} else {
 		shortReadableName = this.sourceName;
 	}
@@ -2337,5 +2357,14 @@ public ModuleBinding module() {
 	if (this.fPackage != null)
 		return this.fPackage.enclosingModule;
 	return null;
+}
+
+public boolean hasEnclosingInstanceContext() {
+	if (isMemberType() && !isStatic())
+		return true;
+	MethodBinding enclosingMethod = enclosingMethod();
+	if (enclosingMethod != null)
+		return !enclosingMethod.isStatic();
+	return false;
 }
 }

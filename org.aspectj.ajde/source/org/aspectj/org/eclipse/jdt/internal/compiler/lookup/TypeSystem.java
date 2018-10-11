@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2013, 2018 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -337,7 +340,7 @@ public class TypeSystem {
 	   they may and we need to materialize the unannotated versions and work on them.
 	*/ 
 	public RawTypeBinding getRawType(ReferenceBinding genericType, ReferenceBinding enclosingType) {
-		if (genericType.isStatic() && enclosingType != null) {
+		if (!genericType.hasEnclosingInstanceContext() && enclosingType != null) {
 			enclosingType = (ReferenceBinding) enclosingType.original();
 		}
 		ReferenceBinding unannotatedGenericType = (ReferenceBinding) getUnannotatedType(genericType);

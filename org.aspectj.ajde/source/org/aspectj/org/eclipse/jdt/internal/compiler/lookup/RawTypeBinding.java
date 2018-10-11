@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2018 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -57,7 +60,7 @@ public class RawTypeBinding extends ParameterizedTypeBinding {
 				}
 			}
 		}
-		if (enclosingType == null || this.isStatic() || (enclosingType.modifiers & ExtraCompilerModifiers.AccGenericSignature) == 0) {
+		if (enclosingType == null || !this.hasEnclosingInstanceContext() || (enclosingType.modifiers & ExtraCompilerModifiers.AccGenericSignature) == 0) {
 			this.modifiers &= ~ExtraCompilerModifiers.AccGenericSignature; // only need signature if enclosing needs one
 		}
 	}
@@ -66,7 +69,7 @@ public class RawTypeBinding extends ParameterizedTypeBinding {
 	public char[] computeUniqueKey(boolean isLeaf) {
 	    StringBuffer sig = new StringBuffer(10);
 		if (isMemberType() && (enclosingType().isParameterizedType() || enclosingType().isRawType())) {
-			if (isStatic()) {
+			if (!hasEnclosingInstanceContext()) {
 			    char[] typeSig = enclosingType().signature(); // don't consider generics from enclosing of static member
 			    sig.append(typeSig, 0, typeSig.length-1); // copy all but trailing semicolon
 			    sig.append('$'); // for consistency with keys prior to https://bugs.eclipse.org/460491
@@ -153,7 +156,7 @@ public class RawTypeBinding extends ParameterizedTypeBinding {
 		    	this.genericTypeSignature = genericType().signature();
 			} else {
 			    StringBuffer sig = new StringBuffer(10);
-			    if (isMemberType() && !isStatic()) {
+			    if (isMemberType() && hasEnclosingInstanceContext()) {
 			    	ReferenceBinding enclosing = enclosingType();
 					char[] typeSig = enclosing.genericTypeSignature();
 					sig.append(typeSig, 0, typeSig.length-1);// copy all but trailing semicolon
@@ -289,7 +292,7 @@ public class RawTypeBinding extends ParameterizedTypeBinding {
 	public char[] readableName(boolean showGenerics) /*java.lang.Object,  p.X<T> */ {
 	    char[] readableName;
 		if (isMemberType()) {
-			readableName = CharOperation.concat(enclosingType().readableName(showGenerics && !isStatic()), this.sourceName, '.');
+			readableName = CharOperation.concat(enclosingType().readableName(showGenerics && hasEnclosingInstanceContext()), this.sourceName, '.');
 		} else {
 			readableName = CharOperation.concatWith(actualType().compoundName, '.');
 		}
@@ -303,7 +306,7 @@ public class RawTypeBinding extends ParameterizedTypeBinding {
 	public char[] shortReadableName(boolean showGenerics) /*Object*/ {
 	    char[] shortReadableName;
 		if (isMemberType()) {
-			shortReadableName = CharOperation.concat(enclosingType().shortReadableName(showGenerics && !isStatic()), this.sourceName, '.');
+			shortReadableName = CharOperation.concat(enclosingType().shortReadableName(showGenerics && hasEnclosingInstanceContext()), this.sourceName, '.');
 		} else {
 			shortReadableName = actualType().sourceName;
 		}

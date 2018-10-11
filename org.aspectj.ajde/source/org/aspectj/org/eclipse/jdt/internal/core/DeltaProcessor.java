@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2018 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -31,6 +34,7 @@ import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.jobs.MultiRule;
 import org.aspectj.org.eclipse.jdt.core.*;
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.SourceElementParser;
@@ -898,7 +902,7 @@ public class DeltaProcessor {
 							}
 						};
 						try {
-							ResourcesPlugin.getWorkspace().run(runnable, monitor);
+							ResourcesPlugin.getWorkspace().run(runnable, new MultiRule(projectsToTouch), IWorkspace.AVOID_UPDATE, monitor);
 						} catch (CoreException e) {
 							throw new JavaModelException(e);
 						}

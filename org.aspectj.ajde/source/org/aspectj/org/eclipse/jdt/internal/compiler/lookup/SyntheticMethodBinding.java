@@ -1,10 +1,13 @@
 // ASPECTJ
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *		IBM Corporation - initial API and implementation
@@ -16,6 +19,8 @@
  *                          	Bug 405104 - [1.8][compiler][codegen] Implement support for serializeable lambdas
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
+
+import java.util.stream.Stream;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
@@ -384,6 +389,9 @@ public class SyntheticMethodBinding extends MethodBinding {
 		this.tagBits |= (TagBits.AnnotationResolved | TagBits.DeprecatedAnnotationResolved) | (lambda.binding.tagBits & TagBits.HasParameterAnnotations);
 	    this.returnType = lambda.binding.returnType;
 	    this.parameters = lambda.binding.parameters;
+	    TypeVariableBinding[] vars = Stream.of(this.parameters).filter(param -> param.isTypeVariable()).toArray(TypeVariableBinding[]::new);
+	    if (vars != null && vars.length > 0)
+	    	this.typeVariables = vars;
 	    this.thrownExceptions = lambda.binding.thrownExceptions;
 	    this.purpose = SyntheticMethodBinding.LambdaMethod;
 		SyntheticMethodBinding[] knownAccessMethods = declaringClass.syntheticMethods();

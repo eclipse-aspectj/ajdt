@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -267,7 +270,7 @@ public class ParameterizedQualifiedTypeReference extends ArrayQualifiedTypeRefer
 			ReferenceBinding currentType = (ReferenceBinding) this.resolvedType;
 			if (qualifyingType == null) {
 				qualifyingType = currentType.enclosingType(); // if member type
-				if (qualifyingType != null && !currentType.isStatic()) {
+				if (qualifyingType != null && currentType.hasEnclosingInstanceContext()) {
 					qualifyingType = scope.environment().convertToParameterizedType(qualifyingType);
 				}
 			} else {
@@ -336,7 +339,7 @@ public class ParameterizedQualifiedTypeReference extends ArrayQualifiedTypeRefer
 				}
 				// check parameterizing (non-)static member type of raw type
 				if (typeIsConsistent) {
-					if (currentType.isStatic()) {
+					if (!currentType.hasEnclosingInstanceContext()) {
 						if (qualifyingType != null && qualifyingType.isRawType())
 							this.typesPerToken[i-1] = qualifyingType = qualifyingType.actualType(); // revert rawification of enclosing, since its generics are inaccessible
 					} else {
@@ -365,7 +368,7 @@ public class ParameterizedQualifiedTypeReference extends ArrayQualifiedTypeRefer
 					if (((ClassScope) scope).detectHierarchyCycle(currentOriginal, this))
 						return null;
 				if (currentOriginal.isGenericType()) {
-	   			    if (typeIsConsistent && qualifyingType != null && qualifyingType.isParameterizedType() && !currentOriginal.isStatic()) {
+	   			    if (typeIsConsistent && qualifyingType != null && qualifyingType.isParameterizedType() && currentOriginal.hasEnclosingInstanceContext()) {
 						scope.problemReporter().parameterizedMemberTypeMissingArguments(this, scope.environment().createParameterizedType(currentOriginal, null, qualifyingType), i);
 						typeIsConsistent = false;
 					}

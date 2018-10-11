@@ -1,10 +1,13 @@
 // AspectJ
 /*******************************************************************************
  * Copyright (c) 2000, 2018 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -2009,7 +2012,7 @@ void setSourceStart(int sourceStart);
 	/** @since 3.14 */
 	int OverridingTerminallyDeprecatedSinceVersionMethod = MethodRelated + 1414;
 
-	// deprecation of package / module:
+	// unused constants:
 	/** @since 3.14 */
 	int UsingDeprecatedPackage = ModuleRelated + 1425;
 	/** @since 3.14 */
@@ -2018,6 +2021,7 @@ void setSourceStart(int sourceStart);
 	int UsingTerminallyDeprecatedPackage = ModuleRelated + 1427;
 	/** @since 3.14 */
 	int UsingTerminallyDeprecatedSinceVersionPackage = ModuleRelated + 1428;
+	// deprecation of modules:
 	/** @since 3.14 */
 	int UsingDeprecatedModule = ModuleRelated + 1429;
 	/** @since 3.14 */
@@ -2097,5 +2101,7 @@ void setSourceStart(int sourceStart);
 	int VarIsReservedInFuture = Syntax + 1510; // ''var'' should not be used as an type name, since it is a reserved word from source level 10 on
 	/** @since 3.14 */
 	int VarIsNotAllowedHere = Syntax + 1511; // ''var'' is not allowed here
+	/** @since 3.16 */
+	int VarCannotBeMixedWithNonVarParams = Syntax + 1512; // ''var'' cannot be mixed with explicit or implicit parameters
 	
 }

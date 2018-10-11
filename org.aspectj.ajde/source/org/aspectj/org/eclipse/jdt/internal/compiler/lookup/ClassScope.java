@@ -1,10 +1,13 @@
 // ASPECTJ
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -297,7 +300,7 @@ public class ClassScope extends Scope {
 			int count = 0;
 			nextMember : for (int i = 0; i < length; i++) {
 				TypeDeclaration memberContext = this.referenceContext.memberTypes[i];
-				if (this.environment().isProcessingAnnotations && this.environment().isMissingType(memberContext.name)) {
+				if (this.environment().root.isProcessingAnnotations && this.environment().isMissingType(memberContext.name)) {
 					throw new SourceTypeCollisionException(); // resolved a type ref before APT generated the type
 				}
 				switch(TypeDeclaration.kind(memberContext.modifiers)) {
@@ -514,7 +517,7 @@ public class ClassScope extends Scope {
 		ReferenceBinding enclosingType = sourceType.enclosingType();
 		boolean isMemberType = sourceType.isMemberType();
 		if (isMemberType) {
-			if (!sourceType.isStatic())
+			if (sourceType.hasEnclosingInstanceContext())
 				modifiers |= (enclosingType.modifiers & ExtraCompilerModifiers.AccGenericSignature);
 			modifiers |= (enclosingType.modifiers & ClassFileConstants.AccStrictfp);
 			// checks for member types before local types to catch local members

@@ -1,10 +1,13 @@
 // AspectJ
 /*******************************************************************************
  * Copyright (c) 2000, 2018 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -25,6 +28,7 @@ import org.aspectj.org.eclipse.jdt.core.ICompilationUnit;
 import org.aspectj.org.eclipse.jdt.core.IJavaProject;
 import org.aspectj.org.eclipse.jdt.core.JavaCore;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
+import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.Scanner;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.text.edits.TextEdit;
@@ -235,6 +239,7 @@ public class AST {
 	 * </p>
 	 *
 	 * @since 3.14
+	 * @deprecated Clients should use the {@link #JLS11} AST API instead.
 	 */
 	public static final int JLS10 = 10;
 
@@ -244,6 +249,29 @@ public class AST {
 	 * @since 3.14
 	 */
 	/*package*/ static final int JLS10_INTERNAL = JLS10;
+
+	/**
+	 * Constant for indicating the AST API that handles JLS11.
+	 * <p>
+	 * This API is capable of handling all constructs in the
+	 * Java language as described in the Java Language
+	 * Specification, Java SE 11 Edition (JLS11).
+	 * JLS11 is a superset of all earlier versions of the
+	 * Java language, and the JLS11 API can be used to manipulate
+	 * programs written in all versions of the Java language
+	 * up to and including Java SE 11 (aka JDK 11).
+	 * </p>
+	 *
+	 * @since 3.16
+	 */
+	public static final int JLS11 = 11;
+
+	/**
+	 * Internal synonym for {@link #JLS11}. Use to alleviate
+	 * deprecation warnings once JLS11 is deprecated
+	 * @since 3.14 
+	 */
+	/*package*/ static final int JLS11_INTERNAL = JLS11;
 
 	/*
 	 * Must not collide with a value for ICompilationUnit constants
@@ -315,6 +343,20 @@ public class AST {
 		ASTConverter converter = ASTConverter.getASTConverter(options,isResolved,monitor); 
 		// End AspectJ Extension
 		AST ast = AST.newAST(level);
+		String sourceModeSetting = (String) options.get(JavaCore.COMPILER_SOURCE);
+		long sourceLevel = CompilerOptions.versionToJdkLevel(sourceModeSetting);
+		if (sourceLevel == 0) {
+			// unknown sourceModeSetting
+			sourceLevel = ClassFileConstants.JDK1_3;
+		}
+		ast.scanner.sourceLevel = sourceLevel;
+		String compliance = (String) options.get(JavaCore.COMPILER_COMPLIANCE);
+		long complianceLevel = CompilerOptions.versionToJdkLevel(compliance);
+		if (complianceLevel == 0) {
+			// unknown sourceModeSetting
+			complianceLevel = sourceLevel;
+		}
+		ast.scanner.complianceLevel = complianceLevel;
 		int savedDefaultNodeFlag = ast.getDefaultNodeFlag();
 		ast.setDefaultNodeFlag(ASTNode.ORIGINAL);
 		BindingResolver resolver = null;
@@ -798,6 +840,20 @@ public class AST {
 						false /*nls*/,
 						ClassFileConstants.JDK10   /*sourceLevel*/,
 						ClassFileConstants.JDK10 /*complianceLevel*/,
+						null/*taskTag*/,
+						null/*taskPriorities*/,
+						true/*taskCaseSensitive*/);
+				break;	
+			case JLS11_INTERNAL :
+				this.apiLevel = level;
+				// initialize a scanner
+				long compliance = ClassFileConstants.getComplianceLevelForJavaVersion(ClassFileConstants.MAJOR_VERSION_11);
+				this.scanner = new Scanner(
+						true /*comment*/,
+						true /*whitespace*/,
+						false /*nls*/,
+						compliance /*sourceLevel*/,
+						compliance /*complianceLevel*/,
 						null/*taskTag*/,
 						null/*taskPriorities*/,
 						true/*taskCaseSensitive*/);

@@ -1,9 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -41,6 +44,11 @@ public interface IConstantPoolConstant {
 	 * @since 3.8
 	 */
 	int CONSTANT_InvokeDynamic = 18;
+	/**
+	 * proposed new name in JVMLS11
+	 * @since 3.16
+	 */
+	int CONSTANT_DynamicCallSite = CONSTANT_InvokeDynamic; 
 
 	/**
 	 * @since 3.14
@@ -50,6 +58,11 @@ public interface IConstantPoolConstant {
 	 * @since 3.14
 	 */
 	int CONSTANT_Package = 20;
+	/**
+	 * For the proposed section of JVMLS11 4.4.13 The CONSTANT_Dynamic_info Structure
+	 * @since 3.16 
+	 */
+	int CONSTANT_Dynamic = 17;
 
 	int CONSTANT_Methodref_SIZE = 5;
 	int CONSTANT_Class_SIZE = 3;
@@ -75,6 +88,10 @@ public interface IConstantPoolConstant {
 	 */
 	int CONSTANT_InvokeDynamic_SIZE = 5;
 
+	/**
+	 * @since 3.16 
+	 */
+	int CONSTANT_Dynamic_SIZE = 5;
 	/**
 	 * @since 3.14
 	 */

@@ -1,10 +1,13 @@
 // AspectJ
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -561,7 +564,8 @@ public void manageSyntheticAccessIfNecessary(BlockScope currentScope, FlowInfo f
 	// if field from parameterized type got found, use the original field at codegen time
 	FieldBinding codegenBinding = this.binding.original();
 	if (this.binding.isPrivate()) {
-		if ((TypeBinding.notEquals(currentScope.enclosingSourceType(), codegenBinding.declaringClass))
+		if (!currentScope.enclosingSourceType().isNestmateOf(codegenBinding.declaringClass) &&
+			(TypeBinding.notEquals(currentScope.enclosingSourceType(), codegenBinding.declaringClass))
 				&& this.binding.constant(currentScope) == Constant.NotAConstant) {
 			if (this.syntheticAccessors == null)
 				this.syntheticAccessors = new MethodBinding[2];
@@ -741,7 +745,7 @@ public TypeBinding resolveType(BlockScope scope) {
 			scope.problemReporter().indirectAccessToStaticField(this, fieldBinding);
 		}
 		// check if accessing enum static field in initializer
-		if (declaringClass.isEnum()) {
+		if (declaringClass.isEnum() && !scope.isModuleScope()) {
 			MethodScope methodScope = scope.methodScope();
 			SourceTypeBinding sourceType = scope.enclosingSourceType();
 			if (this.constant == Constant.NotAConstant

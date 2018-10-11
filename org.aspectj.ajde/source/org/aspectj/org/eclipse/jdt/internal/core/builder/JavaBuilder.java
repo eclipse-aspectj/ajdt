@@ -1,10 +1,13 @@
 // AspectJ
 /*******************************************************************************
  * Copyright (c) 2000, 2018 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -14,7 +17,8 @@ package org.aspectj.org.eclipse.jdt.internal.core.builder;
 
 import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.*;
-
+import org.eclipse.core.runtime.jobs.ISchedulingRule;
+import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.aspectj.org.eclipse.jdt.core.*;
 import org.aspectj.org.eclipse.jdt.core.compiler.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.SimpleLookupTable;
@@ -28,6 +32,7 @@ import java.util.*;
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class JavaBuilder extends IncrementalProjectBuilder {
 
+public static final String PREF_NULL_SCHEDULING_RULE = "useNullSchedulingRule"; //$NON-NLS-1$
 IProject currentProject;
 JavaProject javaProject;
 IWorkspaceRoot workspaceRoot;
@@ -820,4 +825,12 @@ public String toString() {
 		? "JavaBuilder for unknown project" //$NON-NLS-1$
 		: "JavaBuilder for " + this.currentProject.getName(); //$NON-NLS-1$
 }
+
+	@Override
+	public ISchedulingRule getRule(int kind, Map<String, String> args) {
+		if (InstanceScope.INSTANCE.getNode(JavaCore.PLUGIN_ID).getBoolean(PREF_NULL_SCHEDULING_RULE, false)) {
+			return null;
+		}
+		return super.getRule(kind, args);
+	}
 }

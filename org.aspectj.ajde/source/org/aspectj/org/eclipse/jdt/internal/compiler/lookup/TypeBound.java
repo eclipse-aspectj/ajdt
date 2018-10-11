@@ -1,9 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2015 GK Software AG and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2013, 2018 GK Software AG and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Stephan Herrmann - initial API and implementation
@@ -11,7 +14,6 @@
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
 
-import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 
 /**
  * Implementation of 18.1.3 in JLS8
@@ -38,7 +40,7 @@ public class TypeBound extends ReductionResult {
 	
 	TypeBound(InferenceVariable inferenceVariable, TypeBinding typeBinding, int relation, boolean isSoft) {
 		this.left = inferenceVariable;
-		this.right = safeType(typeBinding);
+		this.right = typeBinding;
 		if (((inferenceVariable.tagBits | this.right.tagBits) & TagBits.AnnotationNullMASK) != 0) {
 			if ((inferenceVariable.tagBits & TagBits.AnnotationNullMASK) == (this.right.tagBits & TagBits.AnnotationNullMASK)) {
 				// strip off identical nullness on both sides:
@@ -58,20 +60,6 @@ public class TypeBound extends ReductionResult {
 		this.relation = relation;
 		this.isSoft = isSoft;
 	}
-	
-	private TypeBinding safeType(TypeBinding type) {
-		if (type != null && type.isLocalType()) {
-			MethodBinding enclosingMethod = ((LocalTypeBinding) type.original()).enclosingMethod;
-			if (enclosingMethod != null && CharOperation.prefixEquals(TypeConstants.ANONYMOUS_METHOD, enclosingMethod.selector)) {
-				// don't use local class inside lambda: lambda is copied, type will be re-created and thus is unmatchable
-				if (type.superclass().id == TypeIds.T_JavaLangObject && type.superInterfaces().length > 0)
-					return type.superInterfaces()[0];
-				return type.superclass();
-			}
-		}
-		return type;
-	}
-
 
 	/** distinguish bounds from dependencies. */
 	boolean isBound() {

@@ -1,9 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -78,6 +81,7 @@ public class HierarchyResolver implements ITypeRequestor {
 
 	private int typeIndex;
 	private IGenericType[] typeModels;
+	private Parser basicParser;
 
 	private static final CompilationUnitDeclaration FakeUnit;
 	static {
@@ -126,11 +130,31 @@ public void accept(IBinaryType binaryType, PackageBinding packageBinding, Access
  */
 @Override
 public void accept(ICompilationUnit sourceUnit, AccessRestriction accessRestriction) {
-	//System.out.println("Cannot accept compilation units inside the HierarchyResolver.");
-	this.lookupEnvironment.problemReporter.abortDueToInternalError(
-		new StringBuffer(Messages.accept_cannot)
-			.append(sourceUnit.getFileName())
-			.toString());
+	if (CharOperation.equals(TypeConstants.MODULE_INFO_NAME, sourceUnit.getMainTypeName())) {
+		// module is needed for resolving, so parse and build it now:
+		CompilationResult unitResult = new CompilationResult(sourceUnit, 1, 1, this.options.maxProblemsPerUnit);
+		CompilationUnitDeclaration parsedUnit = basicParser().dietParse(sourceUnit, unitResult);
+		this.lookupEnvironment.buildTypeBindings(parsedUnit, accessRestriction);
+		this.lookupEnvironment.completeTypeBindings(parsedUnit, true); // work done inside checkAndSetImports() 
+	} else {
+		//System.out.println("Cannot accept compilation units inside the HierarchyResolver.");
+		this.lookupEnvironment.problemReporter.abortDueToInternalError(
+			new StringBuffer(Messages.accept_cannot)
+				.append(sourceUnit.getFileName())
+				.toString());
+	}
+}
+private Parser basicParser() {
+	if (this.basicParser == null) {
+		ProblemReporter problemReporter =
+			new ProblemReporter(
+				DefaultErrorHandlingPolicies.proceedWithAllProblems(),
+				this.options,
+				new DefaultProblemFactory());
+		this.basicParser = new Parser(problemReporter, false);
+		this.basicParser.reportOnlyOneSyntaxError = true;
+	}
+	return this.basicParser;
 }
 
 /**
@@ -163,12 +187,15 @@ public void accept(ISourceType[] sourceTypes, PackageBinding packageBinding, Acc
 	// build bindings
 	if (unit != null) {
 		try {
-			this.lookupEnvironment.buildTypeBindings(unit, accessRestriction);
+			LookupEnvironment environment = packageBinding.environment;
+			if (environment == null)
+				environment = this.lookupEnvironment;
+			environment.buildTypeBindings(unit, accessRestriction);
 
 			org.aspectj.org.eclipse.jdt.core.ICompilationUnit cu = ((SourceTypeElementInfo)sourceType).getHandle().getCompilationUnit();
 			rememberAllTypes(unit, cu, false);
 
-			this.lookupEnvironment.completeTypeBindings(unit, true/*build constructor only*/);
+			environment.completeTypeBindings(unit, true/*build constructor only*/);
 		} catch (AbortCompilation e) {
 			// missing 'java.lang' package: ignore
 		}
@@ -722,7 +749,7 @@ public void resolve(Openable[] openables, HashSet localTypes, IProgressMonitor m
 					// We would have got all the necessary local types by now and hence there is no further need 
 					// to parse the method bodies. Parser.getMethodBodies, which is called latter in this function, 
 					// will not parse the method statements if ASTNode.HasAllMethodBodies is set. 
-					if (containsLocalType) 	parsedUnit.bits |= ASTNode.HasAllMethodBodies;
+					if (containsLocalType && parsedUnit != null) parsedUnit.bits |= ASTNode.HasAllMethodBodies;
 				} else {
 					// create parsed unit from file
 					IFile file = (IFile) cu.getResource();

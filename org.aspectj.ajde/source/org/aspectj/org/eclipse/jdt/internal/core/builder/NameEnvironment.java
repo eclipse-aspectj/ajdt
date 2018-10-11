@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2018 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -268,7 +271,7 @@ private void computeClasspathLocations(
 							&& JavaCore.IGNORE.equals(javaProject.getOption(JavaCore.COMPILER_PB_DISCOURAGED_REFERENCE, true)))
 								? null
 								: entry.getAccessRuleSet();
-						bLocation = ClasspathLocation.forLibrary((IFile) resource, accessRuleSet, externalAnnotationPath, isOnModulePath);
+						bLocation = ClasspathLocation.forLibrary((IFile) resource, accessRuleSet, externalAnnotationPath, isOnModulePath, compliance);
 					} else if (resource instanceof IContainer) {
 						AccessRuleSet accessRuleSet =
 							(JavaCore.IGNORE.equals(javaProject.getOption(JavaCore.COMPILER_PB_FORBIDDEN_REFERENCE, true))
@@ -302,10 +305,14 @@ private void computeClasspathLocations(
 							&& JavaCore.IGNORE.equals(javaProject.getOption(JavaCore.COMPILER_PB_DISCOURAGED_REFERENCE, true)))
 								? null
 								: entry.getAccessRuleSet();
-					if (JavaCore.DISABLED.equals(javaProject.getOption(JavaCore.COMPILER_RELEASE, true))) {
-						compliance = null;
+					String release = JavaCore.DISABLED.equals(javaProject.getOption(JavaCore.COMPILER_RELEASE, true)) ? null : compliance;
+					ClasspathLocation bLocation = null;
+					String libPath = path.toOSString();
+					if (Util.isJrt(libPath)) {
+						bLocation = ClasspathLocation.forJrtSystem(path.toOSString(), accessRuleSet, externalAnnotationPath, release);
+					} else {
+						bLocation = ClasspathLocation.forLibrary(path.toOSString(), accessRuleSet, externalAnnotationPath, isOnModulePath, compliance);
 					}
-					ClasspathLocation bLocation = ClasspathLocation.forLibrary(path.toOSString(), accessRuleSet, externalAnnotationPath, isOnModulePath, compliance);
 					bLocations.add(bLocation);
 					if (moduleEntries != null) {
 						Set<String> libraryLimitModules = (limitModules == null && projectModule != null) ? ClasspathJrt.NO_LIMIT_MODULES : limitModules;
@@ -586,7 +593,8 @@ public char[][] getModulesDeclaringPackage(char[][] parentPackageName, char[] na
 		default:
 			if (this.modulePathEntries != null) {
 				names = CharOperation.NO_CHAR_CHAR;
-				for (IModulePathEntry modulePathEntry : this.modulePathEntries.values()) {
+				Collection<IModulePathEntry> entries = new HashSet<>(this.modulePathEntries.values());
+				for (IModulePathEntry modulePathEntry : entries) {
 					char[][] declaringModules = modulePathEntry.getModulesDeclaringPackage(pkgName, modName);
 					if (declaringModules != null)
 						names = CharOperation.arrayConcat(names, declaringModules);

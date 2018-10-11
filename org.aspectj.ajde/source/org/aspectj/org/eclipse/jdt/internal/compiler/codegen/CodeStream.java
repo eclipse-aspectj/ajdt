@@ -1,10 +1,13 @@
 // ASPECTJ
 /*******************************************************************************
  * Copyright (c) 2000, 2018 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -3432,17 +3435,16 @@ public static TypeBinding getConstantPoolDeclaringClass(Scope currentScope, Meth
 						&& (options.complianceLevel >= ClassFileConstants.JDK1_4 || !(isImplicitThisReceiver && codegenBinding.isStatic()))
 						&& codegenBinding.declaringClass.id != TypeIds.T_JavaLangObject) // no change for Object methods
 					|| !codegenBinding.declaringClass.canBeSeenBy(currentScope)) {
-				TypeBinding erasure = actualReceiverType.erasure();
-				if (erasure.isIntersectionType18()) {
-					TypeBinding[] intersectingTypes = ((IntersectionTypeBinding18)erasure).getIntersectingTypes();
+				if (actualReceiverType.isIntersectionType18()) {
+					TypeBinding[] intersectingTypes = ((IntersectionTypeBinding18)actualReceiverType).getIntersectingTypes();
 					for(int i = 0; i < intersectingTypes.length; i++) {
 						if (intersectingTypes[i].findSuperTypeOriginatingFrom(constantPoolDeclaringClass) != null) {
-							constantPoolDeclaringClass = intersectingTypes[i];
+							constantPoolDeclaringClass = intersectingTypes[i].erasure();
 							break;
 						}
 					}
 				} else {
-					constantPoolDeclaringClass = erasure;
+					constantPoolDeclaringClass = actualReceiverType.erasure();
 				}
 			}
 		}				
@@ -6069,7 +6071,7 @@ public void new_(TypeReference typeReference, TypeBinding typeBinding) {
 	this.stackDepth++;
 	if (this.stackDepth > this.stackMax)
 		this.stackMax = this.stackDepth;
-	if (this.classFileOffset + 2 >= this.bCodeStream.length) {
+	if (this.classFileOffset + 3 >= this.bCodeStream.length) {
 		resizeByteArray();
 	}
 	this.position++;

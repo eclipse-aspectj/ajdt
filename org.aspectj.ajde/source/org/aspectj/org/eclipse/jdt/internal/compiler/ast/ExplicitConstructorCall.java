@@ -1,10 +1,13 @@
 // AspectJ
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -263,7 +266,9 @@ public class ExplicitConstructorCall extends Statement implements Invocation {
 			MethodBinding codegenBinding = this.binding.original();
 
 			// perform some emulation work in case there is some and we are inside a local type only
-			if (this.binding.isPrivate() && this.accessMode != ExplicitConstructorCall.This) {
+			if (this.binding.isPrivate() &&
+					!currentScope.enclosingSourceType().isNestmateOf(this.binding.declaringClass) &&
+					this.accessMode != ExplicitConstructorCall.This) {
 				ReferenceBinding declaringClass = codegenBinding.declaringClass;
 				// from 1.4 on, local type constructor can lose their private flag to ease emulation
 				if ((declaringClass.tagBits & TagBits.IsLocalType) != 0 && currentScope.compilerOptions().complianceLevel >= ClassFileConstants.JDK1_4) {

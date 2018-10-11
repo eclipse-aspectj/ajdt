@@ -1,9 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -2040,6 +2043,15 @@ public class DefaultBytecodeVisitor implements IBytecodeVisitor {
 					Integer.toString(index),
 					returnConstantClassName(constantPoolEntry)
 				}));
+				break;
+			case IConstantPoolConstant.CONSTANT_MethodType :
+				appendConstantMethodType(this.buffer, Messages.classformat_ldc_w_methodhandle,
+						IOpcodeMnemonics.LDC_W, index, constantPoolEntry);
+				break;
+			case IConstantPoolConstant.CONSTANT_MethodHandle :
+				appendConstantMethodHandle(this.buffer, Messages.classformat_ldc_w_methodhandle,
+						IOpcodeMnemonics.LDC_W, index, constantPoolEntry);
+				break;
 		}
 		writeNewLine();
 	}
@@ -2078,10 +2090,51 @@ public class DefaultBytecodeVisitor implements IBytecodeVisitor {
 					Integer.toString(index),
 					returnConstantClassName(constantPoolEntry)
 				}));
+				break;
+			case IConstantPoolConstant.CONSTANT_MethodType :
+				appendConstantMethodType(this.buffer, Messages.classformat_ldc_w_methodhandle,
+						IOpcodeMnemonics.LDC, index, constantPoolEntry);
+				break;
+			case IConstantPoolConstant.CONSTANT_MethodHandle :
+				appendConstantMethodHandle(this.buffer, Messages.classformat_ldc_w_methodhandle,
+						IOpcodeMnemonics.LDC, index, constantPoolEntry);
+				break;
+			case IConstantPoolConstant.CONSTANT_Dynamic :
+				appendConstantDynamic(this.buffer, Messages.classformat_ldc_w_dynamic,
+						IOpcodeMnemonics.LDC, index, constantPoolEntry);
+				break;
 		}
 		writeNewLine();
 	}
 
+	private StringBuffer appendConstantMethodType(StringBuffer s, String messageKind, int opcode,
+			int index, IConstantPoolEntry constantPoolEntry) {
+		return s.append(Messages.bind(messageKind, new String[] {
+				OpcodeStringValues.BYTECODE_NAMES[opcode],
+				Integer.toString(index),
+				new String(constantPoolEntry.getMethodDescriptor())
+			}));
+	}
+
+	private StringBuffer appendConstantMethodHandle(StringBuffer s, String messageKind, int opcode,
+			int index, IConstantPoolEntry constantPoolEntry) {
+		return s.append(Messages.bind(messageKind, new String[] {
+				OpcodeStringValues.BYTECODE_NAMES[opcode],
+				Integer.toString(index),
+				Integer.toString(((IConstantPoolEntry2) constantPoolEntry).getReferenceKind()),
+				Integer.toString(((IConstantPoolEntry2) constantPoolEntry).getReferenceIndex())
+			}));
+	}
+	private StringBuffer appendConstantDynamic(StringBuffer s, String messageKind, int opcode,
+			int index, IConstantPoolEntry entry) {
+		return s.append(Messages.bind(messageKind, new String[] {
+				OpcodeStringValues.BYTECODE_NAMES[opcode],
+				Integer.toString(index),
+				Integer.toString(((IConstantPoolEntry2) entry).getBootstrapMethodAttributeIndex()),
+				new String(entry.getFieldName()),
+				returnClassName(Signature.toCharArray(entry.getFieldDescriptor()))
+			}));
+	}
 	/**
 	 * @see IBytecodeVisitor#_ldc2_w(int, int, IConstantPoolEntry)
 	 */
@@ -2102,6 +2155,19 @@ public class DefaultBytecodeVisitor implements IBytecodeVisitor {
 					Integer.toString(index),
 					Double.toString(constantPoolEntry.getDoubleValue())
 				}));
+				break;
+			case IConstantPoolConstant.CONSTANT_MethodType :
+				appendConstantMethodType(this.buffer, Messages.classformat_ldc_w_methodhandle,
+						IOpcodeMnemonics.LDC2_W, index, constantPoolEntry);
+				break;
+			case IConstantPoolConstant.CONSTANT_MethodHandle :
+				appendConstantMethodHandle(this.buffer, Messages.classformat_ldc_w_methodhandle,
+						IOpcodeMnemonics.LDC2_W, index, constantPoolEntry);
+				break;
+			case IConstantPoolConstant.CONSTANT_Dynamic :
+				appendConstantDynamic(this.buffer, Messages.classformat_ldc_w_dynamic,
+						IOpcodeMnemonics.LDC2_W, index, constantPoolEntry);
+				break;
 		}
 		writeNewLine();
 	}

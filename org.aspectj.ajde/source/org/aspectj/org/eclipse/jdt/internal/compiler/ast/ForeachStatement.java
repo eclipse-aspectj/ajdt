@@ -1,10 +1,13 @@
 // AspectJ
 /*******************************************************************************
  * Copyright (c) 2000, 2018 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -420,10 +423,10 @@ public class ForeachStatement extends Statement {
 		return output;
 	}
 
-	private TypeBinding getCollectionElementType(TypeBinding collectionType) {
+	public static TypeBinding getCollectionElementType(BlockScope scope, TypeBinding collectionType) {
 		if (collectionType == null) return null;
 		
-		boolean isTargetJsr14 = this.scope.compilerOptions().targetJDK == ClassFileConstants.JDK1_4;
+		boolean isTargetJsr14 = scope.compilerOptions().targetJDK == ClassFileConstants.JDK1_4;
 		if (collectionType.isCapture()) {
 			TypeBinding upperBound = ((CaptureBinding)collectionType).firstBound;
 			if (upperBound != null && upperBound.isArrayType())
@@ -441,7 +444,7 @@ public class ForeachStatement extends Statement {
 			TypeBinding[] arguments = null;
 			switch (iterableType.kind()) {
 				case Binding.RAW_TYPE : // for(Object o : Iterable)
-					return this.scope.getJavaLangObject();
+					return scope.getJavaLangObject();
 
 				case Binding.GENERIC_TYPE : // for (T t : Iterable<T>) - in case used inside Iterable itself
 					arguments = iterableType.typeVariables();
@@ -464,6 +467,7 @@ public class ForeachStatement extends Statement {
 	public void resolve(BlockScope upperScope) {
 		// use the scope that will hold the init declarations
 		this.scope = new BlockScope(upperScope);
+		this.scope.blockStatement = this;
 		this.elementVariable.resolve(this.scope); // collection expression can see itemVariable
 		TypeBinding elementType = this.elementVariable.type.resolvedType;
 		TypeBinding collectionType = this.collection == null ? null : this.collection.resolveType(upperScope);
@@ -480,10 +484,14 @@ public class ForeachStatement extends Statement {
 				upperScope.problemReporter().varLocalInitializedToVoid(this.elementVariable);
 				elementType = collectionType;
 			}
-			if ((elementType = getCollectionElementType(collectionType)) == null) {
+			if ((elementType = getCollectionElementType(this.scope, collectionType)) == null) {
 				elementType = collectionType;
 			} else {
 				elementType = this.elementVariable.patchType(elementType);
+			}
+			// additional check deferred from LocalDeclaration.resolve():
+			if (this.elementVariable.binding != null && this.elementVariable.binding.isValidBinding()) {
+				this.elementVariable.validateNullAnnotations(this.scope);
 			}
 		}
 

@@ -1,10 +1,13 @@
 // AspectJ
 /*******************************************************************************
  * Copyright (c) 2017, 2018 GK Software AG, and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Stephan Herrmann - initial API and implementation
@@ -45,8 +48,6 @@ public class SourceModuleBinding extends ModuleBinding {
 	public void setRequires(ModuleBinding[] requires, ModuleBinding[] requiresTransitive) {
 		// TODO(SHMOD): it's a bit awkward that we may get called after applyModuleUpdates() has already worked.
 		ModuleBinding javaBase = this.environment.javaBaseModule();
-		if (javaBase.isUnnamed()) // happens when no java.base can be found in the name environment.
-			javaBase = null;
 		this.requires = merge(this.requires, requires, javaBase, ModuleBinding[]::new);
 		this.requiresTransitive = merge(this.requiresTransitive, requiresTransitive, null, ModuleBinding[]::new);
 	}

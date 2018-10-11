@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2015 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -18,6 +21,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Argument;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Block;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ForeachStatement;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.LocalDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Statement;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
@@ -169,8 +173,15 @@ public RecoveredElement add(Statement stmt, int bracketBalanceValue, boolean del
 
 	RecoveredStatement element = new RecoveredStatement(stmt, this, bracketBalanceValue);
 	attach(element);
-	if (stmt.sourceEnd == 0) return element;
+	if (!isEndKnown(stmt)) return element;
 	return this;
+}
+boolean isEndKnown(Statement stmt) {
+	if (stmt instanceof ForeachStatement) {
+		if (((ForeachStatement) stmt).action == null)
+			return false;
+	}
+	return stmt.sourceEnd != 0;
 }
 /*
  * Addition of a type to an initializer (act like inside method body)

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2016, 2018 IBM Corporation.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -45,7 +48,7 @@ public class ClasspathJrt extends ClasspathLocation implements IMultiModuleEntry
 	public File file;
 	protected ZipFile annotationZipFile;
 	protected boolean closeZipFileAtEnd;
-	private static HashMap<String, Map<String,IModule>> ModulesCache = new HashMap<>();
+	protected static HashMap<String, Map<String,IModule>> ModulesCache = new HashMap<>();
 	public final Set<String> moduleNamesCache;
 	//private Set<String> packageCache;
 	protected List<String> annotationPaths;

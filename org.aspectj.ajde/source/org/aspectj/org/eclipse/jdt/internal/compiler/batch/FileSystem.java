@@ -1,10 +1,13 @@
 // AspectJ
 /*******************************************************************************
  * Copyright (c) 2000, 2018 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -173,16 +176,19 @@ public class FileSystem implements IModuleAwareNameEnvironment, SuffixConstants 
 	classPathNames is a collection is Strings representing the full path of each class path
 	initialFileNames is a collection is Strings, the trailing '.java' will be removed if its not already.
 */
-public FileSystem(String[] classpathNames, String[] initialFileNames, String encoding, int mode) { // New AspectJ Extension - extra int flag for mode, was 'public FileSystem(String[] classpathNames, String[] initialFileNames, String encoding) {'
+public FileSystem(String[] classpathNames, String[] initialFileNames, String encoding, int mode, String release) {
+	this(classpathNames, initialFileNames, encoding, null, mode, release);
+}
+public FileSystem(String[] classpathNames, String[] initialFileNames, String encoding, Collection<String> limitModules, int mode, String release) { // New AspectJ Extension - extra int flag for mode, was 'public FileSystem(String[] classpathNames, String[] initialFileNames, String encoding) {'
 	final int classpathSize = classpathNames.length;
 	this.classpaths = new Classpath[classpathSize];
 	int counter = 0;
 	for (int i = 0; i < classpathSize; i++) {
-		Classpath classpath = getClasspath(classpathNames[i], encoding, null, mode); // New AspectJ Extension - pass extra mode
+		Classpath classpath = getClasspath(classpathNames[i], encoding, null, null, mode, release); // New AspectJ Extension - pass extra mode
 		if (classpath==null) continue; // AspectJ Extension
 		try {
 			classpath.initialize();
-			for (String moduleName : classpath.getModuleNames(null))
+			for (String moduleName : classpath.getModuleNames(limitModules))
 				this.moduleLocations.put(moduleName, classpath);
 			this.classpaths[counter++] = classpath;
 		} catch (IOException e) {
@@ -245,10 +251,10 @@ protected FileSystem(Classpath[] paths, String[] initialFileNames, boolean annot
 	this(paths, initialFileNames, annotationsFromClasspath, null);
 }
 public static Classpath getClasspath(String classpathName, String encoding, AccessRuleSet accessRuleSet) {
-	return getClasspath(classpathName, encoding, false, accessRuleSet, null, null);
+	return getClasspath(classpathName, encoding, false, accessRuleSet, null, null, null);
 }
-public static Classpath getClasspath(String classpathName, String encoding, AccessRuleSet accessRuleSet, Map<String, String> options) {
-	return getClasspath(classpathName, encoding, false, accessRuleSet, null, options);
+public static Classpath getClasspath(String classpathName, String encoding, AccessRuleSet accessRuleSet, Map<String, String> options, String release) {
+	return getClasspath(classpathName, encoding, false, accessRuleSet, null, options, release);
 }
 //New AspectJ Extension
 public static Classpath getJrtClasspath(String jdkHome, String encoding, AccessRuleSet accessRuleSet, Map<String, String> options) {
@@ -256,12 +262,13 @@ public static Classpath getJrtClasspath(String jdkHome, String encoding, AccessR
 }
 
 // Uses the mode rather than a boolean, so we can specify JUST binary (ClasspathLocation.BINARY)
-public static Classpath getClasspath(String classpathName, String encoding, AccessRuleSet accessRuleSet,int mode) {
-	return getClasspath(classpathName, encoding, mode, accessRuleSet, null, null);
+public static Classpath getClasspath(String classpathName, String encoding, AccessRuleSet accessRuleSet, int mode, String release) {
+//	return getClasspath(classpathName, encoding, mode, accessRuleSet, null, null);
+	return getClasspath(classpathName, encoding, mode, accessRuleSet, null, null, release);
 }
 // AspectJ - make this accessible from external consumers wanting to build classpath entry objects
-public static Classpath getClasspath(String classpathName, String encoding, AccessRuleSet accessRuleSet,Map options, int mode) {
-	return getClasspath(classpathName, encoding, mode, accessRuleSet, null, options);
+public static Classpath getClasspath(String classpathName, String encoding, AccessRuleSet accessRuleSet,Map options, int mode, String release) {
+	return getClasspath(classpathName, encoding, mode, accessRuleSet, null, options, release);
 }
 // End AspectJ
 
@@ -275,13 +282,13 @@ public static Classpath getOlderSystemRelease(String jdkHome, String release, Ac
 // 		String destinationPath) {
 public static Classpath getClasspath(String classpathName, String encoding,
 		boolean isSourceOnly, AccessRuleSet accessRuleSet,
-		String destinationPath, Map<String, String> options) {
-	return getClasspath(classpathName,encoding,isSourceOnly ? ClasspathLocation.SOURCE :ClasspathLocation.SOURCE|ClasspathLocation.BINARY,accessRuleSet,destinationPath,options);
+		String destinationPath, Map<String, String> options, String release) {
+	return getClasspath(classpathName,encoding,isSourceOnly ? ClasspathLocation.SOURCE :ClasspathLocation.SOURCE|ClasspathLocation.BINARY,accessRuleSet,destinationPath,options,release);
 }
 
 public static Classpath getClasspath(String classpathName, String encoding,
 		int mode, AccessRuleSet accessRuleSet,
-		String destinationPath, Map<String,String> options) {
+		String destinationPath, Map<String,String> options, String release) {
 	// End AspectJ Extension
 	Classpath result = null;
 	File file = new File(convertPathSeparators(classpathName));
@@ -350,7 +357,10 @@ public static Classpath getClasspath(String classpathName, String encoding,
 						JRT_CLASSPATH_CACHE.put(file, result);
 					}
 				} else {
-					result = new ClasspathJar(file, true, accessRuleSet, null);
+					result = 
+							(release == null) ?
+									new ClasspathJar(file, true, accessRuleSet, null) :
+										new ClasspathMultiReleaseJar(file, true, accessRuleSet, destinationPath, release);
 				}
 			}
 		} else if (format == Util.JMOD_FILE) {
@@ -422,7 +432,7 @@ private void initializeKnownFileNames(String[] initialFileNames) {
 public void scanForModules(Parser parser) {
 	for (int i = 0, max = this.classpaths.length; i < max; i++) {
 		File file = new File(this.classpaths[i].getPath());
-		IModule iModule = ModuleFinder.scanForModule(this.classpaths[i], file, parser, false);
+		IModule iModule = ModuleFinder.scanForModule(this.classpaths[i], file, parser, false, null);
 		if (iModule != null)
 			this.moduleLocations.put(String.valueOf(iModule.name()), this.classpaths[i]);
 	}

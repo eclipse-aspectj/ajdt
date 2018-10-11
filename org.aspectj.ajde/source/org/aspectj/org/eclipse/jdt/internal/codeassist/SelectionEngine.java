@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2018 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -54,6 +57,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.CompilationResult;
 import org.aspectj.org.eclipse.jdt.internal.compiler.DefaultErrorHandlingPolicies;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Argument;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ConstructorDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
@@ -1472,6 +1476,13 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 					}
 				}
 				return true;
+			}
+			@Override
+			public boolean visit(
+		    		Argument argument, BlockScope scope) {
+				if (argument.type instanceof SingleTypeReference && ((SingleTypeReference)argument.type).token == assistIdentifier)
+					throw new SelectionNodeFound(argument.binding.type);
+				return true; // do nothing by default, keep traversing
 			}
 			@Override
 			public boolean visit(TypeDeclaration typeDeclaration, CompilationUnitScope scope) {

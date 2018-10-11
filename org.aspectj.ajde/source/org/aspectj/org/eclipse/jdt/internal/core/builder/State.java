@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2018 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -15,7 +18,6 @@ package org.aspectj.org.eclipse.jdt.internal.core.builder;
 
 import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.*;
-import org.aspectj.org.eclipse.jdt.core.JavaCore;
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.AccessRuleSet;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IUpdatableModule;
@@ -54,7 +56,7 @@ private long previousStructuralBuildTime;
 private StringSet structurallyChangedTypes;
 public static int MaxStructurallyChangedTypes = 100; // keep track of ? structurally changed types, otherwise consider all to be changed
 
-public static final byte VERSION = 0x0020;
+public static final byte VERSION = 0x0021;
 
 static final byte SOURCE_FOLDER = 1;
 static final byte BINARY_FOLDER = 2;
@@ -282,13 +284,16 @@ static State read(IProject project, DataInputStream in) throws IOException {
 				break;
 			case EXTERNAL_JAR :
 				String jarPath = in.readUTF();
-				boolean jrt = Util.isJrt(jarPath);
-				newState.binaryLocations[i] = ClasspathLocation.forLibrary(jarPath, in.readLong(),
-							readRestriction(in), new Path(in.readUTF()), jrt ? false : in.readBoolean(), jrt ? in.readUTF() : ""); //$NON-NLS-1$
+				if (Util.isJrt(jarPath)) {
+					newState.binaryLocations[i] = ClasspathLocation.forJrtSystem(jarPath, readRestriction(in), new Path(in.readUTF()), in.readUTF());
+				} else {
+					newState.binaryLocations[i] = ClasspathLocation.forLibrary(jarPath, in.readLong(),
+							readRestriction(in), new Path(in.readUTF()), in.readBoolean(), in.readUTF());
+				}
 				break;
 			case INTERNAL_JAR :
 					newState.binaryLocations[i] = ClasspathLocation.forLibrary(root.getFile(new Path(in.readUTF())),
-							readRestriction(in), new Path(in.readUTF()), in.readBoolean());
+							readRestriction(in), new Path(in.readUTF()), in.readBoolean(), in.readUTF());
 					break;
 		}
 		ClasspathLocation loc = newState.binaryLocations[i];
@@ -356,13 +361,16 @@ static State read(IProject project, DataInputStream in) throws IOException {
 				break;
 			case EXTERNAL_JAR :
 				String jarPath = in.readUTF();
-				boolean jrt = Util.isJrt(jarPath);
-				newState.testBinaryLocations[i] = ClasspathLocation.forLibrary(jarPath, in.readLong(),
-							readRestriction(in), new Path(in.readUTF()), jrt ? false : in.readBoolean(), jrt ? in.readUTF() : ""); //$NON-NLS-1$
+				if (Util.isJrt(jarPath)) {
+					newState.testBinaryLocations[i] = ClasspathLocation.forJrtSystem(jarPath, readRestriction(in), new Path(in.readUTF()), in.readUTF());
+				} else {
+						newState.testBinaryLocations[i] = ClasspathLocation.forLibrary(jarPath, in.readLong(),
+								readRestriction(in), new Path(in.readUTF()), in.readBoolean(), in.readUTF());
+				}
 				break;
 			case INTERNAL_JAR :
 					newState.testBinaryLocations[i] = ClasspathLocation.forLibrary(root.getFile(new Path(in.readUTF())),
-							readRestriction(in), new Path(in.readUTF()), in.readBoolean());
+							readRestriction(in), new Path(in.readUTF()), in.readBoolean(), in.readUTF());
 					break;
 		}
 	}
@@ -448,12 +456,12 @@ private static AccessRuleSet readRestriction(DataInputStream in) throws IOExcept
 	int length = in.readInt();
 	if (length == 0) return null; // no restriction specified
 	AccessRule[] accessRules = new AccessRule[length];
+	JavaModelManager manager = JavaModelManager.getJavaModelManager();
 	for (int i = 0; i < length; i++) {
 		char[] pattern = readName(in);
 		int problemId = in.readInt();
-		accessRules[i] = (AccessRule) JavaCore.newAccessRule(new Path(new String(pattern)), problemId);
+		accessRules[i] = manager.getAccessRuleForProblemId(pattern,problemId);
 	}
-	JavaModelManager manager = JavaModelManager.getJavaModelManager();
 	return new AccessRuleSet(accessRules, in.readByte(), manager.intern(in.readUTF()));
 }
 
@@ -558,14 +566,15 @@ void write(DataOutputStream out) throws IOException {
 			writeRestriction(jar.accessRuleSet, out);
 			out.writeUTF(jar.externalAnnotationPath != null ? jar.externalAnnotationPath : ""); //$NON-NLS-1$
 			out.writeBoolean(jar.isOnModulePath);
+			out.writeUTF(jar.compliance == null ? "" : jar.compliance); //$NON-NLS-1$
+			
 		} else {
 			ClasspathJrt jrt = (ClasspathJrt) c;
 			out.writeByte(EXTERNAL_JAR);
 			out.writeUTF(jrt.zipFilename);
-			out.writeLong(-1);
 			writeRestriction(jrt.accessRuleSet, out);
 			out.writeUTF(jrt.externalAnnotationPath != null ? jrt.externalAnnotationPath : ""); //$NON-NLS-1$
-			out.writeUTF(jrt.compliance != null ? jrt.compliance : ""); //$NON-NLS-1$
+			out.writeUTF(jrt.release != null ? jrt.release : ""); //$NON-NLS-1$
 		}
 		char[] patchName = c.patchModuleName == null ? CharOperation.NO_CHAR : c.patchModuleName.toCharArray();
 		writeName(patchName, out);
@@ -670,14 +679,14 @@ void write(DataOutputStream out) throws IOException {
 				writeRestriction(jar.accessRuleSet, out);
 				out.writeUTF(jar.externalAnnotationPath != null ? jar.externalAnnotationPath : ""); //$NON-NLS-1$
 				out.writeBoolean(jar.isOnModulePath);
+				out.writeUTF(jar.compliance != null ? jar.compliance : ""); //$NON-NLS-1$
 			} else {
 				ClasspathJrt jrt = (ClasspathJrt) c;
 				out.writeByte(EXTERNAL_JAR);
 				out.writeUTF(jrt.zipFilename);
-				out.writeLong(-1);
 				writeRestriction(jrt.accessRuleSet, out);
 				out.writeUTF(jrt.externalAnnotationPath != null ? jrt.externalAnnotationPath : ""); //$NON-NLS-1$
-				out.writeUTF(jrt.compliance != null ? jrt.compliance : ""); //$NON-NLS-1$
+				out.writeUTF(jrt.release != null ? jrt.release : ""); //$NON-NLS-1$
 			}
 		}
 

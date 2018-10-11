@@ -1,10 +1,13 @@
 // ASPECTJ
 /*******************************************************************************
  * Copyright (c) 2000, 2018 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -431,10 +434,10 @@ private ModuleBinding getModuleFromAnswer(NameEnvironmentAnswer answer) {
 		} else { 
 			moduleBinding = this.knownModules.get(moduleName);
 			if (moduleBinding == null && this.nameEnvironment instanceof IModuleAwareNameEnvironment) {
-				assert answer.isBinaryType();
 				IModule iModule = ((IModuleAwareNameEnvironment) this.nameEnvironment).getModule(moduleName);
 				try {
-					moduleBinding = BinaryModuleBinding.create(iModule, this);
+					this.typeRequestor.accept(iModule, this);
+					moduleBinding = this.knownModules.get(moduleName);
 				} catch (NullPointerException e) {
 					System.err.println("Bug 529367: moduleName: " + new String(moduleName) + "iModule null" +  //$NON-NLS-1$ //$NON-NLS-2$
 							(iModule == null ? "true" : "false")); //$NON-NLS-1$ //$NON-NLS-2$]
@@ -693,6 +696,7 @@ public TypeBinding computeBoxingType(TypeBinding type) {
 		case Binding.WILDCARD_TYPE :
 		case Binding.INTERSECTION_TYPE :
 		case Binding.TYPE_PARAMETER :
+		case Binding.INTERSECTION_TYPE18:
 			switch (type.erasure().id) {
 				case TypeIds.T_JavaLangBoolean :
 					return TypeBinding.BOOLEAN;
@@ -714,8 +718,6 @@ public TypeBinding computeBoxingType(TypeBinding type) {
 			break;
 		case Binding.POLY_TYPE:
 			return ((PolyTypeBinding) type).computeBoxingType();
-		case Binding.INTERSECTION_TYPE18:
-			return computeBoxingType(type.getIntersectingTypes()[0]);
 	}
 	return type;
 }
@@ -785,9 +787,19 @@ private PackageBinding computePackageFrom(char[][] constantPoolName, boolean isM
 		}
 	}
 	if (packageBinding instanceof SplitPackageBinding) {
-		PackageBinding incarnation = ((SplitPackageBinding) packageBinding).getIncarnation(this.module);
-		if (incarnation != null)
-			packageBinding = incarnation;
+		PackageBinding candidate = null;
+		// select from incarnations the unique package containing CUs, if any:
+		for (PackageBinding incarnation : ((SplitPackageBinding) packageBinding).incarnations) {
+			if (incarnation.hasCompilationUnit(false)) {
+				if (candidate != null) {
+					candidate = null;
+					break; // likely to report "accessible from more than one module" downstream 
+				}
+				candidate = incarnation;
+			}
+		}
+		if (candidate != null)
+			return candidate;
 	}
 	return packageBinding;
 }
@@ -799,12 +811,12 @@ private PackageBinding computePackageFrom(char[][] constantPoolName, boolean isM
 public ReferenceBinding convertToParameterizedType(ReferenceBinding originalType) {
 	if (originalType != null) {
 		boolean isGeneric = originalType.isGenericType();
-		if (!isGeneric && originalType.isStatic())
+		if (!isGeneric && !originalType.hasEnclosingInstanceContext())
 			return originalType;
 		ReferenceBinding originalEnclosingType = originalType.enclosingType();
 		ReferenceBinding convertedEnclosingType = originalEnclosingType;
 		boolean needToConvert = isGeneric;
-		if (originalEnclosingType != null && hasInstanceContext(originalType)) {
+		if (originalEnclosingType != null && originalType.hasEnclosingInstanceContext()) {
 			convertedEnclosingType = convertToParameterizedType(originalEnclosingType);
 			needToConvert |= TypeBinding.notEquals(originalEnclosingType, convertedEnclosingType);
 		}
@@ -814,15 +826,6 @@ public ReferenceBinding convertToParameterizedType(ReferenceBinding originalType
 	}
 	return originalType;
 }
-private boolean hasInstanceContext(ReferenceBinding type) {
-	if (type.isMemberType() && !type.isStatic())
-		return true;
-	MethodBinding enclosingMethod = type.enclosingMethod();
-	if (enclosingMethod != null)
-		return !enclosingMethod.isStatic();
-	return false;
-}
-
 /**
  * Returns the given binding's raw type binding.
  * @param type the TypeBinding to raw convert
@@ -871,7 +874,7 @@ public TypeBinding convertToRawType(TypeBinding type, boolean forceRawEnclosingT
 		convertedType = needToConvert ? createRawType((ReferenceBinding)originalType.erasure(), null) : originalType;
 	} else {
 		ReferenceBinding convertedEnclosing;
-		if(((ReferenceBinding)originalType).isStatic()) {
+		if (!((ReferenceBinding)originalType).hasEnclosingInstanceContext()) {
 			convertedEnclosing = (ReferenceBinding) originalEnclosing.original();
 		} else {
 			if (originalEnclosing.kind() == Binding.RAW_TYPE) {			
@@ -1226,7 +1229,7 @@ public ParameterizedGenericMethodBinding createParameterizedGenericMethod(Method
 	cachedInfo[index] = parameterizedGenericMethod;
 	return parameterizedGenericMethod;
 }
-public PolymorphicMethodBinding createPolymorphicMethod(MethodBinding originalPolymorphicMethod, TypeBinding[] parameters) {
+public PolymorphicMethodBinding createPolymorphicMethod(MethodBinding originalPolymorphicMethod, TypeBinding[] parameters, Scope scope) {
 	// cached info is array of already created polymorphic methods for this type
 	String key = new String(originalPolymorphicMethod.selector);
 	PolymorphicMethodBinding[] cachedInfo = (PolymorphicMethodBinding[]) this.uniquePolymorphicMethodBindings.get(key);
@@ -1237,7 +1240,17 @@ public PolymorphicMethodBinding createPolymorphicMethod(MethodBinding originalPo
 		if (parameterTypeBinding.id == TypeIds.T_null) {
 			parametersTypeBinding[i] = getType(JAVA_LANG_VOID, javaBaseModule());
 		} else {
-			parametersTypeBinding[i] = parameterTypeBinding.erasure();
+			if (parameterTypeBinding.isPolyType()) {
+				PolyTypeBinding ptb = (PolyTypeBinding) parameterTypeBinding;
+				if (scope instanceof BlockScope && ptb.expression.resolvedType == null) {
+					ptb.expression.setExpectedType(scope.getJavaLangObject());
+					parametersTypeBinding[i] = ptb.expression.resolveType((BlockScope) scope);
+				} else {
+					parametersTypeBinding[i] = ptb.expression.resolvedType;
+				}
+			} else {
+				parametersTypeBinding[i] = parameterTypeBinding.erasure();
+			}
 		}
 	}
 	boolean needToGrow = false;

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2018 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -186,7 +189,7 @@ PackageBinding getPackage0Any(char[] name) {
 * package with the same name.
 */
 
-public ReferenceBinding getType(char[] name, ModuleBinding mod) {
+ReferenceBinding getType(char[] name, ModuleBinding mod) {
 	ReferenceBinding referenceBinding = getType0(name);
 	if (referenceBinding == null) {
 		if ((referenceBinding = this.environment.askForType(this, name, mod)) == null) {
@@ -409,9 +412,13 @@ public boolean subsumes(PackageBinding binding) {
  */
 public boolean isExported() {
 	if (this.isExported == null) {
-		this.enclosingModule.getExports(); // ensure resolved and completed
-		if (this.isExported == null)
-			this.isExported = Boolean.FALSE;
+		if (this.enclosingModule.isAuto) {
+			this.isExported = Boolean.TRUE;
+		} else {
+			this.enclosingModule.getExports(); // ensure resolved and completed
+			if (this.isExported == null)
+				this.isExported = Boolean.FALSE;
+		}
 	}
 	return this.isExported == Boolean.TRUE;
 }

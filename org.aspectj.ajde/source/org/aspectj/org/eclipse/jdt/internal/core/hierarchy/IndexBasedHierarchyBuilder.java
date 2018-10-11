@@ -1,9 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -317,6 +320,7 @@ private void buildFromPotentialSubtypes(String[] allPotentialSubTypes, HashSet l
 		IJavaProject currentProject = null;
 		for (int i = 0; i < length; i++) {
 			loopMonitor.setWorkRemaining(length - i + 1);
+			IJavaProject nextProject = null;
 			try {
 				String resourcePath = allPotentialSubTypes[i];
 
@@ -340,15 +344,19 @@ private void buildFromPotentialSubtypes(String[] allPotentialSubTypes, HashSet l
 					currentProject = project;
 					potentialSubtypes = new ArrayList(5);
 				} else if (!currentProject.equals(project)) {
+					nextProject = project;
 					// build current project
 					buildForProject((JavaProject)currentProject, potentialSubtypes, workingCopies, localTypes, loopMonitor.split(1));
-					currentProject = project;
 					potentialSubtypes = new ArrayList(5);
 				}
 
 				potentialSubtypes.add(handle);
 			} catch (JavaModelException e) {
 				continue;
+			} finally {
+				if (nextProject != null) {
+					currentProject = nextProject;
+				}
 			}
 		}
 

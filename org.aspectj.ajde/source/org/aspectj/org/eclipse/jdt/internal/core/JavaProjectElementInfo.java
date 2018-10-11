@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2016 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -20,6 +23,7 @@ import org.eclipse.core.runtime.IPath;
 import org.aspectj.org.eclipse.jdt.core.IClasspathEntry;
 import org.aspectj.org.eclipse.jdt.core.ICompilationUnit;
 import org.aspectj.org.eclipse.jdt.core.IJavaElement;
+import org.aspectj.org.eclipse.jdt.core.IJavaProject;
 import org.aspectj.org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.aspectj.org.eclipse.jdt.core.JavaCore;
 import org.aspectj.org.eclipse.jdt.core.JavaModelException;
@@ -202,6 +206,15 @@ class JavaProjectElementInfo extends OpenableElementInfo {
 
 	ProjectCache getProjectCache(JavaProject project, boolean excludeTestCode) {
 		ProjectCache cache = excludeTestCode ? this.mainProjectCache : this.projectCache;
+		if (cache != null) {
+			for (IPackageFragmentRoot root : cache.allPkgFragmentRootsCache) {
+				IJavaProject rootProject = root.getJavaProject();
+				if (rootProject != this && !rootProject.exists()) {
+					cache = null; // force rebuilding
+					break;
+				}
+			}
+		}
 		if (cache == null) {
 			IPackageFragmentRoot[] roots;
 			Map<?, ?> reverseMap = new HashMap<>(3);

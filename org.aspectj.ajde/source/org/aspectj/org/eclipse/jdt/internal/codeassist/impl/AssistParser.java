@@ -1,9 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -116,7 +119,7 @@ public abstract class AssistParser extends Parser {
 	protected boolean isFirst = false;
 
 	public AssistParser snapShot;
-	private static final int[] RECOVERY_TOKENS = new int [] { TokenNameSEMICOLON, TokenNameRPAREN,};
+	protected static final int[] RECOVERY_TOKENS = { TokenNameSEMICOLON, TokenNameRPAREN, TokenNameRBRACE, TokenNameRBRACKET};
 
 
 public AssistParser(ProblemReporter problemReporter) {
@@ -231,9 +234,6 @@ public RecoveredElement buildInitialRecoveryState(){
 	ASTNode node = null, lastNode = null;
 	for (int i = 0; i <= this.astPtr; i++, lastNode = node) {
 		node = this.astStack[i];
-		if(node instanceof ForeachStatement && ((ForeachStatement)node).action == null) {
-			node = ((ForeachStatement)node).elementVariable;
-		}
 		/* check for intermediate block creation, so recovery can properly close them afterwards */
 		int nodeStart = node.sourceStart;
 		for (int j = blockIndex; j <= this.realBlockPtr; j++){
@@ -334,6 +334,9 @@ public RecoveredElement buildInitialRecoveryState(){
 					element.add(stmt, 0);
 					this.lastCheckPoint = stmt.sourceEnd + 1;
 					this.isOrphanCompletionNode = false;
+				} else if ((stmt instanceof ForeachStatement) && ((ForeachStatement) stmt).action == null) {
+					element = element.add(stmt, 0);
+					this.lastCheckPoint = stmt.sourceEnd + 1;
 				}
 			}
 			continue;
@@ -2230,9 +2233,12 @@ protected int fallBackToSpringForward(Statement unused) {
 			
 	// If triggered fake EOF at completion site, see if the real next token would have passed muster.
 	if (this.currentToken == TokenNameEOF) {
-		if (this.scanner.eofPosition < this.scanner.source.length) {
+		int extendedEnd = this.scanner.source.length;
+		if (this.referenceContext instanceof AbstractMethodDeclaration)
+			extendedEnd = ((AbstractMethodDeclaration) this.referenceContext).bodyEnd; // no use parsing beyond the method's body end
+		if (this.scanner.eofPosition < extendedEnd) {
 			shouldStackAssistNode();
-			this.scanner.eofPosition = this.scanner.source.length;
+			this.scanner.eofPosition = extendedEnd;
 			nextToken = getNextToken();
 			if (automatonWillShift(nextToken, automatonState)) {
 				this.currentToken = nextToken;
