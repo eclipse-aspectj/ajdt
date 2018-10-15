@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: AspectJ
 Bundle-SymbolicName: org.aspectj.ajde; singleton:=true
-Bundle-Version: 1.9.0.qualifier
+Bundle-Version: 1.9.2.qualifier
 Bundle-Vendor: Eclipse AspectJ Development Tools
 Export-Package: org.aspectj.ajde.core,
  org.aspectj.ajde.core.internal,
@@ -65,7 +65,7 @@ Require-Bundle: org.apache.ant,
  org.eclipse.core.resources,
  org.eclipse.core.runtime,
  org.eclipse.text,
- org.aspectj.weaver;bundle-version="1.9.0";visibility:=reexport
+ org.aspectj.weaver;bundle-version="1.9.2";visibility:=reexport
 Bundle-ActivationPolicy: lazy
 Eclipse-BundleShape: jar
 Bundle-ClassPath: .
