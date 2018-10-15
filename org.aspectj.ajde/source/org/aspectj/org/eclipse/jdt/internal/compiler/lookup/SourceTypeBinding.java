@@ -2469,13 +2469,13 @@ public TypeVariableBinding [] setTypeVariables(TypeVariableBinding [] typeVariab
 	return this.typeVariables = typeVariables;
 }
 
-public final int sourceEnd() {
+public int sourceEnd() { // AspectJ - made non final
 	if (!isPrototype())
 		return this.prototype.sourceEnd();
 
 	return this.scope.referenceContext.sourceEnd;
 }
-public final int sourceStart() {
+public int sourceStart() { // AspectJ - made non final
 	if (!isPrototype())
 		return this.prototype.sourceStart();
 

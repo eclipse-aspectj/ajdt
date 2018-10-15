@@ -60,7 +60,7 @@ public class AsmElementFormatter {
   private final static String ASPECTJ_ANNOTATION_PACKAGE = "org.aspectj.lang.annotation";
   private final static char PACKAGE_INITIAL_CHAR = ASPECTJ_ANNOTATION_PACKAGE.charAt(0);
 
-  public void genLabelAndKind(MethodDeclaration methodDeclaration, IProgramElement node) {
+      public void genLabelAndKind(MethodDeclaration methodDeclaration, IProgramElement node) {
 
 		if (methodDeclaration instanceof AdviceDeclaration) {
 			AdviceDeclaration ad = (AdviceDeclaration) methodDeclaration;

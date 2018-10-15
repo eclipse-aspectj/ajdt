@@ -2307,5 +2307,15 @@ public MethodBinding[] methods() {
 	   else return methodsBase();
 }
 
+@Override
+public int sourceStart() { 
+	return 0;
+}
+
+@Override
+public int sourceEnd() { 
+	return 0;
+}
+
 //End AspectJ Extension
 }
