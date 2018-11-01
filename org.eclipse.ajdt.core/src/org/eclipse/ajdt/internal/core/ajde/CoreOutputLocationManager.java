@@ -297,7 +297,11 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	    // remember that this file has been asked for
 	    // presumably it is being recompiled
 	    if (Util.isJavaLikeFileName(compilationUnit.getName()) && !isComputingXmlFile()) {     
-	        compiledSourceFiles.add(compilationUnit);
+	    	if (compiledSourceFiles == null) {
+	    		System.err.println("Unexpectedly buildStarted() has not been called yet, unable to record: "+compilationUnit.getName());
+	    	} else {
+	    		compiledSourceFiles.add(compilationUnit);
+	    	}
 	    }
 	    
 		return getOutputLocationForResource(compilationUnit);
@@ -359,7 +363,7 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 
 		for (String src : srcFolderToOutput.keySet()) {
             if (pathStr.startsWith(src)) {
-                File out = (File) srcFolderToOutput.get(src);
+                File out = srcFolderToOutput.get(src);
                 return out;
             }
 	    }
