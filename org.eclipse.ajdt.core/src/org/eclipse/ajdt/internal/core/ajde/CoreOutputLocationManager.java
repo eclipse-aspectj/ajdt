@@ -298,7 +298,8 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	    // presumably it is being recompiled
 	    if (Util.isJavaLikeFileName(compilationUnit.getName()) && !isComputingXmlFile()) {     
 	    	if (compiledSourceFiles == null) {
-	    		System.err.println("Unexpectedly buildStarted() has not been called yet, unable to record: "+compilationUnit.getName());
+	    		// pr540403
+	    		AJLog.log(AJLog.BUILDER,"Unexpectedly buildStarted() has not been called yet, unable to record: "+compilationUnit.getName());
 	    	} else {
 	    		compiledSourceFiles.add(compilationUnit);
 	    	}
