@@ -2,10 +2,10 @@ Manifest-Version: 1.0
 Automatic-Module-Name: org.aspectj.weaver
 Name: org/aspectj/weaver/
 Specification-Title: AspectJ Weaver Classes
-Specification-Version: 1.9.2.RC3
+Specification-Version: DEVELOPMENT
 Specification-Vendor: aspectj.org
 Implementation-Title: org.aspectj.weaver
-Implementation-Version: 1.9.2.RC3
+Implementation-Version: DEVELOPMENT
 Implementation-Vendor: aspectj.org
 Premain-Class: org.aspectj.weaver.loadtime.Agent
 Agent-Class: org.aspectj.weaver.loadtime.Agent

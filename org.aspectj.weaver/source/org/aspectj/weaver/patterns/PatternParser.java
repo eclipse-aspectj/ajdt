@@ -97,6 +97,10 @@ public class PatternParser {
 		eat(")");
 		return new PerCflow(entry, isBelow);
 	}
+	
+	public boolean moreToParse() {
+		return tokenSource.hasMoreTokens();
+	}
 
 	private PerClause parsePerObject(boolean isThis) {
 		parseIdentifier();
@@ -330,6 +334,16 @@ public class PatternParser {
 		String message = parsePossibleStringSequence(true);
 		return new DeclareErrorOrWarning(isError, pointcut, message);
 	}
+	
+	public Pointcut parsePointcut(boolean shouldConsumeAllInput) {
+		Pointcut p = parsePointcut();
+		if (shouldConsumeAllInput && tokenSource.hasMoreTokens()) {
+			throw new ParserException(
+					"Found unexpected data after parsing pointcut",
+					tokenSource.next());
+		}
+		return p;
+	}
 
 	public Pointcut parsePointcut() {
 		Pointcut p = parseAtomicPointcut();
@@ -343,7 +357,7 @@ public class PatternParser {
 
 		return p;
 	}
-
+	
 	private Pointcut parseNotOrPointcut() {
 		Pointcut p = parseAtomicPointcut();
 		if (maybeEat("&&")) {
@@ -1066,6 +1080,8 @@ public class PatternParser {
 				typeIsPattern = new TypeCategoryTypePattern(TypeCategoryTypePattern.ANNOTATION);
 			} else if (category.equals("FinalType")) {
 				typeIsPattern = new TypeCategoryTypePattern(TypeCategoryTypePattern.FINAL);
+			} else if (category.equals("AbstractType")) {
+				typeIsPattern = new TypeCategoryTypePattern(TypeCategoryTypePattern.ABSTRACT);
 			}
 		}
 		if (typeIsPattern == null) {

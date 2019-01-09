@@ -933,6 +933,7 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 	}
 
 	protected void processAnnotations() {
+		try {
 		int newUnitSize = 0;
 		int newClassFilesSize = 0;
 		int bottom = this.annotationProcessorStartIndex;
@@ -1012,6 +1013,9 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 		}
 		// Units added in final round don't get annotation processed
 		this.annotationProcessorStartIndex = this.totalUnits;
+		} finally {
+			this.annotationProcessorManager.closeClassLoader();
+		}
 	}
 
 	public void reset() {

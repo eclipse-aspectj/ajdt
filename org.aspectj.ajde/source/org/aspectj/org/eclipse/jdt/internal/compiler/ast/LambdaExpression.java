@@ -288,7 +288,6 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 		// was
 		// this.binding = new MethodBinding(ClassFileConstants.AccPrivate | ClassFileConstants.AccSynthetic | ExtraCompilerModifiers.AccUnresolved,
 		// AspectJ extension - end
-		
 							CharOperation.concat(TypeConstants.ANONYMOUS_METHOD, Integer.toString(this.ordinal).toCharArray()), // will be fixed up later.
 							haveDescriptor ? this.descriptor.returnType : TypeBinding.VOID, 
 							Binding.NO_PARAMETERS, // for now. 

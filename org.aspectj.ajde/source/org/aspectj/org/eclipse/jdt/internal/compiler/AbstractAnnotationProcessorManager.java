@@ -96,4 +96,6 @@ public abstract class AbstractAnnotationProcessorManager {
 	 * @param processors the given processors
 	 */
 	public abstract void setProcessors(Object[] processors);
+
+	protected abstract void closeClassLoader();
 }
