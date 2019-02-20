@@ -1,19 +1,16 @@
 <?xml version="1.0" ?>
 <!-- writen for Ant 1.5.1 -->
-<project name="org.aspectj.ajde" default="packaged-plugin">
+<project name="org.aspectj.ajde" default="plugin jars">
 
-	<description>
-Creates a packaged plug-in jar for AJDE
-</description>
+	<description>Repackages a built AspectJ into AJDT</description>
 
 	<!-- VERSION-STRING -->
 	<!-- these property values will be overridden when called from the master build script -->
 	<property name="ajde.version" value="9.9.9" />
-  
 
 	<property name="build.dir" value="build" />
 	<property name="ajde.build.dir" value="build/ajdetemp" />
-  
+
 	<property file="aspectjlib.properties" />
 
 	<target name="init">
@@ -38,11 +35,11 @@ Creates a packaged plug-in jar for AJDE
 				<depth max="0" />
 			</fileset>
 		</copy>
-		 <copy file="META-INF/MANIFEST.MF" tofile="${build.dir}/META-INF/MANIFEST.MF">
-		 	<filterset begintoken="9" endtoken="9">
-		 		<filter token="2.2.2" value="${ajde.version}"/>
-		 	</filterset>
-		 </copy>
+		<copy file="META-INF/MANIFEST.MF" tofile="${build.dir}/META-INF/MANIFEST.MF">
+			<filterset begintoken="9" endtoken="9">
+				<filter token="2.2.2" value="${ajde.version}"/>
+			</filterset>
+		</copy>
 		<copy todir="${build.dir}/doc">
 			<fileset dir="doc" />
 		</copy>
@@ -62,15 +59,15 @@ Creates a packaged plug-in jar for AJDE
 			</fileset>
 		</copy>
 	</target>
-	
-	
+
+
 	<target name="ajdejar" description="Copy the AspectJ compiler components into the org.aspectj.ajde plugin">
 		<property name="src1" value="../org.aspectj.ajde/source"/>
 		<property name="bin1" value="../org.aspectj.ajde/classes"/>
-		
+
 		<!-- Classes -->
 		<delete dir="${bin1}"/>
-		<unzip dest="${bin1}" src="${aspectj.lib.dir}/aspectjtools.jar"/>	
+		<unzip dest="${bin1}" src="${aspectj.dir}/aspectjtools/target/aspectjtools-${aspectj.version}.jar"/>
 		<delete includeemptydirs="true">
 			<fileset dir="${bin1}">
 				<exclude name="org/aspectj/**/*.*" />
@@ -126,11 +123,14 @@ Creates a packaged plug-in jar for AJDE
 				<include name="org/aspectj/tools/ajbrowser/ui/swing/**" />
 			</fileset>
 		</delete>
-	
+
 		<!-- Sources -->
 		<delete dir="${src1}" />
+		<!--
 		<unzip dest="${src1}" src="${aspectj.lib.dir}/../../ide/eclipse/org.aspectj.ajde.source/src/jdtcore-for-aspectj-src.zip"/>
 		<unzip dest="${src1}" src="${aspectj.lib.dir}/../../ide/eclipse/org.aspectj.ajde.source/src/aspectjsrc.zip"/>
+-->
+		<unzip dest="${src1}" src="${aspectj.dir}/aspectjtools/target/aspectjtools-${aspectj.version}-sources.jar"/>
 		<delete includeemptydirs="true">
 			<fileset dir="${src1}">
 				<exclude name="org/aspectj/**/*.*" />
@@ -173,16 +173,16 @@ Creates a packaged plug-in jar for AJDE
 			<fileset dir="${src1}">
 				<include name="org/aspectj/lib/**" />
 			</fileset>
-		</delete>		
+		</delete>
 	</target>
-	
+
 	<target name="weaverjar" description="Copy the AspectJ weaver components into the org.aspectj.weaver plugin">
 		<property name="src2" value="../org.aspectj.weaver/source"/>
 		<property name="bin2" value="../org.aspectj.weaver/classes"/>
-		
+
 		<!-- Classes -->
 		<delete dir="${bin2}"/>
-		<unzip dest="${bin2}" src="${aspectj.lib.dir}/aspectjweaver.jar"/>	
+		<unzip dest="${bin2}" src="${aspectj.dir}/aspectjweaver/target/aspectjweaver-${aspectj.version}.jar"/>
 		<delete includeemptydirs="true">
 			<fileset dir="${bin2}">
 				<exclude name="META-INF/*.*" />
@@ -194,11 +194,14 @@ Creates a packaged plug-in jar for AJDE
 				<exclude name="aj/org/objectweb/**/*.*" />
 			</fileset>
 		</delete>
-	
+
 		<!-- Sources -->
 		<delete dir="${src2}" />
+		<unzip dest="${src2}" src="${aspectj.dir}/aspectjweaver/target/aspectjweaver-${aspectj.version}-sources.jar"/>
+		<!--
 		<unzip dest="${src2}" src="${aspectj.lib.dir}/../../ide/eclipse/org.aspectj.ajde.source/src/jdtcore-for-aspectj-src.zip"/>
 		<unzip dest="${src2}" src="${aspectj.lib.dir}/../../ide/eclipse/org.aspectj.ajde.source/src/aspectjsrc.zip"/>
+		-->
 		<delete includeemptydirs="true">
 			<fileset dir="${src2}">
 				<exclude name="org/aspectj/**/*.*" />
@@ -215,21 +218,25 @@ Creates a packaged plug-in jar for AJDE
 		</delete>
 	</target>
 
-	
-	
+
+
 	<target name="runtimejar" description="Copy the AspectJ runtime components into the org.aspectj.runtime plugin">
 		<property name="src" value="../org.aspectj.runtime/source"/>
 		<property name="bin" value="../org.aspectj.runtime/classes"/>
-		
+
 		<!-- Classes -->
 		<delete dir="${bin}"/>
-		<unzip dest="${bin}" src="${aspectj.lib.dir}/aspectjrt.jar"/>	
-		<delete dir="${bin}/META-INF"/>	
-	
+		<unzip dest="${bin}" src="${aspectj.dir}/aspectjrt/target/aspectjrt-${aspectj.version}.jar"/>
+
+		<delete dir="${bin}/META-INF"/>
+
 		<!-- Sources -->
 		<delete dir="${src}" />
+		<unzip dest="${src}" src="${aspectj.dir}/aspectjrt/target/aspectjrt-${aspectj.version}-sources.jar"/>
+<!--
 		<unzip dest="${src}" src="${aspectj.lib.dir}/../../ide/eclipse/org.aspectj.ajde.source/src/jdtcore-for-aspectj-src.zip"/>
 		<unzip dest="${src}" src="${aspectj.lib.dir}/../../ide/eclipse/org.aspectj.ajde.source/src/aspectjsrc.zip"/>
+-->
 		<delete includeemptydirs="true">
 			<fileset dir="${src}">
 				<exclude name="org/aspectj/internal/lang/annotation/**/*.*" />
@@ -240,9 +247,9 @@ Creates a packaged plug-in jar for AJDE
 		</delete>
 	</target>
 
-	
-	
-	<!-- target name="plugin jars" depends="weaverjar" -->		
+
+
+	<!-- target name="plugin jars" depends="weaverjar" -->
 	<target name="plugin jars" depends="ajdejar,weaverjar,runtimejar" 
 		description="When a new version of AspectJ is released, drop the 
 		aspectjrt.jar and aspectjtools.jar from the AJ lib directory into 
@@ -262,7 +269,7 @@ Creates a packaged plug-in jar for AJDE
 
 	<target name="gather.logs">
 	</target>
-	
+
 	<target name="build.sources">
 	</target>
 
@@ -287,7 +294,7 @@ Creates a packaged plug-in jar for AJDE
 		<delete dir="${temp.folder}"/>
 	</target>
 
-	
+
 	<target name="publish.bin.parts" depends="init" if="p2.publish.parts" unless="compilation.problem.marker.exists">
 		<mkdir dir="${build.result.folder}/org.aspectj.ajde_${ajde.version}"/>
 		<copy todir="${build.result.folder}" failonerror="true" overwrite="true">

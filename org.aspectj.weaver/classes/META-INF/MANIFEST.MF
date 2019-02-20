@@ -1,12 +1,23 @@
 Manifest-Version: 1.0
+Archiver-Version: Plexus Archiver
+Created-By: Apache Maven
+Built-By: aclement
+Build-Jdk: 1.8.0_192
+AgentClass: org.aspectj.weaver.loadtime.Agent
 Automatic-Module-Name: org.aspectj.weaver
+CanRedefineClasses: true
+PremainClass: org.aspectj.weaver.loadtime.Agent
+
 Name: org/aspectj/weaver/
-Specification-Title: AspectJ Weaver Classes
-Specification-Version: DEVELOPMENT
-Specification-Vendor: aspectj.org
+Implementation-Vendor: https://www.eclipse.org/aspectj/
 Implementation-Title: org.aspectj.weaver
-Implementation-Version: DEVELOPMENT
-Implementation-Vendor: aspectj.org
-Premain-Class: org.aspectj.weaver.loadtime.Agent
-Agent-Class: org.aspectj.weaver.loadtime.Agent
-Can-Redefine-Classes: true
+Specification-Version: 1.9.3.BUILD-SNAPSHOT
+Bundle-Version: 1.9.3.BUILD-SNAPSHOT
+Bundle-Copyright: (C) Copyright 1999-2001 Xerox Corporation,
+ 												2002 Palo Alto Research Center, Incorporated (PARC),
+ 												2003-2019 Contributors. All Rights Reserved
+Implementation-Version: 1.9.3.BUILD-SNAPSHOT
+Specification-Title: AspectJ Weaver Classes
+Bundle-Name: AspectJ Weaver
+Specification-Vendor: https://www.eclipse.org/aspectj/
+

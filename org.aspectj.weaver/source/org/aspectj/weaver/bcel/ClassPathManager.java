@@ -97,8 +97,7 @@ public class ClassPathManager {
 		if (!f.isDirectory()) {
 			if (!f.isFile()) {
 				if (!lc.endsWith(".jar") || lc.endsWith(".zip")) {
-					// heuristic-only: ending with .jar or .zip means probably a
-					// zip file
+					// heuristic-only: ending with .jar or .zip means probably a zip file
 					MessageUtil.info(handler, WeaverMessages.format(WeaverMessages.ZIPFILE_ENTRY_MISSING, name));
 				} else {
 					MessageUtil.info(handler, WeaverMessages.format(WeaverMessages.DIRECTORY_ENTRY_MISSING, name));
@@ -107,7 +106,9 @@ public class ClassPathManager {
 			}
 			try {
 				if (lc.endsWith(LangUtil.JRT_FS)) { // Java9
-					entries.add(new JImageEntry());
+					if (LangUtil.is19VMOrGreater()) {
+						entries.add(new JImageEntry());
+					}
 				} else {
 					entries.add(new ZipFileEntry(f));
 				}
