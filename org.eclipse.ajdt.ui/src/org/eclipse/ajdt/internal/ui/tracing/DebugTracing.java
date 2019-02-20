@@ -86,7 +86,7 @@ public class DebugTracing {
 		eventData.append( version );
 		
 		eventData.append( "\n   AspectJ Compiler version: " ); //$NON-NLS-1$
-		eventData.append( Version.text );
+		eventData.append( Version.getText() );
 		eventData.append( "\n   usingVisualiser="+AspectJUIPlugin.usingVisualiser ); //$NON-NLS-1$
 		eventData.append( "\n   usingXref="+AspectJUIPlugin.usingXref ); //$NON-NLS-1$
 		eventData.append( "\n   usingCUprovider="+AspectJPlugin.USING_CU_PROVIDER ); //$NON-NLS-1$
