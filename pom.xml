@@ -121,9 +121,11 @@
 			<properties>
 				<platform.version>e410</platform.version>
 <!--
+Go herre - download 4.X look at version of weaving hook!
+https://download.eclipse.org/equinox/
 				<weaving.hook.version>1.2.0.v20160929-1449</weaving.hook.version>
 -->
-<weaving.hook.version>1.2.100.v20171221-2204</weaving.hook.version>
+<weaving.hook.version>1.2.200.v20180827-1235</weaving.hook.version>
 			</properties>
 			<repositories>
 				<repository>
