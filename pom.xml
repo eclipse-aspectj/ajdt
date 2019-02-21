@@ -117,6 +117,24 @@
 		</profile>
 
 		<profile>
+			<id>e410</id>
+			<properties>
+				<platform.version>e410</platform.version>
+<!--
+				<weaving.hook.version>1.2.0.v20160929-1449</weaving.hook.version>
+-->
+<weaving.hook.version>1.2.100.v20171221-2204</weaving.hook.version>
+			</properties>
+			<repositories>
+				<repository>
+					<id>photon-releases</id>
+					<layout>p2</layout>
+					<url>http://download.eclipse.org/releases/2018-12/</url>
+				</repository>
+			</repositories>
+		</profile>
+
+		<profile>
 			<id>os-macosx</id>
 			<activation>
 				<os>
