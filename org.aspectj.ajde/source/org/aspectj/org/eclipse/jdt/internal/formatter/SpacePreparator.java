@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014, 2018 Mateusz Matela and others.
+ * Copyright (c) 2014, 2019 Mateusz Matela and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -18,7 +18,12 @@ package org.aspectj.org.eclipse.jdt.internal.formatter;
 import static org.aspectj.org.eclipse.jdt.internal.compiler.parser.TerminalTokens.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Predicate;
 
 import org.aspectj.org.eclipse.jdt.core.dom.ASTNode;
 import org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor;
@@ -33,6 +38,7 @@ import org.aspectj.org.eclipse.jdt.core.dom.ArrayType;
 import org.aspectj.org.eclipse.jdt.core.dom.AssertStatement;
 import org.aspectj.org.eclipse.jdt.core.dom.Assignment;
 import org.aspectj.org.eclipse.jdt.core.dom.Block;
+import org.aspectj.org.eclipse.jdt.core.dom.BreakStatement;
 import org.aspectj.org.eclipse.jdt.core.dom.CastExpression;
 import org.aspectj.org.eclipse.jdt.core.dom.CatchClause;
 import org.aspectj.org.eclipse.jdt.core.dom.ClassInstanceCreation;
@@ -54,6 +60,7 @@ import org.aspectj.org.eclipse.jdt.core.dom.ForStatement;
 import org.aspectj.org.eclipse.jdt.core.dom.IfStatement;
 import org.aspectj.org.eclipse.jdt.core.dom.ImportDeclaration;
 import org.aspectj.org.eclipse.jdt.core.dom.InfixExpression;
+import org.aspectj.org.eclipse.jdt.core.dom.InfixExpression.Operator;
 import org.aspectj.org.eclipse.jdt.core.dom.InstanceofExpression;
 import org.aspectj.org.eclipse.jdt.core.dom.IntersectionType;
 import org.aspectj.org.eclipse.jdt.core.dom.LabeledStatement;
@@ -72,7 +79,6 @@ import org.aspectj.org.eclipse.jdt.core.dom.ParenthesizedExpression;
 import org.aspectj.org.eclipse.jdt.core.dom.PostfixExpression;
 import org.aspectj.org.eclipse.jdt.core.dom.PrefixExpression;
 import org.aspectj.org.eclipse.jdt.core.dom.ProvidesDirective;
-import org.aspectj.org.eclipse.jdt.core.dom.PrefixExpression.Operator;
 import org.aspectj.org.eclipse.jdt.core.dom.ReturnStatement;
 import org.aspectj.org.eclipse.jdt.core.dom.SingleMemberAnnotation;
 import org.aspectj.org.eclipse.jdt.core.dom.SingleVariableDeclaration;
@@ -81,6 +87,7 @@ import org.aspectj.org.eclipse.jdt.core.dom.SuperConstructorInvocation;
 import org.aspectj.org.eclipse.jdt.core.dom.SuperMethodInvocation;
 import org.aspectj.org.eclipse.jdt.core.dom.SuperMethodReference;
 import org.aspectj.org.eclipse.jdt.core.dom.SwitchCase;
+import org.aspectj.org.eclipse.jdt.core.dom.SwitchExpression;
 import org.aspectj.org.eclipse.jdt.core.dom.SwitchStatement;
 import org.aspectj.org.eclipse.jdt.core.dom.SynchronizedStatement;
 import org.aspectj.org.eclipse.jdt.core.dom.ThrowStatement;
@@ -99,6 +106,43 @@ import org.aspectj.org.eclipse.jdt.core.dom.WildcardType;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.ScannerHelper;
 
 public class SpacePreparator extends ASTVisitor {
+
+	private static final Map<Operator, Predicate<DefaultCodeFormatterOptions>> SPACE_BEFORE_OPERATOR;
+	private static final Map<Operator, Predicate<DefaultCodeFormatterOptions>> SPACE_AFTER_OPERATOR;
+
+	static {
+		Map<Operator, Predicate<DefaultCodeFormatterOptions>> spaceBeforeOperator = new HashMap<>();
+		Map<Operator, Predicate<DefaultCodeFormatterOptions>> spaceAfterOperator = new HashMap<>();
+		for (Operator op : Arrays.asList(Operator.TIMES, Operator.DIVIDE, Operator.REMAINDER)) {
+			spaceBeforeOperator.put(op, o -> o.insert_space_before_multiplicative_operator);
+			spaceAfterOperator.put(op, o -> o.insert_space_after_multiplicative_operator);
+		}
+		for (Operator op : Arrays.asList(Operator.PLUS, Operator.MINUS)) {
+			spaceBeforeOperator.put(op, o -> o.insert_space_before_additive_operator);
+			spaceAfterOperator.put(op, o -> o.insert_space_after_additive_operator);
+		}
+		for (Operator op : Arrays.asList(Operator.LEFT_SHIFT, Operator.RIGHT_SHIFT_SIGNED,
+				Operator.RIGHT_SHIFT_UNSIGNED)) {
+			spaceBeforeOperator.put(op, o -> o.insert_space_before_shift_operator);
+			spaceAfterOperator.put(op, o -> o.insert_space_after_shift_operator);
+		}
+		for (Operator op : Arrays.asList(Operator.LESS, Operator.GREATER, Operator.LESS_EQUALS,
+				Operator.GREATER_EQUALS, Operator.EQUALS, Operator.NOT_EQUALS)) {
+			spaceBeforeOperator.put(op, o -> o.insert_space_before_relational_operator);
+			spaceAfterOperator.put(op, o -> o.insert_space_after_relational_operator);
+		}
+		for (Operator op : Arrays.asList(Operator.AND, Operator.XOR, Operator.OR)) {
+			spaceBeforeOperator.put(op, o -> o.insert_space_before_bitwise_operator);
+			spaceAfterOperator.put(op, o -> o.insert_space_after_bitwise_operator);
+		}
+		for (Operator op : Arrays.asList(Operator.CONDITIONAL_AND, Operator.CONDITIONAL_OR)) {
+			spaceBeforeOperator.put(op, o -> o.insert_space_before_logical_operator);
+			spaceAfterOperator.put(op, o -> o.insert_space_after_logical_operator);
+		}
+		SPACE_BEFORE_OPERATOR = Collections.unmodifiableMap(spaceBeforeOperator);
+		SPACE_AFTER_OPERATOR = Collections.unmodifiableMap(spaceAfterOperator);
+	}
+
 	TokenManager tm;
 	private DefaultCodeFormatterOptions options;
 
@@ -339,12 +383,43 @@ public class SpacePreparator extends ASTVisitor {
 	}
 
 	@Override
+	public boolean visit(SwitchExpression node) {
+		handleToken(node, TokenNameLPAREN, this.options.insert_space_before_opening_paren_in_switch,
+				this.options.insert_space_after_opening_paren_in_switch);
+		handleTokenAfter(node.getExpression(), TokenNameRPAREN,
+				this.options.insert_space_before_closing_paren_in_switch, false);
+		handleTokenAfter(node.getExpression(), TokenNameLBRACE,
+				this.options.insert_space_before_opening_brace_in_switch, false);
+		handleSemicolon(node.statements());
+		return true;
+	}
+
+	@Override
 	public boolean visit(SwitchCase node) {
-		if (node.isDefault()) {
-			handleToken(node, TokenNameCOLON, this.options.insert_space_before_colon_in_default, false);
+		if (node.isSwitchLabeledRule()) {
+			handleToken(this.tm.lastTokenIn(node, TokenNameARROW),
+					node.isDefault() ? this.options.insert_space_before_arrow_in_switch_default
+							: this.options.insert_space_before_arrow_in_switch_case,
+					node.isDefault() ? this.options.insert_space_after_arrow_in_switch_default
+							: this.options.insert_space_after_arrow_in_switch_case);
 		} else {
+			handleToken(this.tm.lastTokenIn(node, TokenNameCOLON),
+					node.isDefault() ? this.options.insert_space_before_colon_in_default
+							: this.options.insert_space_before_colon_in_case,
+					false);
+		}
+		if (!node.isDefault()) {
 			handleToken(node, TokenNamecase, false, true);
-			handleToken(node.getExpression(), TokenNameCOLON, this.options.insert_space_before_colon_in_case, false);
+			handleCommas(node.expressions(), this.options.insert_space_before_comma_in_switch_case_expressions,
+					this.options.insert_space_after_comma_in_switch_case_expressions);
+		}
+		return true;
+	}
+
+	@Override
+	public boolean visit(BreakStatement node) {
+		if (node.getExpression() != null && !node.isImplicit()) {
+			this.tm.firstTokenIn(node, TokenNamebreak).spaceAfter();
 		}
 		return true;
 	}
@@ -571,11 +646,6 @@ public class SpacePreparator extends ASTVisitor {
 		Statement thenStatement = node.getThenStatement();
 		handleTokenBefore(thenStatement, TokenNameRPAREN, this.options.insert_space_before_closing_paren_in_if, false);
 
-		if (thenStatement instanceof Block && this.tm.isGuardClause((Block) thenStatement)) {
-			handleToken(thenStatement, TokenNameLBRACE, false, true);
-			this.tm.lastTokenIn(node, TokenNameRBRACE).spaceBefore();
-		}
-
 		handleLoopBody(thenStatement);
 		handleSemicolon(thenStatement);
 		return true;
@@ -715,21 +785,26 @@ public class SpacePreparator extends ASTVisitor {
 
 	@Override
 	public boolean visit(InfixExpression node) {
-		String operator = node.getOperator().toString();
-		handleOperator(operator, node.getRightOperand(), this.options.insert_space_before_binary_operator,
-				this.options.insert_space_after_binary_operator);
+		Operator operator = node.getOperator();
+		boolean spaceBefore = SPACE_BEFORE_OPERATOR.get(operator).test(this.options);
+		boolean spaceAfter = SPACE_AFTER_OPERATOR.get(operator).test(this.options);
+		if (this.tm.isStringConcatenation(node)) {
+			spaceBefore = this.options.insert_space_before_string_concatenation;
+			spaceAfter = this.options.insert_space_after_string_concatenation;
+		}
+		handleOperator(operator.toString(), node.getRightOperand(), spaceBefore, spaceAfter);
 		List<Expression> extendedOperands = node.extendedOperands();
 		for (Expression operand : extendedOperands) {
-			handleOperator(operator, operand, this.options.insert_space_before_binary_operator,
-					this.options.insert_space_after_binary_operator);
+			handleOperator(operator.toString(), operand, spaceBefore, spaceAfter);
 		}
 		return true;
 	}
 
 	@Override
 	public boolean visit(PrefixExpression node) {
-		Operator operator = node.getOperator();
-		if (operator.equals(Operator.INCREMENT) || operator.equals(Operator.DECREMENT)) {
+		PrefixExpression.Operator operator = node.getOperator();
+		if (operator.equals(PrefixExpression.Operator.INCREMENT)
+				|| operator.equals(PrefixExpression.Operator.DECREMENT)) {
 			handleOperator(operator.toString(), node.getOperand(),
 					this.options.insert_space_before_prefix_operator,
 					this.options.insert_space_after_prefix_operator);
@@ -787,8 +862,8 @@ public class SpacePreparator extends ASTVisitor {
 	public boolean visit(IntersectionType node) {
 		List<Type> types = node.types();
 		for (int i = 1; i < types.size(); i++)
-			handleTokenBefore(types.get(i), TokenNameAND, this.options.insert_space_before_binary_operator,
-					this.options.insert_space_after_binary_operator);
+			handleTokenBefore(types.get(i), TokenNameAND, this.options.insert_space_before_bitwise_operator,
+					this.options.insert_space_after_bitwise_operator);
 		return true;
 	}
 
@@ -915,8 +990,8 @@ public class SpacePreparator extends ASTVisitor {
 	public boolean visit(UnionType node) {
 		List<Type> types = node.types();
 		for (int i = 1; i < types.size(); i++)
-			handleTokenBefore(types.get(i), TokenNameOR, this.options.insert_space_before_binary_operator,
-					this.options.insert_space_after_binary_operator);
+			handleTokenBefore(types.get(i), TokenNameOR, this.options.insert_space_before_bitwise_operator,
+					this.options.insert_space_after_bitwise_operator);
 		return true;
 	}
 

@@ -1,3 +1,4 @@
+//AspectJ
 /*******************************************************************************
  * Copyright (c) 2006, 2018 IBM Corporation and others.
  *
@@ -97,5 +98,6 @@ public abstract class AbstractAnnotationProcessorManager {
 	 */
 	public abstract void setProcessors(Object[] processors);
 
+	// AspectJ extension
 	protected abstract void closeClassLoader();
 }

@@ -1,6 +1,6 @@
 // AspectJ
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -171,6 +171,10 @@ public class FileSystem implements IModuleAwareNameEnvironment, SuffixConstants 
 
 	/** Tasks resulting from --add-reads or --add-exports command line options. */
 	Map<String,UpdatesByKind> moduleUpdates = new HashMap<>();
+	static final boolean isJRE12Plus;
+	static {
+		isJRE12Plus = CompilerOptions.VERSION_12.equals(System.getProperty("java.specification.version")); //$NON-NLS-1$
+	}
 
 /*
 	classPathNames is a collection is Strings representing the full path of each class path
@@ -209,6 +213,8 @@ public FileSystem(Classpath[] paths, String[] initialFileNames, boolean annotati
 		final Classpath classpath = paths[i];
 		try {
 			classpath.initialize();
+			for (String moduleName : classpath.getModuleNames(limitedModules))
+				this.moduleLocations.put(moduleName, classpath);
 			this.classpaths[counter++] = classpath;
 		} catch(IOException | InvalidPathException exception) {
 			// JRE 9 could throw an IAE if the linked JAR paths have invalid chars, such as ":"
@@ -273,7 +279,9 @@ public static Classpath getClasspath(String classpathName, String encoding, Acce
 // End AspectJ
 
 public static Classpath getOlderSystemRelease(String jdkHome, String release, AccessRuleSet accessRuleSet) {
-	return new ClasspathJep247(new File(convertPathSeparators(jdkHome)), release, accessRuleSet);
+	return isJRE12Plus ? 
+			new ClasspathJep247Jdk12(new File(convertPathSeparators(jdkHome)), release, accessRuleSet) :
+			new ClasspathJep247(new File(convertPathSeparators(jdkHome)), release, accessRuleSet);
 }
 // Reworking of constructor, the original one that takes a boolean now delegates to the new one.
 // Original ctor declaration was:

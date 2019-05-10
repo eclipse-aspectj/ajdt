@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -103,6 +103,10 @@ public abstract class CategorizedProblem implements IProblem {
 	 * @since 3.14
 	 */
 	public static final int CAT_MODULE = 160;
+	/**
+	 * @since 3.18
+	 */
+	public static final int CAT_COMPLIANCE = 170;
 
 /**
  * Returns an integer identifying the category of this problem. Categories, like problem IDs are
@@ -153,7 +157,7 @@ public String[] getExtraMarkerAttributeNames() {
  * Returns the respective values for the extra marker attributes associated to this problem when persisted into
  * a marker by the JavaBuilder. Each value must correspond to a matching attribute name, as defined by
  * {@link #getExtraMarkerAttributeNames()}.
- * The values must be eligible for marker creation, as defined by <code> IMarker#setAttributes(String[], Object[])}.
+ * The values must be eligible for marker creation, as defined by <code> IMarker#setAttributes(String[], Object[])}</code>.
  * @return the values of the corresponding extra marker attributes
  */
 public Object[] getExtraMarkerAttributeValues() {

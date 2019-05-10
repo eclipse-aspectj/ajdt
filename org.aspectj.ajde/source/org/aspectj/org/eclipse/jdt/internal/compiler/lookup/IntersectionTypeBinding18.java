@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -187,22 +187,15 @@ public class IntersectionTypeBinding18 extends ReferenceBinding {
 			rightIntersectingTypes = ((IntersectionTypeBinding18) right).intersectingTypes;
 		}
 		if (rightIntersectingTypes != null) {
-			int numRequired = rightIntersectingTypes.length;
-			TypeBinding[] required = new TypeBinding[numRequired];
-			System.arraycopy(rightIntersectingTypes, 0, required, 0, numRequired);
-			for (int i = 0; i < this.length; i++) {
-				TypeBinding provided = this.intersectingTypes[i];
-				for (int j = 0; j < required.length; j++) {
-					if (required[j] == null) continue;
-					if (provided.isCompatibleWith(required[j], scope)) {
-						required[j] = null;
-						if (--numRequired == 0)
-							return true;
-						break;
-					}
+			nextRequired:
+			for (TypeBinding required : rightIntersectingTypes) {
+				for (TypeBinding provided : this.intersectingTypes) {
+					if (provided.isCompatibleWith(required, scope))
+						continue nextRequired;
 				}
+				return false;
 			}
-			return false;
+			return true;
 		}
 
 		// normal case:
@@ -217,6 +210,27 @@ public class IntersectionTypeBinding18 extends ReferenceBinding {
 	public boolean isSubtypeOf(TypeBinding other, boolean simulatingBugJDK8026527) {
 		if (TypeBinding.equalsEquals(this, other))
 			return true;
+		if (other instanceof ReferenceBinding) {
+			TypeBinding[] rightIntersectingTypes = ((ReferenceBinding) other).getIntersectingTypes();
+			if (rightIntersectingTypes != null && rightIntersectingTypes.length > 1) {
+				int numRequired = rightIntersectingTypes.length;
+				TypeBinding[] required = new TypeBinding[numRequired];
+				System.arraycopy(rightIntersectingTypes, 0, required, 0, numRequired);
+				for (int i = 0; i < this.length; i++) {
+					TypeBinding provided = this.intersectingTypes[i];
+					for (int j = 0; j < required.length; j++) {
+						if (required[j] == null) continue;
+						if (provided.isSubtypeOf(required[j], simulatingBugJDK8026527)) {
+							required[j] = null;
+							if (--numRequired == 0)
+								return true;
+							break;
+						}
+					}
+				}
+				return false;
+			}
+		}
 		for (int i = 0; i < this.intersectingTypes.length; i++) {
 			if (this.intersectingTypes[i].isSubtypeOf(other, false))
 				return true;
@@ -238,7 +252,7 @@ public class IntersectionTypeBinding18 extends ReferenceBinding {
 			}
 		}
 		if (classIdx > -1 && classIdx < Integer.MAX_VALUE)
-			return this.intersectingTypes[classIdx];
+			return this.intersectingTypes[classIdx].erasure();
 		return this;
 	}
 

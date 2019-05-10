@@ -1,6 +1,6 @@
 // AspectJ
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -241,7 +241,8 @@ public class ParameterizedGenericMethodBinding extends ParameterizedMethodBindin
 			BoundSet provisionalResult = null;
 			BoundSet result = null;
 			// ---- 18.5.1 (Applicability): ----
-			final boolean isPolyExpression = invocationSite instanceof Expression && ((Expression)invocationSite).isPolyExpression(originalMethod);
+			final boolean isPolyExpression = invocationSite instanceof Expression &&   ((Expression) invocationSite).isTrulyExpression() && 
+					((Expression)invocationSite).isPolyExpression(originalMethod);
 			boolean isDiamond = isPolyExpression && originalMethod.isConstructor();
 			if (arguments.length == parameters.length) {
 				infCtx18.inferenceKind = requireBoxing ? InferenceContext18.CHECK_LOOSE : InferenceContext18.CHECK_STRICT; // engine may still slip into loose mode and adjust level.
@@ -279,7 +280,7 @@ public class ParameterizedGenericMethodBinding extends ParameterizedMethodBindin
 				TypeBinding[] solutions = infCtx18.getSolutions(typeVariables, invocationSite, result);
 				if (solutions != null) {
 					methodSubstitute = scope.environment().createParameterizedGenericMethod(originalMethod, solutions, infCtx18.usesUncheckedConversion, hasReturnProblem, expectedType);
-					if (invocationSite instanceof Invocation && allArgumentsAreProper)
+					if (invocationSite instanceof Invocation && allArgumentsAreProper && (expectedType == null || expectedType.isProperType(true)))
 						infCtx18.forwardResults(result, (Invocation) invocationSite, methodSubstitute, expectedType);
 					try {
 						if (hasReturnProblem) { // illegally working from the provisional result?

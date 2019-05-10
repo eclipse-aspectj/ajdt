@@ -1,6 +1,6 @@
 // ASPECTJ
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -72,6 +72,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.LambdaExpression;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ReferenceExpression;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.SwitchStatement;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeParameter;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeReference;
@@ -616,7 +617,7 @@ public SyntheticFieldBinding addSyntheticFieldForSwitchEnum(char[] fieldName, St
 /* Add a new synthetic method the enum type. Selector can either be 'values' or 'valueOf'.
  * char[] constants from TypeConstants must be used: TypeConstants.VALUES/VALUEOF
 */
-public SyntheticMethodBinding addSyntheticMethodForSwitchEnum(TypeBinding enumBinding) {
+public SyntheticMethodBinding addSyntheticMethodForSwitchEnum(TypeBinding enumBinding, SwitchStatement switchStatement) {
 	if (!isPrototype()) throw new IllegalStateException();
 	if (this.synthetics == null)
 		this.synthetics = new HashMap[MAX_SYNTHETICS];
@@ -632,13 +633,13 @@ public SyntheticMethodBinding addSyntheticMethodForSwitchEnum(TypeBinding enumBi
 	if (accessors == null) {
 		// then create the synthetic method
 		final SyntheticFieldBinding fieldBinding = addSyntheticFieldForSwitchEnum(selector, key);
-		accessMethod = new SyntheticMethodBinding(fieldBinding, this, enumBinding, selector);
+		accessMethod = new SyntheticMethodBinding(fieldBinding, this, enumBinding, selector, switchStatement);
 		this.synthetics[SourceTypeBinding.METHOD_EMUL].put(key, accessors = new SyntheticMethodBinding[2]);
 		accessors[0] = accessMethod;
 	} else {
 		if ((accessMethod = accessors[0]) == null) {
 			final SyntheticFieldBinding fieldBinding = addSyntheticFieldForSwitchEnum(selector, key);
-			accessMethod = new SyntheticMethodBinding(fieldBinding, this, enumBinding, selector);
+			accessMethod = new SyntheticMethodBinding(fieldBinding, this, enumBinding, selector, switchStatement);
 			accessors[0] = accessMethod;
 		}
 	}
@@ -1407,7 +1408,7 @@ public void generateSyntheticFinalFieldInitialization(CodeStream codeStream) {
 		return;
 	Collection<FieldBinding> syntheticFields = this.synthetics[SourceTypeBinding.FIELD_EMUL].values();
 	for (FieldBinding field : syntheticFields) {
-		if (CharOperation.prefixEquals(TypeConstants.SYNTHETIC_SWITCH_ENUM_TABLE, field.name)) {
+		if (CharOperation.prefixEquals(TypeConstants.SYNTHETIC_SWITCH_ENUM_TABLE, field.name) && field.isFinal()) {
 			MethodBinding[] accessors = (MethodBinding[]) this.synthetics[SourceTypeBinding.METHOD_EMUL].get(new String(field.name));
 			if (accessors == null || accessors[0] == null) // not a field for switch enum
 				continue;

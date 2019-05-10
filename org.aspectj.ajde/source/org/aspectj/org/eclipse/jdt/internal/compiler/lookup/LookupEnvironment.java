@@ -1,6 +1,6 @@
 // ASPECTJ
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -130,7 +130,7 @@ public class LookupEnvironment implements ProblemReasons, TypeConstants {
 
 	private ArrayList missingTypes;
 	Set<SourceTypeBinding> typesBeingConnected;	// SHARED
-	public boolean isProcessingAnnotations = false;
+	public boolean isProcessingAnnotations = false; // ROOT_ONLY
 	public boolean mayTolerateMissingType = false;
 
 	PackageBinding nullableAnnotationPackage;			// the package supposed to contain the Nullable annotation type
@@ -312,6 +312,8 @@ ReferenceBinding askForType(PackageBinding packageBinding, char[] name, ModuleBi
 	ReferenceBinding candidate = null;
 	for (NameEnvironmentAnswer answer : answers) {
 		if (answer == null) continue;
+		if (candidate != null && candidate.problemId() == ProblemReasons.Ambiguous)
+			return candidate; // saw enough
 		ModuleBinding answerModule = answer.moduleBinding != null ? answer.moduleBinding : this.UnNamedModule;
 		PackageBinding answerPackage = packageBinding;
 		
@@ -355,8 +357,6 @@ ReferenceBinding askForType(PackageBinding packageBinding, char[] name, ModuleBi
 			continue;
 		}
 		candidate = combine(candidate, answerPackage.getType0(name), clientModule);
-		if (candidate != null && candidate.problemId() == ProblemReasons.Ambiguous)
-			return candidate; // saw enough
 	}
 	return candidate;
 }
@@ -420,6 +420,7 @@ private static NameEnvironmentAnswer fromSplitPackageOrOracle(IModuleAwareNameEn
 		if (binding != null && binding.isValidBinding()) {
 			if (binding instanceof UnresolvedReferenceBinding)
 				binding = ((UnresolvedReferenceBinding) binding).resolve(module.environment, false);
+			if (binding.isValidBinding())
 			return new NameEnvironmentAnswer(binding, module);
 		}
 	}
@@ -741,7 +742,7 @@ private PackageBinding computePackageFrom(char[][] constantPoolName, boolean isM
 	if (packageBinding == null || packageBinding == TheNotFoundPackage) {
 		if (this.useModuleSystem) {
 			if (this.module.isUnnamed()) {
-				char[][] declaringModules = ((IModuleAwareNameEnvironment) this.nameEnvironment).getModulesDeclaringPackage(null, constantPoolName[0], ModuleBinding.ANY);
+				char[][] declaringModules = ((IModuleAwareNameEnvironment) this.nameEnvironment).getUniqueModulesDeclaringPackage(null, constantPoolName[0], ModuleBinding.ANY);
 				if (declaringModules != null) {
 					for (char[] mod : declaringModules) {
 						ModuleBinding declaringModule = this.root.getModule(mod);
@@ -774,7 +775,7 @@ private PackageBinding computePackageFrom(char[][] constantPoolName, boolean isM
 						}
 					}
 				} else {
-					packageBinding = this.module.getVisiblePackage(parent, constantPoolName[i]);
+					packageBinding = this.module.getVisiblePackage(parent, constantPoolName[i], true);
 				}
 			}
 			if (packageBinding == null || packageBinding == TheNotFoundPackage) {
@@ -783,7 +784,7 @@ private PackageBinding computePackageFrom(char[][] constantPoolName, boolean isM
 			if (isMissing) {
 				packageBinding.tagBits |= TagBits.HasMissingType;
 			}
-			packageBinding = parent.addPackage(packageBinding, this.module, true);
+			packageBinding = parent.addPackage(packageBinding, this.module);
 		}
 	}
 	if (packageBinding instanceof SplitPackageBinding) {
@@ -1133,7 +1134,7 @@ public PackageBinding createPackage(char[][] compoundName) {
 			}
 			if (packageBinding == null) {
 				packageBinding = new PackageBinding(CharOperation.subarray(compoundName, 0, i + 1), parent, this, this.module);
-				packageBinding = parent.addPackage(packageBinding, this.module, true);
+				packageBinding = parent.addPackage(packageBinding, this.module);
 			}
 		}
 	}
@@ -1453,6 +1454,21 @@ public AccessRestriction getAccessRestriction(TypeBinding type) {
  * assuming C is a type in both cases. In the a.b.C.D.E case, null is the answer.
  */
 public ReferenceBinding getCachedType(char[][] compoundName) {
+	ReferenceBinding result = getCachedType0(compoundName);
+	if (result == null && this.useModuleSystem) {
+		ModuleBinding[] modulesToSearch = this.module.isUnnamed() || this.module.isAuto
+				? this.root.knownModules.valueTable
+				: this.module.getAllRequiredModules();
+		for (ModuleBinding someModule : modulesToSearch) {
+			if (someModule == null) continue;
+			result = someModule.environment.getCachedType0(compoundName);
+			if (result != null && result.isValidBinding())
+				break;
+		}
+	}
+	return result;
+}
+public ReferenceBinding getCachedType0(char[][] compoundName) {
 	if (compoundName.length == 1) {
 		return this.defaultPackage.getType0(compoundName[0]);
 	}
@@ -1865,6 +1881,9 @@ TypeBinding getTypeFromSignature(char[] signature, int start, int end, boolean i
 }
 
 private TypeBinding annotateType(TypeBinding binding, ITypeAnnotationWalker walker, char[][][] missingTypeNames) {
+	if (walker == ITypeAnnotationWalker.EMPTY_ANNOTATION_WALKER) {
+		return binding;
+	}
 	int depth = binding.depth() + 1;
 	if (depth > 1) {
 		// need to count non-static nesting levels, resolved binding required for precision
@@ -1973,13 +1992,13 @@ public TypeBinding getTypeFromTypeSignature(SignatureWrapper wrapper, TypeVariab
 
 	// type must be a ReferenceBinding at this point, cannot be a BaseTypeBinding or ArrayTypeBinding
 	ReferenceBinding actualType = (ReferenceBinding) type;
-	if (actualType instanceof UnresolvedReferenceBinding)
+	if (walker != ITypeAnnotationWalker.EMPTY_ANNOTATION_WALKER && actualType instanceof UnresolvedReferenceBinding)
 		if (actualType.depth() > 0)
 			actualType = (ReferenceBinding) BinaryTypeBinding.resolveType(actualType, this, false /* no raw conversion */); // must resolve member types before asking for enclosingType
 	ReferenceBinding actualEnclosing = actualType.enclosingType();
 
 	ITypeAnnotationWalker savedWalker = walker;
-	if(actualType.depth() > 0) {
+	if(walker != ITypeAnnotationWalker.EMPTY_ANNOTATION_WALKER && actualType.depth() > 0) {
 		int nonStaticNestingLevels = countNonStaticNestingLevels(actualType);
 		for (int i = 0; i < nonStaticNestingLevels; i++) {
 			walker = walker.toNextNestedType();

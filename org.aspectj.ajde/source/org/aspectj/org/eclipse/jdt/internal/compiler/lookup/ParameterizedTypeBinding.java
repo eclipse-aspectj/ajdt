@@ -81,7 +81,7 @@ public class ParameterizedTypeBinding extends ReferenceBinding implements Substi
 
 	public ParameterizedTypeBinding(ReferenceBinding type, TypeBinding[] arguments,  ReferenceBinding enclosingType, LookupEnvironment environment){
 		this.environment = environment;
-		this.enclosingType = enclosingType; // never unresolved, never lazy per construction
+		this.enclosingType = enclosingType; // never unresolved, but if type is an unresolved nested type, enclosingType is null here but set later in swapUnresolved.
 		if (!type.hasEnclosingInstanceContext() && arguments == null && !(this instanceof RawTypeBinding))
 			throw new IllegalStateException();
 		initialize(type, arguments);
@@ -448,6 +448,9 @@ public class ParameterizedTypeBinding extends ReferenceBinding implements Substi
 	 */
 	@Override
 	public ReferenceBinding enclosingType() {
+		if (this.type instanceof UnresolvedReferenceBinding && ((UnresolvedReferenceBinding) this.type).depth() > 0) {
+			((UnresolvedReferenceBinding) this.type).resolve(this.environment, false); // may set enclosingType as side effect
+		}
 	    return this.enclosingType;
 	}
 
@@ -1207,10 +1210,15 @@ public class ParameterizedTypeBinding extends ReferenceBinding implements Substi
 		this.tagBits |= resolvedType.tagBits & TagBits.ContainsNestedTypeReferences;
 		if (this.arguments != null) {
 			int argLength = this.arguments.length;
+			if ((this.type.tagBits & TagBits.HasMissingType) == 0) {
+				this.tagBits &= ~TagBits.HasMissingType; // start from fresh and collect information anew
+				if (this.enclosingType != null)
+					this.tagBits |= this.enclosingType.tagBits & TagBits.HasMissingType;
+			}
 			for (int i = 0; i < argLength; i++) {
 				TypeBinding resolveType = BinaryTypeBinding.resolveType(this.arguments[i], this.environment, true /* raw conversion */);
 				this.arguments[i] = resolveType;
-				this.tagBits |= resolvedType.tagBits & TagBits.ContainsNestedTypeReferences;
+				this.tagBits |= resolvedType.tagBits & (TagBits.ContainsNestedTypeReferences | TagBits.HasMissingType);
 			}
 			/* https://bugs.eclipse.org/bugs/show_bug.cgi?id=186565, Removed generic check
 			   and arity check since we are dealing with binary types here and the fact that
@@ -1452,7 +1460,7 @@ public class ParameterizedTypeBinding extends ReferenceBinding implements Substi
 			update = true;
 			ReferenceBinding enclosing = resolvedType.enclosingType();
 			if (enclosing != null) {
-				this.enclosingType = (ReferenceBinding) env.convertUnresolvedBinaryToRawType(enclosing); // needed when binding unresolved member type
+				this.enclosingType = resolvedType.isStatic() ? enclosing : (ReferenceBinding) env.convertUnresolvedBinaryToRawType(enclosing); // needed when binding unresolved member type
 			}
 		}
 		if (this.arguments != null) {

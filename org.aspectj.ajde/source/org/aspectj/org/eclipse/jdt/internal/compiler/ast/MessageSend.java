@@ -947,7 +947,7 @@ public TypeBinding resolveType(BlockScope scope) {
 		}
 		// abstract private methods cannot occur nor abstract static............
 	}
-	if (isMethodUseDeprecated(this.binding, scope, true))
+	if (isMethodUseDeprecated(this.binding, scope, true, this))
 		scope.problemReporter().deprecatedMethod(this.binding, this);
 
 		TypeBinding returnType;
@@ -1220,6 +1220,15 @@ public InferenceContext18 freshInferenceContext(Scope scope) {
 public boolean isQualifiedSuper() {
 	return this.receiver.isQualifiedSuper();
 }
+@Override
+public int nameSourceStart() {
+	return (int) (this.nameSourcePosition >>> 32);
+}
+@Override
+public int nameSourceEnd() {
+	return (int) this.nameSourcePosition;
+}
+
 // AspectJ Extension
 protected void resolveMethodBinding(
 	BlockScope scope,

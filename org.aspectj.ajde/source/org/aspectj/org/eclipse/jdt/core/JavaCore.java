@@ -1,6 +1,6 @@
 // AspectJ
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -157,7 +157,6 @@ import org.eclipse.core.runtime.Plugin;
 import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
-import org.eclipse.core.runtime.jobs.MultiRule;
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.core.compiler.IProblem;
 import org.aspectj.org.eclipse.jdt.core.search.IJavaSearchConstants;
@@ -2557,6 +2556,46 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	 * @since 3.6.4
 	 */
 	public static final String CORE_OUTPUT_LOCATION_OVERLAPPING_ANOTHER_SOURCE = PLUGIN_ID + ".classpath.outputOverlappingAnotherSource";  //$NON-NLS-1$
+
+	/**
+	 * Core option ID: Reporting if a project which has only main sources depends on a project with only test sources.
+	 * <p> Indicate the severity of the problem reported when a project that has one or more main source folders but 
+	 * no test source folders has a project on its build path that only has one or more test source folders, but no main source folders.</p>
+	 * 
+	 * <dl>
+	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.classpath.mainOnlyProjectHasTestOnlyDependency"</code></dd>
+	 * <dt>Possible values:</dt><dd><code>{ "error", "ignore" }</code></dd>
+	 * <dt>Default:</dt><dd><code>"error"</code></dd>
+	 * </dl>
+	 * @since 3.16
+	 */
+	public static final String CORE_MAIN_ONLY_PROJECT_HAS_TEST_ONLY_DEPENDENCY = PLUGIN_ID + ".classpath.mainOnlyProjectHasTestOnlyDependency";  //$NON-NLS-1$
+
+	/**
+	 * Compiler option ID: Enabling support for preview language features.
+	 * <p>When enabled, the compiler will activate the preview language features of this Java version.</p>
+	 *
+	 * <dl>
+	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.enablePreviewFeatures"</code></dd>
+	 * <dt>Possible values:</dt><dd><code>{ "enabled", "disabled" }</code></dd>
+	 * <dt>Default:</dt><dd><code>"disabled"</code></dd>
+	 * </dl>
+	 * @category CompilerOptionID
+	 * @since 3.18
+	 */
+	public static final String COMPILER_PB_ENABLE_PREVIEW_FEATURES = PLUGIN_ID + ".compiler.problem.enablePreviewFeatures"; //$NON-NLS-1$
+	/**
+	 * Compiler option ID: Reporting Preview features.
+	 * <p>When enabled, the compiler will issue a warning when a preview feature is used.</p>
+	 * <dl>
+	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.reportPreviewFeatures"</code></dd>
+	 * <dt>Possible values:</dt><dd><code>{ "warning", "info", "ignore" }</code></dd>
+	 * <dt>Default:</dt><dd><code>"warning"</code></dd>
+	 * </dl>
+	 * @category CompilerOptionID
+	 * @since 3.18
+	 */
+	public static final String COMPILER_PB_REPORT_PREVIEW_FEATURES = PLUGIN_ID + ".compiler.problem.reportPreviewFeatures"; //$NON-NLS-1$
 	/**
 	 * Core option ID: Set the timeout value for retrieving the method's parameter names from javadoc.
 	 * <p>Timeout in milliseconds to retrieve the method's parameter names from javadoc.</p>
@@ -3015,12 +3054,18 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	public static final String VERSION_11 = "11"; //$NON-NLS-1$
 	/**
 	 * Configurable option value: {@value}.
+	 * @since 3.18
+	 * @category OptionValue
+	 */
+	public static final String VERSION_12 = "12"; //$NON-NLS-1$
+	/**
+	 * Configurable option value: {@value}.
 	 * @since 3.4
 	 * @category OptionValue
 	 */
 	public static final String VERSION_CLDC_1_1 = "cldc1.1"; //$NON-NLS-1$
 	private static List<String> allVersions = Arrays.asList(VERSION_CLDC_1_1, VERSION_1_1, VERSION_1_2, VERSION_1_3, VERSION_1_4, VERSION_1_5,
-			VERSION_1_6, VERSION_1_7, VERSION_1_8, VERSION_9, VERSION_10, VERSION_11);
+			VERSION_1_6, VERSION_1_7, VERSION_1_8, VERSION_9, VERSION_10, VERSION_11, VERSION_12);
 
 	/**
 	 * Returns all {@link JavaCore}{@code #VERSION_*} levels in the order of their 
@@ -3031,6 +3076,21 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	 */
 	public static List<String> getAllVersions() {
 		return allVersions;
+	}
+
+	/**
+	 * Returns whether the given version of Java or Java Runtime is supported 
+	 * by the Java Development Toolkit.
+	 * 
+	 * A true indicates that the given version is supported. For e.g., if the argument
+	 * is <code>11.0.1</code> and {@link #getAllVersions()} contains <code>11</code>, 
+	 * the method returns <code>true</code>.
+	 * 
+	 * @return a boolean indicating support for the given version of Java or Java Runtime.
+	 * @since 3.16
+	 */
+	public static boolean isSupportedJavaVersion(String version) {
+		return CompilerOptions.versionToJdkLevel(version, false) > 0;
 	}
 
 	/**
@@ -4239,6 +4299,37 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	}
 
 	/**
+	 * Returns the option that can be used to configure the severity of the
+	 * compiler build path problem identified by <code>id</code> if any,
+	 * <code>null</code> otherwise. Non-null return values are taken from the
+	 * constants defined by this class whose names start with
+	 * <code>CORE_</code> and for which the possible values of the
+	 * option are defined by <code>{ "error", "warning", "info", "ignore" }</code>. A
+	 * null return value means that the provided id is unknown or that
+	 * it matches a problem whose severity cannot be configured.
+	 * @param id one of the build path problems defined in IJavaModelStatusConstants
+	 * @return the option that can be used to configure the severity of the
+	 *         compiler problem identified by <code>id</code> if any,
+	 *         <code>null</code> otherwise
+	 * @since 3.16
+	 */
+	public static String getOptionForConfigurableBuildPathProblemSeverity(int id) {
+		switch (id) {
+			case IJavaModelStatusConstants.CLASSPATH_CYCLE:
+				return JavaCore.CORE_CIRCULAR_CLASSPATH;
+			case IJavaModelStatusConstants.INCOMPATIBLE_JDK_LEVEL:
+				return JavaCore.CORE_INCOMPATIBLE_JDK_LEVEL;
+			case IJavaModelStatusConstants.OUTPUT_LOCATION_OVERLAPPING_ANOTHER_SOURCE:
+				return JavaCore.CORE_OUTPUT_LOCATION_OVERLAPPING_ANOTHER_SOURCE;
+			case IJavaModelStatusConstants.MAIN_ONLY_PROJECT_DEPENDS_ON_TEST_ONLY_PROJECT:
+				return JavaCore.CORE_MAIN_ONLY_PROJECT_HAS_TEST_ONLY_DEPENDENCY;
+			case IJavaModelStatusConstants.INVALID_CLASSPATH:
+				return JavaCore.CORE_INCOMPLETE_CLASSPATH;
+		}
+		return null;
+	}
+
+	/**
 	 * Returns the table of the current options. Initially, all options have their default values,
 	 * and this method returns a table that includes all known options.
 	 * <p>
@@ -4508,11 +4599,7 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 			};
 			mainMonitor.subTask(Messages.javamodel_building_after_upgrade);
 			try {
-				ResourcesPlugin.getWorkspace().run(
-					runnable,
-					new MultiRule(Arrays.stream(projects).map(IJavaProject::getResource).toArray(ISchedulingRule[]::new)),
-					IWorkspace.AVOID_UPDATE,
-					mainMonitor.split(1));
+				ResourcesPlugin.getWorkspace().run(runnable, mainMonitor.split(1));
 			} catch (CoreException e) {
 				// could not touch all projects
 			}
@@ -5931,6 +6018,8 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	 * <li>{@link #COMPILER_PB_ASSERT_IDENTIFIER}</li>
 	 * <li>{@link #COMPILER_PB_ENUM_IDENTIFIER}</li>
 	 * <li>{@link #COMPILER_CODEGEN_INLINE_JSR_BYTECODE} for compliance levels 1.5 and greater</li>
+	 * <li>{@link #COMPILER_PB_ENABLE_PREVIEW_FEATURES} for compliance levels 11 and greater</li>
+	 * <li>{@link #COMPILER_PB_REPORT_PREVIEW_FEATURES} for compliance levels 11 and greater</li>
 	 * </ul>
 	 *
 	 * <p>If the given compliance is unknown, the given map is unmodified.</p>
@@ -6017,6 +6106,8 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 					options.put(JavaCore.COMPILER_PB_ENUM_IDENTIFIER, JavaCore.ERROR);
 					options.put(JavaCore.COMPILER_CODEGEN_INLINE_JSR_BYTECODE, JavaCore.ENABLED);
 					options.put(JavaCore.COMPILER_RELEASE, JavaCore.ENABLED);
+					options.put(JavaCore.COMPILER_PB_ENABLE_PREVIEW_FEATURES, JavaCore.DISABLED);
+					options.put(JavaCore.COMPILER_PB_REPORT_PREVIEW_FEATURES, JavaCore.WARNING);
 		}
 				break;
 		}

@@ -136,6 +136,7 @@ public List<Classpath> fetchLinkedJars(FileSystem.ClasspathSectionProblemReporte
 		if (inputStream != null) {
 			try {
 				inputStream.close();
+				close(); // AspectJ extension - close it (tidyup on windows)
 			} catch (IOException e) {
 				// best effort
 			}
@@ -245,9 +246,12 @@ public char[][][] findTypeNames(final String qualifiedPackageName, String module
 
 @Override
 public void initialize() throws IOException {
+	ensureOpen();
+	// AspectJ - start - replace next bit with above
 	if (this.zipFile == null) {
 		this.zipFile = new ZipFile(this.file);
 	}
+	// AspectJ - end
 }
 void acceptModule(ClassFileReader reader) {
 	if (reader != null) {

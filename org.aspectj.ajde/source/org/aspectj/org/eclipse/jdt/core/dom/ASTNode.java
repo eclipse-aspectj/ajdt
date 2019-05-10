@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -70,7 +70,6 @@ import org.aspectj.org.eclipse.jdt.internal.core.dom.NaiveASTFlattener;
  * <li>types - <code>Type</code></li>
  * <li>type body declarations - <code>BodyDeclaration</code></li>
  * </ul>
- * </p>
  * <p>
  * Abstract syntax trees may be hand constructed by clients, using the
  * <code>new<i>TYPE</i></code> factory methods (see <code>AST</code>) to
@@ -954,6 +953,14 @@ public abstract class ASTNode {
 	 * @since 3.14
 	 */
 	public static final int MODULE_MODIFIER = 99;
+	
+	/**
+	 * Node type constant indicating a node of type
+	 * <code>SwitchExpression</code>.
+	 * @see SwitchExpression
+	 * @since 3.18
+	 */
+	public static final int SWITCH_EXPRESSION = 100;
 
 	/**
 	 * Returns the node class for the corresponding node type.
@@ -1129,6 +1136,8 @@ public abstract class ASTNode {
 				return SwitchCase.class;
 			case SWITCH_STATEMENT :
 				return SwitchStatement.class;
+			case SWITCH_EXPRESSION :
+				return SwitchExpression.class;
 			case SYNCHRONIZED_STATEMENT :
 				return SynchronizedStatement.class;
 			case TAG_ELEMENT :
@@ -1667,7 +1676,6 @@ public abstract class ASTNode {
 	/**
 	 * Returns the location of this node within its parent,
 	 * or <code>null</code> if this is a root node.
-	 * <p>
 	 * <pre>
 	 * ASTNode node = ...;
 	 * ASTNode parent = node.getParent();
@@ -1678,7 +1686,6 @@ public abstract class ASTNode {
 	 * if ((location != null) && location.isChildListProperty())
 	 *    assert ((List) parent.getStructuralProperty(location)).contains(node);
 	 * </pre>
-	 * </p>
 	 * <p>
 	 * Note that the relationship between an AST node and its parent node
 	 * may change over the lifetime of a node.
@@ -2069,6 +2076,22 @@ public abstract class ASTNode {
 	final void unsupportedBelow11() {
 		if (this.ast.apiLevel < AST.JLS11_INTERNAL) {
 			throw new UnsupportedOperationException("Operation only supported in ASTs with level JLS11 and above"); //$NON-NLS-1$
+		}
+	}
+	
+	/**
+     * Checks that this AST operation is not used when
+     * building JLS2, JLS3, JLS4, JLS8, JLS9,JLS10 or JLS11 level ASTs.
+     * <p>
+     * Use this method to prevent access to new properties that have been added in JLS12
+     * </p>
+     *
+	 * @exception UnsupportedOperationException if this operation is used below JLS12
+	 * @since 3.16 
+	 */
+	final void unsupportedBelow12() {
+		if (this.ast.apiLevel < AST.JLS12_INTERNAL) {
+			throw new UnsupportedOperationException("Operation only supported in ASTs with level JLS12 and above"); //$NON-NLS-1$
 		}
 	}
 	/**
@@ -2550,7 +2573,6 @@ public abstract class ASTNode {
 	 *  is recovered from source that contains a syntax error</li>
 	 * </ul>
 	 * Other bit positions are reserved for future use.
-	 * </p>
 	 *
 	 * @return the bitwise-or of individual flags
 	 * @see #setFlags(int)
@@ -2575,7 +2597,6 @@ public abstract class ASTNode {
 	 *  is recovered from source that contains a syntax error</li>
 	 * </ul>
 	 * Other bit positions are reserved for future use.
-	 * </p>
 	 * <p>
 	 * Note that the flags are <em>not</em> considered a structural
 	 * property of the node, and can be changed even if the

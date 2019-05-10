@@ -132,6 +132,11 @@ public class ForeachStatement extends Statement {
 
 			if (this.action.complainIfUnreachable(actionInfo, this.scope, initialComplaintLevel, true) < Statement.COMPLAINED_UNREACHABLE) {
 				actionInfo = this.action.analyseCode(this.scope, loopingContext, actionInfo).unconditionalCopy();
+				if (this.action instanceof Block) {
+					FakedTrackingVariable.markForeachElementVar(this.elementVariable);
+					// action.analyseCode() missed the following check due to identical scopes of ForeachStatement and Block:
+					this.scope.checkUnclosedCloseables(actionInfo, loopingContext, null, null);
+				}
 			}
 
 			// code generation can be optimized when no need to continue in the loop
@@ -148,6 +153,9 @@ public class ForeachStatement extends Statement {
 			}
 		} else {
 			exitBranch = condInfo.initsWhenFalse();
+			if (this.action instanceof Block && !this.action.isEmptyBlock()) {
+				this.scope.checkUnclosedCloseables(actionInfo, loopingContext, null, null);
+			}
 		}
 
 		// we need the variable to iterate the collection even if the

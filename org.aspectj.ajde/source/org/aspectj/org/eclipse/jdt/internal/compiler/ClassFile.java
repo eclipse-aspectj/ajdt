@@ -72,6 +72,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ReferenceExpression;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.RequiresStatement;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.SingleMemberAnnotation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.SingleNameReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.SwitchStatement;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeParameter;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeReference;
@@ -1377,6 +1378,13 @@ public class ClassFile implements TypeConstants, TypeIds {
 		generateCodeAttributeHeader();
 		this.codeStream.init(this);
 		this.codeStream.generateSyntheticBodyForSwitchTable(methodBinding);
+		int code_length = this.codeStream.position;
+		if (code_length > 65535) {
+			SwitchStatement switchStatement = methodBinding.switchStatement;
+			if (switchStatement != null) {
+				switchStatement.scope.problemReporter().bytecodeExceeds64KLimit(switchStatement);
+			}
+		}
 		completeCodeAttributeForSyntheticMethod(
 			true,
 			methodBinding,

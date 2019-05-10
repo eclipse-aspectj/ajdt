@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014, 2016 Mateusz Matela and others.
+ * Copyright (c) 2014, 2019 Mateusz Matela and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -15,7 +15,6 @@ package org.aspectj.org.eclipse.jdt.internal.formatter;
 
 import static org.aspectj.org.eclipse.jdt.internal.compiler.parser.TerminalTokens.TokenNameCOMMENT_BLOCK;
 import static org.aspectj.org.eclipse.jdt.internal.compiler.parser.TerminalTokens.TokenNameCOMMENT_JAVADOC;
-import static org.aspectj.org.eclipse.jdt.internal.compiler.parser.TerminalTokens.TokenNameLBRACE;
 import static org.aspectj.org.eclipse.jdt.internal.compiler.parser.TerminalTokens.TokenNameNotAToken;
 import static org.aspectj.org.eclipse.jdt.internal.compiler.parser.TerminalTokens.TokenNameStringLiteral;
 
@@ -27,10 +26,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.aspectj.org.eclipse.jdt.core.dom.ASTNode;
-import org.aspectj.org.eclipse.jdt.core.dom.Block;
-import org.aspectj.org.eclipse.jdt.core.dom.IfStatement;
-import org.aspectj.org.eclipse.jdt.core.dom.ReturnStatement;
-import org.aspectj.org.eclipse.jdt.core.dom.ThrowStatement;
+import org.aspectj.org.eclipse.jdt.core.dom.Expression;
+import org.aspectj.org.eclipse.jdt.core.dom.InfixExpression;
+import org.aspectj.org.eclipse.jdt.core.dom.StringLiteral;
+import org.aspectj.org.eclipse.jdt.core.dom.InfixExpression.Operator;
 import org.aspectj.org.eclipse.jdt.internal.formatter.Token.WrapMode;
 import org.aspectj.org.eclipse.jdt.internal.formatter.linewrap.CommentWrapExecutor;
 
@@ -175,21 +174,6 @@ public class TokenManager implements Iterable<Token> {
 	@Override
 	public Iterator<Token> iterator() {
 		return this.tokens.iterator();
-	}
-
-	public boolean isGuardClause(Block node) {
-		if (node.statements().size() != 1)
-			return false;
-		ASTNode parent = node.getParent();
-		if (!(parent instanceof IfStatement) || ((IfStatement) parent).getElseStatement() != null)
-			return false;
-		Object statement = node.statements().get(0);
-		if (!(statement instanceof ReturnStatement) && !(statement instanceof ThrowStatement))
-			return false;
-		// guard clause cannot start with a comment
-		// https://bugs.eclipse.org/bugs/show_bug.cgi?id=58565
-		int openBraceIndex = firstIndexIn(node, TokenNameLBRACE);
-		return !get(openBraceIndex + 1).isComment();
 	}
 
 	public int firstIndexIn(ASTNode node, int tokenType) {
@@ -404,6 +388,21 @@ public class TokenManager implements Iterable<Token> {
 	private boolean tokenInside(ASTNode node, int index) {
 		return get(index).originalStart >= node.getStartPosition()
 				&& get(index).originalEnd <= node.getStartPosition() + node.getLength();
+	}
+
+	public boolean isStringConcatenation(InfixExpression node) {
+		if (!node.getOperator().equals(Operator.PLUS))
+			return false;
+		List<Expression> operands = new ArrayList<Expression>(node.extendedOperands());
+		operands.add(node.getLeftOperand());
+		operands.add(node.getRightOperand());
+		for (Expression o : operands) {
+			if (o instanceof StringLiteral)
+				return true;
+			if ((o instanceof InfixExpression) && isStringConcatenation((InfixExpression) o))
+				return true;
+		}
+		return false;
 	}
 
 	public void addNLSAlignIndex(int index, int align) {

@@ -1,6 +1,6 @@
 // AspectJ
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -464,7 +464,7 @@ public class ExplicitConstructorCall extends Statement implements Invocation {
 						scope.problemReporter().missingTypeInConstructor(this, this.binding);
 					}
 				}
-				if (isMethodUseDeprecated(this.binding, scope, this.accessMode != ExplicitConstructorCall.ImplicitSuper)) {
+				if (isMethodUseDeprecated(this.binding, scope, this.accessMode != ExplicitConstructorCall.ImplicitSuper, this)) {
 					scope.problemReporter().deprecatedMethod(this.binding, this);
 				}
 				if (checkInvocationArguments(scope, null, receiverType, this.binding, this.arguments, argumentTypes, argsContainCast, this)) {

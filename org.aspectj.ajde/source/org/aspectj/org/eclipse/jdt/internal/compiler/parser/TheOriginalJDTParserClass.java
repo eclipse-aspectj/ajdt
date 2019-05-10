@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -7,7 +7,7 @@
  * https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Palo Alto Research Center, Incorporated - AspectJ adaptation
@@ -43,6 +43,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
+import java.util.Stack;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.core.compiler.InvalidInputException;
@@ -53,12 +54,14 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.ConstantPool;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
+import org.aspectj.org.eclipse.jdt.internal.compiler.impl.IrritantSet;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.ReferenceContext;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Binding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BlockScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ClassScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ExtraCompilerModifiers;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodScope;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeIds;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.diagnose.DiagnoseParser;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.AbortCompilation;
@@ -909,7 +912,7 @@ public class TheOriginalJDTParserClass implements TerminalTokens, ParserBasicInf
 	protected int[] nestedMethod; //the ptr is nestedType
 	protected int forStartPosition = 0;
 
-	protected int nestedType, dimensions;
+	protected int nestedType, dimensions, switchNestingLevel;
 	ASTNode [] noAstNodes = new ASTNode[AstStackIncrement];
 
 	Expression [] noExpressions = new Expression[ExpressionStackIncrement];
@@ -957,6 +960,8 @@ protected int valueLambdaNestDepth = -1;
 protected /*private*/ int stateStackLengthStack[] = new int[0]; // AspectJ Extension: made protected
 protected boolean parsingJava8Plus;
 protected boolean parsingJava9Plus;
+protected boolean parsingJava12Plus;
+protected boolean parsingJava11Plus;
 protected int unstackedAct = ERROR_ACTION;
 private boolean haltOnSyntaxError = false;
 private boolean tolerateDefaultClassMethods = false;
@@ -975,6 +980,8 @@ public TheOriginalJDTParserClass(ProblemReporter problemReporter, boolean optimi
 	initializeScanner();
 	this.parsingJava8Plus = this.options.sourceLevel >= ClassFileConstants.JDK1_8;
 	this.parsingJava9Plus = this.options.sourceLevel >= ClassFileConstants.JDK9;
+	this.parsingJava12Plus = this.options.sourceLevel >= ClassFileConstants.JDK12;
+	this.parsingJava11Plus = this.options.sourceLevel >= ClassFileConstants.JDK11;
 	this.astLengthStack = new int[50];
 	this.expressionLengthStack = new int[30];
 	this.typeAnnotationLengthStack = new int[30];
@@ -1147,7 +1154,7 @@ public RecoveredElement buildInitialRecoveryState(){
 				LocalDeclaration statement = (LocalDeclaration) node;
 				element = element.add(statement, 0);
 				this.lastCheckPoint = statement.sourceEnd + 1;
-			} else if(node instanceof Expression) {
+			} else if(node instanceof Expression &&  ((Expression) node).isTrulyExpression()) {
 				if(node instanceof Assignment ||
 						node instanceof PrefixExpression ||
 						node instanceof PostfixExpression ||
@@ -2214,14 +2221,48 @@ protected void consumeBlockStatements() {
 	concatNodeLists();
 }
 protected void consumeCaseLabel() {
-	// SwitchLabel ::= 'case' ConstantExpression ':'
-	this.expressionLengthPtr--;
-	Expression expression = this.expressionStack[this.expressionPtr--];
-	CaseStatement caseStatement = new CaseStatement(expression, expression.sourceEnd, this.intStack[this.intPtr--]);
+//	// SwitchLabel ::= 'case' ConstantExpression ':'
+//	this.expressionLengthPtr--;
+//	Expression expression = this.expressionStack[this.expressionPtr--];
+//	CaseStatement caseStatement = new CaseStatement(expression, expression.sourceEnd, this.intStack[this.intPtr--]);
+//	// Look for $fall-through$ tag in leading comment for case statement
+//	if (hasLeadingTagComment(FALL_THROUGH_TAG, caseStatement.sourceStart)) {
+//		caseStatement.bits |= ASTNode.DocumentedFallthrough;
+//	}
+//	pushOnAstStack(caseStatement);
+	Expression[] constantExpressions = null;
+	int length = 0;
+	if ((length = this.expressionLengthStack[this.expressionLengthPtr--]) != 0) {
+		this.expressionPtr -= length;
+		System.arraycopy(
+			this.expressionStack,
+			this.expressionPtr + 1,
+			constantExpressions = new Expression[length],
+			0,
+			length);
+	} else {
+		// TODO : ERROR
+	}
+	CaseStatement caseStatement = new CaseStatement(constantExpressions[0], constantExpressions[length - 1].sourceEnd, this.intStack[this.intPtr--]);
+	if (constantExpressions.length > 1) {
+		if (this.parsingJava12Plus) {
+			if (this.options.enablePreviewFeatures) {
+				if (this.options.isAnyEnabled(IrritantSet.PREVIEW) && constantExpressions.length > 1) {
+					problemReporter().previewFeatureUsed(caseStatement.sourceStart, caseStatement.sourceEnd);
+				}
+			} else {
+				problemReporter().previewFeatureNotEnabled(caseStatement.sourceStart, caseStatement.sourceEnd, "Multi constant case"); //$NON-NLS-1$
+			}
+		} else {
+			problemReporter().previewFeatureNotSupported(caseStatement.sourceStart, caseStatement.sourceEnd, "Multi constant case", CompilerOptions.VERSION_12); //$NON-NLS-1$
+		}
+	}
+	caseStatement.constantExpressions = constantExpressions;
 	// Look for $fall-through$ tag in leading comment for case statement
 	if (hasLeadingTagComment(FALL_THROUGH_TAG, caseStatement.sourceStart)) {
 		caseStatement.bits |= ASTNode.DocumentedFallthrough;
 	}
+
 	pushOnAstStack(caseStatement);
 }
 protected void consumeCastExpressionLL1() {
@@ -6520,6 +6561,31 @@ protected void consumeLambdaHeader() {
 		this.currentElement.lambdaNestLevel++;
 	}
 }
+private void setArgumentsTypeVar(LambdaExpression lexp) {
+	Argument[] args =  lexp.arguments;
+	if (!this.parsingJava11Plus || args == null || args.length == 0) {
+		lexp.argumentsTypeVar = false;
+		return;
+	}
+
+	boolean isVar = false, mixReported = false;
+	for (int i = 0, l = args.length; i < l; ++i) {
+		Argument arg = args[i];
+		TypeReference type = arg.type;
+		char[][] typeName = type != null ? type.getTypeName() : null;
+		boolean prev = isVar;
+		isVar = typeName != null && typeName.length == 1 &&
+				CharOperation.equals(typeName[0], TypeConstants.VAR);
+		lexp.argumentsTypeVar |= isVar;
+		if (i > 0 && prev != isVar && !mixReported) { // report only once per list
+			this.problemReporter().varCannotBeMixedWithNonVarParams(isVar ? arg : args[i - 1]);
+			mixReported = true;
+		}
+		if (isVar && (type.dimensions() > 0 || type.extraDimensions() > 0)) {
+			this.problemReporter().varLocalCannotBeArray(arg);
+		}
+	}
+}
 protected void consumeLambdaExpression() {
 	
 	// LambdaExpression ::= LambdaHeader LambdaBody
@@ -6542,13 +6608,14 @@ protected void consumeLambdaExpression() {
 	lexp.setBody(body);
 	lexp.sourceEnd = body.sourceEnd;
 	
-	if (body instanceof Expression) {
+	if (body instanceof Expression &&  ((Expression) body).isTrulyExpression()) {
 		Expression expression = (Expression) body;
 		expression.statementEnd = body.sourceEnd;
 	}
 	if (!this.parsingJava8Plus) {
 		problemReporter().lambdaExpressionsNotBelow18(lexp);
 	}
+	setArgumentsTypeVar(lexp);
 	pushOnExpressionStack(lexp);
 	if (this.currentElement != null) {
 		this.lastCheckPoint = body.sourceEnd + 1;
@@ -6692,6 +6759,9 @@ protected void consumeReferenceExpressionTypeForm(boolean isPrimitive) { // actu
 		referenceExpression.initialize(this.compilationUnit.compilationResult, getTypeReference(dimension), typeArguments, selector, sourceEnd);
 	} else {
 		referenceExpression.initialize(this.compilationUnit.compilationResult, getUnspecifiedReference(), typeArguments, selector, sourceEnd);
+	}
+	if (CharOperation.equals(selector, TypeConstants.INIT) && referenceExpression.lhs instanceof NameReference) {
+		referenceExpression.lhs.bits &= ~Binding.VARIABLE;
 	}
 	consumeReferenceExpression(referenceExpression);
 }
@@ -6952,12 +7022,21 @@ protected void consumeStatementBreakWithLabel() {
 	// BreakStatement ::= 'break' Identifier ';'
 	// break pushs a position on this.intStack in case there is no label
 
-	pushOnAstStack(
-		new BreakStatement(
-			this.identifierStack[this.identifierPtr--],
-			this.intStack[this.intPtr--],
-			this.endStatementPosition));
-	this.identifierLengthPtr--;
+	// add the compliance check
+		if (this.expressionLengthStack[this.expressionLengthPtr--] != 0) {
+			Expression expr = this.expressionStack[this.expressionPtr--];
+			char[] labelOrExpr = expr instanceof Literal ?
+					((Literal) expr).source() : expr instanceof SingleNameReference ? ((SingleNameReference) expr).token : null;
+			BreakStatement breakStatement = new BreakStatement(
+					labelOrExpr,
+					this.intStack[this.intPtr--],
+					this.endStatementPosition);
+			pushOnAstStack(breakStatement);
+			breakStatement.expression = expr; // need to figure out later whether this is a label or an expression.
+			if (expr instanceof SingleNameReference) {
+				((SingleNameReference) expr).isLabel = true;
+			}
+		}
 }
 protected void consumeStatementCatch() {
 	// CatchClause ::= 'catch' '(' FormalParameter ')'    Block
@@ -7135,25 +7214,26 @@ protected void consumeStatementReturn() {
 		pushOnAstStack(new ReturnStatement(null, this.intStack[this.intPtr--], this.endStatementPosition));
 	}
 }
-protected void consumeStatementSwitch() {
-	// SwitchStatement ::= 'switch' OpenBlock '(' Expression ')' SwitchBlock
-
+private void createSwitchStatementOrExpression(boolean isStmt) {
+	
 	//OpenBlock just makes the semantic action blockStart()
 	//the block is inlined but a scope need to be created
 	//if some declaration occurs.
+	this.nestedType--;
+	this.switchNestingLevel--;
 
 	int length;
-	SwitchStatement switchStatement = new SwitchStatement();
+	SwitchStatement switchStatement = isStmt ? new SwitchStatement() : new SwitchExpression();
 	this.expressionLengthPtr--;
 	switchStatement.expression = this.expressionStack[this.expressionPtr--];
 	if ((length = this.astLengthStack[this.astLengthPtr--]) != 0) {
 		this.astPtr -= length;
 		System.arraycopy(
-			this.astStack,
-			this.astPtr + 1,
-			switchStatement.statements = new Statement[length],
-			0,
-			length);
+				this.astStack,
+				this.astPtr + 1,
+				switchStatement.statements = new Statement[length],
+				0,
+				length);
 	}
 	switchStatement.explicitDeclarations = this.realBlockStack[this.realBlockPtr--];
 	pushOnAstStack(switchStatement);
@@ -7162,7 +7242,11 @@ protected void consumeStatementSwitch() {
 	switchStatement.sourceEnd = this.endStatementPosition;
 	if (length == 0 && !containsComment(switchStatement.blockStart, switchStatement.sourceEnd)) {
 		switchStatement.bits |= ASTNode.UndocumentedEmptyBlock;
-	}
+	}	
+}
+protected void consumeStatementSwitch() {
+	// SwitchStatement ::= 'switch' OpenBlock '(' Expression ')' SwitchBlock
+	createSwitchStatementOrExpression(true);
 }
 protected void consumeStatementSynchronized() {
 	// SynchronizedStatement ::= OnlySynchronized '(' Expression ')' Block
@@ -7359,6 +7443,7 @@ protected void consumeStaticOnly() {
 protected void consumeSwitchBlock() {
 	// SwitchBlock ::= '{' SwitchBlockStatements SwitchLabels '}'
 	concatNodeLists();
+	
 }
 protected void consumeSwitchBlockStatement() {
 	// SwitchBlockStatement ::= SwitchLabels BlockStatements
@@ -7372,6 +7457,195 @@ protected void consumeSwitchLabels() {
 	// SwitchLabels ::= SwitchLabels SwitchLabel
 	optimizedConcatNodeLists();
 }
+protected void consumeSwitchLabelCaseLhs() {
+//	System.out.println("consumeSwitchLabelCaseLhs");
+}
+protected void consumeCaseLabelExpr() {
+//	SwitchLabelExpr ::= SwitchLabelCaseLhs BeginCaseExpr '->'
+	consumeCaseLabel();
+	CaseStatement caseStatement = (CaseStatement) this.astStack[this.astPtr];
+	if (!this.parsingJava12Plus) {
+		problemReporter().previewFeatureNotSupported(caseStatement.sourceStart, caseStatement.sourceEnd, "Case Labels with '->'", CompilerOptions.VERSION_12); //$NON-NLS-1$
+	} else if (!this.options.enablePreviewFeatures){
+		problemReporter().previewFeatureNotEnabled(caseStatement.sourceStart, caseStatement.sourceEnd, "Case Labels with '->'"); //$NON-NLS-1$
+	} else {
+		if (this.options.isAnyEnabled(IrritantSet.PREVIEW)) {
+			problemReporter().previewFeatureUsed(caseStatement.sourceStart, caseStatement.sourceEnd);
+	}
+	}
+	caseStatement.isExpr = true;
+	}
+protected void consumeDefaultLabelExpr() {
+//	SwitchLabelDefaultExpr ::= 'default' '->'
+	consumeDefaultLabel();
+	CaseStatement defaultStatement = (CaseStatement) this.astStack[this.astPtr];
+	if (!this.parsingJava12Plus) {
+		problemReporter().previewFeatureNotSupported(defaultStatement.sourceStart, defaultStatement.sourceEnd, "Case Labels with '->'", CompilerOptions.VERSION_12); //$NON-NLS-1$
+	} else if (!this.options.enablePreviewFeatures){
+		problemReporter().previewFeatureNotEnabled(defaultStatement.sourceStart, defaultStatement.sourceEnd, "Case Labels with '->'"); //$NON-NLS-1$
+	} else {
+		if (this.options.isAnyEnabled(IrritantSet.PREVIEW)) {
+			problemReporter().previewFeatureUsed(defaultStatement.sourceStart, defaultStatement.sourceEnd);
+}
+	}
+	defaultStatement.isExpr = true;
+}
+/* package */ void collectResultExpressions(SwitchExpression s) {
+	if (s.resultExpressions != null)
+		return; // already calculated.
+
+	class ResultExpressionsCollector extends ASTVisitor {
+		Stack<SwitchExpression> targetSwitchExpressions;
+		public ResultExpressionsCollector(SwitchExpression se) {
+			if (this.targetSwitchExpressions == null)
+				this.targetSwitchExpressions = new Stack<>();
+			this.targetSwitchExpressions.push(se);
+	}
+		@Override
+		public boolean visit(SwitchExpression switchExpression, BlockScope blockScope) {
+			if (switchExpression.resultExpressions == null)
+				switchExpression.resultExpressions = new ArrayList<>(0);
+			this.targetSwitchExpressions.push(switchExpression);
+			return false;
+}
+		@Override
+		public void endVisit(SwitchExpression switchExpression,	BlockScope blockScope) {
+			this.targetSwitchExpressions.pop();
+}
+		@Override
+		public boolean visit(BreakStatement breakStatement, BlockScope blockScope) {
+			SwitchExpression targetSwitchExpression = this.targetSwitchExpressions.peek();
+			if (breakStatement.expression != null) {
+				targetSwitchExpression.resultExpressions.add(breakStatement.expression);
+				breakStatement.switchExpression = this.targetSwitchExpressions.peek();
+				breakStatement.label = null; // not a label, but an expression
+				if (breakStatement.expression instanceof SingleNameReference) {
+					((SingleNameReference) breakStatement.expression).isLabel = false;
+	}
+		} else {
+				// flag an error while resolving
+				breakStatement.switchExpression = targetSwitchExpression;
+			}
+			return true;
+		}
+		@Override
+		public boolean visit(DoStatement stmt, BlockScope blockScope) {
+			return false;
+	}
+		@Override
+		public boolean visit(ForStatement stmt, BlockScope blockScope) {
+			return false;
+		}
+		@Override
+		public boolean visit(ForeachStatement stmt, BlockScope blockScope) {
+			return false;
+				}
+		@Override
+		public boolean visit(SwitchStatement stmt, BlockScope blockScope) {
+			return false;
+			}
+		@Override
+		public boolean visit(TypeDeclaration stmt, BlockScope blockScope) {
+			return false;
+		}
+		@Override
+		public boolean visit(WhileStatement stmt, BlockScope blockScope) {
+			return false;
+	}
+		@Override
+		public boolean visit(CaseStatement caseStatement, BlockScope blockScope) {
+			return true; // do nothing by default, keep traversing
+}
+}
+	s.resultExpressions = new ArrayList<>(0); // indicates processed
+	int l = s.statements == null ? 0 : s.statements.length;
+	for (int i = 0; i < l; ++i) {
+		Statement stmt = s.statements[i];
+		if (stmt instanceof CaseStatement) {
+			CaseStatement caseStatement = (CaseStatement) stmt;
+			if (!caseStatement.isExpr) continue;
+			stmt = s.statements[++i];
+			if (stmt instanceof Expression && ((Expression) stmt).isTrulyExpression()) {
+				s.resultExpressions.add((Expression) stmt);
+				continue;
+			} else if (stmt instanceof ThrowStatement) {
+				// TODO: Throw Expression Processing. Anything to be done here for resolve?
+				continue;
+			}
+		}
+		// break statement and block statement of SwitchLabelRule or block statement of ':'
+		ResultExpressionsCollector reCollector = new ResultExpressionsCollector(s);
+		stmt.traverse(reCollector, null);
+	}
+}
+protected void consumeSwitchExpression() {
+// SwitchExpression ::= 'switch' '(' Expression ')' OpenBlock SwitchExpressionBlock
+	createSwitchStatementOrExpression(false);
+	if (this.astLengthStack[this.astLengthPtr--] != 0) {
+		SwitchExpression s = (SwitchExpression) this.astStack[this.astPtr--];
+
+		if (!this.parsingJava12Plus) {
+			problemReporter().previewFeatureNotSupported(s.sourceStart, s.sourceEnd, "Switch Expressions", CompilerOptions.VERSION_12); //$NON-NLS-1$
+		} else if (!this.options.enablePreviewFeatures) {
+			problemReporter().previewFeatureNotEnabled(s.sourceStart, s.sourceEnd, "Switch Expressions"); //$NON-NLS-1$
+	} else {
+			if (this.options.isAnyEnabled(IrritantSet.PREVIEW)) {
+				problemReporter().previewFeatureUsed(s.sourceStart, s.sourceEnd);
+	}
+	}
+		collectResultExpressions(s);
+		pushOnExpressionStack(s);
+	}
+}
+protected void consumeSwitchExprThrowDefaultArm() {
+//	SwitchExprThrowDefaultArm ::= SwitchLabelDefaultExpr Expression ';'
+	consumeStatementThrow();
+//	pushSwitchLabeledRule(SwitchLabeledRule.RULE_KIND.DEFAULT_THROW);
+	}
+protected void consumeConstantExpression() {
+	// do nothing for now.
+}
+protected void consumeConstantExpressions() {
+	concatExpressionLists();
+	}
+protected void consumeSwitchLabeledRules() {
+	concatNodeLists();
+}
+protected void consumeSwitchLabeledRule() {
+//	SwitchLabeledRule ::= SwitchLabeledExpression
+//	SwitchLabeledRule ::= SwitchLabeledBlock
+//	SwitchLabeledRule ::= SwitchLabeledThrowStatement
+//	concatNodeLists();
+
+	// do nothing explicit here
+	}
+protected void consumeSwitchLabeledRuleToBlockStatement() {
+	// do nothing
+}
+protected void consumeSwitchLabeledExpression() {
+	consumeExpressionStatement();
+	Expression expr = (Expression) this.astStack[this.astPtr];
+	BreakStatement breakStatement = new BreakStatement(
+			null,
+			expr.sourceStart,
+			this.endStatementPosition);
+	breakStatement.isImplicit = true;
+	breakStatement.expression = expr;
+	this.astStack[this.astPtr] = breakStatement;
+	concatNodeLists();
+}
+protected void consumeSwitchLabeledBlock() {
+	concatNodeLists();
+}
+protected void consumeSwitchLabeledThrowStatement() {
+	// TODO: Semicolon not there - so we call this early
+	consumeStatementThrow(); 
+	concatNodeLists();
+}
+protected void consumeThrowExpression() {
+	// do nothing
+}
+protected boolean caseFlagSet = false;
 protected void consumeToken(int type) {
 	/* remember the last consumed value */
 	/* try to minimize the number of build values */
@@ -7395,10 +7669,15 @@ protected void consumeToken(int type) {
 	//System.out.println(this.scanner.toStringAction(type));
 	switch (type) {
 		case TokenNameARROW:
+			if (!this.caseFlagSet  && this.scanner.lookBack[0] != TokenNamedefault)
 			consumeLambdaHeader();
+			this.caseFlagSet = false;
 			break;
 		case TokenNameCOLON_COLON:
 			this.colonColonStart = this.scanner.currentPosition - 2;
+			break;
+		case TokenNameBeginCaseExpr:
+			this.caseFlagSet = true;
 			break;
 		case TokenNameBeginLambda:
 			flushCommentsDefinedPriorTo(this.scanner.currentPosition);
@@ -7611,7 +7890,6 @@ protected void consumeToken(int type) {
 		case TokenNamethrow :
 		case TokenNamedo :
 		case TokenNameif :
-		case TokenNameswitch :
 		case TokenNametry :
 		case TokenNamewhile :
 		case TokenNamebreak :
@@ -7624,6 +7902,12 @@ protected void consumeToken(int type) {
 		case TokenNameopens:
 		case TokenNameuses:
 		case TokenNameprovides:
+			pushOnIntStack(this.scanner.startPosition);
+			break;
+		case TokenNameswitch :
+			consumeNestedType();
+			++this.switchNestingLevel;
+			this.nestedMethod[this.nestedType] ++;
 			pushOnIntStack(this.scanner.startPosition);
 			break;
 		case TokenNamenew :
@@ -9131,6 +9415,7 @@ public void initialize(boolean parsingCompilationUnit) {
 	this.identifierLengthPtr	= -1;
 	this.intPtr = -1;
 	this.nestedMethod[this.nestedType = 0] = 0; // need to reset for further reuse
+	this.switchNestingLevel = 0;
 	this.variablesCounter[this.nestedType] = 0;
 	this.dimensions = 0 ;
 	this.realBlockPtr = -1;
@@ -10312,6 +10597,7 @@ protected void prepareForBlockStatements() {
 	this.nestedMethod[this.nestedType = 0] = 1;
 	this.variablesCounter[this.nestedType] = 0;
 	this.realBlockStack[this.realBlockPtr = 1] = 0;
+	this.switchNestingLevel = 0;
 }
 /**
  * Returns this parser's problem reporter initialized with its reference context.
@@ -10901,6 +11187,7 @@ protected void resetStacks() {
 	
 	this.nestedMethod[this.nestedType = 0] = 0; // need to reset for further reuse
 	this.variablesCounter[this.nestedType] = 0;
+	this.switchNestingLevel = 0;
 	
 	this.dimensions = 0 ;
 	this.realBlockStack[this.realBlockPtr = 0] = 0;
@@ -11127,6 +11414,7 @@ public void copyState(Parser from) {
 	this.typeAnnotationLengthPtr = parser.typeAnnotationLengthPtr;
 	this.intPtr = parser.intPtr;
 	this.nestedType = parser.nestedType;
+	this.switchNestingLevel = parser.switchNestingLevel;
 	this.realBlockPtr = parser.realBlockPtr;
 	this.valueLambdaNestDepth = parser.valueLambdaNestDepth;
 	

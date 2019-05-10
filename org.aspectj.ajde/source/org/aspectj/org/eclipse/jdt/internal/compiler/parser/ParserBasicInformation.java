@@ -17,24 +17,24 @@ package org.aspectj.org.eclipse.jdt.internal.compiler.parser;
  about the parser such as the number of rules in the grammar, the starting state, etc...*/
 public interface ParserBasicInformation {
 
-	int
+	public final static int
 
-    ERROR_SYMBOL      = 135,
+    ERROR_SYMBOL      = 136,
     MAX_NAME_LENGTH   = 41,
-    NUM_STATES        = 1325,
+    NUM_STATES        = 1339,
 
-    NT_OFFSET         = 135,
-    SCOPE_UBOUND      = 373,
-    SCOPE_SIZE        = 374,
-    LA_STATE_OFFSET   = 19529,
+    NT_OFFSET         = 136,
+    SCOPE_UBOUND      = 380,
+    SCOPE_SIZE        = 381,
+    LA_STATE_OFFSET   = 19756,
     MAX_LA            = 1,
-    NUM_RULES         = 1047,
-    NUM_TERMINALS     = 135,
-    NUM_NON_TERMINALS = 452,
-    NUM_SYMBOLS       = 587,
-    START_STATE       = 1246,
-    EOFT_SYMBOL       = 70,
-    EOLT_SYMBOL       = 70,
-    ACCEPT_ACTION     = 19528,
-    ERROR_ACTION      = 19529;
+    NUM_RULES         = 1063,
+    NUM_TERMINALS     = 136,
+    NUM_NON_TERMINALS = 461,
+    NUM_SYMBOLS       = 597,
+    START_STATE       = 1317,
+    EOFT_SYMBOL       = 71,
+    EOLT_SYMBOL       = 71,
+    ACCEPT_ACTION     = 19755,
+    ERROR_ACTION      = 19756;
 }

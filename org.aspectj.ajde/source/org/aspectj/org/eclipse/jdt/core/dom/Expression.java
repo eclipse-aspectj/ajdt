@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -17,7 +17,6 @@ package org.aspectj.org.eclipse.jdt.core.dom;
 /**
  * Abstract base class of AST nodes that represent expressions.
  * There are several kinds of expressions.
- * <p>
  * <pre>
  * Expression:
  *    {@link Annotation},
@@ -48,12 +47,12 @@ package org.aspectj.org.eclipse.jdt.core.dom;
  *    {@link SuperFieldAccess},
  *    {@link SuperMethodInvocation},
  *    {@link SuperMethodReference},
+ *    {@link SwitchExpression},
  *    {@link ThisExpression},
  *    {@link TypeLiteral},
  *    {@link TypeMethodReference},
  *    {@link VariableDeclarationExpression}
  * </pre>
- * </p>
  *
  * @since 2.0
  */

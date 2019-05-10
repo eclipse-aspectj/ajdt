@@ -203,7 +203,8 @@ public class CompilerOptions {
 	public static final String OPTION_ReportAPILeak = "org.eclipse.jdt.core.compiler.problem.APILeak"; //$NON-NLS-1$
 	public static final String OPTION_ReportUnstableAutoModuleName = "org.eclipse.jdt.core.compiler.problem.unstableAutoModuleName";   //$NON-NLS-1$
 
-	public static final String OPTION_EnablePreviews = "org.eclipse.jdt.core.compiler.problem.EnablePreviews"; //$NON-NLS-1$
+	public static final String OPTION_EnablePreviews = "org.eclipse.jdt.core.compiler.problem.enablePreviewFeatures"; //$NON-NLS-1$
+	public static final String OPTION_ReportPreviewFeatures = "org.eclipse.jdt.core.compiler.problem.reportPreviewFeatures"; //$NON-NLS-1$
 
 	/**
 	 * Possible values for configurable options
@@ -225,6 +226,11 @@ public class CompilerOptions {
 	public static final String VERSION_9 = "9"; //$NON-NLS-1$
 	public static final String VERSION_10 = "10"; //$NON-NLS-1$
 	public static final String VERSION_11 = "11"; //$NON-NLS-1$
+	public static final String VERSION_12 = "12"; //$NON-NLS-1$
+	/*
+	 * Note: Whenever a new version is added, make sure getLatestVersion()
+	 * is updated with it.
+	 */
 	public static final String ERROR = "error"; //$NON-NLS-1$
 	public static final String WARNING = "warning"; //$NON-NLS-1$
 	public static final String INFO = "info"; //$NON-NLS-1$
@@ -334,8 +340,7 @@ public class CompilerOptions {
 	public static final int UsingTerminallyDeprecatedAPI = IrritantSet.GROUP2 | ASTNode.Bit24;
 	public static final int APILeak = IrritantSet.GROUP2 | ASTNode.Bit25;
 	public static final int UnstableAutoModuleName = IrritantSet.GROUP2 | ASTNode.Bit26;
-	// Dummy feature, but
-	//public static final int DummyPreviewFeatureWarning = IrritantSet.GROUP2 | ASTNode.Bit27;
+	public static final int PreviewFeatureUsed = IrritantSet.GROUP2 | ASTNode.Bit27;
 
 	// AspectJ Extension
 	// Not sure we need this anymore...
@@ -592,6 +597,12 @@ public class CompilerOptions {
 	}
 
 	/**
+	 * Return the latest Java language version supported by the Eclipse compiler
+	 */
+	public static String getLatestVersion() {
+		return VERSION_12;
+	}
+	/**
 	 * Return the most specific option key controlling this irritant. Note that in some case, some irritant is controlled by
 	 * other master options (e.g. javadoc, deprecation, etc.).
 	 * This information is intended for grouping purpose (several problems governed by a rule)
@@ -767,6 +778,8 @@ public class CompilerOptions {
 				return OPTION_ReportAPILeak;
 			case UnstableAutoModuleName:
 				return OPTION_ReportUnstableAutoModuleName;
+			case PreviewFeatureUsed:
+				return OPTION_ReportPreviewFeatures;
 		}
 		return null;
 	}
@@ -817,8 +830,9 @@ public class CompilerOptions {
 			default:
 				if(major > ClassFileConstants.MAJOR_VERSION_10) {
 					return "" + (major - ClassFileConstants.MAJOR_VERSION_0); //$NON-NLS-1$
-			}
-			return Util.EMPTY_STRING; // unknown version
+				} 
+				return  Util.EMPTY_STRING; // unknown version
+				
 		}
 		return Util.EMPTY_STRING; // unknown version
 	}
@@ -834,6 +848,9 @@ public class CompilerOptions {
 		return 0;
 	}
 	public static long versionToJdkLevel(String versionID) {
+		return versionToJdkLevel(versionID, true);
+	}
+	public static long versionToJdkLevel(String versionID, boolean supportUnreleased) {
 		String version = versionID;
 		// verification is optimized for all versions with same length and same "1." prefix
 		if (version != null && version.length() > 0) {
@@ -863,16 +880,19 @@ public class CompilerOptions {
 					int index = version.indexOf('.');
 					if (index != -1) {
 						version = version.substring(0, index);
-						} else {
+					} else {
 						index = version.indexOf('-');
 						if (index != -1)
 							version = version.substring(0, index);
 					}
 					int major = Integer.parseInt(version) + ClassFileConstants.MAJOR_VERSION_0;
-					if (major <= ClassFileConstants.MAJOR_LATEST_VERSION) {
-						long jdkLevel = ((long) major << 16) + ClassFileConstants.MINOR_VERSION_0;
-							return jdkLevel;
-						}
+					if (major > ClassFileConstants.MAJOR_LATEST_VERSION) {
+						if (supportUnreleased)
+							major = ClassFileConstants.MAJOR_LATEST_VERSION;
+						else
+							return 0; // unknown
+					}
+					return ((long) major << 16) + ClassFileConstants.MINOR_VERSION_0;
 				} catch (NumberFormatException e) {
 					// do nothing and return 0 at the end
 				}
@@ -1000,6 +1020,7 @@ public class CompilerOptions {
 			OPTION_ReportUnlikelyCollectionMethodArgumentType,
 			OPTION_ReportUnlikelyEqualsArgumentType,
 			OPTION_ReportAPILeak,
+			OPTION_ReportPreviewFeatures
 		};
 		return result;
 	}
@@ -1101,8 +1122,8 @@ public class CompilerOptions {
 				return "exports"; //$NON-NLS-1$
 			case UnstableAutoModuleName:
 				return "module"; //$NON-NLS-1$
-			//case DummyPreviewFeatureWarning:
-			//	return "preview"; //$NON-NLS-1$
+			case PreviewFeatureUsed:
+				return "preview"; //$NON-NLS-1$
 		}
 		return null;
 	}
@@ -1353,6 +1374,7 @@ public class CompilerOptions {
 		optionsMap.put(OPTION_ReportAPILeak, getSeverityString(APILeak));
 		optionsMap.put(OPTION_ReportUnstableAutoModuleName, getSeverityString(UnstableAutoModuleName));
 		optionsMap.put(OPTION_EnablePreviews, this.enablePreviewFeatures ? ENABLED : DISABLED);
+		optionsMap.put(OPTION_ReportPreviewFeatures, getSeverityString(PreviewFeatureUsed));
 		return optionsMap;
 	}
 
@@ -2076,6 +2098,8 @@ public class CompilerOptions {
 				this.enablePreviewFeatures = false;
 			}
 		}
+		if ((optionValue = optionsMap.get(OPTION_ReportPreviewFeatures)) != null) 
+			updateSeverity(PreviewFeatureUsed, optionValue);
 	}
 
 	private String[] stringToNameList(String optionValue) {

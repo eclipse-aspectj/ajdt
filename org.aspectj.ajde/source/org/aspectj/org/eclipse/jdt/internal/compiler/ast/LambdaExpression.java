@@ -1,6 +1,6 @@
 // AspectJ
 /*******************************************************************************
- * Copyright (c) 2012, 2018 IBM Corporation and others.
+ * Copyright (c) 2012, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -137,6 +137,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 	protected Expression [] resultExpressions = NO_EXPRESSIONS;
 	public InferenceContext18 inferenceContext; // when performing tentative resolve keep a back reference to the driving context
 	private Map<Integer/*sourceStart*/, LocalTypeBinding> localTypes; // support look-up of a local type from this lambda copy
+	public boolean argumentsTypeVar = false;
 
 	
 	public LambdaExpression(CompilationResult compilationResult, boolean assistNode, boolean requiresGenericSignature) {
@@ -248,7 +249,6 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 	public TypeBinding resolveType(BlockScope blockScope, boolean skipKosherCheck) {
 		
 		boolean argumentsTypeElided = argumentsTypeElided();
-		boolean argumentsTypeVar = argumentsTypeVar(blockScope);
 		int argumentsLength = this.arguments == null ? 0 : this.arguments.length;
 		
 		if (this.constant != Constant.NotAConstant) {
@@ -257,7 +257,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 			if (this.original == this)
 				this.ordinal = recordFunctionalType(blockScope);
 			
-			if (!argumentsTypeElided && !argumentsTypeVar) {
+			if (!argumentsTypeElided) {
 				for (int i = 0; i < argumentsLength; i++)
 					this.argumentTypes[i] = this.arguments[i].type.resolveType(blockScope, true /* check bounds*/);
 			}
@@ -300,7 +300,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 			int parametersLength = this.descriptor.parameters.length;
 			if (parametersLength != argumentsLength) {
             	this.scope.problemReporter().lambdaSignatureMismatched(this);
-            	if (argumentsTypeElided || argumentsTypeVar || this.original != this) // no interest in continuing to error check copy.
+            	if (argumentsTypeElided || this.original != this) // no interest in continuing to error check copy.
             		return this.resolvedType = null; // FUBAR, bail out ...
             	else {
             		this.resolvedType = null; // continue to type check.
@@ -325,7 +325,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 			
 			TypeBinding argumentType;
 			final TypeBinding expectedParameterType = haveDescriptor && i < this.descriptor.parameters.length ? this.descriptor.parameters[i] : null;
-			argumentType = (argumentsTypeElided || argumentsTypeVar) ? expectedParameterType : this.argumentTypes[i];
+			argumentType = argumentsTypeElided ? expectedParameterType : this.argumentTypes[i];
 			if (argumentType == null) {
 				argumentsHaveErrors = true;
 			} else if (argumentType == TypeBinding.VOID) {
@@ -340,7 +340,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 				}
 			}
 		}
-		if (!argumentsTypeElided && !argumentsTypeVar && !argumentsHaveErrors) {
+		if (!argumentsTypeElided && !argumentsHaveErrors) {
 			ReferenceBinding groundType = null;
 			ReferenceBinding expectedSAMType = null;
 			if (this.expectedType instanceof IntersectionTypeBinding18)
@@ -376,7 +376,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 			Argument argument = this.arguments[i];
 			TypeBinding argumentType;
 			final TypeBinding expectedParameterType = haveDescriptor && i < this.descriptor.parameters.length ? this.descriptor.parameters[i] : null;
-			argumentType = (argumentsTypeElided || argumentsTypeVar) ? expectedParameterType : this.argumentTypes[i];
+			argumentType = argumentsTypeElided ? expectedParameterType : this.argumentTypes[i];
 			expectedParameterTypes[i] = expectedParameterType;
 			if (argumentType != null && argumentType != TypeBinding.VOID) {
 				if (haveDescriptor && expectedParameterType != null && argumentType.isValidBinding() && TypeBinding.notEquals(argumentType, expectedParameterType)) {
@@ -407,7 +407,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 				}
 			}
 		}
-		if (argumentsTypeVar) {
+		if (this.argumentsTypeVar) {
 			for (int i = 0; i < argumentsLength; ++i) {
 				this.arguments[i].type.resolvedType = expectedParameterTypes[i];
 			}
@@ -419,7 +419,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 				this.binding.setParameterAnnotations(parameterAnnotations);
 		}
 	
-		if (!argumentsTypeElided && !argumentsTypeVar && !argumentsHaveErrors && this.binding.isVarargs()) {
+		if (!argumentsTypeElided && !argumentsHaveErrors && this.binding.isVarargs()) {
 			if (!this.binding.parameters[this.binding.parameters.length - 1].isReifiable()) {
 				this.scope.problemReporter().possibleHeapPollutionFromVararg(this.arguments[this.arguments.length - 1]);
 			}
@@ -449,7 +449,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 		} // TODO (stephan): else? (can that happen?)
 
 		if (haveDescriptor && !argumentsHaveErrors && blockScope.compilerOptions().isAnnotationBasedNullAnalysisEnabled) {
-			if (!argumentsTypeElided && !argumentsTypeVar) {
+			if (!argumentsTypeElided) {
 				AbstractMethodDeclaration.createArgumentBindings(this.arguments, this.binding, this.scope); // includes validation
 				// no application of null-ness default, hence also no warning regarding redundant null annotation
 				mergeParameterNullAnnotations(blockScope);
@@ -459,7 +459,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 
 		this.binding.modifiers &= ~ExtraCompilerModifiers.AccUnresolved;
 		
-		if (this.body instanceof Expression) {
+		if (this.body instanceof Expression && ((Expression) this.body).isTrulyExpression()) {
 			Expression expression = (Expression) this.body;
 			new ReturnStatement(expression, expression.sourceStart, expression.sourceEnd, true).resolve(this.scope); // :-) ;-)
 			if (expression.resolvedType == TypeBinding.VOID && !expression.statementExpression())
@@ -492,6 +492,8 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 		if (expected.isParameterizedType() && argument.isParameterizedType()) {
 			TypeBinding[] expectedArgs = ((ParameterizedTypeBinding)expected).typeArguments();
 			TypeBinding[] args = ((ParameterizedTypeBinding)argument).typeArguments();
+			if (args.length != expectedArgs.length)
+				return false;
 			for (int j = 0; j < args.length; j++) {
 				if (TypeBinding.notEquals(expectedArgs[j], args[j])) {
 					if (expectedArgs[j].isWildcard() && args[j].isUnboundWildcard()) {
@@ -544,28 +546,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 
 	@Override
 	public boolean argumentsTypeElided() {
-		return this.arguments.length > 0 && this.arguments[0].hasElidedType();
-	}
-
-	private boolean argumentsTypeVar(BlockScope blockScope) {
-		if (blockScope.compilerOptions().complianceLevel < ClassFileConstants.getComplianceLevelForJavaVersion(ClassFileConstants.MAJOR_VERSION_11)) return false;
-		boolean retval = false, isVar = false, mixReported = false;
-		Argument[] args =  this.arguments;
-		for (int i = 0, l = args.length; i < l; ++i) {
-			Argument arg = args[i];
-			TypeReference type = arg.type;
-			if (type == null) continue;
-			boolean prev = isVar;
-			retval |= isVar = type.isTypeNameVar(blockScope);
-			if (i > 0 && prev != isVar && !mixReported) { // report only once per list
-				blockScope.problemReporter().varCannotBeMixedWithNonVarParams(isVar ? arg : args[i - 1]);
-				mixReported = true;
-			}
-			if (isVar && (type.dimensions() > 0 || type.extraDimensions() > 0)) {
-				blockScope.problemReporter().varLocalCannotBeArray(arg);
-			}
-		}
-		return retval;
+		return (this.arguments.length > 0 && this.arguments[0].hasElidedType()) || this.argumentsTypeVar;
 	}
 
 	private void analyzeExceptions() {
@@ -728,7 +709,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 		if (!super.isPertinentToApplicability(targetType, method))
 			return false;
 		
-		if (this.body instanceof Expression) {
+		if (this.body instanceof Expression && ((Expression) this.body).isTrulyExpression()) {
 			if (!((Expression) this.body).isPertinentToApplicability(targetType, method))
 				return false;
 		} else {
@@ -854,7 +835,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 		    	return false;
 		    }
 		}
-		if (this.body instanceof Expression) {
+		if (this.body instanceof Expression && ((Expression) this.body).isTrulyExpression()) {
 			// When completion is still in progress, it is not possible to ask if the expression constitutes a statement expression. See https://bugs.eclipse.org/bugs/show_bug.cgi?id=435219
 			this.voidCompatible = this.assistNode ? true : ((Expression) this.body).statementExpression();
 			this.valueCompatible = true; // expression could be of type void - we can't determine that as we are working with unresolved expressions, for potential compatibility it is OK.
@@ -1126,7 +1107,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 	public void returnsExpression(Expression expression, TypeBinding resultType) {
 		if (this.original == this) // Not in overload resolution context. result expressions not relevant.
 			return;
-		if (this.body instanceof Expression) {
+		if (this.body instanceof Expression && ((Expression) this.body).isTrulyExpression()) {
 			this.valueCompatible = resultType != null && resultType.id == TypeIds.T_void ? false : true;
 			this.voidCompatible = this.assistNode ? true : ((Expression) this.body).statementExpression(); // while code is still being written and completed, we can't ask if it is a statement
 			this.resultExpressions = new Expression[] { expression };
@@ -1486,7 +1467,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 					if (((LambdaExpression) lambdaScope2.referenceContext).sourceStart == LambdaExpression.this.sourceStart) {
 						// local type within this lambda needs replacement: 
 						TypeBinding substType = this.localTypes2.get(orgLocal.sourceStart);
-						if (substType != null) {
+						if (substType != null && substType != orgLocal) { //$IDENTITY-COMPARISON$
 							orgLocal.transferConstantPoolNameTo(substType);
 							return substType;
 						}
@@ -1512,10 +1493,11 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 	/**
 	 * Perform substitution with a {@link LocalTypeSubstitutor} on all types mentioned in the given method binding.
 	 */
-	void updateLocalTypesInMethod(MethodBinding method) {
+	boolean updateLocalTypesInMethod(MethodBinding method) {
 		if (this.localTypes == null)
-			return;
+			return false;
 		updateLocalTypesInMethod(method, new LocalTypeSubstitutor(this.localTypes), new NullSubstitution(this.scope.environment()));
+		return true;
 	}
 
 	private void updateLocalTypesInMethod(MethodBinding method, Substitutor substor, Substitution subst) {

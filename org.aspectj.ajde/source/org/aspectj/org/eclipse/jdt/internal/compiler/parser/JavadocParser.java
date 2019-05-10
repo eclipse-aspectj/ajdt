@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -25,6 +25,10 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
  * Parser specialized for decoding javadoc comments
  */
 public class JavadocParser extends AbstractCommentParser {
+	private static final JavadocSingleNameReference[] NO_SINGLE_NAME_REFERENCE = new JavadocSingleNameReference[0];
+	private static final JavadocSingleTypeReference[] NO_SINGLE_TYPE_REFERENCE = new JavadocSingleTypeReference[0];
+	private static final TypeReference[] NO_TYPE_REFERENCE = new TypeReference[0];
+	private static final Expression[] NO_EXPRESSION = new Expression[0];
 
 	// Public fields
 	public Javadoc docComment;
@@ -553,8 +557,18 @@ public class JavadocParser extends AbstractCommentParser {
 					}
 				}
 				break;
+			case 'h':
+				if (length == TAG_HIDDEN_LENGTH && CharOperation.equals(TAG_HIDDEN, tagName, 0, length)) {
+					valid = true;
+					this.tagValue = TAG_HIDDEN_VALUE;
+				}
+				break;
 			case 'i':
-				if (length == TAG_INHERITDOC_LENGTH && CharOperation.equals(TAG_INHERITDOC, tagName, 0, length)) {
+				if (length == TAG_INDEX_LENGTH && CharOperation.equals(TAG_INDEX, tagName, 0, length)) {
+					valid = true;
+					this.tagValue = TAG_INDEX_VALUE;
+					this.tagWaitingForDescription = this.tagValue;
+				} else if (length == TAG_INHERITDOC_LENGTH && CharOperation.equals(TAG_INHERITDOC, tagName, 0, length)) {
 					// https://bugs.eclipse.org/bugs/show_bug.cgi?id=247037, @inheritDoc usage is illegal
 					// outside of few block tags and the main description.
 					switch (this.lastBlockTagValue) {
@@ -604,6 +618,9 @@ public class JavadocParser extends AbstractCommentParser {
 					if (!this.inlineTagStarted) {
 						valid = parseParam();
 					}
+				} else if (length == TAG_PROVIDES_LENGTH && CharOperation.equals(TAG_PROVIDES, tagName, 0, length)) {
+					this.tagValue = TAG_PROVIDES_VALUE;
+					this.tagWaitingForDescription = this.tagValue;
 				}
 				break;
 			case 'r':
@@ -632,7 +649,13 @@ public class JavadocParser extends AbstractCommentParser {
 				} else if (length == TAG_SINCE_LENGTH && CharOperation.equals(TAG_SINCE, tagName, 0, length)) {
 					this.tagValue = TAG_SINCE_VALUE;
 					this.tagWaitingForDescription = this.tagValue;
-				}					
+				} else if (length == TAG_SYSTEM_PROPERTY_LENGTH && CharOperation.equals(TAG_SYSTEM_PROPERTY, tagName, 0, length)) {
+					this.tagValue = TAG_SYSTEM_PROPERTY_VALUE;
+					this.tagWaitingForDescription = this.tagValue;
+				} else if (length == TAG_SUMMARY_LENGTH && CharOperation.equals(TAG_SUMMARY, tagName, 0, length)) {
+					this.tagValue = TAG_SUMMARY_VALUE;
+					this.tagWaitingForDescription = this.tagValue;
+				}
 				break;
 			case 't':
 				if (length == TAG_THROWS_LENGTH && CharOperation.equals(TAG_THROWS, tagName, 0, length)) {
@@ -640,6 +663,12 @@ public class JavadocParser extends AbstractCommentParser {
 					if (!this.inlineTagStarted) {
 						valid = parseThrows();
 					}
+				}
+				break;
+			case 'u':
+				if (length == TAG_USES_LENGTH && CharOperation.equals(TAG_USES, tagName, 0, length)) {
+					this.tagValue = TAG_USES_VALUE;
+					this.tagWaitingForDescription = this.tagValue;
 				}
 				break;
 			case 'v':
@@ -923,12 +952,12 @@ public class JavadocParser extends AbstractCommentParser {
 		for (int i=0; i<=this.astLengthPtr; i++) {
 			sizes[i%ORDERED_TAGS_NUMBER] += this.astLengthStack[i];
 		}
-		this.docComment.seeReferences = new Expression[sizes[SEE_TAG_EXPECTED_ORDER]];
-		this.docComment.exceptionReferences = new TypeReference[sizes[THROWS_TAG_EXPECTED_ORDER]];
+		this.docComment.seeReferences = sizes[SEE_TAG_EXPECTED_ORDER] > 0 ? new Expression[sizes[SEE_TAG_EXPECTED_ORDER]] : NO_EXPRESSION;
+		this.docComment.exceptionReferences = sizes[THROWS_TAG_EXPECTED_ORDER] > 0 ? new TypeReference[sizes[THROWS_TAG_EXPECTED_ORDER]] : NO_TYPE_REFERENCE;
 		int paramRefPtr = sizes[PARAM_TAG_EXPECTED_ORDER];
-		this.docComment.paramReferences = new JavadocSingleNameReference[paramRefPtr];
+		this.docComment.paramReferences = paramRefPtr > 0 ? new JavadocSingleNameReference[paramRefPtr] : NO_SINGLE_NAME_REFERENCE;
 		int paramTypeParamPtr = sizes[PARAM_TAG_EXPECTED_ORDER];
-		this.docComment.paramTypeParameters = new JavadocSingleTypeReference[paramTypeParamPtr];
+		this.docComment.paramTypeParameters = paramTypeParamPtr > 0 ? new JavadocSingleTypeReference[paramTypeParamPtr] : NO_SINGLE_TYPE_REFERENCE;
 
 		// Store nodes in arrays
 		while (this.astLengthPtr >= 0) {

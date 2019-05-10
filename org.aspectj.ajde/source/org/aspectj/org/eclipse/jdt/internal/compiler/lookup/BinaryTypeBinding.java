@@ -1,6 +1,6 @@
 // ASPECTJ
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -471,6 +471,8 @@ void cachePartsFrom(IBinaryType binaryType, boolean needFieldsAndMethods) {
 		}
 		char[] typeSignature = binaryType.getGenericSignature(); // use generic signature even in 1.4
 		this.tagBits |= binaryType.getTagBits();
+		if (this.environment.globalOptions.complianceLevel < ClassFileConstants.JDK1_8)
+			this.tagBits &= ~TagBits.AnnotationForTypeUse; // avoid confusion with semantics that are not supported at 1.7-
 		
 		char[][][] missingTypeNames = binaryType.getMissingTypeNames();
 		SignatureWrapper wrapper = null;
@@ -670,6 +672,9 @@ private int getNullDefaultFrom(IBinaryAnnotation[] declAnnotations) {
 
 private void createFields(IBinaryField[] iFields, IBinaryType binaryType, long sourceLevel, char[][][] missingTypeNames) {
 	if (!isPrototype()) throw new IllegalStateException();
+	boolean save = this.environment.mayTolerateMissingType;
+	this.environment.mayTolerateMissingType = true;
+	try {
 	this.fields = Binding.NO_FIELDS;
 	if (iFields != null) {
 		int size = iFields.length;
@@ -725,6 +730,9 @@ private void createFields(IBinaryField[] iFields, IBinaryType binaryType, long s
 				}
 			}
 		}
+	}
+	} finally {
+		this.environment.mayTolerateMissingType = save;
 	}
 }
 
@@ -1016,6 +1024,9 @@ private MethodBinding createMethod(IBinaryMethod method, IBinaryType binaryType,
  */
 private IBinaryMethod[] createMethods(IBinaryMethod[] iMethods, IBinaryType binaryType, long sourceLevel, char[][][] missingTypeNames) {
 	if (!isPrototype()) throw new IllegalStateException();
+	boolean save = this.environment.mayTolerateMissingType;
+	this.environment.mayTolerateMissingType = true;
+	try {
 	int total = 0, initialTotal = 0, iClinit = -1;
 	int[] toSkip = null;
 	if (iMethods != null) {
@@ -1069,6 +1080,9 @@ private IBinaryMethod[] createMethods(IBinaryMethod[] iMethods, IBinaryType bina
 		}
 		this.methods = methods1;
 		return mappedBinaryMethods;
+	}
+	} finally {
+		this.environment.mayTolerateMissingType = save;
 	}
 }
 

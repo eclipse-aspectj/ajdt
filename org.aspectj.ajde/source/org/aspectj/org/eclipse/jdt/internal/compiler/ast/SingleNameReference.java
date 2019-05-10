@@ -64,6 +64,7 @@ public class SingleNameReference extends NameReference implements OperatorIds {
 	public char[] token;
 	public MethodBinding[] syntheticAccessors; // [0]=read accessor [1]=write accessor
 	public TypeBinding genericCast;
+	public boolean isLabel;// flagging for break expression when expression is SwitchExpression - java 12 preview-feature
 
 public SingleNameReference(char[] source, long pos) {
 	super();

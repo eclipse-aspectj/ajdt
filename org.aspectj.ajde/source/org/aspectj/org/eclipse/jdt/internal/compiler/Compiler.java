@@ -933,7 +933,7 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 	}
 
 	protected void processAnnotations() {
-		try {
+		try { // AspectJ
 		int newUnitSize = 0;
 		int newClassFilesSize = 0;
 		int bottom = this.annotationProcessorStartIndex;
@@ -1013,9 +1013,13 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 		}
 		// Units added in final round don't get annotation processed
 		this.annotationProcessorStartIndex = this.totalUnits;
+		// AspectJ - start
+		// Used to be done in reset calls above but if you do that
+		// the last processing round can't load new classes
 		} finally {
 			this.annotationProcessorManager.closeClassLoader();
 		}
+		// AspectJ - end
 	}
 
 	public void reset() {

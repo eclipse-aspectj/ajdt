@@ -935,8 +935,8 @@ public class JavaProject
 				}
 
 				@Override
-				public FileVisitResult visitModule(java.nio.file.Path mod) throws IOException {
-					JrtPackageFragmentRoot root = new JrtPackageFragmentRoot(imagePath, mod.toString(), JavaProject.this);
+				public FileVisitResult visitModule(java.nio.file.Path path, String name) throws IOException {
+					JrtPackageFragmentRoot root = new JrtPackageFragmentRoot(imagePath, name, JavaProject.this);
 					roots.add(root);
 					if (rootToResolvedEntries != null) 
 						rootToResolvedEntries.put(root, ((ClasspathEntry)resolvedEntry).combineWith((ClasspathEntry) referringEntry));
@@ -1178,6 +1178,14 @@ public class JavaProject
 					severity = IMarker.SEVERITY_ERROR;
 				} else if (JavaCore.WARNING.equals(setting)) {
 					severity = IMarker.SEVERITY_WARNING;
+				} else {
+					return; // setting == IGNORE
+				}
+				break;
+			case IJavaModelStatusConstants.MAIN_ONLY_PROJECT_DEPENDS_ON_TEST_ONLY_PROJECT:
+				setting = getOption(JavaCore.CORE_MAIN_ONLY_PROJECT_HAS_TEST_ONLY_DEPENDENCY, true);
+				if (JavaCore.ERROR.equals(setting)) {
+					severity = IMarker.SEVERITY_ERROR;
 				} else {
 					return; // setting == IGNORE
 				}
@@ -1907,6 +1915,7 @@ public class JavaProject
 						propertyName.equals(JavaCore.CORE_CIRCULAR_CLASSPATH) ||
 						propertyName.equals(JavaCore.CORE_OUTPUT_LOCATION_OVERLAPPING_ANOTHER_SOURCE) ||
 						propertyName.equals(JavaCore.CORE_INCOMPATIBLE_JDK_LEVEL) ||
+						propertyName.equals(JavaCore.CORE_MAIN_ONLY_PROJECT_HAS_TEST_ONLY_DEPENDENCY) ||
 						propertyName.equals(JavaCore.COMPILER_CODEGEN_TARGET_PLATFORM))
 					{
 						manager.deltaState.addClasspathValidation(JavaProject.this);

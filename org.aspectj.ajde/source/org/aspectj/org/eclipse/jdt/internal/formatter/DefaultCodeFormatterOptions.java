@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -19,11 +19,15 @@
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.formatter;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.IntConsumer;
 
-import org.aspectj.org.eclipse.jdt.core.formatter.DefaultCodeFormatterConstants;
 import org.aspectj.org.eclipse.jdt.core.JavaCore;
+import org.aspectj.org.eclipse.jdt.core.formatter.DefaultCodeFormatterConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
 
 /**
@@ -120,10 +124,17 @@ public class DefaultCodeFormatterOptions {
 	public int alignment_for_arguments_in_method_invocation;
 	public int alignment_for_arguments_in_qualified_allocation_expression;
 	public int alignment_for_assignment;
-	public int alignment_for_binary_expression;
+	public int alignment_for_multiplicative_operator;
+	public int alignment_for_additive_operator;
+	public int alignment_for_string_concatenation;
+	public int alignment_for_shift_operator;
+	public int alignment_for_relational_operator;
+	public int alignment_for_bitwise_operator;
+	public int alignment_for_logical_operator;
 	public int alignment_for_compact_if;
 	public int alignment_for_compact_loop;
 	public int alignment_for_conditional_expression;
+	public int alignment_for_conditional_expression_chain;
 	public int alignment_for_enum_constants;
 	public int alignment_for_expressions_in_array_initializer;
 	public int alignment_for_expressions_in_for_loop_header;
@@ -203,6 +214,7 @@ public class DefaultCodeFormatterOptions {
 	public boolean comment_format_html;
 	public boolean comment_format_source;
 	public boolean comment_indent_parameter_description;
+	public boolean comment_indent_tag_description;
 	public boolean comment_indent_root_tags;
 	public boolean comment_align_tags_names_descriptions;
 	public boolean comment_align_tags_descriptions_grouped;
@@ -246,18 +258,32 @@ public class DefaultCodeFormatterOptions {
 	public boolean insert_new_line_before_else_in_if_statement;
 	public boolean insert_new_line_before_finally_in_try_statement;
 	public boolean insert_new_line_before_while_in_do_statement;
-	public boolean insert_new_line_in_empty_anonymous_type_declaration;
-	public boolean insert_new_line_in_empty_block;
-	public boolean insert_new_line_in_empty_annotation_declaration;
-	public boolean insert_new_line_in_empty_enum_constant;
-	public boolean insert_new_line_in_empty_enum_declaration;
-	public boolean insert_new_line_in_empty_method_body;
-	public boolean insert_new_line_in_empty_type_declaration;
+
+	public String keep_loop_body_block_on_one_line;
+	public String keep_if_then_body_block_on_one_line;
+	public String keep_code_block_on_one_line;
+	public String keep_lambda_body_block_on_one_line;
+	public String keep_method_body_on_one_line;
+	public String keep_type_declaration_on_one_line;
+	public String keep_anonymous_type_declaration_on_one_line;
+	public String keep_enum_declaration_on_one_line;
+	public String keep_enum_constant_declaration_on_one_line;
+	public String keep_annotation_declaration_on_one_line;
+	public boolean keep_simple_getter_setter_on_one_line;
+
 	public boolean insert_space_after_and_in_type_parameter;
+	public boolean insert_space_after_arrow_in_switch_case;
+	public boolean insert_space_after_arrow_in_switch_default;
 	public boolean insert_space_after_assignment_operator;
 	public boolean insert_space_after_at_in_annotation;
 	public boolean insert_space_after_at_in_annotation_type_declaration;
-	public boolean insert_space_after_binary_operator;
+	public boolean insert_space_after_multiplicative_operator;
+	public boolean insert_space_after_additive_operator;
+	public boolean insert_space_after_string_concatenation;
+	public boolean insert_space_after_shift_operator;
+	public boolean insert_space_after_relational_operator;
+	public boolean insert_space_after_bitwise_operator;
+	public boolean insert_space_after_logical_operator;
 	public boolean insert_space_after_closing_angle_bracket_in_type_arguments;
 	public boolean insert_space_after_closing_angle_bracket_in_type_parameters;
 	public boolean insert_space_after_closing_paren_in_cast;
@@ -285,6 +311,7 @@ public class DefaultCodeFormatterOptions {
 	public boolean insert_space_after_comma_in_multiple_local_declarations;
 	public boolean insert_space_after_comma_in_parameterized_type_reference;
 	public boolean insert_space_after_comma_in_superinterfaces;
+	public boolean insert_space_after_comma_in_switch_case_expressions;
 	public boolean insert_space_after_comma_in_type_arguments;
 	public boolean insert_space_after_comma_in_type_parameters;
 	public boolean insert_space_after_ellipsis;
@@ -317,9 +344,17 @@ public class DefaultCodeFormatterOptions {
 	public boolean insert_space_after_semicolon_in_try_resources;
 	public boolean insert_space_after_unary_operator;
 	public boolean insert_space_before_and_in_type_parameter;
+	public boolean insert_space_before_arrow_in_switch_case;
+	public boolean insert_space_before_arrow_in_switch_default;
 	public boolean insert_space_before_at_in_annotation_type_declaration;
 	public boolean insert_space_before_assignment_operator;
-	public boolean insert_space_before_binary_operator;
+	public boolean insert_space_before_multiplicative_operator;
+	public boolean insert_space_before_additive_operator;
+	public boolean insert_space_before_string_concatenation;
+	public boolean insert_space_before_shift_operator;
+	public boolean insert_space_before_relational_operator;
+	public boolean insert_space_before_bitwise_operator;
+	public boolean insert_space_before_logical_operator;
 	public boolean insert_space_before_closing_angle_bracket_in_parameterized_type_reference;
 	public boolean insert_space_before_closing_angle_bracket_in_type_arguments;
 	public boolean insert_space_before_closing_angle_bracket_in_type_parameters;
@@ -363,6 +398,7 @@ public class DefaultCodeFormatterOptions {
 	public boolean insert_space_before_comma_in_multiple_local_declarations;
 	public boolean insert_space_before_comma_in_parameterized_type_reference;
 	public boolean insert_space_before_comma_in_superinterfaces;
+	public boolean insert_space_before_comma_in_switch_case_expressions;
 	public boolean insert_space_before_comma_in_type_arguments;
 	public boolean insert_space_before_comma_in_type_parameters;
 	public boolean insert_space_before_ellipsis;
@@ -434,7 +470,13 @@ public class DefaultCodeFormatterOptions {
 	public int page_width;
 	public int tab_char;
 	public boolean use_tabs_only_for_leading_indentations;
-	public boolean wrap_before_binary_operator;
+	public boolean wrap_before_multiplicative_operator;
+	public boolean wrap_before_additive_operator;
+	public boolean wrap_before_string_concatenation;
+	public boolean wrap_before_shift_operator;
+	public boolean wrap_before_relational_operator;
+	public boolean wrap_before_bitwise_operator;
+	public boolean wrap_before_logical_operator;
 	public boolean wrap_before_or_operator_multicatch;
 	public boolean wrap_before_conditional_operator;
 	public boolean wrap_before_assignment_operator;
@@ -442,6 +484,13 @@ public class DefaultCodeFormatterOptions {
 
 	public int initial_indentation_level;
 	public String line_separator;
+
+	private final static List<String> KEEP_ON_ONE_LINE_VALUES = Arrays.asList(
+			DefaultCodeFormatterConstants.ONE_LINE_NEVER,
+			DefaultCodeFormatterConstants.ONE_LINE_IF_EMPTY,
+			DefaultCodeFormatterConstants.ONE_LINE_IF_SINGLE_ITEM,
+			DefaultCodeFormatterConstants.ONE_LINE_ALWAYS,
+			DefaultCodeFormatterConstants.ONE_LINE_PRESERVE);
 
 	private DefaultCodeFormatterOptions() {
 		// cannot be instantiated
@@ -466,10 +515,17 @@ public class DefaultCodeFormatterOptions {
 		options.put(DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_ARGUMENTS_IN_METHOD_INVOCATION, getAlignment(this.alignment_for_arguments_in_method_invocation));
 		options.put(DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_ARGUMENTS_IN_QUALIFIED_ALLOCATION_EXPRESSION, getAlignment(this.alignment_for_arguments_in_qualified_allocation_expression));
 		options.put(DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_ASSIGNMENT, getAlignment(this.alignment_for_assignment));
-		options.put(DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_BINARY_EXPRESSION, getAlignment(this.alignment_for_binary_expression));
+		options.put(DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_MULTIPLICATIVE_OPERATOR ,getAlignment(this.alignment_for_multiplicative_operator));
+		options.put(DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_ADDITIVE_OPERATOR ,getAlignment(this.alignment_for_additive_operator));
+		options.put(DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_STRING_CONCATENATION ,getAlignment(this.alignment_for_string_concatenation));
+		options.put(DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_SHIFT_OPERATOR ,getAlignment(this.alignment_for_shift_operator));
+		options.put(DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_RELATIONAL_OPERATOR ,getAlignment(this.alignment_for_relational_operator));
+		options.put(DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_BITWISE_OPERATOR ,getAlignment(this.alignment_for_bitwise_operator));
+		options.put(DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_LOGICAL_OPERATOR ,getAlignment(this.alignment_for_logical_operator));
 		options.put(DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_COMPACT_IF, getAlignment(this.alignment_for_compact_if));
 		options.put(DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_COMPACT_LOOP, getAlignment(this.alignment_for_compact_loop));
 		options.put(DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_CONDITIONAL_EXPRESSION, getAlignment(this.alignment_for_conditional_expression));
+		options.put(DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_CONDITIONAL_EXPRESSION_CHAIN, getAlignment(this.alignment_for_conditional_expression_chain));
 		options.put(DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_ENUM_CONSTANTS, getAlignment(this.alignment_for_enum_constants));
 		options.put(DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_EXPRESSIONS_IN_ARRAY_INITIALIZER, getAlignment(this.alignment_for_expressions_in_array_initializer));
 		options.put(DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_EXPRESSIONS_IN_FOR_LOOP_HEADER, getAlignment(this.alignment_for_expressions_in_for_loop_header));
@@ -528,6 +584,7 @@ public class DefaultCodeFormatterOptions {
 		options.put(DefaultCodeFormatterConstants.FORMATTER_COMMENT_FORMAT_LINE_COMMENT_STARTING_ON_FIRST_COLUMN, this.comment_format_line_comment_starting_on_first_column ? DefaultCodeFormatterConstants.TRUE : DefaultCodeFormatterConstants.FALSE);
 		options.put(DefaultCodeFormatterConstants.FORMATTER_COMMENT_FORMAT_SOURCE, this.comment_format_source ? DefaultCodeFormatterConstants.TRUE : DefaultCodeFormatterConstants.FALSE);
 		options.put(DefaultCodeFormatterConstants.FORMATTER_COMMENT_INDENT_PARAMETER_DESCRIPTION, this.comment_indent_parameter_description ? DefaultCodeFormatterConstants.TRUE : DefaultCodeFormatterConstants.FALSE);
+		options.put(DefaultCodeFormatterConstants.FORMATTER_COMMENT_INDENT_TAG_DESCRIPTION, this.comment_indent_tag_description ? DefaultCodeFormatterConstants.TRUE : DefaultCodeFormatterConstants.FALSE);
 		options.put(DefaultCodeFormatterConstants.FORMATTER_COMMENT_INDENT_ROOT_TAGS, this.comment_indent_root_tags ? DefaultCodeFormatterConstants.TRUE : DefaultCodeFormatterConstants.FALSE);
 		options.put(DefaultCodeFormatterConstants.FORMATTER_COMMENT_ALIGN_TAGS_NAMES_DESCRIPTIONS, this.comment_align_tags_names_descriptions ? DefaultCodeFormatterConstants.TRUE : DefaultCodeFormatterConstants.FALSE);
 		options.put(DefaultCodeFormatterConstants.FORMATTER_COMMENT_ALIGN_TAGS_DESCREIPTIONS_GROUPED, this.comment_align_tags_descriptions_grouped ? DefaultCodeFormatterConstants.TRUE : DefaultCodeFormatterConstants.FALSE);
@@ -576,19 +633,31 @@ public class DefaultCodeFormatterOptions {
 		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_BEFORE_ELSE_IN_IF_STATEMENT, this.insert_new_line_before_else_in_if_statement? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
 		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_BEFORE_FINALLY_IN_TRY_STATEMENT, this.insert_new_line_before_finally_in_try_statement? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
 		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_BEFORE_WHILE_IN_DO_STATEMENT, this.insert_new_line_before_while_in_do_statement? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
-		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_IN_EMPTY_ANONYMOUS_TYPE_DECLARATION, this.insert_new_line_in_empty_anonymous_type_declaration? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
-		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_IN_EMPTY_BLOCK, this.insert_new_line_in_empty_block? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
-		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_IN_EMPTY_ANNOTATION_DECLARATION, this.insert_new_line_in_empty_annotation_declaration ? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
-		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_IN_EMPTY_ENUM_CONSTANT, this.insert_new_line_in_empty_enum_constant? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
-		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_IN_EMPTY_ENUM_DECLARATION, this.insert_new_line_in_empty_enum_declaration? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
-		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_IN_EMPTY_METHOD_BODY, this.insert_new_line_in_empty_method_body? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
-		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_IN_EMPTY_TYPE_DECLARATION, this.insert_new_line_in_empty_type_declaration? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
+		options.put(DefaultCodeFormatterConstants.FORMATTER_KEEP_ANNOTATION_DECLARATION_ON_ONE_LINE, this.keep_annotation_declaration_on_one_line);
+		options.put(DefaultCodeFormatterConstants.FORMATTER_KEEP_ANONYMOUS_TYPE_DECLARATION_ON_ONE_LINE, this.keep_anonymous_type_declaration_on_one_line);
+		options.put(DefaultCodeFormatterConstants.FORMATTER_KEEP_IF_THEN_BODY_BLOCK_ON_ONE_LINE, this.keep_if_then_body_block_on_one_line);
+		options.put(DefaultCodeFormatterConstants.FORMATTER_KEEP_LAMBDA_BODY_BLOCK_ON_ONE_LINE, this.keep_lambda_body_block_on_one_line);
+		options.put(DefaultCodeFormatterConstants.FORMATTER_KEEP_LOOP_BODY_BLOCK_ON_ONE_LINE, this.keep_loop_body_block_on_one_line);
+		options.put(DefaultCodeFormatterConstants.FORMATTER_KEEP_CODE_BLOCK_ON_ONE_LINE, this.keep_code_block_on_one_line);
+		options.put(DefaultCodeFormatterConstants.FORMATTER_KEEP_ENUM_CONSTANT_DECLARATION_ON_ONE_LINE, this.keep_enum_constant_declaration_on_one_line);
+		options.put(DefaultCodeFormatterConstants.FORMATTER_KEEP_ENUM_DECLARATION_ON_ONE_LINE, this.keep_enum_declaration_on_one_line);
+		options.put(DefaultCodeFormatterConstants.FORMATTER_KEEP_METHOD_BODY_ON_ONE_LINE, this.keep_method_body_on_one_line);
+		options.put(DefaultCodeFormatterConstants.FORMATTER_KEEP_TYPE_DECLARATION_ON_ONE_LINE, this.keep_type_declaration_on_one_line);
+		options.put(DefaultCodeFormatterConstants.FORMATTER_KEEP_SIMPLE_GETTER_SETTER_ON_ONE_LINE, this.keep_simple_getter_setter_on_one_line? DefaultCodeFormatterConstants.TRUE : DefaultCodeFormatterConstants.FALSE);
 		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_AFTER_LABEL, this.insert_new_line_after_label? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
 		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_AND_IN_TYPE_PARAMETER, this.insert_space_after_and_in_type_parameter? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
+		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_ARROW_IN_SWITCH_CASE, this.insert_space_after_arrow_in_switch_case? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
+		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_ARROW_IN_SWITCH_DEFAULT, this.insert_space_after_arrow_in_switch_default? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
 		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_ASSIGNMENT_OPERATOR, this.insert_space_after_assignment_operator? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
 		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_AT_IN_ANNOTATION, this.insert_space_after_at_in_annotation? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
 		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_AT_IN_ANNOTATION_TYPE_DECLARATION, this.insert_space_after_at_in_annotation_type_declaration ? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
-		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_BINARY_OPERATOR, this.insert_space_after_binary_operator? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
+		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_MULTIPLICATIVE_OPERATOR, this.insert_space_after_multiplicative_operator ? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
+		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_ADDITIVE_OPERATOR, this.insert_space_after_additive_operator ? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
+		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_STRING_CONCATENATION, this.insert_space_after_string_concatenation ? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
+		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_SHIFT_OPERATOR, this.insert_space_after_shift_operator ? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
+		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_RELATIONAL_OPERATOR, this.insert_space_after_relational_operator ? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
+		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_BITWISE_OPERATOR, this.insert_space_after_bitwise_operator ? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
+		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_LOGICAL_OPERATOR, this.insert_space_after_logical_operator ? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
 		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_CLOSING_ANGLE_BRACKET_IN_TYPE_ARGUMENTS, this.insert_space_after_closing_angle_bracket_in_type_arguments ? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
 		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_CLOSING_ANGLE_BRACKET_IN_TYPE_PARAMETERS, this.insert_space_after_closing_angle_bracket_in_type_parameters ? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
 		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_CLOSING_PAREN_IN_CAST, this.insert_space_after_closing_paren_in_cast? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
@@ -615,6 +684,7 @@ public class DefaultCodeFormatterOptions {
 		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_COMMA_IN_MULTIPLE_LOCAL_DECLARATIONS, this.insert_space_after_comma_in_multiple_local_declarations? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
 		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_COMMA_IN_PARAMETERIZED_TYPE_REFERENCE, this.insert_space_after_comma_in_parameterized_type_reference? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
 		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_COMMA_IN_SUPERINTERFACES, this.insert_space_after_comma_in_superinterfaces? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
+		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_COMMA_IN_SWITCH_CASE_EXPRESSIONS, this.insert_space_after_comma_in_switch_case_expressions ? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
 		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_COMMA_IN_TYPE_ARGUMENTS, this.insert_space_after_comma_in_type_arguments ? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
 		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_COMMA_IN_TYPE_PARAMETERS, this.insert_space_after_comma_in_type_parameters ? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
 		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_OPENING_BRACKET_IN_ARRAY_ALLOCATION_EXPRESSION, this.insert_space_after_opening_bracket_in_array_allocation_expression? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
@@ -647,9 +717,17 @@ public class DefaultCodeFormatterOptions {
 		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_SEMICOLON_IN_TRY_RESOURCES, this.insert_space_after_semicolon_in_try_resources? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
 		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_UNARY_OPERATOR, this.insert_space_after_unary_operator? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
 		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_AND_IN_TYPE_PARAMETER, this.insert_space_before_and_in_type_parameter ? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
+		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_ARROW_IN_SWITCH_CASE, this.insert_space_before_arrow_in_switch_case ? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
+		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_ARROW_IN_SWITCH_DEFAULT, this.insert_space_before_arrow_in_switch_default ? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
 		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_AT_IN_ANNOTATION_TYPE_DECLARATION, this.insert_space_before_at_in_annotation_type_declaration ? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
 		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_ASSIGNMENT_OPERATOR, this.insert_space_before_assignment_operator? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
-		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_BINARY_OPERATOR, this.insert_space_before_binary_operator? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
+		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_MULTIPLICATIVE_OPERATOR, this.insert_space_before_multiplicative_operator ? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
+		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_ADDITIVE_OPERATOR, this.insert_space_before_additive_operator ? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
+		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_STRING_CONCATENATION, this.insert_space_before_string_concatenation ? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
+		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_SHIFT_OPERATOR, this.insert_space_before_shift_operator ? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
+		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_RELATIONAL_OPERATOR, this.insert_space_before_relational_operator ? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
+		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_BITWISE_OPERATOR, this.insert_space_before_bitwise_operator ? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
+		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_LOGICAL_OPERATOR, this.insert_space_before_logical_operator ? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
 		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_CLOSING_ANGLE_BRACKET_IN_PARAMETERIZED_TYPE_REFERENCE, this.insert_space_before_closing_angle_bracket_in_parameterized_type_reference? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
 		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_CLOSING_ANGLE_BRACKET_IN_TYPE_ARGUMENTS, this.insert_space_before_closing_angle_bracket_in_type_arguments? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
 		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_CLOSING_ANGLE_BRACKET_IN_TYPE_PARAMETERS, this.insert_space_before_closing_angle_bracket_in_type_parameters? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
@@ -692,6 +770,7 @@ public class DefaultCodeFormatterOptions {
 		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_COMMA_IN_MULTIPLE_FIELD_DECLARATIONS, this.insert_space_before_comma_in_multiple_field_declarations? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
 		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_COMMA_IN_MULTIPLE_LOCAL_DECLARATIONS, this.insert_space_before_comma_in_multiple_local_declarations? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
 		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_COMMA_IN_SUPERINTERFACES, this.insert_space_before_comma_in_superinterfaces? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
+		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_COMMA_IN_SWITCH_CASE_EXPRESSIONS, this.insert_space_before_comma_in_switch_case_expressions? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
 		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_COMMA_IN_TYPE_ARGUMENTS, this.insert_space_before_comma_in_type_arguments ? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
 		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_COMMA_IN_TYPE_PARAMETERS, this.insert_space_before_comma_in_type_parameters? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
 		options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_COMMA_IN_PARAMETERIZED_TYPE_REFERENCE, this.insert_space_before_comma_in_parameterized_type_reference? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
@@ -774,7 +853,13 @@ public class DefaultCodeFormatterOptions {
 		}
 		options.put(DefaultCodeFormatterConstants.FORMATTER_TAB_SIZE, Integer.toString(this.tab_char == SPACE ? this.indentation_size : this.tab_size)); // reverse values swapping performed by IndentationTabPage
 		options.put(DefaultCodeFormatterConstants.FORMATTER_USE_TABS_ONLY_FOR_LEADING_INDENTATIONS, this.use_tabs_only_for_leading_indentations ?  DefaultCodeFormatterConstants.TRUE : DefaultCodeFormatterConstants.FALSE);
-		options.put(DefaultCodeFormatterConstants.FORMATTER_WRAP_BEFORE_BINARY_OPERATOR, this.wrap_before_binary_operator ? DefaultCodeFormatterConstants.TRUE : DefaultCodeFormatterConstants.FALSE);
+		options.put(DefaultCodeFormatterConstants.FORMATTER_WRAP_BEFORE_MULTIPLICATIVE_OPERATOR, this.wrap_before_multiplicative_operator ? DefaultCodeFormatterConstants.TRUE : DefaultCodeFormatterConstants.FALSE);
+		options.put(DefaultCodeFormatterConstants.FORMATTER_WRAP_BEFORE_ADDITIVE_OPERATOR, this.wrap_before_additive_operator ? DefaultCodeFormatterConstants.TRUE : DefaultCodeFormatterConstants.FALSE);
+		options.put(DefaultCodeFormatterConstants.FORMATTER_WRAP_BEFORE_STRING_CONCATENATION, this.wrap_before_string_concatenation ? DefaultCodeFormatterConstants.TRUE : DefaultCodeFormatterConstants.FALSE);
+		options.put(DefaultCodeFormatterConstants.FORMATTER_WRAP_BEFORE_SHIFT_OPERATOR, this.wrap_before_shift_operator ? DefaultCodeFormatterConstants.TRUE : DefaultCodeFormatterConstants.FALSE);
+		options.put(DefaultCodeFormatterConstants.FORMATTER_WRAP_BEFORE_RELATIONAL_OPERATOR, this.wrap_before_relational_operator ? DefaultCodeFormatterConstants.TRUE : DefaultCodeFormatterConstants.FALSE);
+		options.put(DefaultCodeFormatterConstants.FORMATTER_WRAP_BEFORE_BITWISE_OPERATOR, this.wrap_before_bitwise_operator ? DefaultCodeFormatterConstants.TRUE : DefaultCodeFormatterConstants.FALSE);
+		options.put(DefaultCodeFormatterConstants.FORMATTER_WRAP_BEFORE_LOGICAL_OPERATOR, this.wrap_before_logical_operator ? DefaultCodeFormatterConstants.TRUE : DefaultCodeFormatterConstants.FALSE);
 		options.put(DefaultCodeFormatterConstants.FORMATTER_WRAP_BEFORE_OR_OPERATOR_MULTICATCH, this.wrap_before_or_operator_multicatch ? DefaultCodeFormatterConstants.TRUE : DefaultCodeFormatterConstants.FALSE);
 		options.put(DefaultCodeFormatterConstants.FORMATTER_WRAP_BEFORE_CONDITIONAL_OPERATOR, this.wrap_before_conditional_operator ? DefaultCodeFormatterConstants.TRUE : DefaultCodeFormatterConstants.FALSE);
 		options.put(DefaultCodeFormatterConstants.FORMATTER_WRAP_BEFORE_ASSIGNMENT_OPERATOR, this.wrap_before_assignment_operator ? DefaultCodeFormatterConstants.TRUE : DefaultCodeFormatterConstants.FALSE);
@@ -856,16 +941,20 @@ public class DefaultCodeFormatterOptions {
 				this.alignment_for_assignment =  Alignment.M_ONE_PER_LINE_SPLIT;
 			}
 		}
-		final Object alignmentForBinaryExpressionOption = settings.get(DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_BINARY_EXPRESSION);
-		if (alignmentForBinaryExpressionOption != null) {
-			try {
-				this.alignment_for_binary_expression = Integer.parseInt((String) alignmentForBinaryExpressionOption);
-			} catch (NumberFormatException e) {
-				this.alignment_for_binary_expression =  Alignment.M_COMPACT_SPLIT;
-			} catch (ClassCastException e) {
-				this.alignment_for_binary_expression =  Alignment.M_COMPACT_SPLIT;
-			}
-		}
+		setInt(settings, DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_MULTIPLICATIVE_OPERATOR,
+				v-> this.alignment_for_multiplicative_operator = v);
+		setInt(settings, DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_ADDITIVE_OPERATOR,
+				v -> this.alignment_for_additive_operator = v);
+		setInt(settings, DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_STRING_CONCATENATION,
+				v -> this.alignment_for_string_concatenation = v);
+		setInt(settings, DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_SHIFT_OPERATOR,
+				v -> this.alignment_for_shift_operator = v);
+		setInt(settings, DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_RELATIONAL_OPERATOR,
+				v -> this.alignment_for_relational_operator = v);
+		setInt(settings, DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_BITWISE_OPERATOR,
+				v -> this.alignment_for_bitwise_operator = v);
+		setInt(settings, DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_LOGICAL_OPERATOR,
+				v -> this.alignment_for_logical_operator = v);
 		final Object alignmentForCompactIfOption = settings.get(DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_COMPACT_IF);
 		if (alignmentForCompactIfOption != null) {
 			try {
@@ -890,6 +979,8 @@ public class DefaultCodeFormatterOptions {
 				this.alignment_for_conditional_expression = Alignment.M_ONE_PER_LINE_SPLIT;
 			}
 		}
+		setInt(settings, DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_CONDITIONAL_EXPRESSION_CHAIN,
+				v -> this.alignment_for_conditional_expression_chain = v);
 		final Object alignmentForEnumConstantsOption = settings.get(DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_ENUM_CONSTANTS);
 		if (alignmentForEnumConstantsOption != null) {
 			try {
@@ -1391,6 +1482,8 @@ public class DefaultCodeFormatterOptions {
 		if (commentIndentParameterDescriptionOption != null) {
 			this.comment_indent_parameter_description = DefaultCodeFormatterConstants.TRUE.equals(commentIndentParameterDescriptionOption);
 		}
+		setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_COMMENT_INDENT_TAG_DESCRIPTION, DefaultCodeFormatterConstants.TRUE,
+				v -> this.comment_indent_tag_description = v);
 		final Object commentIndentRootTagsOption = settings.get(DefaultCodeFormatterConstants.FORMATTER_COMMENT_INDENT_ROOT_TAGS);
 		if (commentIndentRootTagsOption != null) {
 			this.comment_indent_root_tags = DefaultCodeFormatterConstants.TRUE.equals(commentIndentRootTagsOption);
@@ -1521,34 +1614,31 @@ public class DefaultCodeFormatterOptions {
 		if (insertNewLineBeforeWhileInDoStatementOption != null) {
 			this.insert_new_line_before_while_in_do_statement = JavaCore.INSERT.equals(insertNewLineBeforeWhileInDoStatementOption);
 		}
-		final Object insertNewLineInEmptyAnonymousTypeDeclarationOption = settings.get(DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_IN_EMPTY_ANONYMOUS_TYPE_DECLARATION);
-		if (insertNewLineInEmptyAnonymousTypeDeclarationOption != null) {
-			this.insert_new_line_in_empty_anonymous_type_declaration = JavaCore.INSERT.equals(insertNewLineInEmptyAnonymousTypeDeclarationOption);
-		}
-		final Object insertNewLineInEmptyBlockOption = settings.get(DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_IN_EMPTY_BLOCK);
-		if (insertNewLineInEmptyBlockOption != null) {
-			this.insert_new_line_in_empty_block = JavaCore.INSERT.equals(insertNewLineInEmptyBlockOption);
-		}
-		final Object insertNewLineInEmptyAnnotationDeclarationOption = settings.get(DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_IN_EMPTY_ANNOTATION_DECLARATION);
-		if (insertNewLineInEmptyAnnotationDeclarationOption != null) {
-			this.insert_new_line_in_empty_annotation_declaration = JavaCore.INSERT.equals(insertNewLineInEmptyAnnotationDeclarationOption);
-		}
-		final Object insertNewLineInEmptyEnumConstantOption = settings.get(DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_IN_EMPTY_ENUM_CONSTANT);
-		if (insertNewLineInEmptyEnumConstantOption != null) {
-			this.insert_new_line_in_empty_enum_constant = JavaCore.INSERT.equals(insertNewLineInEmptyEnumConstantOption);
-		}
-		final Object insertNewLineInEmptyEnumDeclarationOption = settings.get(DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_IN_EMPTY_ENUM_DECLARATION);
-		if (insertNewLineInEmptyEnumDeclarationOption != null) {
-			this.insert_new_line_in_empty_enum_declaration = JavaCore.INSERT.equals(insertNewLineInEmptyEnumDeclarationOption);
-		}
-		final Object insertNewLineInEmptyMethodBodyOption = settings.get(DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_IN_EMPTY_METHOD_BODY);
-		if (insertNewLineInEmptyMethodBodyOption != null) {
-			this.insert_new_line_in_empty_method_body = JavaCore.INSERT.equals(insertNewLineInEmptyMethodBodyOption);
-		}
-		final Object insertNewLineInEmptyTypeDeclarationOption = settings.get(DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_IN_EMPTY_TYPE_DECLARATION);
-		if (insertNewLineInEmptyTypeDeclarationOption != null) {
-			this.insert_new_line_in_empty_type_declaration = JavaCore.INSERT.equals(insertNewLineInEmptyTypeDeclarationOption);
-		}
+		
+		setString(settings, DefaultCodeFormatterConstants.FORMATTER_KEEP_ANNOTATION_DECLARATION_ON_ONE_LINE, KEEP_ON_ONE_LINE_VALUES,
+				v -> this.keep_annotation_declaration_on_one_line = v);
+		setString(settings, DefaultCodeFormatterConstants.FORMATTER_KEEP_ANONYMOUS_TYPE_DECLARATION_ON_ONE_LINE, KEEP_ON_ONE_LINE_VALUES,
+				v -> this.keep_anonymous_type_declaration_on_one_line = v);
+		setString(settings, DefaultCodeFormatterConstants.FORMATTER_KEEP_IF_THEN_BODY_BLOCK_ON_ONE_LINE, KEEP_ON_ONE_LINE_VALUES,
+				v -> this.keep_if_then_body_block_on_one_line = v);
+		setString(settings, DefaultCodeFormatterConstants.FORMATTER_KEEP_LOOP_BODY_BLOCK_ON_ONE_LINE, KEEP_ON_ONE_LINE_VALUES,
+				v -> this.keep_loop_body_block_on_one_line = v);
+		setString(settings, DefaultCodeFormatterConstants.FORMATTER_KEEP_LAMBDA_BODY_BLOCK_ON_ONE_LINE, KEEP_ON_ONE_LINE_VALUES,
+				v -> this.keep_lambda_body_block_on_one_line = v);
+		setString(settings, DefaultCodeFormatterConstants.FORMATTER_KEEP_CODE_BLOCK_ON_ONE_LINE,
+				Arrays.asList(DefaultCodeFormatterConstants.ONE_LINE_NEVER, DefaultCodeFormatterConstants.ONE_LINE_IF_EMPTY),
+				v -> this.keep_code_block_on_one_line = v);
+		setString(settings, DefaultCodeFormatterConstants.FORMATTER_KEEP_ENUM_CONSTANT_DECLARATION_ON_ONE_LINE, KEEP_ON_ONE_LINE_VALUES,
+				v -> this.keep_enum_constant_declaration_on_one_line = v);
+		setString(settings, DefaultCodeFormatterConstants.FORMATTER_KEEP_ENUM_DECLARATION_ON_ONE_LINE, KEEP_ON_ONE_LINE_VALUES,
+				v -> this.keep_enum_declaration_on_one_line = v);
+		setString(settings, DefaultCodeFormatterConstants.FORMATTER_KEEP_METHOD_BODY_ON_ONE_LINE, KEEP_ON_ONE_LINE_VALUES,
+				v -> this.keep_method_body_on_one_line = v);
+		setString(settings, DefaultCodeFormatterConstants.FORMATTER_KEEP_TYPE_DECLARATION_ON_ONE_LINE, KEEP_ON_ONE_LINE_VALUES,
+				v -> this.keep_type_declaration_on_one_line = v);
+		setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_KEEP_SIMPLE_GETTER_SETTER_ON_ONE_LINE, DefaultCodeFormatterConstants.TRUE,
+				v -> this.keep_simple_getter_setter_on_one_line = v);
+
 		final Object insertNewLineAfterLabelOption = settings.get(DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_AFTER_LABEL);
 		if (insertNewLineAfterLabelOption != null) {
 			this.insert_new_line_after_label = JavaCore.INSERT.equals(insertNewLineAfterLabelOption);
@@ -1557,6 +1647,10 @@ public class DefaultCodeFormatterOptions {
 		if (insertSpaceAfterAndInWildcardOption != null) {
 			this.insert_space_after_and_in_type_parameter = JavaCore.INSERT.equals(insertSpaceAfterAndInWildcardOption);
 		}
+		setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_ARROW_IN_SWITCH_CASE, JavaCore.INSERT,
+				v -> this.insert_space_after_arrow_in_switch_case = v);
+		setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_ARROW_IN_SWITCH_DEFAULT, JavaCore.INSERT,
+				v -> this.insert_space_after_arrow_in_switch_default = v);
 		final Object insertSpaceAfterAssignmentOperatorOption = settings.get(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_ASSIGNMENT_OPERATOR);
 		if (insertSpaceAfterAssignmentOperatorOption != null) {
 			this.insert_space_after_assignment_operator = JavaCore.INSERT.equals(insertSpaceAfterAssignmentOperatorOption);
@@ -1569,10 +1663,20 @@ public class DefaultCodeFormatterOptions {
 		if (insertSpaceAfterAtInAnnotationTypeDeclarationOption != null) {
 			this.insert_space_after_at_in_annotation_type_declaration = JavaCore.INSERT.equals(insertSpaceAfterAtInAnnotationTypeDeclarationOption);
 		}
-		final Object insertSpaceAfterBinaryOperatorOption = settings.get(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_BINARY_OPERATOR);
-		if (insertSpaceAfterBinaryOperatorOption != null) {
-			this.insert_space_after_binary_operator = JavaCore.INSERT.equals(insertSpaceAfterBinaryOperatorOption);
-		}
+		setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_MULTIPLICATIVE_OPERATOR, JavaCore.INSERT,
+				v -> this.insert_space_after_multiplicative_operator = v);
+		setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_ADDITIVE_OPERATOR, JavaCore.INSERT,
+				v -> this.insert_space_after_additive_operator = v);
+		setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_STRING_CONCATENATION, JavaCore.INSERT,
+				v -> this.insert_space_after_string_concatenation = v);
+		setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_SHIFT_OPERATOR, JavaCore.INSERT,
+				v -> this.insert_space_after_shift_operator = v);
+		setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_RELATIONAL_OPERATOR, JavaCore.INSERT,
+				v -> this.insert_space_after_relational_operator = v);
+		setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_BITWISE_OPERATOR, JavaCore.INSERT,
+				v -> this.insert_space_after_bitwise_operator = v);
+		setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_LOGICAL_OPERATOR, JavaCore.INSERT,
+				v -> this.insert_space_after_logical_operator = v);
 		final Object insertSpaceAfterClosingAngleBracketInTypeArgumentsOption = settings.get(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_CLOSING_ANGLE_BRACKET_IN_TYPE_ARGUMENTS);
 		if (insertSpaceAfterClosingAngleBracketInTypeArgumentsOption != null) {
 			this.insert_space_after_closing_angle_bracket_in_type_arguments = JavaCore.INSERT.equals(insertSpaceAfterClosingAngleBracketInTypeArgumentsOption);
@@ -1677,6 +1781,8 @@ public class DefaultCodeFormatterOptions {
 		if (insertSpaceAfterCommaInSuperinterfacesOption != null) {
 			this.insert_space_after_comma_in_superinterfaces = JavaCore.INSERT.equals(insertSpaceAfterCommaInSuperinterfacesOption);
 		}
+		setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_COMMA_IN_SWITCH_CASE_EXPRESSIONS, JavaCore.INSERT,
+				v -> this.insert_space_after_comma_in_switch_case_expressions = v);
 		final Object insertSpaceAfterCommaInTypeArgumentsOption = settings.get(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_COMMA_IN_TYPE_ARGUMENTS);
 		if (insertSpaceAfterCommaInTypeArgumentsOption != null) {
 			this.insert_space_after_comma_in_type_arguments = JavaCore.INSERT.equals(insertSpaceAfterCommaInTypeArgumentsOption);
@@ -1805,6 +1911,10 @@ public class DefaultCodeFormatterOptions {
 		if (insertSpaceBeforeAndInWildcardOption != null) {
 			this.insert_space_before_and_in_type_parameter = JavaCore.INSERT.equals(insertSpaceBeforeAndInWildcardOption);
 		}
+		setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_ARROW_IN_SWITCH_CASE, JavaCore.INSERT,
+				v -> this.insert_space_before_arrow_in_switch_case = v);
+		setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_ARROW_IN_SWITCH_DEFAULT, JavaCore.INSERT,
+				v -> this.insert_space_before_arrow_in_switch_default = v);
 		final Object insertSpaceBeforeAtInAnnotationTypeDeclarationOption = settings.get(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_AT_IN_ANNOTATION_TYPE_DECLARATION);
 		if (insertSpaceBeforeAtInAnnotationTypeDeclarationOption != null) {
 			this.insert_space_before_at_in_annotation_type_declaration = JavaCore.INSERT.equals(insertSpaceBeforeAtInAnnotationTypeDeclarationOption);
@@ -1813,10 +1923,20 @@ public class DefaultCodeFormatterOptions {
 		if (insertSpaceBeforeAssignmentOperatorOption != null) {
 			this.insert_space_before_assignment_operator = JavaCore.INSERT.equals(insertSpaceBeforeAssignmentOperatorOption);
 		}
-		final Object insertSpaceBeforeBinaryOperatorOption = settings.get(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_BINARY_OPERATOR);
-		if (insertSpaceBeforeBinaryOperatorOption != null) {
-			this.insert_space_before_binary_operator = JavaCore.INSERT.equals(insertSpaceBeforeBinaryOperatorOption);
-		}
+		setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_MULTIPLICATIVE_OPERATOR, JavaCore.INSERT,
+				v -> this.insert_space_before_multiplicative_operator = v);
+		setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_ADDITIVE_OPERATOR, JavaCore.INSERT,
+				v -> this.insert_space_before_additive_operator = v);
+		setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_STRING_CONCATENATION, JavaCore.INSERT,
+				v -> this.insert_space_before_string_concatenation = v);
+		setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_SHIFT_OPERATOR, JavaCore.INSERT,
+				v -> this.insert_space_before_shift_operator = v);
+		setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_RELATIONAL_OPERATOR, JavaCore.INSERT,
+				v -> this.insert_space_before_relational_operator = v);
+		setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_BITWISE_OPERATOR, JavaCore.INSERT,
+				v -> this.insert_space_before_bitwise_operator = v);
+		setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_LOGICAL_OPERATOR, JavaCore.INSERT,
+				v -> this.insert_space_before_logical_operator = v);
 		final Object insertSpaceBeforeClosingAngleBracketInParameterizedTypeReferenceOption = settings.get(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_CLOSING_ANGLE_BRACKET_IN_PARAMETERIZED_TYPE_REFERENCE);
 		if (insertSpaceBeforeClosingAngleBracketInParameterizedTypeReferenceOption != null) {
 			this.insert_space_before_closing_angle_bracket_in_parameterized_type_reference = JavaCore.INSERT.equals(insertSpaceBeforeClosingAngleBracketInParameterizedTypeReferenceOption);
@@ -1989,6 +2109,8 @@ public class DefaultCodeFormatterOptions {
 		if (insertSpaceBeforeCommaInSuperinterfacesOption != null) {
 			this.insert_space_before_comma_in_superinterfaces = JavaCore.INSERT.equals(insertSpaceBeforeCommaInSuperinterfacesOption);
 		}
+		setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_COMMA_IN_SWITCH_CASE_EXPRESSIONS, JavaCore.INSERT,
+				v -> this.insert_space_before_comma_in_switch_case_expressions = v);
 		final Object insertSpaceBeforeCommaInTypeArgumentsOption = settings.get(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_COMMA_IN_TYPE_ARGUMENTS);
 		if (insertSpaceBeforeCommaInTypeArgumentsOption != null) {
 			this.insert_space_before_comma_in_type_arguments = JavaCore.INSERT.equals(insertSpaceBeforeCommaInTypeArgumentsOption);
@@ -2303,10 +2425,27 @@ public class DefaultCodeFormatterOptions {
 				this.tab_char = MIXED;
 			}
 		}
-		final Object wrapBeforeBinaryOperatorOption = settings.get(DefaultCodeFormatterConstants.FORMATTER_WRAP_BEFORE_BINARY_OPERATOR);
-		if (wrapBeforeBinaryOperatorOption != null) {
-			this.wrap_before_binary_operator = DefaultCodeFormatterConstants.TRUE.equals(wrapBeforeBinaryOperatorOption);
-		}
+		setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_WRAP_BEFORE_MULTIPLICATIVE_OPERATOR, DefaultCodeFormatterConstants.TRUE,
+				v -> this.wrap_before_multiplicative_operator = v);
+		setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_WRAP_BEFORE_ADDITIVE_OPERATOR, DefaultCodeFormatterConstants.TRUE,
+				v -> this.wrap_before_additive_operator = v);
+		setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_WRAP_BEFORE_STRING_CONCATENATION, DefaultCodeFormatterConstants.TRUE,
+				v -> this.wrap_before_string_concatenation = v);
+		setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_WRAP_BEFORE_SHIFT_OPERATOR, DefaultCodeFormatterConstants.TRUE,
+				v -> this.wrap_before_shift_operator = v);
+		setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_WRAP_BEFORE_RELATIONAL_OPERATOR, DefaultCodeFormatterConstants.TRUE,
+				v -> this.wrap_before_relational_operator = v);
+		setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_WRAP_BEFORE_BITWISE_OPERATOR, DefaultCodeFormatterConstants.TRUE,
+				v -> this.wrap_before_bitwise_operator = v);
+		setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_WRAP_BEFORE_LOGICAL_OPERATOR, DefaultCodeFormatterConstants.TRUE,
+				v -> this.wrap_before_logical_operator = v);
+		setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_WRAP_BEFORE_OR_OPERATOR_MULTICATCH, DefaultCodeFormatterConstants.TRUE,
+				v -> this.wrap_before_or_operator_multicatch = v);
+		setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_WRAP_BEFORE_CONDITIONAL_OPERATOR, DefaultCodeFormatterConstants.TRUE,
+				v -> this.wrap_before_conditional_operator = v);
+		setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_WRAP_BEFORE_ASSIGNMENT_OPERATOR, DefaultCodeFormatterConstants.TRUE,
+				v -> this.wrap_before_assignment_operator = v);
+
 		final Object wrapBeforeOrOperatorMulticatchOption = settings.get(DefaultCodeFormatterConstants.FORMATTER_WRAP_BEFORE_OR_OPERATOR_MULTICATCH);
 		if (wrapBeforeOrOperatorMulticatchOption != null) {
 			this.wrap_before_or_operator_multicatch = DefaultCodeFormatterConstants.TRUE.equals(wrapBeforeOrOperatorMulticatchOption);
@@ -2380,10 +2519,42 @@ public class DefaultCodeFormatterOptions {
 		return defaultValue;
 	}
 
+	private void setInt(Map<String, String> settings, String key, IntConsumer setter) {
+		String value = settings.get(key);
+		if (value != null) {
+			try {
+				setter.accept(Integer.parseInt(value));
+			} catch (NumberFormatException e) {
+				throw new IllegalArgumentException("Expected integer for setting " + key + ", got: " + value); //$NON-NLS-1$ //$NON-NLS-2$
+			}
+		}
+	}
+
+	private void setString(Map<String, String> settings, String key, List<String> allowedValues, Consumer<String> setter) {
+		Object value = settings.get(key);
+		if (value != null) {
+			if (!allowedValues.contains(value))
+				throw new IllegalArgumentException("Unrecognized value for setting " + key + ": " + value); //$NON-NLS-1$ //$NON-NLS-2$
+			setter.accept((String) value);
+		}
+	}
+
+	private void setBoolean(Map<String, String> settings, String key, String trueValue, Consumer<Boolean> setter) {
+		Object value = settings.get(key);
+		if (value != null)
+			setter.accept(trueValue.equals(value));
+	}
+
 	/**
 	 * This method is used to handle deprecated preferences which might be replaced by
 	 * one or more preferences.
 	 * Depending on deprecated option handling policy, set the new formatting option(s).
+	 * <p>
+	 * Note: Also add deprecated preference keys in {@link org.aspectj.org.eclipse.jdt.internal.core.JavaCorePreferenceInitializer#initializeDeprecatedOptions}
+	 * so that the formatter recognizes those deprecated options when used with project specific formatter profiles.
+	 * (see <a href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=544776">Bug 544776</a>)
+	 * </p>
+	 * 
 	 * @param settings the given map
 	 * @deprecated
 	 */
@@ -2476,6 +2647,151 @@ public class DefaultCodeFormatterOptions {
 				this.insert_new_line_after_annotation_on_local_variable = JavaCore.INSERT.equals(insertNewLineAfterAnnotationOnLocalVariableOption);
 			}
 		}
+
+		// insert new line between empty braces -> keep braced code on one line
+		HashMap<Boolean, String> insertToOneLine = new HashMap<>();
+		insertToOneLine.put(true, DefaultCodeFormatterConstants.ONE_LINE_NEVER);
+		insertToOneLine.put(false, DefaultCodeFormatterConstants.ONE_LINE_IF_EMPTY);
+		if (settings.get(DefaultCodeFormatterConstants.FORMATTER_KEEP_ANNOTATION_DECLARATION_ON_ONE_LINE) == null) {
+			setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_IN_EMPTY_ANNOTATION_DECLARATION, JavaCore.INSERT,
+					v -> this.keep_annotation_declaration_on_one_line = insertToOneLine.get(v));
+		}
+		if (settings.get(DefaultCodeFormatterConstants.FORMATTER_KEEP_ANONYMOUS_TYPE_DECLARATION_ON_ONE_LINE) == null) {
+			setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_IN_EMPTY_ANONYMOUS_TYPE_DECLARATION, JavaCore.INSERT,
+					v -> this.keep_anonymous_type_declaration_on_one_line = insertToOneLine.get(v));
+		}
+		if (settings.get(DefaultCodeFormatterConstants.FORMATTER_KEEP_IF_THEN_BODY_BLOCK_ON_ONE_LINE) == null) {
+			setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_IN_EMPTY_BLOCK, JavaCore.INSERT,
+					v -> this.keep_if_then_body_block_on_one_line = insertToOneLine.get(v));
+		}
+		if (settings.get(DefaultCodeFormatterConstants.FORMATTER_KEEP_LOOP_BODY_BLOCK_ON_ONE_LINE) == null) {
+			setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_IN_EMPTY_BLOCK, JavaCore.INSERT,
+					v -> this.keep_loop_body_block_on_one_line = insertToOneLine.get(v));
+		}
+		if (settings.get(DefaultCodeFormatterConstants.FORMATTER_KEEP_LAMBDA_BODY_BLOCK_ON_ONE_LINE) == null) {
+			setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_IN_EMPTY_BLOCK, JavaCore.INSERT,
+					v -> this.keep_lambda_body_block_on_one_line = insertToOneLine.get(v));
+		}
+		if (settings.get(DefaultCodeFormatterConstants.FORMATTER_KEEP_CODE_BLOCK_ON_ONE_LINE) == null) {
+			setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_IN_EMPTY_BLOCK, JavaCore.INSERT,
+					v -> this.keep_code_block_on_one_line = insertToOneLine.get(v));
+		}
+		if (settings.get(DefaultCodeFormatterConstants.FORMATTER_KEEP_ENUM_CONSTANT_DECLARATION_ON_ONE_LINE) == null) {
+			setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_IN_EMPTY_ENUM_CONSTANT, JavaCore.INSERT,
+					v -> this.keep_enum_constant_declaration_on_one_line = insertToOneLine.get(v));
+		}
+		if (settings.get(DefaultCodeFormatterConstants.FORMATTER_KEEP_ENUM_DECLARATION_ON_ONE_LINE) == null) {
+			setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_IN_EMPTY_ENUM_DECLARATION, JavaCore.INSERT,
+					v -> this.keep_enum_declaration_on_one_line = insertToOneLine.get(v));
+		}
+		if (settings.get(DefaultCodeFormatterConstants.FORMATTER_KEEP_METHOD_BODY_ON_ONE_LINE) == null) {
+			setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_IN_EMPTY_METHOD_BODY, JavaCore.INSERT,
+					v -> this.keep_method_body_on_one_line = insertToOneLine.get(v));
+		}
+		if (settings.get(DefaultCodeFormatterConstants.FORMATTER_KEEP_TYPE_DECLARATION_ON_ONE_LINE) == null) {
+			setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_IN_EMPTY_TYPE_DECLARATION, JavaCore.INSERT,
+					v -> this.keep_type_declaration_on_one_line = insertToOneLine.get(v));
+		}
+
+		// alignment for binary expressions -> more granular settings
+		if (settings.get(DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_MULTIPLICATIVE_OPERATOR) == null) {
+			setInt(settings, DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_BINARY_EXPRESSION,
+					v-> this.alignment_for_multiplicative_operator = v);
+		}
+		if (settings.get(DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_ADDITIVE_OPERATOR) == null) {
+			setInt(settings, DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_BINARY_EXPRESSION,
+					v -> this.alignment_for_additive_operator = v);
+		}
+		if (settings.get(DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_STRING_CONCATENATION) == null) {
+			setInt(settings, DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_BINARY_EXPRESSION,
+					v -> this.alignment_for_string_concatenation = v);
+		}
+		if (settings.get(DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_BITWISE_OPERATOR) == null) {
+			setInt(settings, DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_BINARY_EXPRESSION,
+					v -> this.alignment_for_bitwise_operator = v);
+		}
+		if (settings.get(DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_LOGICAL_OPERATOR) == null) {
+			setInt(settings, DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_BINARY_EXPRESSION,
+					v -> this.alignment_for_logical_operator = v);
+		}
+		if (settings.get(DefaultCodeFormatterConstants.FORMATTER_WRAP_BEFORE_MULTIPLICATIVE_OPERATOR) == null) {
+			setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_WRAP_BEFORE_BINARY_OPERATOR, DefaultCodeFormatterConstants.TRUE,
+					v -> this.wrap_before_multiplicative_operator = v);
+		}
+		if (settings.get(DefaultCodeFormatterConstants.FORMATTER_WRAP_BEFORE_ADDITIVE_OPERATOR) == null) {
+			setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_WRAP_BEFORE_BINARY_OPERATOR, DefaultCodeFormatterConstants.TRUE,
+					v -> this.wrap_before_additive_operator = v);
+		}
+		if (settings.get(DefaultCodeFormatterConstants.FORMATTER_WRAP_BEFORE_STRING_CONCATENATION) == null) {
+			setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_WRAP_BEFORE_BINARY_OPERATOR, DefaultCodeFormatterConstants.TRUE,
+					v -> this.wrap_before_string_concatenation = v);
+		}
+		if (settings.get(DefaultCodeFormatterConstants.FORMATTER_WRAP_BEFORE_BITWISE_OPERATOR) == null) {
+			setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_WRAP_BEFORE_BINARY_OPERATOR, DefaultCodeFormatterConstants.TRUE,
+					v -> this.wrap_before_bitwise_operator = v);
+		}
+		if (settings.get(DefaultCodeFormatterConstants.FORMATTER_WRAP_BEFORE_LOGICAL_OPERATOR) == null) {
+			setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_WRAP_BEFORE_BINARY_OPERATOR, DefaultCodeFormatterConstants.TRUE,
+					v -> this.wrap_before_logical_operator = v);
+		}
+
+		// add space before and after binary operator -> more granular settings
+		if (settings.get(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_MULTIPLICATIVE_OPERATOR) == null) {
+			setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_BINARY_OPERATOR, JavaCore.INSERT,
+					v -> this.insert_space_before_multiplicative_operator = v);
+		}
+		if (settings.get(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_ADDITIVE_OPERATOR) == null) {
+			setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_BINARY_OPERATOR, JavaCore.INSERT,
+					v -> this.insert_space_before_additive_operator = v);
+		}
+		if (settings.get(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_STRING_CONCATENATION) == null) {
+			setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_BINARY_OPERATOR, JavaCore.INSERT,
+					v -> this.insert_space_before_string_concatenation = v);
+		}
+		if (settings.get(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_SHIFT_OPERATOR) == null) {
+			setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_BINARY_OPERATOR, JavaCore.INSERT,
+					v -> this.insert_space_before_shift_operator = v);
+		}
+		if (settings.get(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_RELATIONAL_OPERATOR) == null) {
+			setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_BINARY_OPERATOR, JavaCore.INSERT,
+					v -> this.insert_space_before_relational_operator = v);
+		}
+		if (settings.get(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_BITWISE_OPERATOR) == null) {
+			setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_BINARY_OPERATOR, JavaCore.INSERT,
+					v -> this.insert_space_before_bitwise_operator = v);
+		}
+		if (settings.get(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_LOGICAL_OPERATOR) == null) {
+			setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_BINARY_OPERATOR, JavaCore.INSERT,
+					v -> this.insert_space_before_logical_operator = v);
+		}
+		if (settings.get(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_MULTIPLICATIVE_OPERATOR) == null) {
+			setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_BINARY_OPERATOR, JavaCore.INSERT,
+					v -> this.insert_space_after_multiplicative_operator = v);
+		}
+		if (settings.get(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_ADDITIVE_OPERATOR) == null) {
+			setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_BINARY_OPERATOR, JavaCore.INSERT,
+					v -> this.insert_space_after_additive_operator = v);
+		}
+		if (settings.get(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_STRING_CONCATENATION) == null) {
+			setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_BINARY_OPERATOR, JavaCore.INSERT,
+					v -> this.insert_space_after_string_concatenation = v);
+		}
+		if (settings.get(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_SHIFT_OPERATOR) == null) {
+			setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_BINARY_OPERATOR, JavaCore.INSERT,
+					v -> this.insert_space_after_shift_operator = v);
+		}
+		if (settings.get(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_RELATIONAL_OPERATOR) == null) {
+			setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_BINARY_OPERATOR, JavaCore.INSERT,
+					v -> this.insert_space_after_relational_operator = v);
+		}
+		if (settings.get(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_BITWISE_OPERATOR) == null) {
+			setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_BINARY_OPERATOR, JavaCore.INSERT,
+					v -> this.insert_space_after_bitwise_operator = v);
+		}
+		if (settings.get(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_LOGICAL_OPERATOR) == null) {
+			setBoolean(settings, DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_BINARY_OPERATOR, JavaCore.INSERT,
+					v -> this.insert_space_after_logical_operator = v);
+		}
 	}
 
 	public void setDefaultSettings() {
@@ -2486,10 +2802,17 @@ public class DefaultCodeFormatterOptions {
 		this.alignment_for_arguments_in_method_invocation = Alignment.M_COMPACT_SPLIT;
 		this.alignment_for_arguments_in_qualified_allocation_expression = Alignment.M_COMPACT_SPLIT;
 		this.alignment_for_assignment = Alignment.M_NO_ALIGNMENT;
-		this.alignment_for_binary_expression = Alignment.M_COMPACT_SPLIT;
+		this.alignment_for_multiplicative_operator = Alignment.M_COMPACT_SPLIT;
+		this.alignment_for_additive_operator = Alignment.M_COMPACT_SPLIT;
+		this.alignment_for_string_concatenation = Alignment.M_COMPACT_SPLIT;
+		this.alignment_for_shift_operator = Alignment.M_NO_ALIGNMENT;
+		this.alignment_for_relational_operator = Alignment.M_NO_ALIGNMENT;
+		this.alignment_for_bitwise_operator = Alignment.M_COMPACT_SPLIT;
+		this.alignment_for_logical_operator = Alignment.M_COMPACT_SPLIT;
 		this.alignment_for_compact_if = Alignment.M_ONE_PER_LINE_SPLIT | Alignment.M_INDENT_BY_ONE;
 		this.alignment_for_compact_loop = Alignment.M_ONE_PER_LINE_SPLIT | Alignment.M_INDENT_BY_ONE;
 		this.alignment_for_conditional_expression = Alignment.M_ONE_PER_LINE_SPLIT;
+		this.alignment_for_conditional_expression_chain = Alignment.M_NO_ALIGNMENT;
 		this.alignment_for_enum_constants = Alignment.M_NO_ALIGNMENT;
 		this.alignment_for_expressions_in_array_initializer = Alignment.M_COMPACT_SPLIT;
 		this.alignment_for_expressions_in_for_loop_header = Alignment.M_NO_ALIGNMENT;
@@ -2546,6 +2869,7 @@ public class DefaultCodeFormatterOptions {
 		this.comment_format_html = true;
 		this.comment_format_source = true;
 		this.comment_indent_parameter_description = true;
+		this.comment_indent_tag_description = false;
 		this.comment_indent_root_tags = true;
 		this.comment_align_tags_names_descriptions = false;
 		this.comment_align_tags_descriptions_grouped = false;
@@ -2596,18 +2920,30 @@ public class DefaultCodeFormatterOptions {
 		this.insert_new_line_before_else_in_if_statement = false;
 		this.insert_new_line_before_finally_in_try_statement = false;
 		this.insert_new_line_before_while_in_do_statement = false;
-		this.insert_new_line_in_empty_anonymous_type_declaration = true;
-		this.insert_new_line_in_empty_block = true;
-		this.insert_new_line_in_empty_annotation_declaration = true;
-		this.insert_new_line_in_empty_enum_constant = true;
-		this.insert_new_line_in_empty_enum_declaration = true;
-		this.insert_new_line_in_empty_method_body = true;
-		this.insert_new_line_in_empty_type_declaration = true;
+		this.keep_annotation_declaration_on_one_line = DefaultCodeFormatterConstants.ONE_LINE_NEVER;
+		this.keep_anonymous_type_declaration_on_one_line = DefaultCodeFormatterConstants.ONE_LINE_NEVER;
+		this.keep_if_then_body_block_on_one_line = DefaultCodeFormatterConstants.ONE_LINE_NEVER;
+		this.keep_lambda_body_block_on_one_line = DefaultCodeFormatterConstants.ONE_LINE_NEVER;
+		this.keep_loop_body_block_on_one_line = DefaultCodeFormatterConstants.ONE_LINE_NEVER;
+		this.keep_code_block_on_one_line = DefaultCodeFormatterConstants.ONE_LINE_NEVER;
+		this.keep_enum_constant_declaration_on_one_line = DefaultCodeFormatterConstants.ONE_LINE_NEVER;
+		this.keep_enum_declaration_on_one_line = DefaultCodeFormatterConstants.ONE_LINE_NEVER;
+		this.keep_method_body_on_one_line = DefaultCodeFormatterConstants.ONE_LINE_NEVER;
+		this.keep_type_declaration_on_one_line = DefaultCodeFormatterConstants.ONE_LINE_NEVER;
+		this.keep_simple_getter_setter_on_one_line = false;
 		this.insert_space_after_and_in_type_parameter = true;
+		this.insert_space_after_arrow_in_switch_case = true;
+		this.insert_space_after_arrow_in_switch_default = true;
 		this.insert_space_after_assignment_operator = true;
 		this.insert_space_after_at_in_annotation = false;
 		this.insert_space_after_at_in_annotation_type_declaration = false;
-		this.insert_space_after_binary_operator = true;
+		this.insert_space_after_multiplicative_operator = true;
+		this.insert_space_after_additive_operator = true;
+		this.insert_space_after_string_concatenation = true;
+		this.insert_space_after_shift_operator = true;
+		this.insert_space_after_relational_operator = true;
+		this.insert_space_after_bitwise_operator = true;
+		this.insert_space_after_logical_operator = true;
 		this.insert_space_after_closing_angle_bracket_in_type_arguments = false;
 		this.insert_space_after_closing_angle_bracket_in_type_parameters = true;
 		this.insert_space_after_closing_paren_in_cast = true;
@@ -2634,6 +2970,7 @@ public class DefaultCodeFormatterOptions {
 		this.insert_space_after_comma_in_multiple_local_declarations = true;
 		this.insert_space_after_comma_in_parameterized_type_reference = true;
 		this.insert_space_after_comma_in_superinterfaces = true;
+		this.insert_space_after_comma_in_switch_case_expressions = true;
 		this.insert_space_after_comma_in_type_arguments = true;
 		this.insert_space_after_comma_in_type_parameters = true;
 		this.insert_space_after_ellipsis = true;
@@ -2666,9 +3003,17 @@ public class DefaultCodeFormatterOptions {
 		this.insert_space_after_semicolon_in_try_resources = true;
 		this.insert_space_after_unary_operator = false;
 		this.insert_space_before_and_in_type_parameter = true;
+		this.insert_space_before_arrow_in_switch_case = true;
+		this.insert_space_before_arrow_in_switch_default = true;
 		this.insert_space_before_at_in_annotation_type_declaration = true;
 		this.insert_space_before_assignment_operator = true;
-		this.insert_space_before_binary_operator = true;
+		this.insert_space_before_multiplicative_operator = true;
+		this.insert_space_before_additive_operator = true;
+		this.insert_space_before_string_concatenation = true;
+		this.insert_space_before_shift_operator = true;
+		this.insert_space_before_relational_operator = true;
+		this.insert_space_before_bitwise_operator = true;
+		this.insert_space_before_logical_operator = true;
 		this.insert_space_before_closing_angle_bracket_in_parameterized_type_reference = false;
 		this.insert_space_before_closing_angle_bracket_in_type_arguments = false;
 		this.insert_space_before_closing_angle_bracket_in_type_parameters = false;
@@ -2711,6 +3056,7 @@ public class DefaultCodeFormatterOptions {
 		this.insert_space_before_comma_in_multiple_local_declarations = false;
 		this.insert_space_before_comma_in_parameterized_type_reference = false;
 		this.insert_space_before_comma_in_superinterfaces = false;
+		this.insert_space_before_comma_in_switch_case_expressions = false;
 		this.insert_space_before_comma_in_type_arguments = false;
 		this.insert_space_before_comma_in_type_parameters = false;
 		this.insert_space_before_ellipsis = false;
@@ -2782,7 +3128,13 @@ public class DefaultCodeFormatterOptions {
 		this.page_width = 120;
 		this.tab_char = TAB; // see https://bugs.eclipse.org/bugs/show_bug.cgi?id=49081
 		this.use_tabs_only_for_leading_indentations = false;
-		this.wrap_before_binary_operator = true;
+		this.wrap_before_multiplicative_operator = true;
+		this.wrap_before_additive_operator = true;
+		this.wrap_before_string_concatenation = true;
+		this.wrap_before_shift_operator = true;
+		this.wrap_before_relational_operator = true;
+		this.wrap_before_bitwise_operator = true;
+		this.wrap_before_logical_operator = true;
 		this.wrap_before_or_operator_multicatch = true;
 		this.wrap_before_conditional_operator = true;
 		this.wrap_before_assignment_operator = false;
@@ -2806,10 +3158,17 @@ public class DefaultCodeFormatterOptions {
 		this.alignment_for_arguments_in_method_invocation = Alignment.M_COMPACT_SPLIT;
 		this.alignment_for_arguments_in_qualified_allocation_expression = Alignment.M_COMPACT_SPLIT;
 		this.alignment_for_assignment = Alignment.M_NO_ALIGNMENT;
-		this.alignment_for_binary_expression = Alignment.M_COMPACT_SPLIT;
+		this.alignment_for_multiplicative_operator = Alignment.M_COMPACT_SPLIT;
+		this.alignment_for_additive_operator = Alignment.M_COMPACT_SPLIT;
+		this.alignment_for_string_concatenation = Alignment.M_COMPACT_SPLIT;
+		this.alignment_for_shift_operator = Alignment.M_NO_ALIGNMENT;
+		this.alignment_for_relational_operator = Alignment.M_NO_ALIGNMENT;
+		this.alignment_for_bitwise_operator = Alignment.M_COMPACT_SPLIT;
+		this.alignment_for_logical_operator = Alignment.M_COMPACT_SPLIT;
 		this.alignment_for_compact_if = Alignment.M_COMPACT_SPLIT;
 		this.alignment_for_compact_loop = Alignment.M_COMPACT_SPLIT;
 		this.alignment_for_conditional_expression = Alignment.M_NEXT_PER_LINE_SPLIT;
+		this.alignment_for_conditional_expression_chain = Alignment.M_NO_ALIGNMENT;
 		this.alignment_for_enum_constants = Alignment.M_COMPACT_SPLIT;
 		this.alignment_for_expressions_in_array_initializer = Alignment.M_COMPACT_SPLIT;
 		this.alignment_for_expressions_in_for_loop_header = Alignment.M_NO_ALIGNMENT;
@@ -2866,6 +3225,7 @@ public class DefaultCodeFormatterOptions {
 		this.comment_format_html = true;
 		this.comment_format_source = true;
 		this.comment_indent_parameter_description = false;
+		this.comment_indent_tag_description = false;
 		this.comment_indent_root_tags = false;
 		this.comment_align_tags_names_descriptions = false;
 		this.comment_align_tags_descriptions_grouped = true;
@@ -2916,18 +3276,29 @@ public class DefaultCodeFormatterOptions {
 		this.insert_new_line_before_else_in_if_statement = false;
 		this.insert_new_line_before_finally_in_try_statement = false;
 		this.insert_new_line_before_while_in_do_statement = false;
-		this.insert_new_line_in_empty_anonymous_type_declaration = true;
-		this.insert_new_line_in_empty_block = true;
-		this.insert_new_line_in_empty_annotation_declaration = true;
-		this.insert_new_line_in_empty_enum_constant = true;
-		this.insert_new_line_in_empty_enum_declaration = true;
-		this.insert_new_line_in_empty_method_body = true;
-		this.insert_new_line_in_empty_type_declaration = true;
+		this.keep_annotation_declaration_on_one_line = DefaultCodeFormatterConstants.ONE_LINE_NEVER;
+		this.keep_anonymous_type_declaration_on_one_line = DefaultCodeFormatterConstants.ONE_LINE_NEVER;
+		this.keep_if_then_body_block_on_one_line = DefaultCodeFormatterConstants.ONE_LINE_NEVER;
+		this.keep_lambda_body_block_on_one_line = DefaultCodeFormatterConstants.ONE_LINE_NEVER;
+		this.keep_loop_body_block_on_one_line = DefaultCodeFormatterConstants.ONE_LINE_NEVER;
+		this.keep_code_block_on_one_line = DefaultCodeFormatterConstants.ONE_LINE_NEVER;
+		this.keep_enum_constant_declaration_on_one_line = DefaultCodeFormatterConstants.ONE_LINE_NEVER;
+		this.keep_enum_declaration_on_one_line = DefaultCodeFormatterConstants.ONE_LINE_NEVER;
+		this.keep_method_body_on_one_line = DefaultCodeFormatterConstants.ONE_LINE_NEVER;
+		this.keep_type_declaration_on_one_line = DefaultCodeFormatterConstants.ONE_LINE_NEVER;
 		this.insert_space_after_and_in_type_parameter = true;
+		this.insert_space_after_arrow_in_switch_case = true;
+		this.insert_space_after_arrow_in_switch_default = true;
 		this.insert_space_after_assignment_operator = true;
 		this.insert_space_after_at_in_annotation = false;
 		this.insert_space_after_at_in_annotation_type_declaration = false;
-		this.insert_space_after_binary_operator = true;
+		this.insert_space_after_multiplicative_operator = true;
+		this.insert_space_after_additive_operator = true;
+		this.insert_space_after_string_concatenation = true;
+		this.insert_space_after_shift_operator = true;
+		this.insert_space_after_relational_operator = true;
+		this.insert_space_after_bitwise_operator = true;
+		this.insert_space_after_logical_operator = true;
 		this.insert_space_after_closing_angle_bracket_in_type_arguments = false;
 		this.insert_space_after_closing_angle_bracket_in_type_parameters = true;
 		this.insert_space_after_closing_paren_in_cast = true;
@@ -2954,6 +3325,7 @@ public class DefaultCodeFormatterOptions {
 		this.insert_space_after_comma_in_multiple_local_declarations = true;
 		this.insert_space_after_comma_in_parameterized_type_reference = true;
 		this.insert_space_after_comma_in_superinterfaces = true;
+		this.insert_space_after_comma_in_switch_case_expressions = true;
 		this.insert_space_after_comma_in_type_arguments = true;
 		this.insert_space_after_comma_in_type_parameters = true;
 		this.insert_space_after_ellipsis = true;
@@ -2986,9 +3358,17 @@ public class DefaultCodeFormatterOptions {
 		this.insert_space_after_semicolon_in_try_resources = true;
 		this.insert_space_after_unary_operator = false;
 		this.insert_space_before_and_in_type_parameter = true;
+		this.insert_space_before_arrow_in_switch_case = true;
+		this.insert_space_before_arrow_in_switch_default = true;
 		this.insert_space_before_at_in_annotation_type_declaration = true;
 		this.insert_space_before_assignment_operator = true;
-		this.insert_space_before_binary_operator = true;
+		this.insert_space_before_multiplicative_operator = true;
+		this.insert_space_before_additive_operator = true;
+		this.insert_space_before_string_concatenation = true;
+		this.insert_space_before_shift_operator = true;
+		this.insert_space_before_relational_operator = true;
+		this.insert_space_before_bitwise_operator = true;
+		this.insert_space_before_logical_operator = true;
 		this.insert_space_before_closing_angle_bracket_in_parameterized_type_reference = false;
 		this.insert_space_before_closing_angle_bracket_in_type_arguments = false;
 		this.insert_space_before_closing_angle_bracket_in_type_parameters = false;
@@ -3031,6 +3411,7 @@ public class DefaultCodeFormatterOptions {
 		this.insert_space_before_comma_in_multiple_local_declarations = false;
 		this.insert_space_before_comma_in_parameterized_type_reference = false;
 		this.insert_space_before_comma_in_superinterfaces = false;
+		this.insert_space_before_comma_in_switch_case_expressions = false;
 		this.insert_space_before_comma_in_type_arguments = false;
 		this.insert_space_before_comma_in_type_parameters = false;
 		this.insert_space_before_ellipsis = false;
@@ -3102,7 +3483,13 @@ public class DefaultCodeFormatterOptions {
 		this.page_width = 120;
 		this.tab_char = MIXED;
 		this.use_tabs_only_for_leading_indentations = false;
-		this.wrap_before_binary_operator = true;
+		this.wrap_before_multiplicative_operator = true;
+		this.wrap_before_additive_operator = true;
+		this.wrap_before_string_concatenation = true;
+		this.wrap_before_shift_operator = true;
+		this.wrap_before_relational_operator = true;
+		this.wrap_before_bitwise_operator = true;
+		this.wrap_before_logical_operator = true;
 		this.wrap_before_or_operator_multicatch = true;
 		this.wrap_before_conditional_operator = true;
 		this.wrap_before_assignment_operator = false;

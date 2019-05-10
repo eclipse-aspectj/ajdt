@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -7,7 +7,7 @@
  * https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -118,7 +118,15 @@ public abstract class AssistParser extends Parser {
 
 	protected boolean isFirst = false;
 
-	public AssistParser snapShot;
+	/**
+	 * Each nested block may capture a snapshot at its start, which may be updated during commit().
+	 * {@link #snapShotPositions} is a matching stack of bodyStart positions.
+	 * Both stacks are indexed by their shared stack pointer {@link #snapShotPtr}.
+	 */
+	AssistParser[] snapShotStack = new AssistParser[3];
+	int[] snapShotPositions = new int[3];
+	int snapShotPtr = -1;
+
 	protected static final int[] RECOVERY_TOKENS = { TokenNameSEMICOLON, TokenNameRPAREN, TokenNameRBRACE, TokenNameRBRACKET};
 
 
@@ -189,7 +197,7 @@ public RecoveredElement buildInitialRecoveryState(){
 		RecoveredElement element = super.buildInitialRecoveryState();
 		flushAssistState();
 		flushElementStack();
-		this.snapShot = null;
+		this.snapShotPtr = -1;
 		initModuleInfo(element);
 		return element;
 	}
@@ -329,7 +337,7 @@ public RecoveredElement buildInitialRecoveryState(){
 		}
 		if (this.assistNode != null && node instanceof Statement) {
 			Statement stmt = (Statement) node;
-			if (!(stmt instanceof Expression) || ((Expression) stmt).statementExpression()) {
+			if (!(stmt instanceof Expression && ((Expression) stmt).isTrulyExpression()) || ((Expression) stmt).statementExpression()) {
 				if (this.assistNode.sourceStart >= stmt.sourceStart && this.assistNode.sourceEnd <= stmt.sourceEnd) {
 					element.add(stmt, 0);
 					this.lastCheckPoint = stmt.sourceEnd + 1;
@@ -500,6 +508,8 @@ protected boolean triggerRecoveryUponLambdaClosure(Statement statement, boolean 
 		if (this.elementKindStack[i] != K_LAMBDA_EXPRESSION_DELIMITER)
 			continue;
 		LambdaExpression expression = (LambdaExpression) this.elementObjectInfoStack[i];
+		if (expression == null)
+			return false;
 		if (expression.sourceStart >= statementStart && expression.sourceEnd <= statementEnd) {
 			this.elementPtr = i - 1;
 			lambdaClosed = true;
@@ -513,7 +523,7 @@ protected boolean triggerRecoveryUponLambdaClosure(Statement statement, boolean 
 							stackLength);
 				}
 				this.stack[this.stateStackTop] = this.unstackedAct;
-				commit();
+				commit(false);
 				this.stateStackTop --;
 			}
 			return false;
@@ -548,7 +558,8 @@ protected boolean triggerRecoveryUponLambdaClosure(Statement statement, boolean 
 						if ((parseTree.sourceStart == 0 || parseTree.sourceEnd == 0) || (parseTree.sourceStart >= statementStart && parseTree.sourceEnd <= statementEnd)) {
 							recoveredBlock.statements[recoveredBlock.statementCount - 1] = new RecoveredStatement(statement, recoveredBlock, 0);
 							statement = null;
-						} else if (recoveredStatement instanceof RecoveredLocalVariable && statement instanceof Expression) {
+						} else if (recoveredStatement instanceof RecoveredLocalVariable && statement instanceof Expression &&
+								((Expression) statement).isTrulyExpression()) {
 							RecoveredLocalVariable local = (RecoveredLocalVariable) recoveredStatement;
 							if (local.localDeclaration != null && local.localDeclaration.initialization != null) {
 								if ((local.localDeclaration.initialization.sourceStart == 0 || local.localDeclaration.initialization.sourceEnd == 0) || 
@@ -575,7 +586,8 @@ protected boolean triggerRecoveryUponLambdaClosure(Statement statement, boolean 
 			}
 		}
 	}
-	this.snapShot = null;
+	if (this.snapShotPtr > -1)
+		popSnapShot();
 	return lambdaClosed;
 }
 public Statement replaceAssistStatement(RecoveredElement top, ASTNode assistParent, int start, int end, Statement stmt) {
@@ -635,6 +647,18 @@ protected void consumeBlockStatements() {
 	}
 }
 @Override
+protected void consumeBlock() {
+	super.consumeBlock();
+	if (this.snapShotPtr > -1) {
+		ASTNode top = this.astStack[this.astPtr];
+		if (top instanceof Block) {
+			// check positions for sanity:
+			assert this.snapShotPositions[this.snapShotPtr] == top.sourceStart : "Block positions should be consistent"; //$NON-NLS-1$
+			popSnapShot();
+		}
+	}
+}
+@Override
 protected void consumeFieldDeclaration() {
 	super.consumeFieldDeclaration();
 	if (triggerRecoveryUponLambdaClosure((Statement) this.astStack[this.astPtr], true)) {
@@ -685,6 +709,14 @@ protected void consumeMethodDeclaration(boolean isNotAbstract, boolean isDefault
 		popElement(K_METHOD_DELIMITER);
 	}
 	super.consumeMethodDeclaration(isNotAbstract, isDefaultMethod);
+	if (this.snapShotPtr > -1) {
+		ASTNode top = this.astStack[this.astPtr];
+		if (top instanceof AbstractMethodDeclaration) {
+			// check positions for sanity:
+			assert this.snapShotPositions[this.snapShotPtr] + 1 == ((AbstractMethodDeclaration) top).bodyStart : "Method positions should be consistent"; //$NON-NLS-1$
+			popSnapShot();
+		}
+	}
 }
 @Override
 protected void consumeMethodHeader() {
@@ -828,7 +860,7 @@ protected void consumeOpenBlock() {
 			}
 			this.stack[this.stateStackTop++] = this.unstackedAct; // transition to Block ::= OpenBlock  .LBRACE BlockStatementsopt RBRACE
 			this.stack[this.stateStackTop] = tAction(this.unstackedAct, this.currentToken); // transition to Block ::= OpenBlock LBRACE  .BlockStatementsopt RBRACE 
-			commit();
+			commit(true);
 			this.stateStackTop -= 2;
 		}
 	}
@@ -1249,8 +1281,11 @@ private void adjustBracket(int token) {
 			break;
 	}
 }
+private boolean lastArrowAssociatedWithCase = false;
 @Override
 protected void consumeToken(int token) {
+	if (TokenNameARROW == token)
+		this.lastArrowAssociatedWithCase = this.caseFlagSet; // remember the arrow association before reset.
 	super.consumeToken(token);
 
 	if(this.isFirst) {
@@ -1283,7 +1318,7 @@ protected void consumeToken(int token) {
 				}
 				break;
 			case TokenNameLBRACE:
-				if (this.previousToken == TokenNameARROW) {
+				if (this.previousToken == TokenNameARROW && !this.lastArrowAssociatedWithCase) {
 					popElement(K_LAMBDA_EXPRESSION_DELIMITER);
 					pushOnElementStack(K_LAMBDA_EXPRESSION_DELIMITER, BLOCK_BODY, this.previousObjectInfo);
 				}
@@ -2201,11 +2236,32 @@ public void reset(){
 	flushAssistState();
 }
 
-protected void commit() {
-	if (this.snapShot == null) {
-		this.snapShot = createSnapShotParser();
+void commit(boolean isStart) {
+	int newSnapShotPosition = this.scanner.startPosition;
+	if (this.snapShotPtr == -1) {
+		// first commit:
+		addNewSnapShot(newSnapShotPosition);
+	} else {
+		// already have a snapshot, does it match the current position and can thus be reused?
+		int currentStartPosition = isStart ? newSnapShotPosition : this.blockStarts[this.realBlockPtr];
+		if (currentStartPosition != this.snapShotPositions[this.snapShotPtr])
+			addNewSnapShot(newSnapShotPosition); // no match, create a new one
 	}
-	this.snapShot.copyState(this);
+	this.snapShotStack[this.snapShotPtr].copyState(this);
+}
+
+void addNewSnapShot(int newSnapShotPosition) {
+	if (++this.snapShotPtr >= this.snapShotStack.length) {
+		int len = this.snapShotStack.length;
+		System.arraycopy(this.snapShotStack, 0, this.snapShotStack = new AssistParser[len+3], 0, len);
+		System.arraycopy(this.snapShotPositions, 0, this.snapShotPositions = new int[len+3], 0, len);
+	}
+	this.snapShotStack[this.snapShotPtr] = createSnapShotParser();
+	this.snapShotPositions[this.snapShotPtr] = newSnapShotPosition;
+}
+
+void popSnapShot() {
+	this.snapShotStack[this.snapShotPtr--] = null;
 }
 
 protected boolean assistNodeNeedsStacking() {
@@ -2262,10 +2318,10 @@ protected int fallBackToSpringForward(Statement unused) {
 		}
 	}
 	// OK, no in place resumption, no local repair, fast forward to next statement.
-	if (this.snapShot == null)
+	if (this.snapShotPtr == -1)
 		return RESTART;
 
-	this.copyState(this.snapShot);
+	this.copyState(this.snapShotStack[this.snapShotPtr]);
 	if (assistNodeNeedsStacking()) {
 		this.currentToken = TokenNameSEMICOLON;
 		return RESUME;
@@ -2433,6 +2489,7 @@ protected Object topKnownElementObjectInfo(int owner) {
 protected ASTNode wrapWithExplicitConstructorCallIfNeeded(ASTNode ast) {
 	int selector;
 	if (ast != null && topKnownElementKind(ASSIST_PARSER) == K_SELECTOR && ast instanceof Expression &&
+			((Expression) ast).isTrulyExpression() && 
 			(((selector = topKnownElementInfo(ASSIST_PARSER)) == THIS_CONSTRUCTOR) ||
 			(selector == SUPER_CONSTRUCTOR))) {
 		ExplicitConstructorCall call = new ExplicitConstructorCall(

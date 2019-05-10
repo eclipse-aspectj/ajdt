@@ -1,6 +1,6 @@
 // AspectJ
 /*******************************************************************************
- * Copyright (c) 2004, 2018 IBM Corporation and others.
+ * Copyright (c) 2004, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -64,6 +64,7 @@ import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
  * parser.setCompilerOptions(options);
  * CompilationUnit result = (CompilationUnit) parser.createAST(null);
  * </pre>
+ * <p>
  * Once a configured parser instance has been used to create an AST,
  * the settings are automatically reset to their defaults,
  * ready for the parser instance to be reused.
@@ -91,7 +92,6 @@ import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
  * <li>Whether to return a {@linkplain #setFocalPosition(int) abridged AST}
  * focused on the declaration containing a given source position.</li>
  * </ul>
- * </p>
  *
  * @since 3.0
  * @noinstantiate This class is not intended to be instantiated by clients.
@@ -272,6 +272,7 @@ public class ASTParser {
 			case AST.JLS9_INTERNAL:
 			case AST.JLS10_INTERNAL:
 			case AST.JLS11_INTERNAL:
+			case AST.JLS12_INTERNAL:
 				break;
 			default:
 				throw new IllegalArgumentException();
@@ -553,10 +554,12 @@ public class ASTParser {
 	 * <li>{@link #K_EXPRESSION K_EXPRESSION}: The result node is a subclass of
 	 * {@link Expression Expression}. Other aspects of the expression are unspecified.</li>
 	 * </ul>
+	 * <p>
 	 * The resulting AST node is rooted under (possibly contrived)
 	 * {@link CompilationUnit CompilationUnit} node, to allow the
 	 * client to retrieve the following pieces of information
 	 * available there:
+	 * </p>
 	 * <ul>
 	 * <li>{@linkplain CompilationUnit#getLineNumber(int) Line number map}. Line
 	 * numbers start at 1 and only cover the subrange scanned
@@ -568,6 +571,7 @@ public class ASTParser {
 	 * <li>{@linkplain CompilationUnit#getCommentList() Comment list}
 	 * for the subrange scanned.</li>
 	 * </ul>
+	 * <p>
 	 * The contrived nodes do not have source positions. Other aspects of the
 	 * {@link CompilationUnit CompilationUnit} node are unspecified, including
 	 * the exact arrangement of intervening nodes.
@@ -893,6 +897,7 @@ public class ASTParser {
 	 * is called passing the compilation unit and the corresponding AST to <code>requestor</code>.
 	 * </li>
 	 * </ul>
+	 * <p>
 	 * Note only ASTs from the given compilation units are reported
 	 * to the requestor. If additional compilation units are required to
 	 * resolve the original ones, the corresponding ASTs are <b>not</b>
@@ -906,7 +911,6 @@ public class ASTParser {
 	 * <li>The {@linkplain #setSourceRange(int,int) source range} is <code>(0, -1)</code></li>
 	 * <li>The {@linkplain #setFocalPosition(int) focal position} is not set</li>
 	 * </ul>
-	 * </p>
 	 * <p>
 	 * The <code>bindingKeys</code> parameter specifies bindings keys
 	 * ({@link IBinding#getKey()}) that are to be looked up. These keys may
@@ -982,6 +986,7 @@ public class ASTParser {
 	 * path that is passed into the given <code>sourceFilePaths</code> parameter.
 	 * </li>
 	 * </ul>
+	 * <p>
 	 * Note only ASTs from the given compilation units are reported
 	 * to the requestor. If additional compilation units are required to
 	 * resolve the original ones, the corresponding ASTs are <b>not</b>
@@ -990,12 +995,12 @@ public class ASTParser {
 	 * <p>
 	 * Note also the following parser parameters are used, regardless of what
 	 * may have been specified:
+	 * </p>
 	 * <ul>
 	 * <li>The {@linkplain #setKind(int) parser kind} is <code>K_COMPILATION_UNIT</code></li>
 	 * <li>The {@linkplain #setSourceRange(int,int) source range} is <code>(0, -1)</code></li>
 	 * <li>The {@linkplain #setFocalPosition(int) focal position} is not set</li>
 	 * </ul>
-	 * </p>
 	 * <p>
 	 * The <code>bindingKeys</code> parameter specifies bindings keys
 	 * ({@link IBinding#getKey()}) that are to be looked up. These keys may
@@ -1083,7 +1088,6 @@ public class ASTParser {
 	 * <li>The {@linkplain #setSourceRange(int,int) source range} is <code>(0, -1)</code></li>
 	 * <li>The {@linkplain #setFocalPosition(int) focal position} is not set</li>
 	 * </ul>
-	 * </p>
 	 * <p>
 	 * A successful call to this method returns all settings to their
 	 * default values so the object is ready to be reused.
@@ -1332,6 +1336,7 @@ public class ASTParser {
 	 * <li>{@linkplain CompilationUnit#getCommentList() Comment list}
 	 * for the subrange scanned.</li>
 	 * </ul>
+	 * <p>
 	 * The contrived nodes do not have source positions. Other aspects of the
 	 * {@link CompilationUnit CompilationUnit} node are unspecified, including
 	 * the exact arrangment of intervening nodes.

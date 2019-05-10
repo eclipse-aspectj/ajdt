@@ -47,6 +47,7 @@ public class ScannerHelper {
 	private static long[][][] Tables8;
 	private static long[][][] Tables9;
 	private static long[][][] Tables11;
+	private static long[][][] Tables12;
 
 	public final static int MAX_OBVIOUS = 128;
 	public final static int[] OBVIOUS_IDENT_CHAR_NATURES = new int[MAX_OBVIOUS];
@@ -151,6 +152,9 @@ static void initializeTable19() {
 static void initializeTableJava11() {
 	Tables11 = initializeTables("unicode10"); //$NON-NLS-1$
 }
+static void initializeTableJava12() {
+	Tables12 = initializeTables("unicode11"); //$NON-NLS-1$
+}
 static long[][][] initializeTables(String unicode_path) {
 	long[][][] tempTable = new long[2][][];
 	tempTable[START_INDEX] = new long[3][];
@@ -254,18 +258,18 @@ public static boolean isJavaIdentifierPart(long complianceLevel, char c) {
 	return isJavaIdentifierPart(complianceLevel, (int) c);
 }
 private static boolean isJavaIdentifierPart0(int codePoint, long[][][] tables) {
-		switch((codePoint & 0x1F0000) >> 16) {
-			case 0 :
+	switch((codePoint & 0x1F0000) >> 16) {
+		case 0 :
 			return isBitSet(tables[PART_INDEX][0], codePoint & 0xFFFF);
-			case 1 :
+		case 1 :
 			return isBitSet(tables[PART_INDEX][1], codePoint & 0xFFFF);
-			case 2 :
+		case 2 :
 			return isBitSet(tables[PART_INDEX][2], codePoint & 0xFFFF);
-			case 14 :
+		case 14 :
 			return isBitSet(tables[PART_INDEX][3], codePoint & 0xFFFF);
 	}
 	return false;
-		}
+}
 public static boolean isJavaIdentifierPart(long complianceLevel, int codePoint) {
 	if (complianceLevel <= ClassFileConstants.JDK1_6) {
 		if (Tables == null) {
@@ -290,12 +294,18 @@ public static boolean isJavaIdentifierPart(long complianceLevel, int codePoint) 
 			initializeTable19();
 		}
 		return isJavaIdentifierPart0(codePoint, Tables9);
-	} else {
+	} else if (complianceLevel <= ClassFileConstants.JDK11) {
 		// java 11 supports Unicode 10
 		if (Tables11 == null) {
 			initializeTableJava11();
 		}
 		return isJavaIdentifierPart0(codePoint, Tables11);
+	} else {
+		// java 12 supports Unicode 11
+		if (Tables12 == null) {
+			initializeTableJava12();
+		}
+		return isJavaIdentifierPart0(codePoint, Tables12);
 	}
 }
 public static boolean isJavaIdentifierPart(long complianceLevel, char high, char low) {
@@ -317,12 +327,12 @@ public static boolean isJavaIdentifierStart(long complianceLevel, char high, cha
 	return isJavaIdentifierStart(complianceLevel, toCodePoint(high, low));
 }
 private static boolean isJavaIdentifierStart0(int codePoint, long[][][] tables) {
-		switch((codePoint & 0x1F0000) >> 16) {
-			case 0 :
+	switch((codePoint & 0x1F0000) >> 16) {
+		case 0 :
 			return isBitSet(tables[START_INDEX][0], codePoint & 0xFFFF);
-			case 1 :
+		case 1 :
 			return isBitSet(tables[START_INDEX][1], codePoint & 0xFFFF);
-			case 2 :
+		case 2 :
 			return isBitSet(tables[START_INDEX][2], codePoint & 0xFFFF);
 	}
 	return false;
@@ -351,12 +361,19 @@ public static boolean isJavaIdentifierStart(long complianceLevel, int codePoint)
 			initializeTable19();
 		}
 		return isJavaIdentifierStart0(codePoint, Tables9);
-	} else {
+	} else if (complianceLevel <= ClassFileConstants.JDK11) {
 		// java 11 supports Unicode 10
 		if (Tables11 == null) {
 			initializeTableJava11();
 		}
 		return isJavaIdentifierStart0(codePoint, Tables11);
+	} else {
+		
+		// java 12 supports Unicode 11
+		if (Tables12 == null) {
+			initializeTableJava12();
+		}
+		return isJavaIdentifierStart0(codePoint, Tables12);
 	}
 }
 private static int toCodePoint(char high, char low) {

@@ -1,6 +1,6 @@
 // ASPECTJ
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -3074,7 +3074,7 @@ public void generateSyntheticBodyForSwitchTable(SyntheticMethodBinding methodBin
 		}
 	}
 	aload_0();
-	if (scope.compilerOptions().complianceLevel < ClassFileConstants.JDK9) {
+	if (scope.compilerOptions().complianceLevel < ClassFileConstants.JDK9 || !syntheticFieldBinding.isFinal()) {
 		// Modifying a final field outside of the <clinit> method is not allowed in 9
 		dup();
 		fieldAccess(Opcodes.OPC_putstatic, syntheticFieldBinding, null /* default declaringClass */);
@@ -4576,7 +4576,16 @@ public void invokeJavaLangAssertionErrorDefaultConstructor() {
 			ConstantPool.Init,
 			ConstantPool.DefaultConstructorSignature);
 }
-
+public void invokeJavaLangIncompatibleClassChangeErrorDefaultConstructor() {
+	// invokespecial: java.lang.IncompatibleClassChangeError.<init>()V
+	invoke(
+			Opcodes.OPC_invokespecial,
+			1, // receiverAndArgsSize
+			0, // return type size
+			ConstantPool.JavaLangIncompatibleClassChangeErrorConstantPoolName,
+			ConstantPool.Init,
+			ConstantPool.DefaultConstructorSignature);
+}
 public void invokeJavaLangClassDesiredAssertionStatus() {
 	// invokevirtual: java.lang.Class.desiredAssertionStatus()Z;
 	invoke(
@@ -6152,7 +6161,19 @@ public void newJavaLangError() {
 	this.bCodeStream[this.classFileOffset++] = Opcodes.OPC_new;
 	writeUnsignedShort(this.constantPool.literalIndexForType(ConstantPool.JavaLangErrorConstantPoolName));
 }
-
+public void newJavaLangIncompatibleClassChangeError() {
+	// new: java.lang.Error
+	this.countLabels = 0;
+	this.stackDepth++;
+	if (this.stackDepth > this.stackMax)
+		this.stackMax = this.stackDepth;
+	if (this.classFileOffset + 2 >= this.bCodeStream.length) {
+		resizeByteArray();
+	}
+	this.position++;
+	this.bCodeStream[this.classFileOffset++] = Opcodes.OPC_new;
+	writeUnsignedShort(this.constantPool.literalIndexForType(ConstantPool.JavaLangIncompatibleClassChangeErrorConstantPoolName));
+}
 public void newNoClassDefFoundError() {
 	// new: java.lang.NoClassDefFoundError
 	this.countLabels = 0;
@@ -6307,7 +6328,9 @@ public void record(LocalVariableBinding local) {
 public void recordExpressionType(TypeBinding typeBinding) {
 	// nothing to do
 }
-
+public void recordExpressionType(TypeBinding typeBinding, int delta, boolean adjustStackDepth) {
+	// nothing to do
+}
 public void recordPositionsFrom(int startPC, int sourcePos) {
 	this.recordPositionsFrom(startPC, sourcePos, false);
 }
@@ -6905,7 +6928,7 @@ public void swap() {
 	this.bCodeStream[this.classFileOffset++] = Opcodes.OPC_swap;
 }
 
-public void tableswitch(CaseLabel defaultLabel, int low, int high, int[] keys, int[] sortedIndexes, CaseLabel[] casesLabel) {
+public void tableswitch(CaseLabel defaultLabel, int low, int high, int[] keys, int[] sortedIndexes, int[] mapping, CaseLabel[] casesLabel) {
 	this.countLabels = 0;
 	this.stackDepth--;
 	int length = casesLabel.length;
@@ -6936,7 +6959,7 @@ public void tableswitch(CaseLabel defaultLabel, int low, int high, int[] keys, i
 		int index;
 		int key = keys[index = sortedIndexes[j - low]];
 		if (key == i) {
-			casesLabel[index].branch();
+			casesLabel[mapping[index]].branch();
 			j++;
 			if (i == high) break; // if high is maxint, then avoids wrapping to minint.
 		} else {

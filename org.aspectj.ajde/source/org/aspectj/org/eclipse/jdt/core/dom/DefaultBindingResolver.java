@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -614,7 +614,8 @@ class DefaultBindingResolver extends BindingResolver {
 	@Override
 	boolean resolveBoxing(Expression expression) {
 		org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode node = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode) this.newAstToOldAst.get(expression);
-		if (node instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression) {
+		if (node instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression &&
+				((org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression) node).isTrulyExpression()) {
 			org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression compilerExpression = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression) node;
 			return (compilerExpression.implicitConversion & TypeIds.BOXING) != 0;
 		}
@@ -634,7 +635,8 @@ class DefaultBindingResolver extends BindingResolver {
 	@Override
 	Object resolveConstantExpressionValue(Expression expression) {
 		org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode node = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode) this.newAstToOldAst.get(expression);
-		if (node instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression) {
+		if (node instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression &&
+				((org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression) node).isTrulyExpression()) {
 			org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression compilerExpression = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression) node;
 			Constant constant = compilerExpression.constant;
 			if (constant != null && constant != Constant.NotAConstant) {
@@ -742,6 +744,7 @@ class DefaultBindingResolver extends BindingResolver {
 				case ASTNode.METHOD_INVOCATION :
 				case ASTNode.SUPER_METHOD_INVOCATION :
 				case ASTNode.CONDITIONAL_EXPRESSION :
+				case ASTNode.SWITCH_EXPRESSION :
 				case ASTNode.MARKER_ANNOTATION :
 				case ASTNode.NORMAL_ANNOTATION :
 				case ASTNode.SINGLE_MEMBER_ANNOTATION :

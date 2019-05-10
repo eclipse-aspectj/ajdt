@@ -23,6 +23,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.AbstractAnnotationProcessor
 import org.aspectj.org.eclipse.jdt.internal.compiler.Compiler;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ModuleBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
 
 /**
@@ -46,7 +47,7 @@ public abstract class BaseAnnotationProcessorManager extends AbstractAnnotationP
 	protected PrintWriter _out;
 	protected PrintWriter _err;
 	protected BaseProcessingEnvImpl _processingEnv;
-	protected boolean _isFirstRound = true;
+	public boolean _isFirstRound = true;
 	
 	/**
 	 * The list of processors that have been loaded so far.  A processor on this
@@ -148,10 +149,18 @@ public abstract class BaseAnnotationProcessorManager extends AbstractAnnotationP
 	 */
 	@Override
 	public void processAnnotations(CompilationUnitDeclaration[] units, ReferenceBinding[] referenceBindings, boolean isLastRound) {
-		RoundEnvImpl roundEnv = new RoundEnvImpl(units, referenceBindings, isLastRound, _processingEnv);
-		if (_isFirstRound) {
-			_isFirstRound = false;
+		if (units != null) {
+			for (CompilationUnitDeclaration declaration : units) {
+				if (declaration != null && declaration.scope != null) {
+					ModuleBinding m = declaration.scope.module();
+					if (m != null) {
+						_processingEnv._current_module = m;
+						break;
+					}
+				}
+			}
 		}
+		RoundEnvImpl roundEnv = new RoundEnvImpl(units, referenceBindings, isLastRound, _processingEnv);
 		PrintWriter traceProcessorInfo = _printProcessorInfo ? _out : null;
 		PrintWriter traceRounds = _printRounds ? _out : null;
 		if (traceRounds != null) {
@@ -160,6 +169,8 @@ public abstract class BaseAnnotationProcessorManager extends AbstractAnnotationP
 		RoundDispatcher dispatcher = new RoundDispatcher(
 				this, roundEnv, roundEnv.getRootAnnotations(), traceProcessorInfo, traceRounds);
 		dispatcher.round();
+		if (_isFirstRound) {
+			_isFirstRound = false;
+		}
 	}
-
 }

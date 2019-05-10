@@ -1,6 +1,6 @@
 // AspectJ
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -70,6 +70,7 @@ import org.eclipse.text.edits.TextEdit;
  * Compilation units created by <code>ASTParser</code> from a
  * source document can be serialized after arbitrary modifications
  * with minimal loss of original formatting. Here is an example:
+ * </p>
  * <pre>
  * Document doc = new Document("import java.util.List;\nclass X {}\n");
  * ASTParser parser = ASTParser.newParser(AST.JLS3);
@@ -83,6 +84,7 @@ import org.eclipse.text.edits.TextEdit;
  * TextEdit edits = cu.rewrite(document, null);
  * UndoEdit undo = edits.apply(document);
  * </pre>
+ * <p>
  * See also {@link org.aspectj.org.eclipse.jdt.core.dom.rewrite.ASTRewrite} for
  * an alternative way to describe and serialize changes to a
  * read-only AST.
@@ -119,7 +121,7 @@ public class AST {
      * </p>
      *
 	 * @since 3.0
-	 * @deprecated Clients should use the {@link #JLS10} AST API instead.
+	 * @deprecated Clients should use the {@link #JLS11} AST API instead.
 	 */
 	public static final int JLS2 = 2;
 
@@ -143,7 +145,7 @@ public class AST {
      * </p>
      *
 	 * @since 3.1
-	 * @deprecated Clients should use the {@link #JLS10} AST API instead.
+	 * @deprecated Clients should use the {@link #JLS11} AST API instead.
 	 */
 	public static final int JLS3 = 3;
 	
@@ -167,7 +169,7 @@ public class AST {
 	 * </p>
 	 *
 	 * @since 3.7.1
-	 * @deprecated Clients should use the {@link #JLS10} AST API instead.
+	 * @deprecated Clients should use the {@link #JLS11} AST API instead.
 	 */
 	public static final int JLS4 = 4;
 	
@@ -191,7 +193,7 @@ public class AST {
 	 * </p>
 	 *
 	 * @since 3.10
-	 * @deprecated Clients should use the {@link #JLS10} AST API instead.
+	 * @deprecated Clients should use the {@link #JLS11} AST API instead.
 	 */
 	public static final int JLS8 = 8;
 
@@ -215,7 +217,7 @@ public class AST {
 	 * </p>
 	 *
 	 * @since 3.14
-	 * @deprecated Clients should use the {@link #JLS10} AST API instead.
+	 * @deprecated Clients should use the {@link #JLS11} AST API instead.
 	 */
 	public static final int JLS9 = 9;
 
@@ -272,6 +274,28 @@ public class AST {
 	 * @since 3.14 
 	 */
 	/*package*/ static final int JLS11_INTERNAL = JLS11;
+
+	/**
+	 * Constant for indicating the AST API that handles JLS12.
+	 * <p>
+	 * This API is capable of handling all constructs in the
+	 * Java language as described in the Java Language
+	 * Specification, Java SE 12 Edition (JLS12).
+	 * JLS12 is a superset of all earlier versions of the
+	 * Java language, and the JLS12 API can be used to manipulate
+	 * programs written in all versions of the Java language
+	 * up to and including Java SE 12 (aka JDK 12).
+	 * </p>
+	 *
+	 * @since 3.18
+	 */
+	public static final int JLS12 = 12;
+	/**
+	 * Internal synonym for {@link #JLS11}. Use to alleviate
+	 * deprecation warnings once JLS11 is deprecated
+	 * @since 3.16 
+	 */
+	static final int JLS12_INTERNAL = JLS12;
 
 	/*
 	 * Must not collide with a value for ICompilationUnit constants
@@ -382,7 +406,7 @@ public class AST {
 	 * Creates a new Java abstract syntax tree
      * (AST) following the specified set of API rules.
      * <p>
-     * Clients should use this method specifying {@link #JLS10} as the
+     * Clients should use this method specifying {@link #JLS11} as the
      * AST level in all cases, even when dealing with source of earlier JDK versions like 1.3 or 1.4.
      * </p>
      *
@@ -858,6 +882,20 @@ public class AST {
 						null/*taskPriorities*/,
 						true/*taskCaseSensitive*/);
 				break;	
+			case JLS12_INTERNAL :
+				this.apiLevel = level;
+				// initialize a scanner
+				compliance = ClassFileConstants.getComplianceLevelForJavaVersion(ClassFileConstants.MAJOR_VERSION_12);
+				this.scanner = new Scanner(
+						true /*comment*/,
+						true /*whitespace*/,
+						false /*nls*/,
+						compliance /*sourceLevel*/,
+						compliance /*complianceLevel*/,
+						null/*taskTag*/,
+						null/*taskPriorities*/,
+						true/*taskCaseSensitive*/);
+				break;
 			default:
 				throw new IllegalArgumentException("Unsupported JLS level"); //$NON-NLS-1$
 		}
@@ -878,6 +916,7 @@ public class AST {
 	 *    <code>"1.7"</code> means the source code is as per JDK 1.7;
 	 *    additional legal values may be added later. </li>
 	 * </ul>
+	 * <p>
 	 * Options other than the above are ignored.
 	 * </p>
 	 *
@@ -1094,9 +1133,10 @@ public class AST {
 	 * <li>removing a child from a node owned by this AST,</li>
 	 * <li>setting a non-node attribute of a node owned by this AST.</li>
 	 * </ul>
-	 * </p>
+	 * <p>
 	 * Operations which do not entail creating or modifying existing nodes
 	 * do not increase the modification count.
+	 * </p>
 	 * <p>
 	 * N.B. This method may be called several times in the course
 	 * of a single client operation. The only promise is that the modification
@@ -1121,7 +1161,6 @@ public class AST {
 	 * <li>removing a child from a node owned by this AST</li>
 	 * <li>setting a non-node attribute of a node owned by this AST</li>.
 	 * </ul>
-	 * </p>
 	 * <p>
 	 * N.B. This method may be called several times in the course
 	 * of a single client operation.
@@ -1206,8 +1245,8 @@ public class AST {
 	 * array initializer.
 	 * <p>
 	 * Examples:
-	 * <code>
 	 * <pre>
+	 * <code>
 	 * // new String[len]
 	 * ArrayCreation ac1 = ast.newArrayCreation();
 	 * ac1.setType(
@@ -1232,9 +1271,8 @@ public class AST {
 	 * ac3.setInitializer(ai);
 	 * ai.expressions().add(ast.newNumberLiteral("1"));
 	 * ai.expressions().add(ast.newNumberLiteral("2"));
-	 * </pre>
 	 * </code>
-	 * </p>
+	 * </pre>
 	 *
 	 * @return a new unparented array creation expression node
 	 */
@@ -1260,6 +1298,7 @@ public class AST {
 	 * By default, the array type has one non-annotated dimension.
 	 * <p>
 	 * For JLS4 and before, the given component type may be another array type.
+	 * </p>
 	 *
 	 * @param elementType element type for API level JLS8 and later, or the
 	 * component type (possibly another array type) for levels less than JLS8
@@ -1398,14 +1437,13 @@ public class AST {
 	 * <p>
 	 * For example, the assignment expression <code>foo = true</code>
 	 * is generated by the following snippet:
-	 * <code>
 	 * <pre>
+	 * <code>
 	 * Assignment e= ast.newAssignment();
 	 * e.setLeftHandSide(ast.newSimpleName("foo"));
 	 * e.setRightHandSide(ast.newBooleanLiteral(true));
-	 * </pre>
 	 * </code>
-	 * </p>
+	 * </pre>
 	 *
 	 * @param value the boolean value
 	 * @return a new unparented boolean literal node
@@ -1418,7 +1456,7 @@ public class AST {
 
 	/**
 	 * Creates an unparented break statement node owned by this AST.
-	 * The break statement has no label.
+	 * The break statement has no label/identifier/expression and is not implicit.
 	 *
 	 * @return a new unparented break statement node
 	 */
@@ -2546,8 +2584,22 @@ public class AST {
 	}
 
 	/**
+	 * Creates and returns a new unparented switch expression node
+	 * owned by this AST. By default, the expression is unspecified, but legal, 
+	 * and there are no statements or switch cases.
+	 *
+	 * @return a new unparented labeled switch expression node
+	 * @since 3.18
+	 */
+	public SwitchExpression newSwitchExpression() {
+		SwitchExpression result = new SwitchExpression(this);
+		return result;
+	}
+	
+	/**
 	 * Creates a new unparented switch case statement node owned by
-	 * this AST. By default, the expression is unspecified, but legal.
+	 * this AST. By default, the node has no expression, but legal, and 
+	 * switchLabeledRule is false which indicates ":". 
 	 *
 	 * @return a new unparented switch case node
 	 */
@@ -3274,7 +3326,6 @@ public class AST {
 	 * <li><code>"java.lang.Void"</code> (since 3.1)</li>
 	 * <li><code>"java.io.Serializable"</code></li>
 	 * </ul>
-	 * </p>
 	 *
 	 * @param name the name of a well known type
 	 * @return the corresponding type binding, or <code>null</code> if the

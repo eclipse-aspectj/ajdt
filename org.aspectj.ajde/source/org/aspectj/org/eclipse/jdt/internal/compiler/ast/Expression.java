@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -357,8 +357,11 @@ public final boolean checkCastTypesCompatibility(Scope scope, TypeBinding castTy
 					if (match == null) {
 						checkUnsafeCast(scope, castType, expressionType, null /*no match*/, true);
 					}
-					// recurse on the type variable upper bound
-					return checkCastTypesCompatibility(scope, ((TypeVariableBinding)castType).upperBound(), expressionType, expression);
+					for (TypeBinding bound : ((TypeVariableBinding) castType).allUpperBounds()) {
+						if (!checkCastTypesCompatibility(scope, bound, expressionType, expression))
+							return false;
+					}
+					return true;
 
 				default:
 					// ( CLASS/INTERFACE ) ARRAY
@@ -377,11 +380,23 @@ public final boolean checkCastTypesCompatibility(Scope scope, TypeBinding castTy
 
 		case Binding.TYPE_PARAMETER :
 			TypeBinding match = expressionType.findSuperTypeOriginatingFrom(castType);
-			if (match != null) {
-				return checkUnsafeCast(scope, castType, expressionType, match, false);
+			if (match == null) {
+				// recursively on the type variable upper bounds
+				if (castType instanceof TypeVariableBinding) {
+					// prefer iterating over required types, not provides
+					for (TypeBinding bound : ((TypeVariableBinding)castType).allUpperBounds()) {
+						if (!checkCastTypesCompatibility(scope, bound, expressionType, expression))
+							return false;
+					}
+				} else {
+					for (TypeBinding bound : ((TypeVariableBinding)expressionType).allUpperBounds()) {
+						if (!checkCastTypesCompatibility(scope, castType, bound, expression))
+							return false;
+					}
+				}
 			}
-			// recursively on the type variable upper bound
-			return checkCastTypesCompatibility(scope, castType, ((TypeVariableBinding)expressionType).upperBound(), expression);
+			// if no incompatibility found:
+			return checkUnsafeCast(scope, castType, expressionType, match, match == null);
 
 		case Binding.WILDCARD_TYPE :
 		case Binding.INTERSECTION_TYPE :
@@ -420,8 +435,12 @@ public final boolean checkCastTypesCompatibility(Scope scope, TypeBinding castTy
 						if (match == null) {
 							checkUnsafeCast(scope, castType, expressionType, null /*no match*/, true);
 						}
-						// recurse on the type variable upper bound
-						return checkCastTypesCompatibility(scope, ((TypeVariableBinding)castType).upperBound(), expressionType, expression);
+						// recursively on the type variable upper bounds
+						for (TypeBinding upperBound : ((TypeVariableBinding)castType).allUpperBounds()) {
+							if (!checkCastTypesCompatibility(scope, upperBound, expressionType, expression))
+								return false;
+						}
+						return true;
 
 					default :
 						if (castType.isInterface()) {
@@ -513,8 +532,12 @@ public final boolean checkCastTypesCompatibility(Scope scope, TypeBinding castTy
 						if (match == null) {
 							checkUnsafeCast(scope, castType, expressionType, null, true);
 						}
-						// recurse on the type variable upper bound
-						return checkCastTypesCompatibility(scope, ((TypeVariableBinding)castType).upperBound(), expressionType, expression);
+						// recursively on the type variable upper bounds
+						for (TypeBinding upperBound : ((TypeVariableBinding)castType).allUpperBounds()) {
+							if (!checkCastTypesCompatibility(scope, upperBound, expressionType, expression))
+								return false;
+						}
+						return true;
 
 					default :
 						if (castType.isInterface()) {
@@ -709,6 +732,15 @@ public void computeConversion(Scope scope, TypeBinding runtimeType, TypeBinding 
 	}
 }
 
+public static int computeNullStatus(int status, int combinedStatus) {
+	if ((combinedStatus & (FlowInfo.NULL|FlowInfo.POTENTIALLY_NULL)) != 0)
+		status |= FlowInfo.POTENTIALLY_NULL;
+	if ((combinedStatus & (FlowInfo.NON_NULL|FlowInfo.POTENTIALLY_NON_NULL)) != 0)
+		status |= FlowInfo.POTENTIALLY_NON_NULL;
+	if ((combinedStatus & (FlowInfo.UNKNOWN|FlowInfo.POTENTIALLY_UNKNOWN)) != 0)
+		status |= FlowInfo.POTENTIALLY_UNKNOWN;
+	return status;
+}
 /**
  * Expression statements are plain expressions, however they generate like
  * normal expressions with no value required.
@@ -1034,6 +1066,10 @@ public void resolve(BlockScope scope) {
 	this.resolveType(scope);
 	return;
 }
+@Override
+public TypeBinding resolveExpressionType(BlockScope scope) {
+	return resolveType(scope);
+}
 
 /**
  * Resolve the type of this expression in the context of a blockScope
@@ -1137,6 +1173,12 @@ public boolean forcedToBeRaw(ReferenceContext referenceContext) {
 		ConditionalExpression ternary = (ConditionalExpression) this;
 		if (ternary.valueIfTrue.forcedToBeRaw(referenceContext) || ternary.valueIfFalse.forcedToBeRaw(referenceContext)) {
 			return true;
+		}
+	} else if (this instanceof SwitchExpression) {
+		SwitchExpression se = (SwitchExpression) this;
+		for (Expression e : se.resultExpressions) {
+			if (e.forcedToBeRaw(referenceContext))
+				return true;
 		}
 	}
 	return false;
@@ -1246,6 +1288,10 @@ public void traverse(ASTVisitor visitor, ClassScope scope) {
 // return true if this expression can be a stand alone statement when terminated with a semicolon
 public boolean statementExpression() {
 	return false;
+}
+// for switch statement
+public boolean isTrulyExpression() {
+	return true;
 }
 
 /**

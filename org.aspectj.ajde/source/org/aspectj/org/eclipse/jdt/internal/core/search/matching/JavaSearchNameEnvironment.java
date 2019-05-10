@@ -49,7 +49,6 @@ import org.aspectj.org.eclipse.jdt.internal.core.JavaProject;
 import org.aspectj.org.eclipse.jdt.internal.core.JrtPackageFragmentRoot;
 import org.aspectj.org.eclipse.jdt.internal.core.NameLookup;
 import org.aspectj.org.eclipse.jdt.internal.core.PackageFragmentRoot;
-import org.aspectj.org.eclipse.jdt.internal.core.builder.ClasspathJrt;
 import org.aspectj.org.eclipse.jdt.internal.core.builder.ClasspathLocation;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
 
@@ -70,7 +69,7 @@ public class JavaSearchNameEnvironment implements IModuleAwareNameEnvironment, S
 	Map<String, org.aspectj.org.eclipse.jdt.core.ICompilationUnit> workingCopies;
 
 public JavaSearchNameEnvironment(IJavaProject javaProject, org.aspectj.org.eclipse.jdt.core.ICompilationUnit[] copies) {
-	if (CompilerOptions.versionToJdkLevel(javaProject.getOption(JavaCore.COMPILER_COMPLIANCE, true)) >= ClassFileConstants.JDK9) {
+	if (isComplianceJava9OrHigher(javaProject)) {
 		this.moduleLocations = new HashMap<>();
 		this.moduleToClassPathLocations = new HashMap<>();
 	}
@@ -162,7 +161,7 @@ private ClasspathLocation mapToClassPathLocation(JavaModelManager manager, Packa
 			IJavaProject project = (IJavaProject) root.getParent();
 			String compliance = project.getOption(JavaCore.COMPILER_COMPLIANCE, true);
 			cp = (root instanceof JrtPackageFragmentRoot) ? 
-					new ClasspathJrt(path.toOSString(), rawClasspathEntry.getAccessRuleSet(), 
+					ClasspathLocation.forJrtSystem(path.toOSString(), rawClasspathEntry.getAccessRuleSet(), 
 							ClasspathEntry.getExternalAnnotationPath(rawClasspathEntry, project.getProject(), true), compliance) :
 									ClasspathLocation.forLibrary(manager.getZipFile(path), rawClasspathEntry.getAccessRuleSet(),
 												ClasspathEntry.getExternalAnnotationPath(rawClasspathEntry,
@@ -185,6 +184,13 @@ private ClasspathLocation mapToClassPathLocation(JavaModelManager manager, Packa
 		// problem opening zip file or getting root kind
 		// consider root corrupt and ignore
 	}
+	if (isComplianceJava9OrHigher(root.getJavaProject())) {
+		addModuleClassPathInfo(root, defaultModule, cp);
+	}
+	return cp;
+}
+
+private void addModuleClassPathInfo(PackageFragmentRoot root, IModuleDescription defaultModule, ClasspathLocation cp) {
 	IModuleDescription imd = root.getModuleDescription();
 	if (imd != null) {
 		String moduleName = addModuleClassPathInfo(cp, imd);
@@ -195,7 +201,6 @@ private ClasspathLocation mapToClassPathLocation(JavaModelManager manager, Packa
 	} else if (defaultModule != null) {
 		addModuleClassPathInfo(cp, defaultModule);
 	}
-	return cp;
 }
 private String addModuleClassPathInfo(ClasspathLocation cp, IModuleDescription imd) {
 	IModule mod = NameLookup.getModuleDescriptionInfo(imd);
@@ -395,5 +400,12 @@ public char[][] getAllAutomaticModules() {
 	Set<char[]> set = this.moduleLocations.values().stream().map(e -> e.getModule()).filter(m -> m != null && m.isAutomatic())
 			.map(m -> m.name()).collect(Collectors.toSet());
 	return set.toArray(new char[set.size()][]);
+}
+
+private static boolean isComplianceJava9OrHigher(IJavaProject javaProject) {
+	if (javaProject == null) {
+		return false;
+	}
+	return CompilerOptions.versionToJdkLevel(javaProject.getOption(JavaCore.COMPILER_COMPLIANCE, true)) >= ClassFileConstants.JDK9;
 }
 }

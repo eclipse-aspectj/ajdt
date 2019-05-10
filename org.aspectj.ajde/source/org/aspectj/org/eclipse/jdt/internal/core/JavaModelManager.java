@@ -432,7 +432,7 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 
 	public static class CompilationParticipants {
 
-		private final static int MAX_SOURCE_LEVEL = 11 ; // 1.1 to 1.8 and 9, 10
+		static final int MAX_SOURCE_LEVEL = JavaCore.getAllVersions().size() - 1; // All except VERSION_CLDC_1_1
 
 		/*
 		 * The registered compilation participants (a table from int (source level) to Object[])
@@ -570,9 +570,9 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 			if (majVersion > ClassFileConstants.MAJOR_VERSION_1_2) {
 				return (majVersion - ClassFileConstants.MAJOR_VERSION_1_1);
 			}
-					// all other cases including ClassFileConstants.MAJOR_VERSION_1_1
-					return 0;
-			}
+			// all other cases including ClassFileConstants.MAJOR_VERSION_1_1
+			return 0;
+		}
 
 		private int sortParticipants(ArrayList<IConfigurationElement> group, IConfigurationElement[] configElements, int index) {
 			int size = group.size();
@@ -1702,6 +1702,7 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 					propertyName.equals(JavaCore.CORE_INCOMPLETE_CLASSPATH) ||
 					propertyName.equals(JavaCore.CORE_CIRCULAR_CLASSPATH) ||
 					propertyName.equals(JavaCore.CORE_INCOMPATIBLE_JDK_LEVEL) ||
+					propertyName.equals(JavaCore.CORE_MAIN_ONLY_PROJECT_HAS_TEST_ONLY_DEPENDENCY) ||
 					propertyName.equals(JavaCore.COMPILER_CODEGEN_TARGET_PLATFORM) ||
 					propertyName.equals(JavaCore.CORE_OUTPUT_LOCATION_OVERLAPPING_ANOTHER_SOURCE)) {
 					JavaModelManager manager = JavaModelManager.getJavaModelManager();
@@ -2464,6 +2465,7 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 		defaultOptionsMap.put(JavaCore.CORE_INCOMPLETE_CLASSPATH, JavaCore.ERROR);
 		defaultOptionsMap.put(JavaCore.CORE_CIRCULAR_CLASSPATH, JavaCore.ERROR);
 		defaultOptionsMap.put(JavaCore.CORE_INCOMPATIBLE_JDK_LEVEL, JavaCore.IGNORE);
+		defaultOptionsMap.put(JavaCore.CORE_MAIN_ONLY_PROJECT_HAS_TEST_ONLY_DEPENDENCY, JavaCore.ERROR);
 		defaultOptionsMap.put(JavaCore.CORE_OUTPUT_LOCATION_OVERLAPPING_ANOTHER_SOURCE, JavaCore.ERROR);
 		defaultOptionsMap.put(JavaCore.CORE_ENABLE_CLASSPATH_EXCLUSION_PATTERNS, JavaCore.ENABLED);
 		defaultOptionsMap.put(JavaCore.CORE_ENABLE_CLASSPATH_MULTIPLE_OUTPUT_LOCATIONS, JavaCore.ENABLED);
@@ -2974,9 +2976,9 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 		ArchiveValidity validity = getArchiveValidity(path);
 		IOException reason;
 		switch (validity) {
-			case BAD_FORMAT: reason = new ZipException(); break;
-			case FILE_NOT_FOUND: reason = new FileNotFoundException(); break;
-			case UNABLE_TO_READ: reason = new IOException(); break;
+			case BAD_FORMAT: reason = new ZipException("Bad format in archive: " + path); break; //$NON-NLS-1$
+			case FILE_NOT_FOUND: reason = new FileNotFoundException("Archive not found for path: " + path); break; //$NON-NLS-1$
+			case UNABLE_TO_READ: reason = new IOException("Unable to read archive: " + path); break; //$NON-NLS-1$
 			default: reason = null;
 		}
 		if (reason != null) {

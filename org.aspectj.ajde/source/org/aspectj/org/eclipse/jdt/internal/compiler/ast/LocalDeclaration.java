@@ -1,6 +1,6 @@
 // ASPECTJ
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -256,6 +256,13 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 			}
 			if (candidate != null) return candidate;
 		}
+		if (e instanceof SwitchExpression) {
+			SwitchExpression se = (SwitchExpression)e;
+			for (Expression re : se.resultExpressions) {
+				Expression candidate = findPolyExpression(re);
+				if (candidate != null) return candidate;
+			}
+		}
 		return null;
 	}
 	
@@ -366,9 +373,10 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 		boolean resolveAnnotationsEarly = false;
 		if (scope.environment().usesNullTypeAnnotations() 
 				&& !isTypeNameVar // 'var' does not provide a target type
-				&& variableType.isValidBinding()) { 
+				&& variableType != null && variableType.isValidBinding()) { 
 			resolveAnnotationsEarly = this.initialization instanceof Invocation
 					|| this.initialization instanceof ConditionalExpression
+					|| this.initialization instanceof SwitchExpression
 					|| this.initialization instanceof ArrayInitializer;
 		}
 		if (resolveAnnotationsEarly) {
