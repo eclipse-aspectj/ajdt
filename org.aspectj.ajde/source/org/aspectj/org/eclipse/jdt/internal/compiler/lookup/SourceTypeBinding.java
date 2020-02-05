@@ -49,6 +49,8 @@
  *     							bug 415269 - NonNullByDefault is not always inherited to nested classes
  *      Andy Clement (GoPivotal, Inc) aclement@gopivotal.com - Contributions for
  *                          	Bug 405104 - [1.8][compiler][codegen] Implement support for serializeable lambdas
+ *      Sebastian Zarnekow - Contributions for
+ *								bug 544921 - [performance] Poor performance with large source files
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
 
@@ -130,6 +132,7 @@ public class SourceTypeBinding extends ReferenceBinding {
 	private SimpleLookupTable storedAnnotations = null; // keys are this ReferenceBinding & its fields and methods, value is an AnnotationHolder
 
 	public int defaultNullness;
+	boolean memberTypesSorted = false;
 	private int nullnessDefaultInitialized = 0; // 0: nothing; 1: type; 2: package
 	private ReferenceBinding containerAnnotationType = null;
   // AspectJ Extension
@@ -177,7 +180,7 @@ public SourceTypeBinding(SourceTypeBinding prototype) {
 	this.typeVariables = prototype.typeVariables;
 	this.environment = prototype.environment;
 
-	// this.scope = prototype.scope;  // Will defeat CompilationUnitDeclaration.cleanUp(TypeDeclaration) && CompilationUnitDeclaration.cleanUp(), so not copied, not an issue for JSR 308.
+	this.scope = prototype.scope; // compensated by TypeSystem.cleanUp(int)
 
 	this.synthetics = prototype.synthetics;
 	this.genericReferenceTypeSignature = prototype.genericReferenceTypeSignature;
@@ -1094,6 +1097,19 @@ public long getAnnotationTagBits() {
 	if (!isPrototype())
 		return this.prototype.getAnnotationTagBits();
 	
+	if ((this.tagBits & TagBits.EndHierarchyCheck) == 0 && this.scope != null) { // AspectJ added final this.scope check because BinaryTypeBinding subclass won't have scope
+		CompilationUnitScope pkgCUS = this.scope.compilationUnitScope();
+		boolean current = pkgCUS.connectingHierarchy;
+		pkgCUS.connectingHierarchy = true;
+		try {
+			return internalGetAnnotationTagBits();
+		} finally {
+			pkgCUS.connectingHierarchy = current;
+		}
+	}
+	return internalGetAnnotationTagBits();
+}
+private long internalGetAnnotationTagBits() {
 	if ((this.tagBits & TagBits.AnnotationResolved) == 0 && this.scope != null) {
 		TypeDeclaration typeDecl = this.scope.referenceContext;
 		boolean old = typeDecl.staticInitializerScope.insideTypeAnnotation;
@@ -1612,7 +1628,9 @@ public boolean canBeSeenBy(Scope sco) {
 public ReferenceBinding[] memberTypes() {
 	if (!isPrototype()) {
 		if ((this.tagBits & TagBits.HasUnresolvedMemberTypes) == 0)
-			return this.memberTypes;
+			return sortedMemberTypes();
+		// members obtained from the prototype are already sorted so it is safe
+		// to set the sorted flag here immediately.
 		ReferenceBinding [] members = this.memberTypes = this.prototype.memberTypes();
 		int membersLength = members == null ? 0 : members.length;
 		this.memberTypes = new ReferenceBinding[membersLength];
@@ -1620,6 +1638,18 @@ public ReferenceBinding[] memberTypes() {
 			this.memberTypes[i] = this.environment.createMemberType(members[i], this);
 		}
 		this.tagBits &= ~TagBits.HasUnresolvedMemberTypes;
+		this.memberTypesSorted = true;
+	}
+	return sortedMemberTypes();
+}
+
+private ReferenceBinding[] sortedMemberTypes() {
+	if (!this.memberTypesSorted) {
+		// lazily sort member types
+		int length = this.memberTypes.length;
+		if (length > 1)
+			sortMemberTypes(this.memberTypes, 0, length);
+		this.memberTypesSorted = true;
 	}
 	return this.memberTypes;
 }
@@ -2283,19 +2313,7 @@ public void evaluateNullAnnotations() {
 				pkg.setDefaultNullness(NULL_UNSPECIFIED_BY_DEFAULT);
 			} else {
 				// if pkgInfo has no default annot. - complain
-				if (packageInfo instanceof SourceTypeBinding
-						&& (packageInfo.tagBits & TagBits.EndHierarchyCheck) == 0) {
-					CompilationUnitScope pkgCUS = ((SourceTypeBinding) packageInfo).scope.compilationUnitScope();
-					boolean current = pkgCUS.connectingHierarchy;
-					pkgCUS.connectingHierarchy = true;
-					try {
-						packageInfo.getAnnotationTagBits();
-					} finally {
-						pkgCUS.connectingHierarchy = current;
-					}
-				} else {
-					packageInfo.getAnnotationTagBits();
-				}
+				packageInfo.getAnnotationTagBits();
 			}
 		}
 	}
@@ -2403,6 +2421,7 @@ public ReferenceBinding [] setMemberTypes(ReferenceBinding[] memberTypes) {
 			annotatedType.memberTypes(); // recompute.
 		}
 	}
+	sortedMemberTypes();
 	return this.memberTypes;
 }
 
@@ -2770,6 +2789,14 @@ public List<String> getNestMembers() {
 							.sorted()
 							.collect(Collectors.toList());
 	return list;
+}
+
+public void cleanUp() {
+	if (this.environment != null) {
+		// delegate so as to clean all variants of this prototype:
+		this.environment.typeSystem.cleanUp(this.id);
+	}
+	this.scope = null; // for types that are not registered in typeSystem.
 }
 //AspectJ Extension
 public void addField(FieldBinding binding) {

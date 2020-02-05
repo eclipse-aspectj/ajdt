@@ -329,6 +329,7 @@ public ISourceRange getJavadocRange() throws JavaModelException {
 						break;
 					case ITerminalSymbols.TokenNameCOMMENT_LINE :
 					case ITerminalSymbols.TokenNameCOMMENT_BLOCK :
+					case ITerminalSymbols.TokenNameCOMMA:
 						terminal= scanner.getNextToken();
 						continue loop;
 					default :
@@ -338,9 +339,7 @@ public ISourceRange getJavadocRange() throws JavaModelException {
 			if (docOffset != -1) {
 				return new SourceRange(docOffset + start, docEnd - docOffset);
 			}
-		} catch (InvalidInputException ex) {
-			// try if there is inherited Javadoc
-		} catch (IndexOutOfBoundsException e) {
+		} catch (InvalidInputException | IndexOutOfBoundsException e) {
 			// https://bugs.eclipse.org/bugs/show_bug.cgi?id=305001
 		}
 	}

@@ -107,6 +107,15 @@ public class SearchableEnvironment
 					this.moduleUpdater.computeModuleUpdates(entry);
 		}
 	}
+
+	/**
+	 * Note: this is required for (abandoned) Scala-IDE
+	 */
+	@Deprecated
+	public SearchableEnvironment(JavaProject project, WorkingCopyOwner owner) throws JavaModelException {
+		this(project, owner, false);
+	}
+
 	/**
 	 * Creates a SearchableEnvironment on the given project
 	 */
@@ -878,20 +887,11 @@ private void findPackagesFromRequires(char[] prefix, boolean isMatchAllPrefix, I
 	}
 
 	/**
-	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.env.IModuleAwareNameEnvironment#getModulesDeclaringPackage(char[][], char[], char[])
+	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.env.IModuleAwareNameEnvironment#getModulesDeclaringPackage(char[][], char[])
 	 */
 	@Override
-	public char[][] getModulesDeclaringPackage(char[][] parentPackageName, char[] name, char[] moduleName) {
-		String[] pkgName;
-		if (parentPackageName == null)
-			pkgName = new String[] {new String(name)};
-		else {
-			int length = parentPackageName.length;
-			pkgName = new String[length+1];
-			for (int i = 0; i < length; i++)
-				pkgName[i] = new String(parentPackageName[i]);
-			pkgName[length] = new String(name);
-		}
+	public char[][] getModulesDeclaringPackage(char[][] packageName, char[] moduleName) {
+		String[] pkgName = Arrays.stream(packageName).map(String::new).toArray(String[]::new);
 		LookupStrategy strategy = LookupStrategy.get(moduleName);
 		switch (strategy) {
 			case Named:
@@ -984,7 +984,7 @@ private void findPackagesFromRequires(char[] prefix, boolean isMatchAllPrefix, I
 			this.rootToModule = new HashMap<>();
 		}
 		for (IPackageFragmentRoot root : roots) {
-			IModuleDescription moduleDescription = NameLookup.getModuleDescription(root, this.rootToModule, this.nameLookup.rootToResolvedEntries::get);
+			IModuleDescription moduleDescription = NameLookup.getModuleDescription(this.project, root, this.rootToModule, this.nameLookup.rootToResolvedEntries::get);
 			if (moduleDescription != null)
 				return moduleDescription;
 		}
@@ -1135,5 +1135,27 @@ private void findPackagesFromRequires(char[] prefix, boolean isMatchAllPrefix, I
 		if (count < allRoots.length)
 			return Arrays.copyOf(sourceRoots, count);
 		return sourceRoots;
+	}
+
+	@Override
+	public char[][] listPackages(char[] moduleName) {
+		switch (LookupStrategy.get(moduleName)) {
+			case Named:
+				IPackageFragmentRoot[] packageRoots = findModuleContext(moduleName);
+				Set<String> packages = new HashSet<>();
+				for (IPackageFragmentRoot packageRoot : packageRoots) {
+					try {
+						for (IJavaElement javaElement : packageRoot.getChildren()) {
+							if (javaElement instanceof IPackageFragment && !((IPackageFragment) javaElement).isDefaultPackage())
+								packages.add(javaElement.getElementName());
+						}
+					} catch (JavaModelException e) {
+						Util.log(e, "Failed to retrieve packages from " + packageRoot); //$NON-NLS-1$
+					}
+				}
+				return packages.stream().map(String::toCharArray).toArray(char[][]::new);
+			default:
+				throw new UnsupportedOperationException("can list packages only of a named module"); //$NON-NLS-1$
+		}
 	}
 }

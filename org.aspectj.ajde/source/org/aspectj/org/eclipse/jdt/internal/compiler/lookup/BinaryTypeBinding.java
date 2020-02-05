@@ -43,6 +43,8 @@
  *    Jesper Steen Moller - Contributions for
  *								Bug 412150 [1.8] [compiler] Enable reflected parameter names during annotation processing
  *								Bug 412153 - [1.8][compiler] Check validity of annotations which may be repeatable
+ *    Sebastian Zarnekow - Contributions for
+ *								bug 544921 - [performance] Poor performance with large source files
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
 
@@ -105,6 +107,7 @@ public class BinaryTypeBinding extends SourceTypeBinding {
 
 	private ReferenceBinding containerAnnotationType;
 	int defaultNullness = 0;
+	boolean memberTypesSorted = false;
 	public enum ExternalAnnotationStatus {
 		FROM_SOURCE,
 		NOT_EEA_CONFIGURED,
@@ -1355,20 +1358,30 @@ public ReferenceBinding getMemberType(char[] typeName) {
 		return memberType == null ? null : this.environment.createMemberType(memberType, this);
 	}
 
-	for (int i = this.memberTypes.length; --i >= 0;) {
-	    ReferenceBinding memberType = this.memberTypes[i];
+	ReferenceBinding[] members = maybeSortedMemberTypes();
+	// do not try to binary search while we are still resolving and the array is not necessarily sorted
+	if (!this.memberTypesSorted) {
+		for (int i = members.length; --i >= 0;) {
+		    ReferenceBinding memberType = members[i];
 	    if (memberType instanceof UnresolvedReferenceBinding) {
 			char[] name = memberType.sourceName; // source name is qualified with enclosing type name
 			int prefixLength = this.compoundName[this.compoundName.length - 1].length + 1; // enclosing$
 			if (name.length == (prefixLength + typeName.length)) // enclosing $ typeName
 				if (CharOperation.fragmentEquals(typeName, name, prefixLength, true)) // only check trailing portion
-					return this.memberTypes[i] = (ReferenceBinding) resolveType(memberType, this.environment, false /* no raw conversion for now */);
+						return members[i] = (ReferenceBinding) resolveType(memberType, this.environment, false /* no raw conversion for now */);
 	    } else if (CharOperation.equals(typeName, memberType.sourceName)) {
 	        return memberType;
 	    }
 	}
 	return null;
 }
+	int memberTypeIndex = ReferenceBinding.binarySearch(typeName, members);
+	if (memberTypeIndex >= 0) {
+		return members[memberTypeIndex];
+	}
+	return null;
+}
+
 // NOTE: the return type, arg & exception types of each method of a binary type are resolved when needed
 @Override
 public MethodBinding[] getMethodsBase(char[] selector) { // AspectJ Extension - added Base to name 
@@ -1593,6 +1606,11 @@ public ReferenceBinding[] memberTypes() {
  	if (!isPrototype()) {
 		if ((this.tagBits & TagBits.HasUnresolvedMemberTypes) == 0)
 			return this.memberTypes;
+		/*
+		 * The members obtained from the prototype are already sorted
+		 * thus we can safely assume that our local copy of the member types
+		 * is sorted, too.
+		 */
 		ReferenceBinding [] members = this.prototype.memberTypes();
 		int memberTypesLength = members == null ? 0 : members.length;
 		if (memberTypesLength > 0) {
@@ -1601,17 +1619,34 @@ public ReferenceBinding[] memberTypes() {
 				this.memberTypes[i] = this.environment.createMemberType(members[i], this);
 		}
 		this.tagBits &= ~TagBits.HasUnresolvedMemberTypes;
+		this.memberTypesSorted = true;
 		return this.memberTypes;	
 	}
 	
-	if ((this.tagBits & TagBits.HasUnresolvedMemberTypes) == 0)
-		return this.memberTypes;
-
+	if ((this.tagBits & TagBits.HasUnresolvedMemberTypes) == 0) {
+		return maybeSortedMemberTypes();
+	}
 	for (int i = this.memberTypes.length; --i >= 0;)
 		this.memberTypes[i] = (ReferenceBinding) resolveType(this.memberTypes[i], this.environment, false /* no raw conversion for now */);
 	this.tagBits &= ~TagBits.HasUnresolvedMemberTypes;
+	return maybeSortedMemberTypes();
+}
+
+private ReferenceBinding[] maybeSortedMemberTypes() {
+	// do not try to sort while we are still resolving
+	if ((this.tagBits & TagBits.HasUnresolvedMemberTypes) != 0) {
 	return this.memberTypes;
 }
+	if (!this.memberTypesSorted) {
+		// lazily sort member types
+		int length = this.memberTypes.length;
+		if (length > 1)
+			sortMemberTypes(this.memberTypes, 0, length);
+		this.memberTypesSorted = true;
+	}
+	return this.memberTypes;
+}
+
 // NOTE: the return type, arg & exception types of each method of a binary type are resolved when needed
 @Override
 public MethodBinding[] methodsBase() { // AspectJ Extension - added Base suffix
@@ -1634,6 +1669,10 @@ public MethodBinding[] methodsBase() { // AspectJ Extension - added Base suffix
 		resolveTypesFor(this.methods[i]);
 	this.tagBits |= TagBits.AreMethodsComplete;
 	return this.methods;
+}
+@Override
+public void setHierarchyCheckDone() {
+	this.tagBits |= TagBits.BeginHierarchyCheck | TagBits.EndHierarchyCheck;
 }
 
 @Override
@@ -1951,6 +1990,9 @@ private void scanTypeForNullDefaultAnnotation(IBinaryType binaryType, PackageBin
 
 	if (CharOperation.equals(CharOperation.splitOn('/', binaryType.getName()), nonNullByDefaultAnnotationName))
 		return; // don't recursively apply @NNBD on @NNBD, neither directly nor via the 'enclosing' package-info.java
+	for (String name : this.environment.globalOptions.nonNullByDefaultAnnotationSecondaryNames)
+		if (CharOperation.toString(this.compoundName).equals(name))
+			return;
 
 	IBinaryAnnotation[] annotations = binaryType.getAnnotations();
 	boolean isPackageInfo = CharOperation.equals(sourceName(), TypeConstants.PACKAGE_INFO_NAME);
@@ -2130,8 +2172,60 @@ public ReferenceBinding superclass() {
 	this.typeBits |= (this.superclass.typeBits & TypeIds.InheritableBits);
 	if ((this.typeBits & (TypeIds.BitAutoCloseable|TypeIds.BitCloseable)) != 0) // avoid the side-effects of hasTypeBit()! 
 		this.typeBits |= applyCloseableClassWhitelists();
+	detectCircularHierarchy();
 	return this.superclass;
 }
+
+private void breakLoop() {
+	ReferenceBinding currentSuper = this.superclass;
+	ReferenceBinding prevSuper = null;
+	while (currentSuper != null) {
+		if ((currentSuper.tagBits & TagBits.EndHierarchyCheck) != 0 && prevSuper instanceof BinaryTypeBinding) {
+			((BinaryTypeBinding)prevSuper).superclass = this.environment.getResolvedType(TypeConstants.JAVA_LANG_OBJECT, null);
+			break;
+		}
+		currentSuper.tagBits |= TagBits.EndHierarchyCheck;
+		prevSuper = currentSuper;
+		currentSuper = currentSuper.superclass();
+	}	
+}
+
+private void detectCircularHierarchy() {
+	ReferenceBinding currentSuper = this.superclass;
+	ReferenceBinding tempSuper = null;
+	int count = 0;
+	int skipCount = 20;
+	while (currentSuper != null) {		
+		if (currentSuper.hasHierarchyCheckStarted())
+			break;
+		if (TypeBinding.equalsEquals(currentSuper, this) || TypeBinding.equalsEquals(currentSuper, tempSuper)) {
+			currentSuper.tagBits |= TagBits.HierarchyHasProblems;
+			if (currentSuper.isBinaryBinding())
+				breakLoop();
+			
+			return;
+		}
+		if (count == skipCount) {
+			tempSuper = currentSuper; // for finding loops that only start after a linear chain
+			skipCount *= 2;
+			count = 0;
+		}
+		//Ignore if the super is not yet resolved..
+		if (!currentSuper.isHierarchyConnected()) 
+			return;
+		currentSuper = currentSuper.superclass();	
+		count++;
+	}
+	/* No loop detected and completely found that there is no loop
+	 * So, set that info for all the classes 
+	 */
+	tempSuper = this;
+	while (TypeBinding.notEquals(currentSuper, tempSuper)) {
+		tempSuper.setHierarchyCheckDone();
+		tempSuper=tempSuper.superclass();
+	}	
+}
+
 // NOTE: superInterfaces of binary types are resolved when needed
 @Override
 public ReferenceBinding[] superInterfaces() {

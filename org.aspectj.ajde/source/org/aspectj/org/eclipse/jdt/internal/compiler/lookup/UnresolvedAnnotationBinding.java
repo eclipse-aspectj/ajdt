@@ -57,6 +57,9 @@ public ElementValuePair[] getElementValuePairs() {
 				pair.setMethodBinding(methods[0]);
 			} // else silently leave a null there
 			Object value = pair.getValue();
+			boolean wasToleratingMissingTypeProcessingAnnotations = this.env.mayTolerateMissingType;
+			this.env.mayTolerateMissingType = true; // https://bugs.eclipse.org/bugs/show_bug.cgi?id=360164
+			try {
 			if (value instanceof UnresolvedReferenceBinding) {
 				pair.setValue(((UnresolvedReferenceBinding) value).
 						resolve(this.env, false));
@@ -70,6 +73,9 @@ public ElementValuePair[] getElementValuePairs() {
 				}
 			} // do nothing for UnresolvedAnnotationBinding-s, since their
 			  // content is only accessed through get* methods
+			} finally {
+				this.env.mayTolerateMissingType = wasToleratingMissingTypeProcessingAnnotations;
+			}
 		}
 		this.env = null;
 	}

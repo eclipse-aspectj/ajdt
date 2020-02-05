@@ -95,6 +95,7 @@ public class DefaultCodeFormatter extends CodeFormatter {
 
 	private Object oldCommentFormatOption;
 	private String sourceLevel;
+	public boolean previewEnabled;
 
 	private String sourceString;
 	char[] sourceArray;
@@ -126,13 +127,14 @@ public class DefaultCodeFormatter extends CodeFormatter {
 			this.workingOptions = new DefaultCodeFormatterOptions(options);
 			this.oldCommentFormatOption = getOldCommentFormatOption(options);
 			String compilerSource = options.get(CompilerOptions.OPTION_Source);
-			this.sourceLevel = compilerSource != null ? compilerSource : CompilerOptions.VERSION_12;
+			this.sourceLevel = compilerSource != null ? compilerSource : CompilerOptions.VERSION_13;
+			this.previewEnabled = JavaCore.ENABLED.equals(options.get(JavaCore.COMPILER_PB_ENABLE_PREVIEW_FEATURES));
 		} else {
 			Map<String, String> settings = DefaultCodeFormatterConstants.getJavaConventionsSettings();
 			this.originalOptions = new DefaultCodeFormatterOptions(settings);
 			this.workingOptions = new DefaultCodeFormatterOptions(settings);
 			this.oldCommentFormatOption = DefaultCodeFormatterConstants.TRUE;
-			this.sourceLevel = CompilerOptions.VERSION_12;
+			this.sourceLevel = CompilerOptions.VERSION_13;
 		}
 		if (defaultCodeFormatterOptions != null) {
 			this.originalOptions.set(defaultCodeFormatterOptions.getMap());
@@ -300,7 +302,7 @@ public class DefaultCodeFormatter extends CodeFormatter {
 		resultBuilder.setAlignChar(DefaultCodeFormatterOptions.SPACE);
 		for (Token token : this.tokens) {
 			List<Token> structure = token.getInternalStructure();
-			if (structure != null && !structure.isEmpty())
+			if (token.isComment() && structure != null && !structure.isEmpty())
 				resultBuilder.processComment(token);
 		}
 
@@ -332,7 +334,7 @@ public class DefaultCodeFormatter extends CodeFormatter {
 	}
 
 	private ASTParser createParser(int kind) {
-		ASTParser parser = ASTParser.newParser(AST.JLS12);
+		ASTParser parser = ASTParser.newParser(AST.JLS13);
 
 		if (kind == K_MODULE_INFO) {
 			parser.setSource(createDummyModuleInfoCompilationUnit());
@@ -388,7 +390,7 @@ public class DefaultCodeFormatter extends CodeFormatter {
 	private void tokenizeSource(int kind) {
 		this.tokens.clear();
 		Scanner scanner = new Scanner(true, false, false/* nls */, CompilerOptions.versionToJdkLevel(this.sourceLevel),
-				null/* taskTags */, null/* taskPriorities */, false/* taskCaseSensitive */);
+				null/* taskTags */, null/* taskPriorities */, false/* taskCaseSensitive */, this.previewEnabled);
 		scanner.setSource(this.sourceArray);
 		scanner.fakeInModule = (kind & K_MODULE_INFO) != 0;
 		while (true) {

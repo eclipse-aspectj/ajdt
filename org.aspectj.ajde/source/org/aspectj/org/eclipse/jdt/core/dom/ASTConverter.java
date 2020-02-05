@@ -75,7 +75,6 @@ import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
 
 /**
  * Internal class for converting internal compiler ASTs into public ASTs.
- * @since 3.10 // Added due to raised visibility
  */
 @SuppressWarnings({ "rawtypes", "unchecked" })
 //AspectJ extension - raised to public visibility
@@ -140,7 +139,8 @@ public class ASTConverter {
 			sourceLevel /*sourceLevel*/,
 			null /*taskTags*/,
 			null/*taskPriorities*/,
-			true/*taskCaseSensitive*/);
+			true/*taskCaseSensitive*/,
+			JavaCore.ENABLED.equals(options.get(JavaCore.COMPILER_PB_ENABLE_PREVIEW_FEATURES)));
 		this.monitor = monitor;
 		this.insideComments = JavaCore.ENABLED.equals(options.get(JavaCore.COMPILER_DOC_COMMENT_SUPPORT));
 	}
@@ -1324,32 +1324,12 @@ public class ASTConverter {
 
 	public BreakStatement convert(org.aspectj.org.eclipse.jdt.internal.compiler.ast.BreakStatement statement)  {
 		BreakStatement breakStatement = new BreakStatement(this.ast);
-		if (this.ast.apiLevel >= AST.JLS12_INTERNAL) {
-			breakStatement.setImplicit(statement.isImplicit);
-			if (statement.isImplicit) {
-				breakStatement.setSourceRange(statement.sourceEnd -1, 0);
-			} else {
 				breakStatement.setSourceRange(statement.sourceStart, statement.sourceEnd - statement.sourceStart + 1);
-			}
-		}
-		else {
-		breakStatement.setSourceRange(statement.sourceStart, statement.sourceEnd - statement.sourceStart + 1);
-		}
 		if (statement.label != null) {
 			final SimpleName name = new SimpleName(this.ast);
 			name.internalSetIdentifier(new String(statement.label));
 			retrieveIdentifierAndSetPositions(statement.sourceStart, statement.sourceEnd, name);
 			breakStatement.setLabel(name);
-		}
-		else if (statement.expression != null && this.ast.apiLevel >= AST.JLS12_INTERNAL) {
-			final Expression expression= convert(statement.expression);
-			breakStatement.setExpression(expression);
-			int sourceEnd = statement.sourceEnd;
-			if (sourceEnd == -1) {
-				breakStatement.setSourceRange(statement.sourceStart, statement.sourceEnd - statement.sourceStart + 2);
-			} else {
-				breakStatement.setSourceRange(statement.sourceStart, sourceEnd - statement.sourceStart + 1);
-			}
 		}
 		return breakStatement;
 	}
@@ -1357,7 +1337,7 @@ public class ASTConverter {
 
 	public SwitchCase convert(org.aspectj.org.eclipse.jdt.internal.compiler.ast.CaseStatement statement) {
 		SwitchCase switchCase = new SwitchCase(this.ast);
-		if (this.ast.apiLevel >= AST.JLS12_INTERNAL) {
+		if (this.ast.isPreviewEnabled()) {
 			org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression[] expressions = statement.constantExpressions;
 			if (expressions == null || expressions.length == 0) {
 				switchCase.expressions().clear();
@@ -1374,7 +1354,7 @@ public class ASTConverter {
 				internalSetExpression(switchCase, convert(constantExpression));
 		}
 		}
-		if (this.ast.apiLevel >= AST.JLS12_INTERNAL) {
+		if (this.ast.isPreviewEnabled()) {
 			switchCase.setSwitchLabeledRule(statement.isExpr);
 		}
 		switchCase.setSourceRange(statement.sourceStart, statement.sourceEnd - statement.sourceStart + 1);
@@ -1886,6 +1866,9 @@ public class ASTConverter {
 		}
 		if (expression instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.ExtendedStringLiteral) {
 			return convert((org.aspectj.org.eclipse.jdt.internal.compiler.ast.ExtendedStringLiteral) expression);
+		}
+		if (expression instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.TextBlock) {
+			return convert((org.aspectj.org.eclipse.jdt.internal.compiler.ast.TextBlock) expression);
 		}
 		if (expression instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.StringLiteral) {
 			return convert((org.aspectj.org.eclipse.jdt.internal.compiler.ast.StringLiteral) expression);
@@ -2887,6 +2870,9 @@ public class ASTConverter {
 		if (statement instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.WhileStatement) {
 			return convert((org.aspectj.org.eclipse.jdt.internal.compiler.ast.WhileStatement) statement);
 		}
+		if (statement instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.YieldStatement) {
+			return convert((org.aspectj.org.eclipse.jdt.internal.compiler.ast.YieldStatement) statement);
+		}
 		if (statement instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression &&
 				((org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression) statement).isTrulyExpression()) {
 			org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression statement2 = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression) statement;
@@ -2917,7 +2903,7 @@ public class ASTConverter {
 	}
 
 	public Expression convert(org.aspectj.org.eclipse.jdt.internal.compiler.ast.SwitchExpression expression) {
-		if (this.ast.apiLevel < AST.JLS12_INTERNAL) {
+		if (!this.ast.isPreviewEnabled()) {
 			return createFakeNullLiteral(expression);		
 		}
 		SwitchExpression switchExpression = new SwitchExpression(this.ast);
@@ -2972,6 +2958,21 @@ public class ASTConverter {
 		return synchronizedStatement;
 	}
 
+	public Expression convert(org.aspectj.org.eclipse.jdt.internal.compiler.ast.TextBlock expression) {
+		if (!this.ast.isPreviewEnabled()) {
+			return createFakeNullLiteral(expression);		
+		}
+		int length = expression.sourceEnd - expression.sourceStart + 1;
+		int sourceStart = expression.sourceStart;
+		TextBlock literal = new TextBlock(this.ast);
+		if (this.resolveBindings) {
+			this.recordNodes(literal, expression);
+		}
+		literal.internalSetEscapedValue(new String(this.compilationUnitSource, sourceStart, length));
+		literal.setSourceRange(expression.sourceStart, expression.sourceEnd - expression.sourceStart + 1);
+		return literal;
+	}
+	
 	public Expression convert(org.aspectj.org.eclipse.jdt.internal.compiler.ast.ThisReference reference) {
 		if (reference.isImplicitThis()) {
 			// There is no source associated with an implicit this
@@ -3259,6 +3260,18 @@ public class ASTConverter {
 		return whileStatement;
 	}
 
+	public Statement convert(org.aspectj.org.eclipse.jdt.internal.compiler.ast.YieldStatement statement) {
+		if (!this.ast.isPreviewEnabled()) {
+			return createFakeEmptyStatement(statement);		
+		}
+		YieldStatement yieldStatement = new YieldStatement(this.ast);
+		// We don't need to record Nodes
+		yieldStatement.setExpression(convert(statement.expression));
+		yieldStatement.setImplicit(statement.isImplicit);
+		yieldStatement.setSourceRange(statement.sourceStart, statement.sourceEnd - statement.sourceStart + 1);
+		return yieldStatement;
+	}
+	
 	public ImportDeclaration convertImport(org.aspectj.org.eclipse.jdt.internal.compiler.ast.ImportReference importReference) {
 		final ImportDeclaration importDeclaration = new ImportDeclaration(this.ast);
 		Name name = getImportName(importReference);

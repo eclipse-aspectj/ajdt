@@ -11,12 +11,12 @@ Premain-Class: org.aspectj.weaver.loadtime.Agent
 Name: org/aspectj/weaver/
 Implementation-Vendor: https://www.eclipse.org/aspectj/
 Implementation-Title: org.aspectj.weaver
-Specification-Version: 1.9.4
-Bundle-Version: 1.9.4
+Specification-Version: 1.9.6.BUILD-SNAPSHOT
+Bundle-Version: 1.9.6.BUILD-SNAPSHOT
 Bundle-Copyright: (C) Copyright 1999-2001 Xerox Corporation,
  												2002 Palo Alto Research Center, Incorporated (PARC),
  												2003-2019 Contributors. All Rights Reserved
-Implementation-Version: 1.9.4
+Implementation-Version: 1.9.6.BUILD-SNAPSHOT
 Specification-Title: AspectJ Weaver Classes
 Bundle-Name: AspectJ Weaver
 Specification-Vendor: https://www.eclipse.org/aspectj/

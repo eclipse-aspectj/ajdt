@@ -21,6 +21,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -159,6 +160,7 @@ public class InferenceContext18 {
 	public List<ConstraintFormula> constraintsWithUncheckedConversion;
 	public boolean usesUncheckedConversion;
 	public InferenceContext18 outerContext;
+	private Set<InferenceContext18> seenInnerContexts;
 	Scope scope;
 	LookupEnvironment environment;
 	ReferenceBinding object; // java.lang.Object
@@ -312,7 +314,7 @@ public class InferenceContext18 {
 		}
 		InferenceVariable[] newVariables = new InferenceVariable[len];
 		for (int i = 0; i < len; i++)
-			newVariables[i] = InferenceVariable.get(typeVariables[i], i, this.currentInvocation, this.scope, this.object);
+			newVariables[i] = InferenceVariable.get(typeVariables[i], i, this.currentInvocation, this.scope, this.object, true);
 		addInferenceVariables(newVariables);
 		return newVariables;
 	}
@@ -340,7 +342,7 @@ public class InferenceContext18 {
 				newVariables[i] = (InferenceVariable) typeVariables[i]; // prevent double substitution of an already-substituted inferenceVariable
 			else
 				toAdd[numToAdd++] =
-					newVariables[i] = InferenceVariable.get(typeVariables[i], i, this.currentInvocation, this.scope, this.object);
+					newVariables[i] = InferenceVariable.get(typeVariables[i], i, this.currentInvocation, this.scope, this.object, false);
 		}
 		if (numToAdd > 0) {
 			int start = 0;
@@ -486,7 +488,11 @@ public class InferenceContext18 {
 	// ---  not per JLS: emulate how javac passes type bounds from inner to outer: ---
 	/** Not per JLS: push current bounds to outer inference if outer is ready for it. */
 	private void pushBoundsToOuter() {
-		InferenceContext18 outer = this.outerContext;
+		pushBoundsTo(this.outerContext);
+	}
+
+	/** Not per JLS: invent more bubbling up of inner bounds. */
+	public void pushBoundsTo(InferenceContext18 outer) {
 		if (outer != null && outer.stepCompleted >= APPLICABILITY_INFERRED) {
 			boolean deferred = outer.currentInvocation instanceof Invocation; // need to wait till after overload resolution?
 			BoundSet toPush = deferred ? this.currentBounds.copy() : this.currentBounds;
@@ -1162,18 +1168,18 @@ public class InferenceContext18 {
 										if (upperBounds.length == 1) {
 											glb = upperBounds[0];
 										} else {
-											ReferenceBinding[] glbs = Scope.greaterLowerBound((ReferenceBinding[])upperBounds);
+											TypeBinding[] glbs = Scope.greaterLowerBound(upperBounds, this.scope, this.environment);
 											if (glbs == null) {
 												return null;
 											} else if (glbs.length == 1) {
 												glb = glbs[0];
 											} else {
-												IntersectionTypeBinding18 intersection = (IntersectionTypeBinding18) this.environment.createIntersectionType18(glbs);
-												if (!ReferenceBinding.isConsistentIntersection(intersection.intersectingTypes)) {
+												glb = intersectionFromGlb(glbs);
+												if (glb == null) {
+													// inconsistent intersection
 													tmpBoundSet = prevBoundSet; // clean up
-													break variables; // and start over
+													break variables; // and start over													
 												}
-												glb = intersection;
 											}
 										}
 									}
@@ -1265,6 +1271,22 @@ public class InferenceContext18 {
 			}
 		}
 		return tmpBoundSet;
+	}
+	
+	private TypeBinding intersectionFromGlb(TypeBinding[] glbs) {
+		ReferenceBinding[] refGlbs = new ReferenceBinding[glbs.length];
+		for (int i = 0; i < glbs.length; i++) {
+			TypeBinding typeBinding = glbs[i];
+			if (typeBinding instanceof ReferenceBinding) {
+				refGlbs[i] = (ReferenceBinding) typeBinding;
+			} else {
+				return null;
+			}
+		}
+		IntersectionTypeBinding18 intersection = (IntersectionTypeBinding18) this.environment.createIntersectionType18(refGlbs);
+		if (ReferenceBinding.isConsistentIntersection(intersection.intersectingTypes))
+			return intersection;
+		return null;
 	}
 	
 	int captureId = 0;
@@ -1617,18 +1639,24 @@ public class InferenceContext18 {
 		this.usesUncheckedConversion = innerCtx.usesUncheckedConversion;
 	}
 
-	public void resumeSuspendedInference(SuspendedInferenceRecord record) {
+	public void resumeSuspendedInference(SuspendedInferenceRecord record, InferenceContext18 innerContext) {
 		// merge inference variables:
+		boolean firstTime = collectInnerContext(innerContext);
 		if (this.inferenceVariables == null) { // no new ones, assume we aborted prematurely
 			this.inferenceVariables = record.inferenceVariables;
+		} else if(!firstTime) {
+			// Use a set to eliminate duplicates.
+			final Set<InferenceVariable> uniqueVariables = new LinkedHashSet<>();
+			uniqueVariables.addAll(Arrays.asList(record.inferenceVariables));
+			uniqueVariables.addAll(Arrays.asList(this.inferenceVariables));
+			this.inferenceVariables = uniqueVariables.toArray(new InferenceVariable[uniqueVariables.size()]);
 		} else {
 			int l1 = this.inferenceVariables.length;
 			int l2 = record.inferenceVariables.length;
-			// move to back, add previous to front:
 			System.arraycopy(this.inferenceVariables, 0, this.inferenceVariables=new InferenceVariable[l1+l2], l2, l1);
 			System.arraycopy(record.inferenceVariables, 0, this.inferenceVariables, 0, l2);
 		}
-
+		
 		// replace invocation site & arguments:
 		this.currentInvocation = record.site;
 		this.invocationArguments = record.invocationArguments;
@@ -1636,6 +1664,16 @@ public class InferenceContext18 {
 		this.usesUncheckedConversion = record.usesUncheckedConversion;
 	}
 
+	private boolean collectInnerContext(final InferenceContext18 innerContext) {
+		if(innerContext == null) {
+			return false;
+		}
+		if(this.seenInnerContexts == null) {
+			this.seenInnerContexts = new HashSet<>();
+		}
+		return this.seenInnerContexts.add(innerContext);
+	}
+	
 	private Substitution getResultSubstitution(final BoundSet result) {
 		return new Substitution() {
 			@Override

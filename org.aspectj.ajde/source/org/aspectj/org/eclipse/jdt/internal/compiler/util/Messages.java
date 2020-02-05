@@ -116,6 +116,7 @@ public final class Messages {
 	public static String ast_missingCode;
 	public static String constant_cannotCastedInto;
 	public static String constant_cannotConvertedTo;
+	public static String abort_againstPreviewNotAllowed;
 
 	static {
 		initializeMessages(BUNDLE_NAME, Messages.class);
@@ -213,9 +214,7 @@ public final class Messages {
 					String value = "Missing message: " + field.getName() + " in: " + bundleName; //$NON-NLS-1$ //$NON-NLS-2$
 					field.set(null, value);
 				}
-			} catch (IllegalArgumentException e) {
-				// ignore
-			} catch (IllegalAccessException e) {
+			} catch (IllegalArgumentException | IllegalAccessException e) {
 				// ignore
 			}
 		}

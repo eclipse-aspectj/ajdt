@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -506,6 +506,20 @@ protected void getHandleMemento(StringBuffer buff) {
 	if (org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.isJrt(path.toOSString())) {
 		buff.append(JavaElement.JEM_MODULE);
 		escapeMementoName(buff, getElementName());
+	}
+	try {
+		IClasspathEntry entry = getJavaProject().getClasspathEntryFor(getPath());
+		if (entry != null) {
+			for (IClasspathAttribute attribute : entry.getExtraAttributes()) {
+				appendEscapedDelimiter(buff, JavaElement.JEM_PACKAGEFRAGMENTROOT);
+				escapeMementoName(buff, attribute.getName());
+				appendEscapedDelimiter(buff, JavaElement.JEM_PACKAGEFRAGMENTROOT);
+				escapeMementoName(buff, attribute.getValue());
+				appendEscapedDelimiter(buff, JavaElement.JEM_PACKAGEFRAGMENTROOT);
+			}
+		}
+	} catch (JavaModelException e) {
+		// ignore
 	}
 }
 /**

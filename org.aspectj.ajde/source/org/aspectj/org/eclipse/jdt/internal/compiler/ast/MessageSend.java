@@ -1,6 +1,6 @@
 // ASPECTJ
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -72,7 +72,6 @@ import static org.aspectj.org.eclipse.jdt.internal.compiler.ast.ExpressionContex
 import java.util.HashMap;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
-import org.aspectj.org.eclipse.jdt.core.compiler.IProblem;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.CodeStream;
@@ -154,6 +153,7 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 	boolean wasInsideAssert = ((flowContext.tagBits & FlowContext.HIDE_NULL_COMPARISON_WARNING) != 0);
 	flowInfo = this.receiver.analyseCode(currentScope, flowContext, flowInfo, nonStatic).unconditionalInits();
 
+	yieldQualifiedCheck(currentScope);
 	// recording the closing of AutoCloseable resources:
 	CompilerOptions compilerOptions = currentScope.compilerOptions();
 	boolean analyseResources = compilerOptions.analyseResourceLeaks;
@@ -250,6 +250,18 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 	flowContext.recordAbruptExit();
 	flowContext.expireNullCheckedFieldInfo(); // no longer trust this info after any message send
 	return flowInfo;
+}
+private void yieldQualifiedCheck(BlockScope currentScope) {
+	long sourceLevel = currentScope.compilerOptions().sourceLevel;
+	if (sourceLevel < ClassFileConstants.JDK13 || !this.receiverIsImplicitThis())
+		return;
+	if (this.selector == null || !("yield".equals(new String(this.selector)))) //$NON-NLS-1$
+		return;
+	if (sourceLevel == ClassFileConstants.JDK13 && currentScope.compilerOptions().enablePreviewFeatures) {
+		currentScope.problemReporter().switchExpressionsYieldUnqualifiedMethodError(this);
+	} else {
+		currentScope.problemReporter().switchExpressionsYieldUnqualifiedMethodWarning(this);
+	}
 }
 private void recordCallingClose(BlockScope currentScope, FlowContext flowContext, FlowInfo flowInfo, Expression closeTarget) {
 	FakedTrackingVariable trackingVariable = FakedTrackingVariable.getCloseTrackingVariable(closeTarget, flowInfo, flowContext);
@@ -587,8 +599,10 @@ public void manageSyntheticAccessIfNecessary(BlockScope currentScope, FlowInfo f
 		}
 		// End AspectJ extension
 		
+		boolean useNesting = currentScope.enclosingSourceType().isNestmateOf(codegenBinding.declaringClass) &&
+				!(this.receiver instanceof QualifiedSuperReference);
 		// depth is set for both implicit and explicit access (see MethodBinding#canBeSeenBy)
-		if (!currentScope.enclosingSourceType().isNestmateOf(codegenBinding.declaringClass) &&
+		if (!useNesting &&
 				TypeBinding.notEquals(currentScope.enclosingSourceType(), codegenBinding.declaringClass)){
 			this.syntheticAccessor = ((SourceTypeBinding)codegenBinding.declaringClass).addSyntheticMethod(codegenBinding, false /* not super access there */);
 			currentScope.problemReporter().needToEmulateMethodAccess(codegenBinding, this);
@@ -719,7 +733,6 @@ public TypeBinding resolveType(BlockScope scope) {
 	// AspectJ Extension: End
 	this.actualReceiverType = this.receiver.resolveType(scope);
 		if (this.actualReceiverType instanceof InferenceVariable) {
-			scope.referenceContext().tagAsHavingIgnoredMandatoryErrors(IProblem.UndefinedMethod);
 			return null; // not yet ready for resolving
 		}
 		this.receiverIsType = this.receiver instanceof NameReference && (((NameReference) this.receiver).bits & Binding.TYPE) != 0;
@@ -1007,7 +1020,7 @@ protected TypeBinding findMethodBinding(BlockScope scope) {
 		    return new PolyTypeBinding(this);
 	    }
 	}
-	resolvePolyExpressionArguments(this, this.binding, this.argumentTypes, scope);
+	this.binding = resolvePolyExpressionArguments(this, this.binding, this.argumentTypes, scope);
 	return this.binding.returnType;
 }
 

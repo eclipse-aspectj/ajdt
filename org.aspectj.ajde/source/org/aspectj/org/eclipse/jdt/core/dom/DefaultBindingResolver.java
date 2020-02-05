@@ -22,6 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.aspectj.org.eclipse.jdt.core.WorkingCopyOwner;
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
+import org.aspectj.org.eclipse.jdt.core.dom.MethodBinding.LambdaMethod;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractVariableDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AllocationExpression;
@@ -69,6 +70,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ProblemReasons;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ProblemReferenceBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Scope;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.SyntheticArgumentBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TagBits;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeIds;
@@ -753,6 +755,7 @@ class DefaultBindingResolver extends BindingResolver {
 						return this.getTypeBinding(compilerExpression.resolvedType);
 					}
 					break;
+				case ASTNode.TEXT_BLOCK :
 				case ASTNode.STRING_LITERAL :
 					if (this.scope != null) {
 						return this.getTypeBinding(this.scope.getJavaLangString());
@@ -894,6 +897,14 @@ class DefaultBindingResolver extends BindingResolver {
 		return null;
 	}
 
+	private IVariableBinding[] getSyntheticOuterLocalVariables(org.aspectj.org.eclipse.jdt.internal.compiler.ast.LambdaExpression lambdaExpression) {
+		IVariableBinding[] syntheticOuterLocals = new IVariableBinding[lambdaExpression.outerLocalVariables.length];
+		int i  = 0;
+		for (SyntheticArgumentBinding sab : lambdaExpression.outerLocalVariables) {
+			syntheticOuterLocals[i++] = getVariableBinding(sab);
+		}
+		return syntheticOuterLocals;
+	}
 	@Override
 	synchronized IMethodBinding resolveMethod(LambdaExpression lambda) {
 		Object oldNode = this.newAstToOldAst.get(lambda);
@@ -907,6 +918,9 @@ class DefaultBindingResolver extends BindingResolver {
 			}
 			if (methodBinding == null) {
 				return null;
+			}
+			if (methodBinding instanceof LambdaMethod) {
+				((LambdaMethod) methodBinding).setSyntheticOuterLocals(getSyntheticOuterLocalVariables(lambdaExpression));
 			}
 			this.bindingsToAstNodes.put(methodBinding, lambda);
 			String key = methodBinding.getKey();

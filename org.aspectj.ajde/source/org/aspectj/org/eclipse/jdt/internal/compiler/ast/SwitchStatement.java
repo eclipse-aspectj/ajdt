@@ -94,7 +94,6 @@ public class SwitchStatement extends Expression {
 				}
 				// else add an implicit break
 				BreakStatement breakStatement = new BreakStatement(null, block.sourceEnd -1, block.sourceEnd);
-				breakStatement.isImplicit = true;
 
 				int l = block.statements == null ? 0 : block.statements.length;
 				if (l == 0) {
@@ -114,6 +113,9 @@ public class SwitchStatement extends Expression {
 	protected void completeNormallyCheck(BlockScope blockScope) {
 		// do nothing
 	}
+	protected boolean needToCheckFlowInAbsenceOfDefaultBranch() {
+		return true;
+	}
 	@Override
 	public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, FlowInfo flowInfo) {
 		try {
@@ -125,6 +127,7 @@ public class SwitchStatement extends Expression {
 			}
 			SwitchFlowContext switchContext =
 				new SwitchFlowContext(flowContext, this, (this.breakLabel = new BranchLabel()), true, true);
+			switchContext.isExpression = this instanceof SwitchExpression;
 
 			// analyse the block by considering specially the case/default statements (need to bind them
 			// to the entry point)
@@ -158,6 +161,19 @@ public class SwitchStatement extends Expression {
 						complaintLevel = initialComplaintLevel; // reset complaint
 						fallThroughState = CASE;
 					} else {
+						if (!(this instanceof SwitchExpression) &&
+							currentScope.compilerOptions().complianceLevel >= ClassFileConstants.JDK13 &&
+							statement instanceof YieldStatement &&
+							((YieldStatement) statement).isImplicit) {
+							YieldStatement y = (YieldStatement) statement;
+							Expression e = ((YieldStatement) statement).expression;
+							/* JLS 13 14.11.2
+									Switch labeled rules in switch statements differ from those in switch expressions (15.28).
+									In switch statements they must be switch labeled statement expressions, ... */
+							if (!y.expression.statementExpression()) {
+								this.scope.problemReporter().invalidExpressionAsStatement(e);
+							}
+						}
 						fallThroughState = getFallThroughState(statement, currentScope); // reset below if needed
 					}
 					if ((complaintLevel = statement.complainIfUnreachable(caseInits, this.scope, complaintLevel, true)) < Statement.COMPLAINED_UNREACHABLE) {
@@ -184,7 +200,7 @@ public class SwitchStatement extends Expression {
 				this.synthetic = sourceTypeBinding.addSyntheticMethodForSwitchEnum(resolvedTypeBinding, this);
 			}
 			// if no default case, then record it may jump over the block directly to the end
-			if (this.defaultCase == null) {
+			if (this.defaultCase == null && needToCheckFlowInAbsenceOfDefaultBranch()) {
 				// only retain the potential initializations
 				flowInfo.addPotentialInitializationsFrom(caseInits.mergedWith(switchContext.initsOnBreak));
 				this.mergedInitStateIndex = currentScope.methodScope().recordInitializationStates(flowInfo);
@@ -698,8 +714,10 @@ public class SwitchStatement extends Expression {
 					this.constMapping = new int[this.nConstants];
 				}
 				int counter = 0;
+				int caseCounter = 0;
 				for (int i = 0; i < length; i++) {
 					Constant[] constantsList;
+					int[] caseIndex = new int[this.nConstants];
 					final Statement statement = this.statements[i];
 					if (!(statement instanceof CaseStatement))  {
 						statement.resolve(this.scope);
@@ -714,27 +732,27 @@ public class SwitchStatement extends Expression {
 							//----check for duplicate case statement------------
 							for (int j = 0; j < counter; j++) {
 								if (this.constants[j] == key) {
-									reportDuplicateCase((CaseStatement) statement, this.cases[j], length);
+										reportDuplicateCase((CaseStatement) statement, this.cases[caseIndex[j]], length);
 								}
 							}
 								this.constants[counter] = key;
-								this.constMapping[counter] = counter;
-								counter++;
 						} else {
 								String key = con.stringValue();
 							//----check for duplicate case statement------------
 							for (int j = 0; j < counter; j++) {
 								if (this.stringConstants[j].equals(key)) {
-									reportDuplicateCase((CaseStatement) statement, this.cases[j], length);
+										reportDuplicateCase((CaseStatement) statement, this.cases[caseIndex[j]], length);
 								}
 							}
 								this.stringConstants[counter] = key;
+							}
 								this.constMapping[counter] = counter;
+							caseIndex[counter] = caseCounter;
 								counter++;
 							}
 						}
+					caseCounter++;
 					}
-				}
 				if (length != counter) { // resize constants array
 					if (!isStringSwitch) {
 						System.arraycopy(this.constants, 0, this.constants = new int[counter], 0, counter);
@@ -817,9 +835,11 @@ public class SwitchStatement extends Expression {
 	private void reportDuplicateCase(final CaseStatement duplicate, final CaseStatement original, int length) {
 		if (this.duplicateCaseStatements == null) {
 			this.scope.problemReporter().duplicateCase(original);
+			if (duplicate != original) 
 			this.scope.problemReporter().duplicateCase(duplicate);
 			this.duplicateCaseStatements = new CaseStatement[length];
 			this.duplicateCaseStatements[this.duplicateCaseStatementsCounter++] = original;
+			if (duplicate != original) 
 			this.duplicateCaseStatements[this.duplicateCaseStatementsCounter++] = duplicate;
 		} else {
 			boolean found = false;

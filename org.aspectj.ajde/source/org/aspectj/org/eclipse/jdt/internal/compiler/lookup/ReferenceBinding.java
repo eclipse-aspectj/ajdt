@@ -1,6 +1,6 @@
 // ASPECTJ
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -48,6 +48,8 @@
  *                              bug 386692 - Missing "unused" warning on "autowired" fields
  *     Pierre-Yves B. <pyvesdev@gmail.com> - Contribution for
  *                              bug 542520 - [JUnit 5] Warning The method xxx from the type X is never used locally is shown when using MethodSource
+ *     Sebastian Zarnekow - Contributions for
+ *								bug 544921 - [performance] Poor performance with large source files
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
 
@@ -106,9 +108,7 @@ abstract public class ReferenceBinding extends TypeBinding {
 	};
 	private static final Comparator<MethodBinding> METHOD_COMPARATOR = new Comparator<MethodBinding>() {
 		@Override
-		public int compare(MethodBinding o1, MethodBinding o2) {
-			MethodBinding m1 = o1;
-			MethodBinding m2 = o2;
+		public int compare(MethodBinding m1, MethodBinding m2) {
 			char[] s1 = m1.selector;
 			char[] s2 = m2.selector;
 			int c = ReferenceBinding.compare(s1, s2, s1.length, s2.length);
@@ -236,6 +236,33 @@ public static void sortMethods(MethodBinding[] sortedMethods, int left, int righ
 }
 
 /**
+ * Sort the member types using a quicksort
+ */
+static void sortMemberTypes(ReferenceBinding[] sortedMemberTypes, int left, int right) {
+	Arrays.sort(sortedMemberTypes, left, right, BASIC_MEMBER_TYPES_COMPARATOR);
+}
+
+/**
+ * Compares two reference bindings by the value of the {@link #sourceName} field.
+ * A ReferenceBinding with a sourceName field that has the value null is considered
+ * to be smaller than a ReferenceBinding that does have a source name.
+ */
+static final Comparator<ReferenceBinding> BASIC_MEMBER_TYPES_COMPARATOR = (ReferenceBinding o1, ReferenceBinding o2) -> {
+	char[] n1 = o1.sourceName;
+	char[] n2 = o2.sourceName;
+	// n1 or n2 may be null - compare without accessing the length of the array
+	if (n1 == null) {
+		if (n2 == null) {
+			return 0;
+		}
+		return -1;
+	} else if (n2 == null) {
+		return 1;
+	}
+	return ReferenceBinding.compare(n1, n2, n1.length, n2.length);
+};
+
+/**
  * Return the array of resolvable fields (resilience)
  */
 public FieldBinding[] availableFields() {
@@ -248,6 +275,15 @@ public FieldBinding[] availableFields() {
 public MethodBinding[] availableMethods() {
 	return methods();
 }
+
+public boolean hasHierarchyCheckStarted() {
+	return  (this.tagBits & TagBits.BeginHierarchyCheck) != 0;
+}
+
+public void setHierarchyCheckDone() {
+	return;
+}
+
 
 /**
  * Answer true if the receiver can be instantiated
@@ -1101,12 +1137,46 @@ public char[] getFileName() {
 	return this.fileName;
 }
 
+/**
+ * Find the member type with the given simple typeName. Benefits from the fact that
+ * the array of {@link #memberTypes()} is sorted.
+ */
 public ReferenceBinding getMemberType(char[] typeName) {
 	ReferenceBinding[] memberTypes = memberTypes();
-	for (int i = memberTypes.length; --i >= 0;)
-		if (CharOperation.equals(memberTypes[i].sourceName, typeName))
-			return memberTypes[i];
+	int memberTypeIndex = binarySearch(typeName, memberTypes);
+	if (memberTypeIndex >= 0) {
+		return memberTypes[memberTypeIndex];
+	}
 	return null;
+}
+
+/**
+ * Search the given sourceName in the list of sorted member types.
+ * 
+ * Neither the array of sortedMemberTypes nor the given sourceName may be null.
+ */
+static int binarySearch(char[] sourceName, ReferenceBinding[] sortedMemberTypes) {
+	if (sortedMemberTypes == null)
+		return -1;
+	int max = sortedMemberTypes.length, nameLength = sourceName.length;
+	if (max == 0)
+		return -1;
+	int left = 0, right = max - 1;
+	while (left <= right) {
+		int mid = left + (right - left) / 2;
+		char[] midName = sortedMemberTypes[mid].sourceName;
+		// The read source name may be null. In that case, the given sourceName is considered
+		// to be larger than the current value at mid.
+		int compare = midName == null ? 1 : compare(sourceName, midName, nameLength, midName.length);
+		if (compare < 0) {
+			right = mid-1;
+		} else if (compare > 0) {
+			left = mid+1;
+		} else {
+			return mid;
+		}
+	}
+	return -1;
 }
 
 @Override
@@ -1147,6 +1217,10 @@ public int hashCode() {
 	return (this.compoundName == null || this.compoundName.length == 0)
 		? super.hashCode()
 		: CharOperation.hashCode(this.compoundName[this.compoundName.length - 1]);
+}
+
+final int identityHashCode() {
+	return super.hashCode();
 }
 
 /**
@@ -1739,6 +1813,9 @@ public final boolean isViewedAsDeprecated() {
 	// End AspectJ Extension
 }
 
+/**
+ * Returns the member types of this type sorted by simple name.
+ */
 public ReferenceBinding[] memberTypes() {
 	return Binding.NO_MEMBER_TYPES;
 }

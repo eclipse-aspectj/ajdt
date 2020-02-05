@@ -607,10 +607,7 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 				while (true) {
 					try {
 						unit = processingTask.removeNextUnit(); // waits if no units are in the processed queue
-					} catch (Error e) {
-						unit = processingTask.unitToProcess;
-						throw e;
-					} catch (RuntimeException e) {
+					} catch (Error | RuntimeException e) {
 						unit = processingTask.unitToProcess;
 						throw e;
 					}
@@ -642,10 +639,7 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 			}
 		} catch (AbortCompilation e) {
 			this.handleInternalException(e, unit);
-		} catch (Error e) {
-			this.handleInternalException(e, unit, null);
-			throw e; // rethrow
-		} catch (RuntimeException e) {
+		} catch (Error | RuntimeException e) {
 			this.handleInternalException(e, unit, null);
 			throw e; // rethrow
 		} finally {
@@ -824,11 +818,27 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 		this.parser = new Parser(this.problemReporter, this.options.parseLiteralExpressionsAsConstants);
 	}
 
+	private  void abortIfPreviewNotAllowed(ICompilationUnit[] sourceUnits, int maxUnits) {
+		if (!this.options.enablePreviewFeatures)
+			return;
+		try {
+			if (this.options.sourceLevel != ClassFileConstants.getLatestJDKLevel()) {
+				this.problemReporter.abortDueToPreviewEnablingNotAllowed(CompilerOptions.versionFromJdkLevel(this.options.sourceLevel), CompilerOptions.getLatestVersion());
+			}
+		} catch (AbortCompilation a) {
+			// best effort to find a way for reporting this problem: report on the first source
+			if (a.compilationResult == null) {
+				a.compilationResult = new CompilationResult(sourceUnits[0], 0, maxUnits, this.options.maxProblemsPerUnit);
+			}
+			throw a;
+		}
+	}
 	/**
 	 * Add the initial set of compilation units into the loop
 	 *  ->  build compilation unit declarations, their bindings and record their results.
 	 */
 	protected void internalBeginToCompile(ICompilationUnit[] sourceUnits, int maxUnits) {
+		abortIfPreviewNotAllowed(sourceUnits,maxUnits);
 		if (!this.useSingleThread && maxUnits >= ReadManager.THRESHOLD)
 			this.parser.readManager = new ReadManager(sourceUnits, maxUnits);
 
@@ -933,6 +943,14 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 	}
 
 	protected void processAnnotations() {
+		try {
+			processAnnotationsInternal();
+		} finally {
+			this.annotationProcessorManager.cleanUp();
+		}
+	}
+
+	private void processAnnotationsInternal() {
 		try { // AspectJ
 		int newUnitSize = 0;
 		int newClassFilesSize = 0;
@@ -1092,10 +1110,7 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 		} catch (AbortCompilation e) {
 			this.handleInternalException(e, unit);
 			return unit == null ? this.unitsToProcess[0] : unit;
-		} catch (Error e) {
-			this.handleInternalException(e, unit, null);
-			throw e; // rethrow
-		} catch (RuntimeException e) {
+		} catch (Error | RuntimeException e) {
 			this.handleInternalException(e, unit, null);
 			throw e; // rethrow
 		} finally {

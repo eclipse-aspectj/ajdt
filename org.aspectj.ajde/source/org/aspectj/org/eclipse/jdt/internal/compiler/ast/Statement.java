@@ -305,7 +305,10 @@ public boolean breaksOut(final char[] label) {
 				this.breaksOut = true;
 	    	return false;
 	    }
-		
+		@Override
+		public boolean visit(YieldStatement yieldStatement, BlockScope skope) {
+	    	return false;
+	    }
 		public boolean breaksOut() {
 			Statement.this.traverse(this, null);
 			return this.breaksOut;
@@ -499,7 +502,6 @@ public ExpressionContext getExpressionContext() {
  */
 protected MethodBinding findConstructorBinding(BlockScope scope, Invocation site, ReferenceBinding receiverType, TypeBinding[] argumentTypes) {
 	MethodBinding ctorBinding = scope.getConstructor(receiverType, argumentTypes, site);
-	resolvePolyExpressionArguments(site, ctorBinding, argumentTypes, scope);
-	return ctorBinding;
+	return resolvePolyExpressionArguments(site, ctorBinding, argumentTypes, scope);
 }
 }

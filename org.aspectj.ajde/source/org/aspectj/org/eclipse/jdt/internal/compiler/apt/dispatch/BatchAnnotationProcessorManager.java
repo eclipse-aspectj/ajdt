@@ -256,6 +256,19 @@ public class BatchAnnotationProcessorManager extends BaseAnnotationProcessorMana
 		_commandLineProcessors = null;
 		_commandLineProcessorIter = null;
 	}
+
+	@Override
+	protected void cleanUp() {
+		// the classloader needs to be kept open between rounds, close it at the end:
+		if (this._procLoader instanceof URLClassLoader) {
+			try {
+				((URLClassLoader) this._procLoader).close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
 	@Override
 	public void reset() {
 		super.reset();

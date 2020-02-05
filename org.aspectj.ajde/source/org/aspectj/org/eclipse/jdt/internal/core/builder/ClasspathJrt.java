@@ -215,8 +215,7 @@ public NameEnvironmentAnswer findClass(String binaryFileName, String qualifiedPa
 		String fileNameWithoutExtension = qualifiedBinaryFileName.substring(0, qualifiedBinaryFileName.length() - SuffixConstants.SUFFIX_CLASS.length);
 		IBinaryType reader = ClassFileReader.readFromModule(new File(this.zipFilename), moduleName, qualifiedBinaryFileName, moduleNameFilter);
 		return createAnswer(fileNameWithoutExtension, reader);
-	} catch (ClassFormatException e) { // treat as if class file is missing
-	} catch (IOException e) { // treat as if class file is missing
+	} catch (ClassFormatException | IOException e) { // treat as if class file is missing
 	}
 	return null;
 }
@@ -322,6 +321,9 @@ protected Collection<String> selectModules(Set<String> keySet, Collection<String
 
 protected void addRequired(String mod, Set<String> allModules) {
 	IModule iMod = getModule(mod.toCharArray());
+	if(iMod == null) {
+		return;
+	}
 	for (IModuleReference requiredRef : iMod.requires()) {
 		IModule reqMod = getModule(requiredRef.name());
 		if (reqMod != null) {

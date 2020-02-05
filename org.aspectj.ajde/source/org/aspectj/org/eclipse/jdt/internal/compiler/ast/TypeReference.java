@@ -1,6 +1,6 @@
 // ASPECTJ
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -351,6 +351,19 @@ public Annotation[][] annotations = null;
 public void aboutToResolve(Scope scope) {
 	// default implementation: do nothing
 }
+private void checkYieldUsage(Scope currentScope) {
+	char [][] qName = getTypeName();
+	String name = qName != null && qName[0] != null ? new String(qName[0]) : null;
+	long sourceLevel = currentScope.compilerOptions().sourceLevel;
+	if (sourceLevel < ClassFileConstants.JDK13 || name == null ||
+			!("yield".equals(new String(name)))) //$NON-NLS-1$
+		return;
+	if (sourceLevel == ClassFileConstants.JDK13 && currentScope.compilerOptions().enablePreviewFeatures) {
+		currentScope.problemReporter().switchExpressionsYieldTypeDeclarationError(this);
+	} else {
+		currentScope.problemReporter().switchExpressionsYieldTypeDeclarationWarning(this);
+	}
+}
 @Override
 public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, FlowInfo flowInfo) {
 	return flowInfo;
@@ -503,6 +516,7 @@ public abstract char [][] getTypeName() ;
 protected TypeBinding internalResolveType(Scope scope, int location) {
 	// handle the error here
 	this.constant = Constant.NotAConstant;
+	checkYieldUsage(scope);
 	if (this.resolvedType != null) { // is a shared type reference which was already resolved
 		if (this.resolvedType.isValidBinding()) {
 			return this.resolvedType;

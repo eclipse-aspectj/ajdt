@@ -23,6 +23,7 @@ import java.util.Stack;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
+import org.aspectj.org.eclipse.jdt.core.JavaCore;
 import org.aspectj.org.eclipse.jdt.core.dom.*;
 import org.aspectj.org.eclipse.jdt.core.dom.rewrite.TargetSourceRangeComputer;
 import org.aspectj.org.eclipse.jdt.core.dom.rewrite.TargetSourceRangeComputer.SourceRange;
@@ -154,7 +155,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 
 	/** @deprecated using deprecated code */
 	private static final ChildListPropertyDescriptor INTERNAL_TRY_STATEMENT_RESOURCES_PROPERTY = TryStatement.RESOURCES_PROPERTY;
-
+	
 	/** @deprecated using deprecated code */
 	private static final ChildPropertyDescriptor INTERNAL_SWITCH_EXPRESSION_PROPERTY = SwitchCase.EXPRESSION_PROPERTY;
 
@@ -172,9 +173,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 
 	/** @deprecated using deprecated code */
 	private static final int JLS9_INTERNAL = AST.JLS9;
-
-	private static final int JLS12_INTERNAL = AST.JLS12;
-
+	
 
 	TextEdit currentEdit;
 	final RewriteEventStore eventStore; // used from inner classes
@@ -255,7 +254,8 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 							compilerOptions.complianceLevel,
 							null/*taskTags*/,
 							null/*taskPriorities*/,
-							true/*taskCaseSensitive*/);
+							true/*taskCaseSensitive*/,
+							compilerOptions.enablePreviewFeatures/*isPreviewEnabled*/);
 			} else {
 				scanner =
 					new RecoveryScanner(
@@ -266,6 +266,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 							null/*taskTags*/,
 							null/*taskPriorities*/,
 							true/*taskCaseSensitive*/,
+							compilerOptions.enablePreviewFeatures/*isPreviewEnabled*/,
 							this.recoveryScannerData);
 			}
 			scanner.setSource(this.content);
@@ -1078,7 +1079,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		}
 		return pos;
 	}
-
+	
 	private int rewriteExpressionOptionalQualifier(SwitchCase parent, StructuralPropertyDescriptor property, int startPos) {
 		RewriteEvent event= getEvent(parent, property);
 		if (event != null) {
@@ -1167,7 +1168,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 			return buf.toString();
 		}
 
-		private ASTNode getNode(int nodeIndex) {
+		protected ASTNode getNode(int nodeIndex) {
 			ASTNode elem= (ASTNode) this.list[nodeIndex].getOriginalValue();
 			if (elem == null) {
 				elem= (ASTNode) this.list[nodeIndex].getNewValue();
@@ -1680,7 +1681,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 //		}
 //		return endPos;
 //	}
-
+	
 	private int rewriteModifiers2(ASTNode node, ChildListPropertyDescriptor property, int pos) {
 		RewriteEvent event= getEvent(node, property);
 		if (event == null || event.getChangeKind() == RewriteEvent.UNCHANGED) {
@@ -1834,20 +1835,20 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		}
 		int startPos = 0;
 		boolean isModuleInfo = node.getAST().apiLevel() >= JLS9_INTERNAL && node.getModule() != null;
-
+		
 		if (!isModuleInfo) {
 			startPos = rewriteNode(node, CompilationUnit.PACKAGE_PROPERTY, 0, ASTRewriteFormatter.NONE);
-
-		if (getChangeKind(node, CompilationUnit.PACKAGE_PROPERTY) == RewriteEvent.INSERTED) {
-			doTextInsert(0, getLineDelimiter(), getEditGroup(node, CompilationUnit.PACKAGE_PROPERTY));
+	
+			if (getChangeKind(node, CompilationUnit.PACKAGE_PROPERTY) == RewriteEvent.INSERTED) {
+				doTextInsert(0, getLineDelimiter(), getEditGroup(node, CompilationUnit.PACKAGE_PROPERTY));
+			}
 		}
-		}
 
-		startPos= rewriteParagraphList(node, CompilationUnit.IMPORTS_PROPERTY, startPos, 0, 0, 2);
+		startPos = rewriteParagraphList(node, CompilationUnit.IMPORTS_PROPERTY, startPos, 0, 0, 2);
 		if (isModuleInfo) {
 			rewriteNode(node, CompilationUnit.MODULE_PROPERTY, startPos, ASTRewriteFormatter.NONE);
 		} else {
-		rewriteParagraphList(node, CompilationUnit.TYPES_PROPERTY, startPos, 0, -1, 2);
+			rewriteParagraphList(node, CompilationUnit.TYPES_PROPERTY, startPos, 0, -1, 2);
 		}
 		return false;
 	}
@@ -2610,9 +2611,6 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		try {
 			int offset= getScanner().getTokenEndOffset(TerminalTokens.TokenNamebreak, node.getStartPosition());
 			rewriteNode(node, BreakStatement.LABEL_PROPERTY, offset, ASTRewriteFormatter.SPACE); // space between break and label
-			if (node.getAST().apiLevel() >= JLS12_INTERNAL) {
-				rewriteNode(node, BreakStatement.EXPRESSION_PROPERTY, offset, ASTRewriteFormatter.SPACE); // space between break and label
-			}
 		} catch (CoreException e) {
 			handleException(e);
 		}
@@ -3553,7 +3551,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		}
 
 		// dont allow switching from case to default or back. New statements should be created.
-		if (node.getAST().apiLevel() >= JLS12_INTERNAL) {
+		if (node.getAST().isPreviewEnabled()) {
 			int pos = node.expressions().size() == 0 ? node.getStartPosition() :
 					rewriteNodeList(node, SwitchCase.EXPRESSIONS2_PROPERTY, node.getStartPosition(), Util.EMPTY_STRING, ", "); //$NON-NLS-1$
 			if (isChanged(node, SwitchCase.SWITCH_LABELED_RULE_PROPERTY)) {
@@ -3583,9 +3581,61 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	class SwitchListRewriter extends ParagraphListRewriter {
+	class SwitchListLabeledRuleRewriter extends SwitchListRewriter {
+
+		public SwitchListLabeledRuleRewriter(int initialIndent) {
+			super(initialIndent);
+		}
 		
-		private boolean indentSwitchStatementsCompareToCases;
+		@Override
+		protected String getSeparatorString(int nodeIndex, int nextNodeIndex) {
+		    boolean isSwitchLabelRule = isSwitchLabeledRule(nodeIndex, nextNodeIndex);
+		    String spaceDelim = JavaCore.INSERT.equals(ASTRewriteAnalyzer.this.options.get(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_ARROW_IN_SWITCH_CASE))? " ":""; //$NON-NLS-1$ //$NON-NLS-2$
+		    String lineDelim = isSwitchLabelRule ? spaceDelim : getLineDelimiter();
+		    
+			StringBuffer buf= new StringBuffer(lineDelim);
+			buf.append(createIndentString(getNodeIndent(nextNodeIndex)));
+			return buf.toString();
+		}
+		
+		@Override
+		protected int getNodeIndent(int nodeIndex) {
+			int indent= getInitialIndent();
+			if (this.indentSwitchStatementsCompareToCases) {
+				RewriteEvent event = this.list[nodeIndex];
+				int changeKind = event.getChangeKind();
+				ASTNode node;
+				if (changeKind == RewriteEvent.INSERTED || changeKind == RewriteEvent.REPLACED) {
+					node= (ASTNode)event.getNewValue();
+				} else {
+					node= (ASTNode)event.getOriginalValue();
+				}
+				if (node.getNodeType() != ASTNode.SWITCH_CASE) {
+					ASTNode prevNode = getNode(nodeIndex -1);
+					if (prevNode.getNodeType() == ASTNode.SWITCH_CASE && ((SwitchCase)prevNode).isSwitchLabeledRule()) {
+						return 0;
+					} else {
+						indent++;
+					}
+				}
+			}
+			return indent;
+		}
+		
+		private boolean isSwitchLabeledRule(int nodeIndex, int nextNodeIndex) {
+			ASTNode curr= getNode(nodeIndex);
+			ASTNode next= getNode(nodeIndex +1);
+			int currKind= curr.getNodeType();
+		    if (currKind == ASTNode.SWITCH_CASE && next instanceof Statement &&   ((SwitchCase)curr).isSwitchLabeledRule()) {
+					return true;
+			}
+		    return false;
+		}
+	}
+	
+	class SwitchListRewriter extends ParagraphListRewriter {
+
+		protected boolean indentSwitchStatementsCompareToCases;
 
 		public SwitchListRewriter(int initialIndent) {
 			super(initialIndent, 0);
@@ -3694,7 +3744,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 					insertIndent++;
 				}
 				
-				ParagraphListRewriter listRewriter= new SwitchListRewriter(insertIndent);
+				ParagraphListRewriter listRewriter= new SwitchListLabeledRuleRewriter(insertIndent);
 				StringBuffer leadString= new StringBuffer();
 				leadString.append(getLineDelimiter());
 				leadString.append(createIndentString(insertIndent));
@@ -3724,8 +3774,12 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 				if (DefaultCodeFormatterConstants.TRUE.equals(this.options.get(DefaultCodeFormatterConstants.FORMATTER_INDENT_SWITCHSTATEMENTS_COMPARE_TO_SWITCH))) {
 					insertIndent++;
 				}
-				
-				ParagraphListRewriter listRewriter= new SwitchListRewriter(insertIndent);
+				ParagraphListRewriter listRewriter;
+				if ((node.getAST().isPreviewEnabled())) {
+					listRewriter= new SwitchListLabeledRuleRewriter(insertIndent);
+				} else {
+					listRewriter= new SwitchListRewriter(insertIndent);
+				}
 				StringBuffer leadString= new StringBuffer();
 				leadString.append(getLineDelimiter());
 				leadString.append(createIndentString(insertIndent));
@@ -4043,6 +4097,18 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 	    return tagNode.getStartPosition();
 	}
 
+	@Override
+	public boolean visit(TextBlock node) {
+		if (!hasChildrenChanges(node)) {
+			return doVisitUnchangedChildren(node);
+		}
+		String escapedSeq= (String) getNewValue(node, TextBlock.ESCAPED_VALUE_PROPERTY);
+		TextEditGroup group = getEditGroup(node, TextBlock.ESCAPED_VALUE_PROPERTY);
+		doTextReplace(node.getStartPosition(), node.getLength(), escapedSeq, group);
+
+		return false;
+	}
+	
 	@Override
 	public boolean visit(TextElement node) {
 		if (!hasChildrenChanges(node)) {
@@ -4442,6 +4508,23 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 				}
 			}
 			rewriteNode(node, WildcardType.BOUND_PROPERTY, pos, prefix);
+		} catch (CoreException e) {
+			handleException(e);
+		}
+		return false;
+	}
+	
+	@Override
+	public boolean visit(YieldStatement node) {
+		if (!hasChildrenChanges(node)) {
+			return doVisitUnchangedChildren(node);
+		}
+
+		try {
+			int offset= getScanner().getTokenEndOffset(TerminalTokens.TokenNamebreak, node.getStartPosition());
+			if ((node.getAST().isPreviewEnabled())) {
+				rewriteNode(node, YieldStatement.EXPRESSION_PROPERTY, offset, ASTRewriteFormatter.SPACE); // space between yield and label
+			}
 		} catch (CoreException e) {
 			handleException(e);
 		}

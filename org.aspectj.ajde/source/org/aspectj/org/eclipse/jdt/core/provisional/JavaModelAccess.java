@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 GK Software SE, and others.
+ * Copyright (c) 2017, 2019 GK Software SE, and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -15,8 +15,10 @@ package org.aspectj.org.eclipse.jdt.core.provisional;
 
 import org.aspectj.org.eclipse.jdt.core.IJavaElement;
 import org.aspectj.org.eclipse.jdt.core.IModuleDescription;
+import org.aspectj.org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.aspectj.org.eclipse.jdt.core.JavaModelException;
 import org.aspectj.org.eclipse.jdt.internal.core.JavaProject;
+import org.aspectj.org.eclipse.jdt.internal.core.JrtPackageFragmentRoot;
 import org.aspectj.org.eclipse.jdt.internal.core.PackageFragmentRoot;
 
 /**
@@ -60,5 +62,20 @@ public class JavaModelAccess {
 			default:
 				throw new IllegalArgumentException("Illegal kind of java element: "+element.getElementType()); //$NON-NLS-1$
 		}
+	}
+
+	/**
+	 * Answer whether the given module is a system module.
+	 * <p><em>This provisional API may likely be changed into a direct method {@code IModuleDescription.isSystemModule()}.</em></p>
+	 * 
+	 * @param module the module being queried about
+	 * @return {@code true} iff the module is defined in the system library (also known as JRE).
+	 * @since 3.18
+	 * @deprecated please use {@link IModuleDescription#isSystemModule()}
+	 */
+	@Deprecated
+	public static boolean isSystemModule(IModuleDescription module) {
+		IPackageFragmentRoot pfr = (IPackageFragmentRoot) module.getAncestor(IJavaElement.PACKAGE_FRAGMENT_ROOT);
+		return pfr instanceof JrtPackageFragmentRoot;
 	}
 }

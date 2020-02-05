@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.InvalidPathException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -31,6 +32,8 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.zip.ZipFile;
+
+import javax.lang.model.SourceVersion;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.CompilationResult;
@@ -166,14 +169,20 @@ public class FileSystem implements IModuleAwareNameEnvironment, SuffixConstants 
 	Set<String> knownFileNames;
 	protected boolean annotationsFromClasspath; // should annotation files be read from the classpath (vs. explicit separate path)?
 	private static HashMap<File, Classpath> JRT_CLASSPATH_CACHE = null;
-	
 	protected Map<String,Classpath> moduleLocations = new HashMap<>();
 
 	/** Tasks resulting from --add-reads or --add-exports command line options. */
 	Map<String,UpdatesByKind> moduleUpdates = new HashMap<>();
-	static final boolean isJRE12Plus;
+	static boolean isJRE12Plus = false;
+
+	private boolean hasLimitModules = false;
+
 	static {
-		isJRE12Plus = CompilerOptions.VERSION_12.equals(System.getProperty("java.specification.version")); //$NON-NLS-1$
+		try {
+			isJRE12Plus = SourceVersion.valueOf("RELEASE_12") != null; //$NON-NLS-1$
+		} catch(IllegalArgumentException iae) {
+			// fall back to default
+		}
 	}
 
 /*
@@ -183,10 +192,11 @@ public class FileSystem implements IModuleAwareNameEnvironment, SuffixConstants 
 public FileSystem(String[] classpathNames, String[] initialFileNames, String encoding, int mode, String release) {
 	this(classpathNames, initialFileNames, encoding, null, mode, release);
 }
-public FileSystem(String[] classpathNames, String[] initialFileNames, String encoding, Collection<String> limitModules, int mode, String release) { // New AspectJ Extension - extra int flag for mode, was 'public FileSystem(String[] classpathNames, String[] initialFileNames, String encoding) {'
+public FileSystem(String[] classpathNames, String[] initialFileNames, String encoding, Collection<String> limitModules, int mode,String release) { // New AspectJ Extension - extra int flag for mode, was 'public FileSystem(String[] classpathNames, String[] initialFileNames, String encoding) {'
 	final int classpathSize = classpathNames.length;
 	this.classpaths = new Classpath[classpathSize];
 	int counter = 0;
+	this.hasLimitModules = limitModules != null && !limitModules.isEmpty();
 	for (int i = 0; i < classpathSize; i++) {
 		Classpath classpath = getClasspath(classpathNames[i], encoding, null, null, mode, release); // New AspectJ Extension - pass extra mode
 		if (classpath==null) continue; // AspectJ Extension
@@ -209,6 +219,7 @@ public FileSystem(Classpath[] paths, String[] initialFileNames, boolean annotati
 	final int length = paths.length;
 	int counter = 0;
 	this.classpaths = new FileSystem.Classpath[length];
+	this.hasLimitModules = limitedModules != null && !limitedModules.isEmpty();
 	for (int i = 0; i < length; i++) {
 		final Classpath classpath = paths[i];
 		try {
@@ -615,8 +626,8 @@ public NameEnvironmentAnswer findType(char[] typeName, char[][] packageName, cha
 }
 
 @Override
-public char[][] getModulesDeclaringPackage(char[][] parentPackageName, char[] packageName, char[] moduleName) {
-	String qualifiedPackageName = new String(CharOperation.concatWith(parentPackageName, packageName, '/'));
+public char[][] getModulesDeclaringPackage(char[][] packageName, char[] moduleName) {
+	String qualifiedPackageName = new String(CharOperation.concatWith(packageName, '/'));
 	String moduleNameString = String.valueOf(moduleName);
 
 	LookupStrategy strategy = LookupStrategy.get(moduleName);
@@ -633,6 +644,7 @@ public char[][] getModulesDeclaringPackage(char[][] parentPackageName, char[] pa
 	}
 	// search the entire environment and answer which modules declare that package:
 	char[][] allNames = null;
+	boolean hasUnobserable = false;
 	for (Classpath cp : this.classpaths) {
 		if (strategy.matches(cp, Classpath::hasModule)) {
 			if (strategy == LookupStrategy.Unnamed) {
@@ -642,6 +654,10 @@ public char[][] getModulesDeclaringPackage(char[][] parentPackageName, char[] pa
 			} else {
 				char[][] declaringModules = cp.getModulesDeclaringPackage(qualifiedPackageName, null);
 				if (declaringModules != null) {
+					if (cp instanceof ClasspathJrt && this.hasLimitModules) {
+						declaringModules = filterModules(declaringModules);
+						hasUnobserable |= declaringModules == null;
+					}
 					if (allNames == null)
 						allNames = declaringModules;
 					else
@@ -650,7 +666,15 @@ public char[][] getModulesDeclaringPackage(char[][] parentPackageName, char[] pa
 			}
 		}
 	}
+	if (allNames == null && hasUnobserable)
+		return new char[][] { ModuleBinding.UNOBSERVABLE };
 	return allNames;
+}
+private char[][] filterModules(char[][] declaringModules) {
+	char[][] filtered = Arrays.stream(declaringModules).filter(m -> this.moduleLocations.containsKey(new String(m))).toArray(char[][]::new);
+	if (filtered.length == 0)
+		return null;
+	return filtered;
 }
 private Parser getParser() {
 	Map<String,String> opts = new HashMap<String, String>();
@@ -731,6 +755,19 @@ public char[][] getAllAutomaticModules() {
 		}
 	}
 	return set.toArray(new char[set.size()][]);
+}
+
+@Override
+public char[][] listPackages(char[] moduleName) {
+	switch (LookupStrategy.get(moduleName)) {
+		case Named:
+			Classpath classpath = this.moduleLocations.get(new String(moduleName));
+			if (classpath != null)
+				return classpath.listPackages();
+			return CharOperation.NO_CHAR_CHAR;
+		default:
+			throw new UnsupportedOperationException("can list packages only of a named module"); //$NON-NLS-1$
+	}
 }
 
 void addModuleUpdate(String moduleName, Consumer<IUpdatableModule> update, UpdateKind kind) {

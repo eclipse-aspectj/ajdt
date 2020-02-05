@@ -1,6 +1,6 @@
 // AspectJ
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -19,8 +19,9 @@
  *								Bug 424727 - [compiler][null] NullPointerException in nullAnnotationUnsupportedLocation(ProblemReporter.java:5708)
  *								Bug 457210 - [1.8][compiler][null] Wrong Nullness errors given on full build build but not on incremental build?
  *     Keigo Imai - Contribution for  bug 388903 - Cannot extend inner class as an anonymous class when it extends the outer class
-  *    Pierre-Yves B. <pyvesdev@gmail.com> - Contribution for
+  *    Pierre-Yves B. <pyvesdev@gmail.com> - Contributions for
  *                              Bug 542520 - [JUnit 5] Warning The method xxx from the type X is never used locally is shown when using MethodSource
+ *                              Bug 546084 - Using Junit 5s MethodSource leads to ClassCastException
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
@@ -687,6 +688,7 @@ public boolean hasErrors() {
  *	Common flow analysis for all types
  */
 private void internalAnalyseCode(FlowContext flowContext, FlowInfo flowInfo) {
+	checkYieldUsage();
 	if (!this.binding.isUsed() && this.binding.isOrEnclosedByPrivateType()) {
 		if (!this.scope.referenceCompilationUnit().compilationResult.hasSyntaxError) {
 			this.scope.problemReporter().unusedPrivateType(this);
@@ -809,27 +811,56 @@ private void internalAnalyseCode(FlowContext flowContext, FlowInfo flowInfo) {
 	}
 }
 
+private void checkYieldUsage() {
+	long sourceLevel = this.scope.compilerOptions().sourceLevel;
+	if (sourceLevel < ClassFileConstants.JDK13 || this.name == null ||
+			!("yield".equals(new String(this.name)))) //$NON-NLS-1$
+		return;
+	if (sourceLevel == ClassFileConstants.JDK13 && this.scope.compilerOptions().enablePreviewFeatures) {
+		this.scope.problemReporter().switchExpressionsYieldTypeDeclarationError(this);
+	} else {
+		this.scope.problemReporter().switchExpressionsYieldTypeDeclarationWarning(this);
+	}
+}
+
 private SimpleSetOfCharArray getJUnitMethodSourceValues() {
 	SimpleSetOfCharArray junitMethodSourceValues = new SimpleSetOfCharArray();
 	for (AbstractMethodDeclaration methodDeclaration : this.methods) {
-		junitMethodSourceValues.add(getJUnitMethodSourceValue(methodDeclaration));
+		if (methodDeclaration.annotations != null) {
+			for (Annotation annotation : methodDeclaration.annotations) {
+				if (annotation.resolvedType != null && annotation.resolvedType.id == TypeIds.T_OrgJunitJupiterParamsProviderMethodSource) {
+					addJUnitMethodSourceValues(junitMethodSourceValues, annotation, methodDeclaration.selector);
+				}
+			}
+	}
 	}
 	return junitMethodSourceValues;
 }
 
-private char[] getJUnitMethodSourceValue(AbstractMethodDeclaration methodDeclaration) {
-	if (methodDeclaration.annotations != null) {
-		for (Annotation annotation : methodDeclaration.annotations) {
-			if (annotation.resolvedType != null && annotation.resolvedType.id == TypeIds.T_OrgJunitJupiterParamsProviderMethodSource) {
+private void addJUnitMethodSourceValues(SimpleSetOfCharArray junitMethodSourceValues, Annotation annotation, char[] methodName) {
 				for (MemberValuePair memberValuePair : annotation.memberValuePairs()) {
 					if (CharOperation.equals(memberValuePair.name, TypeConstants.VALUE)) {
-						return ((StringLiteral) memberValuePair.value).source;
+			Expression value = memberValuePair.value;
+			if (value instanceof ArrayInitializer) { // e.g. @MethodSource({ "someMethod" })
+				ArrayInitializer arrayInitializer = (ArrayInitializer) value;
+				for (Expression arrayValue : arrayInitializer.expressions) {
+					junitMethodSourceValues.add(getValueAsChars(arrayValue));
 					}
+			} else {
+				junitMethodSourceValues.add(getValueAsChars(value));
 				}
-				// value member not specified (i.e. marker annotation): JUnit 5 defaults to the test method's name
-				return methodDeclaration.selector;
+			return;
 			}
 		}
+	// value member not specified (i.e. marker annotation): JUnit 5 defaults to the test method's name
+	junitMethodSourceValues.add(methodName);
+}
+
+private char[] getValueAsChars(Expression value) {
+	if (value instanceof StringLiteral) { // e.g. "someMethod"
+		return ((StringLiteral) value).source;
+	} else if (value.constant instanceof StringConstant) { // e.g. SOME_CONSTANT + "value"
+		return ((StringConstant) value.constant).stringValue().toCharArray();
 	}
 	return CharOperation.NO_CHAR;
 }

@@ -1,12 +1,12 @@
 /* *******************************************************************
  * Copyright (c) 2002-2010 Contributors
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
  *     PARC, Andy Clement (SpringSource)
  * ******************************************************************/
 package org.aspectj.ajdt.internal.compiler.ast;
@@ -15,6 +15,7 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -71,7 +72,7 @@ import org.aspectj.weaver.patterns.TypePattern;
 
 /**
  * Represents an aspect declaration.
- * 
+ *
  * @author PARC
  * @author Andy Clement
  */
@@ -83,7 +84,7 @@ public class AspectDeclaration extends TypeDeclaration {
 	public ResolvedMember aspectOfMethod;
 	public ResolvedMember ptwGetWithinTypeNameMethod;
 	public ResolvedMember hasAspectMethod;
-	public Map<ResolvedMember, Binding> accessForInline = new HashMap<ResolvedMember, Binding>();
+	public Map<ResolvedMember, Binding> accessForInline = new LinkedHashMap<ResolvedMember, Binding>();
 	public Map<ResolvedMember, AccessForInlineVisitor.SuperAccessMethodPair> superAccessForInline = new HashMap<ResolvedMember, AccessForInlineVisitor.SuperAccessMethodPair>();
 	public boolean isPrivileged;
 	public EclipseSourceType concreteName;
@@ -213,7 +214,7 @@ public class AspectDeclaration extends TypeDeclaration {
 		}
 		if ((binding.tagBits & TagBits.AnnotationResolved) != 0) {
 			// possibly resolution occurred during hasUnsatisfiedDependency()...
-			binding.tagBits = (binding.tagBits & ~TagBits.AnnotationResolved);			
+			binding.tagBits = (binding.tagBits & ~TagBits.AnnotationResolved);
 		}
 		Annotation atAspectAnnotation = AtAspectJAnnotationFactory.createAspectAnnotation(perClause.toDeclarationString(),
 				declarationSourceStart);
@@ -424,6 +425,8 @@ public class AspectDeclaration extends TypeDeclaration {
 		return l;
 	}
 
+	public static final char[] HAS_ASPECT = "hasAspect".toCharArray();
+
 	/*
 	 * additionalAttributes allows us to pass some optional attributes we want to attach to the method we generate. Currently this
 	 * is used for inline accessor methods that have been generated to allow private field references or private method calls to be
@@ -463,15 +466,23 @@ public class AspectDeclaration extends TypeDeclaration {
 		if (codeStream.pcToSourceMapSize == 0) {
 			codeStream.recordPositionsFrom(0, 1);
 		}
+		// Seems a dirty hack around some underlying issue...?
+		boolean b2 = CharOperation.equals(methodBinding.selector,HAS_ASPECT) &&
+		  ((classFile.produceAttributes & ClassFileConstants.ATTR_STACK_MAP_TABLE) != 0 ? true : false);
+		if (b2) {
+			classFile.produceAttributes &= ~ClassFileConstants.ATTR_STACK_MAP_TABLE;
+		}
 		boolean b = ((codeStream.generateAttributes & ClassFileConstants.ATTR_VARS) != 0 ? true : false); // pr148693
 		if (codeStream.maxLocals == 0) {
 			codeStream.generateAttributes &= ~ClassFileConstants.ATTR_VARS;
 		}
-		classFile.completeCodeAttribute(codeAttributeOffset);
+		classFile.completeCodeAttribute(codeAttributeOffset, md.scope);
 		if (b) {
 			codeStream.generateAttributes |= ClassFileConstants.ATTR_VARS;
 		}
-
+		if (b2) {
+			classFile.produceAttributes |= ClassFileConstants.ATTR_STACK_MAP_TABLE;
+		}
 		attributeNumber++;
 		classFile.completeMethodInfo(methodBinding, methodAttributeOffset, attributeNumber);
 	}
@@ -712,14 +723,16 @@ public class AspectDeclaration extends TypeDeclaration {
 						world.makeMethodBinding(AjcMemberMaker.perTypeWithinGetInstance(typeX)), null);
 				codeStream.ifnull(noInstanceExists);
 				codeStream.iconst_1();
-				codeStream.goto_(leave);
+				codeStream.ireturn();
+				// codeStream.goto_(leave);
 				noInstanceExists.place();
 				codeStream.iconst_0();
 				leave.place();
 				goneBang.placeEnd();
 				codeStream.ireturn();
 				goneBang.place();
-				codeStream.astore_1();
+				//codeStream.astore_1();
+				codeStream.pop();
 				codeStream.iconst_0();
 				codeStream.ireturn();
 				codeStream.locals[0].recordInitializationEndPC(codeStream.position);

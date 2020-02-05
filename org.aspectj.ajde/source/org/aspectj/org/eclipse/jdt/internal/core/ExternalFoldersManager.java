@@ -146,12 +146,13 @@ public class ExternalFoldersManager {
 		if (externalPath == null || externalPath.isEmpty()) {
 			return false;
 		}
-		
+
 		JavaModelManager manager = JavaModelManager.getJavaModelManager();
 		if (manager.isExternalFile(externalPath) || manager.isAssumedExternalFile(externalPath)) {
 			return false;
 		}
-		if (!externalPath.isAbsolute() || (WINDOWS && externalPath.getDevice() == null)) {
+		if (!externalPath.isAbsolute()
+				|| (WINDOWS && (externalPath.getDevice() == null && !externalPath.isUNC()))) {
 			// can be only project relative path
 			return false;
 		}
@@ -432,7 +433,7 @@ public class ExternalFoldersManager {
 		return getFolders().get(externalFolderPath);
 	}
 
-	private Map<IPath, IFolder> getFolders() {
+	Map<IPath, IFolder> getFolders() {
 		if (this.folders == null) {
 			Map<IPath, IFolder> tempFolders = new LinkedHashMap<>();
 			IProject project = getExternalFoldersProject();

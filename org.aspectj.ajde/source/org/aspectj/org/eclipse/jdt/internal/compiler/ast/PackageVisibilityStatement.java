@@ -17,7 +17,7 @@ package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.core.compiler.IProblem;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ModuleBinding;
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.PackageBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.PlainPackageBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Scope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemSeverities;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.HashtableOfObject;
@@ -26,7 +26,7 @@ public abstract class PackageVisibilityStatement extends ModuleStatement {
 	public ImportReference pkgRef;
 	public ModuleReference[] targets;
 	public char[] pkgName;
-	public PackageBinding resolvedPackage;
+	public PlainPackageBinding resolvedPackage;
 
 	public PackageVisibilityStatement(ImportReference pkgRef, ModuleReference[] targets) {
 		this.pkgRef = pkgRef;
@@ -47,38 +47,26 @@ public abstract class PackageVisibilityStatement extends ModuleStatement {
 			HashtableOfObject modules = new HashtableOfObject(this.targets.length);
 			for (int i = 0; i < this.targets.length; i++) {
 				ModuleReference ref = this.targets[i];
+				// targets will be resolved later (during ModuleDeclaration.resolveModuleDirectives())
 				if (modules.containsKey(ref.moduleName)) {
 					scope.problemReporter().duplicateModuleReference(IProblem.DuplicateModuleRef, ref);
 					errorsExist = true;
 				} else {
-					ref.resolve(scope.compilationUnitScope());
 					modules.put(ref.moduleName, ref);
 				}
 			}
 		}
 		return !errorsExist;
 	}
-	protected int computeSeverity(int problemId) {
+	public int computeSeverity(int problemId) {
 		return ProblemSeverities.Error;
 	}
-	protected PackageBinding resolvePackageReference(Scope scope) {
+	protected PlainPackageBinding resolvePackageReference(Scope scope) {
 		if (this.resolvedPackage != null)
 			return this.resolvedPackage;
 		ModuleDeclaration exportingModule = scope.compilationUnitScope().referenceContext.moduleDeclaration;
 		ModuleBinding src = exportingModule.binding;
-		this.resolvedPackage = src != null ? src.getVisiblePackage(this.pkgRef.tokens) : null;
-		int problemId = IProblem.PackageDoesNotExistOrIsEmpty;
-		if (this.resolvedPackage == null) {
-			// TODO: need a check for empty package as well
-			scope.problemReporter().invalidPackageReference(problemId, this, computeSeverity(problemId));
-		} else {
-			if (!this.resolvedPackage.isDeclaredIn(src)) {
-				this.resolvedPackage = null;
-				// TODO(SHMOD): specific error?
-				scope.problemReporter().invalidPackageReference(problemId, this, computeSeverity(problemId));
-			}
-		}
-		
+		this.resolvedPackage = src != null ? src.getOrCreateDeclaredPackage(this.pkgRef.tokens) : null;
 		return this.resolvedPackage;
 	}
 

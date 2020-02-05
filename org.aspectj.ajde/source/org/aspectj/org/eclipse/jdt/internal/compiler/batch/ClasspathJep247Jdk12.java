@@ -43,6 +43,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
 public class ClasspathJep247Jdk12 extends ClasspathJep247 {
 
 	Map<String, IModule> modules;
+	static String MODULE_INFO = "module-info.sig"; //$NON-NLS-1$
 
 	public ClasspathJep247Jdk12(File jdkHome, String release, AccessRuleSet accessRuleSet) {
 		super(jdkHome, release, accessRuleSet);
@@ -92,11 +93,10 @@ public class ClasspathJep247Jdk12 extends ClasspathJep247 {
 			}
 			if (content != null) {
 				reader = new ClassFileReader(content, qualifiedBinaryFileName.toCharArray());
-				return new NameEnvironmentAnswer(reader, fetchAccessRestriction(qualifiedBinaryFileName), null);
+				char[] modName = moduleName != null ? moduleName.toCharArray() : null;
+				return new NameEnvironmentAnswer(reader, fetchAccessRestriction(qualifiedBinaryFileName), modName);
 			}
-		} catch(ClassFormatException e) {
-			// Continue
-		} catch (IOException e) {
+		} catch (ClassFormatException | IOException e) {
 			// continue
 		}
 		return null;
@@ -156,6 +156,7 @@ public class ClasspathJep247Jdk12 extends ClasspathJep247 {
 		this.modules = ModulesCache.get(this.modulePath);
 		if (this.modules == null) {
 			try (DirectoryStream<java.nio.file.Path> stream = Files.newDirectoryStream(this.releasePath)) {
+				HashMap<String,IModule> newCache = new HashMap<>();
 				for (final java.nio.file.Path subdir: stream) {
 					String rel = JRTUtil.sanitizedFileName(subdir);
 					if (!rel.contains(this.releaseInHex)) {
@@ -173,14 +174,13 @@ public class ClasspathJep247Jdk12 extends ClasspathJep247 {
 						public FileVisitResult visitFile(java.nio.file.Path f, BasicFileAttributes attrs) throws IOException {
 							if (attrs.isDirectory() || f.getNameCount() < 3) 
 								return FileVisitResult.CONTINUE;
-							byte[] content = null;
-							if (Files.exists(f)) {
-								content = JRTUtil.safeReadBytes(f);
+							if (f.getFileName().toString().equals(MODULE_INFO) && Files.exists(f)) {
+								byte[] content = JRTUtil.safeReadBytes(f);
 								if (content == null)
 									return FileVisitResult.CONTINUE;
 								Path m = f.subpath(1, f.getNameCount() - 1);
 								String name = JRTUtil.sanitizedFileName(m);
-								ClasspathJep247Jdk12.this.acceptModule(name, content);
+								ClasspathJep247Jdk12.this.acceptModule(name, content, newCache);
 								ClasspathJep247Jdk12.this.moduleNamesCache.add(name);
 							}
 							return FileVisitResult.SKIP_SIBLINGS;
@@ -196,6 +196,12 @@ public class ClasspathJep247Jdk12 extends ClasspathJep247 {
 							return FileVisitResult.CONTINUE;
 						}
 					});
+				}
+				synchronized(ModulesCache) {
+					if (ModulesCache.get(this.modulePath) == null) {
+						this.modules = Collections.unmodifiableMap(newCache);
+						ModulesCache.put(this.modulePath, this.modules);
+					}
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -215,14 +221,12 @@ public class ClasspathJep247Jdk12 extends ClasspathJep247 {
 		}
 		return null;
 	}
-	void acceptModule(String name, byte[] content) {
+	void acceptModule(String name, byte[] content, Map<String, IModule> cache) {
 		if (content == null) 
 			return;
 
-		if (this.modules != null) {
-			if (this.modules.containsKey(name))
-				return;
-		}
+		if (cache.containsKey(name))
+			return;
 
 		ClassFileReader reader = null;
 		try {
@@ -231,23 +235,20 @@ public class ClasspathJep247Jdk12 extends ClasspathJep247 {
 			e.printStackTrace();
 		}
 		if (reader != null) {
-			acceptModule(reader);
+			acceptModule(reader, cache);
 		}
 	}
 	@Override
-	void acceptModule(ClassFileReader reader) {
+	void acceptModule(ClassFileReader reader, Map<String, IModule> cache) {
 		// Modules below level 8 are not dealt with here. Leave it to ClasspathJrt
 		if (this.jdklevel <= ClassFileConstants.JDK1_8) {
-			super.acceptModule(reader);
+			super.acceptModule(reader, cache);
 			return;
 		}
 		if (reader != null) {
 			IModule moduleDecl = reader.getModuleDeclaration();
 			if (moduleDecl != null) {
-				if (this.modules == null) {
-					ModulesCache.put(this.modulePath, this.modules = new HashMap<String,IModule>());
-				}
-				this.modules.put(String.valueOf(moduleDecl.name()), moduleDecl);
+				cache.put(String.valueOf(moduleDecl.name()), moduleDecl);
 			}
 		}
 	}

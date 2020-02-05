@@ -505,7 +505,7 @@ public TypeBinding resolveType(BlockScope scope) {
 				return this.resolvedType = null;
 			}
 		}
-		resolvePolyExpressionArguments(this, this.binding, this.argumentTypes, scope);
+		this.binding = resolvePolyExpressionArguments(this, this.binding, this.argumentTypes, scope);
 	} else {
 		this.binding = findConstructorBinding(scope, this, (ReferenceBinding) this.resolvedType, this.argumentTypes);
 	}
@@ -831,10 +831,16 @@ public InferenceContext18 freshInferenceContext(Scope scope) {
 }
 @Override
 public int nameSourceStart() {
+	if (this.enumConstant != null)
+		return this.enumConstant.sourceStart;
+	else
 	return this.type.sourceStart;
 }
 @Override
 public int nameSourceEnd() {
+	if (this.enumConstant != null)
+		return this.enumConstant.sourceEnd;
+	else
 	return this.type.sourceEnd;
 }
 }

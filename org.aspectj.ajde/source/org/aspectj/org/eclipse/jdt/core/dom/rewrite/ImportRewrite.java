@@ -239,7 +239,6 @@ public final class ImportRewrite {
 	 * give more information about the types visible in the scope. These types can be for example inherited inner types where it is
 	 * unnecessary to add import statements for.
 	 *
-	 * </p>
 	 * <p>
 	 * This class can be implemented by clients.
 	 * </p>
@@ -1316,7 +1315,7 @@ public final class ImportRewrite {
 
 		CompilationUnit usedAstRoot= this.astRoot;
 		if (usedAstRoot == null) {
-			ASTParser parser= ASTParser.newParser(AST.JLS11);
+			ASTParser parser= ASTParser.newParser(AST.JLS13);
 			parser.setSource(this.compilationUnit);
 			parser.setFocalPosition(0); // reduced AST
 			parser.setResolveBindings(false);

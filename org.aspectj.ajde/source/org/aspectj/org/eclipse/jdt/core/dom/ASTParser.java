@@ -122,17 +122,17 @@ public class ASTParser {
 	 * @since 3.10
 	 */
 	public interface IASTFactory {
-		public AST getAST(int level);
+		public AST getAST(int level,boolean previewEnabled);
 	}
 
 	/**
 	 * @since 3.10
 	 */
-	public static AST getAST(int level) {
+	public static AST getAST(int level, boolean previewEnabled) {
 		if (astFactory == null) {
-		  return AST.newAST(level);
+		  return AST.newAST(level, previewEnabled);
 		}
-		return astFactory.getAST(level);
+		return astFactory.getAST(level, previewEnabled);
 	}
 	// AspectJ Extension end
 	
@@ -273,6 +273,7 @@ public class ASTParser {
 			case AST.JLS10_INTERNAL:
 			case AST.JLS11_INTERNAL:
 			case AST.JLS12_INTERNAL:
+			case AST.JLS13_INTERNAL:
 				break;
 			default:
 				throw new IllegalArgumentException();
@@ -1388,15 +1389,16 @@ public class ASTParser {
 
 		// AspectJ extension start - use the factory
 		// old code:
-		// AST ast = AST.newAST(this.apiLevel);
+		// AST ast = AST.newAST(this.apiLevel, JavaCore.ENABLED.equals(this.compilerOptions.get(JavaCore.COMPILER_PB_ENABLE_PREVIEW_FEATURES)));
 		// new code:
-		AST ast = ASTParser.getAST(this.apiLevel);
+		AST ast = ASTParser.getAST(this.apiLevel, JavaCore.ENABLED.equals(this.compilerOptions.get(JavaCore.COMPILER_PB_ENABLE_PREVIEW_FEATURES)));
 		// End AspectJ Extension 
 		ast.setDefaultNodeFlag(ASTNode.ORIGINAL);
 		ast.setBindingResolver(new BindingResolver());
 		if ((this.bits & CompilationUnitResolver.STATEMENT_RECOVERY) != 0) {
 			ast.setFlag(ICompilationUnit.ENABLE_STATEMENTS_RECOVERY);
 		}
+		ast.scanner.previewEnabled = JavaCore.ENABLED.equals(this.compilerOptions.get(JavaCore.COMPILER_PB_ENABLE_PREVIEW_FEATURES));
 		converter.setAST(ast);
 		CodeSnippetParsingUtil codeSnippetParsingUtil = new CodeSnippetParsingUtil((this.bits & CompilationUnitResolver.IGNORE_METHOD_BODIES) != 0);
 		CompilationUnit compilationUnit = ast.newCompilationUnit();

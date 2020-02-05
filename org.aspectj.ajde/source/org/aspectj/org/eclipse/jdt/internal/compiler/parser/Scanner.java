@@ -25,7 +25,8 @@ public class Scanner extends TheOriginalJDTScannerClass implements TerminalToken
 		long complianceLevel,
 		char[][] taskTags,
 		char[][] taskPriorities,
-		boolean isTaskCaseSensitive) {
+		boolean isTaskCaseSensitive,
+		boolean isPreviewEnabled) {
 		super(
 			tokenizeComments,
 			tokenizeWhiteSpace,
@@ -34,14 +35,16 @@ public class Scanner extends TheOriginalJDTScannerClass implements TerminalToken
 			complianceLevel,
 			taskTags,
 			taskPriorities,
-			isTaskCaseSensitive);
+			isTaskCaseSensitive,
+			isPreviewEnabled);
 	}
-
+	
 	public Scanner(
 			boolean tokenizeComments,
 			boolean tokenizeWhiteSpace,
 			boolean checkNonExternalizedStringLiterals,
 			long sourceLevel,
+			long complianceLevel,
 			char[][] taskTags,
 			char[][] taskPriorities,
 			boolean isTaskCaseSensitive) {
@@ -50,9 +53,52 @@ public class Scanner extends TheOriginalJDTScannerClass implements TerminalToken
 				tokenizeWhiteSpace,
 				checkNonExternalizedStringLiterals,
 				sourceLevel,
+				complianceLevel,
 				taskTags,
 				taskPriorities,
-				isTaskCaseSensitive);
+				isTaskCaseSensitive,
+				false);
+		}
+	
+
+	public Scanner(
+			boolean tokenizeComments,
+			boolean tokenizeWhiteSpace,
+			boolean checkNonExternalizedStringLiterals,
+			long sourceLevel,
+			char[][] taskTags,
+			char[][] taskPriorities,
+			boolean isTaskCaseSensitive,
+			boolean previewEnabled) {
+			super(
+				tokenizeComments,
+				tokenizeWhiteSpace,
+				checkNonExternalizedStringLiterals,
+				sourceLevel,
+				taskTags,
+				taskPriorities,
+				isTaskCaseSensitive,
+				previewEnabled);
+		}
+
+	public Scanner(
+			boolean tokenizeComments,
+			boolean tokenizeWhiteSpace,
+			boolean checkNonExternalizedStringLiterals,
+			long sourceLevel,
+			char[][] taskTags,
+			char[][] taskPriorities,
+			boolean isTaskCaseSensitive
+			) {
+			super(
+				tokenizeComments,
+				tokenizeWhiteSpace,
+				checkNonExternalizedStringLiterals,
+				sourceLevel,
+				taskTags,
+				taskPriorities,
+				isTaskCaseSensitive,
+				false);
 		}
 
 	
