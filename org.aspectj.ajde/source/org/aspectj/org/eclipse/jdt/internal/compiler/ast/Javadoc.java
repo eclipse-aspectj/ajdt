@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -33,6 +33,8 @@ public class Javadoc extends ASTNode {
 	public TypeReference[] exceptionReferences; // @throws, @exception
 	public JavadocReturnStatement returnStatement; // @return
 	public Expression[] seeReferences; // @see
+	public IJavadocTypeReference[] usesReferences; // @uses
+	public IJavadocTypeReference[] providesReferences; // @provides
 	public long[] inheritedPositions = null;
 	// bug https://bugs.eclipse.org/bugs/show_bug.cgi?id=51600
 	// Store param references for tag with invalid syntax
@@ -211,6 +213,11 @@ public class Javadoc extends ASTNode {
 		// @param tags
 		int paramTagsSize = this.paramReferences == null ? 0 : this.paramReferences.length;
 		for (int i = 0; i < paramTagsSize; i++) {
+			if(scope.referenceContext instanceof RecordDeclaration) {
+				RecordDeclaration rd = (RecordDeclaration)scope.referenceContext;
+				if(  rd.nRecordComponents > 0)
+					break;
+			}
 			JavadocSingleNameReference param = this.paramReferences[i];
 			scope.problemReporter().javadocUnexpectedTag(param.tagSourceStart, param.tagSourceEnd);
 		}
@@ -262,8 +269,29 @@ public class Javadoc extends ASTNode {
 			return;
 		}
 		// Do nothing - This is to mimic the SDK's javadoc tool behavior, which neither
-		// sanity checks nor generates documentation using comments at the CU scope 
-		// (unless the unit happens to be package-info.java - in which case we don't come here.) 
+		// sanity checks nor generates documentation using comments at the CU scope
+		// (unless the unit happens to be package-info.java - in which case we don't come here.)
+	}
+
+	/*
+	 * Resolve module info javadoc
+	 */
+	public void resolve(ModuleScope moduleScope) {
+		if ((this.bits & ASTNode.ResolveJavadoc) == 0) {
+			return;
+		}
+
+		this.bits &= ~ASTNode.ResolveJavadoc;// avoid double resolution
+
+		// @see tags
+		int seeTagsLength = this.seeReferences == null ? 0 : this.seeReferences.length;
+		for (int i = 0; i < seeTagsLength; i++) {
+			// Resolve reference
+			resolveReference(this.seeReferences[i], moduleScope);
+		}
+
+		resolveUsesTags(moduleScope, true);
+		resolveProvidesTags(moduleScope, true);
 	}
 
 	/*
@@ -318,7 +346,7 @@ public class Javadoc extends ASTNode {
 								MethodBinding current = methDecl.binding;
 								// work 'against' better inference in 1.8 (otherwise comparing (G<T> with G<Object>) would fail):
 								if (methScope.compilerOptions().sourceLevel >= ClassFileConstants.JDK1_8
-									&& current.typeVariables != Binding.NO_TYPE_VARIABLES) 
+									&& current.typeVariables != Binding.NO_TYPE_VARIABLES)
 								{
 									current = current.asRawMethod(methScope.environment());
 								}
@@ -326,7 +354,7 @@ public class Javadoc extends ASTNode {
 									superRef = true;
 								}
 							}
-						}						
+						}
 					}
 				}
 			}
@@ -416,7 +444,7 @@ public class Javadoc extends ASTNode {
 					scope.problemReporter().javadocInvalidValueReference(fieldRef.sourceStart, fieldRef.sourceEnd, scopeModifiers);
 				}
 				else if (fieldRef.actualReceiverType != null) {
-					if (scope.enclosingSourceType().isCompatibleWith(fieldRef.actualReceiverType)) {
+					if (scope.kind != Scope.MODULE_SCOPE && scope.enclosingSourceType().isCompatibleWith(fieldRef.actualReceiverType)) {
 						fieldRef.bits |= ASTNode.SuperAccess;
 					}
 					ReferenceBinding resolvedType = (ReferenceBinding) fieldRef.actualReceiverType;
@@ -561,14 +589,158 @@ public class Javadoc extends ASTNode {
 	}
 
 	/*
+	 * Resolve @uses tags while block scope
+	 */
+	private void resolveUsesTags(BlockScope scope, boolean reportMissing) {
+		ModuleDeclaration moduleDecl = (ModuleDeclaration)scope.referenceContext();
+		int usesTagsSize = this.usesReferences == null ? 0 : this.usesReferences.length;
+
+		// If no referenced module then report a problem for each uses tag
+		if (moduleDecl == null) {
+			for (int i = 0; i < usesTagsSize; i++) {
+				IJavadocTypeReference uses = this.usesReferences[i];
+				scope.problemReporter().javadocUnexpectedTag(uses.getTagSourceStart(), uses.getTagSourceEnd());
+			}
+			return;
+		}
+
+		// If no uses tags then report a problem for each uses reference
+		int usesSize = moduleDecl.usesCount;
+		if (usesTagsSize == 0) {
+			if (reportMissing) {
+				for (int i = 0; i < usesSize; i++) {
+					UsesStatement uses = moduleDecl.uses[i];
+					scope.problemReporter().javadocMissingUsesTag(uses.serviceInterface, uses.sourceStart, uses.sourceEnd, moduleDecl.binding.modifiers);
+				}
+			}
+		} else {
+			TypeBinding[] bindings = new TypeBinding[usesTagsSize];
+			int maxBindings = 0;
+
+			// Scan all @uses tags
+			for (int i = 0; i < usesTagsSize; i++) {
+				TypeReference usesRef = (TypeReference)this.usesReferences[i];
+				try {
+					usesRef.resolve(scope);
+					if (usesRef.resolvedType != null && usesRef.resolvedType.isValidBinding()) {
+						// Verify duplicated tags
+						boolean found = false;
+						for (int j = 0; j < maxBindings && !found; j++) {
+							if (bindings[j].equals(usesRef.resolvedType)) {
+								scope.problemReporter().javadocDuplicatedUsesTag(usesRef.sourceStart, usesRef.sourceEnd);
+								found = true;
+							}
+						}
+						if (!found) {
+							bindings[maxBindings++] = usesRef.resolvedType;
+						}
+					}
+				} catch (Exception e) {
+					scope.problemReporter().javadocInvalidUsesClass(usesRef.sourceStart, usesRef.sourceEnd);
+				}
+			}
+
+			// Look for undocumented uses
+			if (reportMissing) {
+				for (int i = 0; i < usesSize; i++) {
+					UsesStatement uses = moduleDecl.uses[i];
+					boolean found = false;
+					for (int j = 0; j < maxBindings && !found; j++) {
+						TypeBinding binding = bindings[j];
+						if (uses.serviceInterface.getTypeBinding(scope).equals(binding)) {
+							found = true;
+						}
+					}
+					if (!found) {
+						scope.problemReporter().javadocMissingUsesTag(uses.serviceInterface, uses.sourceStart, uses.sourceEnd, moduleDecl.binding.modifiers);
+					}
+				}
+			}
+		}
+	}
+
+	/*
+	 * Resolve @provides tags while block scope
+	 */
+	private void resolveProvidesTags(BlockScope scope, boolean reportMissing) {
+		ModuleDeclaration moduleDecl = (ModuleDeclaration)scope.referenceContext();
+		int providesTagsSize = this.providesReferences == null ? 0 : this.providesReferences.length;
+
+		// If no referenced module then report a problem for each uses tag
+		if (moduleDecl == null) {
+			for (int i = 0; i < providesTagsSize; i++) {
+				IJavadocTypeReference provides = this.providesReferences[i];
+				scope.problemReporter().javadocUnexpectedTag(provides.getTagSourceStart(), provides.getTagSourceEnd());
+			}
+			return;
+		}
+
+		// If no uses tags then report a problem for each uses reference
+		int providesSize = moduleDecl.servicesCount;
+		if (providesTagsSize == 0) {
+			if (reportMissing) {
+				for (int i = 0; i < providesSize; i++) {
+					ProvidesStatement provides = moduleDecl.services[i];
+					scope.problemReporter().javadocMissingProvidesTag(provides.serviceInterface, provides.sourceStart, provides.sourceEnd, moduleDecl.binding.modifiers);
+				}
+			}
+		} else {
+			TypeBinding[] bindings = new TypeBinding[providesTagsSize];
+			int maxBindings = 0;
+
+			// Scan all @provides tags
+			for (int i = 0; i < providesTagsSize; i++) {
+				TypeReference providesRef = (TypeReference)this.providesReferences[i];
+				try {
+					providesRef.resolve(scope);
+					if (providesRef.resolvedType != null && providesRef.resolvedType.isValidBinding()) {
+						// Verify duplicated tags
+						boolean found = false;
+						for (int j = 0; j < maxBindings && !found; j++) {
+							if (bindings[j].equals(providesRef.resolvedType)) {
+								scope.problemReporter().javadocDuplicatedProvidesTag(providesRef.sourceStart, providesRef.sourceEnd);
+								found = true;
+							}
+						}
+						if (!found) {
+							bindings[maxBindings++] = providesRef.resolvedType;
+						}
+					}
+				} catch (Exception e) {
+					scope.problemReporter().javadocInvalidProvidesClass(providesRef.sourceStart, providesRef.sourceEnd);
+				}
+			}
+
+			// Look for undocumented uses
+			if (reportMissing) {
+				for (int i = 0; i < providesSize; i++) {
+					ProvidesStatement provides = moduleDecl.services[i];
+					boolean found = false;
+					for (int j = 0; j < maxBindings && !found; j++) {
+						TypeBinding binding = bindings[j];
+						if (provides.serviceInterface.getTypeBinding(scope).equals(binding)) {
+							found = true;
+						}
+					}
+					if (!found) {
+						scope.problemReporter().javadocMissingProvidesTag(provides.serviceInterface, provides.sourceStart, provides.sourceEnd, moduleDecl.binding.modifiers);
+					}
+				}
+			}
+		}
+	}
+
+	/*
 	 * Resolve @param tags for type parameters
 	 */
 	private void resolveTypeParameterTags(Scope scope, boolean reportMissing) {
 		int paramTypeParamLength = this.paramTypeParameters == null ? 0 : this.paramTypeParameters.length;
+		int paramReferencesLength = this.paramReferences == null ? 0 : this.paramReferences.length;
 
 		// Get declaration infos
 		TypeParameter[] parameters = null;
 		TypeVariableBinding[] typeVariables = null;
+		Argument[] recordParameters = null;
 		int modifiers = -1;
 		switch (scope.kind) {
 			case Scope.METHOD_SCOPE:
@@ -590,11 +762,16 @@ public class Javadoc extends ASTNode {
 				parameters = typeDeclaration.typeParameters;
 				typeVariables = typeDeclaration.binding.typeVariables;
 				modifiers = typeDeclaration.binding.modifiers;
+				if (typeDeclaration instanceof RecordDeclaration) {
+					RecordDeclaration recordDecl = (RecordDeclaration)typeDeclaration;
+					recordParameters = recordDecl.getArgs();
+				}
 				break;
 		}
 
 		// If no type variables then report a problem for each param type parameter tag
-		if (typeVariables == null || typeVariables.length == 0) {
+		if ((recordParameters == null || recordParameters.length == 0)
+				&& (typeVariables == null || typeVariables.length == 0)) {
 			for (int i = 0; i < paramTypeParamLength; i++) {
 				JavadocSingleTypeReference param = this.paramTypeParameters[i];
 				scope.problemReporter().javadocUnexpectedTag(param.tagSourceStart, param.tagSourceEnd);
@@ -602,9 +779,73 @@ public class Javadoc extends ASTNode {
 			return;
 		}
 
+		// If no param tags then report a problem for each record parameter
+		if (recordParameters != null) {
+			reportMissing = reportMissing && scope.compilerOptions().sourceLevel >= ClassFileConstants.JDK1_5;
+			int recordParametersLength = recordParameters.length;
+			String argNames[] = new String[paramReferencesLength];
+			if (paramReferencesLength == 0) {
+				if (reportMissing) {
+					for (int i = 0, l=recordParametersLength; i<l; i++) {
+						scope.problemReporter().javadocMissingParamTag(recordParameters[i].name, recordParameters[i].sourceStart, recordParameters[i].sourceEnd, modifiers);
+					}
+				}
+			} else {
+				// Otherwise verify that all param tags match record args
+				// Scan all @param tags
+				for (int i = 0; i < paramReferencesLength; ++i) {
+					JavadocSingleNameReference param = this.paramReferences[i];
+					String paramName = new String(param.getName()[0]);
+					// Verify duplicated tags
+					boolean duplicate = false;
+					for (int j = 0; j < i && !duplicate; j++) {
+						if (paramName.equals(argNames[j])) {
+							scope.problemReporter().javadocDuplicatedParamTag(param.token, param.sourceStart, param.sourceEnd, modifiers);
+							duplicate = true;
+						}
+					}
+					if (!duplicate) {
+						argNames[i] = paramName;
+					}
+				}
+				// Look for undocumented arguments
+				if (reportMissing) {
+					for (int i = 0; i < recordParameters.length; i++) {
+						Argument arg = recordParameters[i];
+						boolean found = false;
+						for (int j = 0; j < paramReferencesLength && !found; j++) {
+							JavadocSingleNameReference param = this.paramReferences[j];
+							String paramName = new String(param.getName()[0]);
+							if (paramName.equals(new String(arg.name))) {
+								found = true;
+							}
+						}
+						if (!found) {
+							scope.problemReporter().javadocMissingParamTag(arg.name, arg.sourceStart, arg.sourceEnd, modifiers);
+						}
+					}
+				}
+				// Look for param tags that specify non-existent arguments
+				for (int i = 0; i < paramReferencesLength; i++) {
+					JavadocSingleNameReference param = this.paramReferences[i];
+					String paramName = new String(param.getName()[0]);
+					boolean found = false;
+					for (int j = 0; j < recordParameters.length; j++) {
+						Argument arg = recordParameters[j];
+						if (paramName.equals(new String(arg.name))) {
+							found = true;
+						}
+					}
+					if (!found) {
+						scope.problemReporter().javadocInvalidParamTagName(param.sourceStart, param.sourceEnd);
+					}
+				}
+			}
+		}
+
 		// If no param tags then report a problem for each declaration type parameter
 		if (parameters != null) {
-			// https://bugs.eclipse.org/bugs/show_bug.cgi?id=324850, avoid secondary errors when <= 1.4 
+			// https://bugs.eclipse.org/bugs/show_bug.cgi?id=324850, avoid secondary errors when <= 1.4
 			reportMissing = reportMissing && scope.compilerOptions().sourceLevel >= ClassFileConstants.JDK1_5;
 			int typeParametersLength = parameters.length;
 			if (paramTypeParamLength == 0) {
@@ -813,80 +1054,82 @@ public class Javadoc extends ASTNode {
 					computedCompoundName[--idx] = topLevelType.fPackage.compoundName[i];
 				}
 
-				ClassScope topLevelScope = scope.classScope();
-				// when scope is not on compilation unit type, then inner class may not be visible...
-				if (topLevelScope.parent.kind != Scope.COMPILATION_UNIT_SCOPE ||
-					!CharOperation.equals(topLevelType.sourceName, topLevelScope.referenceContext.name)) {
-					topLevelScope = topLevelScope.outerMostClassScope();
-					if (typeReference instanceof JavadocSingleTypeReference) {
-						// inner class single reference can only be done in same unit
-						if ((!source15 && depth == 1) || TypeBinding.notEquals(topLevelType, topLevelScope.referenceContext.binding)) {
-							// search for corresponding import
-							boolean hasValidImport = false;
-							if (source15) {
-								CompilationUnitScope unitScope = topLevelScope.compilationUnitScope();
-								ImportBinding[] imports = unitScope.imports;
-								int length = imports == null ? 0 : imports.length;
-								mainLoop: for (int i=0; i<length; i++) {
-									char[][] compoundName = imports[i].compoundName;
-									int compoundNameLength = compoundName.length;
-									if ((imports[i].onDemand && compoundNameLength == computedCompoundName.length-1) 
-											|| (compoundNameLength == computedCompoundName.length)) {
-										for (int j = compoundNameLength; --j >= 0;) {
-											if (CharOperation.equals(imports[i].compoundName[j], computedCompoundName[j])) {
-												if (j == 0) {
-													hasValidImport = true;
-													ImportReference importReference = imports[i].reference;
-													if (importReference != null) {
-														importReference.bits |= ASTNode.Used;
+				if (scope.kind != Scope.MODULE_SCOPE) {
+					ClassScope topLevelScope = scope.classScope();
+					// when scope is not on compilation unit type, then inner class may not be visible...
+					if (topLevelScope.parent.kind != Scope.COMPILATION_UNIT_SCOPE ||
+						!CharOperation.equals(topLevelType.sourceName, topLevelScope.referenceContext.name)) {
+						topLevelScope = topLevelScope.outerMostClassScope();
+						if (typeReference instanceof JavadocSingleTypeReference) {
+							// inner class single reference can only be done in same unit
+							if ((!source15 && depth == 1) || TypeBinding.notEquals(topLevelType, topLevelScope.referenceContext.binding)) {
+								// search for corresponding import
+								boolean hasValidImport = false;
+								if (source15) {
+									CompilationUnitScope unitScope = topLevelScope.compilationUnitScope();
+									ImportBinding[] imports = unitScope.imports;
+									int length = imports == null ? 0 : imports.length;
+									mainLoop: for (int i=0; i<length; i++) {
+										char[][] compoundName = imports[i].compoundName;
+										int compoundNameLength = compoundName.length;
+										if ((imports[i].onDemand && compoundNameLength == computedCompoundName.length-1)
+												|| (compoundNameLength == computedCompoundName.length)) {
+											for (int j = compoundNameLength; --j >= 0;) {
+												if (CharOperation.equals(imports[i].compoundName[j], computedCompoundName[j])) {
+													if (j == 0) {
+														hasValidImport = true;
+														ImportReference importReference = imports[i].reference;
+														if (importReference != null) {
+															importReference.bits |= ASTNode.Used;
+														}
+														break mainLoop;
 													}
-													break mainLoop;
+												} else {
+													break;
 												}
-											} else {
-												break;
 											}
 										}
 									}
-								}
-								if (!hasValidImport) {
+									if (!hasValidImport) {
+										if (scopeModifiers == -1) scopeModifiers = scope.getDeclarationModifiers();
+										scope.problemReporter().javadocInvalidMemberTypeQualification(typeReference.sourceStart, typeReference.sourceEnd, scopeModifiers);
+									}
+								} else {
 									if (scopeModifiers == -1) scopeModifiers = scope.getDeclarationModifiers();
 									scope.problemReporter().javadocInvalidMemberTypeQualification(typeReference.sourceStart, typeReference.sourceEnd, scopeModifiers);
+									return;
 								}
-							} else {
-								if (scopeModifiers == -1) scopeModifiers = scope.getDeclarationModifiers();
-								scope.problemReporter().javadocInvalidMemberTypeQualification(typeReference.sourceStart, typeReference.sourceEnd, scopeModifiers);
-								return;
 							}
 						}
 					}
-				}
-				if (typeReference instanceof JavadocQualifiedTypeReference && !scope.isDefinedInSameUnit(resolvedType)) {
-					// https://bugs.eclipse.org/bugs/show_bug.cgi?id=222188
-					// partially qualified references from a different CU should be warned
-					char[][] typeRefName = ((JavadocQualifiedTypeReference) typeReference).getTypeName();
-					int skipLength = 0;
-					if (topLevelScope.getCurrentPackage() == resolvedType.getPackage()
-							&& typeRefName.length < computedCompoundName.length) {
-						// https://bugs.eclipse.org/bugs/show_bug.cgi?id=221539: references can be partially qualified
-						// in same package and hence if the package name is not given, ignore package name check
-						skipLength = resolvedType.fPackage.compoundName.length;
-					}
-					boolean valid = true;
-					if (typeRefName.length == computedCompoundName.length - skipLength) {
-						checkQualification: for (int i = 0; i < typeRefName.length; i++) {
-							if (!CharOperation.equals(typeRefName[i], computedCompoundName[i + skipLength])) {
-								valid = false;
-								break checkQualification;
-							}
+					if (typeReference instanceof JavadocQualifiedTypeReference && !scope.isDefinedInSameUnit(resolvedType)) {
+						// https://bugs.eclipse.org/bugs/show_bug.cgi?id=222188
+						// partially qualified references from a different CU should be warned
+						char[][] typeRefName = ((JavadocQualifiedTypeReference) typeReference).getTypeName();
+						int skipLength = 0;
+						if (topLevelScope.getCurrentPackage() == resolvedType.getPackage()
+								&& typeRefName.length < computedCompoundName.length) {
+							// https://bugs.eclipse.org/bugs/show_bug.cgi?id=221539: references can be partially qualified
+							// in same package and hence if the package name is not given, ignore package name check
+							skipLength = resolvedType.fPackage.compoundName.length;
 						}
-					} else {
-						valid = false;
-					}
-					// report invalid reference
-					if (!valid) {
-						if (scopeModifiers == -1) scopeModifiers = scope.getDeclarationModifiers();
-						scope.problemReporter().javadocInvalidMemberTypeQualification(typeReference.sourceStart, typeReference.sourceEnd, scopeModifiers);
-						return;
+						boolean valid = true;
+						if (typeRefName.length == computedCompoundName.length - skipLength) {
+							checkQualification: for (int i = 0; i < typeRefName.length; i++) {
+								if (!CharOperation.equals(typeRefName[i], computedCompoundName[i + skipLength])) {
+									valid = false;
+									break checkQualification;
+								}
+							}
+						} else {
+							valid = false;
+						}
+						// report invalid reference
+						if (!valid) {
+							if (scopeModifiers == -1) scopeModifiers = scope.getDeclarationModifiers();
+							scope.problemReporter().javadocInvalidMemberTypeQualification(typeReference.sourceStart, typeReference.sourceEnd, scopeModifiers);
+							return;
+						}
 					}
 				}
 			}

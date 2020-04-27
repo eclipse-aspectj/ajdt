@@ -1,6 +1,6 @@
 // ASPECTJ
 /*******************************************************************************
- * Copyright (c) 2000, 2019 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -64,16 +64,22 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.aspectj.org.eclipse.jdt.internal.compiler.IErrorHandlingPolicy;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractVariableDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Argument;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CompactConstructorDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ConstructorDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ExplicitConstructorCall;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.LambdaExpression;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.RecordDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ReferenceExpression;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ReturnStatement;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.SwitchStatement;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeParameter;
@@ -149,6 +155,9 @@ public class SourceTypeBinding extends ReferenceBinding {
 	protected SourceTypeBinding nestHost;
 	public HashSet<SourceTypeBinding> nestMembers;
 	
+	private boolean isRecordDeclaration = false;
+	private FieldBinding[] recordComponents; // cache
+	private MethodBinding[] recordComponentAccessors = null; // hash maybe an overkill
 public SourceTypeBinding(char[][] compoundName, PackageBinding fPackage, ClassScope scope) {
 	this.compoundName = compoundName;
 	this.fPackage = fPackage;
@@ -162,6 +171,7 @@ public SourceTypeBinding(char[][] compoundName, PackageBinding fPackage, ClassSc
 	this.fields = Binding.UNINITIALIZED_FIELDS;
 	this.methods = Binding.UNINITIALIZED_METHODS;
 	this.prototype = this;
+	this.isRecordDeclaration = scope.referenceContext instanceof RecordDeclaration;
 	computeId();
 }
 
@@ -189,6 +199,7 @@ public SourceTypeBinding(SourceTypeBinding prototype) {
 	this.nullnessDefaultInitialized= prototype.nullnessDefaultInitialized;
 	this.containerAnnotationType = prototype.containerAnnotationType;
 	this.tagBits |= TagBits.HasUnresolvedMemberTypes; // see memberTypes()
+	this.isRecordDeclaration = this.prototype.isRecordDeclaration;
 }
 
 private void addDefaultAbstractMethods() {
@@ -880,6 +891,115 @@ public SyntheticMethodBinding addSyntheticBridgeMethod(MethodBinding inheritedMe
 	}
 	return accessMethod;
 }
+/* JLS 14 Record - Preview - begin */
+public MethodBinding[] checkAndAddSyntheticRecordMethods(MethodBinding[] methodBindings, int count) {
+	if (!this.isRecordDeclaration)
+		return methodBindings;
+	List<MethodBinding> implicitMethods = checkAndAddSyntheticRecordComponentAccessors(methodBindings);
+	implicitMethods = checkAndAddSyntheticRecordOverrideMethods(methodBindings, implicitMethods);
+	for (int i = 0; i < count; ++i)
+		implicitMethods.add(methodBindings[i]);
+	return implicitMethods.toArray(new MethodBinding[0]);
+}
+public List<MethodBinding> checkAndAddSyntheticRecordOverrideMethods(MethodBinding[] methodBindings, List<MethodBinding> implicitMethods) {
+	if (!hasMethodWithNumArgs(TypeConstants.TOSTRING, 0)) {
+		MethodBinding m = addSyntheticRecordOverrideMethod(TypeConstants.TOSTRING, implicitMethods.size());
+		implicitMethods.add(m);
+	}
+	if (!hasMethodWithNumArgs(TypeConstants.HASHCODE, 0)) {
+		MethodBinding m = addSyntheticRecordOverrideMethod(TypeConstants.HASHCODE, implicitMethods.size());
+		implicitMethods.add(m);
+	}
+	boolean isEqualsPresent = Arrays.stream(methodBindings)
+			.filter(m -> CharOperation.equals(TypeConstants.EQUALS, m.selector))
+			.anyMatch(m -> m.parameters != null || m.parameters.length == 1 &&
+				m.parameters[0].equals(this.scope.getJavaLangObject()));
+	if (!isEqualsPresent) {
+		MethodBinding m = addSyntheticRecordOverrideMethod(TypeConstants.EQUALS, implicitMethods.size());
+		implicitMethods.add(m);
+	}
+	return implicitMethods;
+}
+public List<MethodBinding> checkAndAddSyntheticRecordComponentAccessors(MethodBinding[] methodBindings) {
+	List<MethodBinding> implicitMethods = new ArrayList<>(0);
+	if (this.fields == null)
+		return implicitMethods;
+	// JLS 14 8.10.3 Item 2 create the accessors for the fields if required
+	/*
+	 * An implicitly declared public accessor method with the same name as the record component,
+	 * whose return type is the declared type of the record component,
+	 * unless a public method with the same signature is explicitly declared in the body of the declaration of R.
+	 */
+
+	List<String> componentNames = Arrays.stream(this.fields) // initialize with all the record components
+			.filter(f -> f.isRecordComponent())
+			.map(f -> new String(f.name))
+			.collect(Collectors.toList());
+
+	List<MethodBinding> accessors = new ArrayList<>();
+	if (this.methods != null) {
+		accessors = Arrays.stream(methodBindings)
+				.filter(m -> m.selector != null && m.selector.length > 0)
+				.filter(m -> componentNames.contains(new String(m.selector)))
+				.filter(m -> m.parameters == null || m.parameters.length == 0)
+				.collect(Collectors.toList());
+
+		List<String> candidates = accessors.stream()
+			.map(m -> new String(m.selector))
+			.collect(Collectors.toList());
+		componentNames.removeAll(candidates);
+	}
+	int missingCount = componentNames.size();
+	for (int i = 0; i < missingCount; ++i) {
+		implicitMethods.add(addSyntheticRecordComponentAccessor(componentNames.get(i).toCharArray(), i));
+	}
+	accessors.addAll(implicitMethods);
+	this.recordComponentAccessors = accessors.toArray(new MethodBinding[0]);
+	return implicitMethods;
+}
+/* Add a new synthetic component accessor for the recordtype. Selector should be identical to component name.
+ * char[] component name of the record
+*/
+public SyntheticMethodBinding addSyntheticRecordComponentAccessor(char[] selector, int index) {
+	if (!isPrototype()) throw new IllegalStateException();
+	if (this.synthetics == null)
+		this.synthetics = new HashMap[MAX_SYNTHETICS];
+	if (this.synthetics[SourceTypeBinding.METHOD_EMUL] == null)
+		this.synthetics[SourceTypeBinding.METHOD_EMUL] = new HashMap(5);
+
+	SyntheticMethodBinding accessMethod = null;
+	SyntheticMethodBinding[] accessors = (SyntheticMethodBinding[]) this.synthetics[SourceTypeBinding.METHOD_EMUL].get(selector);
+	accessMethod = new SyntheticMethodBinding(this, getField(selector, true), index);
+	if (accessors == null) {
+		this.synthetics[SourceTypeBinding.METHOD_EMUL].put(selector, accessors = new SyntheticMethodBinding[2]);
+		accessors[0] = accessMethod;
+	} else {
+		if ((accessMethod = accessors[0]) == null) {
+			accessors[0] = accessMethod;
+		}
+	}
+	return accessMethod;
+}
+public SyntheticMethodBinding addSyntheticRecordOverrideMethod(char[] selector, int index) {
+	if (this.synthetics == null)
+		this.synthetics = new HashMap[MAX_SYNTHETICS];
+	if (this.synthetics[SourceTypeBinding.METHOD_EMUL] == null)
+		this.synthetics[SourceTypeBinding.METHOD_EMUL] = new HashMap(5);
+
+	SyntheticMethodBinding accessMethod = null;
+	SyntheticMethodBinding[] accessors = (SyntheticMethodBinding[]) this.synthetics[SourceTypeBinding.METHOD_EMUL].get(selector);
+	accessMethod = new SyntheticMethodBinding(this, selector, index);
+	if (accessors == null) {
+		this.synthetics[SourceTypeBinding.METHOD_EMUL].put(selector, accessors = new SyntheticMethodBinding[2]);
+		accessors[0] = accessMethod;
+	} else {
+		if ((accessMethod = accessors[0]) == null) {
+			accessors[0] = accessMethod;
+		}
+	}
+	return accessMethod;
+}
+/* JLS 14 Record - Preview - end */
 boolean areFieldsInitialized() {
 	if (!isPrototype())
 		return this.prototype.areFieldsInitialized();
@@ -1023,6 +1143,7 @@ public FieldBinding[] fields() {
 		}
 	}
 	this.tagBits |= TagBits.AreFieldsComplete;
+	computeRecordComponents();
 	return this.fields;
 }
 /**
@@ -1097,20 +1218,23 @@ public long getAnnotationTagBits() {
 	if (!isPrototype())
 		return this.prototype.getAnnotationTagBits();
 	
-	if ((this.tagBits & TagBits.EndHierarchyCheck) == 0 && this.scope != null) { // AspectJ added final this.scope check because BinaryTypeBinding subclass won't have scope
-		CompilationUnitScope pkgCUS = this.scope.compilationUnitScope();
-		boolean current = pkgCUS.connectingHierarchy;
-		pkgCUS.connectingHierarchy = true;
-		try {
-			return internalGetAnnotationTagBits();
-		} finally {
-			pkgCUS.connectingHierarchy = current;
+	if ((this.tagBits & TagBits.AnnotationResolved) == 0 && this.scope != null) {
+		if ((this.tagBits & TagBits.EndHierarchyCheck) == 0 && this.scope != null) { // AspectJ added final this.scope check because BinaryTypeBinding subclass won't have scope
+			CompilationUnitScope pkgCUS = this.scope.compilationUnitScope();
+			boolean current = pkgCUS.connectingHierarchy;
+			pkgCUS.connectingHierarchy = true;
+			try {
+				initAnnotationTagBits();
+			} finally {
+				pkgCUS.connectingHierarchy = current;
+			}
+		} else {
+			initAnnotationTagBits();
 		}
 	}
-	return internalGetAnnotationTagBits();
+	return this.tagBits;
 }
-private long internalGetAnnotationTagBits() {
-	if ((this.tagBits & TagBits.AnnotationResolved) == 0 && this.scope != null) {
+private void initAnnotationTagBits() {
 		TypeDeclaration typeDecl = this.scope.referenceContext;
 		boolean old = typeDecl.staticInitializerScope.insideTypeAnnotation;
 		try {
@@ -1121,8 +1245,6 @@ private long internalGetAnnotationTagBits() {
 		}
 		if ((this.tagBits & TagBits.AnnotationDeprecated) != 0)
 			this.modifiers |= ClassFileConstants.AccDeprecated;
-	}
-	return this.tagBits;
 }
 public MethodBinding[] getDefaultAbstractMethods() {
 	if (!isPrototype())
@@ -1661,6 +1783,55 @@ public boolean hasMemberTypes() {
     return this.memberTypes.length > 0;
 }
 
+private int getImplicitCanonicalConstructor() {
+	if (this.methods != null && this.scope.compilerOptions().sourceLevel >= ClassFileConstants.JDK14) {
+		for (int i = 0, l = this.methods.length; i < l; ++i) {
+			MethodBinding method = this.methods[i];
+			if ((method.tagBits & TagBits.IsCanonicalConstructor ) != 0 && (method.tagBits & TagBits.isImplicit) != 0)
+				return i;
+		}
+	}
+	return -1;
+}
+private MethodBinding[] checkAndGetExplicitCanonicalConstructors() {
+	List<MethodBinding> ec = new ArrayList<>();
+	if (!this.isRecordDeclaration)
+		return ec.toArray(new MethodBinding[0]);
+
+	FieldBinding[] recComps = this.getRecordComponents();
+	int nRecordComponents = recComps.length;
+	if (this.methods != null && this.scope.compilerOptions().sourceLevel >= ClassFileConstants.JDK14) {
+		for (MethodBinding method : this.methods) {
+			if (!method.isConstructor() || (method.tagBits & TagBits.isImplicit) != 0
+					|| method.parameters.length != nRecordComponents)
+				continue;
+			boolean isEC = true;
+			for (int j = 0; j < nRecordComponents; ++j) {
+				if (TypeBinding.notEquals(method.parameters[j], recComps[j].type)) {
+					isEC = false;
+					break;
+				}
+			}
+			if (isEC) {
+				ec.add(method);
+				checkRecordCanonicalConstructor(method);
+			}
+		}
+	}
+	return ec.toArray(new MethodBinding[0]);
+}
+private int getImplicitMethod(char[] name) {
+	if (this.methods != null && this.scope.compilerOptions().sourceLevel >= ClassFileConstants.JDK14) {
+		for (int i = 0, l = this.methods.length; i < l; ++i) {
+			MethodBinding method = this.methods[i];
+			if (!CharOperation.equals(method.selector, name))
+				continue;
+			if ((method.tagBits & TagBits.isImplicit) != 0)
+				return i;
+		}
+	}
+	return -1;
+}
 // NOTE: the return type, arg & exception types of each method of a source type are resolved when needed
 public MethodBinding[] methodsBase() {  // AspectJ Extension - added Base suffix, see methods()
 	
@@ -1691,7 +1862,7 @@ public MethodBinding[] methodsBase() {  // AspectJ Extension - added Base suffix
 	try {
 		for (int i = 0, length = this.methods.length; i < length; i++) {
 			if ((this.tagBits & TagBits.AreMethodsComplete) != 0) {
-				// recursive call to methods() from resolveTypesFor(..) resolved the methods
+				// recursive c-all to methods() from resolveTypesFor(..) resolved the methods
 				return this.methods;
 			}
 
@@ -1708,6 +1879,10 @@ public MethodBinding[] methodsBase() {  // AspectJ Extension - added Base suffix
 		// find & report collision cases
 		boolean complyTo15OrAbove = this.scope.compilerOptions().sourceLevel >= ClassFileConstants.JDK1_5;
 		boolean compliance16 = this.scope.compilerOptions().complianceLevel == ClassFileConstants.JDK1_6;
+		int recordCanonIndex = getImplicitCanonicalConstructor();
+		computeRecordComponents();
+		checkAndGetExplicitCanonicalConstructors();
+		int recordEqualsIndex = getImplicitMethod(TypeConstants.EQUALS);
 		
 		for (int i = 0, length = this.methods.length; i < length; i++) {
 			int severity = ProblemSeverities.Error;
@@ -1807,6 +1982,31 @@ public MethodBinding[] methodsBase() {  // AspectJ Extension - added Base suffix
 					// prior to 1.5, parameters identical meant a collision case
 					continue nextSibling;
 				}
+				if (recordCanonIndex == i || recordCanonIndex == j) {
+					methodDecl = this.methods[recordCanonIndex].sourceMethod();
+					assert methodDecl != null;
+					methodDecl.binding = null;
+					// do not alter original method array until resolution is over, due to reentrance (143259)
+					if (resolvedMethods == this.methods)
+						System.arraycopy(this.methods, 0, resolvedMethods = new MethodBinding[length], 0, length);
+					resolvedMethods[recordCanonIndex] = null;
+					failed++;
+					MethodBinding explicitCanonicalConstructor = recordCanonIndex == i ? this.methods[j] : this.methods[i];
+					methodDecl = explicitCanonicalConstructor.sourceMethod();
+					recordCanonIndex = -1; // reset;
+					continue;
+				}
+				if (recordEqualsIndex == i || recordEqualsIndex == j) {
+					methodDecl = this.methods[recordEqualsIndex].sourceMethod();
+					assert methodDecl != null;
+					methodDecl.binding = null;
+					// do not alter original method array until resolution is over, due to reentrance (143259)
+					if (resolvedMethods == this.methods)
+						System.arraycopy(this.methods, 0, resolvedMethods = new MethodBinding[length], 0, length);
+					resolvedMethods[recordEqualsIndex] = null;
+					failed++;
+					continue;
+				}
 				// otherwise duplicates / name clash
 				boolean isEnumSpecialMethod = isEnum() && (CharOperation.equals(selector,TypeConstants.VALUEOF) || CharOperation.equals(selector,TypeConstants.VALUES));
 				// report duplicate
@@ -1887,6 +2087,49 @@ public MethodBinding[] methodsBase() {  // AspectJ Extension - added Base suffix
 	return this.methods;
 }
 
+private void checkRecordCanonicalConstructor(MethodBinding explicitCanonicalConstructor) {
+
+	AbstractMethodDeclaration methodDecl = explicitCanonicalConstructor.sourceMethod();
+	if (!explicitCanonicalConstructor.isPublic())
+		this.scope.problemReporter().recordCanonicalConstructorNotPublic(methodDecl);
+	TypeParameter[] typeParameters = methodDecl.typeParameters();
+	if (typeParameters != null && typeParameters.length > 0)
+		this.scope.problemReporter().recordCanonicalConstructorShouldNotBeGeneric(methodDecl);
+	if (explicitCanonicalConstructor.thrownExceptions != null && explicitCanonicalConstructor.thrownExceptions.length > 0)
+		this.scope.problemReporter().recordCanonicalConstructorHasThrowsClause(methodDecl);
+	explicitCanonicalConstructor.tagBits |= TagBits.IsCanonicalConstructor;
+	ASTVisitor visitor = new ASTVisitor() {
+		boolean isInsideCCD = methodDecl instanceof CompactConstructorDeclaration;
+		@Override
+		public boolean visit(ExplicitConstructorCall explicitConstructorCall, BlockScope skope) {
+			if (explicitConstructorCall.accessMode != ExplicitConstructorCall.ImplicitSuper) {
+				if (this.isInsideCCD)
+					skope.problemReporter().recordCompactConstructorHasExplicitConstructorCall(explicitConstructorCall);
+				else
+					skope.problemReporter().recordCanonicalConstructorHasExplicitConstructorCall(explicitConstructorCall);
+			}
+			return false;
+		}
+		@Override
+		public boolean visit(MethodDeclaration methodDeclaration, ClassScope skope) {
+			return false;
+		}
+		@Override
+		public boolean visit(LambdaExpression lambda, BlockScope skope) {
+			return false;
+		}
+		@Override
+		public boolean visit(ReturnStatement returnStatement, BlockScope skope) {
+			if (this.isInsideCCD) {
+				skope.problemReporter().recordCompactConstructorHasReturnStatement(returnStatement);
+				return false;
+			}
+			return true;
+		}
+	};
+	methodDecl.traverse(visitor, this.scope);
+}
+
 @Override
 public TypeBinding prototype() {
 	return this.prototype;
@@ -1894,6 +2137,11 @@ public TypeBinding prototype() {
 
 public boolean isPrototype() {
 	return this == this.prototype;  //$IDENTITY-COMPARISON$
+}
+
+@Override
+public boolean isRecord() {
+	return this.isRecordDeclaration;
 }
 
 @Override
@@ -2119,6 +2367,11 @@ private MethodBinding resolveTypesWithSuspendedTempErrorHandlingPolicy(MethodBin
 			if (parameterType == null) {
 				foundArgProblem = true;
 			} else if (parameterType == TypeBinding.VOID) {
+				if (this.isRecordDeclaration &&
+						methodDecl instanceof ConstructorDeclaration &&
+						((methodDecl.bits & ASTNode.IsImplicit) != 0)) {
+					// do nothing - already raised for record component.
+				} else
 				methodDecl.scope.problemReporter().argumentTypeCannotBeVoid(methodDecl, arg);
 				foundArgProblem = true;
 			} else {
@@ -2369,6 +2622,27 @@ boolean hasNonNullDefaultFor(int location, int sourceStart) {
 }
 
 @Override
+protected boolean hasMethodWithNumArgs(char[] selector, int numArgs) {
+	if ((this.tagBits & TagBits.AreMethodsComplete) != 0)
+		return super.hasMethodWithNumArgs(selector, numArgs);
+	// otherwise don't trigger unResolvedMethods() which would actually resolve!
+	if (this.scope != null && this.scope.referenceContext.methods != null) {
+		for (AbstractMethodDeclaration method : this.scope.referenceContext.methods) {
+			if (CharOperation.equals(method.selector, selector)) {
+				if (numArgs == 0) {
+					if (method.arguments == null)
+						return true;
+				} else {
+					if (method.arguments != null && method.arguments.length == numArgs)
+						return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+
+@Override
 public AnnotationHolder retrieveAnnotationHolder(Binding binding, boolean forceInitialization) {
 	if (!isPrototype())
 		return this.prototype.retrieveAnnotationHolder(binding, forceInitialization);
@@ -2616,7 +2890,8 @@ public String toString() {
 	if (isStatic() && isNestedType()) buffer.append("static "); //$NON-NLS-1$
 	if (isFinal()) buffer.append("final "); //$NON-NLS-1$
 
-	if (isEnum()) buffer.append("enum "); //$NON-NLS-1$
+	if (isRecord()) buffer.append("record "); //$NON-NLS-1$
+	else if (isEnum()) buffer.append("enum "); //$NON-NLS-1$
 	else if (isAnnotationType()) buffer.append("@interface "); //$NON-NLS-1$
 	else if (isClass()) buffer.append("class "); //$NON-NLS-1$
 	else buffer.append("interface "); //$NON-NLS-1$
@@ -2790,7 +3065,48 @@ public List<String> getNestMembers() {
 							.collect(Collectors.toList());
 	return list;
 }
-
+/* Get the field bindings in the order of record component declaration
+ * should be called only after a called to fields() */
+public FieldBinding[] getRecordComponents() {
+	return this.recordComponents;
+}
+/**
+ * Get the accessor method given the record component name
+ * @param name name of the record component
+ * @return the method binding of the accessor if found, else null
+ */
+public MethodBinding getRecordComponentAccessor(char[] name) {
+	MethodBinding accessor = null;
+	if (this.recordComponentAccessors != null) {
+		for (MethodBinding m : this.recordComponentAccessors) {
+			if (CharOperation.equals(m.selector, name)) {
+				accessor = m;
+				break;
+			}
+		}
+	}
+	return accessor;
+}
+public void computeRecordComponents() {
+	if (!this.isRecordDeclaration || this.recordComponents != null)
+		return;
+	Argument[] recComps = ((RecordDeclaration) this.scope.referenceContext).getArgs();
+	List<FieldBinding> list = new ArrayList<>();
+	if (recComps != null && recComps.length > 0 && this.fields != null) {
+		List<String> recordComponentNames = new ArrayList<>(0);
+		recordComponentNames = Arrays.stream(recComps)
+				.map(arg -> new String(arg.name))
+				.collect(Collectors.toList());
+		for (String rc : recordComponentNames) {
+			for (FieldBinding f : this.fields) {
+				if (rc.equals(new String(f.name))) {
+					list.add(f);
+				}
+			}
+		}
+	}
+	this.recordComponents = list.toArray(new FieldBinding[0]);
+}
 public void cleanUp() {
 	if (this.environment != null) {
 		// delegate so as to clean all variants of this prototype:

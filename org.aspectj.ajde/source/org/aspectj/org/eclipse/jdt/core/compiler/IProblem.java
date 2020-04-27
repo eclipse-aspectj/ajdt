@@ -1,6 +1,6 @@
 // AspectJ
 /*******************************************************************************
- * Copyright (c) 2000, 2019 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -224,7 +224,7 @@
  *									VarLocalWithoutInitizalier
  *									VarLocalInitializedToNull
  *									VarLocalCannotBeArrayInitalizers
- *									VarLocalCannotBeLambda 
+ *									VarLocalCannotBeLambda
  *									VarLocalCannotBeMethodReference
  *									VarIsReserved
  *									VarIsReservedInFuture
@@ -1219,6 +1219,29 @@ void setSourceStart(int sourceStart);
 	int JavadocUnexpectedText = Javadoc + Internal + 518;
 	/** @since 3.1 */
 	int JavadocInvalidParamTagName = Javadoc + Internal + 519;
+	/*
+	 * IDs for module errors in Javadoc
+	 */
+	/** @since 3.20 */
+	int JavadocMissingUsesTag = Javadoc + Internal + 1800;
+	/** @since 3.20 */
+	int JavadocDuplicateUsesTag = Javadoc + Internal + 1801;
+	/** @since 3.20 */
+	int JavadocMissingUsesClassName = Javadoc + Internal + 1802;
+	/** @since 3.20 */
+	int JavadocInvalidUsesClassName = Javadoc + Internal + 1803;
+	/** @since 3.20 */
+	int JavadocInvalidUsesClass = Javadoc + Internal + 1804;
+	/** @since 3.20 */
+	int JavadocMissingProvidesTag = Javadoc + Internal + 1805;
+	/** @since 3.20 */
+	int JavadocDuplicateProvidesTag = Javadoc + Internal + 1806;
+	/** @since 3.20 */
+	int JavadocMissingProvidesClassName = Javadoc + Internal + 1807;
+	/** @since 3.20 */
+	int JavadocInvalidProvidesClassName = Javadoc + Internal + 1808;
+	/** @since 3.20 */
+	int JavadocInvalidProvidesClass = Javadoc + Internal + 1809;
 
 	/**
 	 * Generics
@@ -1489,7 +1512,11 @@ void setSourceStart(int sourceStart);
     int ConstructorReferenceNotBelow18 = Internal + Syntax + 647;
     /** @since 3.10 */
     int ExplicitThisParameterNotInLambda = Internal + Syntax + 648;
-    /** @since 3.10 */
+    /**
+     * @since 3.10
+     * @deprecated Per https://bugs.openjdk.java.net/browse/JDK-8231435 this problem is no longer raised
+     */
+    @Deprecated
     int ExplicitAnnotationTargetRequired = TypeRelated + 649;
     /** @since 3.10 */
     int IllegalTypeForExplicitThis = Internal + Syntax + 650;
@@ -1837,6 +1864,8 @@ void setSourceStart(int sourceStart);
 	int RedundantNullCheckOnConstNonNullField = Internal + 944;
 	/** @since 3.20 */
 	int ConstNonNullFieldComparisonYieldsFalse = Internal + 945;
+	/** @since 3.21 */
+	int InheritedParameterLackingNonNullAnnotation = MethodRelated + 946;
 
 	/** @since 3.10 */
 	int ArrayReferencePotentialNullReference = Internal + 951;
@@ -1900,6 +1929,12 @@ void setSourceStart(int sourceStart);
 	int NonNullTypeVariableFromLegacyMethod = TypeRelated + 980;
 	/** @since 3.12 */
 	int NonNullMethodTypeVariableFromLegacyMethod = TypeRelated + 981;
+	/** @since 3.21 */
+	int MissingNullAnnotationImplicitlyUsed = Internal + 982;
+	/** @since 3.21 */
+	int AnnotatedTypeArgumentToUnannotated = Internal + 983;
+	/** @since 3.21 */
+	int AnnotatedTypeArgumentToUnannotatedSuperHint = Internal + 984;
 
 
 	// Java 8 work
@@ -2176,61 +2211,142 @@ void setSourceStart(int sourceStart);
 	 * @deprecated preview related error - will be removed
 	 * @noreference preview related error */
 	int SwitchExpressionIllegalLastStatement = Internal + 1612;
-	/** @since 3.20
-	 * @noreference preview related error */
-	int SwitchExpressionsYieldIncompatibleResultExpressionTypes = PreviewRelated + 1700;
-	/** @since 3.20
-	 * @noreference preview related error */
-	int SwitchExpressionsYieldEmptySwitchBlock = PreviewRelated + 1701;
-	/** @since 3.20
-	 * @noreference preview related error */
-	int SwitchExpressionsYieldNoResultExpression = PreviewRelated + 1702;
-	/** @since 3.20
-	 * @noreference preview related error */
-	int SwitchExpressionaYieldSwitchLabeledBlockCompletesNormally = PreviewRelated + 1703;
-	/** @since 3.20
-	 * @noreference preview related error */
-	int SwitchExpressionsYieldLastStatementCompletesNormally = PreviewRelated + 1704;
-	/** @since 3.20
-	 * @noreference preview related error */
-	int SwitchExpressionsYieldTrailingSwitchLabels = PreviewRelated + 1705;
-	/** @since 3.20
-	 * @noreference preview related error */
-	int SwitchPreviewMixedCase = PreviewRelated + 1706;
-	/** @since 3.20
-	 * @noreference preview related error */
-	int SwitchExpressionsYieldMissingDefaultCase = PreviewRelated + 1707;
-	/** @since 3.20
-	 * @noreference preview related error */
-	int SwitchExpressionsYieldMissingValue = PreviewRelated + 1708;
-	/** @since 3.20
-	 * @noreference preview related error */
-	int SwitchExpressionsYieldMissingEnumConstantCase = PreviewRelated + 1709;
-	/** @since 3.20
-	 * @noreference preview related error */
-	int SwitchExpressionsYieldIllegalLastStatement = PreviewRelated + 1710;
-	/** @since 3.20
-	 * @noreference preview related error */
-	int SwitchExpressionsYieldBreakNotAllowed = PreviewRelated + 1711;
-	/** @since 3.20
-	 * @noreference preview related error */
-	int SwitchExpressionsYieldUnqualifiedMethodWarning = PreviewRelated + 1712;
-	/** @since 3.20
-	 * @noreference preview related error */
-	int SwitchExpressionsYieldUnqualifiedMethodError = PreviewRelated + 1713;
-	/** @since 3.20
-	 * @noreference preview related error */
-	int SwitchExpressionsYieldOutsideSwitchExpression = PreviewRelated + 1714;
-	/** @since 3.20
-	 * @noreference preview related error */
-	int SwitchExpressionsYieldRestrictedGeneralWarning = PreviewRelated + 1715;
-	/** @since 3.20
-	 * @noreference preview related error */
-	int SwitchExpressionsYieldIllegalStatement = PreviewRelated + 1716;
-	/** @since 3.20
-	 * @noreference preview related error */
-	int SwitchExpressionsYieldTypeDeclarationWarning = PreviewRelated + 1717;
-	/** @since 3.20
-	 * @noreference preview related error */
-	int SwitchExpressionsYieldTypeDeclarationError = PreviewRelated + 1718;
+
+	/* Java14 errors - begin */
+	/** @since 3.21  */
+	int SwitchExpressionsYieldIncompatibleResultExpressionTypes = TypeRelated + 1700;
+	/** @since 3.21  */
+	int SwitchExpressionsYieldEmptySwitchBlock = Syntax + 1701;
+	/** @since 3.21  */
+	int SwitchExpressionsYieldNoResultExpression = Internal + 1702;
+	/** @since 3.21  */
+	int SwitchExpressionaYieldSwitchLabeledBlockCompletesNormally = Internal + 1703;
+	/** @since 3.21  */
+	int SwitchExpressionsYieldLastStatementCompletesNormally = Internal + 1704;
+	/** @since 3.21  */
+	int SwitchExpressionsYieldTrailingSwitchLabels = Internal + 1705;
+	/** @since 3.21  */
+	int SwitchPreviewMixedCase = Syntax + 1706;
+	/** @since 3.21  */
+	int SwitchExpressionsYieldMissingDefaultCase = Syntax + 1707;
+	/** @since 3.21  */
+	int SwitchExpressionsYieldMissingValue = Syntax + 1708;
+	/** @since 3.21  */
+	int SwitchExpressionsYieldMissingEnumConstantCase = Syntax + 1709;
+	/** @since 3.21  */
+	int SwitchExpressionsYieldIllegalLastStatement = Internal + 1710;
+	/** @since 3.21  */
+	int SwitchExpressionsYieldBreakNotAllowed = Syntax + 1711;
+	/** @since 3.21  */
+	int SwitchExpressionsYieldUnqualifiedMethodWarning = Syntax + 1712;
+	/** @since 3.21  */
+	int SwitchExpressionsYieldUnqualifiedMethodError = Syntax + 1713;
+	/** @since 3.21  */
+	int SwitchExpressionsYieldOutsideSwitchExpression = Syntax + 1714;
+	/** @since 3.21  */
+	int SwitchExpressionsYieldRestrictedGeneralWarning = Internal + 1715;
+	/** @since 3.21  */
+	int SwitchExpressionsYieldIllegalStatement = Internal + 1716;
+	/** @since 3.21  */
+	int SwitchExpressionsYieldTypeDeclarationWarning = Internal + 1717;
+	/** @since 3.21  */
+	int SwitchExpressionsYieldTypeDeclarationError = Internal + 1718;
+	/** @since 3.22 */
+	int MultiConstantCaseLabelsNotSupported = Syntax + 1719;
+	/** @since 3.22*/
+	int ArrowInCaseStatementsNotSupported = Syntax + 1720;
+	/** @since 3.22 */
+	int SwitchExpressionsNotSupported = Syntax + 1721;
+	/** @since 3.22 */
+	int SwitchExpressionsBreakOutOfSwitchExpression  = Syntax + 1722;
+	/** @since 3.22 */
+	int SwitchExpressionsContinueOutOfSwitchExpression  = Syntax + 1723;
+	/* records - begin */
+
+	/** @since 3.22
+	 * @noreference preview feature error */
+	int RecordIllegalModifierForInnerRecord = PreviewRelated + 1730;
+	/** @since 3.22
+	 * @noreference preview feature error */
+	int RecordIllegalModifierForRecord = PreviewRelated + 1731;
+	/** @since 3.22
+	 * JLS 14 Sec 8.10.1
+	 * it is always a compile-time error for a record header to declare a record component with the name
+	 * finalize, getClass, hashCode, notify, notifyAll, or toString. */
+	int RecordIllegalComponentNameInRecord = PreviewRelated + 1732;
+	/** @since 3.22
+	 * @noreference preview feature error */
+	int RecordNonStaticFieldDeclarationInRecord = PreviewRelated + 1733;
+	/** @since 3.22
+	 * @noreference preview feature error */
+	int RecordAccessorMethodHasThrowsClause = PreviewRelated + 1734;
+	/** @since 3.22
+	 * @noreference preview feature error */
+	int RecordCanonicalConstructorHasThrowsClause = PreviewRelated + 1735;
+	/** @since 3.22
+	 * @noreference preview feature error */
+	int RecordCanonicalConstructorShouldBePublic = PreviewRelated + 1736;
+	/** @since 3.22
+	 * @noreference preview feature error */
+	int RecordMultipleCanonicalConstructors = PreviewRelated + 1737;
+	/** @since 3.22
+	 * @noreference preview feature error */
+	int RecordCompactConstructorHasReturnStatement = PreviewRelated + 1738;
+	/** @since 3.22
+	 * @noreference preview feature error */
+	int RecordDuplicateComponent = PreviewRelated + 1739;
+	/** @since 3.22
+	 * @noreference preview feature error */
+	int RecordIllegalNativeModifierInRecord = PreviewRelated + 1740;
+	/** @since 3.22
+	 * @noreference preview feature error */
+	int RecordInstanceInitializerBlockInRecord = PreviewRelated + 1741;
+	/** @since 3.22
+	 * @noreference preview feature error */
+	int RecordIsAReservedTypeName = PreviewRelated + 1742;
+	/** @since 3.22
+	 * @noreference preview feature error */
+	int RecordIllegalAccessorReturnType = PreviewRelated + 1743;
+	/** @since 3.22
+	 * @noreference preview feature error */
+	int RecordAccessorMethodShouldNotBeGeneric = PreviewRelated + 1744;
+	/** @since 3.22
+	 * @noreference preview feature error */
+	int RecordAccessorMethodShouldBePublic = PreviewRelated + 1745;
+	/** @since 3.22
+	 * @noreference preview feature error */
+	int RecordCanonicalConstructorShouldNotBeGeneric = PreviewRelated + 1746;
+	/** @since 3.22
+	 * @noreference preview feature error */
+	int RecordCanonicalConstructorHasReturnStatement = PreviewRelated + 1747;
+	/** @since 3.22
+	 * @noreference preview feature error */
+	int RecordCanonicalConstructorHasExplicitConstructorCall = PreviewRelated + 1748;
+	/** @since 3.22
+	 * @noreference preview feature error */
+	int RecordCompactConstructorHasExplicitConstructorCall = PreviewRelated + 1749;
+	/** @since 3.22
+	 * @noreference preview feature error */
+	int RecordNestedRecordInherentlyStatic = PreviewRelated + 1750;
+	/** @since 3.22
+	 * @noreference preview feature error */
+	int RecordAccessorMethodShouldNotBeStatic= PreviewRelated + 1751;
+	/** @since 3.22
+	 * @noreference preview feature error */
+	int RecordCannotExtendRecord= PreviewRelated + 1752;
+	/** @since 3.22
+	 * @noreference preview feature error */
+	int RecordComponentCannotBeVoid= PreviewRelated + 1753;
+	/** @since 3.22
+	 * @noreference preview feature error */
+	int RecordIllegalVararg= PreviewRelated + 1754;
+	/** @since 3.22
+	 * @noreference preview feature error */
+	int RecordStaticReferenceToOuterLocalVariable= PreviewRelated + 1755;
+	/* records - end */
+	/* instanceof pattern: */
+	/** @since 3.22
+	 * @noreference preview feature error */
+	int PatternVariableNotInScope = PreviewRelated + 1760;
+	/* Java14 errors - end */
 }

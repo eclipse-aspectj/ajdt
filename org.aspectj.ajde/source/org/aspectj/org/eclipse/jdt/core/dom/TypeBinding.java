@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2019 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -200,7 +200,7 @@ class TypeBinding implements ITypeBinding {
 		}
 		return null;
 	}
-	
+
 	@Override
 	public ITypeBinding getGenericTypeOfWildcardType() {
 		switch (this.binding.kind()) {
@@ -213,7 +213,7 @@ class TypeBinding implements ITypeBinding {
 		}
 		return null;
 	}
-	
+
 	@Override
 	public int getRank() {
 		switch (this.binding.kind()) {
@@ -225,7 +225,7 @@ class TypeBinding implements ITypeBinding {
 				return -1;
 		}
 	}
-	
+
 	@Override
 	public ITypeBinding getComponentType() {
 		if (!isArray()) {
@@ -474,12 +474,12 @@ class TypeBinding implements ITypeBinding {
 			return this.resolver.getTypeBinding(((ParameterizedTypeBinding)this.binding).genericType());
 		return this.resolver.getTypeBinding(this.binding.unannotated());
 	}
-	
+
 	@Override
 	public ITypeBinding getErasure() {
 		return this.resolver.getTypeBinding(this.binding.erasure());
 	}
-	
+
 	@Override
 	public IMethodBinding getFunctionalInterfaceMethod() {
 		Scope scope = this.resolver.scope();
@@ -1060,7 +1060,7 @@ class TypeBinding implements ITypeBinding {
 			org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding expressionType = ((TypeBinding) type).binding;
 			// simulate capture in case checked binding did not properly get extracted from a reference
 			expressionType = expressionType.capture(scope, 0, 0);
-			return TypeBinding.EXPRESSION.checkCastTypesCompatibility(scope, this.binding, expressionType, null);
+			return TypeBinding.EXPRESSION.checkCastTypesCompatibility(scope, this.binding, expressionType, null, true);
 		} catch (AbortCompilation e) {
 			// don't surface internal exception to clients
 			// see https://bugs.eclipse.org/bugs/show_bug.cgi?id=143013
@@ -1091,6 +1091,11 @@ class TypeBinding implements ITypeBinding {
 	@Override
 	public boolean isEnum() {
 		return this.binding.isEnum();
+	}
+
+	@Override
+	public boolean isRecord() {
+		return this.binding.isRecord();
 	}
 
 	@Override

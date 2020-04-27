@@ -1,6 +1,6 @@
 //AspectJ
 /*******************************************************************************
- * Copyright (c) 2000, 2019 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -213,6 +213,42 @@ private void checkAndSetModifiersForVariable(LocalVariableBinding varBinding) {
 	varBinding.modifiers = modifiers;
 }
 
+public void adjustLocalVariablePositions(int delta, boolean offsetAlreadyUpdated) {
+	this.offset += offsetAlreadyUpdated ? 0 : delta;
+	if (this.offset > this.maxOffset)
+		this.maxOffset = this.offset;
+
+	for (Scope subScope : this.subscopes) {
+		if (subScope instanceof BlockScope) {
+			((BlockScope) subScope).adjustCurrentAndSubScopeLocalVariablePositions(delta);
+		}
+	}
+
+	Scope scope = this.parent;
+	while (scope instanceof BlockScope) {
+		BlockScope pBlock = (BlockScope) scope;
+		int diff = this.maxOffset - pBlock.maxOffset;
+		pBlock.maxOffset += diff > 0 ? diff : 0;
+		if (scope instanceof MethodScope)
+			break;
+		scope = scope.parent;
+	}
+}
+public void adjustCurrentAndSubScopeLocalVariablePositions(int delta) {
+	this.offset += delta;
+	if (this.offset > this.maxOffset)
+		this.maxOffset = this.offset;
+
+	for (LocalVariableBinding lvb : this.locals) {
+		if (lvb != null && lvb.resolvedPosition != -1)
+			lvb.resolvedPosition += delta;
+	}
+	for (Scope subScope : this.subscopes) {
+		if (subScope instanceof BlockScope) {
+			((BlockScope) subScope).adjustCurrentAndSubScopeLocalVariablePositions(delta);
+		}
+	}
+}
 /* Compute variable positions in scopes given an initial position offset
  * ignoring unused local variables.
  *
@@ -420,7 +456,7 @@ public LocalDeclaration[] findLocalVariableDeclarations(int position) {
 		} else {
 			// consider variable first
 			LocalVariableBinding local = this.locals[ilocal]; // if no local at all, will be locals[ilocal]==null
-			if (local != null) {
+			if (local != null && (local.modifiers & ExtraCompilerModifiers.AccPatternVariable) == 0) {
 				LocalDeclaration localDecl = local.declaration;
 				if (localDecl != null) {
 					if (localDecl.declarationSourceStart <= position) {
@@ -448,9 +484,20 @@ public LocalDeclaration[] findLocalVariableDeclarations(int position) {
 public LocalVariableBinding findVariable(char[] variableName) {
 	int varLength = variableName.length;
 	for (int i = this.localIndex-1; i >= 0; i--) { // lookup backward to reach latest additions first
-		LocalVariableBinding local;
+		LocalVariableBinding local = this.locals[i];
+		if ((local.modifiers & ExtraCompilerModifiers.AccPatternVariable) != 0)
+			continue;
 		char[] localName;
-		if ((localName = (local = this.locals[i]).name).length == varLength && CharOperation.equals(localName, variableName))
+		if ((localName = local.name).length == varLength && CharOperation.equals(localName, variableName))
+			return local;
+	}
+	// Look at the pattern variables now
+	for (int i = this.localIndex-1; i >= 0; i--) { // lookup backward to reach latest additions first
+		LocalVariableBinding local = this.locals[i];
+		if ((local.modifiers & ExtraCompilerModifiers.AccPatternVariable) == 0)
+			continue;
+		char[] localName;
+		if ((localName = local.name).length == varLength && CharOperation.equals(localName, variableName))
 			return local;
 	}
 	return null;
@@ -1076,6 +1123,11 @@ public void removeTrackingVar(FakedTrackingVariable trackingVariable) {
 public void pruneWrapperTrackingVar(FakedTrackingVariable trackingVariable) {
 	this.trackingVariables.remove(trackingVariable);
 }
+
+public boolean hasResourceTrackers() {
+	return this.trackingVariables != null && !this.trackingVariables.isEmpty();
+}
+
 /**
  * At the end of a block check the closing-status of all tracked closeables that are declared in this block.
  * Also invoked when entering unreachable code.
@@ -1172,8 +1224,19 @@ public void correlateTrackingVarsIfElse(FlowInfo thenFlowInfo, FlowInfo elseFlow
 		int trackVarCount = this.trackingVariables.size();
 		for (int i=0; i<trackVarCount; i++) {
 			FakedTrackingVariable trackingVar = (FakedTrackingVariable) this.trackingVariables.get(i);
-			if (trackingVar.originalBinding == null)
+			if (trackingVar.originalBinding == null) {
+				// avoid problem weakened to 'potential' if unassigned resource exists only in one branch:
+				boolean hasNullInfoInThen = thenFlowInfo.hasNullInfoFor(trackingVar.binding);
+				boolean hasNullInfoInElse = elseFlowInfo.hasNullInfoFor(trackingVar.binding);
+				if (hasNullInfoInThen && !hasNullInfoInElse) {
+					int nullStatus = thenFlowInfo.nullStatus(trackingVar.binding);
+					elseFlowInfo.markNullStatus(trackingVar.binding, nullStatus);
+				} else if (!hasNullInfoInThen && hasNullInfoInElse) {
+					int nullStatus = elseFlowInfo.nullStatus(trackingVar.binding);
+					thenFlowInfo.markNullStatus(trackingVar.binding, nullStatus);
+				}
 				continue;
+			}
 			if (   thenFlowInfo.isDefinitelyNonNull(trackingVar.binding)			// closed in then branch
 				&& elseFlowInfo.isDefinitelyNull(trackingVar.originalBinding))		// null in else branch
 			{

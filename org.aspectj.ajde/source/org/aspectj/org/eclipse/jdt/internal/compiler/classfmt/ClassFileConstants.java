@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -11,7 +11,7 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Jesper S Moller - Contributions for
- *							Bug 405066 - [1.8][compiler][codegen] Implement code generation infrastructure for JSR335             
+ *							Bug 405066 - [1.8][compiler][codegen] Implement code generation infrastructure for JSR335
  *							Bug 406982 - [1.8][compiler] Generation of MethodParameters Attribute in classfile
  *     Andy Clement (GoPivotal, Inc) aclement@gopivotal.com - Contributions for
  *                          Bug 405104 - [1.8][compiler][codegen] Implement support for serializeable lambdas
@@ -58,7 +58,7 @@ public interface ClassFileConstants {
 	int ACC_TRANSITIVE 		= 0x0020;
 	int ACC_STATIC_PHASE	= 0x0040;
 	int ACC_SYNTHETIC 		= 0x1000;
-	
+
 	/**
 	 * Other VM flags.
 	 */
@@ -130,9 +130,10 @@ public interface ClassFileConstants {
 	int MAJOR_VERSION_11 = 55;
 	int MAJOR_VERSION_12 = 56;
 	int MAJOR_VERSION_13 = 57;
+	int MAJOR_VERSION_14 = 58;
 
 	int MAJOR_VERSION_0 = 44;
-	int MAJOR_LATEST_VERSION = MAJOR_VERSION_13;
+	int MAJOR_LATEST_VERSION = MAJOR_VERSION_14;
 
 	int MINOR_VERSION_0 = 0;
 	int MINOR_VERSION_1 = 1;
@@ -156,6 +157,7 @@ public interface ClassFileConstants {
 	long JDK11 = ((long)ClassFileConstants.MAJOR_VERSION_11 << 16) + ClassFileConstants.MINOR_VERSION_0;
 	long JDK12 = ((long)ClassFileConstants.MAJOR_VERSION_12 << 16) + ClassFileConstants.MINOR_VERSION_0;
 	long JDK13 = ((long)ClassFileConstants.MAJOR_VERSION_13 << 16) + ClassFileConstants.MINOR_VERSION_0;
+	long JDK14 = ((long)ClassFileConstants.MAJOR_VERSION_14 << 16) + ClassFileConstants.MINOR_VERSION_0;
 
 	public static long getLatestJDKLevel() {
 		return ((long)ClassFileConstants.MAJOR_LATEST_VERSION << 16) + ClassFileConstants.MINOR_VERSION_0;

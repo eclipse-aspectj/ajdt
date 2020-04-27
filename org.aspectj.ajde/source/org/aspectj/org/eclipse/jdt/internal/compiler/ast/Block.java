@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -23,6 +23,7 @@ package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.flow.*;
+import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.*;
 
 public class Block extends Statement {
@@ -41,7 +42,8 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 	// empty block
 	if (this.statements == null)	return flowInfo;
 	int complaintLevel = (flowInfo.reachMode() & FlowInfo.UNREACHABLE) != 0 ? Statement.COMPLAINED_FAKE_REACHABLE : Statement.NOT_COMPLAINED;
-	boolean enableSyntacticNullAnalysisForFields = currentScope.compilerOptions().enableSyntacticNullAnalysisForFields;
+	CompilerOptions compilerOptions = currentScope.compilerOptions();
+	boolean enableSyntacticNullAnalysisForFields = compilerOptions.enableSyntacticNullAnalysisForFields;
 	for (int i = 0, max = this.statements.length; i < max; i++) {
 		Statement stat = this.statements[i];
 		if ((complaintLevel = stat.complainIfUnreachable(flowInfo, this.scope, complaintLevel, true)) < Statement.COMPLAINED_UNREACHABLE) {
@@ -51,6 +53,9 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 		flowContext.mergeFinallyNullInfo(flowInfo);
 		if (enableSyntacticNullAnalysisForFields) {
 			flowContext.expireNullCheckedFieldInfo();
+		}
+		if (compilerOptions.analyseResourceLeaks) {
+			FakedTrackingVariable.cleanUpUnassigned(this.scope, stat, flowInfo);
 		}
 	}
 	if (this.scope != currentScope) {
@@ -79,8 +84,8 @@ public void generateCode(BlockScope currentScope, CodeStream codeStream) {
 	}
 	int pc = codeStream.position;
 	if (this.statements != null) {
-		for (int i = 0, max = this.statements.length; i < max; i++) {
-			this.statements[i].generateCode(this.scope, codeStream);
+		for (Statement stmt : this.statements) {
+			stmt.generateCode(this.scope, codeStream);
 		}
 	} // for local variable debug attributes
 	if (this.scope != currentScope) { // was really associated with its own scope
@@ -122,7 +127,8 @@ public void resolve(BlockScope upperScope) {
 				? upperScope
 				: new BlockScope(upperScope, this.explicitDeclarations);
 		for (int i = 0, length = this.statements.length; i < length; i++) {
-			this.statements[i].resolve(this.scope);
+			final Statement stmt = this.statements[i];
+			stmt.resolve(this.scope);
 		}
 	}
 }

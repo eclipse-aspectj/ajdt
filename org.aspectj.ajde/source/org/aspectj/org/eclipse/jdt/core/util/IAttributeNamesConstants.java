@@ -147,7 +147,7 @@ public interface IAttributeNamesConstants {
 	 * @since 3.2
 	 */
 	char[] STACK_MAP = "StackMap".toCharArray(); //$NON-NLS-1$
-	
+
  	/**
 	 * "RuntimeVisibleTypeAnnotations" attribute (added in jsr 308).
 	 * @since 3.10
@@ -190,10 +190,10 @@ public interface IAttributeNamesConstants {
 	 * @since 3.14
 	 */
 	char[] MODULE_MAIN_CLASS = "ModuleMainClass".toCharArray(); //$NON-NLS-1$
-	
+
 	/**
 	 * "NestHost" attribute (JVMS 11).
-	 * @since 3.16 
+	 * @since 3.16
 	 */
 	char[] NEST_HOST = "NestHost".toCharArray(); //$NON-NLS-1$
 
@@ -202,5 +202,11 @@ public interface IAttributeNamesConstants {
 	 * @since 3.16
 	 */
 	char[] NEST_MEMBERS = "NestMembers".toCharArray(); //$NON-NLS-1$
+	/**
+	 * "Record" attribute (JVMS 14 - preview).
+	 * @since 3.22
+	 */
+	char[] RECORD = "Record".toCharArray(); //$NON-NLS-1$
+
 
 }

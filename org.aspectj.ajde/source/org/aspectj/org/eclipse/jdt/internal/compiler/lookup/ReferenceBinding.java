@@ -1,6 +1,6 @@
 // ASPECTJ
 /*******************************************************************************
- * Copyright (c) 2000, 2019 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -741,6 +741,8 @@ public void computeId() {
 				case 'R' :
 					if (CharOperation.equals(typeName, TypeConstants.JAVA_LANG_RUNTIMEEXCEPTION[2]))
 						this.id = 	TypeIds.T_JavaLangRuntimeException;
+					if (CharOperation.equals(typeName, TypeConstants.JAVA_LANG_RECORD[2]))
+						this.id = TypeIds.T_JavaLangRecord;
 					break;
 				case 'S' :
 					switch (typeName.length) {
@@ -2128,7 +2130,7 @@ public FieldBinding[] unResolvedFields() {
  * If a type - known to be a Closeable - is mentioned in one of our white lists
  * answer the typeBit for the white list (BitWrapperCloseable or BitResourceFreeCloseable).
  */
-protected int applyCloseableClassWhitelists() {
+protected int applyCloseableClassWhitelists(CompilerOptions options) {
 	switch (this.compoundName.length) {
 		case 3:
 			if (CharOperation.equals(TypeConstants.JAVA, this.compoundName[0])) {
@@ -2167,9 +2169,26 @@ protected int applyCloseableClassWhitelists() {
 		if (CharOperation.equals(this.compoundName, TypeConstants.OTHER_WRAPPER_CLOSEABLES[i]))
 			return TypeIds.BitWrapperCloseable;
 	}	
+	if (options.analyseResourceLeaks) {
+		ReferenceBinding mySuper = this.superclass();
+		if (mySuper != null && mySuper.id != TypeIds.T_JavaLangObject) {
+			if (hasMethodWithNumArgs(TypeConstants.CLOSE, 0))
+				return 0; // close methods indicates: class may need more closing than super
+			return mySuper.applyCloseableClassWhitelists(options);
+		}
+	}
 	return 0;
 }
 
+protected boolean hasMethodWithNumArgs(char[] selector, int numArgs) {
+	for (MethodBinding methodBinding : unResolvedMethods()) {
+		if (CharOperation.equals(methodBinding.selector, selector)
+				&& methodBinding.parameters.length == numArgs) {
+			return true;
+		}
+	}
+	return false;
+}
 
 /*
  * If a type - known to be a Closeable - is mentioned in one of our white lists

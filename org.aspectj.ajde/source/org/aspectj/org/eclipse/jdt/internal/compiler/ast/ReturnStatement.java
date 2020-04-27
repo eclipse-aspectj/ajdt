@@ -74,12 +74,12 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 	// to each of the traversed try statements, so that execution will terminate properly.
 
 	// lookup the label, this should answer the returnContext
-	
+
 	if (this.expression instanceof FunctionalExpression) {
 		if (this.expression.resolvedType == null || !this.expression.resolvedType.isValidBinding()) {
 			/* Don't descend without proper target types. For lambda shape analysis, what is pertinent is value vs void return and the fact that
 			   this constitutes an abrupt exit. The former is already gathered, the latter is handled here.
-			*/ 
+			*/
 			flowContext.recordAbruptExit();
 			return FlowInfo.DEAD_END;
 		}
@@ -99,6 +99,8 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 				// by returning the method passes the responsibility to the caller:
 				flowInfo = FakedTrackingVariable.markPassedToOutside(currentScope, this.expression, flowInfo, flowContext, true);
 			}
+			// don't wait till after this statement, because then flowInfo would be DEAD_END & thus cannot serve nullStatus any more:
+			FakedTrackingVariable.cleanUpUnassigned(currentScope, this.expression, flowInfo);
 		}
 	}
 	this.initStateIndex =
@@ -291,7 +293,7 @@ public void resolve(BlockScope scope) {
 				: methodBinding.returnType)
 			: TypeBinding.VOID;
 	TypeBinding expressionType;
-	
+
 	if (this.expression != null) {
 		this.expression.setExpressionContext(ASSIGNMENT_CONTEXT);
 		this.expression.setExpectedType(methodType);
@@ -299,7 +301,7 @@ public void resolve(BlockScope scope) {
 			this.expression.bits |= ASTNode.DisableUnnecessaryCastCheck;
 		}
 	}
-	
+
 	if (methodType == TypeBinding.VOID) {
 		// the expression should be null, exceptions exist for lambda expressions.
 		if (this.expression == null) {
@@ -322,11 +324,11 @@ public void resolve(BlockScope scope) {
 		if (methodType != null) scope.problemReporter().shouldReturn(methodType, this);
 		return;
 	}
-	
+
 	expressionType = this.expression.resolveType(scope);
 	if (lambda != null)
 		lambda.returnsExpression(this.expression, expressionType);
-	
+
 	if (expressionType == null) return;
 	if (expressionType == TypeBinding.VOID) {
 		scope.problemReporter().attemptToReturnVoidValue(this);

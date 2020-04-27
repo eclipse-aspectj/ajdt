@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -10,7 +10,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Stephan Herrmann - Contributions for 
+ *     Stephan Herrmann - Contributions for
  *     							bug 319201 - [null] no warning when unboxing SingleNameReference causes NPE
  *     							bug 349326 - [1.7] new warning for missing try-with-resources
  *								bug 345305 - [compiler][null] Compiler misidentifies a case of "variable can only be null"
@@ -63,7 +63,7 @@ public class WhileStatement extends Statement {
 		this.preCondInitStateIndex = currentScope.methodScope().recordInitializationStates(flowInfo);
 		LoopingFlowContext condLoopContext;
 		FlowInfo condInfo =	flowInfo.nullInfoLessUnconditionalCopy();
-		
+
 		// we need to collect the contribution to nulls of the coming paths through the
 		// loop, be they falling through normally or branched to break, continue labels
 		// or catch blocks
@@ -123,6 +123,7 @@ public class WhileStatement extends Statement {
 					condInfo.initsWhenTrue());
 
 			if (this.action.complainIfUnreachable(actionInfo, currentScope, initialComplaintLevel, true) < Statement.COMPLAINED_UNREACHABLE) {
+				this.condition.updateFlowOnBooleanResult(actionInfo, true);
 				actionInfo = this.action.analyseCode(currentScope, loopingContext, actionInfo);
 			}
 
@@ -175,6 +176,7 @@ public class WhileStatement extends Statement {
 				isConditionOptimizedFalse,
 				!isConditionTrue /*while(true); unreachable(); */);
 		this.mergedInitStateIndex = currentScope.methodScope().recordInitializationStates(mergedInfo);
+		this.condition.updateFlowOnBooleanResult(mergedInfo, false);
 		return mergedInfo;
 	}
 
@@ -189,6 +191,9 @@ public class WhileStatement extends Statement {
 
 		if ((this.bits & IsReachable) == 0) {
 			return;
+		}
+		if (this.condition != null && this.condition.containsPatternVariable()) {
+			this.condition.initializePatternVariables(currentScope, codeStream);
 		}
 		int pc = codeStream.position;
 		Constant cst = this.condition.optimizedBooleanConstant();
@@ -270,7 +275,6 @@ public class WhileStatement extends Statement {
 
 	@Override
 	public void resolve(BlockScope scope) {
-
 		TypeBinding type = this.condition.resolveTypeExpecting(scope, TypeBinding.BOOLEAN);
 		this.condition.computeConversion(scope, type, type);
 		if (this.action != null)
@@ -310,7 +314,7 @@ public class WhileStatement extends Statement {
 		boolean isConditionOptimizedTrue = cst == null ? true : cst != Constant.NotAConstant && cst.booleanValue() == true;
 		return (isConditionTrue || isConditionOptimizedTrue) && (this.action == null || !this.action.breaksOut(null));
 	}
-	
+
 	@Override
 	public boolean completesByContinue() {
 		return this.action.continuesAtOuterLabel();

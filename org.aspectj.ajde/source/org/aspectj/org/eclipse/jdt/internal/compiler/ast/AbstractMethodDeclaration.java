@@ -1,6 +1,6 @@
 // ASPECTJ
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -77,9 +77,11 @@ public abstract class AbstractMethodDeclaration
 	public int bodyStart;
 	public int bodyEnd = -1;
 	public CompilationResult compilationResult;
+	public boolean containsSwitchWithTry = false;
 
 	AbstractMethodDeclaration(CompilationResult compilationResult){
 		this.compilationResult = compilationResult;
+		this.containsSwitchWithTry = false;
 	}
 
 	/*
@@ -345,8 +347,9 @@ public abstract class AbstractMethodDeclaration
 				}
 			}
 			if (this.statements != null) {
-				for (int i = 0, max = this.statements.length; i < max; i++)
-					this.statements[i].generateCode(this.scope, codeStream);
+				for (Statement stmt : this.statements) {
+					stmt.generateCode(this.scope, codeStream);
+				}
 			}
 			// if a problem got reported during code gen, then trigger problem method creation
 			if (this.ignoreFurtherInvestigation) {
@@ -452,6 +455,10 @@ public abstract class AbstractMethodDeclaration
 		if (this.binding != null)
 			return this.binding.isNative();
 		return (this.modifiers & ClassFileConstants.AccNative) != 0;
+	}
+
+	public Argument getRecordComponent() {
+		return null;
 	}
 
 	public boolean isStatic() {
@@ -643,7 +650,8 @@ public abstract class AbstractMethodDeclaration
 
 		if (this.statements != null) {
 			for (int i = 0, length = this.statements.length; i < length; i++) {
-				this.statements[i].resolve(this.scope);
+ 				Statement stmt = this.statements[i];
+ 				stmt.resolve(this.scope);
 			}
 		} else if ((this.bits & UndocumentedEmptyBlock) != 0) {
 			if (!this.isConstructor() || this.arguments != null) { // https://bugs.eclipse.org/bugs/show_bug.cgi?id=319626

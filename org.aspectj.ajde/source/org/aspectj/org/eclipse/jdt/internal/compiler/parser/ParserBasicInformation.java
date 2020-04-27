@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -7,7 +7,7 @@
  * https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- *  
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -18,24 +18,23 @@ package org.aspectj.org.eclipse.jdt.internal.compiler.parser;
 public interface ParserBasicInformation {
 
 	public final static int
-
-    ERROR_SYMBOL      = 138,
+    ERROR_SYMBOL      = 139,
     MAX_NAME_LENGTH   = 41,
-    NUM_STATES        = 1341,
+    NUM_STATES        = 1286,
 
-    NT_OFFSET         = 138,
-    SCOPE_UBOUND      = 380,
-    SCOPE_SIZE        = 381,
-    LA_STATE_OFFSET   = 20011,
+    NT_OFFSET         = 139,
+    SCOPE_UBOUND      = 395,
+    SCOPE_SIZE        = 396,
+    LA_STATE_OFFSET   = 20569,
     MAX_LA            = 1,
-    NUM_RULES         = 1067,
-    NUM_TERMINALS     = 138,
-    NUM_NON_TERMINALS = 462,
-    NUM_SYMBOLS       = 600,
-    START_STATE       = 1330,
-    EOFT_SYMBOL       = 72,
-    EOLT_SYMBOL       = 72,
-    ACCEPT_ACTION     = 20010,
-    ERROR_ACTION      = 20011;
-	
+    NUM_RULES         = 1104,
+    NUM_TERMINALS     = 139,
+    NUM_NON_TERMINALS = 482,
+    NUM_SYMBOLS       = 621,
+    START_STATE       = 1150,
+    EOFT_SYMBOL       = 100,
+    EOLT_SYMBOL       = 100,
+    ACCEPT_ACTION     = 20568,
+    ERROR_ACTION      = 20569;
+
 }

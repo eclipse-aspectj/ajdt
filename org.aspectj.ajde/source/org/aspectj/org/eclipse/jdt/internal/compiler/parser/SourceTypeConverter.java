@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -131,7 +131,7 @@ public class SourceTypeConverter extends TypeConverter {
 		org.aspectj.org.eclipse.jdt.core.ICompilationUnit cuHandle = topLevelTypeInfo.getHandle().getCompilationUnit();
 		this.cu = (ICompilationUnit) cuHandle;
 		final CompilationUnitElementInfo compilationUnitElementInfo = (CompilationUnitElementInfo) ((JavaElement) this.cu).getElementInfo();
-		if (this.has1_5Compliance && 
+		if (this.has1_5Compliance &&
 				(compilationUnitElementInfo.annotationNumber >= CompilationUnitElementInfo.ANNOTATION_THRESHOLD_FOR_DIET_PARSE ||
 				(compilationUnitElementInfo.hasFunctionalTypes && (this.flags & LOCAL_TYPE) != 0))) {
 			// If more than 10 annotations, diet parse as this is faster, but not if
@@ -195,7 +195,7 @@ public class SourceTypeConverter extends TypeConverter {
 		ModuleDescriptionInfo moduleInfo = (ModuleDescriptionInfo) module;
 		org.aspectj.org.eclipse.jdt.core.ICompilationUnit cuHandle = moduleInfo.getHandle().getCompilationUnit();
 		this.cu = (ICompilationUnit) cuHandle;
-		// always parse, because (a) dietParse is always sufficient, (b) we don't yet have the necessary conversion methods for module directives 
+		// always parse, because (a) dietParse is always sufficient, (b) we don't yet have the necessary conversion methods for module directives
 		return new Parser(this.problemReporter, true).dietParse(this.cu, compilationResult);
 	}
 
@@ -475,8 +475,13 @@ public class SourceTypeConverter extends TypeConverter {
 		SourceTypeElementInfo typeInfo = (SourceTypeElementInfo) typeHandle.getElementInfo();
 		if (typeInfo.isAnonymousMember())
 			throw new AnonymousMemberFound();
-		/* create type declaration - can be member type */
+		/* create type/record declaration - can be member type */
 		TypeDeclaration type = new TypeDeclaration(compilationResult);
+		if ((TypeDeclaration.kind(typeInfo.getModifiers()) == TypeDeclaration.RECORD_DECL)) {
+			// The first choice constructor that takes CompilationResult as arg is not setting all the fields
+			// Hence, use the one that does
+			type = new RecordDeclaration(type);
+		}
 		if (typeInfo.getEnclosingType() == null) {
 			if (typeHandle.isAnonymous()) {
 				type.name = CharOperation.NO_CHAR;

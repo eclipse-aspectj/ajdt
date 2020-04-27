@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -153,7 +153,7 @@ public void acceptUnknownReference(char[] name, int sourcePosition) {
 
 private void addDefaultConstructorIfNecessary(TypeInfo typeInfo) {
 	boolean hasConstructor = false;
-	
+
 	TypeDeclaration typeDeclaration = typeInfo.node;
 	AbstractMethodDeclaration[] methods = typeDeclaration.methods;
 	int methodCounter = methods == null ? 0 : methods.length;
@@ -164,7 +164,7 @@ private void addDefaultConstructorIfNecessary(TypeInfo typeInfo) {
 			break done;
 		}
 	}
-	
+
 	if (!hasConstructor) {
 		this.indexer.addDefaultConstructorDeclaration(
 				typeInfo.name,
@@ -198,6 +198,11 @@ private void enterAnnotationType(TypeInfo typeInfo) {
 	this.indexer.addAnnotationTypeDeclaration(typeInfo.modifiers, this.packageName, typeInfo.name, typeNames, typeInfo.secondary);
 	addDefaultConstructorIfNecessary(typeInfo);
 	pushTypeName(typeInfo.name);
+}
+
+private void enterRecord(TypeInfo typeInfo) {
+	enterClass(typeInfo);
+	// TODO : Need to handle Compact Constructor here
 }
 
 private void enterClass(TypeInfo typeInfo) {
@@ -330,7 +335,7 @@ public void enterModule(ModuleInfo moduleInfo) {
 		}
 	}
 	enterPackageVisibilityInfo(moduleInfo.exports);
-	enterPackageVisibilityInfo(moduleInfo.opens); 
+	enterPackageVisibilityInfo(moduleInfo.opens);
 	/* note: provides and uses directives processed automatically on IParser (SEParser) */
 }
 private void enterPackageVisibilityInfo(ISourceElementRequestor.PackageExportInfo[] packInfos) {
@@ -392,7 +397,7 @@ private static char[] getDeclaringQualification(TypeDeclaration typeDecl) {
 
 	int l = nlist.size();
 	if (l == 1) return name;
-	
+
 	name = new char[size];
 	int index = 0;
 	for (int i = 0; i < l - 1; ++i) {
@@ -423,6 +428,9 @@ public void enterType(TypeInfo typeInfo) {
 			break;
 		case TypeDeclaration.ENUM_DECL:
 			enterEnum(typeInfo);
+			break;
+		case TypeDeclaration.RECORD_DECL:
+			enterRecord(typeInfo);
 			break;
 	}
 }

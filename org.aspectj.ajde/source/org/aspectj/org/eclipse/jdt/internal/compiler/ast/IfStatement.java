@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -10,7 +10,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Stephan Herrmann - Contributions for 
+ *     Stephan Herrmann - Contributions for
  *     							bug 319201 - [null] no warning when unboxing SingleNameReference causes NPE
  *     							bug 349326 - [1.7] new warning for missing try-with-resources
  *								bug 345305 - [compiler][null] Compiler misidentifies a case of "variable can only be null"
@@ -82,7 +82,7 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 	if (isConditionOptimizedTrue) {
 		elseFlowInfo.setReachMode(FlowInfo.UNREACHABLE_OR_DEAD);
 	}
-	if (((flowInfo.tagBits & FlowInfo.UNREACHABLE) == 0) && 
+	if (((flowInfo.tagBits & FlowInfo.UNREACHABLE) == 0) &&
 			((thenFlowInfo.tagBits & FlowInfo.UNREACHABLE) != 0)) {
 		// Mark then block as unreachable
 		// No need if the whole if-else construct itself lies in unreachable code
@@ -106,6 +106,7 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 				this.bits &= ~ASTNode.IsThenStatementUnreachable;
 			}
 		}
+		this.condition.updateFlowOnBooleanResult(thenFlowInfo, true);
 		thenFlowInfo = this.thenStatement.analyseCode(currentScope, flowContext, thenFlowInfo);
 		if (!(this.thenStatement instanceof Block))
 			flowContext.expireNullCheckedFieldInfo();
@@ -136,6 +137,7 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 				this.bits &= ~ASTNode.IsElseStatementUnreachable;
 			}
 		}
+		this.condition.updateFlowOnBooleanResult(elseFlowInfo, false);
 		elseFlowInfo = this.elseStatement.analyseCode(currentScope, flowContext, elseFlowInfo);
 		if (!(this.elseStatement instanceof Block))
 			flowContext.expireNullCheckedFieldInfo();
@@ -274,7 +276,6 @@ public StringBuffer printStatement(int indent, StringBuffer output) {
 	}
 	return output;
 }
-
 @Override
 public void resolve(BlockScope scope) {
 	TypeBinding type = this.condition.resolveTypeExpecting(scope, TypeBinding.BOOLEAN);

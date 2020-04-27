@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -296,7 +296,7 @@ class BindingResolver {
 	boolean isResolvedTypeInferredFromExpectedType(ClassInstanceCreation classInstanceCreation) {
 		return false;
 	}
-	
+
 	/**
 	 * Returns the compiler lookup environment used by this binding resolver.
 	 * Returns <code>null</code> if none.
@@ -695,7 +695,7 @@ class BindingResolver {
 	 * @param module declaration of interest
 	 * @return the binding for the given module declaration, or
 	 *    <code>null</code> if no binding is available
-	 *    
+	 *
 	 * @since 3.14
 	 */
 	IModuleBinding resolveModule(ModuleDeclaration module) {
@@ -869,6 +869,29 @@ class BindingResolver {
 	 * @since 3.0
 	 */
 	ITypeBinding resolveType(EnumDeclaration type) {
+		return null;
+	}
+
+	/**
+	 * Resolves the given record declaration and returns the binding
+	 * for it.
+	 * <p>
+	 * The implementation of <code>RecordDeclaration.resolveBinding</code>
+	 * forwards to this method. How the record declaration resolves is often
+	 * a function of the context in which the declaration node is embedded
+	 * as well as the record declaration subtree itself.
+	 * </p>
+	 * <p>
+	 * The default implementation of this method returns <code>null</code>.
+	 * Subclasses may re implement.
+	 * </p>
+	 *
+	 * @param type the record declaration of interest
+	 * @return the binding for the given record declaration, or <code>null</code>
+	 *    if no binding is available
+	 * @since 3.22
+	 */
+	ITypeBinding resolveType(RecordDeclaration type) {
 		return null;
 	}
 

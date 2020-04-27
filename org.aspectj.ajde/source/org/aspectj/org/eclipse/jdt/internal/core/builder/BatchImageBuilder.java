@@ -108,7 +108,7 @@ protected void cleanOutputFolders(boolean copyBack) throws CoreException {
 	if (deleteAll) {
 		if (this.compilationGroup != CompilationGroup.TEST) {
 			// CompilationGroup.MAIN is done first, so this notifies the participants only once
-			// calling this for CompilationGroup.TEST could cases generated files for CompilationGroup.MAIN to be deleted. 
+			// calling this for CompilationGroup.TEST could cases generated files for CompilationGroup.MAIN to be deleted.
 			if (this.javaBuilder.participants != null)
 				for (int i = 0, l = this.javaBuilder.participants.length; i < l; i++)
 					this.javaBuilder.participants[i].cleanStarting(this.javaBuilder.javaProject);
@@ -291,7 +291,7 @@ private void printStats() {
 	long lineCount = compilerStats.lineCount;
 	double speed = ((int) (lineCount * 10000.0 / time)) / 10.0;
 	System.out.println(">FULL BUILD STATS for: "+this.javaBuilder.javaProject.getElementName()); //$NON-NLS-1$
-	System.out.println(">   compiled " + lineCount + " lines in " + time + "ms:" + speed + "lines/s"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+	System.out.println(">   compiled " + lineCount + " lines in " + time + "ms:" + speed + " lines/s"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 	System.out.print(">   parse: " + compilerStats.parseTime + " ms (" + ((int) (compilerStats.parseTime * 1000.0 / time)) / 10.0 + "%)"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	System.out.print(", resolve: " + compilerStats.resolveTime + " ms (" + ((int) (compilerStats.resolveTime * 1000.0 / time)) / 10.0 + "%)"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	System.out.print(", analyze: " + compilerStats.analyzeTime + " ms (" + ((int) (compilerStats.analyzeTime * 1000.0 / time)) / 10.0 + "%)"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$

@@ -8,7 +8,6 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  *
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -759,7 +758,7 @@ protected int getNextToken0() throws InvalidInputException {
 												pushLineSeparator();
 											}
 										}
-									}									
+									}
 									switch (this.currentCharacter) {
 										case '*':
 											star = true;

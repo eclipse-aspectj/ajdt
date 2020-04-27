@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2017 BEA Systems, Inc. and others
+ * Copyright (c) 2007, 2020 BEA Systems, Inc. and others
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -312,6 +312,7 @@ public class Factory {
 			case ANNOTATION_TYPE :
 			case INTERFACE :
 			case CLASS :
+			case RECORD :
 				// for type
 				decodeModifiers(result, modifiers, new int[] {
 					ClassFileConstants.AccPublic,

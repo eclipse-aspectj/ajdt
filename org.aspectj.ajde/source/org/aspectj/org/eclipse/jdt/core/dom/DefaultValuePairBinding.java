@@ -16,9 +16,6 @@
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.core.dom;
 
-import org.aspectj.org.eclipse.jdt.core.dom.BindingResolver;
-import org.aspectj.org.eclipse.jdt.core.dom.IMethodBinding;
-
 /**
  * Member value pair which compose of default values.
  */

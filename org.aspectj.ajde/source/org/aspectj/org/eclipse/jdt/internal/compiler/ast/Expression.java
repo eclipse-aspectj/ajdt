@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2019 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -10,7 +10,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Stephan Herrmann - Contributions for 
+ *     Stephan Herrmann - Contributions for
  *								bug 292478 - Report potentially null across variable assignment
  *								bug 345305 - [compiler][null] Compiler misidentifies a case of "variable can only be null"
  *								bug 392862 - [1.8][compiler][null] Evaluate null annotations on array types
@@ -78,9 +78,9 @@ public abstract class Expression extends Statement {
 
 	public int implicitConversion;
 	public TypeBinding resolvedType;
-	
+
 	public static Expression [] NO_EXPRESSIONS = new Expression[0];
-	
+
 
 public static final boolean isConstantValueRepresentable(Constant constant, int constantTypeID, int targetTypeID) {
 	//true if there is no loss of precision while casting.
@@ -257,9 +257,19 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 }
 
 /**
+ * Back-propagation of flow info: before analysing a branch where a given condition is known to hold true/false respectively,
+ * ask the condition to contribute its information to the given flowInfo.
+ * @param flowInfo the info to be used for analysing the branch
+ * @param result condition result that would cause entering the branch
+ */
+protected void updateFlowOnBooleanResult(FlowInfo flowInfo, boolean result) {
+	// nop
+}
+
+/**
  * Returns false if cast is not legal.
  */
-public final boolean checkCastTypesCompatibility(Scope scope, TypeBinding castType, TypeBinding expressionType, Expression expression) {
+public final boolean checkCastTypesCompatibility(Scope scope, TypeBinding castType, TypeBinding expressionType, Expression expression, boolean useAutoBoxing) {
 	// see specifications 5.5
 	// handle errors and process constant when needed
 
@@ -273,6 +283,7 @@ public final boolean checkCastTypesCompatibility(Scope scope, TypeBinding castTy
 	// like constant propagation
 	boolean use15specifics = scope.compilerOptions().sourceLevel >= ClassFileConstants.JDK1_5;
 	boolean use17specifics = scope.compilerOptions().sourceLevel >= ClassFileConstants.JDK1_7;
+	useAutoBoxing &= use15specifics;
 	if (castType.isBaseType()) {
 		if (expressionType.isBaseType()) {
 			if (TypeBinding.equalsEquals(expressionType, castType)) {
@@ -295,18 +306,18 @@ public final boolean checkCastTypesCompatibility(Scope scope, TypeBinding castTy
 				return true;
 
 			}
-		} else if (use17specifics && castType.isPrimitiveType() && expressionType instanceof ReferenceBinding && 
-				!expressionType.isBoxedPrimitiveType() && checkCastTypesCompatibility(scope, scope.boxing(castType), expressionType, expression)) {
+		} else if (useAutoBoxing && use17specifics && castType.isPrimitiveType() && expressionType instanceof ReferenceBinding &&
+				!expressionType.isBoxedPrimitiveType() && checkCastTypesCompatibility(scope, scope.boxing(castType), expressionType, expression, useAutoBoxing)) {
 			// cast from any reference type (other than boxing types) to base type allowed from 1.7, see JLS $5.5
 			// by our own interpretation (in accordance with javac) we reject arays, though.
 			return true;
-		} else if (use15specifics
+		} else if (useAutoBoxing
 							&& scope.environment().computeBoxingType(expressionType).isCompatibleWith(castType)) { // unboxing - only widening match is allowed
 			tagAsUnnecessaryCast(scope, castType);
 			return true;
 		}
 		return false;
-	} else if (use15specifics
+	} else if (useAutoBoxing
 						&& expressionType.isBaseType()
 						&& scope.environment().computeBoxingType(expressionType).isCompatibleWith(castType)) { // boxing - only widening match is allowed
 		tagAsUnnecessaryCast(scope, castType);
@@ -316,12 +327,12 @@ public final boolean checkCastTypesCompatibility(Scope scope, TypeBinding castTy
 	if (castType.isIntersectionType18()) {
 		ReferenceBinding [] intersectingTypes = castType.getIntersectingTypes();
 		for (int i = 0, length = intersectingTypes.length; i < length; i++) {
-			if (!checkCastTypesCompatibility(scope, intersectingTypes[i], expressionType, expression))
+			if (!checkCastTypesCompatibility(scope, intersectingTypes[i], expressionType, expression, useAutoBoxing))
 				return false;
 		}
 		return true;
 	}
-	
+
 	switch(expressionType.kind()) {
 		case Binding.BASE_TYPE :
 			//-----------cast to something which is NOT a base type--------------------------
@@ -349,7 +360,7 @@ public final boolean checkCastTypesCompatibility(Scope scope, TypeBinding castTy
 						return false;
 					}
 					// recurse on array type elements
-					return checkCastTypesCompatibility(scope, castElementType, exprElementType, expression);
+					return checkCastTypesCompatibility(scope, castElementType, exprElementType, expression, useAutoBoxing);
 
 				case Binding.TYPE_PARAMETER :
 					// ( TYPE_PARAMETER ) ARRAY
@@ -358,7 +369,7 @@ public final boolean checkCastTypesCompatibility(Scope scope, TypeBinding castTy
 						checkUnsafeCast(scope, castType, expressionType, null /*no match*/, true);
 					}
 					for (TypeBinding bound : ((TypeVariableBinding) castType).allUpperBounds()) {
-						if (!checkCastTypesCompatibility(scope, bound, expressionType, expression))
+						if (!checkCastTypesCompatibility(scope, bound, expressionType, expression, useAutoBoxing))
 							return false;
 					}
 					return true;
@@ -385,12 +396,12 @@ public final boolean checkCastTypesCompatibility(Scope scope, TypeBinding castTy
 				if (castType instanceof TypeVariableBinding) {
 					// prefer iterating over required types, not provides
 					for (TypeBinding bound : ((TypeVariableBinding)castType).allUpperBounds()) {
-						if (!checkCastTypesCompatibility(scope, bound, expressionType, expression))
+						if (!checkCastTypesCompatibility(scope, bound, expressionType, expression, useAutoBoxing))
 							return false;
 					}
 				} else {
 					for (TypeBinding bound : ((TypeVariableBinding)expressionType).allUpperBounds()) {
-						if (!checkCastTypesCompatibility(scope, castType, bound, expression))
+						if (!checkCastTypesCompatibility(scope, castType, bound, expression, useAutoBoxing))
 							return false;
 					}
 				}
@@ -407,11 +418,11 @@ public final boolean checkCastTypesCompatibility(Scope scope, TypeBinding castTy
 			TypeBinding bound = ((WildcardBinding)expressionType).bound;
 			if (bound == null) bound = scope.getJavaLangObject();
 			// recursively on the type variable upper bound
-			return checkCastTypesCompatibility(scope, castType, bound, expression);
+			return checkCastTypesCompatibility(scope, castType, bound, expression, useAutoBoxing);
 		case Binding.INTERSECTION_TYPE18:
 			ReferenceBinding [] intersectingTypes = expressionType.getIntersectingTypes();
 			for (int i = 0, length = intersectingTypes.length; i < length; i++) {
-				if (checkCastTypesCompatibility(scope, castType, intersectingTypes[i], expression))
+				if (checkCastTypesCompatibility(scope, castType, intersectingTypes[i], expression, useAutoBoxing))
 					return true;
 			}
 			return false;
@@ -437,7 +448,7 @@ public final boolean checkCastTypesCompatibility(Scope scope, TypeBinding castTy
 						}
 						// recursively on the type variable upper bounds
 						for (TypeBinding upperBound : ((TypeVariableBinding)castType).allUpperBounds()) {
-							if (!checkCastTypesCompatibility(scope, upperBound, expressionType, expression))
+							if (!checkCastTypesCompatibility(scope, upperBound, expressionType, expression, useAutoBoxing))
 								return false;
 						}
 						return true;
@@ -534,7 +545,7 @@ public final boolean checkCastTypesCompatibility(Scope scope, TypeBinding castTy
 						}
 						// recursively on the type variable upper bounds
 						for (TypeBinding upperBound : ((TypeVariableBinding)castType).allUpperBounds()) {
-							if (!checkCastTypesCompatibility(scope, upperBound, expressionType, expression))
+							if (!checkCastTypesCompatibility(scope, upperBound, expressionType, expression, useAutoBoxing))
 								return false;
 						}
 						return true;
@@ -774,7 +785,12 @@ public void generateCode(BlockScope currentScope, CodeStream codeStream, boolean
 		throw new ShouldNotImplement(Messages.ast_missingCode);
 	}
 }
-
+public void initializePatternVariables(BlockScope scope, CodeStream codeStream) {
+	// Nothing by default
+}
+public boolean containsPatternVariable() {
+	return false;
+}
 /**
  * Default generation of a boolean value
  * @param currentScope
@@ -1131,7 +1147,7 @@ public boolean forcedToBeRaw(ReferenceContext referenceContext) {
 			if (field.type.isRawType()) {
 				if (referenceContext instanceof AbstractMethodDeclaration) {
 					AbstractMethodDeclaration methodDecl = (AbstractMethodDeclaration) referenceContext;
-					ReferenceBinding declaringClass = methodDecl.binding != null 
+					ReferenceBinding declaringClass = methodDecl.binding != null
 							? methodDecl.binding.declaringClass
 							: methodDecl.scope.enclosingReceiverType();
 					if (TypeBinding.notEquals(field.declaringClass, declaringClass)) { // inherited raw field, see https://bugs.eclipse.org/bugs/show_bug.cgi?id=337962
@@ -1229,9 +1245,9 @@ public boolean isExactMethodReference() {
 }
 
 /* Answer if the receiver is a poly expression in the prevailing context. Caveat emptor: Some constructs (notably method calls)
-   cannot answer this question until after resolution is over and may throw unsupported operation exception if queried ahead of 
+   cannot answer this question until after resolution is over and may throw unsupported operation exception if queried ahead of
    resolution. Default implementation here returns false which is true for vast majority of AST nodes. The ones that are poly
-   expressions under one or more contexts should override and return suitable value.  
+   expressions under one or more contexts should override and return suitable value.
  */
 public boolean isPolyExpression() throws UnsupportedOperationException {
 	return false;

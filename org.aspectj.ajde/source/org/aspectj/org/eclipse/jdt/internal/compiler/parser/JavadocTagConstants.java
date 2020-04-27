@@ -195,7 +195,9 @@ public interface JavadocTagConstants {
 		{},
 		//since 12
 		{},
-		//since 12
+		//since 13
+		{},
+		//since 14
 		{}
 	};
 	public static final char[][][] INLINE_TAGS = {
@@ -225,7 +227,9 @@ public interface JavadocTagConstants {
 		{},
 		//since 12
 		{TAG_SYSTEM_PROPERTY},
-		//since 12
+		//since 13
+		{},
+		//since 14
 		{}
 	};
 	public final static int INLINE_TAGS_LENGTH = INLINE_TAGS.length;
@@ -330,8 +334,8 @@ public interface JavadocTagConstants {
 		TAG_INDEX,
 		TAG_HIDDEN,
 		TAG_SUMMARY,
-		TAG_API_NOTE, 
-		TAG_IMPL_SPEC, 
+		TAG_API_NOTE,
+		TAG_IMPL_SPEC,
 		TAG_IMPL_NOTE,
 	};
 	public static final char[][] METHOD_TAGS = {

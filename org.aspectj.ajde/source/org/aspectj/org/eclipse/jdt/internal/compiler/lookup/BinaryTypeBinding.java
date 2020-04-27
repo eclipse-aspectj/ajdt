@@ -506,6 +506,9 @@ void cachePartsFrom(IBinaryType binaryType, boolean needFieldsAndMethods) {
 				// attempt to find the superclass if it exists in the cache (otherwise - resolve it when requested)
 				this.superclass = this.environment.getTypeFromConstantPoolName(superclassName, 0, -1, false, missingTypeNames, toplevelWalker.toSupertype((short) -1, superclassName));
 				this.tagBits |= TagBits.HasUnresolvedSuperclass;
+				if (CharOperation.equals(superclassName, TypeConstants.CharArray_JAVA_LANG_RECORD_SLASH)){
+					this.modifiers |= ExtraCompilerModifiers.AccRecord;
+				}
 			}
 
 			this.superInterfaces = Binding.NO_SUPERINTERFACES;
@@ -1685,6 +1688,10 @@ public TypeBinding prototype() {
 public boolean isPrototype() {
 	return this == this.prototype; //$IDENTITY-COMPARISON$
 }
+@Override
+public boolean isRecord() {
+	return (this.modifiers & ExtraCompilerModifiers.AccRecord) != 0;
+}
 
 @Override
 public ReferenceBinding containerAnnotationType() {
@@ -2171,7 +2178,7 @@ public ReferenceBinding superclass() {
 	}
 	this.typeBits |= (this.superclass.typeBits & TypeIds.InheritableBits);
 	if ((this.typeBits & (TypeIds.BitAutoCloseable|TypeIds.BitCloseable)) != 0) // avoid the side-effects of hasTypeBit()! 
-		this.typeBits |= applyCloseableClassWhitelists();
+		this.typeBits |= applyCloseableClassWhitelists(this.environment.globalOptions);
 	detectCircularHierarchy();
 	return this.superclass;
 }
@@ -2295,7 +2302,8 @@ public String toString() {
 	if (isStatic() && isNestedType()) buffer.append("static "); //$NON-NLS-1$
 	if (isFinal()) buffer.append("final "); //$NON-NLS-1$
 
-	if (isEnum()) buffer.append("enum "); //$NON-NLS-1$
+	if (isRecord()) buffer.append("record "); //$NON-NLS-1$
+	else if (isEnum()) buffer.append("enum "); //$NON-NLS-1$
 	else if (isAnnotationType()) buffer.append("@interface "); //$NON-NLS-1$
 	else if (isClass()) buffer.append("class "); //$NON-NLS-1$
 	else buffer.append("interface "); //$NON-NLS-1$

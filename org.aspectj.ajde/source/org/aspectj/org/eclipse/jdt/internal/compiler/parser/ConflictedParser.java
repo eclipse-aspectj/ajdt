@@ -14,7 +14,7 @@
 package org.aspectj.org.eclipse.jdt.internal.compiler.parser;
 
 public interface ConflictedParser {
-	
+
 	/* Return true if at the configuration the parser finds itself in, token would need to be disambiguated.
 	   At Java SE 8 time, we have three tokens that need to clarified: the use of '( and that of '<' and finally
 	   whether an @ begins a SE8 style type annotation or a SE5 declaration annotation. Where they can co-exist,
@@ -27,5 +27,5 @@ public interface ConflictedParser {
 	 * appear as terminals in ModuleDeclaration, and are identifiers everywhere else)
 	 */
 	boolean isParsingModuleDeclaration();
-	boolean isParsingJava13();
+	boolean isParsingJava14();
 }

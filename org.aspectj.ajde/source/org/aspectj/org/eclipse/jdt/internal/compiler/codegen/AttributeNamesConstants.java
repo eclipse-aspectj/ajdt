@@ -11,7 +11,7 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Jesper S Moller - Contributions for
- *							Bug 405066 - [1.8][compiler][codegen] Implement code generation infrastructure for JSR335             
+ *							Bug 405066 - [1.8][compiler][codegen] Implement code generation infrastructure for JSR335
  *							Bug 406973 - [compiler] Parse MethodParameters attribute
  *        Andy Clement - Contributions for
  *                          Bug 383624 - [1.8][compiler] Revive code generation support for type annotations (from Olivier's work)
@@ -53,4 +53,6 @@ public interface AttributeNamesConstants {
 	// jep181
 	final char[] NestHost = "NestHost".toCharArray(); //$NON-NLS-1$
 	final char[] NestMembers = "NestMembers".toCharArray(); //$NON-NLS-1$
+	// jep 359 records
+	final char[] RecordClass = "Record".toCharArray(); //$NON-NLS-1$
 }

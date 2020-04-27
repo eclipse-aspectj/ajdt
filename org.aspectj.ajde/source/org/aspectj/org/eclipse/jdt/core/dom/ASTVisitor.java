@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2019 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -1346,6 +1346,24 @@ public abstract class ASTVisitor {
 	 * Visits the given type-specific AST node.
 	 * <p>
 	 * The default implementation does nothing and return true.
+	 * Subclasses may re-implement.
+	 * </p>
+	 *
+	 * @param node the node to visit
+	 * @return <code>true</code> if the children of this node should be
+	 * visited, and <code>false</code> if the children of this node should
+	 * be skipped
+	 * @since 3.22
+	 * @noreference This method is not intended to be referenced by clients.
+	 */
+	public boolean visit(RecordDeclaration node) {
+		return true;
+	}
+
+	/**
+	 * Visits the given type-specific AST node.
+	 * <p>
+	 * The default implementation does nothing and return true.
 	 * Subclasses may reimplement.
 	 * </p>
 	 *
@@ -1521,7 +1539,7 @@ public abstract class ASTVisitor {
 	public boolean visit(SwitchCase node) {
 		return true;
 	}
-	
+
 	/**
 	 * Visits the given type-specific AST node.
 	 * <p>
@@ -1540,7 +1558,7 @@ public abstract class ASTVisitor {
 	public boolean visit(SwitchExpression node) {
 		return true;
 	}
-	
+
 	/**
 	 * Visits the given type-specific AST node.
 	 * <p>
@@ -1610,7 +1628,7 @@ public abstract class ASTVisitor {
 	public boolean visit(TextBlock node) {
 		return true;
 	}
-	
+
 	/**
 	 * Visits the given type-specific AST node.
 	 * <p>
@@ -1735,7 +1753,7 @@ public abstract class ASTVisitor {
 	 * @return <code>true</code> if the children of this node should be
 	 * visited, and <code>false</code> if the children of this node should
 	 * be skipped
-	 * 
+	 *
 	 * @since 3.10
 	 */
 	public boolean visit(TypeMethodReference node) {
@@ -1892,7 +1910,7 @@ public abstract class ASTVisitor {
 	public boolean visit(YieldStatement node) {
 		return true;
 	}
-	
+
 	/**
 	 * End of visit the given type-specific AST node.
 	 * <p>
@@ -2412,7 +2430,7 @@ public abstract class ASTVisitor {
 	public void endVisit(LambdaExpression node) {
 		// default implementation: do nothing
 	}
-	
+
 	/**
 	 * End of visit the given type-specific AST node.
 	 * <p>
@@ -2749,6 +2767,21 @@ public abstract class ASTVisitor {
 	/**
 	 * End of visit the given type-specific AST node.
 	 * <p>
+	 * The default implementation does nothing. Subclasses may re implement.
+	 * </p>
+	 *
+	 * @param node the node to visit
+	 * @since 3.22
+	 * @noreference This method is not intended to be referenced by clients.
+	 */
+	public void endVisit(RecordDeclaration node) {
+		// default implementation: do nothing
+	}
+
+
+	/**
+	 * End of visit the given type-specific AST node.
+	 * <p>
 	 * The default implementation does nothing. Subclasses may reimplement.
 	 * </p>
 	 *
@@ -2944,7 +2977,7 @@ public abstract class ASTVisitor {
 	public void endVisit(TextBlock node) {
 		// default implementation: do nothing
 	}
-	
+
 	/**
 	 * End of visit the given type-specific AST node.
 	 * <p>
@@ -3036,7 +3069,7 @@ public abstract class ASTVisitor {
 	 * </p>
 	 *
 	 * @param node the node to visit
-	 * 
+	 *
 	 * @since 3.10
 	 */
 	public void endVisit(TypeMethodReference node) {
@@ -3155,7 +3188,7 @@ public abstract class ASTVisitor {
 	public void endVisit(WildcardType node) {
 		// default implementation: do nothing
 	}
-	
+
 	/**
 	 * End of visit the given type-specific AST node.
 	 * <p>

@@ -19,7 +19,7 @@ package org.aspectj.org.eclipse.jdt.core;
  * <p>
  * This interface may be implemented by clients.
  * </p>
- * 
+ *
  * @see JavaCore#addElementChangedListener(IElementChangedListener)
  */
 public interface IElementChangedListener {

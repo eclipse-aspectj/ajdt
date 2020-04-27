@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 IBM Corporation and others.
+ * Copyright (c) 2019, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -25,9 +25,7 @@ import java.util.List;
  *		<b>Yield</b> <b>{ Identifier/Expression }</b>
  * </pre>
  *
- * @since 3.20
- * @noinstantiate This class is not intended to be instantiated by clients.
- * @noreference This class is not intended to be referenced by clients as it is a part of Java preview feature.
+ * @since 3.22
  */
 @SuppressWarnings("rawtypes")
 public class YieldStatement extends Statement {
@@ -49,7 +47,7 @@ public class YieldStatement extends Statement {
 	 * <code>true</code> indicates implicit and <code>false</code> indicates not implicit.
 	 */
 	private boolean isImplicit = false;
-	
+
 	static {
 		List properyList = new ArrayList(2);
 		createPropertyList(YieldStatement.class, properyList);
@@ -66,30 +64,12 @@ public class YieldStatement extends Statement {
 
 	 * @return a list of property descriptors (element type:
 	 * {@link StructuralPropertyDescriptor})
+	 * @since 3.22
 	 */
 	public static List propertyDescriptors(int apiLevel) {
-		return propertyDescriptors(apiLevel, false);
+		return PROPERTY_DESCRIPTORS;
 	}
 
-	/**
-	 * Returns a list of structural property descriptors for this node type.
-	 * Clients must not modify the result.
-	 *
-	 * @param apiLevel the API level; one of the
-	 * <code>AST.JLS*</code> constants
-	 * @param previewEnabled the previewEnabled flag
-	 * @return a list of property descriptors (element type:
-	 * {@link StructuralPropertyDescriptor})
-	 * @noreference This method is not intended to be referenced by clients.
-	 * @since 3.20
-	 */
-	public static List propertyDescriptors(int apiLevel, boolean previewEnabled) {
-		if (apiLevel == AST.JLS13_INTERNAL && previewEnabled) {
-			return PROPERTY_DESCRIPTORS;
-		}
-		return null;
-	}
-	
 	/**
 	 * The expression
 	 */
@@ -103,13 +83,11 @@ public class YieldStatement extends Statement {
 	 * </p>
 	 *
 	 * @param ast the AST that is to own this node
-	 * @exception UnsupportedOperationException if this operation is used other than JLS13
-	 * @exception UnsupportedOperationException if this expression is used with previewEnabled flag as false
+	 * @exception UnsupportedOperationException if this operation is used below JLS14
 	 */
 	YieldStatement(AST ast) {
 		super(ast);
-		supportedOnlyIn13();
-		unsupportedWithoutPreviewError();
+		unsupportedBelow14();
 	}
 
 	@Override
@@ -119,9 +97,9 @@ public class YieldStatement extends Statement {
 
 	@Override
 	final List internalStructuralPropertiesForType(int apiLevel, boolean previewEnabled) {
-		return propertyDescriptors(apiLevel, previewEnabled);
+		return propertyDescriptors(apiLevel);
 	}
-	
+
 	@Override
 	final ASTNode internalGetSetChildProperty(ChildPropertyDescriptor property, boolean get, ASTNode child) {
 		if (property == EXPRESSION_PROPERTY) {
@@ -164,22 +142,21 @@ public class YieldStatement extends Statement {
 		if (visitChildren) {
 			if (this.ast.apiLevel >= AST.JLS13_INTERNAL) {
 				acceptChild(visitor, getExpression());
-			} 
+			}
 		}
 		visitor.endVisit(this);
 	}
-	
+
 	/**
 	 * Returns the expression of this Yield statement, or <code>null</code> if
 	 * there is none.
 	 *
 	 * @return the expression, or <code>null</code> if there is none
-	 * @exception UnsupportedOperationException if this operation is used other than JLS13
-	 * @noreference This method is not intended to be referenced by clients as it is a part of Java preview feature.
-	 * @nooverride This method is not intended to be re-implemented or extended by clients as it is a part of Java preview feature.
+	 * @exception UnsupportedOperationException if this operation is used below JLS14
+	 * @since 3.22
 	 */
 	public Expression getExpression() {
-		supportedOnlyIn13();
+		unsupportedBelow14();
 		return this.expression;
 	}
 
@@ -192,12 +169,11 @@ public class YieldStatement extends Statement {
 	 * <li>the node belongs to a different AST</li>
 	 * <li>the node already has a parent</li>
 	 * </ul>
-	 * @exception UnsupportedOperationException if this operation is used other than JLS13
-	 * @noreference This method is not intended to be referenced by clients as it is a part of Java preview feature.
-	 * @nooverride This method is not intended to be re-implemented or extended by clients as it is a part of Java preview feature.
+	 * @exception UnsupportedOperationException if this operation is used below JLS14
+	 * @since 3.22
 	 */
 	public void setExpression(Expression expression) {
-		supportedOnlyIn13();
+		unsupportedBelow14();
 		ASTNode oldChild = this.expression;
 		preReplaceChild(oldChild, expression, EXPRESSION_PROPERTY);
 		this.expression = expression;
@@ -209,12 +185,11 @@ public class YieldStatement extends Statement {
 	 *<code>true</code> indicates implicit and <code>false</code> indicates not implicit.
 	 *
 	 * @return isImplicit <code>true</code> or <code>false</code>
-	 * @exception UnsupportedOperationException if this operation is used other than JLS13
-	 * @noreference This method is not intended to be referenced by clients as it is a part of Java preview feature.
-	 * @nooverride This method is not intended to be re-implemented or extended by clients as it is a part of Java preview feature.
+	 * @exception UnsupportedOperationException if this operation is used below JLS14
+	 * @since 3.22
 	 */
 	public boolean isImplicit() {
-		supportedOnlyIn13();
+		unsupportedBelow14();
 		return this.isImplicit;
 	}
 
@@ -224,14 +199,14 @@ public class YieldStatement extends Statement {
 	 * generated by compiler and is not expected to be set by client.
 
 	 * @param isImplicit <code>true</code> or <code>false</code>
-	 * @exception UnsupportedOperationException if this operation is used other than JLS13
+	 * @exception UnsupportedOperationException if this operation is used below JLS14
 	 */
 	void setImplicit(boolean isImplicit) {
-		supportedOnlyIn13();
+		unsupportedBelow14();
 		this.isImplicit = isImplicit;
 	}
 
-	
+
 	@Override
 	int memSize() {
 		return super.memSize() + 2 * 4;

@@ -29,6 +29,7 @@ import org.aspectj.org.eclipse.jdt.core.dom.ASTNode;
 import org.aspectj.org.eclipse.jdt.core.dom.Expression;
 import org.aspectj.org.eclipse.jdt.core.dom.InfixExpression;
 import org.aspectj.org.eclipse.jdt.core.dom.StringLiteral;
+import org.aspectj.org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.aspectj.org.eclipse.jdt.core.dom.InfixExpression.Operator;
 import org.aspectj.org.eclipse.jdt.internal.formatter.Token.WrapMode;
 import org.aspectj.org.eclipse.jdt.internal.formatter.linewrap.CommentWrapExecutor;
@@ -331,7 +332,7 @@ public class TokenManager implements Iterable<Token> {
 	/**
 	 * Calculates the length of a source code fragment.
 	 * @param originalStart the first position of the source code fragment
-	 * @param originalEnd the last position of the source code fragment 
+	 * @param originalEnd the last position of the source code fragment
 	 * @param startPosition position in line of the first character (affects tabs calculation)
 	 * @return length, considering tabs and escaping characters as HTML entities
 	 */
@@ -410,6 +411,11 @@ public class TokenManager implements Iterable<Token> {
 				return true;
 		}
 		return false;
+	}
+
+	public boolean isFake(TypeDeclaration node) {
+		// might be a fake type created by parsing in class body mode
+		return node.getName().getStartPosition() == -1;
 	}
 
 	public void addNLSAlignIndex(int index, int align) {

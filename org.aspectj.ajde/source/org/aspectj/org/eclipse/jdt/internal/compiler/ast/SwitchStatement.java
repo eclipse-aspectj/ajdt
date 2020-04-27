@@ -162,7 +162,7 @@ public class SwitchStatement extends Expression {
 						fallThroughState = CASE;
 					} else {
 						if (!(this instanceof SwitchExpression) &&
-							currentScope.compilerOptions().complianceLevel >= ClassFileConstants.JDK13 &&
+							currentScope.compilerOptions().complianceLevel >= ClassFileConstants.JDK14 &&
 							statement instanceof YieldStatement &&
 							((YieldStatement) statement).isImplicit) {
 							YieldStatement y = (YieldStatement) statement;
@@ -656,6 +656,9 @@ public class SwitchStatement extends Expression {
 		}
 		return n;
 	}
+	protected void addSecretTryResultVariable() {
+		// do nothing
+	}
 	@Override
 	public void resolve(BlockScope upperScope) {
 		try {
@@ -702,6 +705,7 @@ public class SwitchStatement extends Expression {
 			}
 			if (this.statements != null) {
 				this.scope = new BlockScope(upperScope);
+//				addSecretTryResultVariable();
 				int length;
 				// collection of cases is too big but we will only iterate until caseCount
 				this.cases = new CaseStatement[length = this.statements.length];

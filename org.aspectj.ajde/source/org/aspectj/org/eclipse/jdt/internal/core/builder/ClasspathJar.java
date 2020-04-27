@@ -18,6 +18,7 @@ package org.aspectj.org.eclipse.jdt.internal.core.builder;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Enumeration;
@@ -251,7 +252,7 @@ public boolean equals(Object o) {
 	if (!Util.equalOrNull(this.compliance, jar.compliance)) {
 		return false;
 	}
-	return this.zipFilename.equals(jar.zipFilename) 
+	return this.zipFilename.equals(jar.zipFilename)
 			&& lastModified() == jar.lastModified()
 			&& this.isOnModulePath == jar.isOnModulePath
 			&& areAllModuleOptionsEqual(jar);
@@ -292,8 +293,8 @@ public NameEnvironmentAnswer findClass(String binaryFileName, String qualifiedPa
 			}
 			if (this.accessRuleSet == null)
 				return new NameEnvironmentAnswer(reader, null, modName);
-			return new NameEnvironmentAnswer(reader, 
-					this.accessRuleSet.getViolatedRestriction(fileNameWithoutExtension.toCharArray()), 
+			return new NameEnvironmentAnswer(reader,
+					this.accessRuleSet.getViolatedRestriction(fileNameWithoutExtension.toCharArray()),
 					modName);
 		}
 	} catch (IOException | ClassFormatException e) { // treat as if class file is missing
@@ -387,16 +388,16 @@ public IModule getModule() {
 
 @Override
 public NameEnvironmentAnswer findClass(String typeName, String qualifiedPackageName, String moduleName, String qualifiedBinaryFileName) {
-	// 
+	//
 	return findClass(typeName, qualifiedPackageName, moduleName, qualifiedBinaryFileName, false, null);
 }
 public Manifest getManifest() {
 	if (!scanContent()) // ensure zipFile is initialized
 		return null;
 	ZipEntry entry = this.zipFile.getEntry(TypeConstants.META_INF_MANIFEST_MF);
-	try {
-		if (entry != null)
-			return new Manifest(this.zipFile.getInputStream(entry));
+	try(InputStream is = entry != null ? this.zipFile.getInputStream(entry) : null) {
+		if (is != null)
+			return new Manifest(is);
 	} catch (IOException e) {
 		// cannot use manifest
 	}

@@ -663,7 +663,7 @@ public class Main implements ProblemSeverities, SuffixConstants {
 				int infos = 0;
 				for (int i = 0; i < count; i++) {
 					CategorizedProblem problem = problems.get(i);
-					if (problem != null) {
+					if (!this.main.isIgnored(problem)) {
 						currentMain.globalProblemsCount++;
 						logExtraProblem(problem, localProblemCount, currentMain.globalProblemsCount);
 						localProblemCount++;
@@ -684,7 +684,7 @@ public class Main implements ProblemSeverities, SuffixConstants {
 						startLoggingExtraProblems(count);
 						for (int i = 0; i < count; i++) {
 							CategorizedProblem problem = problems.get(i);
-							if (problem!= null) {
+							if (!this.main.isIgnored(problem)) {
 								if (problem.getID() != IProblem.Task) {
 									logXmlExtraProblem(problem, localProblemCount, currentMain.globalProblemsCount);
 								}
@@ -1739,10 +1739,14 @@ public String bind(String id, String[] arguments) {
  * <li><code>org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.JDK1_4</code></li>
  * <li><code>org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.JDK1_5</code></li>
  * <li><code>org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.JDK1_6</code></li>
+ * <li><code>org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.JDK1_7</code></li>
  * <li><code>org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.JDK1_8</code></li>
  * <li><code>org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.JDK9</code></li>
  * <li><code>org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.JDK10</code></li>
  * <li><code>org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.JDK11</code></li>
+ * <li><code>org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.JDK12</code></li>
+ * <li><code>org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.JDK13</code></li>
+ * <li><code>org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.JDK14</code></li>
  * 
  * </ul>
  * @param minimalSupportedVersion the given minimal version
@@ -2229,6 +2233,16 @@ public void configure(String[] argv) {
 					}
 					didSpecifyCompliance = true;
 					this.options.put(CompilerOptions.OPTION_Compliance, CompilerOptions.VERSION_13);
+					mode = DEFAULT;
+					continue;
+				}
+				if (currentArg.equals("-14") || currentArg.equals("-14.0")) { //$NON-NLS-1$ //$NON-NLS-2$
+					if (didSpecifyCompliance) {
+						throw new IllegalArgumentException(
+							this.bind("configure.duplicateCompliance", currentArg)); //$NON-NLS-1$
+					}
+					didSpecifyCompliance = true;
+					this.options.put(CompilerOptions.OPTION_Compliance, CompilerOptions.VERSION_14);
 					mode = DEFAULT;
 					continue;
 				}
@@ -2792,6 +2806,9 @@ public void configure(String[] argv) {
 					this.options.put(CompilerOptions.OPTION_TargetPlatform, CompilerOptions.VERSION_12);
 				} else if (currentArg.equals("13") || currentArg.equals("13.0")) { //$NON-NLS-1$//$NON-NLS-2$
 					this.options.put(CompilerOptions.OPTION_TargetPlatform, CompilerOptions.VERSION_13);
+				// AspectJ not an AspectJ change but make sure the new versions are in here, argh!
+				} else if (currentArg.equals("14") || currentArg.equals("14.0")) { //$NON-NLS-1$//$NON-NLS-2$
+					this.options.put(CompilerOptions.OPTION_TargetPlatform, CompilerOptions.VERSION_14);
 				}
 				else if (currentArg.equals("jsr14")) { //$NON-NLS-1$
 					this.options.put(CompilerOptions.OPTION_TargetPlatform, CompilerOptions.VERSION_JSR14);
@@ -2885,6 +2902,8 @@ public void configure(String[] argv) {
 					this.options.put(CompilerOptions.OPTION_Source, CompilerOptions.VERSION_12);
 				} else if (currentArg.equals("13") ||  currentArg.equals("13.0")) { //$NON-NLS-1$//$NON-NLS-2$
 					this.options.put(CompilerOptions.OPTION_Source, CompilerOptions.VERSION_13);
+				} else if (currentArg.equals("14") ||  currentArg.equals("14.0")) { //$NON-NLS-1$//$NON-NLS-2$
+					this.options.put(CompilerOptions.OPTION_Source, CompilerOptions.VERSION_14);
 				} else {
 					throw new IllegalArgumentException(this.bind("configure.source", currentArg)); //$NON-NLS-1$
 				}
@@ -3466,6 +3485,9 @@ protected void enableAll(int severity) {
 		}
 	}
 	this.options.put(CompilerOptions.OPTION_TaskTags, Util.EMPTY_STRING);
+	if (newValue != null) {
+		this.options.remove(newValue);
+}
 }
 protected void disableAll(int severity) {
 	String checkedValue = null;
@@ -3485,6 +3507,9 @@ protected void disableAll(int severity) {
 		if (entry.getValue().equals(checkedValue)) {
 			this.options.put(entry.getKey(), CompilerOptions.IGNORE);
 		}
+	}
+	if (checkedValue != null) {
+		this.options.put(checkedValue, CompilerOptions.IGNORE);
 	}
 	if (severity == ProblemSeverities.Warning) {
 		disableAll(ProblemSeverities.Info);
@@ -3926,6 +3951,26 @@ protected ArrayList<FileSystem.Classpath> handleExtdirs(ArrayList<String> extdir
 	}
 
 	return FileSystem.EMPTY_CLASSPATH;
+}
+
+protected boolean isIgnored(IProblem problem) {
+	if (problem == null) {
+		return true;
+	}
+	if (problem.isError()) {
+		return false;
+	}
+	String key = problem.isInfo() ? CompilerOptions.INFO : CompilerOptions.WARNING;
+	if (CompilerOptions.IGNORE.equals(this.options.get(key))) {
+		return true;
+	}
+	if (this.ignoreOptionalProblemsFromFolders != null) {
+		char[] fileName = problem.getOriginatingFileName();
+		if (fileName != null) {
+			return shouldIgnoreOptionalProblems(this.ignoreOptionalProblemsFromFolders, fileName);
+		}
+	}
+	return false;
 }
 
 /*

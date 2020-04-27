@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -43,6 +43,7 @@ public interface TypeConstants {
 	char[] JAVAX = "javax".toCharArray(); //$NON-NLS-1$
 	char[] LANG = "lang".toCharArray(); //$NON-NLS-1$
 	char[] IO = "io".toCharArray(); //$NON-NLS-1$
+	char[] NIO = "nio".toCharArray(); //$NON-NLS-1$
 	char[] UTIL = "util".toCharArray(); //$NON-NLS-1$
 	char[] ZIP = "zip".toCharArray(); //$NON-NLS-1$
 	char[] ANNOTATION = "annotation".toCharArray(); //$NON-NLS-1$
@@ -52,6 +53,7 @@ public interface TypeConstants {
 	char[] EQUALS = "equals".toCharArray(); //$NON-NLS-1$
 	char[] GETCLASS = "getClass".toCharArray(); //$NON-NLS-1$
 	char[] HASHCODE = "hashCode".toCharArray(); //$NON-NLS-1$
+	char[] TOSTRING = "toString".toCharArray(); //$NON-NLS-1$
 	char[] OBJECT = "Object".toCharArray(); //$NON-NLS-1$
 	char[] MAIN = "main".toCharArray(); //$NON-NLS-1$
 	char[] SERIALVERSIONUID = "serialVersionUID".toCharArray(); //$NON-NLS-1$
@@ -62,6 +64,8 @@ public interface TypeConstants {
 	char[] WRITEOBJECT = "writeObject".toCharArray(); //$NON-NLS-1$
 	char[] CharArray_JAVA_LANG_OBJECT = "java.lang.Object".toCharArray(); //$NON-NLS-1$
 	char[] CharArray_JAVA_LANG_ENUM = "java.lang.Enum".toCharArray(); //$NON-NLS-1$
+	char[] CharArray_JAVA_LANG_RECORD = "java.lang.Record".toCharArray(); //$NON-NLS-1$
+	char[] CharArray_JAVA_LANG_RECORD_SLASH = "java/lang/Record".toCharArray(); //$NON-NLS-1$
 	char[] CharArray_JAVA_LANG_ANNOTATION_ANNOTATION = "java.lang.annotation.Annotation".toCharArray(); //$NON-NLS-1$
 	char[] CharArray_JAVA_IO_OBJECTINPUTSTREAM = "java.io.ObjectInputStream".toCharArray(); //$NON-NLS-1$
 	char[] CharArray_JAVA_IO_OBJECTOUTPUTSTREAM = "java.io.ObjectOutputStream".toCharArray(); //$NON-NLS-1$
@@ -109,14 +113,18 @@ public interface TypeConstants {
     char[] DESERIALIZE_LAMBDA = "$deserializeLambda$".toCharArray(); //$NON-NLS-1$
     char[] LAMBDA_TYPE = "<lambda>".toCharArray(); //$NON-NLS-1$
     char[] UPPER_MODULE = "MODULE".toCharArray(); //$NON-NLS-1$
+    char[] UPPER_RECORD_COMPONENT = "RECORD_COMPONENT".toCharArray(); //$NON-NLS-1$
 
     // JEP 286
 	char[] VAR = "var".toCharArray(); //$NON-NLS-1$
+    // JEP 359 Records
+	char[] RECORD_RESTRICTED_IDENTIFIER = "record".toCharArray(); //$NON-NLS-1$
+	char[] RECORD_CLASS = "Record".toCharArray(); //$NON-NLS-1$
 
     // jsr308
 	char[] TYPE_USE_TARGET  = "TYPE_USE".toCharArray(); //$NON-NLS-1$
 	char[] TYPE_PARAMETER_TARGET = "TYPE_PARAMETER".toCharArray(); //$NON-NLS-1$
-    
+
     // common 3rd party package components:
     char[] ORG = "org".toCharArray(); //$NON-NLS-1$
     char[] ECLIPSE = "eclipse".toCharArray(); //$NON-NLS-1$
@@ -135,7 +143,7 @@ public interface TypeConstants {
     char[] DOM = "dom".toCharArray(); //$NON-NLS-1$
     char[] ITYPEBINDING = "ITypeBinding".toCharArray(); //$NON-NLS-1$
     char[] SPRING = "springframework".toCharArray(); //$NON-NLS-1$
-    
+
 	// Constant compound names
 	char[][] JAVA_LANG = {JAVA, LANG};
 	char[][] JAVA_IO = {JAVA, IO};
@@ -150,9 +158,11 @@ public interface TypeConstants {
 	char[][] JAVA_LANG_EXCEPTION = {JAVA, LANG, "Exception".toCharArray()}; //$NON-NLS-1$
 	char[][] JAVA_LANG_ERROR = {JAVA, LANG, "Error".toCharArray()}; //$NON-NLS-1$
 	char[][] JAVA_LANG_ILLEGALARGUMENTEXCEPTION = {JAVA, LANG, "IllegalArgumentException".toCharArray()}; //$NON-NLS-1$
+	char[][] JAVA_LANG_INCOMPATIBLECLASSCHANGEERROR = {JAVA, LANG, "IncompatibleClassChangeError".toCharArray()}; //$NON-NLS-1$
 	char[][] JAVA_LANG_ITERABLE = {JAVA, LANG, "Iterable".toCharArray()}; //$NON-NLS-1$
 	char[][] JAVA_LANG_NOCLASSDEFERROR = {JAVA, LANG, "NoClassDefError".toCharArray()}; //$NON-NLS-1$
 	char[][] JAVA_LANG_OBJECT = {JAVA, LANG, OBJECT};
+	char[][] JAVA_LANG_RECORD = {JAVA, LANG, RECORD_CLASS};
 	char[][] JAVA_LANG_STRING = {JAVA, LANG, "String".toCharArray()}; //$NON-NLS-1$
 	char[][] JAVA_LANG_STRINGBUFFER = {JAVA, LANG, "StringBuffer".toCharArray()}; //$NON-NLS-1$
 	char[][] JAVA_LANG_STRINGBUILDER = {JAVA, LANG, "StringBuilder".toCharArray()}; //$NON-NLS-1$
@@ -175,6 +185,7 @@ public interface TypeConstants {
 	char[][] JAVA_UTIL_ITERATOR = {JAVA, UTIL, "Iterator".toCharArray()}; //$NON-NLS-1$
 	char[][] JAVA_UTIL_OBJECTS = {JAVA, UTIL, "Objects".toCharArray()}; //$NON-NLS-1$
 	char[][] JAVA_UTIL_LIST = {JAVA, UTIL, "List".toCharArray()}; //$NON-NLS-1$
+	char[][] JAVA_UTIL_ARRAYS = {JAVA, UTIL, "Arrays".toCharArray()}; //$NON-NLS-1$
 	char[][] JAVA_LANG_DEPRECATED = {JAVA, LANG, "Deprecated".toCharArray()}; //$NON-NLS-1$
 	char[] FOR_REMOVAL = "forRemoval".toCharArray(); //$NON-NLS-1$
 	char[] SINCE = "since".toCharArray(); //$NON-NLS-1$
@@ -224,6 +235,7 @@ public interface TypeConstants {
 	char[][] JAVA_LANG_INVOKE_METHODHANDLES = {JAVA, LANG, INVOKE, "MethodHandles".toCharArray()}; //$NON-NLS-1$
 	char[][] JAVA_LANG_AUTOCLOSEABLE =  {JAVA, LANG, "AutoCloseable".toCharArray()}; //$NON-NLS-1$
 	char[] CLOSE = "close".toCharArray(); //$NON-NLS-1$
+	char[][] JAVA_LANG_RUNTIME_OBJECTMETHODS = {JAVA, LANG, RUNTIME, "ObjectMethods".toCharArray()}; //$NON-NLS-1$
 	// known helper functions for closing a Closeable (all receive a Closeable as their first argument):
 	public static class CloseMethodRecord {
 		public char[][] typeName;
@@ -244,7 +256,7 @@ public interface TypeConstants {
 		new CloseMethodRecord(GUAVA_CLOSEABLES, CLOSE, 1),
 		new CloseMethodRecord(APACHE_IOUTILS, CLOSE_QUIETLY, 1),
 		new CloseMethodRecord(APACHE_DBUTILS, CLOSE, 1),
-		new CloseMethodRecord(APACHE_DBUTILS, CLOSE_QUIETLY, 3), // closeQuietly(Connection,Statement,ResultSet) 
+		new CloseMethodRecord(APACHE_DBUTILS, CLOSE_QUIETLY, 3), // closeQuietly(Connection,Statement,ResultSet)
 		new CloseMethodRecord(APACHE_DBUTILS, "commitAndClose".toCharArray(), 1), //$NON-NLS-1$
 		new CloseMethodRecord(APACHE_DBUTILS, "commitAndCloseQuietly".toCharArray(), 1), //$NON-NLS-1$
 		new CloseMethodRecord(APACHE_DBUTILS, "rollbackAndClose".toCharArray(), 1), //$NON-NLS-1$
@@ -294,7 +306,7 @@ public interface TypeConstants {
 		{JAVA, "beans".toCharArray(), "XMLDecoder".toCharArray()}, //$NON-NLS-1$ //$NON-NLS-2$
 		{JAVAX, "sound".toCharArray(), "sampled".toCharArray(), "AudioInputStream".toCharArray()}, //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	};
-	char[][] JAVA_IO_RESOURCE_FREE_CLOSEABLES = new char[][] {			
+	char[][] JAVA_IO_RESOURCE_FREE_CLOSEABLES = new char[][] {
 		"StringReader".toCharArray(), //$NON-NLS-1$
 		"StringWriter".toCharArray(), //$NON-NLS-1$
 		"ByteArrayInputStream".toCharArray(), //$NON-NLS-1$
@@ -310,13 +322,34 @@ public interface TypeConstants {
 		"LongStream".toCharArray(), //$NON-NLS-1$
 		"IntStream".toCharArray() //$NON-NLS-1$
 	};
-	
+
+	// closeable classes containing one or more 'fluent' methods (returning 'this'):
+	char[] CHANNELS = "channels".toCharArray(); //$NON-NLS-1$
+	char[][][] FLUENT_RESOURCE_CLASSES = {
+		new char[][] {JAVA, IO, "CharArrayWriter".toCharArray() }, //$NON-NLS-1$
+		new char[][] {JAVA, IO, "Console".toCharArray() }, //$NON-NLS-1$
+		new char[][] {JAVA, IO, "PrintStream".toCharArray() }, //$NON-NLS-1$
+		new char[][] {JAVA, IO, "PrintWriter".toCharArray() }, //$NON-NLS-1$
+		new char[][] {JAVA, IO, "StringWriter".toCharArray() }, //$NON-NLS-1$
+		new char[][] {JAVA, IO, "Writer".toCharArray() }, //$NON-NLS-1$
+		new char[][] {JAVA, NIO, CHANNELS, "AsynchronousFileChannel".toCharArray() }, //$NON-NLS-1$
+		new char[][] {JAVA, NIO, CHANNELS, "AsynchronousServerSocketChannel".toCharArray() }, //$NON-NLS-1$
+		new char[][] {JAVA, NIO, CHANNELS, "FileChannel".toCharArray() }, //$NON-NLS-1$
+		new char[][] {JAVA, NIO, CHANNELS, "NetworkChannel".toCharArray() }, //$NON-NLS-1$
+		new char[][] {JAVA, NIO, CHANNELS, "SeekableByteChannel".toCharArray() }, //$NON-NLS-1$
+		new char[][] {JAVA, NIO, CHANNELS, "SelectableChannel".toCharArray() }, //$NON-NLS-1$
+		new char[][] {JAVA, NIO, CHANNELS, "Selector".toCharArray() }, //$NON-NLS-1$
+		new char[][] {JAVA, NIO, CHANNELS, "ServerSocketChannel".toCharArray() }, //$NON-NLS-1$
+		new char[][] {JAVA, UTIL, "Formatter".toCharArray() }, //$NON-NLS-1$
+		new char[][] {JAVA, UTIL, "Scanner".toCharArray() }, //$NON-NLS-1$
+	};
+
 	// different assertion utilities:
 	char[] ASSERT_CLASS = "Assert".toCharArray(); //$NON-NLS-1$
 	char[][] ORG_ECLIPSE_CORE_RUNTIME_ASSERT = new char[][] { ORG, ECLIPSE, CORE, RUNTIME, ASSERT_CLASS };
 	// ... methods:
 	char[] IS_NOTNULL = "isNotNull".toCharArray(); //$NON-NLS-1$
-	
+
 	char[] JUNIT = "junit".toCharArray(); //$NON-NLS-1$
 	char[] FRAMEWORK = "framework".toCharArray(); //$NON-NLS-1$
 	char[] JUPITER = "jupiter".toCharArray(); //$NON-NLS-1$
@@ -332,7 +365,7 @@ public interface TypeConstants {
 	// ... annotations:
 	char[] METHOD_SOURCE = "MethodSource".toCharArray(); //$NON-NLS-1$
 	char[][] ORG_JUNIT_METHOD_SOURCE = new char[][] { ORG, JUNIT, JUPITER, PARAMS, PROVIDER, METHOD_SOURCE };
-	
+
 	char[] VALIDATE_CLASS = "Validate".toCharArray(); //$NON-NLS-1$
 	char[][] ORG_APACHE_COMMONS_LANG_VALIDATE = new char[][] { ORG, APACHE, COMMONS, LANG, VALIDATE_CLASS };
 	char[][] ORG_APACHE_COMMONS_LANG3_VALIDATE = new char[][] { ORG, APACHE, COMMONS, LANG3, VALIDATE_CLASS };
@@ -343,7 +376,7 @@ public interface TypeConstants {
 	char[] IS_TRUE = "isTrue".toCharArray(); //$NON-NLS-1$
 	char[] NOT_NULL = "notNull".toCharArray(); //$NON-NLS-1$
 
-	char[][] COM_GOOGLE_COMMON_BASE_PRECONDITIONS = new char[][] { 
+	char[][] COM_GOOGLE_COMMON_BASE_PRECONDITIONS = new char[][] {
 			COM, GOOGLE, "common".toCharArray(), "base".toCharArray(), "Preconditions".toCharArray() }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	// ... methods:
 	char[] CHECK_NOT_NULL = "checkNotNull".toCharArray(); //$NON-NLS-1$
@@ -352,7 +385,7 @@ public interface TypeConstants {
 
 	// ... methods in java.util.Objects:
 	char[] REQUIRE_NON_NULL = "requireNonNull".toCharArray(); //$NON-NLS-1$
-	
+
 	// different @Inject annotations are relevant for @NonNull fields
 	char[] INJECT_PACKAGE = "inject".toCharArray(); //$NON-NLS-1$
 	char[] INJECT_TYPE = "Inject".toCharArray(); //$NON-NLS-1$
@@ -360,7 +393,14 @@ public interface TypeConstants {
 	char[][] COM_GOOGLE_INJECT_INJECT = new char[][] {COM, GOOGLE, INJECT_PACKAGE, INJECT_TYPE };
 	//    detail for the above:
 	char[] OPTIONAL = "optional".toCharArray(); //$NON-NLS-1$
-	
+
+	// utils that ensure argument is nonnull if result is true
+	// java.lang.Class:
+	char[] IS_INSTANCE = "isInstance".toCharArray(); //$NON-NLS-1$
+	// java.lang.Objects:
+	char[] NON_NULL = "nonNull".toCharArray();   //$NON-NLS-1$
+	char[] IS_NULL = "isNull".toCharArray();   //$NON-NLS-1$
+
 	// well-known methods with "dangerous" signatures:
 	char[][] JAVA_UTIL_MAP = new char[][] { JAVA, UTIL, "Map".toCharArray() }; //$NON-NLS-1$
 	char[] GET = "get".toCharArray(); //$NON-NLS-1$

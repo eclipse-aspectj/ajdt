@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008, 2017 IBM Corporation and others.
+ * Copyright (c) 2008, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -278,11 +278,11 @@ protected void notifySourceElementRequestor(AbstractMethodDeclaration methodDecl
 	char[][] argumentNames = null;
 	boolean isVarArgs = false;
 	Argument[] arguments = methodDeclaration.arguments;
-	ParameterInfo[] parameterInfos = null; 
+	ParameterInfo[] parameterInfos = null;
 	ISourceElementRequestor.MethodInfo methodInfo = new ISourceElementRequestor.MethodInfo();
 	methodInfo.typeAnnotated = ((methodDeclaration.bits & ASTNode.HasTypeAnnotations) != 0);
 
-	if (arguments != null) {
+	if (arguments != null && arguments.length > 0) {
 		Object[][] argumentInfos = getArgumentInfos(arguments);
 		parameterInfos = (ParameterInfo[]) argumentInfos[0];
 		argumentTypes = (char[][]) argumentInfos[1][0];
@@ -452,7 +452,7 @@ public void notifySourceElementRequestor(
 				nodes[index++] = types[i];
 			}
 		}
-		
+
 		if (parsedUnit.moduleDeclaration != null)
 			nodes[index++] = parsedUnit.moduleDeclaration;
 
@@ -675,7 +675,6 @@ protected void notifySourceElementRequestor(TypeDeclaration typeDeclaration, boo
 			typeInfo.annotations = typeDeclaration.annotations;
 			typeInfo.extraFlags = ExtraFlags.getExtraFlags(typeDeclaration);
 			typeInfo.node = typeDeclaration;
-			this.requestor.enterType(typeInfo);
 			switch (kind) {
 				case TypeDeclaration.CLASS_DECL :
 					if (superclassName != null)
@@ -690,7 +689,12 @@ protected void notifySourceElementRequestor(TypeDeclaration typeDeclaration, boo
 				case TypeDeclaration.ANNOTATION_TYPE_DECL :
 					implicitSuperclassName = TypeConstants.CharArray_JAVA_LANG_ANNOTATION_ANNOTATION;
 					break;
+				case TypeDeclaration.RECORD_DECL :
+ 					implicitSuperclassName = TypeConstants.CharArray_JAVA_LANG_RECORD;
+ 					typeInfo.modifiers |= ExtraCompilerModifiers.AccRecord;
+ 					break;
 			}
+			this.requestor.enterType(typeInfo);
 		}
 		if (this.nestedTypeIndex == this.typeNames.length) {
 			// need a resize
@@ -777,7 +781,7 @@ private void fillModuleInfo(ModuleDeclaration mod, ISourceElementRequestor.Modul
 				}
 			}
 			exps[i] = exp;
-		}					
+		}
 		modInfo.exports = exps;
 	}
 	if (mod.servicesCount > 0) {

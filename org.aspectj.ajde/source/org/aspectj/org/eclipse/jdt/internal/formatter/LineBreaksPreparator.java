@@ -31,6 +31,7 @@ import static org.aspectj.org.eclipse.jdt.internal.compiler.parser.TerminalToken
 import java.util.ArrayList;
 import java.util.List;
 
+import org.aspectj.org.eclipse.jdt.core.dom.AST;
 import org.aspectj.org.eclipse.jdt.core.dom.ASTNode;
 import org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor;
 import org.aspectj.org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
@@ -64,6 +65,7 @@ import org.aspectj.org.eclipse.jdt.core.dom.ModuleDeclaration;
 import org.aspectj.org.eclipse.jdt.core.dom.ModuleDirective;
 import org.aspectj.org.eclipse.jdt.core.dom.NormalAnnotation;
 import org.aspectj.org.eclipse.jdt.core.dom.PackageDeclaration;
+import org.aspectj.org.eclipse.jdt.core.dom.RecordDeclaration;
 import org.aspectj.org.eclipse.jdt.core.dom.ReturnStatement;
 import org.aspectj.org.eclipse.jdt.core.dom.SingleMemberAnnotation;
 import org.aspectj.org.eclipse.jdt.core.dom.SingleVariableDeclaration;
@@ -83,6 +85,7 @@ import org.aspectj.org.eclipse.jdt.core.formatter.DefaultCodeFormatterConstants;
 import org.aspectj.org.eclipse.jdt.internal.formatter.DefaultCodeFormatterOptions.Alignment;
 import org.aspectj.org.eclipse.jdt.internal.formatter.Token.WrapMode;
 import org.aspectj.org.eclipse.jdt.internal.formatter.Token.WrapPolicy;
+import org.eclipse.jface.text.IRegion;
 
 public class LineBreaksPreparator extends ASTVisitor {
 	final private TokenManager tm;
@@ -151,8 +154,8 @@ public class LineBreaksPreparator extends ASTVisitor {
 	public boolean visit(TypeDeclaration node) {
 		handleBodyDeclarations(node.bodyDeclarations());
 
-		if (node.getName().getStartPosition() == -1)
-			return true; // this is a fake type created by parsing in class body mode
+		if (this.tm.isFake(node))
+			return true;
 
 		breakLineBefore(node);
 
@@ -187,9 +190,11 @@ public class LineBreaksPreparator extends ASTVisitor {
 			previous = bodyDeclaration;
 		}
 		if (previous != null) {
-			Token lastToken = this.tm.lastTokenIn(previous.getParent(), -1);
-			if (lastToken.tokenType == TokenNameRBRACE) // otherwise it's a fake type
+			ASTNode parent = previous.getParent();
+			if (!(parent instanceof TypeDeclaration && this.tm.isFake((TypeDeclaration) parent))) {
+				Token lastToken = this.tm.lastTokenIn(parent, -1);
 				putBlankLinesBefore(lastToken, this.options.blank_lines_after_last_class_body_declaration);
+			}
 		}
 	}
 
@@ -271,13 +276,22 @@ public class LineBreaksPreparator extends ASTVisitor {
 	}
 
 	@Override
+	public boolean visit(RecordDeclaration node) {
+		handleBracedCode(node, node.getName(), this.options.brace_position_for_record_declaration,
+				this.options.indent_body_declarations_compare_to_record_header);
+		handleBodyDeclarations(node.bodyDeclarations());
+		return true;
+	}
+
+	@Override
 	public boolean visit(MethodDeclaration node) {
 		this.declarationModifierVisited = false;
 		if (node.getBody() == null)
 			return true;
 
-		String bracePosition = node.isConstructor() ? this.options.brace_position_for_constructor_declaration
-				: this.options.brace_position_for_method_declaration;
+		String bracePosition = node.isCompactConstructor() ? this.options.brace_position_for_record_constructor
+				: node.isConstructor() ? this.options.brace_position_for_constructor_declaration
+						: this.options.brace_position_for_method_declaration;
 		handleBracedCode(node.getBody(), null, bracePosition, this.options.indent_statements_compare_to_body,
 				this.options.blank_lines_at_beginning_of_method_body, this.options.blank_lines_at_end_of_method_body);
 
@@ -393,7 +407,7 @@ public class LineBreaksPreparator extends ASTVisitor {
 
 	private void doSwitchStatementsLineBreaks(List<Statement> statements) {
 		boolean arrowMode = statements.stream()
-				.anyMatch(s -> s instanceof SwitchCase && ((SwitchCase) s).isSwitchLabeledRule());
+				.anyMatch(s -> s instanceof SwitchCase && s.getAST().apiLevel() >= AST.JLS14 &&((SwitchCase) s).isSwitchLabeledRule());
 		Statement previous = null;
 		for (Statement statement : statements) {
 			boolean skip = statement instanceof Block // will add break in visit(Block) if necessary
@@ -739,7 +753,7 @@ public class LineBreaksPreparator extends ASTVisitor {
 	private void handleBracedCode(ASTNode node, ASTNode nodeBeforeOpenBrace, String bracePosition, boolean indentBody) {
 		handleBracedCode(node, nodeBeforeOpenBrace, bracePosition, indentBody, 0, 0);
 	}
-	
+
 	private void handleBracedCode(ASTNode node, ASTNode nodeBeforeOpenBrace, String bracePosition, boolean indentBody,
 			int blankLinesAfterOpeningBrace, int blankLinesBeforeClosingBrace) {
 		int openBraceIndex = nodeBeforeOpenBrace == null
@@ -794,13 +808,37 @@ public class LineBreaksPreparator extends ASTVisitor {
 			this.tm.get(lastIndex + 1).unindent();
 	}
 
-	public void finishUp() {
+	public void finishUp(List<IRegion> regions) {
 		// the visits only noted where indents increase and decrease,
-		// now prepare actual indent values
-		int currentIndent = this.options.initial_indentation_level;
+		// now prepare actual indent values, preserving indents outside formatting regions
+		int currentIndent = this.options.initial_indentation_level * this.options.indentation_size;
+		Token previous = null;
 		for (Token token : this.tm) {
-			currentIndent += token.getIndent();
-			token.setIndent(currentIndent * this.options.indentation_size);
+			if (isFixedLineStart(token, previous, regions)) {
+				currentIndent = this.tm.findSourcePositionInLine(token.originalStart);
+			} else {
+				currentIndent = Math.max(currentIndent + token.getIndent() * this.options.indentation_size, 0);
+			}
+			token.setIndent(currentIndent);
+			previous = token;
 		}
+	}
+
+	private boolean isFixedLineStart(Token token, Token previous, List<IRegion> regions) {
+		if (previous == null && this.options.initial_indentation_level >0)
+			return false; // must be handling ast rewrite
+		if (previous != null && this.tm.countLineBreaksBetween(previous, token) == 0)
+			return false;
+		if (token.getLineBreaksBefore() == 0 && (previous == null || previous.getLineBreaksAfter() == 0))
+			return false;
+		int lineStart = token.originalStart;
+		char c;
+		while (lineStart > 0 && (c = this.tm.charAt(lineStart - 1)) != '\r' && c != '\n')
+			lineStart--;
+		for (IRegion r : regions) {
+			if (token.originalStart >= r.getOffset() && lineStart <= r.getOffset() + r.getLength())
+				return false;
+		}
+		return true;
 	}
 }

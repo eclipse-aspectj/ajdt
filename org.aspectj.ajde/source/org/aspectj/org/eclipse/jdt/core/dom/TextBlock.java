@@ -26,7 +26,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.parser.TerminalTokens;
 /**
  * TextBolck  AST node type.
  *
- * These are block of String literal nodes. 
+ * These are block of String literal nodes.
  *
  * @since 3.20
  * @noinstantiate This class is not intended to be instantiated by clients.
@@ -84,7 +84,7 @@ public class TextBlock extends Expression {
 	 * @since 3.20
 	 */
 	public static List propertyDescriptors(int apiLevel, boolean previewEnabled) {
-		if (apiLevel == AST.JLS13_INTERNAL && previewEnabled) {
+		if (apiLevel == AST.JLS14_INTERNAL && previewEnabled) {
 			return PROPERTY_DESCRIPTORS;
 		}
 		return null;
@@ -103,12 +103,12 @@ public class TextBlock extends Expression {
 	 * </p>
 	 *
 	 * @param ast the AST that is to own this node
-	 * @exception UnsupportedOperationException if this operation is used other than JLS13
+	 * @exception UnsupportedOperationException if this operation is used other than JLS14
 	 * @exception UnsupportedOperationException if this expression is used with previewEnabled flag as false
 	 */
 	TextBlock(AST ast) {
 		super(ast);
-		supportedOnlyIn13();
+		supportedOnlyIn14();
 		unsupportedWithoutPreviewError();
 	}
 
@@ -116,7 +116,7 @@ public class TextBlock extends Expression {
 	final List internalStructuralPropertiesForType(int apiLevel) {
 		return propertyDescriptors(apiLevel);
 	}
-	
+
 	@Override
 	final List internalStructuralPropertiesForType(int apiLevel, boolean previewEnabled) {
 		return propertyDescriptors(apiLevel, previewEnabled);
@@ -246,7 +246,7 @@ public class TextBlock extends Expression {
 		if (len < 7) {
 			throw new IllegalArgumentException();
 		}
-		
+
 		int start = -1;
 		loop: for (int i = 3; i < len; i++) {
 			char c = escaped[i];

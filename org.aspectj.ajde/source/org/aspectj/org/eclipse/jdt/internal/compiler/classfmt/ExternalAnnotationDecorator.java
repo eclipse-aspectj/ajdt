@@ -7,7 +7,7 @@
  * https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- * 
+ *
  * Contributors:
  *     Stefan Xenos <sxenos@gmail.com> (Google) - initial API and implementation
  *******************************************************************************/
@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -225,7 +226,9 @@ public class ExternalAnnotationDecorator implements IBinaryType {
 		} else {
 			ZipEntry entry = zipFile.getEntry(qualifiedBinaryFileName);
 			if (entry != null) {
-				return new ExternalAnnotationProvider(zipFile.getInputStream(entry), qualifiedBinaryTypeName);
+				try(InputStream is = zipFile.getInputStream(entry)) {
+					return new ExternalAnnotationProvider(is, qualifiedBinaryTypeName);
+				}
 			}
 		}
 		return null;
@@ -236,7 +239,7 @@ public class ExternalAnnotationDecorator implements IBinaryType {
 	 * annotations is associated. This provider is constructed using the given basePath, which is either a directory
 	 * holding .eea text files, or a zip file of entries of the same format. If no such provider could be constructed,
 	 * then the original binary type is returned unchanged.
-	 * 
+	 *
 	 * @param toDecorate
 	 *            the binary type to wrap, if needed
 	 * @param basePath

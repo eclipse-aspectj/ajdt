@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -7,7 +7,7 @@
  * https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -199,7 +199,7 @@ public void acceptType(char[] packageName, char[] typeName, int modifiers, boole
 			acceptFlags = NameLookup.ACCEPT_INTERFACES;
 			break;
 		default:
-			acceptFlags = NameLookup.ACCEPT_CLASSES;
+			acceptFlags = NameLookup.ACCEPT_CLASSES | NameLookup.ACCEPT_RECORDS ;
 			break;
 	}
 	IType type = null;
@@ -466,7 +466,7 @@ public void acceptLocalVariable(LocalVariableBinding binding, org.aspectj.org.ec
 		HashSet existingElements = new HashSet();
 		HashMap knownScopes = new HashMap();
 		parent = this.handleFactory.createElement(binding.declaringScope, local.sourceStart, (ICompilationUnit) unit, existingElements, knownScopes);
-	} else {		
+	} else {
 		parent = findLocalElement(local.sourceStart, binding.declaringScope.methodScope()); // findLocalElement() cannot find local variable
 	}
 	LocalVariable localVar = null;
@@ -636,12 +636,32 @@ protected void acceptSourceMethod(
 
 	// if no matches, nothing to report
 	if (this.elementIndex == -1) {
-		// no match was actually found, but a method was originally given -> default constructor
-		addElement(type);
-		if(SelectionEngine.DEBUG){
-			System.out.print("SELECTION - accept type("); //$NON-NLS-1$
-			System.out.print(type.toString());
-			System.out.println(")"); //$NON-NLS-1$
+		try {
+			if (type.isRecord()) {
+				IField field= type.getField(name);
+				if (field != null) {
+					 if (!Flags.isStatic(field.getFlags())) {
+						// no match was actually found, but a method was originally given -> default accessor
+						 addElement(field);
+						 if(SelectionEngine.DEBUG){
+								System.out.print("SELECTION - accept field("); //$NON-NLS-1$
+								System.out.print(field.toString());
+								System.out.println(")"); //$NON-NLS-1$
+						 }
+					 }
+				}
+			}
+		} catch (JavaModelException e) {
+			// Do Nothing
+		}
+		if (this.elementIndex == -1) {
+			// no match was actually found, but a method was originally given -> default constructor
+			addElement(type);
+			if(SelectionEngine.DEBUG){
+				System.out.print("SELECTION - accept type("); //$NON-NLS-1$
+				System.out.print(type.toString());
+				System.out.println(")"); //$NON-NLS-1$
+			}
 		}
 		return;
 	}
@@ -902,7 +922,7 @@ protected IJavaElement findLocalElement(int pos, MethodScope scope) {
 
 /**
  * This method returns an IMethod element from the given method and declaring type bindings. However,
- * unlike {@link Util#findMethod(IType, char[], String[], boolean)} , this does not require an IType to get 
+ * unlike {@link Util#findMethod(IType, char[], String[], boolean)} , this does not require an IType to get
  * the IMethod element.
  * @param method the given method binding
  * @param signatures the type signatures of the method arguments

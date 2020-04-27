@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2019 IBM Corporation and others.
+ * Copyright (c) 2018, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -18,14 +18,18 @@ import static org.aspectj.org.eclipse.jdt.internal.compiler.ast.ExpressionContex
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EmptyStackException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 import java.util.stream.Collectors;
 
+import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ASTVisitor;
+import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.CodeStream;
 import org.aspectj.org.eclipse.jdt.internal.compiler.flow.FlowContext;
 import org.aspectj.org.eclipse.jdt.internal.compiler.flow.FlowInfo;
@@ -34,6 +38,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.impl.Constant;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Binding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BlockScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.FieldBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.PolyTypeBinding;
@@ -53,11 +58,17 @@ public class SwitchExpression extends SwitchStatement implements IPolyExpression
 	public List<Expression> resultExpressions;
 	public boolean resolveAll;
 	/* package */ List<Integer> resultExpressionNullStatus;
+	LocalVariableBinding hiddenYield;
+	/* package */ int hiddenYieldResolvedPosition = -1;
+	public boolean containsTry = false;
 	private static Map<TypeBinding, TypeBinding[]> type_map;
+	static final char[] SECRET_YIELD_VALUE_NAME = " yieldValue".toCharArray(); //$NON-NLS-1$
+	int yieldResolvedPosition = -1;
+	List<LocalVariableBinding> typesOnStack;
 
 	static {
 		type_map = new HashMap<TypeBinding, TypeBinding[]>();
-		type_map.put(TypeBinding.CHAR, new TypeBinding[] {TypeBinding.CHAR, TypeBinding.BYTE, TypeBinding.INT});
+		type_map.put(TypeBinding.CHAR, new TypeBinding[] {TypeBinding.CHAR, TypeBinding.INT});
 		type_map.put(TypeBinding.SHORT, new TypeBinding[] {TypeBinding.SHORT, TypeBinding.BYTE, TypeBinding.INT});
 		type_map.put(TypeBinding.BYTE, new TypeBinding[] {TypeBinding.BYTE, TypeBinding.INT});
 	}
@@ -88,7 +99,7 @@ public class SwitchExpression extends SwitchStatement implements IPolyExpression
 	protected int getFallThroughState(Statement stmt, BlockScope blockScope) {
 		if ((stmt instanceof Expression && ((Expression) stmt).isTrulyExpression())|| stmt instanceof ThrowStatement)
 			return BREAKING;
-		if (this.switchLabeledRules // do this check for every block if '->' (Switch Labeled Rules) 
+		if (this.switchLabeledRules // do this check for every block if '->' (Switch Labeled Rules)
 				&& stmt instanceof Block) {
 			Block block = (Block) stmt;
 			if (block.doesNotCompleteNormally()) {
@@ -160,11 +171,11 @@ public class SwitchExpression extends SwitchStatement implements IPolyExpression
 			}
 		}
 		if (firstTrailingCaseStmt != null) {
-			blockScope.problemReporter().switchExpressionTrailingSwitchLabels(firstTrailingCaseStmt);				
+			blockScope.problemReporter().switchExpressionTrailingSwitchLabels(firstTrailingCaseStmt);
 		}
 	}
 	@Override
-	protected boolean needToCheckFlowInAbsenceOfDefaultBranch() { // JLS 12 16.1.8 
+	protected boolean needToCheckFlowInAbsenceOfDefaultBranch() { // JLS 12 16.1.8
 		return !this.switchLabeledRules;
 	}
 	@Override
@@ -219,9 +230,99 @@ public class SwitchExpression extends SwitchStatement implements IPolyExpression
 		Expression expression1 = (Expression) statement;
 		expression1.generateCode(currentScope, codeStream, true /* valueRequired */);
 	}
+	private TypeBinding createType(int typeId) {
+		TypeBinding type = TypeBinding.wellKnownType(this.scope, typeId);
+		return type != null ? type : this.scope.getJavaLangObject();
+	}
+	private LocalVariableBinding addTypeStackVariable(CodeStream codeStream, TypeBinding type, int typeId, int index, int resolvedPosition) {
+		char[] name = CharOperation.concat(SECRET_YIELD_VALUE_NAME, String.valueOf(index).toCharArray());
+		type = type != null ? type : createType(typeId);
+		LocalVariableBinding lvb =
+				new LocalVariableBinding(
+					name,
+					type,
+					ClassFileConstants.AccDefault,
+					false);
+		lvb.setConstant(Constant.NotAConstant);
+		lvb.useFlag = LocalVariableBinding.USED;
+		lvb.resolvedPosition = resolvedPosition;
+//		if (this.offset > 0xFFFF) { // no more than 65535 words of locals // TODO - also the cumulative at MethodScope
+//			problemReporter().noMoreAvailableSpaceForLocal(
+//				local,
+//				local.declaration == null ? (ASTNode)methodScope().referenceContext : local.declaration);
+//		}
+		this.scope.addLocalVariable(lvb);
+		lvb.declaration = new LocalDeclaration(name, 0, 0);
+		return lvb;
+	}
+	private int getNextOffset(LocalVariableBinding local) {
+		int delta =  ((TypeBinding.equalsEquals(local.type, TypeBinding.LONG)) || (TypeBinding.equalsEquals(local.type, TypeBinding.DOUBLE))) ?
+				2 : 1;
+		return local.resolvedPosition + delta;
+	}
+	private void processTypesBindingsOnStack(CodeStream codeStream) {
+		int count = 0;
+		int nextResolvedPosition = this.scope.offset;
+		if (!codeStream.switchSaveTypeBindings.empty()) {
+			this.typesOnStack = new ArrayList<>();
+			int index = 0;
+			Stack<TypeBinding> typeStack = new Stack<>();
+			int sz = codeStream.switchSaveTypeBindings.size();
+			for (int i = codeStream.lastSwitchCumulativeSyntheticVars; i < sz; ++i) {
+				typeStack.add(codeStream.switchSaveTypeBindings.get(i));
+			}
+			while (!typeStack.empty()) {
+				TypeBinding type = typeStack.pop();
+				LocalVariableBinding lvb = addTypeStackVariable(codeStream, type, TypeIds.T_undefined, index++, nextResolvedPosition);
+				nextResolvedPosition = getNextOffset(lvb);
+				this.typesOnStack.add(lvb);
+				codeStream.store(lvb, false);
+				codeStream.addVariable(lvb);
+				++count;
+			}
+		}
+		// now keep a position reserved for yield result value
+		this.yieldResolvedPosition = nextResolvedPosition;
+		nextResolvedPosition += ((TypeBinding.equalsEquals(this.resolvedType, TypeBinding.LONG)) ||
+				(TypeBinding.equalsEquals(this.resolvedType, TypeBinding.DOUBLE))) ?
+				2 : 1;
+
+		codeStream.lastSwitchCumulativeSyntheticVars += count + 1; // 1 for yield var
+		int delta = nextResolvedPosition - this.scope.offset;
+		this.scope.adjustLocalVariablePositions(delta, false);
+	}
+	public void loadStoredTypesAndKeep(CodeStream codeStream) {
+		List<LocalVariableBinding> tos = this.typesOnStack;
+		int sz = tos != null ? tos.size() : 0;
+		int index = sz - 1;
+		while (index >= 0) {
+			LocalVariableBinding lvb = tos.get(index--);
+			codeStream.load(lvb);
+//		    lvb.recordInitializationEndPC(codeStream.position);
+//			codeStream.removeVariable(lvb);
+		}
+	}
+	private void removeStoredTypes(CodeStream codeStream) {
+		List<LocalVariableBinding> tos = this.typesOnStack;
+		int sz = tos != null ? tos.size() : 0;
+		int index = sz - 1;
+		while (index >= 0) {
+			LocalVariableBinding lvb = tos.get(index--);
+			codeStream.removeVariable(lvb);
+		}
+	}
 	@Override
 	public void generateCode(BlockScope currentScope, CodeStream codeStream, boolean valueRequired) {
+		int tmp = 0;
+		if (this.containsTry) {
+			tmp = codeStream.lastSwitchCumulativeSyntheticVars;
+			processTypesBindingsOnStack(codeStream);
+		}
 		super.generateCode(currentScope, codeStream);
+		if (this.containsTry) {
+			removeStoredTypes(codeStream);
+			codeStream.lastSwitchCumulativeSyntheticVars = tmp;
+		}
 		if (!valueRequired) {
 			// switch expression is saved to a variable that is not used. We need to pop the generated value from the stack
 			switch(postConversionType(currentScope).id) {
@@ -271,14 +372,76 @@ public class SwitchExpression extends SwitchStatement implements IPolyExpression
 		}
 		return true;
 	}
+	class OOBLFlagger extends ASTVisitor {
+		Set<String> labelDecls;
+		Set<BreakStatement> referencedBreakLabels;
+		Set<ContinueStatement> referencedContinueLabels;
+		public OOBLFlagger(SwitchExpression se) {
+			this.labelDecls = new HashSet<>();
+			this.referencedBreakLabels = new HashSet<>();
+			this.referencedContinueLabels = new HashSet<>();
+		}
+		@Override
+		public boolean visit(SwitchExpression switchExpression, BlockScope blockScope) {
+			return true;
+		}
+		private void checkForOutofBoundLabels(BlockScope blockScope) {
+			try {
+				for (BreakStatement bs : this.referencedBreakLabels) {
+					if (bs.label == null || bs.label.length == 0)
+						continue;
+					if (!this.labelDecls.contains(new String(bs.label)))
+						blockScope.problemReporter().switchExpressionsBreakOutOfSwitchExpression(bs);
+				}
+				for (ContinueStatement cs : this.referencedContinueLabels) {
+					if (cs.label == null || cs.label.length == 0)
+						continue;
+					if (!this.labelDecls.contains(new String(cs.label)))
+						blockScope.problemReporter().switchExpressionsContinueOutOfSwitchExpression(cs);
+				}
+			} catch (EmptyStackException e) {
+				// ignore
+			}
+		}
+
+		@Override
+		public void endVisit(SwitchExpression switchExpression,	BlockScope blockScope) {
+			checkForOutofBoundLabels(blockScope);
+		}
+		@Override
+		public boolean visit(BreakStatement breakStatement, BlockScope blockScope) {
+			if (breakStatement.label != null && breakStatement.label.length != 0)
+				this.referencedBreakLabels.add(breakStatement);
+			return true;
+		}
+		@Override
+		public boolean visit(ContinueStatement continueStatement, BlockScope blockScope) {
+			if (continueStatement.label != null && continueStatement.label.length != 0)
+				this.referencedContinueLabels.add(continueStatement);
+			return true;
+		}
+		@Override
+		public boolean visit(LabeledStatement stmt, BlockScope blockScope) {
+			if (stmt.label != null && stmt.label.length != 0)
+				this.labelDecls.add(new String(stmt.label));
+			return true;
+		}
+		@Override
+		public boolean visit(TypeDeclaration stmt, BlockScope blockScope) {
+			return false;
+		}
+	}
 	@Override
 	public TypeBinding resolveType(BlockScope upperScope) {
+		return resolveTypeInternal(upperScope);
+	}
+	public TypeBinding resolveTypeInternal(BlockScope upperScope) {
 		try {
 			int resultExpressionsCount;
 			if (this.constant != Constant.NotAConstant) {
 				this.constant = Constant.NotAConstant;
-	
-				// A switch expression is a poly expression if it appears in an assignment context or an invocation context (5.2, 5.3). 
+
+				// A switch expression is a poly expression if it appears in an assignment context or an invocation context (5.2, 5.3).
 				// Otherwise, it is a standalone expression.
 				if (this.expressionContext == ASSIGNMENT_CONTEXT || this.expressionContext == INVOCATION_CONTEXT) {
 					for (Expression e : this.resultExpressions) {
@@ -288,23 +451,24 @@ public class SwitchExpression extends SwitchStatement implements IPolyExpression
 						e.setExpectedType(this.expectedType);
 					}
 				}
-	
+
 				resolve(upperScope);
-	
+
 				if (this.statements == null || this.statements.length == 0) {
 					//	Report Error JLS 13 15.28.1  The switch block must not be empty.
 					upperScope.problemReporter().switchExpressionEmptySwitchBlock(this);
 					return null;
 				}
-				
+
 				resultExpressionsCount = this.resultExpressions != null ? this.resultExpressions.size() : 0;
 				if (resultExpressionsCount == 0) {
-					//  Report Error JLS 13 15.28.1 
+					//  Report Error JLS 13 15.28.1
 					// It is a compile-time error if a switch expression has no result expressions.
 					upperScope.problemReporter().switchExpressionNoResultExpressions(this);
 					return null;
 				}
-	
+				this.traverse(new OOBLFlagger(this), upperScope);
+
 				if (this.originalValueResultExpressionTypes == null) {
 					this.originalValueResultExpressionTypes = new TypeBinding[resultExpressionsCount];
 					this.finalValueResultExpressionTypes = new TypeBinding[resultExpressionsCount];
@@ -323,10 +487,12 @@ public class SwitchExpression extends SwitchStatement implements IPolyExpression
 			} else {
 				// re-resolving of poly expression:
 				resultExpressionsCount = this.resultExpressions != null ? this.resultExpressions.size() : 0;
+				if (resultExpressionsCount == 0)
+					return this.resolvedType = null; // error flagging would have been done during the earlier phase.
 				for (int i = 0; i < resultExpressionsCount; i++) {
 					Expression resultExpr = this.resultExpressions.get(i);
 					if (resultExpr.resolvedType == null || resultExpr.resolvedType.kind() == Binding.POLY_TYPE) {
-						this.finalValueResultExpressionTypes[i] = this.originalValueResultExpressionTypes[i] = 
+						this.finalValueResultExpressionTypes[i] = this.originalValueResultExpressionTypes[i] =
 							resultExpr.resolveTypeExpecting(upperScope, this.expectedType);
 					}
 					// This is a kludge and only way completion can tell this node to resolve all
@@ -352,7 +518,7 @@ public class SwitchExpression extends SwitchStatement implements IPolyExpression
 					break;
 				}
 			}
-			// If the result expressions all have the same type (which may be the null type), 
+			// If the result expressions all have the same type (which may be the null type),
 			// then that is the type of the switch expression.
 			if (typeUniformAcrossAllArms) {
 				tmp = this.originalValueResultExpressionTypes[0];
@@ -362,7 +528,7 @@ public class SwitchExpression extends SwitchStatement implements IPolyExpression
 				}
 				return this.resolvedType = tmp;
 			}
-			
+
 			boolean typeBbolean = true;
 			for (TypeBinding t : this.originalValueResultExpressionTypes) {
 				if (t != null)
@@ -376,6 +542,7 @@ public class SwitchExpression extends SwitchStatement implements IPolyExpression
 			 */
 			if (typeBbolean) {
 				for (int i = 0; i < resultExpressionsCount; ++i) {
+					if (this.originalValueResultExpressionTypes[i] == null) continue;
 					if (this.originalValueResultExpressionTypes[i].id == T_boolean) continue;
 					this.finalValueResultExpressionTypes[i] = env.computeBoxingType(this.originalValueResultExpressionTypes[i]);
 					this.resultExpressions.get(i).computeConversion(this.scope, this.finalValueResultExpressionTypes[i], this.originalValueResultExpressionTypes[i]);
@@ -411,7 +578,7 @@ public class SwitchExpression extends SwitchStatement implements IPolyExpression
 				 *  are widened to double.
 				 *  Otherwise, if any result expression is of type float, then other result expressions that are not of
 				 *  type float are widened to float.
-				 *  Otherwise, if any result expression is of type long, then other result expressions that are not of 
+				 *  Otherwise, if any result expression is of type long, then other result expressions that are not of
 				 *  type long are widened to long.
 				 */
 				TypeBinding[] dfl = new TypeBinding[]{// do not change the order JLS 13 5.6
@@ -432,13 +599,13 @@ public class SwitchExpression extends SwitchStatement implements IPolyExpression
 				 * a standalone switch expression where all the result expressions are convertible to a numeric type.]
 				 */
 
-				 /*  Otherwise, if any result expression is of type int and is not a constant expression, the other 
+				 /*  Otherwise, if any result expression is of type int and is not a constant expression, the other
 				 *  result expressions that are not of type int are widened to int.
 				 */
 				resultNumeric = resultNumeric != null ? resultNumeric : check_nonconstant_int();
 
 				resultNumeric = resultNumeric != null ? resultNumeric : // one among the first few rules applied.
-					getResultNumeric(typeSet, this.originalValueResultExpressionTypes); // check the rest
+					getResultNumeric(typeSet); // check the rest
 				typeSet = null; // hey gc!
 				for (int i = 0; i < resultExpressionsCount; ++i) {
 					this.resultExpressions.get(i).computeConversion(this.scope,
@@ -507,6 +674,21 @@ public class SwitchExpression extends SwitchStatement implements IPolyExpression
 		computeNullStatus(flowInfo, flowContext);
 		return flowInfo;
 	}
+	@Override
+	protected void addSecretTryResultVariable() {
+		if (this.containsTry) {
+			this.hiddenYield =
+					new LocalVariableBinding(
+						SwitchExpression.SECRET_YIELD_VALUE_NAME,
+						null,
+						ClassFileConstants.AccDefault,
+						false);
+			this.hiddenYield.setConstant(Constant.NotAConstant);
+			this.hiddenYield.useFlag = LocalVariableBinding.USED;
+			this.scope.addLocalVariable(this.hiddenYield);
+			this.hiddenYield.declaration = new LocalDeclaration(SECRET_YIELD_VALUE_NAME, 0, 0);
+		}
+	}
 	private TypeBinding check_csb(Set<TypeBinding> typeSet, TypeBinding candidate) {
 		if (!typeSet.contains(candidate))
 			return null;
@@ -520,17 +702,17 @@ public class SwitchExpression extends SwitchStatement implements IPolyExpression
 		return areAllIntegerResultExpressionsConvertibleToTargetType(candidate) ?
 				candidate : null;
 	}
-	private TypeBinding getResultNumeric(Set<TypeBinding> typeSet, TypeBinding[] armTypes) {
-		// note: if an expression has a type integer, then it will be a constant 
+	private TypeBinding getResultNumeric(Set<TypeBinding> typeSet) {
+		// note: if an expression has a type integer, then it will be a constant
 		// since non-constant integers are already processed before reaching here.
 
 		/* Otherwise, if any expression is of type short, and every other expression is either of type short,
 		 * or of type byte, or a constant expression of type int with a value that is representable in the
-		 * type short, then T is short, the byte expressions undergo widening primitive conversion to short, 
+		 * type short, then T is short, the byte expressions undergo widening primitive conversion to short,
 		 * and the int expressions undergo narrowing primitive conversion to short.\
 		 *
 		 * Otherwise, if any expression is of type byte, and every other expression is either of type byte or a
-		 * constant expression of type int with a value that is representable in the type byte, then T is byte 
+		 * constant expression of type int with a value that is representable in the type byte, then T is byte
 		 * and the int expressions undergo narrowing primitive conversion to byte.
 		 *
 		 * Otherwise, if any expression is of type char, and every other expression is either of type char or a
@@ -557,7 +739,7 @@ public class SwitchExpression extends SwitchStatement implements IPolyExpression
 			return true;
 		// JLS 13 15.28.1 A switch expression is a poly expression if it appears in an assignment context or
 		// an invocation context (5.2, 5.3). Otherwise, it is a standalone expression.
-		return this.isPolyExpression = this.expressionContext == ASSIGNMENT_CONTEXT || 
+		return this.isPolyExpression = this.expressionContext == ASSIGNMENT_CONTEXT ||
 				this.expressionContext == INVOCATION_CONTEXT;
 	}
 	@Override

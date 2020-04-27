@@ -1,5 +1,5 @@
 /*******************************************************************************
- *  * Copyright (c) 2000, 2017 IBM Corporation and others.
+ *  * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -51,7 +51,9 @@ public class MethodScope extends BlockScope {
 	// note that #initializedField can be null AND lastVisibleFieldID >= 0, when processing instance field initializers.
 
 	// flow analysis
-	public int analysisIndex; // for setting flow-analysis id
+	/* By specifying {@code -Djdt.flow.test.extra=true} tests can push all flow analysis into the extra bits of UnconditionalFlowInfo. */
+	private static int baseAnalysisIndex = 0;
+	public int analysisIndex = baseAnalysisIndex; // for setting flow-analysis id
 	public boolean isPropagatingInnerClassEmulation;
 
 	// for local variables table attributes
@@ -64,6 +66,13 @@ public class MethodScope extends BlockScope {
 
 	// remember suppressed warning re missing 'default:' to give hints on possibly related flow problems
 	public boolean hasMissingSwitchDefault; // TODO(stephan): combine flags to a bitset?
+
+	static {
+		if (Boolean.getBoolean("jdt.flow.test.extra")) { //$NON-NLS-1$
+			baseAnalysisIndex = 64;
+			System.out.println("JDT/Core testing with -Djdt.flow.test.extra=true"); //$NON-NLS-1$
+		}
+	}
 
 public MethodScope(Scope parent, ReferenceContext context, boolean isStatic) {
 	super(METHOD_SCOPE, parent);
@@ -143,6 +152,10 @@ private void checkAndSetModifiersForConstructor(MethodBinding methodBinding) {
 	} else if ((((AbstractMethodDeclaration) this.referenceContext).modifiers & ClassFileConstants.AccStrictfp) != 0) {
 		// must check the parse node explicitly
 		problemReporter().illegalModifierForMethod((AbstractMethodDeclaration) this.referenceContext);
+	} else if (this.referenceContext instanceof CompactConstructorDeclaration) {
+		if ((((AbstractMethodDeclaration) this.referenceContext).modifiers & ClassFileConstants.AccPublic) == 0) {
+			problemReporter().recordCanonicalConstructorNotPublic((AbstractMethodDeclaration) this.referenceContext);
+		}
 	}
 
 	// check for incompatible modifiers in the visibility bits, isolate the visibility bits
@@ -200,7 +213,7 @@ private void checkAndSetModifiersForMethod(MethodBinding methodBinding) {
 			}
 			if (reportIllegalModifierCombination) {
 				problemReporter().illegalModifierCombinationForInterfaceMethod((AbstractMethodDeclaration) this.referenceContext);
-			} 
+			}
 			if (sourceLevel >= ClassFileConstants.JDK9 && (methodBinding.modifiers & ClassFileConstants.AccPrivate) != 0) {
 				int remaining = realModifiers & ~expectedModifiers;
 				if (remaining == 0) { // check for the combination of allowed modifiers with private
@@ -229,7 +242,7 @@ private void checkAndSetModifiersForMethod(MethodBinding methodBinding) {
 		LocalTypeBinding local = (LocalTypeBinding) declaringClass;
 		TypeReference ref = local.scope.referenceContext.allocation.type;
 		if (ref != null && (ref.bits & ASTNode.IsDiamond) != 0) {
-			// 
+			//
 			if ((realModifiers & (ClassFileConstants.AccPrivate | ClassFileConstants.AccStatic )) == 0) {
 				methodBinding.tagBits |= TagBits.AnnotationOverride;
 			}
@@ -427,7 +440,14 @@ MethodBinding createMethod(AbstractMethodDeclaration method) {
 		method.binding.typeVariables = createTypeVariables(typeParameters, method.binding);
 		method.binding.modifiers |= ExtraCompilerModifiers.AccGenericSignature;
 	}
+    checkAndSetRecordCanonicalConsAndMethods(method);
 	return method.binding;
+}
+private void checkAndSetRecordCanonicalConsAndMethods(AbstractMethodDeclaration am) {
+	if (am.binding != null && (am.bits & ASTNode.IsImplicit) != 0) {
+		am.binding.tagBits |= TagBits.isImplicit;
+		am.binding.tagBits |= (am.bits & ASTNode.IsCanonicalConstructor) != 0 ? TagBits.IsCanonicalConstructor : 0;
+	}
 }
 
 /**

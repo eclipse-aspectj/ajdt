@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -2491,6 +2491,7 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 		defaultOptionsMap.put(JavaCore.CODEASSIST_DISCOURAGED_REFERENCE_CHECK, JavaCore.DISABLED);
 		defaultOptionsMap.put(JavaCore.CODEASSIST_CAMEL_CASE_MATCH, JavaCore.ENABLED);
 		defaultOptionsMap.put(JavaCore.CODEASSIST_SUBSTRING_MATCH, JavaCore.ENABLED);
+		defaultOptionsMap.put(JavaCore.CODEASSIST_SUBWORD_MATCH, JavaCore.ENABLED);
 		defaultOptionsMap.put(JavaCore.CODEASSIST_SUGGEST_STATIC_IMPORTS, JavaCore.ENABLED);
 
 		// Time out for parameter names
@@ -5399,7 +5400,7 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 					| IResourceChangeEvent.PRE_DELETE
 					| IResourceChangeEvent.PRE_CLOSE
 					| IResourceChangeEvent.PRE_REFRESH);
-			
+
 			// New index is disabled, see bug 544898
 			// Indexer.getInstance().addListener(this.deltaState);
 

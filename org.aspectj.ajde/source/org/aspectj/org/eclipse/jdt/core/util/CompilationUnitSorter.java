@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2019 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -24,6 +24,7 @@ import org.aspectj.org.eclipse.jdt.core.JavaModelException;
 import org.aspectj.org.eclipse.jdt.core.dom.AST;
 import org.aspectj.org.eclipse.jdt.core.dom.CompilationUnit;
 import org.aspectj.org.eclipse.jdt.internal.core.SortElementsOperation;
+import org.aspectj.org.eclipse.jdt.internal.core.dom.util.DOMASTUtil;
 import org.eclipse.text.edits.TextEdit;
 import org.eclipse.text.edits.TextEditGroup;
 
@@ -50,17 +51,7 @@ public final class CompilationUnitSorter {
      * @deprecated marking deprecated as it is using deprecated code
      */
     private static void checkASTLevel(int level) {
-        switch (level) {
-        case AST.JLS2 :
-        case AST.JLS3 :
-        case AST.JLS4 :
-        case AST.JLS8 :
-        case AST.JLS9 :
-        case AST.JLS10 :
-            break;
-        default :
-            throw new IllegalArgumentException();
-        }
+        DOMASTUtil.checkASTLevel(level);
     }
 
 	/**

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 IBM Corporation and others.
+ * Copyright (c) 2019, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -30,23 +30,21 @@ import java.util.List;
  * <code>SwitchCase</code> nodes are treated as a kind of
  * <code>Statement</code>.
  *
- * @since 3.18
- * @noinstantiate This class is not intended to be instantiated by clients.
- * @noreference This method is not intended to be referenced by clients as it is a part of Java preview feature.
+ * @since 3.22
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class SwitchExpression extends Expression {
 
 	/**
 	 * The "expression" structural property of this node type (child type: {@link Expression}).
-	 * @since 3.16
+	 * @since 3.22
 	 */
 	public static final ChildPropertyDescriptor EXPRESSION_PROPERTY =
 		new ChildPropertyDescriptor(SwitchExpression.class, "expression", Expression.class, MANDATORY, CYCLE_RISK); //$NON-NLS-1$
 
 	/**
 	 * The "statements" structural property of this node type (element type: {@link Statement}).
-	 * @since 3.16
+	 * @since 3.22
 	 */
 	public static final ChildListPropertyDescriptor STATEMENTS_PROPERTY =
 		new ChildListPropertyDescriptor(SwitchExpression.class, "statements", Statement.class, CYCLE_RISK); //$NON-NLS-1$
@@ -74,29 +72,10 @@ public class SwitchExpression extends Expression {
 	 * <code>AST.JLS*</code> constants
 	 * @return a list of property descriptors (element type:
 	 * {@link StructuralPropertyDescriptor})
-	 * @since 3.16
+	 * @since 3.22
 	 */
 	public static List propertyDescriptors(int apiLevel) {
-		return propertyDescriptors(apiLevel, false);
-	}
-	
-		/**
-	 * Returns a list of structural property descriptors for this node type.
-	 * Clients must not modify the result.
-	 *
-	 * @param apiLevel the API level; one of the
-	 * <code>AST.JLS*</code> constants
-	 * @param previewEnabled previewEnabled flag
-	 * @return a list of property descriptors (element type:
-	 * {@link StructuralPropertyDescriptor})
-	 * @noreference This method is not intended to be referenced by clients.
-	 * @since 3.20
-	 */
-	public static List propertyDescriptors(int apiLevel, boolean previewEnabled) {
-		if (apiLevel == AST.JLS13_INTERNAL && previewEnabled) {
-			return PROPERTY_DESCRIPTORS;
-		}
-		return null;
+		return PROPERTY_DESCRIPTORS;
 	}
 
 	/**
@@ -122,23 +101,16 @@ public class SwitchExpression extends Expression {
 	 * </p>
 	 *
 	 * @param ast the AST that is to own this node
-	 * @exception UnsupportedOperationException if this operation is used other than JLS13
-	 * @exception UnsupportedOperationException if this expression is used with previewEnabled flag as false
+	 * @exception UnsupportedOperationException if this operation is used below JLS14
 	 */
 	SwitchExpression(AST ast) {
 		super(ast);
-		supportedOnlyIn13();
-		unsupportedWithoutPreviewError();
+		unsupportedBelow14();
 	}
 
 	@Override
 	final List internalStructuralPropertiesForType(int apiLevel) {
 		return propertyDescriptors(apiLevel);
-	}
-	
-	@Override
-	final List internalStructuralPropertiesForType(int apiLevel, boolean previewEnabled) {
-		return propertyDescriptors(apiLevel, previewEnabled);
 	}
 
 	@Override
@@ -199,6 +171,7 @@ public class SwitchExpression extends Expression {
 	 * Returns the expression of this switch statement.
 	 *
 	 * @return the expression node
+	 * @since 3.22
 	 */
 	public Expression getExpression() {
 		if (this.expression == null) {
@@ -224,6 +197,7 @@ public class SwitchExpression extends Expression {
 	 * <li>the node already has a parent</li>
 	 * <li>a cycle in would be created</li>
 	 * </ul>
+	 * @since 3.22
 	 */
 	public void setExpression(Expression expression) {
 		if (expression == null) {
@@ -242,6 +216,7 @@ public class SwitchExpression extends Expression {
 	 *
 	 * @return the live list of statement nodes
 	 *    (element type: {@link Statement})
+	 * @since 3.22
 	 */
 	public List statements() {
 		return this.statements;

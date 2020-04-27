@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2019 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -174,15 +174,26 @@ public final class Flags {
 	 * @since 3.10
 	 */
 	public static final int AccAnnotationDefault = ClassFileConstants.AccAnnotationDefault;
-	
+
 	/**
 	 * Module declaration property flag.
 	 * Used to flag a compilation unit or a class file that contains a module declaration.
-	 * 
+	 *
 	 * @since 3.14
 	 */
 	public static final int AccModule = ClassFileConstants.AccModule;
-	
+
+	/**
+	 * Record property flag.
+	 * <p>
+	 * Note that this flag's value is internal and is not defined in the
+	 * Virtual Machine specification.
+	 * </p>
+	 * @since 3.22
+	 * @noreference This field is not intended to be referenced by clients as it is a part of Java preview feature.
+	 */
+	public static final int  AccRecord = ExtraCompilerModifiers.AccRecord;
+
 	/**
 	 * Not instantiable.
 	 */
@@ -380,6 +391,19 @@ public final class Flags {
 	}
 
 	/**
+	  * Returns whether the given integer has the <code>AccRecord</code>
+	 * bit set.
+	 *
+	 * @param flags the flags
+	 * @return <code>true</code> if the <code>AccRecord</code> flag is included
+	 * @see #AccRecord
+	 * @noreference This method is not intended to be referenced by clients as it is a part of Java preview feature.
+	 */
+	public static boolean isRecord(int flags) {
+		return (flags & AccRecord) != 0;
+	}
+
+	/**
 	 * Returns whether the given integer has the <code>AccAnnotation</code>
 	 * bit set.
 	 *
@@ -416,7 +440,7 @@ public final class Flags {
 	public static boolean isAnnnotationDefault(int flags) {
 		return (flags & AccAnnotationDefault) != 0;
 	}
-	
+
 	/**
 	 * Returns whether the given integer has the <code>AccModule</code>
 	 * bit set.
@@ -424,7 +448,7 @@ public final class Flags {
 	 * @return <code>true</code> if the <code>AccModule</code> flag is included
 	 * @see #AccModule
 	 * @since 3.14
-	 */	
+	 */
 	public static boolean isModule(int flags) {
 		return (flags & AccModule) != 0;
 	}

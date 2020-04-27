@@ -127,14 +127,14 @@ public class DefaultCodeFormatter extends CodeFormatter {
 			this.workingOptions = new DefaultCodeFormatterOptions(options);
 			this.oldCommentFormatOption = getOldCommentFormatOption(options);
 			String compilerSource = options.get(CompilerOptions.OPTION_Source);
-			this.sourceLevel = compilerSource != null ? compilerSource : CompilerOptions.VERSION_13;
+			this.sourceLevel = compilerSource != null ? compilerSource : CompilerOptions.VERSION_14;
 			this.previewEnabled = JavaCore.ENABLED.equals(options.get(JavaCore.COMPILER_PB_ENABLE_PREVIEW_FEATURES));
 		} else {
 			Map<String, String> settings = DefaultCodeFormatterConstants.getJavaConventionsSettings();
 			this.originalOptions = new DefaultCodeFormatterOptions(settings);
 			this.workingOptions = new DefaultCodeFormatterOptions(settings);
 			this.oldCommentFormatOption = DefaultCodeFormatterConstants.TRUE;
-			this.sourceLevel = CompilerOptions.VERSION_13;
+			this.sourceLevel = CompilerOptions.VERSION_14;
 		}
 		if (defaultCodeFormatterOptions != null) {
 			this.originalOptions.set(defaultCodeFormatterOptions.getMap());
@@ -325,7 +325,7 @@ public class DefaultCodeFormatter extends CodeFormatter {
 		for (int kindToTry : kindsToTry) {
 			ASTNode astNode = createParser(kindToTry).createAST(null);
 			if (!hasErrors(astNode)) {
-				if (kindToTry == K_MODULE_INFO) 
+				if (kindToTry == K_MODULE_INFO)
 					tokenizeSource(kindToTry); // run scanner again to get module specific tokens
 				return astNode;
 			}
@@ -334,7 +334,7 @@ public class DefaultCodeFormatter extends CodeFormatter {
 	}
 
 	private ASTParser createParser(int kind) {
-		ASTParser parser = ASTParser.newParser(AST.JLS13);
+		ASTParser parser = ASTParser.newParser(AST.JLS14);
 
 		if (kind == K_MODULE_INFO) {
 			parser.setSource(createDummyModuleInfoCompilationUnit());
@@ -416,7 +416,7 @@ public class DefaultCodeFormatter extends CodeFormatter {
 	private void prepareLineBreaks() {
 		LineBreaksPreparator breaksPreparator = new LineBreaksPreparator(this.tokenManager, this.workingOptions);
 		this.astRoot.accept(breaksPreparator);
-		breaksPreparator.finishUp();
+		breaksPreparator.finishUp(this.formatRegions);
 		this.astRoot.accept(new OneLineEnforcer(this.tokenManager, this.workingOptions));
 	}
 

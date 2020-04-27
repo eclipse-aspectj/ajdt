@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Archiver-Version: Plexus Archiver
 Created-By: Apache Maven
 Built-By: aclement
-Build-Jdk: 1.8.0_192
+Build-Jdk: 1.8.0_241
 Agent-Class: org.aspectj.weaver.loadtime.Agent
 Automatic-Module-Name: org.aspectj.weaver
 Can-Redefine-Classes: true

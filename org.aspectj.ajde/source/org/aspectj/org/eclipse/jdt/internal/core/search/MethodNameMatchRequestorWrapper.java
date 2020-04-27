@@ -36,7 +36,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.env.AccessRestriction;
  * IJavaSearchScope scope,
  * IRestrictedAccessMethodRequestor methodRequestor,
  * int waitingPolicy,
- * IProgressMonitor progressMonitor)} from  API method 
+ * IProgressMonitor progressMonitor)} from  API method
  * {@link org.aspectj.org.eclipse.jdt.core.search.SearchEngine#searchAllMethodNames(
  * char[] packageName,
  * int pkgMatchRule,

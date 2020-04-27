@@ -120,6 +120,7 @@ public class TypeParameter extends AbstractVariableDeclaration {
 				scope.problemReporter().varIsNotAllowedHere(this);
 			}
 		}
+		RecordDeclaration.checkAndFlagRecordNameErrors(this.name, this, scope);
 	}
 
 	@Override
@@ -166,7 +167,7 @@ public class TypeParameter extends AbstractVariableDeclaration {
 					this.binding.evaluateNullAnnotations(scope, this);
 				}
 			}
-		}	
+		}
 	}
 
 	@Override

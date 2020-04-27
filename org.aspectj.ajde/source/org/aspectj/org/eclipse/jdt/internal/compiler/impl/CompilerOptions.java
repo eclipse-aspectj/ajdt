@@ -195,6 +195,7 @@ public class CompilerOptions {
 	public static final String OPTION_ReportNonnullParameterAnnotationDropped = "org.eclipse.jdt.core.compiler.problem.nonnullParameterAnnotationDropped";  //$NON-NLS-1$
 	public static final String OPTION_PessimisticNullAnalysisForFreeTypeVariables = "org.eclipse.jdt.core.compiler.problem.pessimisticNullAnalysisForFreeTypeVariables";  //$NON-NLS-1$
 	public static final String OPTION_ReportNonNullTypeVariableFromLegacyInvocation = "org.eclipse.jdt.core.compiler.problem.nonnullTypeVariableFromLegacyInvocation"; //$NON-NLS-1$
+	public static final String OPTION_ReportAnnotatedTypeArgumentToUnannotated = "org.eclipse.jdt.core.compiler.problem.annotatedTypeArgumentToUnannotated"; //$NON-NLS-1$
 	
 	public static final String OPTION_ReportUnlikelyCollectionMethodArgumentType = "org.eclipse.jdt.core.compiler.problem.unlikelyCollectionMethodArgumentType"; //$NON-NLS-1$
 	public static final String OPTION_ReportUnlikelyCollectionMethodArgumentTypeStrict = "org.eclipse.jdt.core.compiler.problem.unlikelyCollectionMethodArgumentTypeStrict"; //$NON-NLS-1$
@@ -233,6 +234,7 @@ public class CompilerOptions {
 	public static final String VERSION_11 = "11"; //$NON-NLS-1$
 	public static final String VERSION_12 = "12"; //$NON-NLS-1$
 	public static final String VERSION_13 = "13"; //$NON-NLS-1$
+	public static final String VERSION_14 = "14"; //$NON-NLS-1$
 	/*
 	 * Note: Whenever a new version is added, make sure getLatestVersion()
 	 * is updated with it.
@@ -348,6 +350,7 @@ public class CompilerOptions {
 	public static final int UnstableAutoModuleName = IrritantSet.GROUP2 | ASTNode.Bit26;
 	public static final int PreviewFeatureUsed = IrritantSet.GROUP2 | ASTNode.Bit27;
 	public static final int SuppressWarningsNotAnalysed = IrritantSet.GROUP2 | ASTNode.Bit28;
+	public static final int AnnotatedTypeArgumentToUnannotated = IrritantSet.GROUP2 | ASTNode.Bit29;
 
 	// AspectJ Extension
 	// Not sure we need this anymore...
@@ -610,7 +613,7 @@ public class CompilerOptions {
 	 * Return the latest Java language version supported by the Eclipse compiler
 	 */
 	public static String getLatestVersion() {
-		return VERSION_13;
+		return VERSION_14;
 	}
 	/**
 	 * Return the most specific option key controlling this irritant. Note that in some case, some irritant is controlled by
@@ -780,6 +783,8 @@ public class CompilerOptions {
 				return OPTION_PessimisticNullAnalysisForFreeTypeVariables;
 			case NonNullTypeVariableFromLegacyInvocation:
 				return OPTION_ReportNonNullTypeVariableFromLegacyInvocation;
+			case AnnotatedTypeArgumentToUnannotated:
+				return OPTION_ReportAnnotatedTypeArgumentToUnannotated;
 			case UnlikelyCollectionMethodArgumentType:
 				return OPTION_ReportUnlikelyCollectionMethodArgumentType;
 			case UnlikelyEqualsArgumentType:
@@ -1029,6 +1034,7 @@ public class CompilerOptions {
 			OPTION_ReportUnusedTypeParameter,
 			OPTION_InheritNullAnnotations,
 			OPTION_ReportNonnullParameterAnnotationDropped,
+			OPTION_ReportAnnotatedTypeArgumentToUnannotated,
 			OPTION_ReportUnlikelyCollectionMethodArgumentType,
 			OPTION_ReportUnlikelyEqualsArgumentType,
 			OPTION_ReportAPILeak,
@@ -1110,6 +1116,7 @@ public class CompilerOptions {
 			case NonnullParameterAnnotationDropped:
 			case PessimisticNullAnalysisForFreeTypeVariables:
 			case NonNullTypeVariableFromLegacyInvocation:
+			case AnnotatedTypeArgumentToUnannotated:
 				return "null"; //$NON-NLS-1$
 			case FallthroughCase :
 				return "fallthrough"; //$NON-NLS-1$
@@ -1381,6 +1388,7 @@ public class CompilerOptions {
 		optionsMap.put(OPTION_ReportUninternedIdentityComparison, this.complainOnUninternedIdentityComparison ? ENABLED : DISABLED);
 		optionsMap.put(OPTION_PessimisticNullAnalysisForFreeTypeVariables, getSeverityString(PessimisticNullAnalysisForFreeTypeVariables));
 		optionsMap.put(OPTION_ReportNonNullTypeVariableFromLegacyInvocation, getSeverityString(NonNullTypeVariableFromLegacyInvocation));
+		optionsMap.put(OPTION_ReportAnnotatedTypeArgumentToUnannotated, getSeverityString(AnnotatedTypeArgumentToUnannotated));
 		optionsMap.put(OPTION_ReportUnlikelyCollectionMethodArgumentType, getSeverityString(UnlikelyCollectionMethodArgumentType));
 		optionsMap.put(OPTION_ReportUnlikelyCollectionMethodArgumentTypeStrict, this.reportUnlikelyCollectionMethodArgumentTypeStrict ? ENABLED : DISABLED);
 		optionsMap.put(OPTION_ReportUnlikelyEqualsArgumentType, getSeverityString(UnlikelyEqualsArgumentType));
@@ -1959,6 +1967,7 @@ public class CompilerOptions {
 				this.inheritNullAnnotations = ENABLED.equals(optionValue);
 			}
 			if ((optionValue = optionsMap.get(OPTION_ReportNonnullParameterAnnotationDropped)) != null) updateSeverity(NonnullParameterAnnotationDropped, optionValue);
+			if ((optionValue = optionsMap.get(OPTION_ReportAnnotatedTypeArgumentToUnannotated)) != null) updateSeverity(AnnotatedTypeArgumentToUnannotated, optionValue);
 			if ((optionValue = optionsMap.get(OPTION_PessimisticNullAnalysisForFreeTypeVariables)) != null) updateSeverity(PessimisticNullAnalysisForFreeTypeVariables, optionValue);
 			if (getSeverity(PessimisticNullAnalysisForFreeTypeVariables) == ProblemSeverities.Ignore) {
 				this.pessimisticNullAnalysisForFreeTypeVariablesEnabled = false;

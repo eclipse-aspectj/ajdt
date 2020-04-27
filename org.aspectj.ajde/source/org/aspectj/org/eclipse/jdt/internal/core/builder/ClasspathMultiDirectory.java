@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -58,7 +58,7 @@ public boolean equals(Object o) {
 //	if (this.module != md.module)
 //		if (this.module == null || !this.module.equals(md.module))
 //			return false;
-	return this.ignoreOptionalProblems == md.ignoreOptionalProblems 
+	return this.ignoreOptionalProblems == md.ignoreOptionalProblems
 		&& this.sourceFolder.equals(md.sourceFolder) && this.binaryFolder.equals(md.binaryFolder)
 		&& CharOperation.equals(this.inclusionPatterns, md.inclusionPatterns)
 		&& CharOperation.equals(this.exclusionPatterns, md.exclusionPatterns);
@@ -82,17 +82,20 @@ String[] directoryList(String qualifiedPackageName) {
 			IResource[] members = ((IContainer) container).members();
 			dirList = new String[members.length];
 			int index = 0;
+			boolean foundClass = false;
 			if (members.length > 0) {
 				for (int i = 0, l = members.length; i < l; i++) {
 					IResource m = members[i];
 					String name = m.getName();
-					if (m.getType() == IResource.FILE && org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.isClassFileName(name)) {
+					boolean isClass = m.getType() == IResource.FILE && org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.isClassFileName(name);
+					if (m.getType() == IResource.FOLDER || isClass) {
 						// add exclusion pattern check here if we want to hide .class files
 						dirList[index++] = name;
+						foundClass |= isClass;
 					}
 				}
 			}
-			if(index==0) {
+			if(!foundClass) {
 				container = this.sourceFolder.findMember(qualifiedPackageName);
 				if (container instanceof IContainer) {
 					members = ((IContainer) container).members();
@@ -102,7 +105,8 @@ String[] directoryList(String qualifiedPackageName) {
 						for (int i = 0, l = members.length; i < l; i++) {
 							IResource m = members[i];
 							String name = m.getName();
-							if (m.getType() == IResource.FILE && org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.isJavaFileName(name)) {
+							if (m.getType() == IResource.FOLDER
+									|| (m.getType() == IResource.FILE && org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.isJavaFileName(name))) {
 								// FIXME: check if .java file has any declarations?
 								dirList[index++] = name;
 							}

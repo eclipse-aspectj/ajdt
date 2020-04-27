@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -87,6 +87,15 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 	} finally {
 		// account for exception possibly thrown by arithmetics
 		flowContext.recordAbruptExit();
+	}
+}
+
+@Override
+protected void updateFlowOnBooleanResult(FlowInfo flowInfo, boolean result) {
+	int operator = (this.bits & OperatorMASK) >> OperatorSHIFT;
+	if (result ? operator == AND_AND : operator == OR_OR) {
+		this.left.updateFlowOnBooleanResult(flowInfo, result);
+		this.right.updateFlowOnBooleanResult(flowInfo, result);
 	}
 }
 
@@ -1802,6 +1811,15 @@ public StringBuffer printExpressionNoParenthesis(int indent, StringBuffer output
 	return this.right.printExpression(0, output);
 }
 
+@Override
+public void initializePatternVariables(BlockScope scope, CodeStream codeStream) {
+	this.left.initializePatternVariables(scope, codeStream);
+	this.right.initializePatternVariables(scope, codeStream);
+}
+@Override
+public boolean containsPatternVariable() {
+	return this.left.containsPatternVariable() || this.right.containsPatternVariable();
+}
 @Override
 public TypeBinding resolveType(BlockScope scope) {
 	// keep implementation in sync with CombinedBinaryExpression#resolveType

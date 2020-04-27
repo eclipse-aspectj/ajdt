@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2018 IBM Corporation and others.
+ * Copyright (c) 2015, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -45,9 +45,9 @@ import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
 public class JrtPackageFragmentRoot extends JarPackageFragmentRoot implements IModulePathEntry {
 
 	String moduleName;
-	
+
 	public static final ThreadLocal<Boolean> workingOnOldClasspath = new ThreadLocal<>();
-	
+
 	/**
 	 * Constructs a package fragment root which represents a module
 	 * contained in a JRT.
@@ -155,7 +155,7 @@ public class JrtPackageFragmentRoot extends JarPackageFragmentRoot implements IM
 		}
 		return null;
 	}
-	
+
 	@Override
 	protected boolean isComplianceJava9OrHigher() {
 		return true;

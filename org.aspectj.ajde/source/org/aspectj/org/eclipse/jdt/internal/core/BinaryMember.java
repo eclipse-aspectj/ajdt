@@ -32,7 +32,7 @@ import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
  */
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public abstract class BinaryMember extends NamedMember {
-		
+
 /*
  * Constructs a binary member.
  */

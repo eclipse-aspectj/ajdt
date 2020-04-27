@@ -18,6 +18,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ServiceConfigurationError;
@@ -116,9 +117,7 @@ public class BatchAnnotationProcessorManager extends BaseAnnotationProcessorMana
 			else if ("-processor".equals(option)) { //$NON-NLS-1$
 				commandLineProcessors = new ArrayList<>();
 				String procs = commandLineArguments[++i];
-				for (String proc : procs.split(",")) { //$NON-NLS-1$
-					commandLineProcessors.add(proc);
-				}
+				commandLineProcessors.addAll(Arrays.asList(procs.split(","))); //$NON-NLS-1$
 				break;
 			}
 		}

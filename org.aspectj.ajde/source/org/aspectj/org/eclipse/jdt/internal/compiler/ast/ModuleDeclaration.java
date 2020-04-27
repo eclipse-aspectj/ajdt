@@ -7,10 +7,10 @@
  * https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     
+ *
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
@@ -31,12 +31,11 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.CompilationResult;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.ReferenceContext;
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BlockScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.CompilationUnitScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ExtraCompilerModifiers;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment;
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ModuleBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ModuleScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.PlainPackageBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Scope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.SourceModuleBinding;
@@ -45,7 +44,6 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.problem.AbortCompilation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.AbortCompilationUnit;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.AbortMethod;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.AbortType;
-import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.HashtableOfObject;
 
 public class ModuleDeclaration extends ASTNode implements ReferenceContext {
@@ -67,7 +65,7 @@ public class ModuleDeclaration extends ASTNode implements ReferenceContext {
 	public int bodyStart;
 	public int bodyEnd; // doesn't include the trailing comment if any.
 	public int modifiersSourceStart;
-	public BlockScope scope;
+	public ModuleScope scope;
 	public char[][] tokens;
 	public char[] moduleName;
 	public long[] sourcePositions;
@@ -110,21 +108,7 @@ public class ModuleDeclaration extends ASTNode implements ReferenceContext {
 	}
 
 	public void createScope(final Scope parentScope) {
-		this.scope = new MethodScope(parentScope, null, true) {
-			@Override
-			public ProblemReporter problemReporter() {
-				// this method scope has no reference context so we better deletegate to the 'real' cuScope:
-				return parentScope.problemReporter();
-			}
-			@Override
-			public ReferenceContext referenceContext() {
-				return ModuleDeclaration.this;
-			}
-			@Override
-			public boolean isModuleScope() {
-				return true;
-			}
-		};
+		this.scope = new ModuleScope(parentScope, this);
 	}
 
 	public void generateCode() {
@@ -277,13 +261,13 @@ public class ModuleDeclaration extends ASTNode implements ReferenceContext {
 			}
 		}
 		this.binding.setUses(allTypes.toArray(new TypeBinding[allTypes.size()]));
-		
+
 		Set<TypeBinding> interfaces = new HashSet<>();
 		for(int i = 0; i < this.servicesCount; i++) {
 			this.services[i].resolve(this.scope);
 			TypeBinding infBinding = this.services[i].serviceInterface.resolvedType;
 			if (infBinding != null && infBinding.isValidBinding()) {
-				if (!interfaces.add(this.services[i].serviceInterface.resolvedType)) { 
+				if (!interfaces.add(this.services[i].serviceInterface.resolvedType)) {
 					cuScope.problemReporter().duplicateTypeReference(IProblem.DuplicateServices,
 							this.services[i].serviceInterface);
 				}
@@ -297,7 +281,7 @@ public class ModuleDeclaration extends ASTNode implements ReferenceContext {
 		analyseModuleGraph(skope);
 		analyseReferencedPackages(skope);
 	}
-	
+
 	private void analyseReferencedPackages(CompilationUnitScope skope) {
 		if (this.exports != null) {
 			analyseSomeReferencedPackages(this.exports, skope);

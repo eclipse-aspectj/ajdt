@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2019 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -40,9 +40,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.Stack;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
@@ -231,6 +235,8 @@ public class TheOriginalJDTParserClass implements TerminalTokens, ParserBasicInf
 						compliance = ClassFileConstants.JDK12;
 					}  else if("13".equals(token)) { //$NON-NLS-1$
 						compliance = ClassFileConstants.JDK13;
+					}  else if("14".equals(token)) { //$NON-NLS-1$
+						compliance = ClassFileConstants.JDK14;
 					} else if("recovery".equals(token)) { //$NON-NLS-1$
 						compliance = ClassFileConstants.JDK_DEFERRED;
 					}
@@ -845,6 +851,12 @@ public class TheOriginalJDTParserClass implements TerminalTokens, ParserBasicInf
 	protected int[] astLengthStack;
 	protected int astPtr;
 	protected ASTNode[] astStack = new ASTNode[AstStackIncrement];
+
+	protected int patternLengthPtr;
+
+	protected int[] patternLengthStack;
+	protected int patternPtr;
+	protected ASTNode[] patternStack = new ASTNode[AstStackIncrement];
 	public CompilationUnitDeclaration compilationUnit; /*the result from parse()*/
 
 	protected RecoveredElement currentElement;
@@ -922,6 +934,7 @@ public class TheOriginalJDTParserClass implements TerminalTokens, ParserBasicInf
 
 	protected int nestedType, dimensions, switchNestingLevel;
 	ASTNode [] noAstNodes = new ASTNode[AstStackIncrement];
+	public boolean switchWithTry = false;
 
 	Expression [] noExpressions = new Expression[ExpressionStackIncrement];
 	//modifiers dimensions nestedType etc.......
@@ -968,8 +981,7 @@ protected int valueLambdaNestDepth = -1;
 protected /*private*/ int stateStackLengthStack[] = new int[0]; // AspectJ Extension: made protected
 protected boolean parsingJava8Plus;
 protected boolean parsingJava9Plus;
-protected boolean parsingJava12Plus;
-protected boolean parsingJava13Plus;
+protected boolean parsingJava14Plus;
 protected boolean parsingJava11Plus;
 protected int unstackedAct = ERROR_ACTION;
 private boolean haltOnSyntaxError = false;
@@ -977,6 +989,8 @@ private boolean tolerateDefaultClassMethods = false;
 private boolean processingLambdaParameterList = false;
 private boolean expectTypeAnnotation = false;
 private boolean reparsingLambdaExpression = false;
+
+private Map<RecordDeclaration, Integer[]> recordNestedMethodLevels;
 
 public TheOriginalJDTParserClass () { // AspectJ - new name
 	// Caveat Emptor: For inheritance purposes and then only in very special needs. Only minimal state is initialized !
@@ -989,10 +1003,10 @@ public TheOriginalJDTParserClass(ProblemReporter problemReporter, boolean optimi
 	initializeScanner();
 	this.parsingJava8Plus = this.options.sourceLevel >= ClassFileConstants.JDK1_8;
 	this.parsingJava9Plus = this.options.sourceLevel >= ClassFileConstants.JDK9;
-	this.parsingJava13Plus = this.options.sourceLevel >= ClassFileConstants.JDK13;
-	this.parsingJava12Plus = this.options.sourceLevel >= ClassFileConstants.JDK12;
+	this.parsingJava14Plus = this.options.sourceLevel >= ClassFileConstants.JDK14;
 	this.parsingJava11Plus = this.options.sourceLevel >= ClassFileConstants.JDK11;
 	this.astLengthStack = new int[50];
+	this.patternLengthStack = new int[20];
 	this.expressionLengthStack = new int[30];
 	this.typeAnnotationLengthStack = new int[30];
 	this.intStack = new int[50];
@@ -1002,6 +1016,8 @@ public TheOriginalJDTParserClass(ProblemReporter problemReporter, boolean optimi
 	this.realBlockStack = new int[30];
 	this.identifierPositionStack = new long[30];
 	this.variablesCounter = new int[30];
+
+	this.recordNestedMethodLevels = new HashMap<>();
 
 	// javadoc support
 	this.javadocParser = createJavadocParser();
@@ -2255,16 +2271,8 @@ protected void consumeCaseLabel() {
 	}
 	CaseStatement caseStatement = new CaseStatement(constantExpressions[0], constantExpressions[length - 1].sourceEnd, this.intStack[this.intPtr--]);
 	if (constantExpressions.length > 1) {
-		if (this.parsingJava13Plus) {
-			if (this.options.enablePreviewFeatures) {
-				if (this.options.isAnyEnabled(IrritantSet.PREVIEW) && constantExpressions.length > 1) {
-					problemReporter().previewFeatureUsed(caseStatement.sourceStart, caseStatement.sourceEnd);
-				}
-			} else {
-				problemReporter().previewFeatureNotEnabled(caseStatement.sourceStart, caseStatement.sourceEnd, "Multi constant case"); //$NON-NLS-1$
-			}
-		} else {
-			problemReporter().previewFeatureNotSupported(caseStatement.sourceStart, caseStatement.sourceEnd, "Multi constant case", CompilerOptions.VERSION_13); //$NON-NLS-1$
+		if (!this.parsingJava14Plus) {
+			problemReporter().multiConstantCaseLabelsNotSupported(caseStatement);
 		}
 	}
 	caseStatement.constantExpressions = constantExpressions;
@@ -2664,8 +2672,7 @@ protected void consumeClassHeaderImplements() {
 		this.lastCheckPoint = typeDecl.bodyStart;
 	}
 }
-protected void consumeClassHeaderName1() {
-	// ClassHeaderName1 ::= Modifiersopt 'class' 'Identifier'
+private void consumeClassOrRecordHeaderName1(boolean isRecord) {
 	TypeDeclaration typeDecl = new TypeDeclaration(this.compilationUnit.compilationResult);
 	if (this.nestedMethod[this.nestedType] == 0) {
 		if (this.nestedType != 0) {
@@ -2690,6 +2697,7 @@ protected void consumeClassHeaderName1() {
 	// we want to keep the beginning position but get rid of the end position
 	// it is only used for the ClassLiteralAccess positions.
 	typeDecl.declarationSourceStart = this.intStack[this.intPtr--];
+	typeDecl.restrictedIdentifierStart = typeDecl.declarationSourceStart;
 	this.intPtr--; // remove the end position of the class token
 
 	typeDecl.modifiersSourceStart = this.intStack[this.intPtr--];
@@ -2716,6 +2724,9 @@ protected void consumeClassHeaderName1() {
 			length);
 	}
 	typeDecl.bodyStart = typeDecl.sourceEnd + 1;
+	if (isRecord) {
+		typeDecl = new RecordDeclaration(typeDecl);
+	}
 	pushOnAstStack(typeDecl);
 
 	this.listLength = 0; // will be updated when reading super-interfaces
@@ -2728,6 +2739,10 @@ protected void consumeClassHeaderName1() {
 	// javadoc
 	typeDecl.javadoc = this.javadoc;
 	this.javadoc = null;
+}
+protected void consumeClassHeaderName1() {
+	// ClassHeaderName1 ::= Modifiersopt 'class' 'Identifier'
+	consumeClassOrRecordHeaderName1(false);
 }
 protected void consumeClassInstanceCreationExpression() {
 	// ClassInstanceCreationExpression ::= 'new' ClassType '(' ArgumentListopt ')' ClassBodyopt
@@ -3102,6 +3117,47 @@ protected void consumeConstructorHeaderName() {
 		}
 	}
 }
+// TODO: Refactor code for constructor and compact one once records are standardized.
+private void populateCompactConstructor(CompactConstructorDeclaration ccd) {
+	//name -- this is not really revelant but we do .....
+	ccd.selector = this.identifierStack[this.identifierPtr];
+	long selectorSource = this.identifierPositionStack[this.identifierPtr--];
+	this.identifierLengthPtr--;
+
+	//modifiers
+	ccd.declarationSourceStart = this.intStack[this.intPtr--];
+	ccd.modifiers = this.intStack[this.intPtr--];
+	// consume annotations
+	int length;
+	if ((length = this.expressionLengthStack[this.expressionLengthPtr--]) != 0) {
+		System.arraycopy(
+			this.expressionStack,
+			(this.expressionPtr -= length) + 1,
+			ccd.annotations = new Annotation[length],
+			0,
+			length);
+	}
+	// javadoc
+	ccd.javadoc = this.javadoc;
+	this.javadoc = null;
+
+	//highlight starts at the selector starts
+	ccd.sourceStart = (int) (selectorSource >>> 32);
+	pushOnAstStack(ccd);
+	ccd.sourceEnd = ccd.sourceStart + ccd.selector.length - 1; // no lParen for compact constructor
+	ccd.bodyStart = ccd.sourceStart + ccd.selector.length;
+	this.listLength = 0; // initialize this.listLength before reading parameters/throws
+
+	// recovery
+	if (this.currentElement != null){
+		this.lastCheckPoint = ccd.bodyStart;
+		if ((this.currentElement instanceof RecoveredType && this.lastIgnoredToken != TokenNameDOT)
+			|| ccd.modifiers != 0){
+			this.currentElement = this.currentElement.add(ccd, 0);
+			this.lastIgnoredToken = -1;
+		}
+	}
+}
 protected void consumeConstructorHeaderNameWithTypeParameters() {
 
 	/* recovering - might be an empty message send */
@@ -3116,6 +3172,9 @@ protected void consumeConstructorHeaderNameWithTypeParameters() {
 	// ConstructorHeaderName ::=  Modifiersopt TypeParameters 'Identifier' '('
 	ConstructorDeclaration cd = new ConstructorDeclaration(this.compilationUnit.compilationResult);
 
+	helperConstructorHeaderNameWithTypeParameters(cd);
+}
+private void helperConstructorHeaderNameWithTypeParameters(ConstructorDeclaration cd) {
 	//name -- this is not really revelant but we do .....
 	cd.selector = this.identifierStack[this.identifierPtr];
 	long selectorSource = this.identifierPositionStack[this.identifierPtr--];
@@ -3513,6 +3572,41 @@ protected void consumeEnterMemberValueArrayInitializer() {
 		this.currentElement.bracketBalance++;
 	}
 }
+private boolean isAFieldDeclarationInRecord() {
+	if (this.options.sourceLevel < ClassFileConstants.JDK14)
+		return false;
+	int recordIndex = -1;
+	Integer[] nestingTypeAndMethod = null;
+	for (int i = this.astPtr; i >= 0; --i) {
+		if (this.astStack[i] instanceof RecordDeclaration) {
+			RecordDeclaration node = (RecordDeclaration) this.astStack[i];
+			nestingTypeAndMethod = this.recordNestedMethodLevels.get(node);
+			if (nestingTypeAndMethod != null) { // record declaration is done yet
+				recordIndex = i;
+				break;
+			}
+		}
+	}
+	if (recordIndex < 0)
+		return false;
+	for (int i = recordIndex + 1; i <= this.astPtr; ++i) {
+		ASTNode node = this.astStack[i];
+		if (node instanceof TypeDeclaration) {
+			if (node.sourceEnd < 0) {
+				return false;
+			}
+		} else if (node instanceof AbstractMethodDeclaration) {
+			if (this.nestedType != nestingTypeAndMethod[0] ||
+					this.nestedMethod[this.nestedType] != nestingTypeAndMethod[1])
+				return false;
+		} else if (node instanceof FieldDeclaration) {
+			continue;
+		} else {
+			return false;
+		}
+	}
+	return true;
+}
 protected void consumeEnterVariable() {
 	// EnterVariable ::= $empty
 	// do nothing by default
@@ -3524,7 +3618,8 @@ protected void consumeEnterVariable() {
 	Annotation [][] annotationsOnExtendedDimensions = extendedDimensions == 0 ? null : getAnnotationsOnDimensions(extendedDimensions);
 	AbstractVariableDeclaration declaration;
 	// create the ast node
-	boolean isLocalDeclaration = this.nestedMethod[this.nestedType] != 0;
+	boolean isLocalDeclaration = this.nestedMethod[this.nestedType] != 0 &&
+									!isAFieldDeclarationInRecord();
 	if (isLocalDeclaration) {
 		// create the local variable declarations
 		declaration =
@@ -4439,16 +4534,53 @@ protected void consumeInsideCastExpressionLL1WithBounds() {
 protected void consumeInsideCastExpressionWithQualifiedGenerics() {
 	// InsideCastExpressionWithQualifiedGenerics ::= $empty
 }
+protected void consumeTypeTestPattern() { // Aspectj made protected
+	TypeReference type;
+	char[] identifierName = this.identifierStack[this.identifierPtr];
+	long namePosition = this.identifierPositionStack[this.identifierPtr];
+
+	LocalDeclaration local = createLocalDeclaration(identifierName, (int) (namePosition >>> 32), (int) namePosition);
+	local.declarationSourceEnd = local.declarationEnd;
+
+	this.identifierPtr--;
+	this.identifierLengthPtr--;
+
+	type = getTypeReference(this.intStack[this.intPtr--]); //getTypeReference(0); // no type dimension
+	local.declarationSourceStart = type.sourceStart;
+	local.type = type;
+	if (!this.parsingJava14Plus) {
+		problemReporter().previewFeatureNotSupported(type.sourceStart, local.declarationEnd, "Instanceof Pattern", CompilerOptions.VERSION_13); //$NON-NLS-1$
+	} else if (!this.options.enablePreviewFeatures){
+		problemReporter().previewFeatureNotEnabled(type.sourceStart, local.declarationEnd, "Instanceof Pattern"); //$NON-NLS-1$
+	} else {
+		if (this.options.isAnyEnabled(IrritantSet.PREVIEW)) {
+			problemReporter().previewFeatureUsed(type.sourceStart, local.declarationEnd);
+		}
+	}
+	local.modifiers |= ClassFileConstants.AccFinal;
+	pushOnPatternStack(local);
+}
 protected void consumeInstanceOfExpression() {
 	// RelationalExpression ::= RelationalExpression 'instanceof' ReferenceType
 	//optimize the push/pop
 
 	//by construction, no base type may be used in getTypeReference
+	int length = this.patternLengthPtr >= 0 ?
+			this.patternLengthStack[this.patternLengthPtr--] : 0;
 	Expression exp;
+	if (length > 0) {
+		LocalDeclaration typeDecl = (LocalDeclaration) this.patternStack[this.patternPtr--];
+		this.expressionStack[this.expressionPtr] = exp =
+				new InstanceOfExpression(
+					this.expressionStack[this.expressionPtr],
+					typeDecl);
+	} else {
 	this.expressionStack[this.expressionPtr] = exp =
 		new InstanceOfExpression(
 			this.expressionStack[this.expressionPtr],
 			getTypeReference(this.intStack[this.intPtr--]));
+	}
+
 	if (exp.sourceEnd == 0) {
 		//array on base type....
 		exp.sourceEnd = this.scanner.startPosition - 1;
@@ -4459,14 +4591,25 @@ protected void consumeInstanceOfExpressionWithName() {
 	// RelationalExpression_NotName ::= Name instanceof ReferenceType
 	//optimize the push/pop
 
+	int length = this.patternLengthPtr >= 0 ?
+			this.patternLengthStack[this.patternLengthPtr--] : 0;
+	Expression exp;
+	if (length != 0) {
+		LocalDeclaration typeDecl = (LocalDeclaration) this.patternStack[this.patternPtr--];
+		pushOnExpressionStack(getUnspecifiedReferenceOptimized());
+		this.expressionStack[this.expressionPtr] = exp =
+				new InstanceOfExpression(
+					this.expressionStack[this.expressionPtr],
+					typeDecl);
+	} else {
 	//by construction, no base type may be used in getTypeReference
 	TypeReference reference = getTypeReference(this.intStack[this.intPtr--]);
 	pushOnExpressionStack(getUnspecifiedReferenceOptimized());
-	Expression exp;
 	this.expressionStack[this.expressionPtr] = exp =
 		new InstanceOfExpression(
 			this.expressionStack[this.expressionPtr],
 			reference);
+	}
 	if (exp.sourceEnd == 0) {
 		//array on base type....
 		exp.sourceEnd = this.scanner.startPosition - 1;
@@ -5976,6 +6119,9 @@ protected void consumeModuleHeader() {
 }
 protected void consumeModuleDeclaration() {
 	// ModuleDeclaration ::= ModuleHeader ModuleBody
+	this.compilationUnit.javadoc = this.javadoc;
+	this.javadoc = null;
+
 	int length = this.astLengthStack[this.astLengthPtr--];
 	int[] flag = new int[length + 1]; //plus one -- see <HERE>
 	int size1 = 0, size2 = 0, size3 = 0, size4 = 0, size5 = 0;
@@ -7456,8 +7602,8 @@ protected void consumeStaticOnly() {
 	}
 }
 protected void consumeTextBlock() {
-	if (!this.parsingJava13Plus) {
-		problemReporter().previewFeatureNotSupported(this.scanner.startPosition, this.scanner.currentPosition - 1, "Text Blocks", CompilerOptions.VERSION_13); //$NON-NLS-1$
+	if (!this.parsingJava14Plus) {
+		problemReporter().previewFeatureNotSupported(this.scanner.startPosition, this.scanner.currentPosition - 1, "Text Blocks", CompilerOptions.VERSION_14); //$NON-NLS-1$
 	} else if (!this.options.enablePreviewFeatures){
 		problemReporter().previewFeatureNotEnabled(this.scanner.startPosition, this.scanner.currentPosition - 1, "Text Blocks"); //$NON-NLS-1$
 	} else {
@@ -7515,14 +7661,8 @@ protected void consumeCaseLabelExpr() {
 //	SwitchLabelExpr ::= SwitchLabelCaseLhs BeginCaseExpr '->'
 	consumeCaseLabel();
 	CaseStatement caseStatement = (CaseStatement) this.astStack[this.astPtr];
-	if (!this.parsingJava13Plus) {
-		problemReporter().previewFeatureNotSupported(caseStatement.sourceStart, caseStatement.sourceEnd, "Case Labels with '->'", CompilerOptions.VERSION_13); //$NON-NLS-1$
-	} else if (!this.options.enablePreviewFeatures){
-		problemReporter().previewFeatureNotEnabled(caseStatement.sourceStart, caseStatement.sourceEnd, "Case Labels with '->'"); //$NON-NLS-1$
-	} else {
-		if (this.options.isAnyEnabled(IrritantSet.PREVIEW)) {
-			problemReporter().previewFeatureUsed(caseStatement.sourceStart, caseStatement.sourceEnd);
-		}
+	if (!this.parsingJava14Plus) {
+		problemReporter().arrowInCaseStatementsNotSupported(caseStatement);
 	}
 	caseStatement.isExpr = true;
 }
@@ -7530,14 +7670,8 @@ protected void consumeDefaultLabelExpr() {
 //	SwitchLabelDefaultExpr ::= 'default' '->'
 	consumeDefaultLabel();
 	CaseStatement defaultStatement = (CaseStatement) this.astStack[this.astPtr];
-	if (!this.parsingJava13Plus) {
-		problemReporter().previewFeatureNotSupported(defaultStatement.sourceStart, defaultStatement.sourceEnd, "Case Labels with '->'", CompilerOptions.VERSION_13); //$NON-NLS-1$
-	} else if (!this.options.enablePreviewFeatures){
-		problemReporter().previewFeatureNotEnabled(defaultStatement.sourceStart, defaultStatement.sourceEnd, "Case Labels with '->'"); //$NON-NLS-1$
-	} else {
-		if (this.options.isAnyEnabled(IrritantSet.PREVIEW)) {
-			problemReporter().previewFeatureUsed(defaultStatement.sourceStart, defaultStatement.sourceEnd);
-		}
+	if (!this.parsingJava14Plus) {
+		problemReporter().arrowInCaseStatementsNotSupported(defaultStatement);
 	}
 	defaultStatement.isExpr = true;
 }
@@ -7547,6 +7681,7 @@ protected void consumeDefaultLabelExpr() {
 
 	class ResultExpressionsCollector extends ASTVisitor {
 		Stack<SwitchExpression> targetSwitchExpressions;
+		Stack<TryStatement> tryStatements;
 		public ResultExpressionsCollector(SwitchExpression se) {
 			if (this.targetSwitchExpressions == null)
 				this.targetSwitchExpressions = new Stack<>();
@@ -7573,6 +7708,8 @@ protected void consumeDefaultLabelExpr() {
 				// flag an error while resolving
 				yieldStatement.switchExpression = targetSwitchExpression;
 			}
+			if (this.tryStatements != null && !this.tryStatements.empty())
+				yieldStatement.tryStatement = this.tryStatements.peek();
 			return true;
 		}
 		@Override
@@ -7582,6 +7719,24 @@ protected void consumeDefaultLabelExpr() {
 		@Override
 		public boolean visit(TypeDeclaration stmt, BlockScope blockScope) {
 			return false;
+		}
+		@Override
+		public boolean visit(LambdaExpression stmt, BlockScope blockScope) {
+			return false;
+	}
+		@Override
+		public boolean visit(TryStatement stmt, BlockScope blockScope) {
+			if (this.tryStatements == null)
+				this.tryStatements = new Stack<>();
+			this.tryStatements.push(stmt);
+			SwitchExpression targetSwitchExpression = this.targetSwitchExpressions.peek();
+			targetSwitchExpression.containsTry = true;
+			stmt.enclosingSwitchExpression = targetSwitchExpression;
+			return true;
+		}
+		@Override
+		public void endVisit(TryStatement stmt, BlockScope blockScope) {
+			this.tryStatements.pop();
 		}
 	}
 	s.resultExpressions = new ArrayList<>(0); // indicates processed
@@ -7611,16 +7766,11 @@ protected void consumeSwitchExpression() {
 	if (this.astLengthStack[this.astLengthPtr--] != 0) {
 		SwitchExpression s = (SwitchExpression) this.astStack[this.astPtr--];
 
-		if (!this.parsingJava13Plus) {
-			problemReporter().previewFeatureNotSupported(s.sourceStart, s.sourceEnd, "Switch Expressions", CompilerOptions.VERSION_13); //$NON-NLS-1$
-		} else if (!this.options.enablePreviewFeatures) {
-			problemReporter().previewFeatureNotEnabled(s.sourceStart, s.sourceEnd, "Switch Expressions"); //$NON-NLS-1$
-		} else {
-			if (this.options.isAnyEnabled(IrritantSet.PREVIEW)) {
-				problemReporter().previewFeatureUsed(s.sourceStart, s.sourceEnd);
-			}
+		if (!this.parsingJava14Plus) {
+			problemReporter().switchExpressionsNotSupported(s);
 		}
 		collectResultExpressionsYield(s);
+		this.switchWithTry |= s.containsTry;
 		pushOnExpressionStack(s);
 	}
 }
@@ -7945,6 +8095,7 @@ protected void consumeToken(int type) {
 			resetModifiers();
 			pushOnIntStack(this.scanner.startPosition);
 			break;
+		case TokenNameRestrictedIdentifierrecord:
 		case TokenNameclass :
 			pushOnIntStack(this.scanner.currentPosition - 1);
 			pushOnIntStack(this.scanner.startPosition);
@@ -8496,6 +8647,500 @@ protected void consumeWildcardWithBounds() {
 	// Nothing to do
 	// The wildcard is created by the consumeWildcardBoundsExtends or by consumeWildcardBoundsSuper
 }
+/* Java 14 preview - records */
+protected void consumeRecordDeclaration() {
+	// RecordDeclaration ::= RecordHeaderPart RecordBody
+
+	int length;
+	if ((length = this.astLengthStack[this.astLengthPtr--]) != 0) {
+		//there are length declarations
+		//dispatch according to the type of the declarations
+		dispatchDeclarationIntoRecordDeclaration(length);
+	}
+
+	RecordDeclaration rd = (RecordDeclaration) this.astStack[this.astPtr];
+	this.recordNestedMethodLevels.remove(rd);
+	if (!this.options.enablePreviewFeatures){
+		problemReporter().previewFeatureNotEnabled(rd.sourceStart, rd.sourceEnd, "Records"); //$NON-NLS-1$
+	} else {
+		if (this.options.isAnyEnabled(IrritantSet.PREVIEW)) {
+			problemReporter().previewFeatureUsed(rd.sourceStart, rd.sourceEnd);
+		}
+	}
+	//convert constructor that do not have the type's name into methods
+	ConstructorDeclaration cd = rd.getConstructor((Parser)this); // AspectJ - cast to Parser
+	if (cd == null) {
+		/* create canonical constructor - check for the clash later at binding time */
+		cd = rd.createDefaultConstructor(!(this.diet && this.dietInt == 0), true);
+	} else {
+		cd.bits |= ASTNode.IsCanonicalConstructor;
+	}
+
+	if (this.scanner.containsAssertKeyword) {
+		rd.bits |= ASTNode.ContainsAssertion;
+	}
+	rd.addClinit();
+	rd.bodyEnd = this.endStatementPosition;
+	if (length == 0 && !containsComment(rd.bodyStart, rd.bodyEnd)) {
+		rd.bits |= ASTNode.UndocumentedEmptyBlock;
+	}
+	TypeReference superClass = new QualifiedTypeReference(TypeConstants.JAVA_LANG_RECORD, new long[] {0});
+	superClass.bits |= ASTNode.IsSuperType;
+	rd.superclass = superClass;
+	rd.declarationSourceEnd = flushCommentsDefinedPriorTo(this.endStatementPosition);
+}
+protected void consumeRecordHeaderPart() {
+	// RecordHeaderPart ::= RecordHeaderName RecordHeader ClassHeaderImplementsopt
+	TypeDeclaration typeDecl = (TypeDeclaration) this.astStack[this.astPtr];
+	assert typeDecl instanceof RecordDeclaration;
+	// do nothing
+}
+protected void consumeRecordHeaderNameWithTypeParameters() {
+	// RecordHeaderName ::= RecordHeaderName1 TypeParameters
+	consumeTypeHeaderNameWithTypeParameters();
+}
+protected void consumeRecordHeaderName1() {
+	// Modifiersopt RestrictedIdentifierrecord 'Identifier'
+	consumeClassOrRecordHeaderName1(true);
+}
+protected void consumeRecordComponentHeaderRightParen() {
+	// RecordComponentHeaderRightParen ::= ')'
+	int length = this.astLengthStack[this.astLengthPtr--];
+	this.astPtr -= length;
+	RecordDeclaration rd = (RecordDeclaration) this.astStack[this.astPtr];
+	int nestedMethodLevel = this.nestedMethod[this.nestedType];
+	rd.isLocalRecord = nestedMethodLevel > 0;
+	if (rd.isLocalRecord)
+		rd.modifiers |= ClassFileConstants.AccStatic; // JLS 14 Sec 14.3
+	this.recordNestedMethodLevels.put(rd, new Integer[] {this.nestedType, nestedMethodLevel});
+	this.astStack[this.astPtr] = rd;
+//	rd.sourceEnd = 	this.rParenPos;
+	if (length != 0) {
+		Argument[] args = new Argument[length];
+		System.arraycopy(
+				this.astStack,
+				this.astPtr + 1,
+				args,
+				0,
+				length);
+		rd.setArgs(args);
+		convertToFields(rd, args);
+	}
+	rd.bodyStart = this.rParenPos+1;
+	this.listLength = 0; // reset this.listLength after having read all parameters
+	// recovery
+	if (this.currentElement != null){
+		this.lastCheckPoint = rd.bodyStart;
+		if (this.currentElement.parseTree() == rd) return;
+	}
+}
+private void convertToFields(RecordDeclaration rd, Argument[] args) {
+	int length = args.length;
+	FieldDeclaration[] fields = new FieldDeclaration[length];
+	int nFields = 0;
+	Set<String> argsSet = new HashSet<>();
+	for (int i = 0, max = args.length; i < max; i++) {
+		Argument arg = args[i];
+		arg.bits |= ASTNode.IsRecordComponent;
+		String argName = new String(arg.name);
+		if (RecordDeclaration.disallowedComponentNames.contains(argName)) {
+			problemReporter().recordIllegalComponentNameInRecord(arg, rd);
+			continue;
+		}
+		if (argsSet.contains(argName)) {
+			// flag the error at the place where duplicate params of methods would have been flagged.
+			continue;
+		}
+		if (arg.type.getLastToken() == TypeConstants.VOID) {
+			problemReporter().recordComponentCannotBeVoid(rd, arg);
+			continue;
+		}
+		if (arg.isVarArgs() && i < max - 1)
+			problemReporter().recordIllegalVararg(arg, rd);
+
+		argsSet.add(argName);
+		FieldDeclaration f = fields[nFields++] = createFieldDeclaration(arg.name, arg.sourceStart, arg.sourceEnd);
+		f.bits = arg.bits;
+		f.declarationSourceStart = arg.declarationSourceStart;
+		f.declarationEnd = arg.declarationEnd;
+		f.declarationSourceEnd = arg.declarationSourceEnd;
+		f.endPart1Position = arg.sourceEnd; //TODO BETA_JAVA14 - recheck
+		f.endPart2Position = arg.declarationSourceEnd;
+		f.modifiers = ClassFileConstants.AccPrivate | ClassFileConstants.AccFinal;
+		// Note: JVMS 14 S 4.7.8 The Synthetic Attribute mandates do not mark Synthetic for Record compoents.
+		// hence marking this "explicitly" as implicit.
+		f.isARecordComponent = true;
+		/*
+		 * JLS 14 Sec 8.10.1 Record Header
+		 * The record header declares a number of record components. The record components
+		 * declare the fields of the record class. Each record component in the RecordHeader
+		 * declares one private final field in the record class whose name is same as the
+		 * Identifier in the record component.
+		 *
+		 * JLS 14 Sec 8.10.3 Record Components
+		 * For each record component appearing in the record component list:
+		 * An implicitly declared private final field with the same name as the record
+		 * component and the type as the declared type of the record component.
+		 */
+		f.modifiers |= ClassFileConstants.AccPrivate | ClassFileConstants.AccFinal;
+		f.modifiersSourceStart = arg.modifiersSourceStart;
+		f.sourceStart = arg.sourceStart;
+		f.sourceEnd = arg.sourceEnd;
+		f.type = arg.type;
+		/*
+		 * JLS 14 SEC 8.10.3 Item 1 says the following:
+		 *  "This field is annotated with the annotation that appears on the corresponding
+		 *  record component, if this annotation type is applicable to a field declaration
+		 *  or type context."
+		 *
+		 *  However, at this point there is no sufficient information to conclude the ElementType
+		 *  targeted by the annotation. Hence, do a blanket assignment for now and later (read binding
+		 *  time) weed out the irrelevant ones.
+		 */
+		f.annotations = arg.annotations;
+		arg.annotations = null;
+		if ((args[i].bits & ASTNode.HasTypeAnnotations) != 0) {
+			f.bits |= ASTNode.HasTypeAnnotations;
+		}
+	}
+	if (nFields < fields.length) {
+		// Note: This happens only if there are errors in the code.
+		FieldDeclaration[] tmp = new FieldDeclaration[nFields];
+		System.arraycopy(fields	, 0, tmp, 0, nFields);
+		fields = tmp;
+	}
+	rd.fields = fields;
+	rd.nRecordComponents = fields.length;
+}
+protected void consumeRecordHeader() {
+	//RecordHeader ::= '(' RecordComponentsopt RecordComponentHeaderRightParen
+	//TODO: BETA_JAVA14_RECORD flag TypeDeclaration.RECORD_DECL ?
+}
+protected void consumeRecordComponentsopt() {
+	// RecordComponentsopt ::= $empty
+	pushOnAstLengthStack(0);
+}
+protected void consumeRecordComponents() {
+	// RecordComponents ::= RecordComponents ',' RecordComponent
+	optimizedConcatNodeLists();
+}
+// TODO: merge consumeFormalParameter and this method once record becomes a standard feature
+protected void consumeRecordComponent(boolean isVarArgs) {
+// RecordComponent ::= Modifiersopt Type VariableDeclaratorId
+//	VariableArityRecordComponent ::= Modifiersopt Type PushZeroTypeAnnotations '...' VariableDeclaratorId
+//	VariableArityRecordComponent ::= Modifiersopt Type @308... TypeAnnotations '...' VariableDeclaratorId
+// Note that there is a difference wrt VariableDeclaratorId wrt to the JLS 8.10.1 specification which specifies
+// 'identifier' - however this is identical to consumeFormalParameter where this error is caught and reported.
+	this.identifierLengthPtr--;
+	char[] identifierName = this.identifierStack[this.identifierPtr];
+	long namePositions = this.identifierPositionStack[this.identifierPtr--];
+	int extendedDimensions = this.intStack[this.intPtr--];
+	Annotation [][] annotationsOnExtendedDimensions = extendedDimensions == 0 ? null : getAnnotationsOnDimensions(extendedDimensions);
+	Annotation [] varArgsAnnotations = null;
+	int endOfEllipsis = 0;
+	int length;
+	int firstDimensions = 0;
+	if (isVarArgs) {
+		endOfEllipsis = this.intStack[this.intPtr--];
+		if ((length = this.typeAnnotationLengthStack[this.typeAnnotationLengthPtr--]) != 0) {
+			System.arraycopy(
+				this.typeAnnotationStack,
+				(this.typeAnnotationPtr -= length) + 1,
+				varArgsAnnotations = new Annotation[length],
+				0,
+				length);
+		}
+	}
+	firstDimensions = this.intStack[this.intPtr--];
+	TypeReference type = getTypeReference(firstDimensions);
+	if (isVarArgs || extendedDimensions != 0) {
+		if (isVarArgs) {
+			type = augmentTypeWithAdditionalDimensions(type, 1, varArgsAnnotations != null ? new Annotation[][] { varArgsAnnotations } : null, true);
+		}
+		if (extendedDimensions != 0) {
+			type = augmentTypeWithAdditionalDimensions(type, extendedDimensions, annotationsOnExtendedDimensions, false);
+		}
+		type.sourceEnd = type.isParameterizedTypeReference() ? this.endStatementPosition : this.endPosition;
+	}
+	if (isVarArgs) {
+		if (extendedDimensions == 0) {
+			type.sourceEnd = endOfEllipsis;
+		}
+		type.bits |= ASTNode.IsVarArgs; // set isVarArgs
+	}
+	int modifierPositions = this.intStack[this.intPtr--];
+	Argument arg;
+	arg = new Argument(
+			identifierName,
+			namePositions,
+			type,
+			this.intStack[this.intPtr--] & ~ClassFileConstants.AccDeprecated); // modifiers
+	arg.declarationSourceStart = modifierPositions;
+	arg.bits |= (type.bits & ASTNode.HasTypeAnnotations);
+	// consume annotations
+	if ((length = this.expressionLengthStack[this.expressionLengthPtr--]) != 0) {
+		System.arraycopy(
+			this.expressionStack,
+			(this.expressionPtr -= length) + 1,
+			arg.annotations = new Annotation[length],
+			0,
+			length);
+		arg.bits |= ASTNode.HasTypeAnnotations;
+		RecoveredType currentRecoveryType = this.currentRecoveryType();
+		if (currentRecoveryType != null)
+			currentRecoveryType.annotationsConsumed(arg.annotations);
+	}
+	pushOnAstStack(arg);
+
+	/* if incomplete record header, this.listLength counter will not have been reset,
+		indicating that some arguments are available on the stack */
+	this.listLength++;
+	if(isVarArgs) {
+		if (!this.statementRecoveryActivated &&
+				this.options.sourceLevel < ClassFileConstants.JDK1_5 &&
+				this.lastErrorEndPositionBeforeRecovery < this.scanner.currentPosition) {
+				problemReporter().invalidUsageOfVarargs(arg);
+		} else if (!this.statementRecoveryActivated &&
+				extendedDimensions > 0) {
+			problemReporter().illegalExtendedDimensions(arg);
+		}
+	}
+}
+protected void consumeRecordBody() {
+	// RecordBody ::= '{' RecordBodyDeclarationopt '}'
+	// do nothing
+}
+protected void consumeEmptyRecordBodyDeclaration() {
+	// RecordBodyDeclarationopt ::= $empty
+	//TODO: Throw an error for empty record?
+	pushOnAstLengthStack(0);
+}
+protected void consumeRecordBodyDeclarations() {
+	//	RecordBodyDeclarations ::= RecordBodyDeclaration
+	//	RecordBodyDeclarations ::= RecordBodyDeclarations RecordBodyDeclaration
+	concatNodeLists();
+}
+protected void consumeRecordBodyDeclaration() {
+	// RecordBodyDeclaration ::=  ClassBodyDeclaration
+//	consumeClassBodyDeclaration();
+}
+protected void consumeCompactConstructorDeclaration() {
+	// CompactConstructorDeclaration ::= CompactConstructorHeaderName MethodHeaderThrowsClauseopt MethodBody
+
+	//must provide a default constructor call when needed
+
+	int length;
+
+	// pop the position of the {  (body of the method) pushed in block decl
+	this.intPtr--;
+	this.intPtr--;
+
+	//statements
+	this.realBlockPtr--;
+	Statement[] statements = null;
+	if ((length = this.astLengthStack[this.astLengthPtr--]) != 0) {
+		this.astPtr -= length;
+		if (!this.options.ignoreMethodBodies) {
+			System.arraycopy(
+					this.astStack,
+					this.astPtr + 1,
+					statements = new Statement[length],
+					0,
+					length);
+		}
+	}
+
+	CompactConstructorDeclaration ccd = (CompactConstructorDeclaration) this.astStack[this.astPtr];
+	ccd.statements = statements;
+
+	if (!(this.diet && this.dietInt == 0)
+			&& statements == null
+			&& !containsComment(ccd.bodyStart, this.endPosition)) {
+		ccd.bits |= ASTNode.UndocumentedEmptyBlock;
+	}
+
+	//watch for } that could be given as a unicode ! ( u007D is '}' )
+	// store the this.endPosition (position just before the '}') in case there is
+	// a trailing comment behind the end of the method
+	ccd.bodyEnd = this.endPosition;
+	ccd.declarationSourceEnd = flushCommentsDefinedPriorTo(this.endStatementPosition);
+}
+protected void consumeCompactConstructorHeader() {
+//	CompactConstructorHeader ::= CompactConstructorHeaderName MethodHeaderThrowsClauseopt
+
+	// TODO: Ideally a consumeConstructorHeader should be ok; but if this is overridden and
+	// rParentPos is used (ref model), that is incorrect since rParentPos does not exist for CCH
+	AbstractMethodDeclaration method = (AbstractMethodDeclaration)this.astStack[this.astPtr];
+
+	if (this.currentToken == TokenNameLBRACE){
+		method.bodyStart = this.scanner.currentPosition;
+	}
+	// recovery
+	if (this.currentElement != null){
+		if (this.currentToken == TokenNameSEMICOLON){ // for invalid constructors
+			method.modifiers |= ExtraCompilerModifiers.AccSemicolonBody;
+			method.declarationSourceEnd = this.scanner.currentPosition-1;
+			method.bodyEnd = this.scanner.currentPosition-1;
+			if (this.currentElement.parseTree() == method && this.currentElement.parent != null) {
+				this.currentElement = this.currentElement.parent;
+			}
+		}
+		this.restartRecovery = true; // used to avoid branching back into the regular automaton
+	}
+}
+protected void consumeCompactConstructorHeaderName() {
+	// CompactConstructorHeaderName ::= Modifiersopt 'Identifier'
+
+	/* recovering - might be an empty message send */
+	if (this.currentElement != null){
+		if (this.lastIgnoredToken == TokenNamenew){ // was an allocation expression
+			this.lastCheckPoint = this.scanner.startPosition; // force to restart at this exact position
+			this.restartRecovery = true;
+			return;
+		}
+	}
+	CompactConstructorDeclaration ccd = new CompactConstructorDeclaration(this.compilationUnit.compilationResult);
+	populateCompactConstructor(ccd);
+}
+protected void consumeCompactConstructorHeaderNameWithTypeParameters() {
+	//  CompactConstructorHeaderName ::= Modifiersopt TypeParameters 'Identifier'
+	/* recovering - might be an empty message send */
+	if (this.currentElement != null){
+		if (this.lastIgnoredToken == TokenNamenew){ // was an allocation expression
+			this.lastCheckPoint = this.scanner.startPosition; // force to restart at this exact position
+			this.restartRecovery = true;
+			return;
+		}
+	}
+	CompactConstructorDeclaration ccd = new CompactConstructorDeclaration(this.compilationUnit.compilationResult);
+	helperConstructorHeaderNameWithTypeParameters(ccd);
+}
+protected void dispatchDeclarationIntoRecordDeclaration(int length) {
+	/* they are length on this.astStack that should go into
+	   methods fields constructors lists of the typeDecl
+
+	   Return if there is a constructor declaration in the methods declaration */
+
+
+	// Looks for the size of each array .
+
+	if (length == 0)
+		return;
+	int[] flag = new int[length + 1]; //plus one -- see <HERE>
+	int nFields = 0, size2 = 0, size3 = 0;
+	boolean hasAbstractMethods = false;
+	for (int i = length - 1; i >= 0; i--) {
+		ASTNode astNode = this.astStack[this.astPtr--];
+		if (astNode instanceof AbstractMethodDeclaration) {
+			//methods and constructors have been regrouped into one single list
+			flag[i] = 2;
+			size2++;
+			if (((AbstractMethodDeclaration) astNode).isAbstract()) {
+				hasAbstractMethods = true;
+			}
+		} else if (astNode instanceof TypeDeclaration) {
+			flag[i] = 3;
+			size3++;
+		} else {
+			//field
+			flag[i] = 1;
+			nFields++;
+		}
+	}
+
+	//arrays creation
+	RecordDeclaration recordDecl = (RecordDeclaration) this.astStack[this.astPtr];
+	int nCreatedFields = recordDecl.fields != null ? recordDecl.fields.length : 0;
+	if (nFields != 0) {
+		FieldDeclaration[] tmp = new FieldDeclaration[(recordDecl.fields != null ? recordDecl.fields.length  : 0) + nFields];
+		if (recordDecl.fields != null)
+			System.arraycopy(
+					recordDecl.fields,
+					0,
+					tmp,
+					0,
+					recordDecl.fields.length);
+		recordDecl.fields = tmp;
+	}
+	if (size2 != 0) {
+		recordDecl.methods = new AbstractMethodDeclaration[size2];
+		if (hasAbstractMethods) recordDecl.bits |= ASTNode.HasAbstractMethods;
+	}
+	if (size3 != 0) {
+		recordDecl.memberTypes = new TypeDeclaration[size3];
+	}
+
+	//arrays fill up
+	nFields = nCreatedFields;
+	size2 = size3 = 0;
+	int flagI = flag[0], start = 0;
+	int length2;
+	for (int end = 0; end <= length; end++) //<HERE> the plus one allows to
+		{
+		if (flagI != flag[end]) //treat the last element as a ended flag.....
+			{ //array copy
+			switch (flagI) {
+				case 1 :
+					nFields += (length2 = end - start);
+					System.arraycopy(
+						this.astStack,
+						this.astPtr + start + 1,
+						recordDecl.fields,
+						nFields - length2,
+						length2);
+					break;
+				case 2 :
+					size2 += (length2 = end - start);
+					System.arraycopy(
+						this.astStack,
+						this.astPtr + start + 1,
+						recordDecl.methods,
+						size2 - length2,
+						length2);
+					break;
+				case 3 :
+					size3 += (length2 = end - start);
+					System.arraycopy(
+						this.astStack,
+						this.astPtr + start + 1,
+						recordDecl.memberTypes,
+						size3 - length2,
+						length2);
+					break;
+			}
+			flagI = flag[start = end];
+		}
+	}
+	checkForRecordMemberErrors(recordDecl, nCreatedFields);
+
+	if (recordDecl.memberTypes != null) {
+		for (int i = recordDecl.memberTypes.length - 1; i >= 0; i--) {
+			recordDecl.memberTypes[i].enclosingType = recordDecl;
+		}
+	}
+}
+private void checkForRecordMemberErrors(RecordDeclaration recordDecl, int nCreatedFields) {
+	if (recordDecl.fields == null)
+		return;
+	for (int i = nCreatedFields; i < recordDecl.fields.length; i++) {
+		FieldDeclaration f = recordDecl.fields[i];
+		if (f != null && !f.isStatic()) {
+			if (f instanceof Initializer)
+				problemReporter().recordInstanceInitializerBlockInRecord((Initializer) f);
+			else
+				problemReporter().recordNonStaticFieldDeclarationInRecord(f);
+		}
+	}
+	if (recordDecl.methods != null) {
+		for (int i = 0; i < recordDecl.methods.length; i++) {
+			AbstractMethodDeclaration method = recordDecl.methods[i];
+			if ((method.modifiers & ClassFileConstants.AccNative) != 0) {
+				problemReporter().recordIllegalNativeModifierInRecord(method);
+			}
+		}
+	}
+}
+/* Java 14 preview - records - end*/
 /**
  * Given the current comment stack, answer whether some comment is available in a certain exclusive range
  *
@@ -8671,8 +9316,18 @@ protected void dispatchDeclarationInto(int length) {
 	if (typeDecl.memberTypes != null) {
 		for (int i = typeDecl.memberTypes.length - 1; i >= 0; i--) {
 			typeDecl.memberTypes[i].enclosingType = typeDecl;
+			markNestedRecordStatic(typeDecl.memberTypes[i]);
+		}
 		}
 	}
+private void markNestedRecordStatic(TypeDeclaration typeDeclaration) {
+	/*
+	 * JLS 14 8.10 (Preview)
+	 * A nested record type is implicitly static.
+	 * It is permitted for the declaration of a nested record type to redundantly specify the static modifier.
+	 */
+	if (typeDeclaration instanceof RecordDeclaration)
+		typeDeclaration.modifiers |= ClassFileConstants.AccStatic;
 }
 protected void dispatchDeclarationIntoEnumDeclaration(int length) {
 
@@ -9437,6 +10092,8 @@ public void initialize(boolean parsingCompilationUnit) {
 	this.javadoc = null;
 	this.astPtr = -1;
 	this.astLengthPtr = -1;
+	this.patternPtr = -1;
+	this.patternLengthPtr = -1;
 	this.expressionPtr = -1;
 	this.expressionLengthPtr = -1;
 	this.typeAnnotationLengthPtr = -1;
@@ -9446,6 +10103,7 @@ public void initialize(boolean parsingCompilationUnit) {
 	this.intPtr = -1;
 	this.nestedMethod[this.nestedType = 0] = 0; // need to reset for further reuse
 	this.switchNestingLevel = 0;
+	this.switchWithTry = false;
 	this.variablesCounter[this.nestedType] = 0;
 	this.dimensions = 0 ;
 	this.realBlockPtr = -1;
@@ -10629,6 +11287,7 @@ protected void prepareForBlockStatements() {
 	this.variablesCounter[this.nestedType] = 0;
 	this.realBlockStack[this.realBlockPtr = 1] = 0;
 	this.switchNestingLevel = 0;
+	this.switchWithTry = false;
 }
 /**
  * Returns this parser's problem reporter initialized with its reference context.
@@ -10703,6 +11362,29 @@ protected void pushOnAstLengthStack(int pos) {
 			stackLength);
 	}
 	this.astLengthStack[this.astLengthPtr] = pos;
+}
+protected void pushOnPatternStack(ASTNode pattern) {
+	/*add a new obj on top of the ast stack
+	astPtr points on the top*/
+
+	int stackLength = this.patternStack.length;
+	if (++this.patternPtr >= stackLength) {
+		System.arraycopy(
+			this.patternStack, 0,
+			this.patternStack = new ASTNode[stackLength + AstStackIncrement], 0,
+			stackLength);
+		this.patternPtr = stackLength;
+	}
+	this.patternStack[this.patternPtr] = pattern;
+
+	stackLength = this.patternLengthStack.length;
+	if (++this.patternLengthPtr >= stackLength) {
+		System.arraycopy(
+			this.patternLengthStack, 0,
+			this.patternLengthStack = new int[stackLength + AstStackIncrement], 0,
+			stackLength);
+	}
+	this.patternLengthStack[this.patternLengthPtr] = 1;
 }
 protected void pushOnAstStack(ASTNode node) {
 	/*add a new obj on top of the ast stack
@@ -11208,6 +11890,8 @@ protected void resetStacks() {
 
 	this.astPtr = -1;
 	this.astLengthPtr = -1;
+	this.patternPtr = -1;
+	this.patternLengthPtr = -1;
 	this.expressionPtr = -1;
 	this.expressionLengthPtr = -1;
 	this.typeAnnotationLengthPtr = -1;
@@ -11219,6 +11903,7 @@ protected void resetStacks() {
 	this.nestedMethod[this.nestedType = 0] = 0; // need to reset for further reuse
 	this.variablesCounter[this.nestedType] = 0;
 	this.switchNestingLevel = 0;
+	this.switchWithTry = false;
 	
 	this.dimensions = 0 ;
 	this.realBlockStack[this.realBlockPtr = 0] = 0;
@@ -11230,6 +11915,7 @@ protected void resetStacks() {
 	this.genericsLengthPtr = -1;
 	this.genericsPtr = -1;
 	this.valueLambdaNestDepth = -1;
+	this.recordNestedMethodLevels = new HashMap<>();
 }
 /*
  * Reset context so as to resume to regular parse loop
@@ -11436,6 +12122,8 @@ public void copyState(Parser from) {
 	this.identifierLengthPtr = parser.identifierLengthPtr;
 	this.astPtr = parser.astPtr;
 	this.astLengthPtr = parser.astLengthPtr;
+	this.patternPtr = parser.patternPtr;
+	this.patternLengthPtr = parser.patternLengthPtr;
 	this.expressionPtr = parser.expressionPtr;
 	this.expressionLengthPtr = parser.expressionLengthPtr;
 	this.genericsPtr = parser.genericsPtr;
@@ -11446,6 +12134,7 @@ public void copyState(Parser from) {
 	this.intPtr = parser.intPtr;
 	this.nestedType = parser.nestedType;
 	this.switchNestingLevel = parser.switchNestingLevel;
+	this.switchWithTry = parser.switchWithTry;
 	this.realBlockPtr = parser.realBlockPtr;
 	this.valueLambdaNestDepth = parser.valueLambdaNestDepth;
 	
@@ -11522,8 +12211,8 @@ public boolean automatonWillShift(int token, int lastAction) {
 	}
 }
 @Override
-public boolean isParsingJava13() {
-	return this.parsingJava13Plus;
+public boolean isParsingJava14() {
+	return this.parsingJava14Plus;
 }
 @Override
 public boolean isParsingModuleDeclaration() {

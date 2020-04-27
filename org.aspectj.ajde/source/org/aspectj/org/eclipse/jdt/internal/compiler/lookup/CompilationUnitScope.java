@@ -1,6 +1,6 @@
 // ASPECTJ
 /*******************************************************************************
- * Copyright (c) 2000, 2019 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -711,7 +711,7 @@ ImportBinding[] getDefaultImports() {
 		problemReporter().isClassPathCorrect(
 				TypeConstants.JAVA_LANG_OBJECT,
 			this.referenceContext,
-			this.environment.missingClassFileLocation);
+			this.environment.missingClassFileLocation, false);
 		BinaryTypeBinding missingObject = this.environment.createMissingType(null, TypeConstants.JAVA_LANG_OBJECT);
 		importBinding = missingObject.fPackage;
 	}

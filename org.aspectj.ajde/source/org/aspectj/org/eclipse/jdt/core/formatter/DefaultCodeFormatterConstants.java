@@ -43,6 +43,8 @@ public class DefaultCodeFormatterConstants {
 	 * @see #FORMATTER_BRACE_POSITION_FOR_BLOCK
 	 * @see #FORMATTER_BRACE_POSITION_FOR_CONSTRUCTOR_DECLARATION
  	 * @see #FORMATTER_BRACE_POSITION_FOR_METHOD_DECLARATION
+ 	 * @see #FORMATTER_BRACE_POSITION_FOR_RECORD_CONSTRUCTOR
+ 	 * @see #FORMATTER_BRACE_POSITION_FOR_RECORD_DECLARATION
  	 * @see #FORMATTER_BRACE_POSITION_FOR_SWITCH
 	 * @see #FORMATTER_BRACE_POSITION_FOR_TYPE_DECLARATION
 	 * @see #FORMATTER_BRACE_POSITION_FOR_LAMBDA_BODY
@@ -83,7 +85,7 @@ public class DefaultCodeFormatterConstants {
 	 * @since 3.15
 	 */
 	public static final String FORMATTER_ALIGN_VARIABLE_DECLARATIONS_ON_COLUMNS = JavaCore.PLUGIN_ID + ".formatter.align_variable_declarations_on_columns";	 //$NON-NLS-1$
-	
+
 	/**
 	 * <pre>
 	 * FORMATTER / Option to align assignment statements on column
@@ -96,7 +98,7 @@ public class DefaultCodeFormatterConstants {
 	 * @since 3.15
 	 */
 	public static final String FORMATTER_ALIGN_ASSIGNMENT_STATEMENTS_ON_COLUMNS = JavaCore.PLUGIN_ID + ".formatter.align_assignment_statements_on_columns";	 //$NON-NLS-1$
-	
+
 	/**
 	 * <pre>
 	 * FORMATTER / Option to use spaces when aligning members, independent of selected tabulation character
@@ -285,7 +287,7 @@ public class DefaultCodeFormatterConstants {
 	 *     - possible values:   values returned by <code>createAlignmentValue(boolean, int, int)</code> call
 	 *     - default:           createAlignmentValue(false, WRAP_COMPACT, INDENT_DEFAULT)
 	 * </pre>
-	 * 
+	 *
 	 * @see #createAlignmentValue(boolean, int, int)
 	 * @since 3.0
 	 * @deprecated Use new settings instead: {@link #FORMATTER_ALIGNMENT_FOR_MULTIPLICATIVE_OPERATOR},
@@ -443,6 +445,17 @@ public class DefaultCodeFormatterConstants {
 	public static final String FORMATTER_ALIGNMENT_FOR_PARAMETERS_IN_METHOD_DECLARATION = JavaCore.PLUGIN_ID + ".formatter.alignment_for_parameters_in_method_declaration";	 //$NON-NLS-1$
 	/**
 	 * <pre>
+	 * FORMATTER / Option for alignment of components in record declaration
+	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.alignment_for_record_components"
+	 *     - possible values:   values returned by <code>createAlignmentValue(boolean, int, int)</code> call
+	 *     - default:           createAlignmentValue(false, WRAP_COMPACT, INDENT_DEFAULT)
+	 * </pre>
+	 * @see #createAlignmentValue(boolean, int, int)
+	 * @since 3.22
+	 */
+	public static final String FORMATTER_ALIGNMENT_FOR_RECORD_COMPONENTS = JavaCore.PLUGIN_ID + ".formatter.alignment_for_record_components";	 //$NON-NLS-1$
+	/**
+	 * <pre>
 	 * FORMATTER / Option for alignment of resources in a try with resources statement
 	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.alignment_for_resources_in_try"
 	 *     - possible values:   values returned by <code>createAlignmentValue(boolean, int, int)</code> call
@@ -485,6 +498,17 @@ public class DefaultCodeFormatterConstants {
 	 * @since 3.1
 	 */
 	public static final String FORMATTER_ALIGNMENT_FOR_SUPERINTERFACES_IN_ENUM_DECLARATION = JavaCore.PLUGIN_ID + ".formatter.alignment_for_superinterfaces_in_enum_declaration";	 //$NON-NLS-1$
+	/**
+	 * <pre>
+	 * FORMATTER / Option for alignment of superinterfaces in record declaration
+	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.alignment_for_superinterfaces_in_record_declaration"
+	 *     - possible values:   values returned by <code>createAlignmentValue(boolean, int, int)</code> call
+	 *     - default:           createAlignmentValue(false, WRAP_COMPACT, INDENT_DEFAULT)
+	 * </pre>
+	 * @see #createAlignmentValue(boolean, int, int)
+	 * @since 3.22
+	 */
+	public static final String FORMATTER_ALIGNMENT_FOR_SUPERINTERFACES_IN_RECORD_DECLARATION = JavaCore.PLUGIN_ID + ".formatter.alignment_for_superinterfaces_in_record_declaration";	 //$NON-NLS-1$
 	/**
 	 * <pre>
 	 * FORMATTER / Option for alignment of superinterfaces in type declaration
@@ -924,6 +948,34 @@ public class DefaultCodeFormatterConstants {
 	public static final String FORMATTER_BRACE_POSITION_FOR_METHOD_DECLARATION = JavaCore.PLUGIN_ID + ".formatter.brace_position_for_method_declaration";	//$NON-NLS-1$
 	/**
 	 * <pre>
+	 * FORMATTER / Option to position the braces of a record constructor
+	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.brace_position_for_record_constructor"
+	 *     - possible values:   { END_OF_LINE, NEXT_LINE, NEXT_LINE_SHIFTED, NEXT_LINE_ON_WRAP }
+	 *     - default:           END_OF_LINE
+	 * </pre>
+	 * @see #END_OF_LINE
+	 * @see #NEXT_LINE
+	 * @see #NEXT_LINE_SHIFTED
+	 * @see #NEXT_LINE_ON_WRAP
+	 * @since 3.22
+	 */
+	public static final String FORMATTER_BRACE_POSITION_FOR_RECORD_CONSTRUCTOR = JavaCore.PLUGIN_ID + ".formatter.brace_position_for_record_constructor";	//$NON-NLS-1$
+	/**
+	 * <pre>
+	 * FORMATTER / Option to position the braces of a record declaration
+	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.brace_position_for_record_declaration"
+	 *     - possible values:   { END_OF_LINE, NEXT_LINE, NEXT_LINE_SHIFTED, NEXT_LINE_ON_WRAP }
+	 *     - default:           END_OF_LINE
+	 * </pre>
+	 * @see #END_OF_LINE
+	 * @see #NEXT_LINE
+	 * @see #NEXT_LINE_SHIFTED
+	 * @see #NEXT_LINE_ON_WRAP
+	 * @since 3.22
+	 */
+	public static final String FORMATTER_BRACE_POSITION_FOR_RECORD_DECLARATION = JavaCore.PLUGIN_ID + ".formatter.brace_position_for_record_declaration";	//$NON-NLS-1$
+	/**
+	 * <pre>
 	 * FORMATTER / Option to position the braces of a switch statement
 	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.brace_position_for_switch"
 	 *     - possible values:   { END_OF_LINE, NEXT_LINE, NEXT_LINE_SHIFTED, NEXT_LINE_ON_WRAP }
@@ -1013,6 +1065,22 @@ public class DefaultCodeFormatterConstants {
 	 * @since 3.12
 	 */
 	public static final String FORMATTER_PARENTHESES_POSITIONS_IN_ENUM_CONSTANT_DECLARATION = JavaCore.PLUGIN_ID + ".formatter.parentheses_positions_in_enum_constant_declaration";	//$NON-NLS-1$
+
+	/**
+	 * <pre>
+	 * FORMATTER / Option to position parentheses in record declarations
+	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.parentheses_positions_in_record_declaration"
+	 *     - possible values:   { COMMON_LINES, SEPARATE_LINES_IF_NOT_EMPTY, SEPARATE_LINES_IF_WRAPPED, SEPARATE_LINES, PRESERVE_POSITIONS }
+	 *     - default:           COMMON_LINES
+	 * </pre>
+	 * @see #COMMON_LINES
+	 * @see #SEPARATE_LINES_IF_NOT_EMPTY
+	 * @see #SEPARATE_LINES_IF_WRAPPED
+	 * @see #SEPARATE_LINES
+	 * @see #PRESERVE_POSITIONS
+	 * @since 3.22
+	 */
+	public static final String FORMATTER_PARENTHESES_POSITIONS_IN_RECORD_DECLARATION = JavaCore.PLUGIN_ID + ".formatter.parentheses_positions_in_record_declaration";	//$NON-NLS-1$
 
 	/**
 	 * <pre>
@@ -1201,7 +1269,7 @@ public class DefaultCodeFormatterConstants {
 	 * {@link #FORMATTER_COMMENT_FORMAT_LINE_COMMENT} option has been set to
 	 * {@link #FALSE} or the formatter is created with the mode
 	 * {@link ToolFactory#M_FORMAT_NEW}.
-	 * 
+	 *
 	 * @see #TRUE
 	 * @see #FALSE
 	 * @see ToolFactory#createCodeFormatter(Map, int)
@@ -1322,14 +1390,14 @@ public class DefaultCodeFormatterConstants {
 	 *     - possible values:   { TRUE, FALSE }
 	 *     - default:           TRUE
 	 * </pre>
-	 * 
+	 *
 	 * Note that at most one of these options can be set to {@code TRUE}:
 	 * <ul>
 	 * <li>{@code FORMATTER_COMMENT_INDENT_ROOT_TAGS},
 	 * <li>{@code FORMATTER_COMMENT_ALIGN_TAGS_NAMES_DESCRIPTIONS},
 	 * <li>{@code FORMATTER_COMMENT_ALIGN_TAGS_DESCREIPTIONS_GROUPED}.
 	 * </ul>
-	 * 
+	 *
 	 * @see #TRUE
 	 * @see #FALSE
 	 * @see #FORMATTER_COMMENT_ALIGN_TAGS_NAMES_DESCRIPTIONS
@@ -1345,14 +1413,14 @@ public class DefaultCodeFormatterConstants {
 	 *     - possible values:   { TRUE, FALSE }
 	 *     - default:           TRUE
 	 * </pre>
-	 * 
+	 *
 	 * Note that at most one of these options can be set to {@code TRUE}:
 	 * <ul>
 	 * <li>{@code FORMATTER_COMMENT_INDENT_ROOT_TAGS},
 	 * <li>{@code FORMATTER_COMMENT_ALIGN_TAGS_NAMES_DESCRIPTIONS},
 	 * <li>{@code FORMATTER_COMMENT_ALIGN_TAGS_DESCREIPTIONS_GROUPED}.
 	 * </ul>
-	 * 
+	 *
 	 * @see #TRUE
 	 * @see #FALSE
 	 * @see #FORMATTER_COMMENT_INDENT_ROOT_TAGS
@@ -1368,14 +1436,14 @@ public class DefaultCodeFormatterConstants {
 	 *     - possible values:   { TRUE, FALSE }
 	 *     - default:           TRUE
 	 * </pre>
-	 * 
+	 *
 	 * Note that at most one of these options can be set to {@code TRUE}:
 	 * <ul>
 	 * <li>{@code FORMATTER_COMMENT_INDENT_ROOT_TAGS},
 	 * <li>{@code FORMATTER_COMMENT_ALIGN_TAGS_NAMES_DESCRIPTIONS},
 	 * <li>{@code FORMATTER_COMMENT_ALIGN_TAGS_DESCREIPTIONS_GROUPED}.
 	 * </ul>
-	 * 
+	 *
 	 * @see #TRUE
 	 * @see #FALSE
 	 * @see #FORMATTER_COMMENT_INDENT_ROOT_TAGS
@@ -1396,6 +1464,18 @@ public class DefaultCodeFormatterConstants {
 	 * @since 3.1
 	 */
 	public final static String FORMATTER_COMMENT_INSERT_EMPTY_LINE_BEFORE_ROOT_TAGS = "org.aspectj.org.eclipse.jdt.core.formatter.comment.insert_new_line_before_root_tags"; //$NON-NLS-1$
+	/**
+	 * <pre>
+	 * FORMATTER / Option to insert an empty line between Javadoc tags of different type
+	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.comment.insert_new_line_between_different_tags"
+	 *     - possible values:   { INSERT, DO_NOT_INSERT }
+	 *     - default:           INSERT
+	 * </pre>
+	 * @see JavaCore#INSERT
+	 * @see JavaCore#DO_NOT_INSERT
+	 * @since 3.20
+	 */
+	public final static String FORMATTER_COMMENT_INSERT_EMPTY_LINE_BETWEEN_DIFFERENT_TAGS = "org.aspectj.org.eclipse.jdt.core.formatter.comment.insert_new_line_between_different_tags"; //$NON-NLS-1$
 
 	/**
 	 * <pre>
@@ -1507,14 +1587,14 @@ public class DefaultCodeFormatterConstants {
 	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.disabling_tag"
 	 *     - possible values:   String, with constraints mentioned below
 	 *     - default:           "@formatter:off"
-	 * 
+	 *
 	 * See the {@link #FORMATTER_ENABLING_TAG} option to re-enable it.
 	 * </pre>
-	 * 
+	 *
 	 * <p>
 	 * Note that:
 	 * <ol>
-	 * <li>This tag is used by the formatter only if the 
+	 * <li>This tag is used by the formatter only if the
 	 * {@link #FORMATTER_USE_ON_OFF_TAGS} option is set to {@link #TRUE}.</li>
 	 * <li>The tag name will be trimmed. Hence if it does contain white spaces
 	 * at the beginning or at the end, they will not be taken into account while
@@ -1634,11 +1714,11 @@ public class DefaultCodeFormatterConstants {
 	 *     - possible values:   String, with constraints mentioned below
 	 *     - default:           "@formatter:on"
 	 * </pre>
-	 * 
+	 *
 	 * <p>
 	 * Note that:
 	 * <ol>
-	 * <li>This tag is used by the formatter only if the 
+	 * <li>This tag is used by the formatter only if the
 	 * {@link #FORMATTER_USE_ON_OFF_TAGS} option is set to {@link #TRUE}.</li>
 	 * <li>The tag name will be trimmed. Hence if it does contain white spaces
 	 * at the beginning or at the end, they will not be taken into account while
@@ -1794,6 +1874,18 @@ public class DefaultCodeFormatterConstants {
 	public static final String FORMATTER_INDENT_BODY_DECLARATIONS_COMPARE_TO_ENUM_DECLARATION_HEADER = JavaCore.PLUGIN_ID + ".formatter.indent_body_declarations_compare_to_enum_declaration_header";	//$NON-NLS-1$
 	/**
 	 * <pre>
+	 * FORMATTER / Option to indent body declarations compare to its enclosing record header
+	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.indent_body_declarations_compare_to_record_header"
+	 *     - possible values:   { TRUE, FALSE }
+	 *     - default:           TRUE
+	 * </pre>
+	 * @see #TRUE
+	 * @see #FALSE
+	 * @since 3.22
+	 */
+	public static final String FORMATTER_INDENT_BODY_DECLARATIONS_COMPARE_TO_RECORD_HEADER = JavaCore.PLUGIN_ID + ".formatter.indent_body_declarations_compare_to_record_header";	//$NON-NLS-1$
+	/**
+	 * <pre>
 	 * FORMATTER / Option to indent body declarations compare to its enclosing type header
 	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.indent_body_declarations_compare_to_type_header"
 	 *     - possible values:   { TRUE, FALSE }
@@ -1902,7 +1994,7 @@ public class DefaultCodeFormatterConstants {
 	 * @see #INDENT_BY_ONE
 	 * @see #INDENT_DEFAULT
 	 * @see #INDENT_ON_COLUMN
-	 * @since 3.19
+	 * @since 3.20
 	 */
 	public static final String FORMATTER_TEXT_BLOCK_INDENTATION = JavaCore.PLUGIN_ID + ".formatter.text_block_indentation"; //$NON-NLS-1$
 
@@ -2059,7 +2151,7 @@ public class DefaultCodeFormatterConstants {
 	 * @see JavaCore#DO_NOT_INSERT
 	 * @since 3.6
 	 */
-	public static final String FORMATTER_INSERT_NEW_LINE_AFTER_LABEL = JavaCore.PLUGIN_ID + ".formatter.insert_new_line_after_label";	//$NON-NLS-1$	
+	public static final String FORMATTER_INSERT_NEW_LINE_AFTER_LABEL = JavaCore.PLUGIN_ID + ".formatter.insert_new_line_after_label";	//$NON-NLS-1$
 
 	/**
 	 * <pre>
@@ -2722,6 +2814,18 @@ public class DefaultCodeFormatterConstants {
 	public static final String FORMATTER_INSERT_SPACE_AFTER_COMMA_IN_PARAMETERIZED_TYPE_REFERENCE = JavaCore.PLUGIN_ID + ".formatter.insert_space_after_comma_in_parameterized_type_reference"; //$NON-NLS-1$
 	/**
 	 * <pre>
+	 * FORMATTER / Option to insert a space after comma in record components list
+	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.insert_space_after_comma_in_record_components"
+	 *     - possible values:   { INSERT, DO_NOT_INSERT }
+	 *     - default:           INSERT
+	 * </pre>
+	 * @see JavaCore#INSERT
+	 * @see JavaCore#DO_NOT_INSERT
+	 * @since 3.22
+	 */
+	public static final String FORMATTER_INSERT_SPACE_AFTER_COMMA_IN_RECORD_COMPONENTS = JavaCore.PLUGIN_ID + ".formatter.insert_space_after_comma_in_record_components";	//$NON-NLS-1$
+	/**
+	 * <pre>
 	 * FORMATTER / Option to insert a space after the comma in superinterfaces names of a type header
 	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.insert_space_after_comma_in_superinterfaces"
 	 *     - possible values:   { INSERT, DO_NOT_INSERT }
@@ -2986,6 +3090,18 @@ public class DefaultCodeFormatterConstants {
 	public static final String FORMATTER_INSERT_SPACE_AFTER_OPENING_PAREN_IN_PARENTHESIZED_EXPRESSION = JavaCore.PLUGIN_ID + ".formatter.insert_space_after_opening_paren_in_parenthesized_expression"; //$NON-NLS-1$
 	/**
 	 * <pre>
+	 * FORMATTER / Option to insert a space after the opening parenthesis in a record declaration
+	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.insert_space_after_opening_paren_in_record_declaration"
+	 *     - possible values:   { INSERT, DO_NOT_INSERT }
+	 *     - default:           DO_NOT_INSERT
+	 * </pre>
+	 * @see JavaCore#INSERT
+	 * @see JavaCore#DO_NOT_INSERT
+	 * @since 3.22
+	 */
+	public static final String FORMATTER_INSERT_SPACE_AFTER_OPENING_PAREN_IN_RECORD_DECLARATION = JavaCore.PLUGIN_ID + ".formatter.insert_space_after_opening_paren_in_record_declaration"; //$NON-NLS-1$
+	/**
+	 * <pre>
 	 * FORMATTER / Option to insert a space after the opening parenthesis in a switch statement
 	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.insert_space_after_opening_paren_in_switch"
 	 *     - possible values:   { INSERT, DO_NOT_INSERT }
@@ -3094,7 +3210,7 @@ public class DefaultCodeFormatterConstants {
 	public static final String FORMATTER_INSERT_SPACE_AFTER_SEMICOLON_IN_FOR = JavaCore.PLUGIN_ID + ".formatter.insert_space_after_semicolon_in_for"; //$NON-NLS-1$
 	/**
 	 * <pre>
-	 * FORMATTER / Option to insert a space after semicolons following each resource declaration in a try with 
+	 * FORMATTER / Option to insert a space after semicolons following each resource declaration in a try with
 	 * resources statement
 	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.insert_space_after_semicolon_in_try_resources"
 	 *     - possible values:   { INSERT, DO_NOT_INSERT }
@@ -3117,6 +3233,18 @@ public class DefaultCodeFormatterConstants {
 	 * @since 3.0
 	 */
 	public static final String FORMATTER_INSERT_SPACE_AFTER_UNARY_OPERATOR = JavaCore.PLUGIN_ID + ".formatter.insert_space_after_unary_operator"; //$NON-NLS-1$
+	/**
+	 * <pre>
+	 * FORMATTER / Option to insert a space after 'not' operator
+	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.insert_space_after_not_operator"
+	 *     - possible values:   { INSERT, DO_NOT_INSERT }
+	 *     - default:           DO_NOT_INSERT
+	 * </pre>
+	 * @see JavaCore#INSERT
+	 * @see JavaCore#DO_NOT_INSERT
+	 * @since 3.20
+	 */
+	public static final String FORMATTER_INSERT_SPACE_AFTER_NOT_OPERATOR = JavaCore.PLUGIN_ID + ".formatter.insert_space_after_not_operator"; //$NON-NLS-1$
 	/**
 	 * <pre>
 	 * FORMATTER / Option to insert a space before and in wildcard
@@ -3471,6 +3599,18 @@ public class DefaultCodeFormatterConstants {
 	public static final String FORMATTER_INSERT_SPACE_BEFORE_CLOSING_PAREN_IN_PARENTHESIZED_EXPRESSION = JavaCore.PLUGIN_ID + ".formatter.insert_space_before_closing_paren_in_parenthesized_expression"; //$NON-NLS-1$
 	/**
 	 * <pre>
+	 * FORMATTER / Option to insert a space before the closing parenthesis in a record declaration
+	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.insert_space_before_closing_paren_in_record_declaration"
+	 *     - possible values:   { INSERT, DO_NOT_INSERT }
+	 *     - default:           DO_NOT_INSERT
+	 * </pre>
+	 * @see JavaCore#INSERT
+	 * @see JavaCore#DO_NOT_INSERT
+	 * @since 3.22
+	 */
+	public static final String FORMATTER_INSERT_SPACE_BEFORE_CLOSING_PAREN_IN_RECORD_DECLARATION = JavaCore.PLUGIN_ID + ".formatter.insert_space_before_closing_paren_in_record_declaration";	//$NON-NLS-1$
+	/**
+	 * <pre>
 	 * FORMATTER / Option to insert a space before the closing parenthesis in a switch statement
 	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.insert_space_before_closing_paren_in_switch"
 	 *     - possible values:   { INSERT, DO_NOT_INSERT }
@@ -3783,6 +3923,18 @@ public class DefaultCodeFormatterConstants {
 	public static final String FORMATTER_INSERT_SPACE_BEFORE_COMMA_IN_PARAMETERIZED_TYPE_REFERENCE = JavaCore.PLUGIN_ID + ".formatter.insert_space_before_comma_in_parameterized_type_reference";	//$NON-NLS-1$
 	/**
 	 * <pre>
+	 * FORMATTER / Option to insert a space before comma in record components list
+	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.insert_space_before_comma_in_record_components"
+	 *     - possible values:   { INSERT, DO_NOT_INSERT }
+	 *     - default:           DO_NOT_INSERT
+	 * </pre>
+	 * @see JavaCore#INSERT
+	 * @see JavaCore#DO_NOT_INSERT
+	 * @since 3.22
+	 */
+	public static final String FORMATTER_INSERT_SPACE_BEFORE_COMMA_IN_RECORD_COMPONENTS = JavaCore.PLUGIN_ID + ".formatter.insert_space_before_comma_in_record_components";	//$NON-NLS-1$
+	/**
+	 * <pre>
 	 * FORMATTER / Option to insert a space before comma in the superinterfaces names in a type header
 	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.insert_space_before_comma_in_superinterfaces"
 	 *     - possible values:   { INSERT, DO_NOT_INSERT }
@@ -3987,6 +4139,30 @@ public class DefaultCodeFormatterConstants {
 	public static final String FORMATTER_INSERT_SPACE_BEFORE_OPENING_BRACE_IN_METHOD_DECLARATION = JavaCore.PLUGIN_ID + ".formatter.insert_space_before_opening_brace_in_method_declaration";	//$NON-NLS-1$
 	/**
 	 * <pre>
+	 * FORMATTER / Option to insert a space before the opening brace in a record constructor
+	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.insert_space_before_opening_brace_in_record_constructor"
+	 *     - possible values:   { INSERT, DO_NOT_INSERT }
+	 *     - default:           INSERT
+	 * </pre>
+	 * @see JavaCore#INSERT
+	 * @see JavaCore#DO_NOT_INSERT
+	 * @since 3.22
+	 */
+	public static final String FORMATTER_INSERT_SPACE_BEFORE_OPENING_BRACE_IN_RECORD_CONSTRUCTOR = JavaCore.PLUGIN_ID + ".formatter.insert_space_before_opening_brace_in_record_constructor";	//$NON-NLS-1$
+	/**
+	 * <pre>
+	 * FORMATTER / Option to insert a space before the opening brace in a record declaration
+	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.insert_space_before_opening_brace_in_record_declaration"
+	 *     - possible values:   { INSERT, DO_NOT_INSERT }
+	 *     - default:           INSERT
+	 * </pre>
+	 * @see JavaCore#INSERT
+	 * @see JavaCore#DO_NOT_INSERT
+	 * @since 3.22
+	 */
+	public static final String FORMATTER_INSERT_SPACE_BEFORE_OPENING_BRACE_IN_RECORD_DECLARATION = JavaCore.PLUGIN_ID + ".formatter.insert_space_before_opening_brace_in_record_declaration";	//$NON-NLS-1$
+	/**
+	 * <pre>
 	 * FORMATTER / Option to insert a space before the opening brace in a switch statement
 	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.insert_space_before_opening_brace_in_switch"
 	 *     - possible values:   { INSERT, DO_NOT_INSERT }
@@ -4165,6 +4341,18 @@ public class DefaultCodeFormatterConstants {
 	 * @since 3.0
 	 */
 	public static final String FORMATTER_INSERT_SPACE_BEFORE_OPENING_PAREN_IN_PARENTHESIZED_EXPRESSION = JavaCore.PLUGIN_ID + ".formatter.insert_space_before_opening_paren_in_parenthesized_expression"; //$NON-NLS-1$
+	/**
+	 * <pre>
+	 * FORMATTER / Option to insert a space before the opening parenthesis in a record declaration
+	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.insert_space_before_opening_paren_in_record_declaration"
+	 *     - possible values:   { INSERT, DO_NOT_INSERT }
+	 *     - default:           DO_NOT_INSERT
+	 * </pre>
+	 * @see JavaCore#INSERT
+	 * @see JavaCore#DO_NOT_INSERT
+	 * @since 3.22
+	 */
+	public static final String FORMATTER_INSERT_SPACE_BEFORE_OPENING_PAREN_IN_RECORD_DECLARATION = JavaCore.PLUGIN_ID + ".formatter.insert_space_before_opening_paren_in_record_declaration"; //$NON-NLS-1$
 	/**
 	 * <pre>
 	 * FORMATTER / Option to insert a space before the opening parenthesis in a switch statement
@@ -4706,6 +4894,38 @@ public class DefaultCodeFormatterConstants {
 	 * @since 3.16
 	 */
 	public static final String FORMATTER_KEEP_ANNOTATION_DECLARATION_ON_ONE_LINE = JavaCore.PLUGIN_ID + ".formatter.keep_annotation_declaration_on_one_line"; //$NON-NLS-1$
+	/**
+	 * <pre>
+	 * FORMATTER / Option to control when a record declaration should be kept on one line
+	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.keep_record_declaration_on_one_line"
+	 *     - possible values:   { ONE_LINE_NEVER, ONE_LINE_IF_EMPTY, ONE_LINE_IF_SINGLE_ITEM,
+	 *                            ONE_LINE_ALWAYS, ONE_LINE_PRESERVE }
+	 *     - default:           ONE_LINE_NEVER
+	 * </pre>
+	 * @see #ONE_LINE_NEVER
+	 * @see #ONE_LINE_IF_EMPTY
+	 * @see #ONE_LINE_IF_SINGLE_ITEM
+	 * @see #ONE_LINE_ALWAYS
+	 * @see #ONE_LINE_PRESERVE
+	 * @since 3.22
+	 */
+	public static final String FORMATTER_KEEP_RECORD_DECLARATION_ON_ONE_LINE = JavaCore.PLUGIN_ID + ".formatter.keep_record_declaration_on_one_line"; //$NON-NLS-1$
+	/**
+	 * <pre>
+	 * FORMATTER / Option to control when a record constructor should be kept on one line
+	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.keep_record_constructor_on_one_line"
+	 *     - possible values:   { ONE_LINE_NEVER, ONE_LINE_IF_EMPTY, ONE_LINE_IF_SINGLE_ITEM,
+	 *                            ONE_LINE_ALWAYS, ONE_LINE_PRESERVE }
+	 *     - default:           ONE_LINE_NEVER
+	 * </pre>
+	 * @see #ONE_LINE_NEVER
+	 * @see #ONE_LINE_IF_EMPTY
+	 * @see #ONE_LINE_IF_SINGLE_ITEM
+	 * @see #ONE_LINE_ALWAYS
+	 * @see #ONE_LINE_PRESERVE
+	 * @since 3.22
+	 */
+	public static final String FORMATTER_KEEP_RECORD_CONSTRUCTOR_ON_ONE_LINE = JavaCore.PLUGIN_ID + ".formatter.keep_record_constructor_on_one_line"; //$NON-NLS-1$
 
 	/**
 	 * <pre>
@@ -4763,7 +4983,7 @@ public class DefaultCodeFormatterConstants {
 	/**
 	 * <pre>
 	 * FORMATTER / Option to specify whether the formatter can join wrapped lines or not
-	 * 
+	 *
 	 * 		For example, the wrapped lines of method foo return statement in following test case:
 	 * 			class X {
 	 * 			String foo() {
@@ -4794,7 +5014,7 @@ public class DefaultCodeFormatterConstants {
 	/**
 	 * <pre>
 	 * FORMATTER / Option to specify whether the formatter can join text lines in comments or not
-	 * 
+	 *
 	 * 		For example, the following comment:
 	 * 			/**
 	 * 			 * The foo method.
@@ -4802,7 +5022,7 @@ public class DefaultCodeFormatterConstants {
 	 * 			 *&#0047;
 	 * 			public class X {
 	 * 			}
-	 * 
+	 *
 	 * 		will be unchanged by the formatter when this new preference is used,
 	 * 		even if the maximum line width would give it enough space to join the lines.
 	 *
@@ -5047,7 +5267,7 @@ public class DefaultCodeFormatterConstants {
 	 * then the preference needs to be set to {@link #FALSE} to retrieve the previous formatter behavior.</li>
 	 * <li>The new strategy currently only applies to nested method calls, but might be extended to other nested expressions in future versions</li>
 	 * </ol>
-	 * 
+	 *
 	 * @see #TRUE
 	 * @see #FALSE
 	 * @since 3.6
@@ -5079,7 +5299,7 @@ public class DefaultCodeFormatterConstants {
 	 * <pre>
 	 * FORMATTER / Indentation is not touched, it's preserved from original source.
 	 * </pre>
-	 * @since 3.19
+	 * @since 3.20
 	 */
 	public static final int INDENT_PRESERVE = 3;
 
@@ -5103,6 +5323,8 @@ public class DefaultCodeFormatterConstants {
 	 * @see #FORMATTER_BRACE_POSITION_FOR_BLOCK
 	 * @see #FORMATTER_BRACE_POSITION_FOR_CONSTRUCTOR_DECLARATION
  	 * @see #FORMATTER_BRACE_POSITION_FOR_METHOD_DECLARATION
+ 	 * @see #FORMATTER_BRACE_POSITION_FOR_RECORD_CONSTRUCTOR
+ 	 * @see #FORMATTER_BRACE_POSITION_FOR_RECORD_DECLARATION
  	 * @see #FORMATTER_BRACE_POSITION_FOR_SWITCH
 	 * @see #FORMATTER_BRACE_POSITION_FOR_TYPE_DECLARATION
 	 * @see #FORMATTER_BRACE_POSITION_FOR_LAMBDA_BODY
@@ -5119,6 +5341,8 @@ public class DefaultCodeFormatterConstants {
 	 * @see #FORMATTER_BRACE_POSITION_FOR_BLOCK
 	 * @see #FORMATTER_BRACE_POSITION_FOR_CONSTRUCTOR_DECLARATION
  	 * @see #FORMATTER_BRACE_POSITION_FOR_METHOD_DECLARATION
+ 	 * @see #FORMATTER_BRACE_POSITION_FOR_RECORD_CONSTRUCTOR
+ 	 * @see #FORMATTER_BRACE_POSITION_FOR_RECORD_DECLARATION
  	 * @see #FORMATTER_BRACE_POSITION_FOR_SWITCH
 	 * @see #FORMATTER_BRACE_POSITION_FOR_TYPE_DECLARATION
 	 * @see #FORMATTER_BRACE_POSITION_FOR_LAMBDA_BODY
@@ -5135,6 +5359,8 @@ public class DefaultCodeFormatterConstants {
 	 * @see #FORMATTER_BRACE_POSITION_FOR_BLOCK
 	 * @see #FORMATTER_BRACE_POSITION_FOR_CONSTRUCTOR_DECLARATION
  	 * @see #FORMATTER_BRACE_POSITION_FOR_METHOD_DECLARATION
+ 	 * @see #FORMATTER_BRACE_POSITION_FOR_RECORD_CONSTRUCTOR
+ 	 * @see #FORMATTER_BRACE_POSITION_FOR_RECORD_DECLARATION
  	 * @see #FORMATTER_BRACE_POSITION_FOR_SWITCH
 	 * @see #FORMATTER_BRACE_POSITION_FOR_TYPE_DECLARATION
 	 * @see #FORMATTER_BRACE_POSITION_FOR_LAMBDA_BODY
@@ -5150,6 +5376,7 @@ public class DefaultCodeFormatterConstants {
 	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_METHOD_DECLARATION
 	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_METHOD_INVOCATION
 	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_ENUM_CONSTANT_DECLARATION
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_RECORD_DECLARATION
 	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_IF_WHILE_STATEMENT
 	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_FOR_STATEMENT
 	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_SWITCH_STATEMENT
@@ -5169,6 +5396,7 @@ public class DefaultCodeFormatterConstants {
 	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_METHOD_DECLARATION
 	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_METHOD_INVOCATION
 	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_ENUM_CONSTANT_DECLARATION
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_RECORD_DECLARATION
 	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_ANNOTATION
 	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_LAMBDA_DECLARATION
 	 * @since 3.12
@@ -5183,6 +5411,7 @@ public class DefaultCodeFormatterConstants {
 	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_METHOD_DECLARATION
 	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_METHOD_INVOCATION
 	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_ENUM_CONSTANT_DECLARATION
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_RECORD_DECLARATION
 	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_IF_WHILE_STATEMENT
 	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_FOR_STATEMENT
 	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_SWITCH_STATEMENT
@@ -5193,7 +5422,7 @@ public class DefaultCodeFormatterConstants {
 	 * @since 3.12
 	 */
 	public static final String SEPARATE_LINES_IF_WRAPPED = "separate_lines_if_wrapped";	//$NON-NLS-1$
-	
+
 	/**
 	 * <pre>
 	 * FORMATTER / Value to set parentheses location on separate lines from their contents,
@@ -5203,6 +5432,7 @@ public class DefaultCodeFormatterConstants {
 	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_METHOD_DECLARATION
 	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_METHOD_INVOCATION
 	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_ENUM_CONSTANT_DECLARATION
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_RECORD_DECLARATION
 	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_IF_WHILE_STATEMENT
 	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_FOR_STATEMENT
 	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_SWITCH_STATEMENT
@@ -5222,6 +5452,7 @@ public class DefaultCodeFormatterConstants {
 	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_METHOD_DECLARATION
 	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_METHOD_INVOCATION
 	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_ENUM_CONSTANT_DECLARATION
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_RECORD_DECLARATION
 	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_IF_WHILE_STATEMENT
 	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_FOR_STATEMENT
 	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_SWITCH_STATEMENT

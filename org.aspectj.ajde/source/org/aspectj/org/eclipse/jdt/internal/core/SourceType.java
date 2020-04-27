@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -196,7 +196,7 @@ public IType createType(String contents, IJavaElement sibling, boolean force, IP
 @Override
 public boolean equals(Object o) {
 	if (!(o instanceof SourceType)) return false;
-	if (((SourceType) o).isLambda()) 
+	if (((SourceType) o).isLambda())
 		return false;
 	return super.equals(o);
 }
@@ -648,6 +648,16 @@ public boolean isEnum() throws JavaModelException {
 }
 
 /**
+ * @see IType#isRecord()
+ * @noreference This method is not intended to be referenced by clients as it is a part of Java preview feature.
+ */
+@Override
+public boolean isRecord() throws JavaModelException {
+	SourceTypeElementInfo info = (SourceTypeElementInfo) getElementInfo();
+	return TypeDeclaration.kind(info.getModifiers()) == TypeDeclaration.RECORD_DECL;
+}
+
+/**
  * @see IType
  */
 @Override
@@ -840,7 +850,7 @@ public ITypeHierarchy newTypeHierarchy(IJavaProject project, WorkingCopyOwner ow
 @Override
 public ITypeHierarchy newTypeHierarchy(IProgressMonitor monitor) throws JavaModelException {
 	// https://bugs.eclipse.org/bugs/show_bug.cgi?id=228845, The new type hierarchy should consider changes in primary
-	// working copy. 
+	// working copy.
 	return newTypeHierarchy(DefaultWorkingCopyOwner.PRIMARY, monitor);
 }
 
@@ -919,7 +929,9 @@ protected void toStringInfo(int tab, StringBuffer buffer, Object info, boolean s
 		}
 	} else {
 		try {
-			if (isEnum()) {
+			if (isRecord()) {
+				buffer.append("record "); //$NON-NLS-1$
+			} else if (isEnum()) {
 				buffer.append("enum "); //$NON-NLS-1$
 			} else if (isAnnotation()) {
 				buffer.append("@interface "); //$NON-NLS-1$
