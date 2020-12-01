@@ -2010,6 +2010,7 @@ M4 = Platform-specific fourth key
          id="ajdtTemplates">
       <javaCompletionProposalComputer
             class="org.eclipse.ajdt.internal.ui.editor.contentassist.AJTemplateCompletionProcessor"
+                  requiresUIThread="false"
 			      categoryId="org.eclipse.ajdt.ui.templateCategory">
 			<partition type="__dftl_partition_content_type"/>
       </javaCompletionProposalComputer>
