@@ -175,7 +175,7 @@ public class AJSourceIndexerRequestor extends SourceIndexerRequestor {
     }
 
 
-	private int getSourceEnd(FieldInfo fieldInfo) throws NoSuchFieldException, SecurityException {
+	private int getSourceEnd(FieldInfo fieldInfo) throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
 //		return fieldInfo.node.sourceEnd;
 		Field f = fieldInfo.getClass().getDeclaredField("node");
 		
