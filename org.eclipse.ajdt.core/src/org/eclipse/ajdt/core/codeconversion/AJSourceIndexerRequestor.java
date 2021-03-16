@@ -11,6 +11,7 @@
 
 package org.eclipse.ajdt.core.codeconversion;
 
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 
@@ -31,6 +32,8 @@ import org.eclipse.jdt.core.search.SearchDocument;
 import org.eclipse.jdt.internal.core.search.indexing.AbstractIndexer;
 import org.eclipse.jdt.internal.core.search.indexing.SourceIndexer;
 import org.eclipse.jdt.internal.core.search.indexing.SourceIndexerRequestor;
+
+import org.eclipse.jdt.internal.compiler.ast.ASTNode;
 
 /**
  * @author Andrew Eisenberg
@@ -60,8 +63,7 @@ public class AJSourceIndexerRequestor extends SourceIndexerRequestor {
             if (maybeDeclare(fieldName, fieldType)) {
                 try {
                     char[] contents = getContents();
-                    
-                    BodyDeclaration node = PointcutUtilities.createSingleBodyDeclarationNode(fieldInfo.declarationStart, fieldInfo.node.sourceEnd, contents);
+                    BodyDeclaration node = PointcutUtilities.createSingleBodyDeclarationNode(fieldInfo.declarationStart, getSourceEnd(fieldInfo), contents);
                     if (node instanceof DeclareParentsDeclaration) {
                     	
                         // found it!
@@ -171,6 +173,15 @@ public class AJSourceIndexerRequestor extends SourceIndexerRequestor {
         } catch (Exception e) {
         }
     }
+
+
+	private int getSourceEnd(FieldInfo fieldInfo) throws NoSuchFieldException, SecurityException {
+//		return fieldInfo.node.sourceEnd;
+		Field f = fieldInfo.getClass().getDeclaredField("node");
+		
+		ASTNode node = (ASTNode) f.get(fieldInfo);
+		return node.sourceEnd;
+	}
 
 
     /**
