@@ -26,8 +26,8 @@ import java.util.StringTokenizer;
 public class ConfigParser {
 	Location location;
 	protected File relativeDirectory = null;
-	protected List<File> files = new LinkedList<File>();
-	protected List<File> xmlfiles = new ArrayList<File>();
+	protected List<File> files = new LinkedList<>();
+	protected List<File> xmlfiles = new ArrayList<>();
 	private boolean fileParsed = false;
 	protected static String CONFIG_MSG = "build config error: ";
 
@@ -41,9 +41,9 @@ public class ConfigParser {
 
 	public void parseCommandLine(String[] argsArray) throws ParseException {
 		location = new CommandLineLocation();
-		LinkedList<Arg> args = new LinkedList<Arg>();
-		for (int i = 0; i < argsArray.length; i++) {
-			args.add(new Arg(argsArray[i], location));
+		LinkedList<Arg> args = new LinkedList<>();
+		for (String s : argsArray) {
+			args.add(new Arg(s, location));
 		}
 		String aspectjOptions = null;
 		try {
@@ -80,7 +80,7 @@ public class ConfigParser {
 			return;
 		}
 
-		LinkedList<Arg> args = new LinkedList<Arg>();
+		LinkedList<Arg> args = new LinkedList<>();
 		int lineNum = 0;
 
 		try {
@@ -188,8 +188,8 @@ public class ConfigParser {
 				showWarning("no matching files found in: " + dir);
 			}
 
-			for (int i = 0; i < files.length; i++) {
-				addFile(files[i]);
+			for (File file : files) {
+				addFile(file);
 			}
 		}
 	}

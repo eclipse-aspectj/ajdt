@@ -96,7 +96,7 @@ public class AjState implements CompilerConfigurationChangeFlags, TypeDelegateRe
 	 * When looking at changes on the classpath, this set accumulates files in our state instance that affected by those changes.
 	 * Then if we can do an incremental build - these must be compiled.
 	 */
-	private final Set<File> affectedFiles = new HashSet<File>();
+	private final Set<File> affectedFiles = new HashSet<>();
 
 	// these are references created on a particular compile run - when looping round in
 	// addAffectedSourceFiles(), if some have been created then we look at which source files
@@ -110,7 +110,7 @@ public class AjState implements CompilerConfigurationChangeFlags, TypeDelegateRe
 	private Set<BinarySourceFile> addedBinaryFiles;
 	private Set<BinarySourceFile> deletedBinaryFiles;
 	// For a particular build run, this set records the changes to classesFromName
-	public final Set<String> deltaAddedClasses = new HashSet<String>();
+	public final Set<String> deltaAddedClasses = new HashSet<>();
 
 	// now follows non static, but transient state - no need to write out, DOES need reinitializing when read AjState instance
 	// reloaded
@@ -125,7 +125,7 @@ public class AjState implements CompilerConfigurationChangeFlags, TypeDelegateRe
 	private boolean batchBuildRequiredThisTime = false;
 	private AjBuildConfig buildConfig;
 	private long lastSuccessfulFullBuildTime = -1;
-	private final Hashtable<String, Long> structuralChangesSinceLastFullBuild = new Hashtable<String, Long>();
+	private final Hashtable<String, Long> structuralChangesSinceLastFullBuild = new Hashtable<>();
 	private long lastSuccessfulBuildTime = -1;
 	private long currentBuildTime = -1;
 	private AsmManager structureModel;
@@ -134,18 +134,18 @@ public class AjState implements CompilerConfigurationChangeFlags, TypeDelegateRe
 	 * For a given source file, records the ClassFiles (which contain a fully qualified name and a file name) that were created when
 	 * the source file was compiled. Populated in noteResult and used in addDependentsOf(File)
 	 */
-	private final Map<File, List<ClassFile>> fullyQualifiedTypeNamesResultingFromCompilationUnit = new HashMap<File, List<ClassFile>>();
+	private final Map<File, List<ClassFile>> fullyQualifiedTypeNamesResultingFromCompilationUnit = new HashMap<>();
 
 	/**
 	 * Source files defining aspects Populated in noteResult and used in processDeletedFiles
 	 */
-	private final Set<File> sourceFilesDefiningAspects = new HashSet<File>();
+	private final Set<File> sourceFilesDefiningAspects = new HashSet<>();
 
 	/**
 	 * Populated in noteResult to record the set of types that should be recompiled if the given file is modified or deleted.
 	 * Referred to during addAffectedSourceFiles when calculating incremental compilation set.
 	 */
-	private final Map<File, ReferenceCollection> references = new HashMap<File, ReferenceCollection>();
+	private final Map<File, ReferenceCollection> references = new HashMap<>();
 
 	/**
 	 * Holds UnwovenClassFiles (byte[]s) originating from the given file source. This could be a jar file, a directory, or an
@@ -165,25 +165,25 @@ public class AjState implements CompilerConfigurationChangeFlags, TypeDelegateRe
 	 * input file has changed.
 	 * 
 	 */
-	private Map<String, List<UnwovenClassFile>> binarySourceFiles = new HashMap<String, List<UnwovenClassFile>>();
+	private Map<String, List<UnwovenClassFile>> binarySourceFiles = new HashMap<>();
 
 	/**
 	 * Initially a duplicate of the information held in binarySourceFiles, with the key difference that the values are ClassFiles
 	 * (type name, File) not UnwovenClassFiles (which also have all the byte code in them). After a batch build, binarySourceFiles
 	 * is cleared, leaving just this much lighter weight map to use in processing subsequent incremental builds.
 	 */
-	private final Map<String, List<ClassFile>> inputClassFilesBySource = new HashMap<String, List<ClassFile>>();
+	private final Map<String, List<ClassFile>> inputClassFilesBySource = new HashMap<>();
 
 	/**
 	 * A list of the .class files created by this state that contain aspects.
 	 */
-	private final List<String> aspectClassFiles = new ArrayList<String>();
+	private final List<String> aspectClassFiles = new ArrayList<>();
 
 	/**
 	 * Holds structure information on types as they were at the end of the last build. It would be nice to get rid of this too, but
 	 * can't see an easy way to do that right now.
 	 */
-	private final Map<String, CompactTypeStructureRepresentation> resolvedTypeStructuresFromLastBuild = new HashMap<String, CompactTypeStructureRepresentation>();
+	private final Map<String, CompactTypeStructureRepresentation> resolvedTypeStructuresFromLastBuild = new HashMap<>();
 
 	/**
 	 * Populated in noteResult to record the set of UnwovenClassFiles (intermediate results) that originated from compilation of the
@@ -193,7 +193,7 @@ public class AjState implements CompilerConfigurationChangeFlags, TypeDelegateRe
 	 * 
 	 * Passed into StatefulNameEnvironment during incremental compilation to support findType lookups.
 	 */
-	private final Map<String, File> classesFromName = new HashMap<String, File>();
+	private final Map<String, File> classesFromName = new HashMap<>();
 
 	/**
 	 * Populated by AjBuildManager to record the aspects with the file name in which they're contained. This is later used when
@@ -203,8 +203,8 @@ public class AjState implements CompilerConfigurationChangeFlags, TypeDelegateRe
 	 */
 	private Map<String, char[]> aspectsFromFileNames;
 
-	private Set<File> compiledSourceFiles = new HashSet<File>();
-	private final Map<String, File> resources = new HashMap<String, File>();
+	private Set<File> compiledSourceFiles = new HashSet<>();
+	private final Map<String, File> resources = new HashMap<>();
 
 	SoftHashMap/* <baseDir,SoftHashMap<theFile,className>> */fileToClassNameMap = new SoftHashMap();
 
@@ -313,21 +313,21 @@ public class AjState implements CompilerConfigurationChangeFlags, TypeDelegateRe
 			addedFiles = Collections.emptySet();
 			deletedFiles = Collections.emptySet();
 		} else {
-			Set<File> oldFiles = new HashSet<File>(buildConfig.getFiles());
-			Set<File> newFiles = new HashSet<File>(newBuildConfig.getFiles());
+			Set<File> oldFiles = new HashSet<>(buildConfig.getFiles());
+			Set<File> newFiles = new HashSet<>(newBuildConfig.getFiles());
 
-			addedFiles = new HashSet<File>(newFiles);
+			addedFiles = new HashSet<>(newFiles);
 			addedFiles.removeAll(oldFiles);
-			deletedFiles = new HashSet<File>(oldFiles);
+			deletedFiles = new HashSet<>(oldFiles);
 			deletedFiles.removeAll(newFiles);
 		}
 
-		Set<BinarySourceFile> oldBinaryFiles = new HashSet<BinarySourceFile>(buildConfig.getBinaryFiles());
-		Set<BinarySourceFile> newBinaryFiles = new HashSet<BinarySourceFile>(newBuildConfig.getBinaryFiles());
+		Set<BinarySourceFile> oldBinaryFiles = new HashSet<>(buildConfig.getBinaryFiles());
+		Set<BinarySourceFile> newBinaryFiles = new HashSet<>(newBuildConfig.getBinaryFiles());
 
-		addedBinaryFiles = new HashSet<BinarySourceFile>(newBinaryFiles);
+		addedBinaryFiles = new HashSet<>(newBinaryFiles);
 		addedBinaryFiles.removeAll(oldBinaryFiles);
-		deletedBinaryFiles = new HashSet<BinarySourceFile>(oldBinaryFiles);
+		deletedBinaryFiles = new HashSet<>(oldBinaryFiles);
 		deletedBinaryFiles.removeAll(newBinaryFiles);
 
 		boolean couldStillBeIncremental = processDeletedFiles(deletedFiles);
@@ -376,7 +376,7 @@ public class AjState implements CompilerConfigurationChangeFlags, TypeDelegateRe
 	}
 
 	Collection<File> getModifiedFiles(long lastBuildTime) {
-		Set<File> ret = new HashSet<File>();
+		Set<File> ret = new HashSet<>();
 
 		// Check if the build configuration knows what files have changed...
 		List<File> modifiedFiles = buildConfig.getModifiedFiles();
@@ -384,8 +384,7 @@ public class AjState implements CompilerConfigurationChangeFlags, TypeDelegateRe
 		if (modifiedFiles == null) {
 			// do not know, so need to go looking
 			// not our job to account for new and deleted files
-			for (Iterator<File> i = buildConfig.getFiles().iterator(); i.hasNext();) {
-				File file = i.next();
+			for (File file : buildConfig.getFiles()) {
 				if (!file.exists()) {
 					continue;
 				}
@@ -409,10 +408,9 @@ public class AjState implements CompilerConfigurationChangeFlags, TypeDelegateRe
 	}
 
 	Collection<BinarySourceFile> getModifiedBinaryFiles(long lastBuildTime) {
-		List<BinarySourceFile> ret = new ArrayList<BinarySourceFile>();
+		List<BinarySourceFile> ret = new ArrayList<>();
 		// not our job to account for new and deleted files
-		for (Iterator<BinarySourceFile> i = buildConfig.getBinaryFiles().iterator(); i.hasNext();) {
-			AjBuildConfig.BinarySourceFile bsfile = i.next();
+		for (BinarySourceFile bsfile : buildConfig.getBinaryFiles()) {
 			File file = bsfile.binSrc;
 			if (!file.exists()) {
 				continue;
@@ -490,8 +488,7 @@ public class AjState implements CompilerConfigurationChangeFlags, TypeDelegateRe
 
 		List<File> classFiles = FileUtil.listClassFiles(dir);
 
-		for (Iterator<File> iterator = classFiles.iterator(); iterator.hasNext();) {
-			File classFile = iterator.next();
+		for (File classFile : classFiles) {
 			if (CHECK_STATE_FIRST && state != null) {
 				// Next section reworked based on bug 270033:
 				// if it is an aspect we may or may not be in trouble depending on whether (a) we depend on it (b) it is on the
@@ -763,8 +760,7 @@ public class AjState implements CompilerConfigurationChangeFlags, TypeDelegateRe
 			simpleNames = ReferenceCollection.internSimpleNames(simpleNames, true);
 		}
 		int newlyAffectedFiles = 0;
-		for (Iterator<Map.Entry<File, ReferenceCollection>> i = references.entrySet().iterator(); i.hasNext();) {
-			Map.Entry<File, ReferenceCollection> entry = i.next();
+		for (Map.Entry<File, ReferenceCollection> entry : references.entrySet()) {
 			ReferenceCollection refs = entry.getValue();
 			if (refs != null && refs.includes(qualifiedNames, simpleNames)) {
 				if (listenerDefined()) {
@@ -824,7 +820,7 @@ public class AjState implements CompilerConfigurationChangeFlags, TypeDelegateRe
 		Long l = structuralChangesSinceLastFullBuild.get(file.getAbsolutePath());
 		long strucModTime = -1;
 		if (l != null) {
-			strucModTime = l.longValue();
+			strucModTime = l;
 		} else {
 			strucModTime = this.lastSuccessfulFullBuildTime;
 		}
@@ -838,11 +834,10 @@ public class AjState implements CompilerConfigurationChangeFlags, TypeDelegateRe
 	 */
 	private boolean hasAnyStructuralChangesSince(long lastSuccessfulBuildTime) {
 		Set<Map.Entry<String, Long>> entries = structuralChangesSinceLastFullBuild.entrySet();
-		for (Iterator<Map.Entry<String, Long>> iterator = entries.iterator(); iterator.hasNext();) {
-			Map.Entry<String, Long> entry = iterator.next();
+		for (Map.Entry<String, Long> entry : entries) {
 			Long l = entry.getValue();
 			if (l != null) {
-				long lvalue = l.longValue();
+				long lvalue = l;
 				if (lvalue > lastSuccessfulBuildTime) {
 					if (listenerDefined()) {
 						getListener().recordDecision(
@@ -870,7 +865,7 @@ public class AjState implements CompilerConfigurationChangeFlags, TypeDelegateRe
 		if ((changes & (CLASSPATH_CHANGED | ASPECTPATH_CHANGED | INPATH_CHANGED | OUTPUTDESTINATIONS_CHANGED | INJARS_CHANGED)) != 0) {
 			List<File> oldOutputLocs = getOutputLocations(previousConfig);
 
-			Set<String> alreadyAnalysedPaths = new HashSet<String>();
+			Set<String> alreadyAnalysedPaths = new HashSet<>();
 
 			List<String> oldClasspath = previousConfig.getClasspath();
 			List<String> newClasspath = newConfig.getClasspath();
@@ -905,8 +900,8 @@ public class AjState implements CompilerConfigurationChangeFlags, TypeDelegateRe
 			// are also capturing project dependencies - when a project we depend on is rebuilt, we can just check
 			// it as a standalone element on our classpath rather than going through them all
 			List<String> modifiedCpElements = newConfig.getClasspathElementsWithModifiedContents();
-			for (Iterator<String> iterator = modifiedCpElements.iterator(); iterator.hasNext();) {
-				File cpElement = new File(iterator.next());
+			for (String modifiedCpElement : modifiedCpElements) {
+				File cpElement = new File(modifiedCpElement);
 				if (cpElement.exists() && !cpElement.isDirectory()) {
 					if (cpElement.lastModified() > lastSuccessfulBuildTime) {
 						return true;
@@ -931,7 +926,7 @@ public class AjState implements CompilerConfigurationChangeFlags, TypeDelegateRe
 	 * @return a list of file objects
 	 */
 	private List<File> getOutputLocations(AjBuildConfig config) {
-		List<File> outputLocs = new ArrayList<File>();
+		List<File> outputLocs = new ArrayList<>();
 		// Is there a default location?
 		if (config.getOutputDir() != null) {
 			try {
@@ -941,8 +936,7 @@ public class AjState implements CompilerConfigurationChangeFlags, TypeDelegateRe
 		}
 		if (config.getCompilationResultDestinationManager() != null) {
 			List<File> dirs = config.getCompilationResultDestinationManager().getAllOutputLocations();
-			for (Iterator<File> iterator = dirs.iterator(); iterator.hasNext();) {
-				File f = iterator.next();
+			for (File f : dirs) {
 				try {
 					File cf = f.getCanonicalFile();
 					if (!outputLocs.contains(cf)) {
@@ -1080,9 +1074,9 @@ public class AjState implements CompilerConfigurationChangeFlags, TypeDelegateRe
 	}
 
 	public Set<File> getFilesToCompile(boolean firstPass) {
-		Set<File> thisTime = new HashSet<File>();
+		Set<File> thisTime = new HashSet<>();
 		if (firstPass) {
-			compiledSourceFiles = new HashSet<File>();
+			compiledSourceFiles = new HashSet<>();
 			Collection<File> modifiedFiles = getModifiedFiles();
 			// System.out.println("modified: " + modifiedFiles);
 			thisTime.addAll(modifiedFiles);
@@ -1093,8 +1087,7 @@ public class AjState implements CompilerConfigurationChangeFlags, TypeDelegateRe
 			// }
 
 			if (addedFiles != null) {
-				for (Iterator<File> fIter = addedFiles.iterator(); fIter.hasNext();) {
-					File o = fIter.next();
+				for (File o : addedFiles) {
 					// TODO isn't it a set?? why do this
 					if (!thisTime.contains(o)) {
 						thisTime.add(o);
@@ -1127,22 +1120,21 @@ public class AjState implements CompilerConfigurationChangeFlags, TypeDelegateRe
 			return binarySourceFiles;
 		}
 		// else incremental...
-		Map<String, List<UnwovenClassFile>> toWeave = new HashMap<String, List<UnwovenClassFile>>();
+		Map<String, List<UnwovenClassFile>> toWeave = new HashMap<>();
 		if (firstTime) {
-			List<BinarySourceFile> addedOrModified = new ArrayList<BinarySourceFile>();
+			List<BinarySourceFile> addedOrModified = new ArrayList<>();
 			addedOrModified.addAll(addedBinaryFiles);
 			addedOrModified.addAll(getModifiedBinaryFiles());
-			for (Iterator<BinarySourceFile> iter = addedOrModified.iterator(); iter.hasNext();) {
-				AjBuildConfig.BinarySourceFile bsf = iter.next();
+			for (BinarySourceFile bsf : addedOrModified) {
 				UnwovenClassFile ucf = createUnwovenClassFile(bsf);
 				if (ucf == null) {
 					continue;
 				}
-				List<UnwovenClassFile> ucfs = new ArrayList<UnwovenClassFile>();
+				List<UnwovenClassFile> ucfs = new ArrayList<>();
 				ucfs.add(ucf);
 				recordTypeChanged(ucf.getClassName());
 				binarySourceFiles.put(bsf.binSrc.getPath(), ucfs);
-				List<ClassFile> cfs = new ArrayList<ClassFile>(1);
+				List<ClassFile> cfs = new ArrayList<>(1);
 				cfs.add(getClassFileFor(ucf));
 				this.inputClassFilesBySource.put(bsf.binSrc.getPath(), cfs);
 				toWeave.put(bsf.binSrc.getPath(), ucfs);
@@ -1159,19 +1151,16 @@ public class AjState implements CompilerConfigurationChangeFlags, TypeDelegateRe
 	 */
 	private void removeAllResultsOfLastBuild() {
 		// remove all binarySourceFiles, and all classesFromName...
-		for (Iterator<List<ClassFile>> iter = this.inputClassFilesBySource.values().iterator(); iter.hasNext();) {
-			List<ClassFile> cfs = iter.next();
+		for (List<ClassFile> cfs : this.inputClassFilesBySource.values()) {
 			for (ClassFile cf : cfs) {
 				cf.deleteFromFileSystem(buildConfig);
 			}
 		}
-		for (Iterator<File> iterator = classesFromName.values().iterator(); iterator.hasNext();) {
-			File f = iterator.next();
+		for (File f : classesFromName.values()) {
 			new ClassFile("", f).deleteFromFileSystem(buildConfig);
 		}
 		Set<Map.Entry<String, File>> resourceEntries = resources.entrySet();
-		for (Iterator<Map.Entry<String, File>> iter = resourceEntries.iterator(); iter.hasNext();) {
-			Map.Entry<String, File> resourcePair = iter.next();
+		for (Map.Entry<String, File> resourcePair : resourceEntries) {
 			File sourcePath = resourcePair.getValue();
 			File outputLoc = getOutputLocationFor(buildConfig, sourcePath);
 			if (outputLoc != null) {
@@ -1210,8 +1199,8 @@ public class AjState implements CompilerConfigurationChangeFlags, TypeDelegateRe
 		// range of bsf is ucfs, domain is files (.class and jars) in inpath/jars
 		for (BinarySourceFile deletedFile : deletedBinaryFiles) {
 			List<ClassFile> cfs = this.inputClassFilesBySource.get(deletedFile.binSrc.getPath());
-			for (Iterator<ClassFile> iterator = cfs.iterator(); iterator.hasNext();) {
-				deleteClassFile(iterator.next());
+			for (ClassFile cf : cfs) {
+				deleteClassFile(cf);
 			}
 			this.inputClassFilesBySource.remove(deletedFile.binSrc.getPath());
 		}
@@ -1328,14 +1317,14 @@ public class AjState implements CompilerConfigurationChangeFlags, TypeDelegateRe
 		references.put(sourceFile, new ReferenceCollection(cr.qualifiedReferences, cr.simpleNameReferences,cr.rootReferences));
 
 		UnwovenClassFile[] unwovenClassFiles = result.unwovenClassFiles();
-		for (int i = 0; i < unwovenClassFiles.length; i++) {
-			File lastTimeRound = classesFromName.get(unwovenClassFiles[i].getClassName());
-			recordClassFile(unwovenClassFiles[i], lastTimeRound);
-			String name = unwovenClassFiles[i].getClassName();
+		for (UnwovenClassFile unwovenClassFile : unwovenClassFiles) {
+			File lastTimeRound = classesFromName.get(unwovenClassFile.getClassName());
+			recordClassFile(unwovenClassFile, lastTimeRound);
+			String name = unwovenClassFile.getClassName();
 			if (lastTimeRound == null) {
 				deltaAddedClasses.add(name);
 			}
-			classesFromName.put(name, new File(unwovenClassFiles[i].getFilename()));
+			classesFromName.put(name, new File(unwovenClassFile.getFilename()));
 		}
 
 		// need to do this before types are deleted from the World...
@@ -1383,10 +1372,10 @@ public class AjState implements CompilerConfigurationChangeFlags, TypeDelegateRe
 		List<ClassFile> classFiles = this.fullyQualifiedTypeNamesResultingFromCompilationUnit.get(sourceFile);
 		if (classFiles != null) {
 
-			for (int i = 0; i < unwovenClassFiles.length; i++) {
+			for (UnwovenClassFile unwovenClassFile : unwovenClassFiles) {
 				// deleting also deletes types from the weaver... don't do this if they are
 				// still present this time around...
-				removeFromClassFilesIfPresent(unwovenClassFiles[i].getClassName(), classFiles);
+				removeFromClassFilesIfPresent(unwovenClassFile.getClassName(), classFiles);
 			}
 			for (ClassFile cf : classFiles) {
 				recordTypeChanged(cf.fullyQualifiedTypeName);
@@ -1418,10 +1407,10 @@ public class AjState implements CompilerConfigurationChangeFlags, TypeDelegateRe
 	 * @param icr, the CompilationResult from compiling it
 	 */
 	private void recordFQNsResultingFromCompilationUnit(File sourceFile, InterimCompilationResult icr) {
-		List<ClassFile> classFiles = new ArrayList<ClassFile>();
+		List<ClassFile> classFiles = new ArrayList<>();
 		UnwovenClassFile[] types = icr.unwovenClassFiles();
-		for (int i = 0; i < types.length; i++) {
-			classFiles.add(new ClassFile(types[i].getClassName(), new File(types[i].getFilename())));
+		for (UnwovenClassFile type : types) {
+			classFiles.add(new ClassFile(type.getClassName(), new File(type.getFilename())));
 		}
 		this.fullyQualifiedTypeNamesResultingFromCompilationUnit.put(sourceFile, classFiles);
 	}
@@ -1438,10 +1427,9 @@ public class AjState implements CompilerConfigurationChangeFlags, TypeDelegateRe
 		if (cr != null) {
 			Map compiledTypes = cr.compiledTypes;
 			if (compiledTypes != null) {
-				for (Iterator<char[]> iterator = compiledTypes.keySet().iterator(); iterator.hasNext();) {
-					char[] className = iterator.next();
+				for (char[] className : (Iterable<char[]>) compiledTypes.keySet()) {
 					String typeName = new String(className).replace('/', '.');
-					if (typeName.indexOf(BcelWeaver.SYNTHETIC_CLASS_POSTFIX) == -1) {
+					if (!typeName.contains(BcelWeaver.SYNTHETIC_CLASS_POSTFIX)) {
 						ResolvedType rt = world.resolve(typeName);
 						if (rt.isMissing()) {
 							// This can happen in a case where another problem has occurred that prevented it being
@@ -1548,7 +1536,7 @@ public class AjState implements CompilerConfigurationChangeFlags, TypeDelegateRe
 //						System.err.println("Detected a structural change in " + thisTime.getFilename());
 						printStructuralChanges(thisTime.getFilename(),reader, existingStructure);
 					}
-					structuralChangesSinceLastFullBuild.put(thisTime.getFilename(), new Long(currentBuildTime));
+					structuralChangesSinceLastFullBuild.put(thisTime.getFilename(), currentBuildTime);
 					recordTypeChanged(new String(reader.getName()).replace('/', '.'));
 				}
 			}
@@ -1623,9 +1611,10 @@ public class AjState implements CompilerConfigurationChangeFlags, TypeDelegateRe
 		if (existingIfs.length != newIfsAsChars.length) {
 			return true;
 		}
-		new_interface_loop: for (int i = 0; i < newIfsAsChars.length; i++) {
-			for (int j = 0; j < existingIfs.length; j++) {
-				if (CharOperation.equals(existingIfs[j], newIfsAsChars[i])) {
+		new_interface_loop:
+		for (char[] newIfsAsChar : newIfsAsChars) {
+			for (char[] existingIf : existingIfs) {
+				if (CharOperation.equals(existingIf, newIfsAsChar)) {
 					continue new_interface_loop;
 				}
 			}
@@ -1654,12 +1643,12 @@ public class AjState implements CompilerConfigurationChangeFlags, TypeDelegateRe
 		if (newFields.length != existingFs.length) {
 			return true;
 		}
-		new_field_loop: for (int i = 0; i < newFields.length; i++) {
-			IBinaryField field = newFields[i];
+		new_field_loop:
+		for (IBinaryField field : newFields) {
 			char[] fieldName = field.getName();
-			for (int j = 0; j < existingFs.length; j++) {
-				if (CharOperation.equals(existingFs[j].getName(), fieldName)) {
-					IBinaryField existing = existingFs[j];
+			for (IBinaryField existingF : existingFs) {
+				if (CharOperation.equals(existingF.getName(), fieldName)) {
+					IBinaryField existing = existingF;
 					if (!modifiersEqual(field.getModifiers(), existing.getModifiers())) {
 						return true;
 					}
@@ -1732,13 +1721,13 @@ public class AjState implements CompilerConfigurationChangeFlags, TypeDelegateRe
 		if (newMethods.length != existingMs.length) {
 			return true;
 		}
-		new_method_loop: for (int i = 0; i < newMethods.length; i++) {
-			IBinaryMethod method = newMethods[i];
+		new_method_loop:
+		for (IBinaryMethod method : newMethods) {
 			char[] methodName = method.getSelector();
-			for (int j = 0; j < existingMs.length; j++) {
-				if (CharOperation.equals(existingMs[j].getSelector(), methodName)) {
+			for (IBinaryMethod existingM : existingMs) {
+				if (CharOperation.equals(existingM.getSelector(), methodName)) {
 					// candidate match
-					if (!CharOperation.equals(method.getMethodDescriptor(), existingMs[j].getMethodDescriptor())) {
+					if (!CharOperation.equals(method.getMethodDescriptor(), existingM.getMethodDescriptor())) {
 						// ok, the descriptors don't match, but is this a funky ctor on a non-static inner
 						// type?
 						// boolean mightBeOK =
@@ -1762,7 +1751,7 @@ public class AjState implements CompilerConfigurationChangeFlags, TypeDelegateRe
 						continue; // might be overloading
 					} else {
 						// matching sigs
-						IBinaryMethod existing = existingMs[j];
+						IBinaryMethod existing = existingM;
 						if (!modifiersEqual(method.getModifiers(), existing.getModifiers())) {
 							return true;
 						}
@@ -1880,13 +1869,14 @@ public class AjState implements CompilerConfigurationChangeFlags, TypeDelegateRe
 		if (existingIfs.length != newIfsAsChars.length) {
 			return true;
 		}
-		new_interface_loop: for (int i = 0; i < newIfsAsChars.length; i++) {
-			for (int j = 0; j < existingIfs.length; j++) {
-				if (CharOperation.equals(existingIfs[j], newIfsAsChars[i])) {
+		new_interface_loop:
+		for (char[] newIfsAsChar : newIfsAsChars) {
+			for (char[] existingIf : existingIfs) {
+				if (CharOperation.equals(existingIf, newIfsAsChar)) {
 					continue new_interface_loop;
 				}
 			}
-			logAnalysis(filename,"set of interfaces changed. old="+stringify(existingIfs)+" new="+stringify(newIfsAsChars));
+			logAnalysis(filename, "set of interfaces changed. old=" + stringify(existingIfs) + " new=" + stringify(newIfsAsChars));
 			return true;
 		}
 
@@ -1913,32 +1903,32 @@ public class AjState implements CompilerConfigurationChangeFlags, TypeDelegateRe
 			logAnalysis(filename,"number of fields changed. old="+stringify(existingFs)+" new="+stringify(newFields));
 			return true;
 		}
-		new_field_loop: for (int i = 0; i < newFields.length; i++) {
-			IBinaryField field = newFields[i];
+		new_field_loop:
+		for (IBinaryField field : newFields) {
 			char[] fieldName = field.getName();
-			for (int j = 0; j < existingFs.length; j++) {
-				if (CharOperation.equals(existingFs[j].getName(), fieldName)) {
-					IBinaryField existing = existingFs[j];
+			for (IBinaryField existingF : existingFs) {
+				if (CharOperation.equals(existingF.getName(), fieldName)) {
+					IBinaryField existing = existingF;
 					if (!modifiersEqual(field.getModifiers(), existing.getModifiers())) {
-						logAnalysis(filename,"field modifiers changed '"+existing+"' old=0x"+Integer.toHexString(existing.getModifiers())+" new=0x"+Integer.toHexString(field.getModifiers()));
+						logAnalysis(filename, "field modifiers changed '" + existing + "' old=0x" + Integer.toHexString(existing.getModifiers()) + " new=0x" + Integer.toHexString(field.getModifiers()));
 						return true;
 					}
 					if (!CharOperation.equals(existing.getTypeName(), field.getTypeName())) {
-						logAnalysis(filename,"field type changed '"+existing+"' old="+new String(existing.getTypeName())+" new="+new String(field.getTypeName()));
+						logAnalysis(filename, "field type changed '" + existing + "' old=" + new String(existing.getTypeName()) + " new=" + new String(field.getTypeName()));
 						return true;
 					}
 
 					char[] existingGSig = existing.getGenericSignature();
 					char[] fieldGSig = field.getGenericSignature();
 					if ((existingGSig == null && fieldGSig != null) || (existingGSig != null && fieldGSig == null)) {
-						logAnalysis(filename,"field generic sig changed '"+existing+"' old="+
-								(existingGSig==null?"null":new String(existingGSig))+" new="+(fieldGSig==null?"null":new String(fieldGSig)));
+						logAnalysis(filename, "field generic sig changed '" + existing + "' old=" +
+								(existingGSig == null ? "null" : new String(existingGSig)) + " new=" + (fieldGSig == null ? "null" : new String(fieldGSig)));
 						return true;
 					}
 					if (existingGSig != null) {
 						if (!CharOperation.equals(existingGSig, fieldGSig)) {
-							logAnalysis(filename,"field generic sig changed '"+existing+"' old="+
-									(existingGSig==null?"null":new String(existingGSig))+" new="+(fieldGSig==null?"null":new String(fieldGSig)));
+							logAnalysis(filename, "field generic sig changed '" + existing + "' old=" +
+									(existingGSig == null ? "null" : new String(existingGSig)) + " new=" + (fieldGSig == null ? "null" : new String(fieldGSig)));
 							return true;
 						}
 					}
@@ -1946,7 +1936,7 @@ public class AjState implements CompilerConfigurationChangeFlags, TypeDelegateRe
 					continue new_field_loop;
 				}
 			}
-			logAnalysis(filename,"field changed. New field detected '"+field+"'");
+			logAnalysis(filename, "field changed. New field detected '" + field + "'");
 			return true;
 		}
 
@@ -1999,13 +1989,13 @@ public class AjState implements CompilerConfigurationChangeFlags, TypeDelegateRe
 			logAnalysis(filename,"number of methods changed. old="+stringify(existingMs)+" new="+stringify(newMethods));
 			return true;
 		}
-		new_method_loop: for (int i = 0; i < newMethods.length; i++) {
-			IBinaryMethod method = newMethods[i];
+		new_method_loop:
+		for (IBinaryMethod method : newMethods) {
 			char[] methodName = method.getSelector();
-			for (int j = 0; j < existingMs.length; j++) {
-				if (CharOperation.equals(existingMs[j].getSelector(), methodName)) {
+			for (IBinaryMethod existingM : existingMs) {
+				if (CharOperation.equals(existingM.getSelector(), methodName)) {
 					// candidate match
-					if (!CharOperation.equals(method.getMethodDescriptor(), existingMs[j].getMethodDescriptor())) {
+					if (!CharOperation.equals(method.getMethodDescriptor(), existingM.getMethodDescriptor())) {
 						// ok, the descriptors don't match, but is this a funky ctor on a non-static inner
 						// type?
 						// boolean mightBeOK =
@@ -2029,28 +2019,28 @@ public class AjState implements CompilerConfigurationChangeFlags, TypeDelegateRe
 						continue; // might be overloading
 					} else {
 						// matching sigs
-						IBinaryMethod existing = existingMs[j];
+						IBinaryMethod existing = existingM;
 						if (!modifiersEqual(method.getModifiers(), existing.getModifiers())) {
-							logAnalysis(filename,"method modifiers changed '"+existing+"' old=0x"+Integer.toHexString(existing.getModifiers())+" new=0x"+Integer.toHexString(method.getModifiers()));
+							logAnalysis(filename, "method modifiers changed '" + existing + "' old=0x" + Integer.toHexString(existing.getModifiers()) + " new=0x" + Integer.toHexString(method.getModifiers()));
 							return true;
 						}
 
 						if (exceptionClausesDiffer(existing, method)) {
-							logAnalysis(filename,"method exception clauses changed '"+existing+"' old="+existing+" new="+method);
+							logAnalysis(filename, "method exception clauses changed '" + existing + "' old=" + existing + " new=" + method);
 							return true;
 						}
 
 						char[] existingGSig = existing.getGenericSignature();
 						char[] methodGSig = method.getGenericSignature();
 						if ((existingGSig == null && methodGSig != null) || (existingGSig != null && methodGSig == null)) {
-							logAnalysis(filename,"method generic sig changed '"+existing+"' old="+
-									(existingGSig==null?"null":new String(existingGSig))+" new="+(methodGSig==null?"null":new String(methodGSig)));
+							logAnalysis(filename, "method generic sig changed '" + existing + "' old=" +
+									(existingGSig == null ? "null" : new String(existingGSig)) + " new=" + (methodGSig == null ? "null" : new String(methodGSig)));
 							return true;
 						}
 						if (existingGSig != null) {
 							if (!CharOperation.equals(existingGSig, methodGSig)) {
-								logAnalysis(filename,"method generic sig changed '"+existing+"' old="+
-										(existingGSig==null?"null":new String(existingGSig))+" new="+(methodGSig==null?"null":new String(methodGSig)));
+								logAnalysis(filename, "method generic sig changed '" + existing + "' old=" +
+										(existingGSig == null ? "null" : new String(existingGSig)) + " new=" + (methodGSig == null ? "null" : new String(methodGSig)));
 								return true;
 							}
 						}
@@ -2061,7 +2051,7 @@ public class AjState implements CompilerConfigurationChangeFlags, TypeDelegateRe
 				// TODO missing a return true here? Meaning we have a field in the new that we can't find in the old!
 			}
 
-			logAnalysis(filename,"method changed. New method detected '"+stringify(method)+"' (might be a rename)");
+			logAnalysis(filename, "method changed. New method detected '" + stringify(method) + "' (might be a rename)");
 			return true; // (no match found)
 		}
 
@@ -2236,8 +2226,7 @@ public class AjState implements CompilerConfigurationChangeFlags, TypeDelegateRe
 		// System.err.println("simple: " + simpleStrings);
 		// System.err.println("qualif: " + qualifiedStrings);
 
-		for (Iterator<Map.Entry<File, ReferenceCollection>> i = references.entrySet().iterator(); i.hasNext();) {
-			Map.Entry<File, ReferenceCollection> entry = i.next();
+		for (Map.Entry<File, ReferenceCollection> entry : references.entrySet()) {
 			ReferenceCollection refs = entry.getValue();
 			if (refs != null && refs.includes(qualifiedNames, simpleNames)) {
 				File file = entry.getKey();
@@ -2383,13 +2372,13 @@ public class AjState implements CompilerConfigurationChangeFlags, TypeDelegateRe
 	}
 
 	public void clearBinarySourceFiles() {
-		this.binarySourceFiles = new HashMap<String, List<UnwovenClassFile>>();
+		this.binarySourceFiles = new HashMap<>();
 	}
 
 	public void recordBinarySource(String fromPathName, List<UnwovenClassFile> unwovenClassFiles) {
 		this.binarySourceFiles.put(fromPathName, unwovenClassFiles);
 		if (this.maybeIncremental()) {
-			List<ClassFile> simpleClassFiles = new LinkedList<ClassFile>();
+			List<ClassFile> simpleClassFiles = new LinkedList<>();
 			for (UnwovenClassFile ucf : unwovenClassFiles) {
 				ClassFile cf = getClassFileFor(ucf);
 				simpleClassFiles.add(cf);
@@ -2473,10 +2462,10 @@ public class AjState implements CompilerConfigurationChangeFlags, TypeDelegateRe
 					}
 				});
 				if (weaverGenerated != null) {
-					for (int i = 0; i < weaverGenerated.length; i++) {
-						weaverGenerated[i].delete();
+					for (File file : weaverGenerated) {
+						file.delete();
 						if (buildConfig != null && buildConfig.getCompilationResultDestinationManager() != null) {
-							buildConfig.getCompilationResultDestinationManager().reportFileRemove(weaverGenerated[i].getPath(),
+							buildConfig.getCompilationResultDestinationManager().reportFileRemove(file.getPath(),
 									CompilationResultDestinationManager.FILETYPE_CLASS);
 						}
 					}
@@ -2500,7 +2489,7 @@ public class AjState implements CompilerConfigurationChangeFlags, TypeDelegateRe
 	}
 
 	public void initializeAspectNamesToFileNameMap() {
-		this.aspectsFromFileNames = new HashMap<String, char[]>();
+		this.aspectsFromFileNames = new HashMap<>();
 	}
 
 	// Will allow us to record decisions made during incremental processing, hopefully aid in debugging

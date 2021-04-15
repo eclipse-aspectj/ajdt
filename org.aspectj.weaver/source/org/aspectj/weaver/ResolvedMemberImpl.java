@@ -123,9 +123,9 @@ public class ResolvedMemberImpl extends MemberImpl implements IHasPosition, Reso
 			// }
 		}
 
-		List<ResolvedType> declaringTypes = new ArrayList<ResolvedType>();
+		List<ResolvedType> declaringTypes = new ArrayList<>();
 		accumulateTypesInBetween(originalDeclaringType, firstDefiningType, declaringTypes);
-		Set<ResolvedMember> memberSignatures = new LinkedHashSet<ResolvedMember>();
+		Set<ResolvedMember> memberSignatures = new LinkedHashSet<>();
 		for (ResolvedType declaringType : declaringTypes) {
 			memberSignatures.add(new JoinPointSignature(firstDefiningMember, declaringType));
 		}
@@ -136,7 +136,7 @@ public class ResolvedMemberImpl extends MemberImpl implements IHasPosition, Reso
 			// every type between the firstDefiningMember and the root defining
 			// member.
 			Iterator<ResolvedType> superTypeIterator = firstDefiningType.getDirectSupertypes();
-			List<ResolvedType> typesAlreadyVisited = new ArrayList<ResolvedType>();
+			List<ResolvedType> typesAlreadyVisited = new ArrayList<>();
 			accumulateMembersMatching(firstDefiningMember, superTypeIterator, typesAlreadyVisited, memberSignatures, false);
 		}
 
@@ -188,7 +188,7 @@ public class ResolvedMemberImpl extends MemberImpl implements IHasPosition, Reso
 				ResolvedMemberImpl foundMember = (ResolvedMemberImpl) toLookIn.lookupResolvedMember(memberToMatch, true,
 						ignoreGenerics);
 				if (foundMember != null && isVisibleTo(memberToMatch, foundMember)) {
-					List<ResolvedType> declaringTypes = new ArrayList<ResolvedType>();
+					List<ResolvedType> declaringTypes = new ArrayList<>();
 					// declaring type can be unresolved if the member can from
 					// an ITD...
 					ResolvedType resolvedDeclaringType = foundMember.getDeclaringType().resolve(toLookIn.getWorld());
@@ -289,8 +289,8 @@ public class ResolvedMemberImpl extends MemberImpl implements IHasPosition, Reso
 			return backingGenericMember.hasAnnotation(ofType);
 		}
 		if (annotationTypes != null) {
-			for (int i = 0, max = annotationTypes.length; i < max; i++) {
-				if (annotationTypes[i].equals(ofType)) {
+			for (ResolvedType annotationType : annotationTypes) {
+				if (annotationType.equals(ofType)) {
 					return true;
 				}
 			}
@@ -434,8 +434,8 @@ public class ResolvedMemberImpl extends MemberImpl implements IHasPosition, Reso
 			s.writeByte(0);
 		} else {
 			s.writeByte(typeVariables.length);
-			for (int i = 0; i < typeVariables.length; i++) {
-				typeVariables[i].write(s);
+			for (TypeVariable typeVariable : typeVariables) {
+				typeVariable.write(s);
 			}
 		}
 		String gsig = getGenericSignature();
@@ -445,11 +445,11 @@ public class ResolvedMemberImpl extends MemberImpl implements IHasPosition, Reso
 			s.writeByte(0xff);
 		} else {
 			s.writeByte(parameterTypes.length);
-			for (int i = 0; i < parameterTypes.length; i++) {
+			for (UnresolvedType parameterType : parameterTypes) {
 				if (s.canCompress()) {
-					s.writeCompressedSignature(parameterTypes[i].getSignature());
+					s.writeCompressedSignature(parameterType.getSignature());
 				} else {
-					UnresolvedType array_element = parameterTypes[i];
+					UnresolvedType array_element = parameterType;
 					array_element.write(s);
 				}
 			}
@@ -462,8 +462,8 @@ public class ResolvedMemberImpl extends MemberImpl implements IHasPosition, Reso
 	}
 
 	/**
-	 * Return the member generic signature that would be suitable for inclusion in a class file Signature attribute. For: <T>
-	 * List<String> getThem(T t) {} we would create: <T:Ljava/lang/Object;>(TT;)Ljava/util/List<Ljava/lang/String;>;;
+	 * Return the member generic signature that would be suitable for inclusion in a class file Signature attribute. For: &lt;T&gt;
+	 * List&lt;String&gt; getThem(T t) {} we would create: &lt;T:Ljava/lang/Object;&gt;(TT;)Ljava/util/List&lt;Ljava/lang/String;&gt;;;
 	 * 
 	 * @return the generic signature for the member that could be inserted into a class file
 	 */
@@ -471,16 +471,16 @@ public class ResolvedMemberImpl extends MemberImpl implements IHasPosition, Reso
 		StringBuffer sb = new StringBuffer();
 		if (typeVariables != null) {
 			sb.append("<");
-			for (int i = 0; i < typeVariables.length; i++) {
-				sb.append(typeVariables[i].getSignatureForAttribute()); // need
+			for (TypeVariable typeVariable : typeVariables) {
+				sb.append(typeVariable.getSignatureForAttribute()); // need
 				// a
 				// 'getSignatureForAttribute()'
 			}
 			sb.append(">");
 		}
 		sb.append("(");
-		for (int i = 0; i < parameterTypes.length; i++) {
-			ResolvedType ptype = (ResolvedType) parameterTypes[i];
+		for (UnresolvedType parameterType : parameterTypes) {
+			ResolvedType ptype = (ResolvedType) parameterType;
 			sb.append(ptype.getSignatureForAttribute());
 		}
 		sb.append(")");
@@ -492,14 +492,13 @@ public class ResolvedMemberImpl extends MemberImpl implements IHasPosition, Reso
 		StringBuffer sb = new StringBuffer();
 		if (typeVariables != null) {
 			sb.append("<");
-			for (int i = 0; i < typeVariables.length; i++) {
-				sb.append(typeVariables[i].getSignature());
+			for (TypeVariable typeVariable : typeVariables) {
+				sb.append(typeVariable.getSignature());
 			}
 			sb.append(">");
 		}
 		sb.append("(");
-		for (int i = 0; i < parameterTypes.length; i++) {
-			UnresolvedType ptype = parameterTypes[i];
+		for (UnresolvedType ptype : parameterTypes) {
 			sb.append(ptype.getSignature());
 		}
 		sb.append(")");
@@ -509,8 +508,8 @@ public class ResolvedMemberImpl extends MemberImpl implements IHasPosition, Reso
 
 	public static void writeArray(ResolvedMember[] members, CompressingDataOutputStream s) throws IOException {
 		s.writeInt(members.length);
-		for (int i = 0, len = members.length; i < len; i++) {
-			members[i].write(s);
+		for (ResolvedMember member : members) {
+			member.write(s);
 		}
 	}
 
@@ -745,8 +744,8 @@ public class ResolvedMemberImpl extends MemberImpl implements IHasPosition, Reso
 
 	/**
 	 * Return a resolvedmember in which all the type variables in the signature have been replaced with the given bindings. The
-	 * 'isParameterized' flag tells us whether we are creating a raw type version or not. if (isParameterized) then List<T> will
-	 * turn into List<String> (for example) - if (!isParameterized) then List<T> will turn into List.
+	 * 'isParameterized' flag tells us whether we are creating a raw type version or not. if (isParameterized) then List&lt;T&gt; will
+	 * turn into List&lt;String&gt; (for example) - if (!isParameterized) then List&lt;T&gt; will turn into List.
 	 */
 	public ResolvedMemberImpl parameterizedWith(UnresolvedType[] typeParameters, ResolvedType newDeclaringType,
 			boolean isParameterized, List<String> aliases) {
@@ -756,7 +755,7 @@ public class ResolvedMemberImpl extends MemberImpl implements IHasPosition, Reso
 		// check going bang in this case we check for $ (crap...) - we can't check the outer because the declaring type
 		// is considered unresolved...
 		if (// isParameterized && <-- might need this bit...
-		!getDeclaringType().isGenericType() && getDeclaringType().getName().indexOf("$") == -1) {
+		!getDeclaringType().isGenericType() && !getDeclaringType().getName().contains("$")) {
 			throw new IllegalStateException("Can't ask to parameterize a member of non-generic type: " + getDeclaringType()
 					+ "  kind(" + getDeclaringType().typeKind + ")");
 		}
@@ -764,7 +763,7 @@ public class ResolvedMemberImpl extends MemberImpl implements IHasPosition, Reso
 		if (isParameterized && (typeVariables.length != typeParameters.length)) {
 			throw new IllegalStateException("Wrong number of type parameters supplied");
 		}
-		Map<String, UnresolvedType> typeMap = new HashMap<String, UnresolvedType>();
+		Map<String, UnresolvedType> typeMap = new HashMap<>();
 		boolean typeParametersSupplied = typeParameters != null && typeParameters.length > 0;
 		if (typeVariables != null) {
 			// If no 'replacements' were supplied in the typeParameters array
@@ -806,7 +805,7 @@ public class ResolvedMemberImpl extends MemberImpl implements IHasPosition, Reso
 
 	/**
 	 * Replace occurrences of type variables in the signature with values contained in the map. The map is of the form
-	 * A=String,B=Integer and so a signature List<A> Foo.m(B i) {} would become List<String> Foo.m(Integer i) {}
+	 * A=String,B=Integer and so a signature List&lt;A&gt; Foo.m(B i) {} would become List&lt;String&gt; Foo.m(Integer i) {}
 	 */
 	public ResolvedMember parameterizedWith(Map<String, UnresolvedType> m, World w) {
 		// if (//isParameterized && <-- might need this bit...
@@ -927,8 +926,8 @@ public class ResolvedMemberImpl extends MemberImpl implements IHasPosition, Reso
 	}
 
 	/**
-	 * If this member is defined by a parameterized super-type, return the erasure of that member. For example: interface I<T> { T
-	 * foo(T aTea); } class C implements I<String> { String foo(String aString) { return "something"; } } The resolved member for
+	 * If this member is defined by a parameterized super-type, return the erasure of that member. For example: interface I&lt;T&gt; { T
+	 * foo(T aTea); } class C implements I&lt;String&gt; { String foo(String aString) { return "something"; } } The resolved member for
 	 * C.foo has signature String foo(String). The erasure of that member is Object foo(Object) -- use upper bound of type variable.
 	 * A type is a supertype of itself.
 	 */
@@ -1058,8 +1057,8 @@ public class ResolvedMemberImpl extends MemberImpl implements IHasPosition, Reso
 		}
 		StringBuffer sig = new StringBuffer();
 		UnresolvedType[] myParameterTypes = getGenericParameterTypes();
-		for (int i = 0; i < myParameterTypes.length; i++) {
-			appendSigWithTypeVarBoundsRemoved(myParameterTypes[i], sig, new HashSet<UnresolvedType>());
+		for (UnresolvedType myParameterType : myParameterTypes) {
+			appendSigWithTypeVarBoundsRemoved(myParameterType, sig, new HashSet<>());
 		}
 		myParameterSignatureWithBoundsRemoved = sig.toString();
 		return myParameterSignatureWithBoundsRemoved;
@@ -1239,9 +1238,9 @@ public class ResolvedMemberImpl extends MemberImpl implements IHasPosition, Reso
 	public TypeVariable getTypeVariableNamed(String name) {
 		// Check locally...
 		if (typeVariables != null) {
-			for (int i = 0; i < typeVariables.length; i++) {
-				if (typeVariables[i].getName().equals(name)) {
-					return typeVariables[i];
+			for (TypeVariable typeVariable : typeVariables) {
+				if (typeVariable.getName().equals(name)) {
+					return typeVariable;
 				}
 			}
 		}

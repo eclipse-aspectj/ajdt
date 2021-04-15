@@ -161,9 +161,17 @@ public abstract class AbstractMethodDeclaration
 					paramAnnotations[i] = Binding.NO_ANNOTATIONS;
 				}
 			}
+			if (paramAnnotations == null) {
+				paramAnnotations = getPropagatedRecordComponentAnnotations();
+			}
+
 			if (paramAnnotations != null)
 				this.binding.setParameterAnnotations(paramAnnotations);
 		}
+	}
+
+	protected AnnotationBinding[][] getPropagatedRecordComponentAnnotations() {
+		return null;
 	}
 
 	/**
@@ -225,7 +233,7 @@ public abstract class AbstractMethodDeclaration
 					else if (methodBinding.parameters[i].isFreeTypeVariable()) {
 						flowInfo.markNullStatus(methodArguments[i].binding, FlowInfo.FREE_TYPEVARIABLE);
 					}
-				} else {					
+				} else {
 					if (methodBinding.parameterNonNullness != null) {
 						// leverage null-info from parameter annotations:
 						Boolean nonNullNess = methodBinding.parameterNonNullness[i];
@@ -310,7 +318,7 @@ public abstract class AbstractMethodDeclaration
 					restart = true;
 				} else {
 					restart = false;
-					abort = true; 
+					abort = true;
 				}
 			}
 		} while (restart);
@@ -431,6 +439,10 @@ public abstract class AbstractMethodDeclaration
 		return false;
 	}
 
+	public boolean isCanonicalConstructor() {
+
+		return false;
+	}
 	public boolean isDefaultConstructor() {
 
 		return false;
@@ -457,7 +469,7 @@ public abstract class AbstractMethodDeclaration
 		return (this.modifiers & ClassFileConstants.AccNative) != 0;
 	}
 
-	public Argument getRecordComponent() {
+	public RecordComponent getRecordComponent() {
 		return null;
 	}
 
@@ -555,7 +567,7 @@ public abstract class AbstractMethodDeclaration
 			resolveReceiver();
 			bindThrownExceptions();
 			resolveAnnotations(this.scope, this.annotations, this.binding, this.isConstructor());
-			
+
 			long sourceLevel = this.scope.compilerOptions().sourceLevel;
 			if (sourceLevel < ClassFileConstants.JDK1_8) // otherwise already checked via Argument.createBinding
 				validateNullAnnotations(this.scope.environment().usesNullTypeAnnotations());
@@ -649,7 +661,7 @@ public abstract class AbstractMethodDeclaration
 	public void resolveStatements() {
 
 		if (this.statements != null) {
-			for (int i = 0, length = this.statements.length; i < length; i++) {
+ 			for (int i = 0, length = this.statements.length; i < length; i++) {
  				Statement stmt = this.statements[i];
  				stmt.resolve(this.scope);
 			}
@@ -664,7 +676,7 @@ public abstract class AbstractMethodDeclaration
 	public void tagAsHavingErrors() {
 		this.ignoreFurtherInvestigation = true;
 	}
-	
+
 	@Override
 	public void tagAsHavingIgnoredMandatoryErrors(int problemId) {
 		// Nothing to do for this context;

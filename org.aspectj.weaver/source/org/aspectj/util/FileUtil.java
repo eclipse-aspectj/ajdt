@@ -1,14 +1,14 @@
 /* *******************************************************************
- * Copyright (c) 1999-2001 Xerox Corporation, 
+ * Copyright (c) 1999-2001 Xerox Corporation,
  *               2002 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     Xerox/PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *     Xerox/PARC     initial implementation
  * ******************************************************************/
 
 package org.aspectj.util;
@@ -39,7 +39,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.zip.ZipEntry;
@@ -97,8 +96,10 @@ public class FileUtil {
 
 	/** @return true if file exists and is a zip file */
 	public static boolean isZipFile(File file) {
-		try {
-			return (null != file) && new ZipFile(file) != null;
+		if (file == null)
+			return false;
+		try (ZipFile zipFile = new ZipFile(file)) {
+			return true;
 		} catch (IOException e) {
 			return false;
 		}
@@ -147,12 +148,11 @@ public class FileUtil {
 			return 0;
 		}
 
-		for (Iterator<String> iter = SOURCE_SUFFIXES.iterator(); iter.hasNext();) {
-			String suffix = iter.next();
-			if (path.endsWith(suffix) || path.toLowerCase().endsWith(suffix)) {
-				return suffix.length();
-			}
-		}
+        for (String suffix : SOURCE_SUFFIXES) {
+            if (path.endsWith(suffix) || path.toLowerCase().endsWith(suffix)) {
+                return suffix.length();
+            }
+        }
 		return 0;
 	}
 
@@ -326,7 +326,7 @@ public class FileUtil {
 	/**
 	 * Flatten File[] to String.
 	 *
-	 * @param files the File[] of paths to flatten - null ignored
+	 * @param paths the String[] of paths to flatten - null ignored
 	 * @param infix the String infix to use - null treated as File.pathSeparator
 	 */
 	public static String flatten(String[] paths, String infix) {
@@ -335,18 +335,18 @@ public class FileUtil {
 		}
 		StringBuffer result = new StringBuffer();
 		boolean first = true;
-		for (int i = 0; i < paths.length; i++) {
-			String path = paths[i];
-			if (null == path) {
-				continue;
-			}
-			if (first) {
-				first = false;
-			} else {
-				result.append(infix);
-			}
-			result.append(path);
-		}
+        for (String path : paths) {
+            if (null == path) {
+                continue;
+            }
+            if (first) {
+                first = false;
+            }
+            else {
+                result.append(infix);
+            }
+            result.append(path);
+        }
 		return result.toString();
 	}
 
@@ -430,7 +430,7 @@ public class FileUtil {
 			}
 			try {
 				File f = new File(path);
-				
+
 				if (f.exists() && f.canRead()) {
 					if (mustBeJar && !f.isDirectory()) {
 						result = FileUtil.getBestFile(f);
@@ -540,24 +540,24 @@ public class FileUtil {
 			return 0;
 		}
 		int result = 0;
-		for (int i = 0; i < fromFiles.length; i++) {
-			String string = fromFiles[i];
-			File file = new File(dir, string);
-			if ((null == filter) || filter.accept(file)) {
-				if (file.isDirectory()) {
-					result += deleteContents(file, filter, deleteEmptyDirs);
-					String[] fileContent = file.list();
-					if (deleteEmptyDirs && fileContent != null
-							&& 0 == fileContent.length) {
-						file.delete();
-					}
-				} else {
-					/* boolean ret = */
-					file.delete();
-					result++;
-				}
-			}
-		}
+        for (String string : fromFiles) {
+            File file = new File(dir, string);
+            if ((null == filter) || filter.accept(file)) {
+                if (file.isDirectory()) {
+                    result += deleteContents(file, filter, deleteEmptyDirs);
+                    String[] fileContent = file.list();
+                    if (deleteEmptyDirs && fileContent != null
+                            && 0 == fileContent.length) {
+                        file.delete();
+                    }
+                }
+                else {
+                    /* boolean ret = */
+                    file.delete();
+                    result++;
+                }
+            }
+        }
 		return result;
 	}
 
@@ -687,7 +687,7 @@ public class FileUtil {
 	 * @return ArrayList with String paths of File under srcDir (relative to srcDir)
 	 */
 	public static String[] listFiles(File srcDir) {
-		ArrayList<String> result = new ArrayList<String>();
+		ArrayList<String> result = new ArrayList<>();
 		if ((null != srcDir) && srcDir.canRead()) {
 			listFiles(srcDir, null, result);
 		}
@@ -707,11 +707,11 @@ public class FileUtil {
 	 * @return ArrayList with String paths of File under srcDir (relative to srcDir)
 	 */
 	public static File[] listFiles(File srcDir, FileFilter fileFilter) {
-		ArrayList<File> result = new ArrayList<File>();
+		ArrayList<File> result = new ArrayList<>();
 		if ((null != srcDir) && srcDir.canRead()) {
 			listFiles(srcDir, result, fileFilter);
 		}
-		return result.toArray(new File[result.size()]);
+		return result.toArray(new File[0]);
 	}
 
 	/**
@@ -720,7 +720,7 @@ public class FileUtil {
 	 * @return List of File objects
 	 */
 	public static List<File> listClassFiles(File dir) {
-		ArrayList<File> result = new ArrayList<File>();
+		ArrayList<File> result = new ArrayList<>();
 		if ((null != dir) && dir.canRead()) {
 			listClassFiles(dir, result);
 		}
@@ -751,16 +751,15 @@ public class FileUtil {
 		LangUtil.throwIaxIfNull(paths, "paths");
 		File[] result = null;
 		if (!LangUtil.isEmpty(suffixes)) {
-			ArrayList<File> list = new ArrayList<File>();
-			for (int i = 0; i < paths.length; i++) {
-				String path = paths[i];
-				for (int j = 0; j < suffixes.length; j++) {
-					if (path.endsWith(suffixes[j])) {
-						list.add(new File(basedir, paths[i]));
-						break;
-					}
-				}
-			}
+			ArrayList<File> list = new ArrayList<>();
+            for (String path : paths) {
+                for (String suffix : suffixes) {
+                    if (path.endsWith(suffix)) {
+                        list.add(new File(basedir, path));
+                        break;
+                    }
+                }
+            }
 			result = list.toArray(new File[0]);
 		} else {
 			result = new File[paths.length];
@@ -893,19 +892,8 @@ public class FileUtil {
 	 * @throws IOException
 	 */
 	public static void copyValidFiles(File fromFile, File toFile) throws IOException {
-		FileInputStream in = null;
-		FileOutputStream out = null;
-		try {
-			in = new FileInputStream(fromFile);
-			out = new FileOutputStream(toFile);
+		try (FileInputStream  in = new FileInputStream(fromFile); FileOutputStream out = new FileOutputStream(toFile)){
 			copyStream(in, out);
-		} finally {
-			if (out != null) {
-				out.close();
-			}
-			if (in != null) {
-				in.close();
-			}
 		}
 	}
 
@@ -1080,9 +1068,9 @@ public class FileUtil {
 	public static void writeBooleanArray(boolean[] a, DataOutputStream s) throws IOException {
 		int len = a.length;
 		s.writeInt(len);
-		for (int i = 0; i < len; i++) {
-			s.writeBoolean(a[i]);
-		}
+        for (boolean b : a) {
+            s.writeBoolean(b);
+        }
 	}
 
 	/**
@@ -1103,9 +1091,9 @@ public class FileUtil {
 	public static void writeIntArray(int[] a, DataOutputStream s) throws IOException {
 		int len = a.length;
 		s.writeInt(len);
-		for (int i = 0; i < len; i++) {
-			s.writeInt(a[i]);
-		}
+        for (int j : a) {
+            s.writeInt(j);
+        }
 	}
 
 	/**
@@ -1130,9 +1118,9 @@ public class FileUtil {
 		}
 		int len = a.length;
 		s.writeInt(len);
-		for (int i = 0; i < len; i++) {
-			s.writeUTF(a[i]);
-		}
+        for (String value : a) {
+            s.writeUTF(value);
+        }
 	}
 
 	/**
@@ -1275,14 +1263,13 @@ public class FileUtil {
 		if (LangUtil.isEmpty(sought) || LangUtil.isEmpty(sources)) {
 			return Collections.emptyList();
 		}
-		ArrayList<String> result = new ArrayList<String>();
-		for (Iterator<String> iter = sources.iterator(); iter.hasNext();) {
-			String path = iter.next();
-			String error = lineSeek(sought, path, listAll, result);
-			if ((null != error) && (null != errorSink)) {
-				errorSink.println(error);
-			}
-		}
+		ArrayList<String> result = new ArrayList<>();
+        for (String path : sources) {
+            String error = lineSeek(sought, path, listAll, result);
+            if ((null != error) && (null != errorSink)) {
+                errorSink.println(error);
+            }
+        }
 		return result;
 	}
 
@@ -1292,12 +1279,12 @@ public class FileUtil {
 	 * result.
 	 *
 	 * @param sought the String text to seek in the file
-	 * @param sources the List of String paths to the source files
+	 * @param sourcePath the String of paths to the source files
 	 * @param listAll if false, only list first match in file
-	 * @param List sink the List for String entries of the form {sourcePath}:line:column
+	 * @param sink the List of String entries of the form {sourcePath}:line:column
 	 * @return String error if any, or add String entries to sink
 	 */
-	public static String lineSeek(String sought, String sourcePath, boolean listAll, ArrayList<String> sink) {
+	public static String lineSeek(String sought, String sourcePath, boolean listAll, List<String> sink) {
 		if (LangUtil.isEmpty(sought) || LangUtil.isEmpty(sourcePath)) {
 			return "nothing sought";
 		}
@@ -1357,84 +1344,84 @@ public class FileUtil {
 			return true;
 		}
 		long delayUntil = System.currentTimeMillis();
-		for (int i = 0; i < files.length; i++) {
-			File file = files[i];
-			if ((null == file) || !file.exists()) {
-				continue;
-			}
-			long nextModTime = file.lastModified();
-			if (nextModTime > delayUntil) {
-				delayUntil = nextModTime;
-			}
-		}
+        for (File file : files) {
+            if ((null == file) || !file.exists()) {
+                continue;
+            }
+            long nextModTime = file.lastModified();
+            if (nextModTime > delayUntil) {
+                delayUntil = nextModTime;
+            }
+        }
 		return LangUtil.sleepUntil(++delayUntil);
 	}
 
 	private static void listClassFiles(final File baseDir, ArrayList<File> result) {
 		File[] files = baseDir.listFiles();
-		for (int i = 0; i < files.length; i++) {
-			File f = files[i];
-			if (f.isDirectory()) {
-				listClassFiles(f, result);
-			} else {
-				if (f.getName().endsWith(".class")) {
-					result.add(f);
-				}
-			}
-		}
+        for (File f : files) {
+            if (f.isDirectory()) {
+                listClassFiles(f, result);
+            }
+            else {
+                if (f.getName().endsWith(".class")) {
+                    result.add(f);
+                }
+            }
+        }
 	}
 
 	private static void listFiles(final File baseDir, ArrayList<File> result, FileFilter filter) {
 		File[] files = baseDir.listFiles();
 		// hack https://bugs.eclipse.org/bugs/show_bug.cgi?id=48650
 		final boolean skipCVS = (!PERMIT_CVS && (filter == aspectjSourceFileFilter));
-		for (int i = 0; i < files.length; i++) {
-			File f = files[i];
-			if (f.isDirectory()) {
-				if (skipCVS) {
-					String name = f.getName().toLowerCase();
-					if ("cvs".equals(name) || "sccs".equals(name)) {
-						continue;
-					}
-				}
-				listFiles(f, result, filter);
-			} else {
-				if (filter.accept(f)) {
-					result.add(f);
-				}
-			}
-		}
+        for (File f : files) {
+            if (f.isDirectory()) {
+                if (skipCVS) {
+                    String name = f.getName().toLowerCase();
+                    if ("cvs".equals(name) || "sccs".equals(name)) {
+                        continue;
+                    }
+                }
+                listFiles(f, result, filter);
+            }
+            else {
+                if (filter.accept(f)) {
+                    result.add(f);
+                }
+            }
+        }
 	}
 
 	/** @return true if input is not null and contains no path separator */
 	private static boolean isValidFileName(String input) {
-		return ((null != input) && (-1 == input.indexOf(File.pathSeparator)));
+		return ((null != input) && (!input.contains(File.pathSeparator)));
 	}
 
 	private static void listFiles(final File baseDir, String dir, ArrayList<String> result) {
 		final String dirPrefix = (null == dir ? "" : dir + "/");
 		final File dirFile = (null == dir ? baseDir : new File(baseDir.getPath() + "/" + dir));
 		final String[] files = dirFile.list();
-		for (int i = 0; i < files.length; i++) {
-			File f = new File(dirFile, files[i]);
-			String path = dirPrefix + files[i];
-			if (f.isDirectory()) {
-				listFiles(baseDir, path, result);
-			} else {
-				result.add(path);
-			}
-		}
+        for (String file : files) {
+            File f = new File(dirFile, file);
+            String path = dirPrefix + file;
+            if (f.isDirectory()) {
+                listFiles(baseDir, path, result);
+            }
+            else {
+                result.add(path);
+            }
+        }
 	}
 
 	private FileUtil() {
 	}
 
 	public static List<String> makeClasspath(URL[] urls) {
-		List<String> ret = new LinkedList<String>();
+		List<String> ret = new LinkedList<>();
 		if (urls != null) {
-			for (int i = 0; i < urls.length; i++) {
-				ret.add(toPathString(urls[i]));
-			}
+            for (URL url : urls) {
+                ret.add(toPathString(url));
+            }
 		}
 		return ret;
 	}

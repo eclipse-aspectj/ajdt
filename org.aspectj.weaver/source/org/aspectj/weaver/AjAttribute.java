@@ -68,7 +68,7 @@ public abstract class AjAttribute {
 	/**
 	 * Writes the full attribute, i.e. name_index, length, and contents
 	 * 
-	 * @param constantPool
+	 * @param dataCompressor
 	 */
 	public byte[] getAllBytes(short nameIndex, ConstantPoolWriter dataCompressor) {
 		try {
@@ -374,9 +374,9 @@ public abstract class AjAttribute {
 			}
 			s.writeInt(lineBreaks.length);
 			int previous = 0;
-			for (int i = 0, max = lineBreaks.length; i < max; i++) {
-				s.writeShort(lineBreaks[i] - previous);
-				previous = lineBreaks[i];
+			for (int lineBreak : lineBreaks) {
+				s.writeShort(lineBreak - previous);
+				previous = lineBreak;
 			}
 		}
 
@@ -525,7 +525,7 @@ public abstract class AjAttribute {
 		private UnresolvedType[] declaredExceptions;
 
 		/**
-		 * @param lexicalPosition must be greater than the lexicalPosition of any advice declared before this one in an aspect,
+		 * @param start must be greater than the start of any advice declared before this one in an aspect,
 		 *        otherwise, it can be any value.
 		 */
 		public AdviceAttribute(AdviceKind kind, Pointcut pointcut, int extraArgumentFlags, int start, int end,

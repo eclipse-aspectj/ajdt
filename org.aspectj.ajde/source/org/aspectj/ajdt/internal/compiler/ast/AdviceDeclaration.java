@@ -65,7 +65,7 @@ public class AdviceDeclaration extends AjMethodDeclaration {
 	public int adviceSequenceNumberInType;
 
 	public MethodBinding proceedMethodBinding; // set during this.resolveStaments, referenced by Proceed
-	public List<Proceed> proceedCalls = new ArrayList<Proceed>(2); // populated during Proceed.findEnclosingAround
+	public List<Proceed> proceedCalls = new ArrayList<>(2); // populated during Proceed.findEnclosingAround
 
 	private boolean proceedInInners;
 	private ResolvedMember[] proceedCallSignatures;
@@ -80,7 +80,7 @@ public class AdviceDeclaration extends AjMethodDeclaration {
 
 	// override
 	protected int generateInfoAttributes(ClassFile classFile) {
-		List<EclipseAttributeAdapter> l = new ArrayList<EclipseAttributeAdapter>(1);
+		List<EclipseAttributeAdapter> l = new ArrayList<>(1);
 		l.add(new EclipseAttributeAdapter(makeAttribute()));
 		addDeclarationStartLineAttribute(l, classFile);
 		return classFile.generateMethodInfoAttributes(binding, l);
@@ -145,8 +145,7 @@ public class AdviceDeclaration extends AjMethodDeclaration {
 			proceedInInners = false;
 			declaredExceptions = new UnresolvedType[0];
 
-			for (int i = 0; i < n; i++) {
-				Proceed call = proceedCalls.get(i);
+			for (Proceed call : proceedCalls) {
 				if (call.inInner) {
 					// System.err.println("proceed in inner: " + call);
 					proceedInInners = true;

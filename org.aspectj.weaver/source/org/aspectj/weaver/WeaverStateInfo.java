@@ -34,9 +34,9 @@ import org.aspectj.weaver.AjAttribute.WeaverVersionInfo;
  * whether reweaving is allowed. The format in the data stream is:
  * 
  * Byte: Kind. UNTOUCHED|WOVEN|EXTENDED - If extended it can have two extra bits set 'REWEAVABLE' and 'REWEAVABLE_COMPRESSION_BIT'
- * Short: typeMungerCount - how many type mungers have affected this type <UnresolvedType & ResolvedTypeMunger>: The type mungers
+ * Short: typeMungerCount - how many type mungers have affected this type &lt;UnresolvedType &amp; ResolvedTypeMunger&gt;: The type mungers
  * themselves If we are reweavable then we also have: Short: Number of aspects that touched this type in some way when it was
- * previously woven <String> The fully qualified name of each type Int: Length of class file data (i.e. the unwovenclassfile)
+ * previously woven &lt;String&gt; The fully qualified name of each type Int: Length of class file data (i.e. the unwovenclassfile)
  * Byte[]: The class file data, compressed if REWEAVABLE_COMPRESSION_BIT set.
  * 
  * @author Andy Clement
@@ -89,7 +89,7 @@ public class WeaverStateInfo {
 	}
 
 	public WeaverStateInfo(boolean reweavable) {
-		this(new ArrayList<Entry>(), false, reweavable, reweavableCompressedModeDefault, reweavableDiffModeDefault);
+		this(new ArrayList<>(), false, reweavable, reweavableCompressedModeDefault, reweavableDiffModeDefault);
 	}
 
 	private WeaverStateInfo(List<Entry> typeMungers, boolean oldStyle, boolean reweavableMode, boolean reweavableCompressedMode,
@@ -99,7 +99,7 @@ public class WeaverStateInfo {
 		this.reweavable = reweavableMode;
 		this.reweavableCompressedMode = reweavableCompressedMode;
 		this.reweavableDiffMode = reweavableMode ? reweavableDiffMode : false;
-		this.aspectsAffectingType = new HashSet<String>();
+		this.aspectsAffectingType = new HashSet<>();
 		this.unwovenClassFile = null;
 	}
 
@@ -147,7 +147,7 @@ public class WeaverStateInfo {
 			}
 
 			int n = s.readShort();
-			List<Entry> l = new ArrayList<Entry>();
+			List<Entry> l = new ArrayList<>();
 			for (int i = 0; i < n; i++) {
 				// conditional on version
 				UnresolvedType aspectType = null;
@@ -257,7 +257,7 @@ public class WeaverStateInfo {
 
 	public List<ConcreteTypeMunger> getTypeMungers(ResolvedType onType) {
 		World world = onType.getWorld();
-		List<ConcreteTypeMunger> ret = new ArrayList<ConcreteTypeMunger>();
+		List<ConcreteTypeMunger> ret = new ArrayList<>();
 		for (Entry entry : typeMungers) {
 			ResolvedType aspectType = world.resolve(entry.aspectType, true);
 			if (aspectType.isMissing()) {

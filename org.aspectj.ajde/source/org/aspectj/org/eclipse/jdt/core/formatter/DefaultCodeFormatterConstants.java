@@ -128,6 +128,101 @@ public class DefaultCodeFormatterConstants {
 
 	/**
 	 * <pre>
+	 * FORMATTER / Option for alignment of annotations on enum constant declaration
+	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.alignment_for_annotations_on_enum_constant"
+	 *     - possible values:   values returned by <code>createAlignmentValue(boolean, int)</code> call
+	 *     - default:           createAlignmentValue(true, WRAP_ONE_PER_LINE)
+	 * </pre>
+	 * @see #createAlignmentValue(boolean, int)
+	 * @since 3.24
+	 */
+	public static final String FORMATTER_ALIGNMENT_FOR_ANNOTATIONS_ON_ENUM_CONSTANT = JavaCore.PLUGIN_ID + ".formatter.alignment_for_annotations_on_enum_constant";//$NON-NLS-1$
+
+	/**
+	 * <pre>
+	 * FORMATTER / Option for alignment of annotations on field declaration
+	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.alignment_for_annotations_on_field"
+	 *     - possible values:   values returned by <code>createAlignmentValue(boolean, int)</code> call
+	 *     - default:           createAlignmentValue(true, WRAP_ONE_PER_LINE)
+	 * </pre>
+	 * @see #createAlignmentValue(boolean, int)
+	 * @since 3.24
+	 */
+	public static final String FORMATTER_ALIGNMENT_FOR_ANNOTATIONS_ON_FIELD = JavaCore.PLUGIN_ID + ".formatter.alignment_for_annotations_on_field";//$NON-NLS-1$
+
+	/**
+	 * <pre>
+	 * FORMATTER / Option for alignment of annotations on method declaration
+	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.alignment_for_annotations_on_method"
+	 *     - possible values:   values returned by <code>createAlignmentValue(boolean, int)</code> call
+	 *     - default:           createAlignmentValue(true, WRAP_ONE_PER_LINE)
+	 * </pre>
+	 * @see #createAlignmentValue(boolean, int)
+	 * @since 3.24
+	 */
+	public static final String FORMATTER_ALIGNMENT_FOR_ANNOTATIONS_ON_METHOD = JavaCore.PLUGIN_ID + ".formatter.alignment_for_annotations_on_method";//$NON-NLS-1$
+
+	/**
+	 * <pre>
+	 * FORMATTER / Option for alignment of annotations on package declaration
+	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.alignment_for_annotations_on_package"
+	 *     - possible values:   values returned by <code>createAlignmentValue(boolean, int)</code> call
+	 *     - default:           createAlignmentValue(true, WRAP_ONE_PER_LINE)
+	 * </pre>
+	 * @see #createAlignmentValue(boolean, int)
+	 * @since 3.24
+	 */
+	public static final String FORMATTER_ALIGNMENT_FOR_ANNOTATIONS_ON_PACKAGE = JavaCore.PLUGIN_ID + ".formatter.alignment_for_annotations_on_package";//$NON-NLS-1$
+
+	/**
+	 * <pre>
+	 * FORMATTER / Option for alignment of annotations on type declaration
+	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.alignment_for_annotations_on_type"
+	 *     - possible values:   values returned by <code>createAlignmentValue(boolean, int)</code> call
+	 *     - default:           createAlignmentValue(true, WRAP_ONE_PER_LINE)
+	 * </pre>
+	 * @see #createAlignmentValue(boolean, int)
+	 * @since 3.24
+	 */
+	public static final String FORMATTER_ALIGNMENT_FOR_ANNOTATIONS_ON_TYPE = JavaCore.PLUGIN_ID + ".formatter.alignment_for_annotations_on_type";//$NON-NLS-1$
+
+	/**
+	 * <pre>
+	 * FORMATTER / Option for alignment of type annotations
+	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.alignment_for_type_annotations"
+	 *     - possible values:   values returned by <code>createAlignmentValue(boolean, int)</code> call
+	 *     - default:           createAlignmentValue(false, WRAP_NO_SPLIT)
+	 * </pre>
+	 * @see #createAlignmentValue(boolean, int)
+	 * @since 3.24
+	 */
+	public static final String FORMATTER_ALIGNMENT_FOR_TYPE_ANNOTATIONS = JavaCore.PLUGIN_ID + ".formatter.alignment_for_type_annotations";//$NON-NLS-1$
+	/**
+	 * <pre>
+	 * FORMATTER / Option for alignment of annotations on parameter
+	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.alignment_for_annotations_on_parameter"
+	 *     - possible values:   values returned by <code>createAlignmentValue(boolean, int)</code> call
+	 *     - default:           createAlignmentValue(false, WRAP_NO_SPLIT)
+	 * </pre>
+	 * @see #createAlignmentValue(boolean, int)
+	 * @since 3.24
+	 */
+	public static final String FORMATTER_ALIGNMENT_FOR_ANNOTATIONS_ON_PARAMETER = JavaCore.PLUGIN_ID + ".formatter.alignment_for_annotations_on_parameter";//$NON-NLS-1$
+
+	/**
+	 * <pre>
+	 * FORMATTER / Option for alignment of annotations on local variable
+	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.alignment_for_annotations_on_local_variable"
+	 *     - possible values:   values returned by <code>createAlignmentValue(boolean, int)</code> call
+	 *     - default:           createAlignmentValue(true, WRAP_ONE_PER_LINE)
+	 * </pre>
+	 * @see #createAlignmentValue(boolean, int)
+	 * @since 3.24
+	 */
+	public static final String FORMATTER_ALIGNMENT_FOR_ANNOTATIONS_ON_LOCAL_VARIABLE = JavaCore.PLUGIN_ID + ".formatter.alignment_for_annotations_on_local_variable";//$NON-NLS-1$
+
+	/**
+	 * <pre>
 	 * FORMATTER / Option for alignment of arguments in allocation expression
 	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.alignment_for_arguments_in_allocation_expression"
 	 *     - possible values:   values returned by <code>createAlignmentValue(boolean, int, int)</code> call
@@ -203,6 +298,17 @@ public class DefaultCodeFormatterConstants {
 	 * @since 3.2
 	 */
 	public static final String FORMATTER_ALIGNMENT_FOR_ASSIGNMENT  = JavaCore.PLUGIN_ID + ".formatter.alignment_for_assignment";	 //$NON-NLS-1$
+	/**
+	 * <pre>
+	 * FORMATTER / Option for alignment of assertion message separator (:)
+	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.alignment_for_assertion_message"
+	 *     - possible values:   values returned by <code>createAlignmentValue(boolean, int, int)</code> call
+	 *     - default:           createAlignmentValue(false, WRAP_NO_SPLIT, INDENT_DEFAULT)
+	 * </pre>
+	 * @see #createAlignmentValue(boolean, int, int)
+	 * @since 3.23
+	 */
+	public static final String FORMATTER_ALIGNMENT_FOR_ASSERTION_MESSAGE = JavaCore.PLUGIN_ID + ".formatter.alignment_for_assertion_message";	 //$NON-NLS-1$
 	/**
 	 * <pre>
 	 * FORMATTER / Option for alignment of expressions with multiplicative operators (*, /, %)
@@ -1192,7 +1298,7 @@ public class DefaultCodeFormatterConstants {
 	/**
 	 * <pre>
 	 * FORMATTER / Option to control whether blank lines are cleared inside comments
-	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.comment.clear_blank_lines"
+	 *     - option id:         "org.eclipse.jdt.core.formatter.comment.clear_blank_lines"
 	 *     - possible values:   { TRUE, FALSE }
 	 *     - default:           FALSE
 	 * </pre>
@@ -1202,12 +1308,12 @@ public class DefaultCodeFormatterConstants {
 	 * @deprecated Use {@link #FORMATTER_COMMENT_CLEAR_BLANK_LINES_IN_BLOCK_COMMENT} and {@link #FORMATTER_COMMENT_CLEAR_BLANK_LINES_IN_JAVADOC_COMMENT}
 	 */
 	@Deprecated
-	public final static String FORMATTER_COMMENT_CLEAR_BLANK_LINES = "org.aspectj.org.eclipse.jdt.core.formatter.comment.clear_blank_lines"; //$NON-NLS-1$
+	public final static String FORMATTER_COMMENT_CLEAR_BLANK_LINES = "org.eclipse.jdt.core.formatter.comment.clear_blank_lines"; //$NON-NLS-1$
 
 	/**
 	 * <pre>
 	 * FORMATTER / Option to control whether blank lines are cleared inside javadoc comments
-	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.comment.clear_blank_lines_in_javadoc_comment"
+	 *     - option id:         "org.eclipse.jdt.core.formatter.comment.clear_blank_lines_in_javadoc_comment"
 	 *     - possible values:   { TRUE, FALSE }
 	 *     - default:           FALSE
 	 * </pre>
@@ -1215,12 +1321,12 @@ public class DefaultCodeFormatterConstants {
 	 * @see #FALSE
 	 * @since 3.3
 	 */
-	public final static String FORMATTER_COMMENT_CLEAR_BLANK_LINES_IN_JAVADOC_COMMENT = "org.aspectj.org.eclipse.jdt.core.formatter.comment.clear_blank_lines_in_javadoc_comment"; //$NON-NLS-1$
+	public final static String FORMATTER_COMMENT_CLEAR_BLANK_LINES_IN_JAVADOC_COMMENT = "org.eclipse.jdt.core.formatter.comment.clear_blank_lines_in_javadoc_comment"; //$NON-NLS-1$
 
 	/**
 	 * <pre>
 	 * FORMATTER / Option to control whether blank lines are cleared inside block comments
-	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.comment.clear_blank_lines_in_block_comment"
+	 *     - option id:         "org.eclipse.jdt.core.formatter.comment.clear_blank_lines_in_block_comment"
 	 *     - possible values:   { TRUE, FALSE }
 	 *     - default:           FALSE
 	 * </pre>
@@ -1228,12 +1334,12 @@ public class DefaultCodeFormatterConstants {
 	 * @see #FALSE
 	 * @since 3.3
 	 */
-	public final static String FORMATTER_COMMENT_CLEAR_BLANK_LINES_IN_BLOCK_COMMENT = "org.aspectj.org.eclipse.jdt.core.formatter.comment.clear_blank_lines_in_block_comment"; //$NON-NLS-1$
+	public final static String FORMATTER_COMMENT_CLEAR_BLANK_LINES_IN_BLOCK_COMMENT = "org.eclipse.jdt.core.formatter.comment.clear_blank_lines_in_block_comment"; //$NON-NLS-1$
 
 	/**
 	 * <pre>
 	 * FORMATTER / Option to control whether comments are formatted
-	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.comment.format_comments"
+	 *     - option id:         "org.eclipse.jdt.core.formatter.comment.format_comments"
 	 *     - possible values:   { TRUE, FALSE }
 	 *     - default:           TRUE
 	 * </pre>
@@ -1244,12 +1350,12 @@ public class DefaultCodeFormatterConstants {
 	 * {@link #FORMATTER_COMMENT_FORMAT_JAVADOC_COMMENT} and {@link #FORMATTER_COMMENT_FORMAT_LINE_COMMENT}.
 	 */
 	@Deprecated
-	public final static String FORMATTER_COMMENT_FORMAT = "org.aspectj.org.eclipse.jdt.core.formatter.comment.format_comments"; //$NON-NLS-1$
+	public final static String FORMATTER_COMMENT_FORMAT = "org.eclipse.jdt.core.formatter.comment.format_comments"; //$NON-NLS-1$
 
 	/**
 	 * <pre>
 	 * FORMATTER / Option to control whether single line comments are formatted
-	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.comment.format_line_comments"
+	 *     - option id:         "org.eclipse.jdt.core.formatter.comment.format_line_comments"
 	 *     - possible values:   { TRUE, FALSE }
 	 *     - default:           TRUE
 	 * </pre>
@@ -1257,7 +1363,7 @@ public class DefaultCodeFormatterConstants {
 	 * @see #FALSE
 	 * @since 3.3
 	 */
-	public final static String FORMATTER_COMMENT_FORMAT_LINE_COMMENT = "org.aspectj.org.eclipse.jdt.core.formatter.comment.format_line_comments"; //$NON-NLS-1$
+	public final static String FORMATTER_COMMENT_FORMAT_LINE_COMMENT = "org.eclipse.jdt.core.formatter.comment.format_line_comments"; //$NON-NLS-1$
 	/**
 	 * <pre>
 	 * FORMATTER / Option to format line comments that start on the first column
@@ -1280,7 +1386,7 @@ public class DefaultCodeFormatterConstants {
 	/**
 	 * <pre>
 	 * FORMATTER / Option to control whether the white space between code and line comments should be preserved or replaced with a single space
-	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.comment.preserve_white_space_between_code_and_line_comments"
+	 *     - option id:         "org.eclipse.jdt.core.formatter.comment.preserve_white_space_between_code_and_line_comments"
 	 *     - possible values:   { TRUE, FALSE }
 	 *     - default:           FALSE
 	 * </pre>
@@ -1288,12 +1394,12 @@ public class DefaultCodeFormatterConstants {
 	 * @see #FALSE
 	 * @since 3.7
 	 */
-	public final static String FORMATTER_COMMENT_PRESERVE_WHITE_SPACE_BETWEEN_CODE_AND_LINE_COMMENT = "org.aspectj.org.eclipse.jdt.core.formatter.comment.preserve_white_space_between_code_and_line_comments"; //$NON-NLS-1$
+	public final static String FORMATTER_COMMENT_PRESERVE_WHITE_SPACE_BETWEEN_CODE_AND_LINE_COMMENT = "org.eclipse.jdt.core.formatter.comment.preserve_white_space_between_code_and_line_comments"; //$NON-NLS-1$
 
 	/**
 	 * <pre>
 	 * FORMATTER / Option to control whether multiple lines comments are formatted
-	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.comment.format_block_comments"
+	 *     - option id:         "org.eclipse.jdt.core.formatter.comment.format_block_comments"
 	 *     - possible values:   { TRUE, FALSE }
 	 *     - default:           TRUE
 	 * </pre>
@@ -1301,12 +1407,12 @@ public class DefaultCodeFormatterConstants {
 	 * @see #FALSE
 	 * @since 3.3
 	 */
-	public final static String FORMATTER_COMMENT_FORMAT_BLOCK_COMMENT = "org.aspectj.org.eclipse.jdt.core.formatter.comment.format_block_comments"; //$NON-NLS-1$
+	public final static String FORMATTER_COMMENT_FORMAT_BLOCK_COMMENT = "org.eclipse.jdt.core.formatter.comment.format_block_comments"; //$NON-NLS-1$
 
 	/**
 	 * <pre>
 	 * FORMATTER / Option to control whether javadoc comments are formatted
-	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.comment.format_javadoc_comments"
+	 *     - option id:         "org.eclipse.jdt.core.formatter.comment.format_javadoc_comments"
 	 *     - possible values:   { TRUE, FALSE }
 	 *     - default:           TRUE
 	 * </pre>
@@ -1314,12 +1420,12 @@ public class DefaultCodeFormatterConstants {
 	 * @see #FALSE
 	 * @since 3.3
 	 */
-	public final static String FORMATTER_COMMENT_FORMAT_JAVADOC_COMMENT = "org.aspectj.org.eclipse.jdt.core.formatter.comment.format_javadoc_comments"; //$NON-NLS-1$
+	public final static String FORMATTER_COMMENT_FORMAT_JAVADOC_COMMENT = "org.eclipse.jdt.core.formatter.comment.format_javadoc_comments"; //$NON-NLS-1$
 
 	/**
 	 * <pre>
 	 * FORMATTER / Option to control whether the header comment of a Java source file is formatted
-	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.comment.format_header"
+	 *     - option id:         "org.eclipse.jdt.core.formatter.comment.format_header"
 	 *     - possible values:   { TRUE, FALSE }
 	 *     - default:           FALSE
 	 * </pre>
@@ -1327,12 +1433,12 @@ public class DefaultCodeFormatterConstants {
 	 * @see #FALSE
 	 * @since 3.1
 	 */
-	public final static String FORMATTER_COMMENT_FORMAT_HEADER = "org.aspectj.org.eclipse.jdt.core.formatter.comment.format_header"; //$NON-NLS-1$
+	public final static String FORMATTER_COMMENT_FORMAT_HEADER = "org.eclipse.jdt.core.formatter.comment.format_header"; //$NON-NLS-1$
 
 	/**
 	 * <pre>
 	 * FORMATTER / Option to control whether HTML tags are formatted.
-	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.comment.format_html"
+	 *     - option id:         "org.eclipse.jdt.core.formatter.comment.format_html"
 	 *     - possible values:   { TRUE, FALSE }
 	 *     - default:           TRUE
 	 * </pre>
@@ -1340,12 +1446,12 @@ public class DefaultCodeFormatterConstants {
 	 * @see #FALSE
 	 * @since 3.1
 	 */
-	public final static String FORMATTER_COMMENT_FORMAT_HTML = "org.aspectj.org.eclipse.jdt.core.formatter.comment.format_html"; //$NON-NLS-1$
+	public final static String FORMATTER_COMMENT_FORMAT_HTML = "org.eclipse.jdt.core.formatter.comment.format_html"; //$NON-NLS-1$
 
 	/**
 	 * <pre>
 	 * FORMATTER / Option to control whether code snippets are formatted in comments
-	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.comment.format_source_code"
+	 *     - option id:         "org.eclipse.jdt.core.formatter.comment.format_source_code"
 	 *     - possible values:   { TRUE, FALSE }
 	 *     - default:           TRUE
 	 * </pre>
@@ -1353,12 +1459,12 @@ public class DefaultCodeFormatterConstants {
 	 * @see #FALSE
 	 * @since 3.1
 	 */
-	public final static String FORMATTER_COMMENT_FORMAT_SOURCE = "org.aspectj.org.eclipse.jdt.core.formatter.comment.format_source_code"; //$NON-NLS-1$
+	public final static String FORMATTER_COMMENT_FORMAT_SOURCE = "org.eclipse.jdt.core.formatter.comment.format_source_code"; //$NON-NLS-1$
 
 	/**
 	 * <pre>
 	 * FORMATTER / Option to control whether description of Javadoc parameters are indented
-	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.comment.indent_parameter_description"
+	 *     - option id:         "org.eclipse.jdt.core.formatter.comment.indent_parameter_description"
 	 *     - possible values:   { TRUE, FALSE }
 	 *     - default:           TRUE
 	 * </pre>
@@ -1367,12 +1473,12 @@ public class DefaultCodeFormatterConstants {
 	 * @see #FORMATTER_COMMENT_INDENT_TAG_DESCRIPTION
 	 * @since 3.1
 	 */
-	public static final String FORMATTER_COMMENT_INDENT_PARAMETER_DESCRIPTION = "org.aspectj.org.eclipse.jdt.core.formatter.comment.indent_parameter_description"; //$NON-NLS-1$
+	public static final String FORMATTER_COMMENT_INDENT_PARAMETER_DESCRIPTION = "org.eclipse.jdt.core.formatter.comment.indent_parameter_description"; //$NON-NLS-1$
 	/**
 	 * <pre>
 	 * FORMATTER / Option to control whether Javadoc tag descriptions are indented when wrapped,
 	 *     excluding tags controlled by #FORMATTER_COMMENT_INDENT_PARAMETER_DESCRIPTION
-	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.comment.indent_return_description"
+	 *     - option id:         "org.eclipse.jdt.core.formatter.comment.indent_return_description"
 	 *     - possible values:   { TRUE, FALSE }
 	 *     - default:           TRUE
 	 * </pre>
@@ -1381,12 +1487,12 @@ public class DefaultCodeFormatterConstants {
 	 * @see #FORMATTER_COMMENT_INDENT_PARAMETER_DESCRIPTION
 	 * @since 3.17
 	 */
-	public static final String FORMATTER_COMMENT_INDENT_TAG_DESCRIPTION = "org.aspectj.org.eclipse.jdt.core.formatter.comment.indent_tag_description"; //$NON-NLS-1$
+	public static final String FORMATTER_COMMENT_INDENT_TAG_DESCRIPTION = "org.eclipse.jdt.core.formatter.comment.indent_tag_description"; //$NON-NLS-1$
 
 	/**
 	 * <pre>
 	 * FORMATTER / Option to control whether Javadoc root tags are indented.
-	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.comment.indent_root_tags"
+	 *     - option id:         "org.eclipse.jdt.core.formatter.comment.indent_root_tags"
 	 *     - possible values:   { TRUE, FALSE }
 	 *     - default:           TRUE
 	 * </pre>
@@ -1404,12 +1510,12 @@ public class DefaultCodeFormatterConstants {
 	 * @see #FORMATTER_COMMENT_ALIGN_TAGS_DESCREIPTIONS_GROUPED
 	 * @since 3.1
 	 */
-	public final static String FORMATTER_COMMENT_INDENT_ROOT_TAGS = "org.aspectj.org.eclipse.jdt.core.formatter.comment.indent_root_tags"; //$NON-NLS-1$
+	public final static String FORMATTER_COMMENT_INDENT_ROOT_TAGS = "org.eclipse.jdt.core.formatter.comment.indent_root_tags"; //$NON-NLS-1$
 
 	/**
 	 * <pre>
 	 * FORMATTER / Option to control whether names and descriptions in Javadoc root tags should be aligned.
-	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.comment.align_tags_names_descriptions"
+	 *     - option id:         "org.eclipse.jdt.core.formatter.comment.align_tags_names_descriptions"
 	 *     - possible values:   { TRUE, FALSE }
 	 *     - default:           TRUE
 	 * </pre>
@@ -1427,12 +1533,12 @@ public class DefaultCodeFormatterConstants {
 	 * @see #FORMATTER_COMMENT_ALIGN_TAGS_DESCREIPTIONS_GROUPED
 	 * @since 3.14
 	 */
-	public static final String FORMATTER_COMMENT_ALIGN_TAGS_NAMES_DESCRIPTIONS = "org.aspectj.org.eclipse.jdt.core.formatter.comment.align_tags_names_descriptions"; //$NON-NLS-1$
+	public static final String FORMATTER_COMMENT_ALIGN_TAGS_NAMES_DESCRIPTIONS = "org.eclipse.jdt.core.formatter.comment.align_tags_names_descriptions"; //$NON-NLS-1$
 
 	/**
 	 * <pre>
 	 * FORMATTER / Option to control whether descriptions and names in Javadoc root tags, should be aligned and grouped by tag type.
-	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.comment.align_tags_descriptions_grouped"
+	 *     - option id:         "org.eclipse.jdt.core.formatter.comment.align_tags_descriptions_grouped"
 	 *     - possible values:   { TRUE, FALSE }
 	 *     - default:           TRUE
 	 * </pre>
@@ -1450,12 +1556,12 @@ public class DefaultCodeFormatterConstants {
 	 * @see #FORMATTER_COMMENT_ALIGN_TAGS_NAMES_DESCRIPTIONS
 	 * @since 3.14
 	 */
-	public static final String FORMATTER_COMMENT_ALIGN_TAGS_DESCREIPTIONS_GROUPED = "org.aspectj.org.eclipse.jdt.core.formatter.comment.align_tags_descriptions_grouped"; //$NON-NLS-1$
+	public static final String FORMATTER_COMMENT_ALIGN_TAGS_DESCREIPTIONS_GROUPED = "org.eclipse.jdt.core.formatter.comment.align_tags_descriptions_grouped"; //$NON-NLS-1$
 
 	/**
 	 * <pre>
 	 * FORMATTER / Option to insert an empty line before the Javadoc root tag block
-	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.comment.insert_new_line_before_root_tags"
+	 *     - option id:         "org.eclipse.jdt.core.formatter.comment.insert_new_line_before_root_tags"
 	 *     - possible values:   { INSERT, DO_NOT_INSERT }
 	 *     - default:           INSERT
 	 * </pre>
@@ -1463,11 +1569,11 @@ public class DefaultCodeFormatterConstants {
 	 * @see JavaCore#DO_NOT_INSERT
 	 * @since 3.1
 	 */
-	public final static String FORMATTER_COMMENT_INSERT_EMPTY_LINE_BEFORE_ROOT_TAGS = "org.aspectj.org.eclipse.jdt.core.formatter.comment.insert_new_line_before_root_tags"; //$NON-NLS-1$
+	public final static String FORMATTER_COMMENT_INSERT_EMPTY_LINE_BEFORE_ROOT_TAGS = "org.eclipse.jdt.core.formatter.comment.insert_new_line_before_root_tags"; //$NON-NLS-1$
 	/**
 	 * <pre>
 	 * FORMATTER / Option to insert an empty line between Javadoc tags of different type
-	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.comment.insert_new_line_between_different_tags"
+	 *     - option id:         "org.eclipse.jdt.core.formatter.comment.insert_new_line_between_different_tags"
 	 *     - possible values:   { INSERT, DO_NOT_INSERT }
 	 *     - default:           INSERT
 	 * </pre>
@@ -1475,12 +1581,12 @@ public class DefaultCodeFormatterConstants {
 	 * @see JavaCore#DO_NOT_INSERT
 	 * @since 3.20
 	 */
-	public final static String FORMATTER_COMMENT_INSERT_EMPTY_LINE_BETWEEN_DIFFERENT_TAGS = "org.aspectj.org.eclipse.jdt.core.formatter.comment.insert_new_line_between_different_tags"; //$NON-NLS-1$
+	public final static String FORMATTER_COMMENT_INSERT_EMPTY_LINE_BETWEEN_DIFFERENT_TAGS = "org.eclipse.jdt.core.formatter.comment.insert_new_line_between_different_tags"; //$NON-NLS-1$
 
 	/**
 	 * <pre>
 	 * FORMATTER / Option to insert a new line after Javadoc root tag parameters
-	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.comment.insert_new_line_for_parameter"
+	 *     - option id:         "org.eclipse.jdt.core.formatter.comment.insert_new_line_for_parameter"
 	 *     - possible values:   { INSERT, DO_NOT_INSERT }
 	 *     - default:           INSERT
 	 * </pre>
@@ -1488,34 +1594,34 @@ public class DefaultCodeFormatterConstants {
 	 * @see JavaCore#DO_NOT_INSERT
 	 * @since 3.1
 	 */
-	public final static String FORMATTER_COMMENT_INSERT_NEW_LINE_FOR_PARAMETER = "org.aspectj.org.eclipse.jdt.core.formatter.comment.insert_new_line_for_parameter"; //$NON-NLS-1$
+	public final static String FORMATTER_COMMENT_INSERT_NEW_LINE_FOR_PARAMETER = "org.eclipse.jdt.core.formatter.comment.insert_new_line_for_parameter"; //$NON-NLS-1$
 
 	/**
 	 * <pre>
 	 * FORMATTER / Option to specify the line length for comments.
-	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.comment.line_length"
+	 *     - option id:         "org.eclipse.jdt.core.formatter.comment.line_length"
 	 *     - possible values:   "&lt;n&gt;", where n is zero or a positive integer
 	 *     - default:           "80"
 	 * </pre>
 	 * @since 3.1
 	 */
-	public final static String FORMATTER_COMMENT_LINE_LENGTH = "org.aspectj.org.eclipse.jdt.core.formatter.comment.line_length"; //$NON-NLS-1$
+	public final static String FORMATTER_COMMENT_LINE_LENGTH = "org.eclipse.jdt.core.formatter.comment.line_length"; //$NON-NLS-1$
 
 	/**
 	 * <pre>
 	 * FORMATTER / Option to control whether comments' line length will be counted from their starting position
-	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.comment.count_line_length_from_starting_position"
+	 *     - option id:         "org.eclipse.jdt.core.formatter.comment.count_line_length_from_starting_position"
 	 *     - possible values:   { TRUE, FALSE }
 	 *     - default:           TRUE
 	 * </pre>
 	 * @since 3.13
 	 */
-	public final static String FORMATTER_COMMENT_COUNT_LINE_LENGTH_FROM_STARTING_POSITION = "org.aspectj.org.eclipse.jdt.core.formatter.comment.count_line_length_from_starting_position"; //$NON-NLS-1$
+	public final static String FORMATTER_COMMENT_COUNT_LINE_LENGTH_FROM_STARTING_POSITION = "org.eclipse.jdt.core.formatter.comment.count_line_length_from_starting_position"; //$NON-NLS-1$
 
 	/**
 	 * <pre>
 	 * FORMATTER / Option to control whether block comments will have new lines at boundaries
-	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.comment.new_lines_at_block_boundaries"
+	 *     - option id:         "org.eclipse.jdt.core.formatter.comment.new_lines_at_block_boundaries"
 	 *     - possible values:   { TRUE, FALSE }
 	 *     - default:           TRUE
 	 * </pre>
@@ -1523,12 +1629,12 @@ public class DefaultCodeFormatterConstants {
 	 * @see #FALSE
 	 * @since 3.6
 	 */
-	public final static String FORMATTER_COMMENT_NEW_LINES_AT_BLOCK_BOUNDARIES = "org.aspectj.org.eclipse.jdt.core.formatter.comment.new_lines_at_block_boundaries"; //$NON-NLS-1$
+	public final static String FORMATTER_COMMENT_NEW_LINES_AT_BLOCK_BOUNDARIES = "org.eclipse.jdt.core.formatter.comment.new_lines_at_block_boundaries"; //$NON-NLS-1$
 
 	/**
 	 * <pre>
 	 * FORMATTER / Option to control whether javadoc comments will have new lines at boundaries
-	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.comment.new_lines_at_javadoc_boundaries"
+	 *     - option id:         "org.eclipse.jdt.core.formatter.comment.new_lines_at_javadoc_boundaries"
 	 *     - possible values:   { TRUE, FALSE }
 	 *     - default:           TRUE
 	 * </pre>
@@ -1536,7 +1642,7 @@ public class DefaultCodeFormatterConstants {
 	 * @see #FALSE
 	 * @since 3.6
 	 */
-	public final static String FORMATTER_COMMENT_NEW_LINES_AT_JAVADOC_BOUNDARIES = "org.aspectj.org.eclipse.jdt.core.formatter.comment.new_lines_at_javadoc_boundaries"; //$NON-NLS-1$
+	public final static String FORMATTER_COMMENT_NEW_LINES_AT_JAVADOC_BOUNDARIES = "org.eclipse.jdt.core.formatter.comment.new_lines_at_javadoc_boundaries"; //$NON-NLS-1$
 
 	/**
 	 * <pre>
@@ -1576,7 +1682,7 @@ public class DefaultCodeFormatterConstants {
 	 * FORMATTER / Option to use the disabling and enabling tags defined respectively by the {@link #FORMATTER_DISABLING_TAG} and the {@link #FORMATTER_ENABLING_TAG} options.
 	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.use_on_off_tags"
 	 *     - possible values:   TRUE / FALSE
-	 *     - default:           FALSE
+	 *     - default:           TRUE
 	 * </pre>
 	 * @since 3.6
 	 */
@@ -5112,6 +5218,18 @@ public class DefaultCodeFormatterConstants {
 	public static final String FORMATTER_WRAP_BEFORE_ADDITIVE_OPERATOR = JavaCore.PLUGIN_ID + ".formatter.wrap_before_additive_operator"; //$NON-NLS-1$
 	/**
 	 * <pre>
+	 * FORMATTER / Option to wrap before the assertion message operator
+	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.wrap_before_assertion_message_operator"
+	 *     - possible values:   { TRUE, FALSE }
+	 *     - default:           FALSE
+	 * </pre>
+	 * @see #TRUE
+	 * @see #FALSE
+	 * @since 3.23
+	 */
+	public static final String FORMATTER_WRAP_BEFORE_ASSERTION_MESSAGE_OPERATOR = JavaCore.PLUGIN_ID + ".formatter.wrap_before_assertion_message_operator"; //$NON-NLS-1$
+	/**
+	 * <pre>
 	 * FORMATTER / Option to wrap before the string concatenation operator
 	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.wrap_before_string_concatenation"
 	 *     - possible values:   { TRUE, FALSE }
@@ -5647,6 +5765,20 @@ public class DefaultCodeFormatterConstants {
 	}
 
 	/**
+	 * Create a new alignment value according to the given values. This must be used to set up
+	 * the alignment options that don't allow for various indent styles.
+	 *
+	 * @param forceSplit the given force value
+	 * @param wrapStyle the given wrapping style
+	 *
+	 * @return the new alignment value
+	 * @since 3.24
+	 */
+	public static String createAlignmentValue(boolean forceSplit, int wrapStyle) {
+		return createAlignmentValue(forceSplit, wrapStyle, INDENT_DEFAULT);
+	}
+
+	/**
 	 * Returns the formatter settings that most closely approximate
 	 * the default formatter settings of Eclipse version 2.1.
 	 *
@@ -5657,6 +5789,7 @@ public class DefaultCodeFormatterConstants {
 		DefaultCodeFormatterOptions options = DefaultCodeFormatterOptions.getDefaultSettings();
 		options.page_width = 80; // changed with bug 356841
 		options.comment_count_line_length_from_starting_position = false;
+		options.use_tags = false;
 		return options.getMap();
 	}
 

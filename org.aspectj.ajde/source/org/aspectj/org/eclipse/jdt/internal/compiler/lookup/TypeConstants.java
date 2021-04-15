@@ -120,6 +120,11 @@ public interface TypeConstants {
     // JEP 359 Records
 	char[] RECORD_RESTRICTED_IDENTIFIER = "record".toCharArray(); //$NON-NLS-1$
 	char[] RECORD_CLASS = "Record".toCharArray(); //$NON-NLS-1$
+	// JEP 360 Sealed
+	char[] PERMITS = "permits".toCharArray(); //$NON-NLS-1$
+	char[] SEALED = "sealed".toCharArray(); //$NON-NLS-1$
+	String KEYWORD_EXTENDS = "extends"; //$NON-NLS-1$
+	String IMPLEMENTS = "implements"; //$NON-NLS-1$
 
     // jsr308
 	char[] TYPE_USE_TARGET  = "TYPE_USE".toCharArray(); //$NON-NLS-1$
@@ -515,7 +520,7 @@ public interface TypeConstants {
 	char[] SYNTHETIC_ENUM_CONSTANT_INITIALIZATION_METHOD_PREFIX =  " enum constant initialization$".toCharArray(); //$NON-NLS-1$
 	char[] SYNTHETIC_STATIC_FACTORY =  "<factory>".toCharArray(); //$NON-NLS-1$
 
-	// constants in enum org.aspectj.org.eclipse.jdt.annotation.DefaultLocation:
+	// constants in enum org.eclipse.jdt.annotation.DefaultLocation:
 	char[] DEFAULT_LOCATION__PARAMETER = "PARAMETER".toCharArray(); //$NON-NLS-1$
 	char[] DEFAULT_LOCATION__RETURN_TYPE = "RETURN_TYPE".toCharArray(); //$NON-NLS-1$
 	char[] DEFAULT_LOCATION__FIELD = "FIELD".toCharArray(); //$NON-NLS-1$

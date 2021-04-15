@@ -11,7 +11,6 @@ package org.aspectj.weaver.patterns;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -220,11 +219,11 @@ public class ExactAnnotationTypePattern extends AnnotationTypePattern {
 			if (parameterAnnotations == null) {
 				return FuzzyBoolean.NO;
 			}
-			for (int i = 0; i < parameterAnnotations.length; i++) {
-				if (annotationType.equals(parameterAnnotations[i])) {
+			for (ResolvedType parameterAnnotation : parameterAnnotations) {
+				if (annotationType.equals(parameterAnnotation)) {
 					// Are we also matching annotation values?
 					if (annotationValues != null) {
-						parameterAnnotations[i]
+						parameterAnnotation
 								.getWorld()
 								.getMessageHandler()
 								.handleMessage(
@@ -383,8 +382,7 @@ public class ExactAnnotationTypePattern extends AnnotationTypePattern {
 		} else {
 			s.writeInt(annotationValues.size());
 			Set<String> key = annotationValues.keySet();
-			for (Iterator<String> keys = key.iterator(); keys.hasNext();) {
-				String k = keys.next();
+			for (String k : key) {
 				s.writeUTF(k);
 				s.writeUTF(annotationValues.get(k));
 			}
@@ -412,7 +410,7 @@ public class ExactAnnotationTypePattern extends AnnotationTypePattern {
 		if (s.getMajorVersion() >= WeaverVersionInfo.WEAVER_VERSION_MAJOR_AJ160M2) {
 			int annotationValueCount = s.readInt();
 			if (annotationValueCount > 0) {
-				Map<String, String> aValues = new HashMap<String, String>();
+				Map<String, String> aValues = new HashMap<>();
 				for (int i = 0; i < annotationValueCount; i++) {
 					String key = s.readUTF();
 					String val = s.readUTF();

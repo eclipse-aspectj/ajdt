@@ -132,7 +132,7 @@ void clearMissingTagBit() {
 }
 /*
  * slash separated name
- * org.aspectj.org.eclipse.jdt.core --> org.aspectj.org.eclipse.jdt/core
+ * org.aspectj.org.eclipse.jdt.core --> org/aspectj/org/eclipse/jdt/core
  */
 @Override
 public char[] computeUniqueKey(boolean isLeaf) {

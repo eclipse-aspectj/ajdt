@@ -18,7 +18,6 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.List;
 
 import org.aspectj.apache.bcel.Constants;
@@ -69,10 +68,10 @@ public class Utility {
 
 	public static List<AjAttribute> readAjAttributes(String classname, Attribute[] as, ISourceContext context, World w,
 			AjAttribute.WeaverVersionInfo version, ConstantPoolReader dataDecompressor) {
-		List<AjAttribute> attributes = new ArrayList<AjAttribute>();
+		List<AjAttribute> attributes = new ArrayList<>();
 
 		// first pass, look for version
-		List<Unknown> forSecondPass = new ArrayList<Unknown>();
+		List<Unknown> forSecondPass = new ArrayList<>();
 		for (int i = as.length - 1; i >= 0; i--) {
 			Attribute a = as[i];
 			if (a instanceof Unknown) {
@@ -113,7 +112,7 @@ public class Utility {
 	 */
 	public static String beautifyLocation(ISourceLocation isl) {
 		StringBuffer nice = new StringBuffer();
-		if (isl == null || isl.getSourceFile() == null || isl.getSourceFile().getName().indexOf("no debug info available") != -1) {
+		if (isl == null || isl.getSourceFile() == null || isl.getSourceFile().getName().contains("no debug info available")) {
 			nice.append("no debug info available");
 		} else {
 			// can't use File.getName() as this fails when a Linux box
@@ -248,7 +247,7 @@ public class Utility {
 
 	// Lookup table, for converting between pairs of types, it gives
 	// us the method name in the Conversions class
-	private static Hashtable<String, String> validBoxing = new Hashtable<String, String>();
+	private static Hashtable<String, String> validBoxing = new Hashtable<>();
 
 	static {
 		validBoxing.put("Ljava/lang/Byte;B", "byteObject");
@@ -481,7 +480,7 @@ public class Utility {
 	 * replace an instruction handle with another instruction, in this case, a branch instruction.
 	 * 
 	 * @param ih the instruction handle to replace.
-	 * @param branchInstruction the branch instruction to replace ih with
+	 * @param replacementInstructions the branch instruction to replace ih with
 	 * @param enclosingMethod where to find ih's instruction list.
 	 */
 	public static void replaceInstruction(InstructionHandle ih, InstructionList replacementInstructions,
@@ -580,9 +579,7 @@ public class Utility {
 			if (ih == null) {
 				return -1;
 			}
-			Iterator<InstructionTargeter> tIter = ih.getTargeters().iterator();
-			while (tIter.hasNext()) {
-				InstructionTargeter t = tIter.next();
+			for (InstructionTargeter t : ih.getTargeters()) {
 				if (t instanceof LineNumberTag) {
 					return ((LineNumberTag) t).getLineNumber();
 				}
@@ -651,7 +648,7 @@ public class Utility {
 			return Collections.emptyList();
 		}
 		// Go through the annotation types
-		List<Lint.Kind> suppressedWarnings = new ArrayList<Lint.Kind>();
+		List<Lint.Kind> suppressedWarnings = new ArrayList<>();
 		boolean found = false;
 		for (int i = 0; !found && i < anns.length; i++) {
 			// Check for the SuppressAjWarnings annotation
@@ -669,9 +666,9 @@ public class Utility {
 					// We know the value is an array value
 					ArrayElementValue array = (ArrayElementValue) (vals.get(0)).getValue();
 					ElementValue[] values = array.getElementValuesArray();
-					for (int j = 0; j < values.length; j++) {
+					for (ElementValue elementValue : values) {
 						// We know values in the array are strings
-						SimpleElementValue value = (SimpleElementValue) values[j];
+						SimpleElementValue value = (SimpleElementValue) elementValue;
 						Lint.Kind lintKind = lint.getLintKind(value.getValueString());
 						if (lintKind != null) {
 							suppressedWarnings.add(lintKind);

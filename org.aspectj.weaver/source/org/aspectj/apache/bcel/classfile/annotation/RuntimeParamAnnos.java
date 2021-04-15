@@ -36,13 +36,13 @@ public abstract class RuntimeParamAnnos extends Attribute {
             int nameIdx, int len, ConstantPool cpool) {
 		super(attrid,nameIdx,len,cpool);
 		this.visible = visible; 
-		parameterAnnotations = new ArrayList<AnnotationGen[]>();
+		parameterAnnotations = new ArrayList<>();
 	}
 	
 	public RuntimeParamAnnos(byte attrid,boolean visible,int nameIdx,int len,byte[] data,ConstantPool cpool) {
 		super(attrid,nameIdx,len,cpool);
 		this.visible = visible;
-		parameterAnnotations = new ArrayList<AnnotationGen[]>();
+		parameterAnnotations = new ArrayList<>();
 		annotation_data = data;
 	}
 	
@@ -88,7 +88,7 @@ public abstract class RuntimeParamAnnos extends Attribute {
 			DataInputStream dis = new DataInputStream(new ByteArrayInputStream(annotation_data));
 			int numParameters = dis.readUnsignedByte();
 			if (numParameters > 0) {
-				List<AnnotationGen[]> inflatedParameterAnnotations = new ArrayList<AnnotationGen[]>();
+				List<AnnotationGen[]> inflatedParameterAnnotations = new ArrayList<>();
 				for (int i=0; i<numParameters; i++) {
 					int numAnnotations = dis.readUnsignedShort();
 					if (numAnnotations == 0 ) {
@@ -115,11 +115,10 @@ public abstract class RuntimeParamAnnos extends Attribute {
 			dos.write(annotation_data,0,length);
 		} else {
 			dos.writeByte(parameterAnnotations.size());
-			for (int i=0; i<parameterAnnotations.size(); i++) {
-				AnnotationGen[] annotations = parameterAnnotations.get(i);
+			for (AnnotationGen[] annotations : parameterAnnotations) {
 				dos.writeShort(annotations.length);
-				for (int j=0; j<annotations.length;j++) {
-					annotations[j].dump(dos);
+				for (AnnotationGen annotation : annotations) {
+					annotation.dump(dos);
 				}
 			}
 		}

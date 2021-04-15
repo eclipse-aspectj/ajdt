@@ -113,7 +113,7 @@ public class LangUtil {
 	}
 
 	private static List<Integer> getFirstNumbers(String vm) {
-		List<Integer> result = new ArrayList<Integer>();
+		List<Integer> result = new ArrayList<>();
 		StringTokenizer st = new StringTokenizer(vm,".-_");
 		try {
 			result.add(Integer.parseInt(st.nextToken()));
@@ -125,31 +125,36 @@ public class LangUtil {
 		return result;
 	}
 
-	public static boolean isOnePointThreeVMOrGreater() {
+	@Deprecated
+	public static boolean is1dot3VMOrGreater() {
 		return 1.3 <= vmVersion;
 	}
 
+	@Deprecated
 	public static boolean is1dot4VMOrGreater() {
 		return 1.4 <= vmVersion;
 	}
 
-	public static boolean is15VMOrGreater() {
+	@Deprecated
+	public static boolean is1dot5VMOrGreater() {
 		return 1.5 <= vmVersion;
 	}
 
-	public static boolean is16VMOrGreater() {
+	@Deprecated
+	public static boolean is1dot6VMOrGreater() {
 		return 1.6 <= vmVersion;
 	}
 
-	public static boolean is17VMOrGreater() {
+	@Deprecated
+	public static boolean is1dot7VMOrGreater() {
 		return 1.7 <= vmVersion;
 	}
 
-	public static boolean is18VMOrGreater() {
+	public static boolean is1dot8VMOrGreater() {
 		return 1.8 <= vmVersion;
 	}
 
-	public static boolean is19VMOrGreater() {
+	public static boolean is9VMOrGreater() {
 		return 9 <= vmVersion;
 	}
 
@@ -171,6 +176,18 @@ public class LangUtil {
 
 	public static boolean is14VMOrGreater() {
 		return 14 <= vmVersion;
+	}
+
+	public static boolean is15VMOrGreater() {
+		return 15 <= vmVersion;
+	}
+
+	public static boolean is16VMOrGreater() {
+		return 16 <= vmVersion;
+	}
+
+	public static boolean is17VMOrGreater() {
+		return 17 <= vmVersion;
 	}
 
 	/**
@@ -312,7 +329,7 @@ public class LangUtil {
 			return new String[0];
 		}
 		StringTokenizer st = new StringTokenizer(classpath, File.pathSeparator);
-		ArrayList<String> result = new ArrayList<String>(st.countTokens());
+		ArrayList<String> result = new ArrayList<>(st.countTokens());
 		while (st.hasMoreTokens()) {
 			String entry = st.nextToken();
 			if (!LangUtil.isEmpty(entry)) {
@@ -332,7 +349,7 @@ public class LangUtil {
 			try {
 				String value = System.getProperty(propertyName);
 				if (null != value) {
-					return Boolean.valueOf(value).booleanValue();
+					return Boolean.valueOf(value);
 				}
 			} catch (Throwable t) {
 				// default below
@@ -354,9 +371,9 @@ public class LangUtil {
 		if (null == input) {
 			return Collections.emptyList();
 		}
-		ArrayList<String> result = new ArrayList<String>();
+		List<String> result = new ArrayList<>();
 
-		if (LangUtil.isEmpty(delim) || (-1 == input.indexOf(delim))) {
+		if (LangUtil.isEmpty(delim) || (!input.contains(delim))) {
 			result.add(input.trim());
 		} else {
 			StringTokenizer st = new StringTokenizer(input, delim);
@@ -376,7 +393,7 @@ public class LangUtil {
 		if (LangUtil.isEmpty(text)) {
 			return Collections.emptyList();
 		}
-		List<String> strings = new ArrayList<String>();
+		List<String> strings = new ArrayList<>();
 		StringTokenizer tok = new StringTokenizer(text);
 		while (tok.hasMoreTokens()) {
 			strings.add(tok.nextToken());
@@ -736,11 +753,11 @@ public class LangUtil {
 		final int sinkLength = (null == sink ? 0 : sink.length);
 
 		final int resultSize;
-		ArrayList<Object> result = null;
+		List<Object> result = null;
 		if (0 == sourceLength) {
 			resultSize = 0;
 		} else {
-			result = new ArrayList<Object>(sourceLength);
+			result = new ArrayList<>(sourceLength);
 			for (int i = 0; i < sourceLength; i++) {
 				if ((null != source[i]) && (sinkType.isAssignableFrom(source[i].getClass()))) {
 					result.add(source[i]);
@@ -860,7 +877,7 @@ public class LangUtil {
 	 * Renders exception <code>t</code> after unwrapping and eliding any test packages.
 	 *
 	 * @param t <code>Throwable</code> to print.
-	 * @see #maxStackTrace
+	 * @see StringChecker#TEST_PACKAGES
 	 */
 	public static String renderException(Throwable t) {
 		return renderException(t, true);
@@ -897,7 +914,7 @@ public class LangUtil {
 		if (null == checker || (null == stack) || (0 == stack.length())) {
 			return;
 		}
-		final LinkedList<String> lines = new LinkedList<String>();
+		final LinkedList<String> lines = new LinkedList<>();
 		StringTokenizer st = new StringTokenizer(stack.toString(), "\n\r");
 		while (st.hasMoreTokens() && (0 < --maxLines)) {
 			lines.add(st.nextToken());
@@ -995,8 +1012,7 @@ public class LangUtil {
 		if ((null == array) || (1 > array.length)) {
 			return Collections.emptyList();
 		}
-		ArrayList<T> list = new ArrayList<T>();
-		list.addAll(Arrays.asList(array));
+		List<T> list = new ArrayList<>(Arrays.asList(array));
 		return list;
 	}
 
@@ -1018,7 +1034,7 @@ public class LangUtil {
 			boolean result = false;
 			if (!LangUtil.isEmpty(input)) {
 				for (int i = 0; !result && (i < infixes.length); i++) {
-					result = (-1 != input.indexOf(infixes[i]));
+					result = (input.contains(infixes[i]));
 				}
 			}
 			return result;
@@ -1073,7 +1089,7 @@ public class LangUtil {
 	 */
 	public static ProcessController makeProcess(ProcessController controller, String classpath, String mainClass, String[] args) {
 		File java = LangUtil.getJavaExecutable();
-		ArrayList<String> cmd = new ArrayList<String>();
+		ArrayList<String> cmd = new ArrayList<>();
 		cmd.add(java.getAbsolutePath());
 		cmd.add("-classpath");
 		cmd.add(classpath);
@@ -1262,7 +1278,7 @@ public class LangUtil {
 			LangUtil.throwIaxIfNull(java, "java");
 			LangUtil.throwIaxIfNull(mainClass, "mainClass");
 			LangUtil.throwIaxIfNull(args, "args");
-			ArrayList<String> cmd = new ArrayList<String>();
+			ArrayList<String> cmd = new ArrayList<>();
 			cmd.add(java.getAbsolutePath());
 			cmd.add("-classpath");
 			cmd.add(classpath);

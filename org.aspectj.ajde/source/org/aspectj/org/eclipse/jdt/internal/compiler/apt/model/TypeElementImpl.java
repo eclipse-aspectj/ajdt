@@ -45,6 +45,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.AnnotationBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Binding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.FieldBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.RecordComponentBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
@@ -125,7 +126,7 @@ public class TypeElementImpl extends ElementImpl implements TypeElement {
 	}
 
 	private final ElementKind _kindHint;
-	
+
 	/**
 	 * In general, clients should call {@link Factory#newDeclaredType(ReferenceBinding)} or
 	 * {@link Factory#newElement(org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Binding)} to
@@ -135,7 +136,7 @@ public class TypeElementImpl extends ElementImpl implements TypeElement {
 		super(env, binding);
 		_kindHint = kindHint;
 	}
-	
+
 	@Override
 	public <R, P> R accept(ElementVisitor<R, P> v, P p)
 	{
@@ -165,8 +166,8 @@ public class TypeElementImpl extends ElementImpl implements TypeElement {
 		}
 		if (binding.isRecord() && binding instanceof SourceTypeBinding) {
 			SourceTypeBinding sourceBinding = (SourceTypeBinding) binding;
-			for (FieldBinding field : sourceBinding.getRecordComponents()) {
-				RecordComponentElement rec = new RecordComponentElementImpl(_env, field);
+			for (RecordComponentBinding comp : sourceBinding.components()) {
+				RecordComponentElement rec = new RecordComponentElementImpl(_env, comp);
 				enclosed.add(rec);
 			}
 		}
@@ -180,16 +181,14 @@ public class TypeElementImpl extends ElementImpl implements TypeElement {
 		return Collections.unmodifiableList(enclosed);
 	}
 
-	@Override
+	//@Override - AspectJ: does not compile with AspectJ Maven. This really is an Eclipse bug.
     public List<? extends RecordComponentElement> getRecordComponents() {
 		if (_binding instanceof SourceTypeBinding) {
 			SourceTypeBinding binding = (SourceTypeBinding) _binding;
 			List<RecordComponentElement> enclosed = new ArrayList<>();
-			for (FieldBinding field : binding.fields()) {
-				if (!field.isSynthetic()) {
-					 RecordComponentElement variable = new RecordComponentElementImpl(_env, field);
-					 enclosed.add(variable);
-				}
+			for (RecordComponentBinding comp : binding.components()) {
+				RecordComponentElement variable = new RecordComponentElementImpl(_env, comp);
+				enclosed.add(variable);
 			}
 			Collections.sort(enclosed, new SourceLocationComparator());
 			return Collections.unmodifiableList(enclosed);
@@ -198,6 +197,19 @@ public class TypeElementImpl extends ElementImpl implements TypeElement {
 		return Collections.emptyList();
     }
 
+	//@Override - AspectJ: does not compile with AspectJ Maven. This really is an Eclipse bug.
+	public List<? extends TypeMirror> getPermittedSubclasses() {
+		ReferenceBinding binding = (ReferenceBinding)_binding;
+		if (binding.isSealed()) {
+			List<TypeMirror> permitted = new ArrayList<>();
+			for (ReferenceBinding type : binding.permittedTypes()) {
+				TypeMirror typeMirror = _env.getFactory().newTypeMirror(type);
+				permitted.add(typeMirror);
+			}
+			return Collections.unmodifiableList(permitted);
+		}
+		return Collections.emptyList();
+    }
 	@Override
 	public Element getEnclosingElement() {
 		ReferenceBinding binding = (ReferenceBinding)_binding;
@@ -218,7 +230,7 @@ public class TypeElementImpl extends ElementImpl implements TypeElement {
 			return null;
 		return new String(name);
 	}
-	
+
 	@Override
 	public List<? extends TypeMirror> getInterfaces() {
 		ReferenceBinding binding = (ReferenceBinding)_binding;
@@ -276,6 +288,7 @@ public class TypeElementImpl extends ElementImpl implements TypeElement {
 		if (refBinding.isInterface() && refBinding.isNestedType()) {
 			modifiers |= ClassFileConstants.AccStatic;
 		}
+
 		return Factory.getModifiers(modifiers, getKind(), refBinding.isBinaryBinding());
 	}
 
@@ -334,7 +347,7 @@ public class TypeElementImpl extends ElementImpl implements TypeElement {
 		// superclass of a type must be a DeclaredType
 		return _env.getFactory().newTypeMirror(superBinding);
 	}
-	
+
 	@Override
 	public List<? extends TypeParameterElement> getTypeParameters() {
 		ReferenceBinding binding = (ReferenceBinding)_binding;
@@ -342,7 +355,7 @@ public class TypeElementImpl extends ElementImpl implements TypeElement {
 		if (variables.length == 0) {
 			return Collections.emptyList();
 		}
-		List<TypeParameterElement> params = new ArrayList<>(variables.length); 
+		List<TypeParameterElement> params = new ArrayList<>(variables.length);
 		for (TypeVariableBinding variable : variables) {
 			params.add(_env.getFactory().newTypeParameterElement(variable, this));
 		}
@@ -369,7 +382,7 @@ public class TypeElementImpl extends ElementImpl implements TypeElement {
 		if (!CharOperation.equals(hiddenBinding.sourceName, hiderBinding.sourceName)) {
 			return false;
 		}
-		return null != hiderBinding.enclosingType().findSuperTypeOriginatingFrom(hiddenBinding.enclosingType()); 
+		return null != hiderBinding.enclosingType().findSuperTypeOriginatingFrom(hiddenBinding.enclosingType());
 	}
 
 	@Override

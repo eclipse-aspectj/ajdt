@@ -68,7 +68,7 @@ public abstract class AbstractTrace implements Trace {
 
 	@Override
 	public void exit (String methodName, int i) {
-		exit(methodName,new Integer(i));
+		exit(methodName, Integer.valueOf(i));
 	}
 
 	@Override
@@ -189,7 +189,6 @@ public abstract class AbstractTrace implements Trace {
 	/**
 	 * Format arguments into a comma separated list
 	 *
-	 * @param names array of argument names
 	 * @param args array of arguments
 	 * @return the formated list
 	 */

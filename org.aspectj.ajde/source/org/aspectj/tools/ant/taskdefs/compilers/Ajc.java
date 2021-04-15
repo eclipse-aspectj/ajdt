@@ -32,7 +32,7 @@ import org.apache.tools.ant.types.Commandline;
  * This task was developed by the <a href="http://aspectj.org">AspectJ Project</a>
  *
  * @author <a href="mailto:palm@parc.xerox.com">Jeffrey Palm</a>
- * @see    org.aspectj.tools.ant.taskdefs.Ajc
+ * @see    org.aspectj.tools.ant.taskdefs.Ajc2
  */
 public class Ajc extends DefaultCompilerAdapter {
 
@@ -53,14 +53,13 @@ public class Ajc extends DefaultCompilerAdapter {
         "-encoding", "-target" });
 
     private static List<String> finalList(String[] args) {
-        List<String> result = new ArrayList<String>();
-        result.addAll(Arrays.asList(args));
+        List<String> result = new ArrayList<>(Arrays.asList(args));
         return Collections.unmodifiableList(result);
     }
 
     /**
      * Checks the command line for arguments allowed only in AJC and
-     * disallowed by AJC and then calls the <code>compile()<code> method.
+     * disallowed by AJC and then calls the <code>compile()</code> method.
      *
      * @return true if a good compile, false otherwise.
      * @throws org.apache.tools.ant.BuildException
@@ -91,11 +90,11 @@ public class Ajc extends DefaultCompilerAdapter {
                                                     Project.MSG_WARN));
             System.setOut(logstr);
             System.setErr(logstr);
-            return ((Integer)main.getMethod
-                    ("compile", new Class[]{String[].class}).invoke
-                    (main.newInstance(), new Object[]{
-                        removeUnsupported(cline, logstr)
-                    })).intValue() == AJC_COMPILER_SUCCESS;
+            return (Integer) main.getMethod
+					("compile", new Class[]{String[].class}).invoke
+					(main.getDeclaredConstructor().newInstance(), new Object[]{
+							removeUnsupported(cline, logstr)
+					}) == AJC_COMPILER_SUCCESS;
         } catch (Exception e) {
             if (e instanceof BuildException) {
                 throw (BuildException)e;
@@ -138,7 +137,7 @@ public class Ajc extends DefaultCompilerAdapter {
                 argsList.add(args[i]);
             }
         }
-        return (String[])argsList.toArray(new String[argsList.size()]);
+        return (String[])argsList.toArray(new String[0]);
     }
     
     /**
@@ -184,7 +183,7 @@ public class Ajc extends DefaultCompilerAdapter {
 
     /**
      * Logs the compilation parameters, adds the files to compile and logs the 
-     * &qout;niceSourceList&quot;
+     * &quot;niceSourceList&quot;
      */
     @Override
 	protected void logAndAddFilesToCompile(Commandline cmd) {
@@ -198,25 +197,23 @@ public class Ajc extends DefaultCompilerAdapter {
         niceSourceList.append(" to be compiled:");
         niceSourceList.append(lSep);
 
-        for (int i=0; i < compileList.length; i++) {
+		for (File file : compileList) {
 
-            // DefaultCompilerAdapter only expects .java files but we must deal
-            // with .lst files also
-            File file = compileList[i];
+			// DefaultCompilerAdapter only expects .java files but we must deal
+			// with .lst files also
+			if (file == null) continue;
 
-            if (file == null) continue;
+			String arg = file.getAbsolutePath();
+			String rest = "";
+			String name = file.getName();
 
-            String arg = file.getAbsolutePath();
-            String rest = "";
-            String name = file.getName();
-
-            // For .java files take the default behavior and add that
-            // file to the command line
-            if (name.endsWith(".java")) {
-                cmd.createArgument().setValue(arg);
-            }
-            niceSourceList.append("   " + arg + rest + lSep);
-        }
+			// For .java files take the default behavior and add that
+			// file to the command line
+			if (name.endsWith(".java")) {
+				cmd.createArgument().setValue(arg);
+			}
+			niceSourceList.append("   " + arg + rest + lSep);
+		}
         attributes.log(niceSourceList.toString(), Project.MSG_VERBOSE);
     }    
 }

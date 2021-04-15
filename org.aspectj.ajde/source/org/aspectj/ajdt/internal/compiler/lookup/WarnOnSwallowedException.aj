@@ -11,9 +11,9 @@
  * ******************************************************************/
  package org.aspectj.ajdt.internal.compiler.lookup;
 
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Block;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TryStatement;
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BlockScope;
+import org.eclipse.jdt.internal.compiler.ast.Block;
+import org.eclipse.jdt.internal.compiler.ast.TryStatement;
+import org.eclipse.jdt.internal.compiler.lookup.BlockScope;
 
 /**
  * We get asked for this capability so often, I thought I would simply

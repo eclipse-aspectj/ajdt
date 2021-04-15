@@ -54,7 +54,6 @@ package org.aspectj.apache.bcel.generic;
  * <http://www.apache.org/>.
  */
 
-import java.util.Iterator;
 import java.util.List;
 
 import org.aspectj.apache.bcel.Constants;
@@ -111,18 +110,17 @@ public class FieldGen extends FieldGenOrMethodGen {
 
 		Attribute[] attrs = field.getAttributes();
 
-		for (int i = 0; i < attrs.length; i++) {
-			if (attrs[i] instanceof ConstantValue) {
-				setValue(((ConstantValue) attrs[i]).getConstantValueIndex());
-			} else if (attrs[i] instanceof RuntimeAnnos) {
-				RuntimeAnnos runtimeAnnotations = (RuntimeAnnos) attrs[i];
+		for (Attribute attr : attrs) {
+			if (attr instanceof ConstantValue) {
+				setValue(((ConstantValue) attr).getConstantValueIndex());
+			} else if (attr instanceof RuntimeAnnos) {
+				RuntimeAnnos runtimeAnnotations = (RuntimeAnnos) attr;
 				List<AnnotationGen> l = runtimeAnnotations.getAnnotations();
-				for (Iterator<AnnotationGen> it = l.iterator(); it.hasNext();) {
-					AnnotationGen element = it.next();
+				for (AnnotationGen element : l) {
 					addAnnotation(new AnnotationGen(element, cp, false));
 				}
 			} else {
-				addAttribute(attrs[i]);
+				addAttribute(attr);
 			}
 		}
 	}
@@ -190,16 +188,16 @@ public class FieldGen extends FieldGenOrMethodGen {
 		case Constants.T_BYTE:
 		case Constants.T_BOOLEAN:
 		case Constants.T_SHORT:
-			return cp.addInteger(((Integer) value).intValue());
+			return cp.addInteger((Integer) value);
 
 		case Constants.T_FLOAT:
-			return cp.addFloat(((Float) value).floatValue());
+			return cp.addFloat((Float) value);
 
 		case Constants.T_DOUBLE:
-			return cp.addDouble(((Double) value).doubleValue());
+			return cp.addDouble((Double) value);
 
 		case Constants.T_LONG:
-			return cp.addLong(((Long) value).longValue());
+			return cp.addLong((Long) value);
 
 		case Constants.T_REFERENCE:
 			return cp.addString(((String) value));

@@ -2545,7 +2545,7 @@ public class ClasspathEntry implements IClasspathEntry {
 	 * For testing shared index location in JavaIndexTests only
 	 */
 	public static void setSharedIndexLocation(String value, Class<?> clazz) throws IllegalArgumentException{
-		if (clazz != null && "org.aspectj.org.eclipse.jdt.core.tests.model.JavaIndexTests".equals(clazz.getName())) { //$NON-NLS-1$
+		if (clazz != null && "org.eclipse.jdt.core.tests.model.JavaIndexTests".equals(clazz.getName())) { //$NON-NLS-1$
 			SHARED_INDEX_LOCATION = value;
 		} else {
 			throw new IllegalArgumentException("Cannot set index location for specified test class"); //$NON-NLS-1$

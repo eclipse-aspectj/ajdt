@@ -157,8 +157,8 @@ public class EclipseScope implements IScope {
 		if (importedNames != null)
 			return;
 
-		List<String> importedNamesList = new ArrayList<String>();
-		List<String> importedPrefixesList = new ArrayList<String>();
+		List<String> importedNamesList = new ArrayList<>();
+		List<String> importedPrefixesList = new ArrayList<>();
 
 		Scope currentScope = scope;
 		// add any enclosing types to this list
@@ -181,8 +181,7 @@ public class EclipseScope implements IScope {
 		}
 
 		ImportBinding[] imports = cuScope.imports;
-		for (int i = 0; i < imports.length; i++) {
-			ImportBinding importBinding = imports[i];
+		for (ImportBinding importBinding : imports) {
 			String importName = new String(CharOperation.concatWith(importBinding.compoundName, '.'));
 
 			// XXX wrong behavior for java.util.Map.*
@@ -194,13 +193,13 @@ public class EclipseScope implements IScope {
 		}
 
 		TypeBinding[] topTypes = cuScope.topLevelTypes;
-		for (int i = 0; i < topTypes.length; i++) {
-			importedNamesList.add(world.fromBinding(topTypes[i]).getName());
+		for (TypeBinding topType : topTypes) {
+			importedNamesList.add(world.fromBinding(topType).getName());
 		}
 
-		importedNames = importedNamesList.toArray(new String[importedNamesList.size()]);
+		importedNames = importedNamesList.toArray(new String[0]);
 
-		importedPrefixes = importedPrefixesList.toArray(new String[importedPrefixesList.size()]);
+		importedPrefixes = importedPrefixesList.toArray(new String[0]);
 	}
 
 	private void addClassAndParentsToPrefixes(ReferenceBinding binding, List<String> importedPrefixesList) {
@@ -211,8 +210,8 @@ public class EclipseScope implements IScope {
 		addClassAndParentsToPrefixes(binding.superclass(), importedPrefixesList);
 		ReferenceBinding[] superinterfaces = binding.superInterfaces();
 		if (superinterfaces != null) {
-			for (int i = 0; i < superinterfaces.length; i++) {
-				addClassAndParentsToPrefixes(superinterfaces[i], importedPrefixesList);
+			for (ReferenceBinding superinterface : superinterfaces) {
+				addClassAndParentsToPrefixes(superinterface, importedPrefixesList);
 			}
 		}
 	}
@@ -233,9 +232,9 @@ public class EclipseScope implements IScope {
 	// XXX add good errors when would bind to extra parameters
 	@Override
 	public FormalBinding lookupFormal(String name) {
-		for (int i = 0, len = bindings.length; i < len; i++) {
-			if (bindings[i].getName().equals(name))
-				return bindings[i];
+		for (FormalBinding binding : bindings) {
+			if (binding.getName().equals(name))
+				return binding;
 		}
 		return null;
 	}

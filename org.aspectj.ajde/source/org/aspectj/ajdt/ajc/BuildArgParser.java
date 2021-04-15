@@ -1,13 +1,13 @@
 /* *******************************************************************
  * Copyright (c) 2002 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *     PARC     initial implementation
  * ******************************************************************/
 
 package org.aspectj.ajdt.ajc;
@@ -19,10 +19,8 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
 import java.util.StringTokenizer;
 
 import org.aspectj.ajdt.internal.compiler.lookup.EclipseSourceLocation;
@@ -51,17 +49,6 @@ import org.aspectj.weaver.WeaverMessages;
 
 @SuppressWarnings("unchecked")
 public class BuildArgParser extends Main {
-
-	private static final String BUNDLE_NAME = "org.aspectj.ajdt.ajc.messages";
-	private static boolean LOADED_BUNDLE = false;
-
-	static {
-		Main.bundleName = BUNDLE_NAME;
-		ResourceBundleFactory.getBundle(Locale.getDefault());
-		if (!LOADED_BUNDLE) {
-			LOADED_BUNDLE = true;
-		}
-	}
 
 	/** to initialize super's PrintWriter but refer to underlying StringWriter */
 	private static class StringPrintWriter extends PrintWriter {
@@ -152,10 +139,9 @@ public class BuildArgParser extends Main {
 
 			boolean incrementalMode = buildConfig.isIncrementalMode() || buildConfig.isIncrementalFileMode();
 
-			List<File> xmlfileList = new ArrayList<File>();
-			xmlfileList.addAll(parser.getXmlFiles());
+			List<File> xmlfileList = new ArrayList<>(parser.getXmlFiles());
 
-			List<File> fileList = new ArrayList<File>();
+			List<File> fileList = new ArrayList<>();
 			List<File> files = parser.getFiles();
 			if (!LangUtil.isEmpty(files)) {
 				if (incrementalMode) {
@@ -165,7 +151,7 @@ public class BuildArgParser extends Main {
 				}
 			}
 
-			List<String> javaArgList = new ArrayList<String>();
+			List<String> javaArgList = new ArrayList<>();
 			// disable all special eclipse warnings by default - why???
 			// ??? might want to instead override getDefaultOptions()
 			javaArgList.add("-warn:none");
@@ -177,7 +163,7 @@ public class BuildArgParser extends Main {
 //			javaArgList.add("-bootclasspath");
 //			javaArgList.add(parser.bootclasspath == null ? System.getProperty("user.dir") : parser.bootclasspath);
 			javaArgList.addAll(parser.getUnparsedArgs());
-			super.configure(javaArgList.toArray(new String[javaArgList.size()]));
+			super.configure(javaArgList.toArray(new String[0]));
 
 			if (parser.getModuleInfoArgument() != null) {
 				IModule moduleDesc = super.getModuleDesc(parser.getModuleInfoArgument());
@@ -190,8 +176,8 @@ public class BuildArgParser extends Main {
 			}
 
 			if (buildConfig.getSourceRoots() != null) {
-				for (Iterator i = buildConfig.getSourceRoots().iterator(); i.hasNext();) {
-					fileList.addAll(collectSourceRootFiles((File) i.next()));
+				for (File file : buildConfig.getSourceRoots()) {
+					fileList.addAll(collectSourceRootFiles(file));
 				}
 			}
 
@@ -280,7 +266,7 @@ public class BuildArgParser extends Main {
 	}
 
 	private ArrayList<String> toArrayList(java.util.List<File> files) {
-		ArrayList<String> arrayList = new ArrayList<String>();
+		ArrayList<String> arrayList = new ArrayList<>();
 		for (File file: files) {
 			arrayList.add(file.getAbsolutePath());
 		}
@@ -289,11 +275,15 @@ public class BuildArgParser extends Main {
 
 	@Override
 	public void printVersion() {
-		final String version = bind("misc.version", //$NON-NLS-1$
-				new String[] { bind("compiler.name"), //$NON-NLS-1$
-						Version.getText() + " - Built: " + Version.getTimeText(), bind("compiler.version"), //$NON-NLS-1$
+		final String version = bind(
+			"misc.version", //$NON-NLS-1$
+				new String[] {
+					bind("compiler.name"), //$NON-NLS-1$
+					Version.getText() + " - Built: " + Version.getTimeText(),
+					bind("compiler.version"), //$NON-NLS-1$
 						bind("compiler.copyright") //$NON-NLS-1$
-				});
+				}
+		);
 		System.out.println(version);
 	}
 
@@ -324,18 +314,12 @@ public class BuildArgParser extends Main {
 		super.initializeAnnotationProcessorManager();
 	}
 
-	@Override
-	public void printUsage() {
-		System.out.println(getUsage());
-		System.out.flush();
-	}
-
 	/**
 	 * Get messages not dumped to handler or any PrintWriter.
 	 *
 	 * @param flush if true, empty errors
 	 * @return null if none, String otherwise
-	 * @see BuildArgParser()
+	 * @see #BuildArgParser(IMessageHandler)
 	 */
 	public String getOtherMessages(boolean flush) {
 		if (null == errorSink) {
@@ -363,10 +347,10 @@ public class BuildArgParser extends Main {
 	}
 
 	public List<String> getBootclasspath(AjcConfigParser parser) {
-		List<String> ret = new ArrayList<String>();
+		List<String> ret = new ArrayList<>();
 
 		if (parser.bootclasspath == null) {
-			if (LangUtil.is19VMOrGreater()) {
+			if (LangUtil.is9VMOrGreater()) {
 				addClasspath(LangUtil.getJrtFsFilePath(),ret);
 			} else {
 				addClasspath(System.getProperty("sun.boot.class.path", ""), ret);
@@ -376,15 +360,15 @@ public class BuildArgParser extends Main {
 		}
 		return ret;
 	}
-	
+
 	public List<String> getModulepath(AjcConfigParser parser) {
-		List<String> ret = new ArrayList<String>();
+		List<String> ret = new ArrayList<>();
 		addClasspath(parser.modulepath, ret);
 		return ret;
 	}
 
 	public List<String> getModulesourcepath(AjcConfigParser parser) {
-		List<String> ret = new ArrayList<String>();
+		List<String> ret = new ArrayList<>();
 		addClasspath(parser.modulesourcepath, ret);
 		return ret;
 	}
@@ -393,7 +377,7 @@ public class BuildArgParser extends Main {
 	public ArrayList<FileSystem.Classpath> handleClasspath(ArrayList<String> classpaths, String customEncoding) {
 		return super.handleClasspath(classpaths, customEncoding);
 	}
-	
+
 	/**
 	 * If the classpath is not set, we use the environment's java.class.path, but remove the aspectjtools.jar entry from that list
 	 * in order to prevent wierd bootstrap issues (refer to bug#39959).
@@ -416,8 +400,8 @@ public class BuildArgParser extends Main {
 		if (parser.classpath == null) {
 			addClasspath(System.getProperty("java.class.path", ""), ret);
 			List fixedList = new ArrayList();
-			for (Iterator it = ret.iterator(); it.hasNext();) {
-				String entry = (String) it.next();
+			for (Object o : ret) {
+				String entry = (String) o;
 				if (!entry.endsWith("aspectjtools.jar")) {
 					fixedList.add(entry);
 				}
@@ -438,8 +422,8 @@ public class BuildArgParser extends Main {
 			File dirFile = new File(tokenizer.nextToken());
 			if (dirFile.canRead() && dirFile.isDirectory()) {
 				File[] files = dirFile.listFiles(FileUtil.ZIP_FILTER);
-				for (int i = 0; i < files.length; i++) {
-					classpathCollector.add(files[i].getAbsolutePath());
+				for (File file : files) {
+					classpathCollector.add(file.getAbsolutePath());
 				}
 			} else {
 				// XXX alert on invalid -extdirs entries
@@ -476,7 +460,7 @@ public class BuildArgParser extends Main {
 		public List getUnparsedArgs() {
 			return unparsedArgs;
 		}
-		
+
 		public String getModuleInfoArgument() {
 			return this.moduleInfoArgument;
 		}
@@ -565,7 +549,7 @@ public class BuildArgParser extends Main {
 				buildConfig.setMakeReflectable(true);
 			} else if (arg.equals("-sourceroots")) {
 				if (args.size() > nextArgIndex) {
-					List<File> sourceRoots = new ArrayList<File>();
+					List<File> sourceRoots = new ArrayList<>();
 					StringTokenizer st = new StringTokenizer(args.get(nextArgIndex).getValue(),
 							File.pathSeparator);
 					while (st.hasMoreTokens()) {
@@ -904,7 +888,7 @@ public class BuildArgParser extends Main {
 			unparsedArgs.add(nextArg.getValue());
 		}
 
-		private int indexOf(LinkedList<Arg> args, String arg) {
+		private int indexOf(Iterable<Arg> args, String arg) {
 			int index = 0;
 			for (Arg argument : args) {
 				if (arg.equals(argument.getValue())) {
@@ -916,12 +900,12 @@ public class BuildArgParser extends Main {
 		}
 
 	}
-	
+
 	@Override
 	public boolean checkVMVersion(long minimalSupportedVersion) {
 		return super.checkVMVersion(minimalSupportedVersion);
 	}
-	
+
 	@Override
 	public void initRootModules(LookupEnvironment environment, FileSystem fileSystem) {
 		super.initRootModules(environment, fileSystem);

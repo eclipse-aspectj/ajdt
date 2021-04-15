@@ -347,7 +347,7 @@ public abstract class InterTypeDeclaration extends AjMethodDeclaration {
 
 	/** 
 	 * Create the list of aliases based on what was supplied as parameters for the ontype.
-	 * For example, if the declaration is 'List<N>  SomeType<N>.foo' then the alias list
+	 * For example, if the declaration is 'List&lt;N&gt;  SomeType&lt;N&gt;.foo' then the alias list
 	 * will simply contain 'N' and 'N' will mean 'the first type variable declared for
 	 * type SomeType'
 	 */
@@ -358,8 +358,8 @@ public abstract class InterTypeDeclaration extends AjMethodDeclaration {
 				ParameterizedSingleTypeReference paramRef = (ParameterizedSingleTypeReference) onType;
 				TypeReference[] rb = paramRef.typeArguments;
 				typeVariableAliases = new ArrayList();
-				for (int i = 0; i < rb.length; i++) {
-					typeVariableAliases.add(CharOperation.toString(rb[i].getTypeName()));
+				for (TypeReference typeReference : rb) {
+					typeVariableAliases.add(CharOperation.toString(typeReference.getTypeName()));
 				}
 			} else if (onType instanceof ParameterizedQualifiedTypeReference) {
 				ParameterizedQualifiedTypeReference paramRef = (ParameterizedQualifiedTypeReference) onType;

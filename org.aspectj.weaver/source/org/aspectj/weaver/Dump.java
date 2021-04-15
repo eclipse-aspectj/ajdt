@@ -1,12 +1,12 @@
 /* *******************************************************************
  * Copyright (c) 2004,2010 Contributors
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
  *     Matthew Webster, IBM
  * ******************************************************************/
 package org.aspectj.weaver;
@@ -17,7 +17,6 @@ import java.io.PrintStream;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 
@@ -372,8 +371,7 @@ public class Dump {
 	private void dumpCompilerMessages(IMessageHolder messageHolder) {
 		println("---- Compiler Messages ---");
 		if (messageHolder != null) {
-			for (Iterator<IMessage> i = messageHolder.getUnmodifiableListView().iterator(); i.hasNext();) {
-				IMessage message = i.next();
+			for (IMessage message : messageHolder.getUnmodifiableListView()) {
 				println(message.toString());
 			}
 		} else {
@@ -419,15 +417,14 @@ public class Dump {
 			return;
 		}
 
-		for (int i = 0; i < array.length; i++) {
-			print.println(array[i]);
+		for (Object o : array) {
+			print.println(o);
 		}
 	}
 
 	private void println(Properties props) {
-		Iterator iter = props.keySet().iterator();
-		while (iter.hasNext()) {
-			String key = (String) iter.next();
+		for (Object o : props.keySet()) {
+			String key = (String) o;
 			String value = props.getProperty(key);
 			print.println(key + "=" + value);
 		}
@@ -454,8 +451,7 @@ public class Dump {
 		if (list == null || list.isEmpty()) {
 			println(NULL_OR_EMPTY);
 		} else {
-			for (Iterator i = list.iterator(); i.hasNext();) {
-				Object o = i.next();
+			for (Object o : list) {
 				if (o instanceof Exception) {
 					println((Exception) o);
 				} else {
@@ -509,15 +505,15 @@ public class Dump {
 
 	public interface INode {
 
-		public void accept(IVisitor visior);
+		void accept(IVisitor visior);
 
 	}
 
 	public interface IVisitor {
 
-		public void visitObject(Object s);
+		void visitObject(Object s);
 
-		public void visitList(List list);
+		void visitList(List list);
 	}
 
 }

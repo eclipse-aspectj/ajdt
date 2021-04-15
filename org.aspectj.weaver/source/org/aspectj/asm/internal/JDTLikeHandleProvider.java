@@ -11,7 +11,6 @@
 package org.aspectj.asm.internal;
 
 import java.io.File;
-import java.util.Iterator;
 import java.util.List;
 
 import org.aspectj.asm.AsmManager;
@@ -22,9 +21,9 @@ import org.aspectj.bridge.ISourceLocation;
 /**
  * Creates JDT-like handles, for example
  * 
- * method with string argument: <tjp{Demo.java[Demo~main~\[QString; method with generic argument:
- * <pkg{MyClass.java[MyClass~myMethod~QList\<QString;>; an aspect: <pkg*A1.aj}A1 advice with Integer arg:
- * <pkg*A8.aj}A8&afterReturning&QInteger; method call: <pkg*A10.aj[C~m1?method-call(void pkg.C.m2())
+ * method with string argument: &lt;tjp{Demo.java[Demo~main~\[QString; method with generic argument:
+ * &lt;pkg{MyClass.java[MyClass~myMethod~QList\&lt;QString;&gt;; an aspect: &lt;pkg*A1.aj}A1 advice with Integer arg:
+ * &lt;pkg*A8.aj}A8&amp;afterReturning&amp;QInteger; method call: &lt;pkg*A10.aj[C~m1?method-call(void pkg.C.m2())
  * 
  */
 public class JDTLikeHandleProvider implements IElementHandleProvider {
@@ -73,7 +72,7 @@ public class JDTLikeHandleProvider implements IElementHandleProvider {
 			if (folder.endsWith("/")) {
 				folder = folder.substring(0, folder.length() - 1);
 			}
-			if (folder.indexOf("/") != -1) {
+			if (folder.contains("/")) {
 				folder = folder.replace("/", "\\/");
 			}
 			sb.append(folder);
@@ -136,8 +135,7 @@ public class JDTLikeHandleProvider implements IElementHandleProvider {
 		List<char[]> parameterTypes = ipe.getParameterSignatures();
 		StringBuffer sb = new StringBuffer();
 		if (sourceRefs != null) {
-			for (int i = 0; i < sourceRefs.size(); i++) {
-				String sourceRef = sourceRefs.get(i);
+			for (String sourceRef : sourceRefs) {
 				sb.append(HandleProviderDelimiter.getDelimiter(ipe));
 				sb.append(sourceRef);
 			}
@@ -164,8 +162,7 @@ public class JDTLikeHandleProvider implements IElementHandleProvider {
 		if (ipe.getKind().isInterTypeMember()) {
 			int count = 1;
 			List<IProgramElement> kids = ipe.getParent().getChildren();
-			for (Iterator<IProgramElement> iterator = kids.iterator(); iterator.hasNext();) {
-				IProgramElement object = iterator.next();
+			for (IProgramElement object : kids) {
 				if (object.equals(ipe)) {
 					break;
 				}
@@ -174,7 +171,7 @@ public class JDTLikeHandleProvider implements IElementHandleProvider {
 						String existingHandle = object.getHandleIdentifier();
 						int suffixPosition = existingHandle.indexOf('!');
 						if (suffixPosition != -1) {
-							count = new Integer(existingHandle.substring(suffixPosition + 1)).intValue() + 1;
+							count = Integer.parseInt(existingHandle.substring(suffixPosition + 1)) + 1;
 						} else {
 							if (count == 1) {
 								count = 2;
@@ -184,13 +181,13 @@ public class JDTLikeHandleProvider implements IElementHandleProvider {
 				}
 			}
 			if (count > 1) {
-				return CharOperation.concat(countDelim, new Integer(count).toString().toCharArray());
+				return CharOperation.concat(countDelim, Integer.toString(count).toCharArray());
 			}
 		} else if (ipe.getKind().isDeclare()) {
 			// // look at peer declares
 			int count = computeCountBasedOnPeers(ipe);
 			if (count > 1) {
-				return CharOperation.concat(countDelim, new Integer(count).toString().toCharArray());
+				return CharOperation.concat(countDelim, Integer.toString(count).toCharArray());
 			}
 		} else if (ipe.getKind().equals(IProgramElement.Kind.ADVICE)) {
 			// Look at any peer advice
@@ -213,7 +210,7 @@ public class JDTLikeHandleProvider implements IElementHandleProvider {
 						// this code needs a speed overhaul... and some proper tests
 						// Two static parts because one may be enclosing jpsp (269522)
 						if (sig1 != null) {
-							if (sig1.indexOf("Lorg/aspectj/lang") != -1) {
+							if (sig1.contains("Lorg/aspectj/lang")) {
 								if (sig1.endsWith("Lorg/aspectj/lang/JoinPoint$StaticPart;")) {
 									sig1 = sig1.substring(0, sig1.lastIndexOf("Lorg/aspectj/lang/JoinPoint$StaticPart;"));
 								}
@@ -230,7 +227,7 @@ public class JDTLikeHandleProvider implements IElementHandleProvider {
 							String existingHandle = object.getHandleIdentifier();
 							int suffixPosition = existingHandle.indexOf('!');
 							if (suffixPosition != -1) {
-								count = new Integer(existingHandle.substring(suffixPosition + 1)).intValue() + 1;
+								count = Integer.valueOf(existingHandle.substring(suffixPosition + 1)) + 1;
 							} else {
 								if (count == 1) {
 									count = 2;
@@ -241,7 +238,7 @@ public class JDTLikeHandleProvider implements IElementHandleProvider {
 				}
 			}
 			if (count > 1) {
-				return CharOperation.concat(countDelim, new Integer(count).toString().toCharArray());
+				return CharOperation.concat(countDelim, Integer.toString(count).toCharArray());
 			}
 		} else if (ipe.getKind().equals(IProgramElement.Kind.INITIALIZER)) {
 			// return String.valueOf(++initializerCounter).toCharArray();
@@ -265,7 +262,7 @@ public class JDTLikeHandleProvider implements IElementHandleProvider {
 						// this code needs a speed overhaul... and some proper tests
 						// Two static parts because one may be enclosing jpsp (269522)
 						if (sig1 != null) {
-							if (sig1.indexOf("Lorg/aspectj/lang") != -1) {
+							if (sig1.contains("Lorg/aspectj/lang")) {
 								if (sig1.endsWith("Lorg/aspectj/lang/JoinPoint$StaticPart;")) {
 									sig1 = sig1.substring(0, sig1.lastIndexOf("Lorg/aspectj/lang/JoinPoint$StaticPart;"));
 								}
@@ -282,7 +279,7 @@ public class JDTLikeHandleProvider implements IElementHandleProvider {
 							String existingHandle = object.getHandleIdentifier();
 							int suffixPosition = existingHandle.indexOf('!');
 							if (suffixPosition != -1) {
-								count = new Integer(existingHandle.substring(suffixPosition + 1)).intValue() + 1;
+								count = Integer.valueOf(existingHandle.substring(suffixPosition + 1)) + 1;
 							} else {
 								if (count == 1) {
 									count = 2;
@@ -293,7 +290,7 @@ public class JDTLikeHandleProvider implements IElementHandleProvider {
 				}
 			}
 			// if (count > 1) {
-			return new Integer(count).toString().toCharArray();
+			return Integer.toString(count).toCharArray();
 			// return CharOperation.concat(countDelim, new Integer(count).toString().toCharArray());
 			// }
 		} else if (ipe.getKind().equals(IProgramElement.Kind.CODE)) {
@@ -317,7 +314,7 @@ public class JDTLikeHandleProvider implements IElementHandleProvider {
 							int suffixPosition = existingHandle.lastIndexOf('!');
 							int lastSquareBracket = existingHandle.lastIndexOf('['); // type delimiter
 							if (suffixPosition != -1 && lastSquareBracket < suffixPosition) { // pr260384
-								count = new Integer(existingHandle.substring(suffixPosition + 1)).intValue() + 1;
+								count = Integer.valueOf(existingHandle.substring(suffixPosition + 1)) + 1;
 							} else {
 								if (count == 1) {
 									count = 2;
@@ -337,7 +334,7 @@ public class JDTLikeHandleProvider implements IElementHandleProvider {
 							int suffixPosition = existingHandle.lastIndexOf('!');
 							int lastSquareBracket = existingHandle.lastIndexOf('['); // type delimiter
 							if (suffixPosition != -1 && lastSquareBracket < suffixPosition) { // pr260384
-								count = new Integer(existingHandle.substring(suffixPosition + 1)).intValue() + 1;
+								count = Integer.valueOf(existingHandle.substring(suffixPosition + 1)) + 1;
 							} else {
 								if (count == 1) {
 									count = 2;
@@ -348,7 +345,7 @@ public class JDTLikeHandleProvider implements IElementHandleProvider {
 				}
 			}
 			if (count > 1) {
-				return CharOperation.concat(countDelim, new Integer(count).toString().toCharArray());
+				return CharOperation.concat(countDelim, Integer.toString(count).toCharArray());
 			}
 		}
 		return empty;
@@ -360,7 +357,7 @@ public class JDTLikeHandleProvider implements IElementHandleProvider {
 			ipeSig = ipeSig.substring(0, idx);
 		}
 		if (ipeSig != null) {
-			if (ipeSig.indexOf("Lorg/aspectj/lang") != -1) {
+			if (ipeSig.contains("Lorg/aspectj/lang")) {
 				if (ipeSig.endsWith("Lorg/aspectj/lang/JoinPoint$StaticPart;")) {
 					ipeSig = ipeSig.substring(0, ipeSig.lastIndexOf("Lorg/aspectj/lang/JoinPoint$StaticPart;"));
 				}
@@ -386,7 +383,7 @@ public class JDTLikeHandleProvider implements IElementHandleProvider {
 					String existingHandle = object.getHandleIdentifier();
 					int suffixPosition = existingHandle.indexOf('!');
 					if (suffixPosition != -1) {
-						count = new Integer(existingHandle.substring(suffixPosition + 1)).intValue() + 1;
+						count = Integer.valueOf(existingHandle.substring(suffixPosition + 1)) + 1;
 					} else {
 						if (count == 1) {
 							count = 2;

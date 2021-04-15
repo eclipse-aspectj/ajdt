@@ -223,7 +223,7 @@ public class ProgramElement implements IProgramElement {
 	}
 
 	private static List<IProgramElement.Modifiers> genModifiers(int modifiers) {
-		List<IProgramElement.Modifiers> modifiersList = new ArrayList<IProgramElement.Modifiers>();
+		List<IProgramElement.Modifiers> modifiersList = new ArrayList<>();
 		if ((modifiers & AccStatic) != 0) {
 			modifiersList.add(IProgramElement.Modifiers.STATIC);
 		}
@@ -364,7 +364,7 @@ public class ProgramElement implements IProgramElement {
 		if (b == null) {
 			return false;
 		}
-		return b.booleanValue();
+		return b;
 	}
 
 	public String[] getRemovedAnnotationTypes() {
@@ -432,7 +432,7 @@ public class ProgramElement implements IProgramElement {
 			// check if someone is calling us with something that is a signature already
 			assert name.charAt(0) != '[';
 
-			if (name.indexOf("<") == -1) {
+			if (!name.contains("<")) {
 				// not parameterized
 				return new StringBuilder("L").append(name.replace('.', '/')).append(';').toString();
 			} else {
@@ -497,7 +497,7 @@ public class ProgramElement implements IProgramElement {
 	}
 
 	/**
-	 * Trim down fully qualified types to their short form (e.g. a.b.c.D<e.f.G> becomes D<G>)
+	 * Trim down fully qualified types to their short form (e.g., a.b.c.D&lt;e.f.G&gt; becomes D&lt;G&gt;)
 	 */
 	public static String trim(String fqname) {
 		int i = fqname.indexOf("<");
@@ -544,14 +544,14 @@ public class ProgramElement implements IProgramElement {
 		if (children == null) {
 			return;
 		}
-		for (Iterator<IProgramElement> it = children.iterator(); it.hasNext();) {
-			(it.next()).setParent(this);
+		for (IProgramElement child : children) {
+			child.setParent(this);
 		}
 	}
 
 	public void addChild(IProgramElement child) {
 		if (children == null || children == Collections.EMPTY_LIST) {
-			children = new ArrayList<IProgramElement>();
+			children = new ArrayList<>();
 		}
 		children.add(child);
 		child.setParent(this);
@@ -559,7 +559,7 @@ public class ProgramElement implements IProgramElement {
 
 	public void addChild(int position, IProgramElement child) {
 		if (children == null || children == Collections.EMPTY_LIST) {
-			children = new ArrayList<IProgramElement>();
+			children = new ArrayList<>();
 		}
 		children.add(position, child);
 		child.setParent(this);
@@ -655,7 +655,7 @@ public class ProgramElement implements IProgramElement {
 	}
 
 	/**
-	 * TODO: move the "parent != null"==>injar heuristic to more explicit
+	 * TODO: move the "parent != null"&rarr;injar heuristic to more explicit
 	 */
 	public String toLinkLabelString() {
 		return toLinkLabelString(true);
@@ -750,9 +750,8 @@ public class ProgramElement implements IProgramElement {
 		if (l == null || l.isEmpty()) {
 			return Collections.emptyList();
 		}
-		List<char[]> params = new ArrayList<char[]>();
-		for (Iterator<char[]> iter = l.iterator(); iter.hasNext();) {
-			char[] param = iter.next();
+		List<char[]> params = new ArrayList<>();
+		for (char[] param : l) {
 			params.add(NameConvertor.convertFromSignature(param));
 		}
 		return params;
@@ -806,7 +805,7 @@ public class ProgramElement implements IProgramElement {
 
 	private void fixMap() {
 		if (kvpairs == Collections.EMPTY_MAP) {
-			kvpairs = new HashMap<String, Object>();
+			kvpairs = new HashMap<>();
 		}
 	}
 

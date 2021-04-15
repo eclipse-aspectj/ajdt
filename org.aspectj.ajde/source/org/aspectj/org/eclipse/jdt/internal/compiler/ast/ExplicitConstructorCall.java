@@ -124,7 +124,7 @@ public class ExplicitConstructorCall extends Statement implements Invocation {
 				if ((this.bits & ASTNode.Unchecked) != 0 && this.genericTypeArguments == null) {
 					// https://bugs.eclipse.org/bugs/show_bug.cgi?id=277643, align with javac on JLS 15.12.2.6
 					thrownExceptions = currentScope.environment().convertToRawTypes(this.binding.thrownExceptions, true, true);
-				}				
+				}
 				// check exceptions
 				flowContext.checkExceptionHandlers(
 					thrownExceptions,
@@ -260,7 +260,7 @@ public class ExplicitConstructorCall extends Statement implements Invocation {
 			return;
 		}
 		// End AspectJ Extension
-		
+
 		if ((flowInfo.tagBits & FlowInfo.UNREACHABLE_OR_DEAD) == 0)	{
 			// if constructor from parameterized type got found, use the original constructor at codegen time
 			MethodBinding codegenBinding = this.binding.original();
@@ -320,13 +320,19 @@ public class ExplicitConstructorCall extends Statement implements Invocation {
 		MethodScope methodScope = scope.methodScope();
 		try {
 			AbstractMethodDeclaration methodDeclaration = methodScope.referenceMethod();
+			if (methodDeclaration != null && methodDeclaration.binding != null
+					&& (methodDeclaration.binding.tagBits & TagBits.IsCanonicalConstructor) != 0) {
+				if (!checkAndFlagExplicitConstructorCallInCanonicalConstructor(methodDeclaration, scope))
+					return;
+			}
 			if (methodDeclaration == null
 					|| !methodDeclaration.isConstructor()
 					|| ((ConstructorDeclaration) methodDeclaration).constructorCall != this) {
-						
+
 				//XXX Horrible AspectJ-specific hack
-				if (methodDeclaration== null || !CharOperation.prefixEquals("ajc$postInterConstructor".toCharArray(), methodDeclaration.selector)) {// AspectJ Extension				
-				scope.problemReporter().invalidExplicitConstructorCall(this);
+				if (methodDeclaration== null || !CharOperation.prefixEquals("ajc$postInterConstructor".toCharArray(), methodDeclaration.selector)) {// AspectJ Extension
+				if (!(methodDeclaration instanceof CompactConstructorDeclaration)) // already flagged for CCD
+						scope.problemReporter().invalidExplicitConstructorCall(this);
 				// fault-tolerance
 				if (this.qualification != null) {
 					this.qualification.resolveType(scope);
@@ -420,7 +426,7 @@ public class ExplicitConstructorCall extends Statement implements Invocation {
 					if ((argumentTypes[i] = argument.resolveType(scope)) == null) {
 						argHasError = true;
 					}
-					}
+				}
 				if (argHasError) {
 					if (receiverType == null) {
 						return;
@@ -490,6 +496,21 @@ public class ExplicitConstructorCall extends Statement implements Invocation {
 		}
 	}
 
+	private boolean checkAndFlagExplicitConstructorCallInCanonicalConstructor(AbstractMethodDeclaration methodDecl, BlockScope scope) {
+
+		if (methodDecl.binding == null || methodDecl.binding.declaringClass == null
+				|| !methodDecl.binding.declaringClass.isRecord())
+			return true;
+		boolean isInsideCCD = methodDecl instanceof CompactConstructorDeclaration;
+		if (this.accessMode != ExplicitConstructorCall.ImplicitSuper) {
+			if (isInsideCCD)
+				scope.problemReporter().recordCompactConstructorHasExplicitConstructorCall(this);
+			else
+				scope.problemReporter().recordCanonicalConstructorHasExplicitConstructorCall(this);
+			return false;
+		}
+		return true;
+	}
 	@Override
 	public void setActualReceiverType(ReferenceBinding receiverType) {
 		// ignored
@@ -504,7 +525,7 @@ public class ExplicitConstructorCall extends Statement implements Invocation {
 	public void setFieldIndex(int depth) {
 		// ignore for here
 	}
-	
+
 	@Override
 	public void traverse(ASTVisitor visitor, BlockScope scope) {
 		if (visitor.visit(this, scope)) {
@@ -534,17 +555,17 @@ public class ExplicitConstructorCall extends Statement implements Invocation {
 	public void registerInferenceContext(ParameterizedGenericMethodBinding method, InferenceContext18 infCtx18) {
 		// Nothing to do.
 	}
-	
+
 	@Override
 	public void registerResult(TypeBinding targetType, MethodBinding method) {
 		// Nothing to do.
 	}
-	
+
 	@Override
 	public InferenceContext18 getInferenceContext(ParameterizedMethodBinding method) {
-			return null;
+		return null;
 	}
-	
+
 	@Override
 	public void cleanUpInferenceContexts() {
 		// Nothing to do.

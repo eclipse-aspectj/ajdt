@@ -21,7 +21,13 @@ package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.*;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BlockScope;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ClassScope;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ProblemReasons;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ProblemReferenceBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Scope;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 
 public class QualifiedSuperReference extends QualifiedThisReference {
 
@@ -91,7 +97,7 @@ int findCompatibleEnclosing(ReferenceBinding enclosingType, TypeBinding type, Bl
 				compoundName = supers[i].compoundName;
 				if (closestMatch == null)
 					closestMatch = supers[i];
-				// keep looking to ensure we always find the referenced type (even if illegal) 
+				// keep looking to ensure we always find the referenced type (even if illegal)
 			}
 		}
 		// AspectJ
@@ -101,11 +107,11 @@ int findCompatibleEnclosing(ReferenceBinding enclosingType, TypeBinding type, Bl
 			// we use the problem's compoundName to report the type being illegally bypassed,
 			// whereas the closestMatch denotes the resolved (though illegal) target type
 			// for downstream resolving.
-			this.resolvedType =  new ProblemReferenceBinding(compoundName, 
+			this.resolvedType =  new ProblemReferenceBinding(compoundName,
 					closestMatch, isJava8 ? ProblemReasons.AttemptToBypassDirectSuper : ProblemReasons.InterfaceMethodInvocationNotBelow18);
 		}
 		// AspectJ: Conditional. Remove 'return 0' and Interface.super refs fail, leave it in and ITD super refs fail
-		if (this.currentCompatibleType != null) 
+		if (this.currentCompatibleType != null)
 		// End AspectJ extension
 		return 0; // never an outer enclosing type
 	}

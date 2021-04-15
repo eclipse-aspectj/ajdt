@@ -12,7 +12,6 @@
 package org.aspectj.weaver.loadtime;
 
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 
 import org.aspectj.bridge.IMessage;
@@ -24,7 +23,7 @@ import org.aspectj.util.LangUtil;
  * A class that hanldes LTW options. Note: AV - I choosed to not reuse AjCompilerOptions and alike since those implies too many
  * dependancies on jdt and ajdt modules.
  *
- * @author <a href="mailto:alex AT gnilux DOT com">Alexandre Vasseur</a>
+ * @author Alexandre Vasseur (alex AT gnilux DOT com)
  */
 public class Options {
 
@@ -60,14 +59,13 @@ public class Options {
 		Collections.reverse(flags);
 
 		// do a first round on the message handler since it will report the options themselves
-		for (Iterator<String> iterator = flags.iterator(); iterator.hasNext();) {
-			String arg = iterator.next();
+		for (String arg : flags) {
 			if (arg.startsWith(OPTIONVALUED_messageHandler)) {
 				if (arg.length() > OPTIONVALUED_messageHandler.length()) {
 					String handlerClass = arg.substring(OPTIONVALUED_messageHandler.length()).trim();
 					try {
 						Class<?> handler = Class.forName(handlerClass, false, laoder);
-						weaverOption.messageHandler = ((IMessageHandler) handler.newInstance());
+						weaverOption.messageHandler = ((IMessageHandler) handler.getDeclaredConstructor().newInstance());
 					} catch (Throwable t) {
 						weaverOption.messageHandler.handleMessage(new Message("Cannot instantiate message handler " + handlerClass,
 								IMessage.ERROR, t, null));
@@ -77,8 +75,7 @@ public class Options {
 		}
 
 		// configure the other options
-		for (Iterator<String> iterator = flags.iterator(); iterator.hasNext();) {
-			String arg = iterator.next();
+		for (String arg : flags) {
 			if (arg.equals(OPTION_15)) {
 				weaverOption.java5 = true;
 			} else if (arg.equalsIgnoreCase(OPTION_lazyTjp)) {

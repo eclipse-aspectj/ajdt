@@ -42,11 +42,13 @@ import org.aspectj.weaver.UnresolvedType;
 /**
  * Looks for all access to method or field that are not public within the body of the around advices and replace the invocations to
  * a wrapper call so that the around advice can further be inlined.
- * <p/>
+ * <p>
  * This munger is used for @AJ aspects for which inlining wrapper is not done at compile time.
- * <p/>
+ * </p>
+ * <p>
  * Specific state and logic is kept in the munger ala ITD so that call/get/set pointcuts can still be matched on the wrapped member
  * thanks to the EffectiveSignature attribute.
+ * </p>
  *
  * @author Alexandre Vasseur
  * @author Andy Clement
@@ -72,8 +74,8 @@ public class BcelAccessForInlineMunger extends BcelTypeMunger {
 	@Override
 	public boolean munge(BcelClassWeaver weaver) {
 		aspectGen = weaver.getLazyClassGen();
-		inlineAccessors = new HashMap<String, ResolvedMember>(0);
-		inlineAccessorMethodGens = new HashSet<LazyMethodGen>();
+		inlineAccessors = new HashMap<>(0);
+		inlineAccessorMethodGens = new HashSet<>();
 
 		// look for all @Around advices
 		for (LazyMethodGen methodGen : aspectGen.getMethodGens()) {
@@ -238,7 +240,7 @@ public class BcelAccessForInlineMunger extends BcelTypeMunger {
 			InstructionFactory factory = aspectGen.getFactory();
 			LazyMethodGen method = makeMethodGen(aspectGen, inlineAccessor);
 			method.makeSynthetic();
-			List<AjAttribute> methodAttributes = new ArrayList<AjAttribute>();
+			List<AjAttribute> methodAttributes = new ArrayList<>();
 			methodAttributes.add(new AjAttribute.AjSynthetic());
 			methodAttributes.add(new AjAttribute.EffectiveSignatureAttribute(resolvedMember, Shadow.MethodCall, false));
 			method.addAttribute(Utility.bcelAttribute(methodAttributes.get(0), aspectGen.getConstantPool()));
@@ -282,7 +284,7 @@ public class BcelAccessForInlineMunger extends BcelTypeMunger {
 			LazyMethodGen method = makeMethodGen(aspectGen, inlineAccessor);
 			// flag it synthetic, AjSynthetic
 			method.makeSynthetic();
-			List<AjAttribute> methodAttributes = new ArrayList<AjAttribute>();
+			List<AjAttribute> methodAttributes = new ArrayList<>();
 			methodAttributes.add(new AjAttribute.AjSynthetic());
 			methodAttributes.add(new AjAttribute.EffectiveSignatureAttribute(resolvedMember, Shadow.MethodCall, false));
 			method.addAttribute(Utility.bcelAttribute(methodAttributes.get(0), aspectGen.getConstantPool()));
@@ -326,7 +328,7 @@ public class BcelAccessForInlineMunger extends BcelTypeMunger {
 			LazyMethodGen method = makeMethodGen(aspectGen, inlineAccessor);
 			// flag it synthetic, AjSynthetic
 			method.makeSynthetic();
-			List<AjAttribute> methodAttributes = new ArrayList<AjAttribute>();
+			List<AjAttribute> methodAttributes = new ArrayList<>();
 			methodAttributes.add(new AjAttribute.AjSynthetic());
 			methodAttributes.add(new AjAttribute.EffectiveSignatureAttribute(resolvedMember, Shadow.FieldGet, false));
 			// flag the effective signature, so that we can deobfuscate the signature to apply method call pointcut
@@ -367,7 +369,7 @@ public class BcelAccessForInlineMunger extends BcelTypeMunger {
 			LazyMethodGen method = makeMethodGen(aspectGen, inlineAccessor);
 			// flag it synthetic, AjSynthetic
 			method.makeSynthetic();
-			List<AjAttribute> methodAttributes = new ArrayList<AjAttribute>();
+			List<AjAttribute> methodAttributes = new ArrayList<>();
 			methodAttributes.add(new AjAttribute.AjSynthetic());
 			methodAttributes.add(new AjAttribute.EffectiveSignatureAttribute(resolvedMember, Shadow.FieldSet, false));
 			method.addAttribute(Utility.bcelAttribute(methodAttributes.get(0), aspectGen.getConstantPool()));

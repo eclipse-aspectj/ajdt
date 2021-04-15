@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -28,13 +28,14 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryMethod;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryNestedType;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryType;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryTypeAnnotation;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.IRecordComponent;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.ITypeAnnotationWalker;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BinaryTypeBinding.ExternalAnnotationStatus;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
 
 /**
- * The skeleton of the class 'org.aspectj.org.eclipse.jdt.internal.eval.target.CodeSnippet'
+ * The skeleton of the class 'org.eclipse.jdt.internal.eval.target.CodeSnippet'
  * used at compile time. Note that the method run() is declared to
  * throw Throwable so that the user can write a code snipet that
  * throws checked exceptio without having to catch those.
@@ -226,6 +227,10 @@ public boolean isLocal() {
 	return false;
 }
 @Override
+public boolean isRecord() {
+	return false;
+}
+@Override
 public boolean isMember() {
 	return false;
 }
@@ -245,5 +250,9 @@ public char[] getModule() {
 @Override
 public ExternalAnnotationStatus getExternalAnnotationStatus() {
 	return ExternalAnnotationStatus.NOT_EEA_CONFIGURED;
+}
+@Override
+public IRecordComponent[] getRecordComponents() {
+	return null;
 }
 }

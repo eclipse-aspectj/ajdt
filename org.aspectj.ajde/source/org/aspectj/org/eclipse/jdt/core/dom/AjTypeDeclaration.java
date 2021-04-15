@@ -13,7 +13,6 @@ package org.aspectj.org.eclipse.jdt.core.dom;
 
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -173,15 +172,14 @@ public class AjTypeDeclaration extends TypeDeclaration {
 		List bd = bodyDeclarations();
 		// ajh02: 0 bodyDeclarations :-/
 		int pointcutCount = 0;
-		for (Iterator it = bd.listIterator(); it.hasNext(); ) {
-			if (it.next() instanceof PointcutDeclaration) {
+		for (Object o : bd) {
+			if (o instanceof PointcutDeclaration) {
 				pointcutCount++;
 			}
 		}
 		PointcutDeclaration[] pointcuts = new PointcutDeclaration[pointcutCount];
 		int next = 0;
-		for (Iterator it = bd.listIterator(); it.hasNext(); ) {
-			Object decl = it.next();
+		for (Object decl : bd) {
 			if (decl instanceof PointcutDeclaration) {
 				pointcuts[next++] = (PointcutDeclaration) decl;
 			}

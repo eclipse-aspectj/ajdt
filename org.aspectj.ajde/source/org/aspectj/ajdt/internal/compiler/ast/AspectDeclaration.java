@@ -14,7 +14,6 @@ package org.aspectj.ajdt.internal.compiler.ast;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -84,8 +83,8 @@ public class AspectDeclaration extends TypeDeclaration {
 	public ResolvedMember aspectOfMethod;
 	public ResolvedMember ptwGetWithinTypeNameMethod;
 	public ResolvedMember hasAspectMethod;
-	public Map<ResolvedMember, Binding> accessForInline = new LinkedHashMap<ResolvedMember, Binding>();
-	public Map<ResolvedMember, AccessForInlineVisitor.SuperAccessMethodPair> superAccessForInline = new HashMap<ResolvedMember, AccessForInlineVisitor.SuperAccessMethodPair>();
+	public Map<ResolvedMember, Binding> accessForInline = new LinkedHashMap<>();
+	public Map<ResolvedMember, AccessForInlineVisitor.SuperAccessMethodPair> superAccessForInline = new HashMap<>();
 	public boolean isPrivileged;
 	public EclipseSourceType concreteName;
 	public ReferenceType typeX;
@@ -317,9 +316,9 @@ public class AspectDeclaration extends TypeDeclaration {
 			}
 		}
 		if (memberTypes != null) {
-			for (int i = 0; i < memberTypes.length; i++) {
-				if (memberTypes[i] instanceof IntertypeMemberClassDeclaration) {
-					IntertypeMemberClassDeclaration itdMemberClassDeclaration = (IntertypeMemberClassDeclaration) memberTypes[i];
+			for (TypeDeclaration memberType : memberTypes) {
+				if (memberType instanceof IntertypeMemberClassDeclaration) {
+					IntertypeMemberClassDeclaration itdMemberClassDeclaration = (IntertypeMemberClassDeclaration) memberType;
 					AjAttribute attribute = itdMemberClassDeclaration.getAttribute();
 					if (attribute != null) {
 						classFile.extraAttributes.add(new EclipseAttributeAdapter(attribute));
@@ -340,8 +339,8 @@ public class AspectDeclaration extends TypeDeclaration {
 	 */
 	@SuppressWarnings("unchecked")
 	private void addVersionAttributeIfNecessary(ClassFile classFile) {
-		for (Iterator iter = classFile.extraAttributes.iterator(); iter.hasNext();) {
-			EclipseAttributeAdapter element = (EclipseAttributeAdapter) iter.next();
+		for (Object o : classFile.extraAttributes) {
+			EclipseAttributeAdapter element = (EclipseAttributeAdapter) o;
 			if (CharOperation.equals(element.getNameChars(), weaverVersionChars)) {
 				return;
 			}
@@ -352,12 +351,10 @@ public class AspectDeclaration extends TypeDeclaration {
 	private static char[] weaverVersionChars = "org.aspectj.weaver.WeaverVersion".toCharArray();
 
 	private void generateInlineAccessMembers(ClassFile classFile) {
-		for (Iterator<SuperAccessMethodPair> i = superAccessForInline.values().iterator(); i.hasNext();) {
-			AccessForInlineVisitor.SuperAccessMethodPair pair = i.next();
+		for (SuperAccessMethodPair pair : superAccessForInline.values()) {
 			generateSuperAccessMethod(classFile, pair.accessMethod, pair.originalMethod);
 		}
-		for (Iterator<Map.Entry<ResolvedMember, Binding>> i = accessForInline.entrySet().iterator(); i.hasNext();) {
-			Map.Entry<ResolvedMember, Binding> e = i.next();
+		for (Map.Entry<ResolvedMember, Binding> e : accessForInline.entrySet()) {
 			generateInlineAccessMethod(classFile, e.getValue(), e.getKey());
 		}
 	}
@@ -406,8 +403,8 @@ public class AspectDeclaration extends TypeDeclaration {
 		}
 	}
 
-	private static interface BodyGenerator {
-		public void generate(CodeStream codeStream);
+	private interface BodyGenerator {
+		void generate(CodeStream codeStream);
 	}
 
 	private void generateMethod(ClassFile classFile, ResolvedMember member, BodyGenerator gen) {
@@ -420,7 +417,7 @@ public class AspectDeclaration extends TypeDeclaration {
 	}
 
 	protected List<EclipseAttributeAdapter> makeEffectiveSignatureAttribute(ResolvedMember sig, Shadow.Kind kind, boolean weaveBody) {
-		List<EclipseAttributeAdapter> l = new ArrayList<EclipseAttributeAdapter>(1);
+		List<EclipseAttributeAdapter> l = new ArrayList<>(1);
 		l.add(new EclipseAttributeAdapter(new AjAttribute.EffectiveSignatureAttribute(sig, kind, weaveBody)));
 		return l;
 	}
@@ -1140,9 +1137,9 @@ public class AspectDeclaration extends TypeDeclaration {
 	public void processIntertypeMemberTypes(ClassScope classScope) {
 		factory = EclipseFactory.fromScopeLookupEnvironment(scope);
 		if (memberTypes != null) {
-			for (int i = 0; i < memberTypes.length; i++) {
-				if (memberTypes[i] instanceof IntertypeMemberClassDeclaration) {
-					EclipseTypeMunger m = ((IntertypeMemberClassDeclaration) memberTypes[i]).build(classScope);
+			for (TypeDeclaration memberType : memberTypes) {
+				if (memberType instanceof IntertypeMemberClassDeclaration) {
+					EclipseTypeMunger m = ((IntertypeMemberClassDeclaration) memberType).build(classScope);
 					if (m != null) {
 						mungeNewInnerClass(m, factory);
 						concreteName.typeMungers.add(m);
@@ -1166,14 +1163,14 @@ public class AspectDeclaration extends TypeDeclaration {
 		buildPerClause(scope);
 
 		if (methods != null) {
-			for (int i = 0; i < methods.length; i++) {
-				if (methods[i] instanceof InterTypeDeclaration) {
-					EclipseTypeMunger m = ((InterTypeDeclaration) methods[i]).build(classScope);
+			for (org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration method : methods) {
+				if (method instanceof InterTypeDeclaration) {
+					EclipseTypeMunger m = ((InterTypeDeclaration) method).build(classScope);
 					if (m != null) {
 						concreteName.typeMungers.add(m);
 					}
-				} else if (methods[i] instanceof DeclareDeclaration) {
-					Declare d = ((DeclareDeclaration) methods[i]).build(classScope);
+				} else if (method instanceof DeclareDeclaration) {
+					Declare d = ((DeclareDeclaration) method).build(classScope);
 					if (d != null) {
 						concreteName.declares.add(d);
 					}
@@ -1257,8 +1254,8 @@ public class AspectDeclaration extends TypeDeclaration {
 		// TODO should probably avoid putting it onto BTBs at all (since already there)
 		if (!(targetSourceTypeBinding instanceof BinaryTypeBinding)) {
 			ReferenceBinding[] existingMemberTypes = targetSourceTypeBinding.memberTypes();
-			for (int i = 0; i < existingMemberTypes.length; i++) {
-				char[] compounded = CharOperation.concatWith(existingMemberTypes[i].compoundName, '.');
+			for (ReferenceBinding existingMemberType : existingMemberTypes) {
+				char[] compounded = CharOperation.concatWith(existingMemberType.compoundName, '.');
 				if (CharOperation.endsWith(compounded, mungerMemberTypeName)) {
 					scope.problemReporter().signalError(sourceStart(), sourceEnd(),
 							"target type already declares a member type with the name '" + munger.getMemberTypeName() + "'");

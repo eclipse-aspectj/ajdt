@@ -84,7 +84,7 @@ public class BasicTokenSource implements ITokenSource {
 		char[] chars = input.toCharArray();
 		
 		int i = 0;
-		List<BasicToken> tokens = new ArrayList<BasicToken>();
+		List<BasicToken> tokens = new ArrayList<>();
 		
 		while (i < chars.length) {
 			char ch = chars[i++];			
@@ -160,7 +160,7 @@ public class BasicTokenSource implements ITokenSource {
 
 		//System.out.println(tokens);
 		
-		return new BasicTokenSource((IToken[])tokens.toArray(new IToken[tokens.size()]), context);
+		return new BasicTokenSource((IToken[])tokens.toArray(new IToken[0]), context);
 	}
 
 	private static String makeString(char ch) {

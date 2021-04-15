@@ -7,7 +7,7 @@
  * https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -15,8 +15,9 @@ package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 
-// AspectJ Extension: made non-final 
+// AspectJ Extension: made non-final
 public class MemberTypeBinding extends NestedTypeBinding {
+
 public MemberTypeBinding(char[][] compoundName, ClassScope scope, SourceTypeBinding enclosingType) {
 	super(compoundName, scope, enclosingType);
 	this.tagBits |= TagBits.MemberTypeMask;
@@ -43,10 +44,10 @@ void checkSyntheticArgsAndFields() {
 
 @Override
 public char[] constantPoolName() /* java/lang/Object */ {
-	
+
 	if (this.constantPoolName != null)
 		return this.constantPoolName;
-	
+
 	if (!isPrototype()) {
 		return this.prototype.constantPoolName();
 	}

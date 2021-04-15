@@ -38,7 +38,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
  * Element corresponding to the Error type mirror
  */
 public class ErrorTypeElement extends TypeElementImpl {
-	
+
 	ErrorTypeElement(BaseProcessingEnvImpl env, ReferenceBinding binding) {
 		super(env, binding, null);
 	}
@@ -113,7 +113,7 @@ public class ErrorTypeElement extends TypeElementImpl {
 	public List<? extends AnnotationMirror> getAnnotationMirrors() {
 		return Collections.emptyList();
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public <A extends Annotation> A[] getAnnotationsByType(Class<A> annotationType) {

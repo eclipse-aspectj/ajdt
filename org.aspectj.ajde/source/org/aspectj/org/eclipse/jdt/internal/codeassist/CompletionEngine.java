@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2020 IBM Corporation and others.
+ * Copyright (c) 2000, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -3825,6 +3825,12 @@ public final class CompletionEngine
 							scope.enclosingSourceType(),
 							(BlockScope)scope,
 							typesFound);
+				}
+				else if ( astNodeParent instanceof InstanceOfExpression) {
+					// propose final keyword
+					if (!this.requestor.isIgnored(CompletionProposal.KEYWORD)) {
+						findKeywordsForMember(this.completionToken, (~ClassFileConstants.AccFinal  & 0xFF), astNode);
+					}
 				}
 
 				checkCancel();
@@ -8266,7 +8272,7 @@ public final class CompletionEngine
 			this.nameEnvironment.findTypes(
 					importName,
 					findMembers,
-					this.options.camelCaseMatch,
+					getTypesMatchRule(),
 					IJavaSearchConstants.TYPE,
 					this,
 					this.monitor);
@@ -8701,6 +8707,7 @@ public final class CompletionEngine
 				relevance += computeRelevanceForInterestingProposal();
 				relevance += computeRelevanceForCaseMatching(keyword, choices[i]);
 				relevance += computeRelevanceForRestrictions(IAccessRule.K_ACCESSIBLE); // no access restriction for keywords
+				relevance += computeRelevanceForFinalInIOE();
 				if (staticFieldsAndMethodOnly && this.insideQualifiedReference) relevance += R_NON_INHERITED;
 
 				if(CharOperation.equals(choices[i], Keywords.TRUE) || CharOperation.equals(choices[i], Keywords.FALSE)) {
@@ -8725,6 +8732,12 @@ public final class CompletionEngine
 				}
 			}
 	}
+
+	private int computeRelevanceForFinalInIOE() {
+		// add expected type else final keyword will be buried inside multiple Fin* classes
+		return this.parser.assistNodeParent instanceof InstanceOfExpression ? R_FINAL + R_EXPECTED_TYPE : 0;
+	}
+
 	private void findKeywordsForMember(char[] token, int modifiers, ASTNode astNode) {
 		char[][] keywords = new char[Keywords.COUNT][];
 		int count = 0;
@@ -11295,7 +11308,7 @@ public final class CompletionEngine
 				this.foundConstructorsCount = 0;
 				this.nameEnvironment.findConstructorDeclarations(
 						token,
-						this.options.camelCaseMatch,
+						getTypesMatchRule(),
 						this,
 						this.monitor);
 				acceptConstructors(scope);
@@ -11329,7 +11342,7 @@ public final class CompletionEngine
 				this.nameEnvironment.findTypes(
 						token,
 						proposeAllMemberTypes,
-						this.options.camelCaseMatch,
+						getTypesMatchRule(),
 						searchFor,
 						this,
 						this.monitor);
@@ -11342,6 +11355,17 @@ public final class CompletionEngine
 				this.nameEnvironment.findPackages(token, this);
 			}
 		}
+	}
+
+	private int getTypesMatchRule() {
+		int matchRule = SearchPattern.R_PREFIX_MATCH;
+		if (this.options.camelCaseMatch)
+			matchRule |= SearchPattern.R_CAMELCASE_MATCH;
+		if (this.options.substringMatch)
+			matchRule |= SearchPattern.R_SUBSTRING_MATCH;
+		if (this.options.subwordMatch)
+			matchRule |= SearchPattern.R_SUBWORD_MATCH;
+		return matchRule;
 	}
 
 	private void findTypesAndSubpackages(
@@ -11487,7 +11511,7 @@ public final class CompletionEngine
 			this.foundConstructorsCount = 0;
 			this.nameEnvironment.findConstructorDeclarations(
 					qualifiedName,
-					this.options.camelCaseMatch,
+					getTypesMatchRule(),
 					this,
 					this.monitor);
 			acceptConstructors(scope);
@@ -11511,7 +11535,7 @@ public final class CompletionEngine
 			this.nameEnvironment.findTypes(
 					qualifiedName,
 					false,
-					this.options.camelCaseMatch,
+					getTypesMatchRule(),
 					searchFor,
 					this,
 					this.monitor);
@@ -13027,9 +13051,6 @@ public final class CompletionEngine
 
 		if(parent instanceof ParameterizedSingleTypeReference) {
 			ParameterizedSingleTypeReference ref = (ParameterizedSingleTypeReference) parent;
-			if (ref.resolvedType == null) {
-				return false;
-			}
 			TypeVariableBinding[] typeVariables = ((ReferenceBinding)ref.resolvedType).typeVariables();
 			int length = ref.typeArguments == null ? 0 : ref.typeArguments.length;
 			int nodeIndex = -1;

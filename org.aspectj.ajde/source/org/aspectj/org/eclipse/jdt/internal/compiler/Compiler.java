@@ -508,7 +508,7 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 			this.context = context;
 		}
 	}
-	
+
 	protected void backupAptProblems() {
 		if (this.unitsToProcess == null) return;
 		for (int i = 0; i < this.totalUnits; i++) {
@@ -537,7 +537,7 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 			}
 		}
 	}
-	
+
 	protected void restoreAptProblems() {
 		if (this.unitsToProcess != null && this.aptProblems!= null) {
 			for (int i = 0; i < this.totalUnits; i++) {
@@ -652,6 +652,7 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 			// AspectJ Extension end
 			this.annotationProcessorStartIndex  = 0;
 			this.stats.endTime = System.currentTimeMillis();
+			this.stats.overallTime += this.stats.endTime - this.stats.startTime;
 		}
 	}
 
@@ -659,7 +660,7 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 		if (next < this.totalUnits) {
 			CompilationUnitDeclaration unit = this.unitsToProcess[next];
 			if (this.annotationProcessorManager == null || next < this.annotationProcessorStartIndex) {
-			this.unitsToProcess[next] = null; // release reference to processed unit declaration
+				this.unitsToProcess[next] = null; // release reference to processed unit declaration
 			}
 			return unit;
 		}
@@ -841,7 +842,6 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 		abortIfPreviewNotAllowed(sourceUnits,maxUnits);
 		if (!this.useSingleThread && maxUnits >= ReadManager.THRESHOLD)
 			this.parser.readManager = new ReadManager(sourceUnits, maxUnits);
-
 		// Switch the current policy and compilation result for this unit to the requested one.
 		for (int i = 0; i < maxUnits; i++) {
 			CompilationResult unitResult = null;
@@ -918,15 +918,15 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 
 		long analyzeStart = System.currentTimeMillis();
 		this.stats.resolveTime += analyzeStart - resolveStart;
-		
-		//No need of analysis or generation of code if statements are not required		
+
+		//No need of analysis or generation of code if statements are not required
 		if (!this.options.ignoreMethodBodies) unit.analyseCode(); // flow analysis
 
 		long generateStart = System.currentTimeMillis();
 		this.stats.analyzeTime += generateStart - analyzeStart;
-	
+
 		if (!this.options.ignoreMethodBodies) unit.generateCode(); // code generation
-		
+
 		// reference info
 		if (this.options.produceReferenceInfo && unit.scope != null)
 			unit.scope.storeDependencyInfo();
@@ -1008,26 +1008,27 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 				this.annotationProcessorManager.reset();
 			}
 		} while (newUnitSize != 0 || newClassFilesSize != 0);
-		
+
 		this.annotationProcessorManager.processAnnotations(null, null, true);
-		// process potential units added in the final round see 329156 
+		// process potential units added in the final round see 329156
 		ICompilationUnit[] newUnits = this.annotationProcessorManager.getNewUnits();
 		newUnitSize = newUnits.length;
-		if (newUnitSize != 0) {
-			ICompilationUnit[] newProcessedUnits = newUnits.clone(); // remember new units in case a source type collision occurs
-			try {
-				this.lookupEnvironment.isProcessingAnnotations = true;
-				internalBeginToCompile(newUnits, newUnitSize);
-			} catch (SourceTypeCollisionException e) {
-				e.isLastRound = true;
-				e.newAnnotationProcessorUnits = newProcessedUnits;
-				throw e;
-			} finally {
-				this.lookupEnvironment.isProcessingAnnotations = false;
-				this.annotationProcessorManager.reset();
+		try {
+			if (newUnitSize != 0) {
+				ICompilationUnit[] newProcessedUnits = newUnits.clone(); // remember new units in case a source type collision occurs
+				try {
+					this.lookupEnvironment.isProcessingAnnotations = true;
+					internalBeginToCompile(newUnits, newUnitSize);
+				} catch (SourceTypeCollisionException e) {
+					e.isLastRound = true;
+					e.newAnnotationProcessorUnits = newProcessedUnits;
+					throw e;
+				}
 			}
-		} else {
+		} finally {
+			this.lookupEnvironment.isProcessingAnnotations = false;
 			this.annotationProcessorManager.reset();
+			this.annotationProcessorManager.cleanUp();
 		}
 		// Units added in final round don't get annotation processed
 		this.annotationProcessorStartIndex = this.totalUnits;

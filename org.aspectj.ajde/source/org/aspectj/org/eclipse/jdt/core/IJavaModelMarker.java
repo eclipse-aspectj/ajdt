@@ -26,7 +26,7 @@ public interface IJavaModelMarker {
 
 	/**
 	 * Java model problem marker type (value
-	 * <code>"org.aspectj.org.eclipse.jdt.core.problem"</code>). This can be used to
+	 * <code>"org.eclipse.jdt.core.problem"</code>). This can be used to
 	 * recognize those markers in the workspace that flag problems detected by
 	 * the Java tooling during compilation.
 	 */
@@ -50,7 +50,7 @@ public interface IJavaModelMarker {
 
 	/**
 	 * Java model task marker type (value
-	 * <code>"org.aspectj.org.eclipse.jdt.core.task"</code>). This can be used to
+	 * <code>"org.eclipse.jdt.core.task"</code>). This can be used to
 	 * recognize task markers in the workspace that correspond to tasks
 	 * specified in Java source comments and detected during compilation (for
 	 * example, 'TO-DO: ...'). Tasks are identified by a task tag, which can be

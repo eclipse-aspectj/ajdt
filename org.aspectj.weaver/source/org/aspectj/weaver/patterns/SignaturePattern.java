@@ -17,7 +17,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -140,8 +139,7 @@ public class SignaturePattern extends PatternNode implements ISignaturePattern {
 			patternNode.traverse(visitor, null);
 			if (visitor.containedIncorrectTargetKind()) {
 				Set<ExactAnnotationTypePattern> keys = visitor.getIncorrectTargetKinds().keySet();
-				for (Iterator<ExactAnnotationTypePattern> iter = keys.iterator(); iter.hasNext();) {
-					PatternNode node = iter.next();
+				for (PatternNode node : keys) {
 					AnnotationTargetKind[] targetKinds = visitor.getIncorrectTargetKinds().get(node);
 					reportUnmatchedTargetKindMessage(targetKinds, node, scope, false);
 				}
@@ -175,7 +173,7 @@ public class SignaturePattern extends PatternNode implements ISignaturePattern {
 	private class TypePatternVisitor extends AbstractPatternNodeVisitor {
 
 		private IScope scope;
-		private Map<ExactAnnotationTypePattern, AnnotationTargetKind[]> incorrectTargetKinds = new HashMap<ExactAnnotationTypePattern, AnnotationTargetKind[]>();
+		private Map<ExactAnnotationTypePattern, AnnotationTargetKind[]> incorrectTargetKinds = new HashMap<>();
 		private boolean targetsOtherThanTypeAllowed;
 		private boolean parameterTargettingAnnotationsAllowed;
 
@@ -207,13 +205,13 @@ public class SignaturePattern extends PatternNode implements ISignaturePattern {
 				if (targetKinds == null) {
 					return data;
 				}
-				List<AnnotationTargetKind> incorrectTargets = new ArrayList<AnnotationTargetKind>();
-				for (int i = 0; i < targetKinds.length; i++) {
-					if (targetKinds[i].getName().equals(kind.getName())
-							|| (targetKinds[i].getName().equals("PARAMETER") && node.isForParameterAnnotationMatch())) {
+				List<AnnotationTargetKind> incorrectTargets = new ArrayList<>();
+				for (AnnotationTargetKind targetKind : targetKinds) {
+					if (targetKind.getName().equals(kind.getName())
+							|| (targetKind.getName().equals("PARAMETER") && node.isForParameterAnnotationMatch())) {
 						return data;
 					}
-					incorrectTargets.add(targetKinds[i]);
+					incorrectTargets.add(targetKind);
 				}
 				if (incorrectTargets.isEmpty()) {
 					return data;
@@ -227,8 +225,7 @@ public class SignaturePattern extends PatternNode implements ISignaturePattern {
 				}
 				// exception here is if parameter annotations are allowed
 				if (parameterTargettingAnnotationsAllowed) {
-					for (int i = 0; i < targetKinds.length; i++) {
-						AnnotationTargetKind annotationTargetKind = targetKinds[i];
+					for (AnnotationTargetKind annotationTargetKind : targetKinds) {
 						if (annotationTargetKind.getName().equals("PARAMETER") && node.isForParameterAnnotationMatch()) {
 							return data;
 						}
@@ -724,8 +721,7 @@ public class SignaturePattern extends PatternNode implements ISignaturePattern {
 
 	private ResolvedMember findMethod(ResolvedType aspectType, ResolvedMember ajcMethod) {
 		ResolvedMember decMethods[] = aspectType.getDeclaredMethods();
-		for (int i = 0; i < decMethods.length; i++) {
-			ResolvedMember member = decMethods[i];
+		for (ResolvedMember member : decMethods) {
 			if (member.equals(ajcMethod)) {
 				return member;
 			}
@@ -993,7 +989,7 @@ public class SignaturePattern extends PatternNode implements ISignaturePattern {
 	@Override
 	public List<ExactTypePattern> getExactDeclaringTypes() {
 		if (declaringType instanceof ExactTypePattern) {
-			List<ExactTypePattern> l = new ArrayList<ExactTypePattern>();
+			List<ExactTypePattern> l = new ArrayList<>();
 			l.add((ExactTypePattern) declaringType);
 			return l;
 		} else {

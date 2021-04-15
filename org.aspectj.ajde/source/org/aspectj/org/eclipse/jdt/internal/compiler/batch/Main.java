@@ -1,6 +1,6 @@
 // AspectJ
 /*******************************************************************************
- * Copyright (c) 2000, 2019 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -14,7 +14,7 @@
  *     Tom Tromey - Contribution for bug 125961
  *     Tom Tromey - Contribution for bug 159641
  *     Benjamin Muskalla - Contribution for bug 239066
- *     Stephan Herrmann  - Contributions for 
+ *     Stephan Herrmann  - Contributions for
  *     							bug 236385 - [compiler] Warn for potential programming problem if an object is created but not used
  *     							bug 295551 - Add option to automatically promote all warnings to errors
  *     							bug 359721 - [options] add command line option for new warning token "resource"
@@ -28,7 +28,7 @@
  *								Bug 408815 - [batch][null] Add CLI option for COMPILER_PB_SYNTACTIC_NULL_ANALYSIS_FOR_FIELDS
  *     Jesper S Moller   - Contributions for
  *								bug 407297 - [1.8][compiler] Control generation of parameter names by option
- *    Mat Booth - Contribution for bug 405176 
+ *    Mat Booth - Contribution for bug 405176
  *    Frits Jalvingh - fix for bug 533830.
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.batch;
@@ -73,6 +73,7 @@ import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.function.Function;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.CategorizedProblem;
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
@@ -92,6 +93,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.batch.ModuleFinder.AddExpor
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileReader;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFormatException;
+import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ExternalAnnotationProvider;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.AccessRestriction;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.AccessRule;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.AccessRuleSet;
@@ -125,7 +127,6 @@ public class Main implements ProblemSeverities, SuffixConstants {
 		private PrintWriter log;
 		private Main main;
 		private PrintWriter out;
-		private HashMap<String, Object> parameters;
 		int tagBits;
 		private static final String CLASS = "class"; //$NON-NLS-1$
 		private static final String CLASS_FILE = "classfile"; //$NON-NLS-1$
@@ -217,7 +218,6 @@ public class Main implements ProblemSeverities, SuffixConstants {
 		public Logger(Main main, PrintWriter out, PrintWriter err) {
 			this.out = out;
 			this.err = err;
-			this.parameters = new HashMap<>();
 			this.main = main;
 		}
 
@@ -381,10 +381,11 @@ public class Main implements ProblemSeverities, SuffixConstants {
 					|| (unitSource == null)
 					|| ((length = unitSource.length) <= 0)
 					|| (endPosition > length)) {
-				this.parameters.put(Logger.VALUE, Messages.problem_noSourceInformation);
-				this.parameters.put(Logger.SOURCE_START, "-1"); //$NON-NLS-1$
-				this.parameters.put(Logger.SOURCE_END, "-1"); //$NON-NLS-1$
-				printTag(Logger.SOURCE_CONTEXT, this.parameters, true, true);
+				HashMap<String, Object> parameters = new HashMap<>();
+				parameters.put(Logger.VALUE, Messages.problem_noSourceInformation);
+				parameters.put(Logger.SOURCE_START, "-1"); //$NON-NLS-1$
+				parameters.put(Logger.SOURCE_END, "-1"); //$NON-NLS-1$
+				printTag(Logger.SOURCE_CONTEXT, parameters, true, true);
 				return;
 			}
 
@@ -410,11 +411,11 @@ public class Main implements ProblemSeverities, SuffixConstants {
 			// copy source
 			StringBuffer buffer = new StringBuffer();
 			buffer.append(unitSource, begin, end - begin + 1);
-
-			this.parameters.put(Logger.VALUE, String.valueOf(buffer));
-			this.parameters.put(Logger.SOURCE_START, Integer.toString(startPosition - begin));
-			this.parameters.put(Logger.SOURCE_END, Integer.toString(endPosition - begin));
-			printTag(Logger.SOURCE_CONTEXT, this.parameters, true, true);
+			HashMap<String, Object> parameters = new HashMap<>();
+			parameters.put(Logger.VALUE, String.valueOf(buffer));
+			parameters.put(Logger.SOURCE_START, Integer.toString(startPosition - begin));
+			parameters.put(Logger.SOURCE_END, Integer.toString(endPosition - begin));
+			printTag(Logger.SOURCE_CONTEXT, parameters, true, true);
 		}
 		public void flush() {
 			this.out.flush();
@@ -508,8 +509,9 @@ public class Main implements ProblemSeverities, SuffixConstants {
 				}
 				File f = new File(fileName);
 				try {
-					this.parameters.put(Logger.PATH, f.getCanonicalPath());
-					printTag(Logger.CLASS_FILE, this.parameters, true, true);
+					HashMap<String, Object> parameters = new HashMap<>();
+					parameters.put(Logger.PATH, f.getCanonicalPath());
+					printTag(Logger.CLASS_FILE, parameters, true, true);
 				} catch (IOException e) {
 					logNoClassFileCreated(outputPath, relativeFileName, e);
 				}
@@ -521,10 +523,11 @@ public class Main implements ProblemSeverities, SuffixConstants {
 				final int length = classpaths.length;
 				if (length != 0) {
 					// generate xml output
-					printTag(Logger.CLASSPATHS, null, true, false);
+					printTag(Logger.CLASSPATHS, new HashMap<>(), true, false);
+					HashMap<String, Object> parameters = new HashMap<>();
 					for (int i = 0; i < length; i++) {
 						String classpath = classpaths[i].getPath();
-						this.parameters.put(Logger.PATH, classpath);
+						parameters.put(Logger.PATH, classpath);
 						File f = new File(classpath);
 						String id = null;
 						if (f.isFile()) {
@@ -541,8 +544,8 @@ public class Main implements ProblemSeverities, SuffixConstants {
 							id = Logger.CLASSPATH_FOLDER;
 						}
 						if (id != null) {
-							this.parameters.put(Logger.CLASSPATH_ID, id);
-							printTag(Logger.CLASSPATH, this.parameters, true, true);
+							parameters.put(Logger.CLASSPATH_ID, id);
+							printTag(Logger.CLASSPATH, parameters, true, true);
 						}
 					}
 					endTag(Logger.CLASSPATHS);
@@ -557,10 +560,11 @@ public class Main implements ProblemSeverities, SuffixConstants {
 				final int length = commandLineArguments.length;
 				if (length != 0) {
 					// generate xml output
-					printTag(Logger.COMMAND_LINE_ARGUMENTS, null, true, false);
+					printTag(Logger.COMMAND_LINE_ARGUMENTS, new HashMap<>(), true, false);
 					for (int i = 0; i < length; i++) {
-						this.parameters.put(Logger.VALUE, commandLineArguments[i]);
-						printTag(Logger.COMMAND_LINE_ARGUMENT, this.parameters, true, true);
+						HashMap<String, Object> parameters = new HashMap<>();
+						parameters.put(Logger.VALUE, commandLineArguments[i]);
+						printTag(Logger.COMMAND_LINE_ARGUMENT, parameters, true, true);
 					}
 					endTag(Logger.COMMAND_LINE_ARGUMENTS);
 				}
@@ -596,9 +600,10 @@ public class Main implements ProblemSeverities, SuffixConstants {
 					// ignore
 				}
 				message = buffer.toString();
-				this.parameters.put(Logger.MESSAGE, message);
-				this.parameters.put(Logger.CLASS, e.getClass());
-				printTag(Logger.EXCEPTION, this.parameters, true, true);
+				HashMap<String, Object> parameters = new HashMap<>();
+				parameters.put(Logger.MESSAGE, message);
+				parameters.put(Logger.CLASS, e.getClass());
+				printTag(Logger.EXCEPTION, parameters, true, true);
 			}
 			String message = e.getMessage();
 			if (message == null) {
@@ -698,16 +703,18 @@ public class Main implements ProblemSeverities, SuffixConstants {
 
 		public void logUnavaibleAPT(String className) {
 			if ((this.tagBits & Logger.XML) != 0) {
-				this.parameters.put(Logger.MESSAGE, this.main.bind("configure.unavailableAPT", className)); //$NON-NLS-1$
-				printTag(Logger.ERROR_TAG, this.parameters, true, true);
+				HashMap<String, Object> parameters = new HashMap<>();
+				parameters.put(Logger.MESSAGE, this.main.bind("configure.unavailableAPT", className)); //$NON-NLS-1$
+				printTag(Logger.ERROR_TAG, parameters, true, true);
 			}
 			this.printlnErr(this.main.bind("configure.unavailableAPT", className)); //$NON-NLS-1$
 		}
 
 		public void logIncorrectVMVersionForAnnotationProcessing() {
 			if ((this.tagBits & Logger.XML) != 0) {
-				this.parameters.put(Logger.MESSAGE, this.main.bind("configure.incorrectVMVersionforAPT")); //$NON-NLS-1$
-				printTag(Logger.ERROR_TAG, this.parameters, true, true);
+				HashMap<String, Object> parameters = new HashMap<>();
+				parameters.put(Logger.MESSAGE, this.main.bind("configure.incorrectVMVersionforAPT")); //$NON-NLS-1$
+				printTag(Logger.ERROR_TAG, parameters, true, true);
 			}
 			this.printlnErr(this.main.bind("configure.incorrectVMVersionforAPT")); //$NON-NLS-1$
 		}
@@ -717,13 +724,14 @@ public class Main implements ProblemSeverities, SuffixConstants {
 		 */
 		public void logNoClassFileCreated(String outputDir, String relativeFileName, IOException e) {
 			if ((this.tagBits & Logger.XML) != 0) {
-				this.parameters.put(Logger.MESSAGE, this.main.bind("output.noClassFileCreated", //$NON-NLS-1$
+				HashMap<String, Object> parameters = new HashMap<>();
+				parameters.put(Logger.MESSAGE, this.main.bind("output.noClassFileCreated", //$NON-NLS-1$
 					new String[] {
 						outputDir,
 						relativeFileName,
 						e.getMessage()
 					}));
-				printTag(Logger.ERROR_TAG, this.parameters, true, true);
+				printTag(Logger.ERROR_TAG, parameters, true, true);
 			}
 			this.printlnErr(this.main.bind("output.noClassFileCreated", //$NON-NLS-1$
 				new String[] {
@@ -738,8 +746,9 @@ public class Main implements ProblemSeverities, SuffixConstants {
 		 */
 		public void logNumberOfClassFilesGenerated(int exportedClassFilesCounter) {
 			if ((this.tagBits & Logger.XML) != 0) {
-				this.parameters.put(Logger.VALUE, Integer.valueOf(exportedClassFilesCounter));
-				printTag(Logger.NUMBER_OF_CLASSFILES, this.parameters, true, true);
+				HashMap<String, Object> parameters = new HashMap<>();
+				parameters.put(Logger.VALUE, Integer.valueOf(exportedClassFilesCounter));
+				printTag(Logger.NUMBER_OF_CLASSFILES, parameters, true, true);
 			}
 			if (exportedClassFilesCounter == 1) {
 				printlnOut(this.main.bind("compile.oneClassFileGenerated")); //$NON-NLS-1$
@@ -754,7 +763,7 @@ public class Main implements ProblemSeverities, SuffixConstants {
 		 */
 		public void logOptions(Map<String, String> options) {
 			if ((this.tagBits & Logger.XML) != 0) {
-				printTag(Logger.OPTIONS, null, true, false);
+				printTag(Logger.OPTIONS, new HashMap<>(), true, false);
 				final Set<Map.Entry<String, String>> entriesSet = options.entrySet();
 				Map.Entry<String, String>[] entries = entriesSet.toArray(new Map.Entry[entriesSet.size()]);
 				Arrays.sort(entries, new Comparator<Map.Entry<String, String>>() {
@@ -765,12 +774,13 @@ public class Main implements ProblemSeverities, SuffixConstants {
 						return entry1.getKey().compareTo(entry2.getKey());
 					}
 				});
+				HashMap<String, Object> parameters = new HashMap<>();
 				for (int i = 0, max = entries.length; i < max; i++) {
 					Map.Entry<String, String> entry = entries[i];
 					String key = entry.getKey();
-					this.parameters.put(Logger.KEY, key);
-					this.parameters.put(Logger.VALUE, entry.getValue());
-					printTag(Logger.OPTION, this.parameters, true, true);
+					parameters.put(Logger.KEY, key);
+					parameters.put(Logger.VALUE, entry.getValue());
+					printTag(Logger.OPTION, parameters, true, true);
 				}
 				endTag(Logger.OPTIONS);
 			}
@@ -781,8 +791,9 @@ public class Main implements ProblemSeverities, SuffixConstants {
 		 */
 		public void logPendingError(String error) {
 			if ((this.tagBits & Logger.XML) != 0) {
-				this.parameters.put(Logger.MESSAGE, error);
-				printTag(Logger.ERROR_TAG, this.parameters, true, true);
+				HashMap<String, Object> parameters = new HashMap<>();
+				parameters.put(Logger.MESSAGE, error);
+				printTag(Logger.ERROR_TAG, parameters, true, true);
 			}
 			this.printlnErr(error);
 		}
@@ -792,8 +803,9 @@ public class Main implements ProblemSeverities, SuffixConstants {
 		 */
 		public void logWarning(String message) {
 			if ((this.tagBits & Logger.XML) != 0) {
-				this.parameters.put(Logger.MESSAGE, message);
-				printTag(Logger.WARNING_TAG, this.parameters, true, true);
+				HashMap<String, Object> parameters = new HashMap<>();
+				parameters.put(Logger.MESSAGE, message);
+				printTag(Logger.WARNING_TAG, parameters, true, true);
 			}
 			this.printlnOut(message);
 		}
@@ -907,12 +919,13 @@ public class Main implements ProblemSeverities, SuffixConstants {
 			int globalErrorsCount, int globalWarningsCount, int globalInfoCount, int globalTasksCount) {
 			if ((this.tagBits & Logger.XML) != 0) {
 				// generate xml
-				this.parameters.put(Logger.NUMBER_OF_PROBLEMS, Integer.valueOf(globalProblemsCount));
-				this.parameters.put(Logger.NUMBER_OF_ERRORS, Integer.valueOf(globalErrorsCount));
-				this.parameters.put(Logger.NUMBER_OF_WARNINGS, Integer.valueOf(globalWarningsCount));
-				this.parameters.put(Logger.NUMBER_OF_INFOS, Integer.valueOf(globalInfoCount));
-				this.parameters.put(Logger.NUMBER_OF_TASKS, Integer.valueOf(globalTasksCount));
-				printTag(Logger.PROBLEM_SUMMARY, this.parameters, true, true);
+				HashMap<String, Object> parameters = new HashMap<>();
+				parameters.put(Logger.NUMBER_OF_PROBLEMS, Integer.valueOf(globalProblemsCount));
+				parameters.put(Logger.NUMBER_OF_ERRORS, Integer.valueOf(globalErrorsCount));
+				parameters.put(Logger.NUMBER_OF_WARNINGS, Integer.valueOf(globalWarningsCount));
+				parameters.put(Logger.NUMBER_OF_INFOS, Integer.valueOf(globalInfoCount));
+				parameters.put(Logger.NUMBER_OF_TASKS, Integer.valueOf(globalTasksCount));
+				printTag(Logger.PROBLEM_SUMMARY, parameters, true, true);
 			}
 			if (globalProblemsCount == 1) {
 				String message = null;
@@ -946,7 +959,7 @@ public class Main implements ProblemSeverities, SuffixConstants {
 				if (globalInfoCount == 1) {
 					infoMessage = this.main.bind("compile.oneInfo"); //$NON-NLS-1$
 				} else if (globalInfoCount > 1) {
-					infoMessage = this.main.bind("compile.severalInfos", String.valueOf(warningsNumber)); //$NON-NLS-1$					
+					infoMessage = this.main.bind("compile.severalInfos", String.valueOf(globalInfoCount)); //$NON-NLS-1$
 				}
 				if (globalProblemsCount == globalInfoCount || globalProblemsCount == globalErrorsCount || globalProblemsCount == globalWarningsCount) {
 					String msg = errorMessage != null ? errorMessage : warningMessage != null ? warningMessage : infoMessage;
@@ -1014,10 +1027,11 @@ public class Main implements ProblemSeverities, SuffixConstants {
 			long time = compilerStats.elapsedTime();
 			long lineCount = compilerStats.lineCount;
 			if ((this.tagBits & Logger.XML) != 0) {
-				this.parameters.put(Logger.VALUE, Long.valueOf(time));
-				printTag(Logger.TIME, this.parameters, true, true);
-				this.parameters.put(Logger.VALUE, Long.valueOf(lineCount));
-				printTag(Logger.NUMBER_OF_LINES, this.parameters, true, true);
+				HashMap<String, Object> parameters = new HashMap<>();
+				parameters.put(Logger.VALUE, Long.valueOf(time));
+				printTag(Logger.TIME, parameters, true, true);
+				parameters.put(Logger.VALUE, Long.valueOf(lineCount));
+				printTag(Logger.NUMBER_OF_LINES, parameters, true, true);
 			}
 			if (lineCount != 0) {
 				printlnOut(
@@ -1100,8 +1114,9 @@ public class Main implements ProblemSeverities, SuffixConstants {
 		 */
 		public void logWrongJDK() {
 			if ((this.tagBits & Logger.XML) != 0) {
-				this.parameters.put(Logger.MESSAGE, this.main.bind("configure.requiresJDK1.2orAbove")); //$NON-NLS-1$
-				printTag(Logger.ERROR, this.parameters, true, true);
+				HashMap<String, Object> parameters = new HashMap<>();
+				parameters.put(Logger.MESSAGE, this.main.bind("configure.requiresJDK1.2orAbove")); //$NON-NLS-1$
+				printTag(Logger.ERROR, parameters, true, true);
 			}
 			this.printlnErr(this.main.bind("configure.requiresJDK1.2orAbove")); //$NON-NLS-1$
 		}
@@ -1110,13 +1125,14 @@ public class Main implements ProblemSeverities, SuffixConstants {
 			final int sourceStart = problem.getSourceStart();
 			final int sourceEnd = problem.getSourceEnd();
 			boolean isError = problem.isError();
-			this.parameters.put(Logger.PROBLEM_SEVERITY, isError ? Logger.ERROR : (problem.isInfo() ? Logger.INFO : Logger.WARNING));
-			this.parameters.put(Logger.PROBLEM_LINE, Integer.valueOf(problem.getSourceLineNumber()));
-			this.parameters.put(Logger.PROBLEM_SOURCE_START, Integer.valueOf(sourceStart));
-			this.parameters.put(Logger.PROBLEM_SOURCE_END, Integer.valueOf(sourceEnd));
-			printTag(Logger.EXTRA_PROBLEM_TAG, this.parameters, true, false);
-			this.parameters.put(Logger.VALUE, problem.getMessage());
-			printTag(Logger.PROBLEM_MESSAGE, this.parameters, true, true);
+			HashMap<String, Object> parameters = new HashMap<>();
+			parameters.put(Logger.PROBLEM_SEVERITY, isError ? Logger.ERROR : (problem.isInfo() ? Logger.INFO : Logger.WARNING));
+			parameters.put(Logger.PROBLEM_LINE, Integer.valueOf(problem.getSourceLineNumber()));
+			parameters.put(Logger.PROBLEM_SOURCE_START, Integer.valueOf(sourceStart));
+			parameters.put(Logger.PROBLEM_SOURCE_END, Integer.valueOf(sourceEnd));
+			printTag(Logger.EXTRA_PROBLEM_TAG, parameters, true, false);
+			parameters.put(Logger.VALUE, problem.getMessage());
+			printTag(Logger.PROBLEM_MESSAGE, parameters, true, true);
 			extractContext(problem, null);
 			endTag(Logger.EXTRA_PROBLEM_TAG);
 		}
@@ -1130,31 +1146,34 @@ public class Main implements ProblemSeverities, SuffixConstants {
 			final int sourceStart = problem.getSourceStart();
 			final int sourceEnd = problem.getSourceEnd();
 			final int id = problem.getID();
-			this.parameters.put(Logger.ID, getFieldName(id)); // ID as field name
-			this.parameters.put(Logger.PROBLEM_ID, Integer.valueOf(id)); // ID as numeric value
+			HashMap<String, Object> parameters = new HashMap<>();
+			parameters.put(Logger.ID, getFieldName(id)); // ID as field name
+			parameters.put(Logger.PROBLEM_ID, Integer.valueOf(id)); // ID as numeric value
 			boolean isError = problem.isError();
 			int severity = isError ? ProblemSeverities.Error : ProblemSeverities.Warning;
-			this.parameters.put(Logger.PROBLEM_SEVERITY, isError ? Logger.ERROR : (problem.isInfo() ? Logger.INFO : Logger.WARNING));
-			this.parameters.put(Logger.PROBLEM_LINE, Integer.valueOf(problem.getSourceLineNumber()));
-			this.parameters.put(Logger.PROBLEM_SOURCE_START, Integer.valueOf(sourceStart));
-			this.parameters.put(Logger.PROBLEM_SOURCE_END, Integer.valueOf(sourceEnd));
+			parameters.put(Logger.PROBLEM_SEVERITY, isError ? Logger.ERROR : (problem.isInfo() ? Logger.INFO : Logger.WARNING));
+			parameters.put(Logger.PROBLEM_LINE, Integer.valueOf(problem.getSourceLineNumber()));
+			parameters.put(Logger.PROBLEM_SOURCE_START, Integer.valueOf(sourceStart));
+			parameters.put(Logger.PROBLEM_SOURCE_END, Integer.valueOf(sourceEnd));
 			String problemOptionKey = getProblemOptionKey(id);
 			if (problemOptionKey != null) {
-				this.parameters.put(Logger.PROBLEM_OPTION_KEY, problemOptionKey);
+				parameters.put(Logger.PROBLEM_OPTION_KEY, problemOptionKey);
 			}
 			int categoryID = ProblemReporter.getProblemCategory(severity, id);
-			this.parameters.put(Logger.PROBLEM_CATEGORY_ID, Integer.valueOf(categoryID));
-			printTag(Logger.PROBLEM_TAG, this.parameters, true, false);
-			this.parameters.put(Logger.VALUE, problem.getMessage());
-			printTag(Logger.PROBLEM_MESSAGE, this.parameters, true, true);
+			parameters.put(Logger.PROBLEM_CATEGORY_ID, Integer.valueOf(categoryID));
+			printTag(Logger.PROBLEM_TAG, parameters, true, false);
+			parameters.put(Logger.VALUE, problem.getMessage());
+			printTag(Logger.PROBLEM_MESSAGE, parameters, true, true);
 			extractContext(problem, unitSource);
 			String[] arguments = problem.getArguments();
 			final int length = arguments.length;
 			if (length != 0) {
-				printTag(Logger.PROBLEM_ARGUMENTS, null, true, false);
+				parameters = new HashMap<>();
+				printTag(Logger.PROBLEM_ARGUMENTS, parameters, true, false);
 				for (int i = 0; i < length; i++) {
-					this.parameters.put(Logger.PROBLEM_ARGUMENT_VALUE, arguments[i]);
-					printTag(Logger.PROBLEM_ARGUMENT, this.parameters, true, true);
+					parameters = new HashMap<>();
+					parameters.put(Logger.PROBLEM_ARGUMENT_VALUE, arguments[i]);
+					printTag(Logger.PROBLEM_ARGUMENT, parameters, true, true);
 				}
 				endTag(Logger.PROBLEM_ARGUMENTS);
 			}
@@ -1167,16 +1186,17 @@ public class Main implements ProblemSeverities, SuffixConstants {
 		 *            the given unit source
 		 */
 		private void logXmlTask(CategorizedProblem problem, char[] unitSource) {
-			this.parameters.put(Logger.PROBLEM_LINE, Integer.valueOf(problem.getSourceLineNumber()));
-			this.parameters.put(Logger.PROBLEM_SOURCE_START, Integer.valueOf(problem.getSourceStart()));
-			this.parameters.put(Logger.PROBLEM_SOURCE_END, Integer.valueOf(problem.getSourceEnd()));
+			HashMap<String, Object> parameters = new HashMap<>();
+			parameters.put(Logger.PROBLEM_LINE, Integer.valueOf(problem.getSourceLineNumber()));
+			parameters.put(Logger.PROBLEM_SOURCE_START, Integer.valueOf(problem.getSourceStart()));
+			parameters.put(Logger.PROBLEM_SOURCE_END, Integer.valueOf(problem.getSourceEnd()));
 			String problemOptionKey = getProblemOptionKey(problem.getID());
 			if (problemOptionKey != null) {
-				this.parameters.put(Logger.PROBLEM_OPTION_KEY, problemOptionKey);
+				parameters.put(Logger.PROBLEM_OPTION_KEY, problemOptionKey);
 			}
-			printTag(Logger.TASK, this.parameters, true, false);
-			this.parameters.put(Logger.VALUE, problem.getMessage());
-			printTag(Logger.PROBLEM_MESSAGE, this.parameters, true, true);
+			printTag(Logger.TASK, parameters, true, false);
+			parameters.put(Logger.VALUE, problem.getMessage());
+			printTag(Logger.PROBLEM_MESSAGE, parameters, true, true);
 			extractContext(problem, unitSource);
 			endTag(Logger.TASK);
 		}
@@ -1223,7 +1243,7 @@ public class Main implements ProblemSeverities, SuffixConstants {
 		public void printStats() {
 			final boolean isTimed = (this.main.timing & TIMING_ENABLED) != 0;
 			if ((this.tagBits & Logger.XML) != 0) {
-				printTag(Logger.STATS, null, true, false);
+				printTag(Logger.STATS, new HashMap<>(), true, false);
 			}
 			if (isTimed) {
 				CompilerStats compilerStats = this.main.batchCompiler.stats;
@@ -1232,7 +1252,7 @@ public class Main implements ProblemSeverities, SuffixConstants {
 				logTiming(compilerStats);
 			}
 			if (this.main.globalProblemsCount > 0) {
-				logProblemsSummary(this.main.globalProblemsCount, this.main.globalErrorsCount, this.main.globalWarningsCount, 
+				logProblemsSummary(this.main.globalProblemsCount, this.main.globalErrorsCount, this.main.globalWarningsCount,
 						this.main.globalInfoCount, this.main.globalTasksCount);
 			}
 			if (this.main.exportedClassFilesCounter != 0
@@ -1246,9 +1266,9 @@ public class Main implements ProblemSeverities, SuffixConstants {
 
 		private void printTag(String name, HashMap<String, Object> params, boolean insertNewLine, boolean closeTag) {
 			if (this.log != null) {
-				((GenericXMLWriter) this.log).printTag(name, this.parameters, true, insertNewLine, closeTag);
+				((GenericXMLWriter) this.log).printTag(name, params, true, insertNewLine, closeTag);
 			}
-			this.parameters.clear();
+			if (params != null) params.clear();
 		}
 
 		public void setEmacs() {
@@ -1266,10 +1286,11 @@ public class Main implements ProblemSeverities, SuffixConstants {
 						// insert time stamp as comment
 						this.log.println("<!-- " + dateFormat.format(date) + " -->");//$NON-NLS-1$//$NON-NLS-2$
 						this.log.println(Logger.XML_DTD_DECLARATION);
-						this.parameters.put(Logger.COMPILER_NAME, this.main.bind("compiler.name")); //$NON-NLS-1$
-						this.parameters.put(Logger.COMPILER_VERSION, this.main.bind("compiler.version")); //$NON-NLS-1$
-						this.parameters.put(Logger.COMPILER_COPYRIGHT, this.main.bind("compiler.copyright")); //$NON-NLS-1$
-						printTag(Logger.COMPILER, this.parameters, true, false);
+						HashMap<String, Object> parameters = new HashMap<>();
+						parameters.put(Logger.COMPILER_NAME, this.main.bind("compiler.name")); //$NON-NLS-1$
+						parameters.put(Logger.COMPILER_VERSION, this.main.bind("compiler.version")); //$NON-NLS-1$
+						parameters.put(Logger.COMPILER_COPYRIGHT, this.main.bind("compiler.copyright")); //$NON-NLS-1$
+						printTag(Logger.COMPILER, parameters, true, false);
 					} else {
 						this.log = new PrintWriter(new FileOutputStream(logFileName, false));
 						this.log.println("# " + dateFormat.format(date));//$NON-NLS-1$
@@ -1285,8 +1306,9 @@ public class Main implements ProblemSeverities, SuffixConstants {
 			}
 		}
 		private void startLoggingExtraProblems(int count) {
-			this.parameters.put(Logger.NUMBER_OF_PROBLEMS, Integer.valueOf(count));
-			printTag(Logger.EXTRA_PROBLEMS, this.parameters, true, false);
+			HashMap<String, Object> parameters = new HashMap<>();
+			parameters.put(Logger.NUMBER_OF_PROBLEMS, Integer.valueOf(count));
+			printTag(Logger.EXTRA_PROBLEMS, parameters, true, false);
 		}
 
 		/**
@@ -1294,25 +1316,27 @@ public class Main implements ProblemSeverities, SuffixConstants {
 		 * Only use in xml mode.
 		 */
 		private void startLoggingProblems(int errors, int warnings, int infos) {
-			this.parameters.put(Logger.NUMBER_OF_PROBLEMS, Integer.valueOf(errors + warnings));
-			this.parameters.put(Logger.NUMBER_OF_ERRORS, Integer.valueOf(errors));
-			this.parameters.put(Logger.NUMBER_OF_WARNINGS, Integer.valueOf(warnings));
-			this.parameters.put(Logger.NUMBER_OF_INFOS, Integer.valueOf(infos));
-			printTag(Logger.PROBLEMS, this.parameters, true, false);
+			HashMap<String, Object> parameters = new HashMap<>();
+			parameters.put(Logger.NUMBER_OF_PROBLEMS, Integer.valueOf(errors + warnings));
+			parameters.put(Logger.NUMBER_OF_ERRORS, Integer.valueOf(errors));
+			parameters.put(Logger.NUMBER_OF_WARNINGS, Integer.valueOf(warnings));
+			parameters.put(Logger.NUMBER_OF_INFOS, Integer.valueOf(infos));
+			printTag(Logger.PROBLEMS, parameters, true, false);
 		}
 
 		public void startLoggingSource(CompilationResult compilationResult) {
 			if ((this.tagBits & Logger.XML) != 0) {
 				ICompilationUnit compilationUnit = compilationResult.compilationUnit;
+				HashMap<String, Object> parameters = new HashMap<>();
 				if (compilationUnit != null) {
     				char[] fileName = compilationUnit.getFileName();
     				File f = new File(new String(fileName));
     				if (fileName != null) {
-    					this.parameters.put(Logger.PATH, f.getAbsolutePath());
+    					parameters.put(Logger.PATH, f.getAbsolutePath());
     				}
     				char[][] packageName = compilationResult.packageName;
     				if (packageName != null) {
-    					this.parameters.put(
+    					parameters.put(
     							Logger.PACKAGE,
     							new String(CharOperation.concatWith(packageName, File.separatorChar)));
     				}
@@ -1323,26 +1347,27 @@ public class Main implements ProblemSeverities, SuffixConstants {
 					}
 					if (destinationPath != null && destinationPath != NONE) {
 						if (File.separatorChar == '/') {
-							this.parameters.put(Logger.OUTPUT, destinationPath);
+							parameters.put(Logger.OUTPUT, destinationPath);
 						} else {
-							this.parameters.put(Logger.OUTPUT, destinationPath.replace('/', File.separatorChar));
+							parameters.put(Logger.OUTPUT, destinationPath.replace('/', File.separatorChar));
 						}
 					}
 				}
-				printTag(Logger.SOURCE, this.parameters, true, false);
+				printTag(Logger.SOURCE, parameters, true, false);
 			}
 		}
 
 		public void startLoggingSources() {
 			if ((this.tagBits & Logger.XML) != 0) {
-				printTag(Logger.SOURCES, null, true, false);
+				printTag(Logger.SOURCES, new HashMap<>(), true, false);
 			}
 		}
 
 		public void startLoggingTasks(int tasks) {
 			if ((this.tagBits & Logger.XML) != 0) {
-				this.parameters.put(Logger.NUMBER_OF_TASKS, Integer.valueOf(tasks));
-				printTag(Logger.TASKS, this.parameters, true, false);
+				HashMap<String, Object> parameters = new HashMap<>();
+				parameters.put(Logger.NUMBER_OF_TASKS, Integer.valueOf(tasks));
+				printTag(Logger.TASKS, parameters, true, false);
 			}
 		}
 	}
@@ -1452,8 +1477,17 @@ public class Main implements ProblemSeverities, SuffixConstants {
 	private PrintWriter err;
 
 	protected ArrayList<CategorizedProblem> extraProblems;
-	// AspectJ Extension - made non final
-	public static String bundleName = "org.aspectj.org.eclipse.jdt.internal.compiler.batch.messages"; //$NON-NLS-1$
+
+	public final static String bundleName = "org.aspectj.org.eclipse.jdt.internal.compiler.batch.messages"; //$NON-NLS-1$
+
+	// AspectJ Extension: Fictitious ISO country code 'aspectj' identifies a resource bundle 'messages_aspectj.properties'
+	// in the AspectJ code base. That file is meant to define a delta of AspectJ-specific properties not found in the
+	// original 'messages.properties' or overriding them, such as compiler name and version. This way we do not have to
+	// merge the two files all the time, keeping their contents in sync. Java will automatically handle the
+	// country-specific resource bundle with precedence over the unspecific one found in the Eclipse code base.
+	public static final Locale aspectjLocale = Locale.forLanguageTag("aspectj");
+	// End AspectJ Extension
+
 	// two uses: recognize 'none' in options; code the singleton none
 	// for the '-d none' option (wherever it may be found)
 	public static final int DEFAULT_SIZE_CLASSPATH = 4;
@@ -1646,7 +1680,7 @@ protected void addNewEntry(ArrayList<FileSystem.Classpath> paths, String current
 	if (NONE.equals(destPath)) {
 		destPath = NONE; // keep == comparison valid
 	}
-	
+
 	if (rejectDestinationPathOnJars && destPath != null &&
 			Util.archiveFormat(currentClasspathName) > -1) {
 		throw new IllegalArgumentException(
@@ -1658,7 +1692,7 @@ protected void addNewEntry(ArrayList<FileSystem.Classpath> paths, String current
 			customEncoding,
 			isSourceOnly,
 			accessRuleSet,
-			destPath, 
+			destPath,
 			this.options,
 			this.releaseVersion);
 	if (currentClasspath != null) {
@@ -1687,12 +1721,12 @@ public String bind(String id) {
 public String bind(String id, String binding) {
 	return bind(id, new String[] { binding });
 }
-//AspectJ Extension - static form of bind that just uses the default locale
+// AspectJ Extension - static form of bind that uses the special 'aspectj' locale
 public static String _bind(String id,String []arguments) {
 	if (id==null) return "No message available"; //$NON-NLS-1$
 	String message = null;
 	try {
-	  message = ResourceBundleFactory.getBundle(Locale.getDefault()).getString(id);
+	  message = ResourceBundleFactory.getBundle(aspectjLocale).getString(id);
 	} catch (MissingResourceException mre) {
 		// If we got an exception looking for the message, fail gracefully by just returning
 		// the id we were looking for.  In most cases this is semi-informative so is not too bad.
@@ -1700,7 +1734,7 @@ public static String _bind(String id,String []arguments) {
 	}
 	return MessageFormat.format(message, arguments);
 }
-//End AspectJ Extension
+// End AspectJ Extension
 
 /*
  * Lookup the message with the given ID in this catalog and bind its
@@ -1747,7 +1781,7 @@ public String bind(String id, String[] arguments) {
  * <li><code>org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.JDK12</code></li>
  * <li><code>org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.JDK13</code></li>
  * <li><code>org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.JDK14</code></li>
- * 
+ *
  * </ul>
  * @param minimalSupportedVersion the given minimal version
  * @return true if and only if the running VM supports the given minimal version, false otherwise
@@ -1812,8 +1846,8 @@ public boolean compile(String[] argv) {
 			this.logger.flush();
 			this.logger.close();
 			if (this.failOnWarning && this.globalWarningsCount > 0) {
-			System.exit(-1);
-		}
+				System.exit(-1);
+			}
 			System.exit(this.globalErrorsCount > 0 ? -1 : 0);
 		}
 	} catch (Exception e) { // internal compiler failure
@@ -1834,7 +1868,7 @@ public boolean compile(String[] argv) {
 		if (this.failOnWarning && (this.globalWarningsCount > 0))
 			return false;
 		if (this.globalErrorsCount == 0)
-		return true;
+			return true;
 	}
 
 	return false;
@@ -1911,7 +1945,7 @@ public void configure(String[] argv) {
 	String currentSourceDirectory = null;
 	String currentArg = Util.EMPTY_STRING;
 	String moduleName = null;
-	
+
 	Set<String> specifiedEncodings = null;
 
 	// expand the command line if necessary
@@ -2126,123 +2160,36 @@ public void configure(String[] argv) {
 					mode = INSIDE_DEFAULT_ENCODING;
 					continue;
 				}
-				if (currentArg.equals("-1.3")) { //$NON-NLS-1$
-					if (didSpecifyCompliance) {
-						throw new IllegalArgumentException(
-							this.bind("configure.duplicateCompliance", currentArg));//$NON-NLS-1$
+				if (currentArg.startsWith("-")) { //$NON-NLS-1$
+					String version = optionStringToVersion(currentArg.substring(1));
+					if (version != null) {
+						if (didSpecifyCompliance) {
+							throw new IllegalArgumentException(
+								this.bind("configure.duplicateCompliance", currentArg));//$NON-NLS-1$
+						}
+						didSpecifyCompliance = true;
+						this.options.put(CompilerOptions.OPTION_Compliance, version);
+						mode = DEFAULT;
+						continue;
 					}
-					didSpecifyCompliance = true;
-					this.options.put(CompilerOptions.OPTION_Compliance, CompilerOptions.VERSION_1_3);
-					mode = DEFAULT;
-					continue;
 				}
-				if (currentArg.equals("-1.4")) { //$NON-NLS-1$
+				if (currentArg.equals("-15") || currentArg.equals("-15.0")) { //$NON-NLS-1$ //$NON-NLS-2$
 					if (didSpecifyCompliance) {
 						throw new IllegalArgumentException(
 							this.bind("configure.duplicateCompliance", currentArg)); //$NON-NLS-1$
 					}
 					didSpecifyCompliance = true;
-					this.options.put(CompilerOptions.OPTION_Compliance, CompilerOptions.VERSION_1_4);
+					this.options.put(CompilerOptions.OPTION_Compliance, CompilerOptions.VERSION_15);
 					mode = DEFAULT;
 					continue;
 				}
-				if (currentArg.equals("-1.5") || currentArg.equals("-5") || currentArg.equals("-5.0")) { //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+				if (currentArg.equals("-16") || currentArg.equals("-16.0")) { //$NON-NLS-1$ //$NON-NLS-2$
 					if (didSpecifyCompliance) {
 						throw new IllegalArgumentException(
 							this.bind("configure.duplicateCompliance", currentArg)); //$NON-NLS-1$
 					}
 					didSpecifyCompliance = true;
-					this.options.put(CompilerOptions.OPTION_Compliance, CompilerOptions.VERSION_1_5);
-					mode = DEFAULT;
-					continue;
-				}
-				if (currentArg.equals("-1.6") || currentArg.equals("-6") || currentArg.equals("-6.0")) { //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-					if (didSpecifyCompliance) {
-						throw new IllegalArgumentException(
-							this.bind("configure.duplicateCompliance", currentArg)); //$NON-NLS-1$
-					}
-					didSpecifyCompliance = true;
-					this.options.put(CompilerOptions.OPTION_Compliance, CompilerOptions.VERSION_1_6);
-					mode = DEFAULT;
-					continue;
-				}
-				if (currentArg.equals("-1.7") || currentArg.equals("-7") || currentArg.equals("-7.0")) { //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-					if (didSpecifyCompliance) {
-						throw new IllegalArgumentException(
-							this.bind("configure.duplicateCompliance", currentArg)); //$NON-NLS-1$
-					}
-					didSpecifyCompliance = true;
-					this.options.put(CompilerOptions.OPTION_Compliance, CompilerOptions.VERSION_1_7);
-					mode = DEFAULT;
-					continue;
-				}
-				if (currentArg.equals("-1.8") || currentArg.equals("-8") || currentArg.equals("-8.0")) { //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-					if (didSpecifyCompliance) {
-						throw new IllegalArgumentException(
-							this.bind("configure.duplicateCompliance", currentArg)); //$NON-NLS-1$
-					}
-					didSpecifyCompliance = true;
-					this.options.put(CompilerOptions.OPTION_Compliance, CompilerOptions.VERSION_1_8);
-					mode = DEFAULT;
-					continue;
-				}
-				if (currentArg.equals("-1.9") || currentArg.equals("-9") || currentArg.equals("-9.0")) { //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-					if (didSpecifyCompliance) {
-						throw new IllegalArgumentException(
-							this.bind("configure.duplicateCompliance", currentArg)); //$NON-NLS-1$
-					}
-					didSpecifyCompliance = true;
-					this.options.put(CompilerOptions.OPTION_Compliance, CompilerOptions.VERSION_9);
-					mode = DEFAULT;
-					continue;
-				}
-				if (currentArg.equals("-10") || currentArg.equals("-10.0")) { //$NON-NLS-1$ //$NON-NLS-2$
-					if (didSpecifyCompliance) {
-						throw new IllegalArgumentException(
-							this.bind("configure.duplicateCompliance", currentArg)); //$NON-NLS-1$
-					}
-					didSpecifyCompliance = true;
-					this.options.put(CompilerOptions.OPTION_Compliance, CompilerOptions.VERSION_10);
-					mode = DEFAULT;
-					continue;
-				}
-				if (currentArg.equals("-11") || currentArg.equals("-11.0")) { //$NON-NLS-1$ //$NON-NLS-2$
-					if (didSpecifyCompliance) {
-						throw new IllegalArgumentException(
-							this.bind("configure.duplicateCompliance", currentArg)); //$NON-NLS-1$
-					}
-					didSpecifyCompliance = true;
-					this.options.put(CompilerOptions.OPTION_Compliance, CompilerOptions.VERSION_11);
-					mode = DEFAULT;
-					continue;
-				}
-				if (currentArg.equals("-12") || currentArg.equals("-12.0")) { //$NON-NLS-1$ //$NON-NLS-2$
-					if (didSpecifyCompliance) {
-						throw new IllegalArgumentException(
-							this.bind("configure.duplicateCompliance", currentArg)); //$NON-NLS-1$
-					}
-					didSpecifyCompliance = true;
-					this.options.put(CompilerOptions.OPTION_Compliance, CompilerOptions.VERSION_12);
-					mode = DEFAULT;
-					continue;
-				}
-				if (currentArg.equals("-13") || currentArg.equals("-13.0")) { //$NON-NLS-1$ //$NON-NLS-2$
-					if (didSpecifyCompliance) {
-						throw new IllegalArgumentException(
-							this.bind("configure.duplicateCompliance", currentArg)); //$NON-NLS-1$
-					}
-					didSpecifyCompliance = true;
-					this.options.put(CompilerOptions.OPTION_Compliance, CompilerOptions.VERSION_13);
-					mode = DEFAULT;
-					continue;
-				}
-				if (currentArg.equals("-14") || currentArg.equals("-14.0")) { //$NON-NLS-1$ //$NON-NLS-2$
-					if (didSpecifyCompliance) {
-						throw new IllegalArgumentException(
-							this.bind("configure.duplicateCompliance", currentArg)); //$NON-NLS-1$
-					}
-					didSpecifyCompliance = true;
-					this.options.put(CompilerOptions.OPTION_Compliance, CompilerOptions.VERSION_14);
+					this.options.put(CompilerOptions.OPTION_Compliance, CompilerOptions.VERSION_16);
 					mode = DEFAULT;
 					continue;
 				}
@@ -2428,6 +2375,13 @@ public void configure(String[] argv) {
 					usageSection = "misc.usage.warn"; //$NON-NLS-1$
 					continue;
 				}
+				// AspectJ Extension: Print AspectJ -X options
+				if (currentArg.equals("-X")) { //$NON-NLS-1$
+					printUsageRequired = true;
+					usageSection = "xoption.usage"; //$NON-NLS-1$
+					continue;
+				}
+				// AspectJ Extension: End
 				if (currentArg.equals("-noExit")) { //$NON-NLS-1$
 					this.systemExitWhenFinished = false;
 					mode = DEFAULT;
@@ -2784,39 +2738,18 @@ public void configure(String[] argv) {
 					this.options.put(CompilerOptions.OPTION_TargetPlatform, CompilerOptions.VERSION_1_1);
 				} else if (currentArg.equals("1.2")) { //$NON-NLS-1$
 					this.options.put(CompilerOptions.OPTION_TargetPlatform, CompilerOptions.VERSION_1_2);
-				} else if (currentArg.equals("1.3")) { //$NON-NLS-1$
-					this.options.put(CompilerOptions.OPTION_TargetPlatform, CompilerOptions.VERSION_1_3);
-				} else if (currentArg.equals("1.4")) { //$NON-NLS-1$
-					this.options.put(CompilerOptions.OPTION_TargetPlatform, CompilerOptions.VERSION_1_4);
-				} else if (currentArg.equals("1.5") || currentArg.equals("5") || currentArg.equals("5.0")) { //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
-					this.options.put(CompilerOptions.OPTION_TargetPlatform, CompilerOptions.VERSION_1_5);
-				} else if (currentArg.equals("1.6") || currentArg.equals("6") || currentArg.equals("6.0")) { //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
-					this.options.put(CompilerOptions.OPTION_TargetPlatform, CompilerOptions.VERSION_1_6);
-				} else if (currentArg.equals("1.7") || currentArg.equals("7") || currentArg.equals("7.0")) { //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
-					this.options.put(CompilerOptions.OPTION_TargetPlatform, CompilerOptions.VERSION_1_7);
-				} else if (currentArg.equals("1.8") || currentArg.equals("8") || currentArg.equals("8.0")) { //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
-					this.options.put(CompilerOptions.OPTION_TargetPlatform, CompilerOptions.VERSION_1_8);
-				} else if (currentArg.equals("1.9") || currentArg.equals("9") || currentArg.equals("9.0")) { //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
-					this.options.put(CompilerOptions.OPTION_TargetPlatform, CompilerOptions.VERSION_9);
-				} else if (currentArg.equals("10") || currentArg.equals("10.0")) { //$NON-NLS-1$//$NON-NLS-2$
-					this.options.put(CompilerOptions.OPTION_TargetPlatform, CompilerOptions.VERSION_10);
-				} else if (currentArg.equals("11") || currentArg.equals("11.0")) { //$NON-NLS-1$//$NON-NLS-2$
-					this.options.put(CompilerOptions.OPTION_TargetPlatform, CompilerOptions.VERSION_11);
-				} else if (currentArg.equals("12") || currentArg.equals("12.0")) { //$NON-NLS-1$//$NON-NLS-2$
-					this.options.put(CompilerOptions.OPTION_TargetPlatform, CompilerOptions.VERSION_12);
-				} else if (currentArg.equals("13") || currentArg.equals("13.0")) { //$NON-NLS-1$//$NON-NLS-2$
-					this.options.put(CompilerOptions.OPTION_TargetPlatform, CompilerOptions.VERSION_13);
-				// AspectJ not an AspectJ change but make sure the new versions are in here, argh!
-				} else if (currentArg.equals("14") || currentArg.equals("14.0")) { //$NON-NLS-1$//$NON-NLS-2$
-					this.options.put(CompilerOptions.OPTION_TargetPlatform, CompilerOptions.VERSION_14);
-				}
-				else if (currentArg.equals("jsr14")) { //$NON-NLS-1$
+				} else if (currentArg.equals("jsr14")) { //$NON-NLS-1$
 					this.options.put(CompilerOptions.OPTION_TargetPlatform, CompilerOptions.VERSION_JSR14);
 				} else if (currentArg.equals("cldc1.1")) { //$NON-NLS-1$
 					this.options.put(CompilerOptions.OPTION_TargetPlatform, CompilerOptions.VERSION_CLDC1_1);
 					this.options.put(CompilerOptions.OPTION_InlineJsr, CompilerOptions.ENABLED);
-				}else {
-					throw new IllegalArgumentException(this.bind("configure.targetJDK", currentArg)); //$NON-NLS-1$
+				} else {
+					String version = optionStringToVersion(currentArg);
+					if (version != null) {
+						this.options.put(CompilerOptions.OPTION_TargetPlatform, version);
+					} else {
+						throw new IllegalArgumentException(this.bind("configure.targetJDK", currentArg)); //$NON-NLS-1$
+					}
 				}
 				mode = DEFAULT;
 				continue;
@@ -2849,7 +2782,7 @@ public void configure(String[] argv) {
 				continue;
 			case INSIDE_RELEASE:
 				// If release is < 9, the following are disallowed:
-				// bootclasspath, -Xbootclasspath, -Xbootclasspath/a:, -Xbootclasspath/p:, 
+				// bootclasspath, -Xbootclasspath, -Xbootclasspath/a:, -Xbootclasspath/p:,
 				// -endorseddirs, -Djava.endorsed.dirs, -extdirs, -Djava.ext.dirs
 
 				// If release >= 9, the following are disallowed
@@ -2880,30 +2813,9 @@ public void configure(String[] argv) {
 							this.bind("configure.unsupportedWithRelease", "-source"));//$NON-NLS-1$ //$NON-NLS-2$
 				}
 				this.didSpecifySource = true;
-				if (currentArg.equals("1.3")) { //$NON-NLS-1$
-					this.options.put(CompilerOptions.OPTION_Source, CompilerOptions.VERSION_1_3);
-				} else if (currentArg.equals("1.4")) { //$NON-NLS-1$
-					this.options.put(CompilerOptions.OPTION_Source, CompilerOptions.VERSION_1_4);
-				} else if (currentArg.equals("1.5") || currentArg.equals("5") || currentArg.equals("5.0")) { //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
-					this.options.put(CompilerOptions.OPTION_Source, CompilerOptions.VERSION_1_5);
-				} else if (currentArg.equals("1.6") || currentArg.equals("6") || currentArg.equals("6.0")) { //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
-					this.options.put(CompilerOptions.OPTION_Source, CompilerOptions.VERSION_1_6);
-				} else if (currentArg.equals("1.7") || currentArg.equals("7") || currentArg.equals("7.0")) { //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
-					this.options.put(CompilerOptions.OPTION_Source, CompilerOptions.VERSION_1_7);
-				} else if (currentArg.equals("1.8") || currentArg.equals("8") || currentArg.equals("8.0")) { //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
-					this.options.put(CompilerOptions.OPTION_Source, CompilerOptions.VERSION_1_8);
-				} else if (currentArg.equals("1.9") || currentArg.equals("9") || currentArg.equals("9.0")) { //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
-					this.options.put(CompilerOptions.OPTION_Source, CompilerOptions.VERSION_9);
-				} else if (currentArg.equals("10") ||  currentArg.equals("10.0")) { //$NON-NLS-1$//$NON-NLS-2$
-					this.options.put(CompilerOptions.OPTION_Source, CompilerOptions.VERSION_10);
-				} else if (currentArg.equals("11") ||  currentArg.equals("11.0")) { //$NON-NLS-1$//$NON-NLS-2$
-					this.options.put(CompilerOptions.OPTION_Source, CompilerOptions.VERSION_11);
-				} else if (currentArg.equals("12") ||  currentArg.equals("12.0")) { //$NON-NLS-1$//$NON-NLS-2$
-					this.options.put(CompilerOptions.OPTION_Source, CompilerOptions.VERSION_12);
-				} else if (currentArg.equals("13") ||  currentArg.equals("13.0")) { //$NON-NLS-1$//$NON-NLS-2$
-					this.options.put(CompilerOptions.OPTION_Source, CompilerOptions.VERSION_13);
-				} else if (currentArg.equals("14") ||  currentArg.equals("14.0")) { //$NON-NLS-1$//$NON-NLS-2$
-					this.options.put(CompilerOptions.OPTION_Source, CompilerOptions.VERSION_14);
+				String version = optionStringToVersion(currentArg);
+				if (version != null) {
+					this.options.put(CompilerOptions.OPTION_Source, version);
 				} else {
 					throw new IllegalArgumentException(this.bind("configure.source", currentArg)); //$NON-NLS-1$
 				}
@@ -3097,9 +3009,9 @@ public void configure(String[] argv) {
 				}
 				continue;
 		}
-		
+
 		// default is input directory, if no custom destination path exists
-		// AspectJ Extension 
+		// AspectJ Extension
 		// see pr 60863.  All directories should have been dealt with at the AspectJ layer - if we have left
 		// anything to be processed here it is an error.
 		throw new IllegalArgumentException("unrecognized single argument: \""+currentArg+"\"");
@@ -3177,13 +3089,10 @@ public void configure(String[] argv) {
 			customDestinationPath = null;
 			currentSourceDirectory = null;
 		}
-		// MERGECONFLICT!!
-		throw new IllegalStateException(
-			    "unrecognized single argument: \""+currentArg+"\"");
-//		mode = DEFAULT;
-//		continue;
+		mode = DEFAULT;
+		continue;
  * */
- 
+
 	}
 	if (this.enablePreview) {
 		this.options.put(
@@ -3225,28 +3134,6 @@ public void configure(String[] argv) {
 			CompilerOptions.OPTION_ReportMissingJavadocTagsVisibility,
 			CompilerOptions.PRIVATE);
 	}
-//	// AspectJ Extension
-//    // old code:
-//    // if (printUsageRequired || (filesCount == 0 && classCount == 0)) {
-//    // new code:
-//	if (printUsageRequired || hasNoFiles(filesCount)) { // AspectJ Extension
-//    // End AspectJ Extension
-//			printUsage();
-//		if (usageSection ==  null) {
-//			printUsage(); // default
-//		} else {
-//			printUsage(usageSection);
-//		}
-//		this.proceed = false;
-//		return;
-//	}
-//	// AspectJ Extension
-//    // old code:
-//    // if (printUsageRequired || (filesCount == 0 && classCount == 0)) {
-//    // new code:
-//	if (printUsageRequired || hasNoFiles(filesCount)) { // AspectJ Extension
-//    // End AspectJ Extension
-		
 	if (printUsageRequired) { // AspectJ Extension remove trailing condition || (filesCount == 0 && classCount == 0)) {
 		if (usageSection ==  null) {
 			printUsage(); // default
@@ -3324,7 +3211,57 @@ public void configure(String[] argv) {
 		this.pendingErrors = null;
 	}
 }
-
+/** Translates any supported standard version starting at 1.3 up-to latest into the corresponding constant from CompilerOptions */
+@SuppressWarnings("nls")
+private String optionStringToVersion(String currentArg) {
+	switch (currentArg) {
+		case "1.3": return CompilerOptions.VERSION_1_3;
+		case "1.4": return CompilerOptions.VERSION_1_4;
+		case "1.5":
+		case "5":
+		case "5.0":
+			return CompilerOptions.VERSION_1_5;
+		case "1.6":
+		case "6":
+		case "6.0":
+			return CompilerOptions.VERSION_1_6;
+		case "1.7":
+		case "7":
+		case "7.0":
+			return CompilerOptions.VERSION_1_7;
+		case "1.8":
+		case "8":
+		case "8.0":
+			return CompilerOptions.VERSION_1_8;
+		case "1.9":
+		case "9":
+		case "9.0":
+			return CompilerOptions.VERSION_9;
+		case "10":
+		case "10.0":
+			return CompilerOptions.VERSION_10;
+		case "11":
+		case "11.0":
+			return CompilerOptions.VERSION_11;
+		case "12":
+		case "12.0":
+			return CompilerOptions.VERSION_12;
+		case "13":
+		case "13.0":
+			return CompilerOptions.VERSION_13;
+		case "14":
+		case "14.0":
+			return CompilerOptions.VERSION_14;
+		case "15":
+		case "15.0":
+			return CompilerOptions.VERSION_15;
+		case "16":
+		case "16.0":
+			return CompilerOptions.VERSION_16;
+		default:
+			return null;
+	}
+}
 private String validateModuleVersion(String versionString) {
 	try {
 		Class<?> versionClass = Class.forName("java.lang.module.ModuleDescriptor$Version"); //$NON-NLS-1$
@@ -3352,7 +3289,7 @@ public IModule getModuleDesc(String moduleArgument) {
 }
 // End AspectJ Extension
 private Parser getNewParser() {
-	return new Parser(new ProblemReporter(getHandlingPolicy(), 
+	return new Parser(new ProblemReporter(getHandlingPolicy(),
 			new CompilerOptions(this.options), getProblemFactory()), false);
 }
 private IModule extractModuleDesc(String fileName) {
@@ -3361,10 +3298,10 @@ private IModule extractModuleDesc(String fileName) {
 	// validated. Make sure the source level is set for the parser
 	Map<String,String> opts = new HashMap<String, String>(this.options);
 	opts.put(CompilerOptions.OPTION_Source, this.options.get(CompilerOptions.OPTION_Compliance));
-	Parser parser = new Parser(new ProblemReporter(getHandlingPolicy(), 
+	Parser parser = new Parser(new ProblemReporter(getHandlingPolicy(),
 			new CompilerOptions(opts), getProblemFactory()), false);
 	if (fileName.toLowerCase().endsWith(IModule.MODULE_INFO_JAVA)) {
-		
+
 		ICompilationUnit cu = new CompilationUnit(null, fileName, null);
 		CompilationResult compilationResult = new CompilationResult(cu, 0, 1, 10);
 		CompilationUnitDeclaration unit = parser.parse(cu, compilationResult);
@@ -3386,24 +3323,33 @@ private IModule extractModuleDesc(String fileName) {
 
 private static char[][] decodeIgnoreOptionalProblemsFromFolders(String folders) {
 	StringTokenizer tokenizer = new StringTokenizer(folders, File.pathSeparator);
-	char[][] result = new char[tokenizer.countTokens()][];
+	char[][] result = new char[2 * tokenizer.countTokens()][];
 	int count = 0;
 	while (tokenizer.hasMoreTokens()) {
 		String fileName = tokenizer.nextToken();
 		// relative folder names are created relative to the current user dir
 		File file = new File(fileName);
 		if (file.exists()) {
+			String absolutePath = file.getAbsolutePath();
+			result[count++] = absolutePath.toCharArray();
 			// if the file exists, we should try to use its canonical path
 			try {
-				result[count++] = file.getCanonicalPath().toCharArray();
+				String canonicalPath = file.getCanonicalPath();
+				if (!absolutePath.equals(canonicalPath)) {
+					result[count++] = canonicalPath.toCharArray();
+				}
 			} catch (IOException e) {
-				// if we got exception during canonicalization, fall back to the name that was specified
-				result[count++] = fileName.toCharArray();
+				// ignore
 			}
 		} else {
 			// if the file does not exist, use the name that was specified
 			result[count++] = fileName.toCharArray();
 		}
+	}
+	if (count < result.length) {
+		char[][] shortened = new char[count][];
+		System.arraycopy(result, 0, shortened, 0, count);
+		result = shortened;
 	}
 	return result;
 }
@@ -3487,7 +3433,7 @@ protected void enableAll(int severity) {
 	this.options.put(CompilerOptions.OPTION_TaskTags, Util.EMPTY_STRING);
 	if (newValue != null) {
 		this.options.remove(newValue);
-}
+	}
 }
 protected void disableAll(int severity) {
 	String checkedValue = null;
@@ -3547,7 +3493,7 @@ public CompilationUnit[] getCompilationUnits() {
 	String defaultEncoding = this.options.get(CompilerOptions.OPTION_Encoding);
 	if (Util.EMPTY_STRING.equals(defaultEncoding))
 		defaultEncoding = null;
-	
+
 	for (int round = 0; round < 2; round++) {
 		for (int i = 0; i < fileCount; i++) {
 			char[] charName = this.filenames[i].toCharArray();
@@ -3569,9 +3515,28 @@ public CompilationUnit[] getCompilationUnits() {
 					// if we got exception during canonicalization, fall back to the name that was specified
 					fileName = this.filenames[i];
 				}
+				Function<String,String> annotationPathProvider = null;
+				if (this.annotationsFromClasspath) {
+					annotationPathProvider = (String qualifiedTypeName) -> {
+						for (Classpath classpathEntry : this.checkedClasspaths) {
+							if (classpathEntry.hasAnnotationFileFor(qualifiedTypeName.replace('.', '/')))
+								return classpathEntry.getPath();
+						}
+						return null;
+					};
+				} else if (this.annotationPaths != null) {
+					annotationPathProvider = (String qualifiedTypeName) -> {
+						String eeaFileName = '/'+qualifiedTypeName.replace('.', '/')+ExternalAnnotationProvider.ANNOTATION_FILE_SUFFIX;
+						for (String annotationPath : this.annotationPaths) {
+							if (new File(annotationPath+eeaFileName).exists())
+								return annotationPath;
+						}
+						return null;
+					};
+				}
 				units[i] = new CompilationUnit(null, fileName, encoding, this.destinationPaths[i],
-						shouldIgnoreOptionalProblems(this.ignoreOptionalProblemsFromFolders, fileName.toCharArray()), 
-						this.modNames[i]);
+						shouldIgnoreOptionalProblems(this.ignoreOptionalProblemsFromFolders, fileName.toCharArray()),
+						this.modNames[i], annotationPathProvider);
 			}
 		}
 	}
@@ -3602,8 +3567,8 @@ public IErrorHandlingPolicy getHandlingPolicy() {
 private void setJavaHome(String javaHome) {
 	File release = new File(javaHome, "release"); //$NON-NLS-1$
 	Properties prop = new Properties();
-	try {
-		prop.load(new FileReader(release));
+	try (FileReader reader = new FileReader(release)) {
+		prop.load(reader);
 		String ver = prop.getProperty("JAVA_VERSION"); //$NON-NLS-1$
 		if (ver != null)
 			ver = ver.replace("\"", "");  //$NON-NLS-1$//$NON-NLS-2$
@@ -3625,7 +3590,7 @@ public File getJavaHome() {
 }
 
 public FileSystem getLibraryAccess() {
-	FileSystem nameEnvironment = new FileSystem(this.checkedClasspaths, this.filenames, 
+	FileSystem nameEnvironment = new FileSystem(this.checkedClasspaths, this.filenames,
 					this.annotationsFromClasspath && CompilerOptions.ENABLED.equals(this.options.get(CompilerOptions.OPTION_AnnotationBasedNullAnalysis)),
 					this.limitedModules);
 	nameEnvironment.module = this.module;
@@ -3947,7 +3912,7 @@ protected ArrayList<FileSystem.Classpath> handleExtdirs(ArrayList<String> extdir
 				}
 			}
 		}
-		return result; 
+		return result;
 	}
 
 	return FileSystem.EMPTY_CLASSPATH;
@@ -4137,7 +4102,7 @@ private void handleErrorOrWarningToken(String token, boolean isEnabling, int sev
 						default: // no severity update
 					}
 				}
-				this.options.put(CompilerOptions.OPTION_ReportMissingEnumCaseDespiteDefault, 
+				this.options.put(CompilerOptions.OPTION_ReportMissingEnumCaseDespiteDefault,
 								 isEnabling ? CompilerOptions.ENABLED : CompilerOptions.DISABLED);
 				return;
 			} else if (token.equals("emptyBlock")) {//$NON-NLS-1$
@@ -4449,10 +4414,10 @@ private void handleErrorOrWarningToken(String token, boolean isEnabling, int sev
 				setSeverity(CompilerOptions.OPTION_ReportNonnullParameterAnnotationDropped, severity, isEnabling);
 				return;
 			}
-			
+
 			break;
 		case 'o' :
-			if (token.equals("over-sync") /*|| token.equals("syncOverride")*/) { //$NON-NLS-1$ 
+			if (token.equals("over-sync") /*|| token.equals("syncOverride")*/) { //$NON-NLS-1$
 				setSeverity(CompilerOptions.OPTION_ReportMissingSynchronizedOnInheritedMethod, severity, isEnabling);
 				return;
 			} else if (token.equals("over-ann")) { //$NON-NLS-1$
@@ -4507,7 +4472,7 @@ private void handleErrorOrWarningToken(String token, boolean isEnabling, int sev
 			} else if (token.equals("staticReceiver")) { //$NON-NLS-1$
 				setSeverity(CompilerOptions.OPTION_ReportNonStaticAccessToStatic, severity, isEnabling);
 				return;
-			} else 	if (/*token.equals("over-sync") ||*/ token.equals("syncOverride")) { //$NON-NLS-1$ 
+			} else 	if (/*token.equals("over-sync") ||*/ token.equals("syncOverride")) { //$NON-NLS-1$
 				setSeverity(CompilerOptions.OPTION_ReportMissingSynchronizedOnInheritedMethod, severity, isEnabling);
 				return;
 			} else if (token.equals("semicolon")) {//$NON-NLS-1$
@@ -4570,7 +4535,7 @@ private void handleErrorOrWarningToken(String token, boolean isEnabling, int sev
 				this.options.put(
 					CompilerOptions.OPTION_TaskTags,
 					isEnabling ? taskTags : Util.EMPTY_STRING);
-				
+
 				setSeverity(CompilerOptions.OPTION_ReportTasks, severity, isEnabling);
 				return;
 			} else if (token.equals("typeHiding")) { //$NON-NLS-1$
@@ -4912,7 +4877,7 @@ public void printUsage() {
 	printUsage("misc.usage"); //$NON-NLS-1$
 }
 private void printUsage(String sectionID) {
-	this.logger.logUsage(
+	String usageMessage = ( // AspectJ: assign usage message to variable, so we can patch it
 		this.bind(
 			sectionID,
 			new String[] {
@@ -4921,6 +4886,24 @@ private void printUsage(String sectionID) {
 				this.bind("compiler.version"), //$NON-NLS-1$
 				this.bind("compiler.copyright") //$NON-NLS-1$
 			}));
+	// AspectJ Extension
+	if (sectionID.equals("misc.usage")) {
+		String aspectJSpecificOptions = this.bind("misc.usage.aspectj"); //$NON-NLS-1$
+		StringBuilder buffer = new StringBuilder(usageMessage.length() + aspectJSpecificOptions.length());
+		for (String line : usageMessage.split("\n")) {
+			// Patch AspectJ-specific compiler options into usage message
+			if (line.contains("Classpath options:"))
+				buffer.append(aspectJSpecificOptions);
+			// Remove information that "-X" is an ignored option
+			if (!line.contains("-X") && !line.contains("print non-standard options and exit (ignored)"))
+				buffer.append(line).append('\n');
+		}
+		usageMessage = buffer.toString();
+	}
+	// Remove repetitive whitespace lines, e.g. when the copyright is an empty string on a separate line
+	usageMessage = usageMessage.replaceAll("([ \t]*\r?\n){2,}", "\n\n");
+	this.logger.logUsage(usageMessage);
+	// End AspectJ Extension
 	this.logger.flush();
 }
 // AspectJ: from private to protected
@@ -5327,6 +5310,7 @@ public void relocalize() {
 }
 
 private void relocalize(Locale locale) {
+	locale = aspectjLocale;  // AspectJ: Set fixed 'aspectj' locale
 	this.compilerLocale = locale;
 	try {
 		this.bundle = ResourceBundleFactory.getBundle(locale);
@@ -5427,7 +5411,7 @@ protected void setPaths(ArrayList<String> bootclasspaths,
 		}
 	}
 }
-protected final static boolean shouldIgnoreOptionalProblems(char[][] folderNames, char[] fileName) {
+public final static boolean shouldIgnoreOptionalProblems(char[][] folderNames, char[] fileName) {
 	if (folderNames == null || fileName == null) {
 		return false;
 	}

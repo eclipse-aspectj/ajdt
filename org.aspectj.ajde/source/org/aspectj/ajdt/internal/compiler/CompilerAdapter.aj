@@ -11,10 +11,10 @@
  * ******************************************************************/
 package org.aspectj.ajdt.internal.compiler;
 
-import org.aspectj.org.eclipse.jdt.internal.compiler.Compiler;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
-import org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit;
-import org.aspectj.org.eclipse.jdt.internal.compiler.problem.AbortCompilation;
+import org.eclipse.jdt.internal.compiler.Compiler;
+import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
+import org.eclipse.jdt.internal.compiler.env.ICompilationUnit;
+import org.eclipse.jdt.internal.compiler.problem.AbortCompilation;
 
 import java.util.Stack;
 

@@ -165,11 +165,10 @@ public final class Method extends FieldOrMethod {
 		signature = Utility.methodSignatureToString(signature, name, access, true, getLocalVariableTable());
 		buf = new StringBuffer(signature);
 
-		for (int i = 0; i < attributes.length; i++) {
-			Attribute a = attributes[i];
-			if (!((a instanceof Code) || (a instanceof ExceptionTable)))
-				buf.append(" [" + a.toString() + "]");
-		}
+        for (Attribute a : attributes) {
+            if (!((a instanceof Code) || (a instanceof ExceptionTable)))
+                buf.append(" [" + a.toString() + "]");
+        }
 
 		ExceptionTable e = getExceptionTable();
 		if (e != null) {
@@ -212,19 +211,19 @@ public final class Method extends FieldOrMethod {
 		// Find attributes that contain annotation data
 		Attribute[] attrs = getAttributes();
 
-		for (int i = 0; i < attrs.length; i++) {
-			Attribute attribute = attrs[i];
-			if (attribute instanceof RuntimeVisParamAnnos) {
-				parameterAnnotationsVis = (RuntimeVisParamAnnos) attribute;
-			} else if (attribute instanceof RuntimeInvisParamAnnos) {
-				parameterAnnotationsInvis = (RuntimeInvisParamAnnos) attribute;
-			}
-		}
+        for (Attribute attribute : attrs) {
+            if (attribute instanceof RuntimeVisParamAnnos) {
+                parameterAnnotationsVis = (RuntimeVisParamAnnos) attribute;
+            }
+            else if (attribute instanceof RuntimeInvisParamAnnos) {
+                parameterAnnotationsInvis = (RuntimeInvisParamAnnos) attribute;
+            }
+        }
 
 		boolean foundSome = false;
 		// Build a list of annotation arrays, one per argument
 		if (parameterAnnotationsInvis != null || parameterAnnotationsVis != null) {
-			List<AnnotationGen[]> annotationsForEachParameter = new ArrayList<AnnotationGen[]>();
+			List<AnnotationGen[]> annotationsForEachParameter = new ArrayList<>();
 			AnnotationGen[] visibleOnes = null;
 			AnnotationGen[] invisibleOnes = null;
 			for (int i = 0; i < parameterCount; i++) {

@@ -162,16 +162,12 @@ public class BcelTypeMunger extends ConcreteTypeMunger {
 								thisAspect.getClassName());
 						Map<String, List<String>> declareParentsMap = thisAspectNode.getDeclareParentsMap();
 						if (declareParentsMap == null) {
-							declareParentsMap = new HashMap<String, List<String>>();
+							declareParentsMap = new HashMap<>();
 							thisAspectNode.setDeclareParentsMap(declareParentsMap);
 						}
 						String tname = target.getName();
 						String pname = newParent.getName();
-						List<String> newparents = declareParentsMap.get(tname);
-						if (newparents == null) {
-							newparents = new ArrayList<String>();
-							declareParentsMap.put(tname, newparents);
-						}
+						List<String> newparents = declareParentsMap.computeIfAbsent(tname, k -> new ArrayList<>());
 						newparents.add(pname);
 						AsmRelationshipProvider.addRelationship(model, weaver.getLazyClassGen().getType(), munger, declaringAspect);
 					}
@@ -185,7 +181,7 @@ public class BcelTypeMunger extends ConcreteTypeMunger {
 		// TAG: WeavingMessage
 		if (changed && worthReporting && munger != null && !weaver.getWorld().getMessageHandler().isIgnoring(IMessage.WEAVEINFO)) {
 			String tName = weaver.getLazyClassGen().getType().getSourceLocation().getSourceFile().getName();
-			if (tName.indexOf("no debug info available") != -1) {
+			if (tName.contains("no debug info available")) {
 				tName = "no debug info available";
 			} else {
 				tName = getShortname(weaver.getLazyClassGen().getType().getSourceLocation().getSourceFile().getPath());
@@ -672,8 +668,7 @@ public class BcelTypeMunger extends ConcreteTypeMunger {
 				addMethodDispatch(gen, member, AjcMemberMaker.privilegedAccessMethodForMethod(aspectType, member));
 				return true;
 			} else if (member.getKind() == Member.CONSTRUCTOR) {
-				for (Iterator<LazyMethodGen> i = gen.getMethodGens().iterator(); i.hasNext();) {
-					LazyMethodGen m = i.next();
+				for (LazyMethodGen m : gen.getMethodGens()) {
 					if (m.getMemberView() != null && m.getMemberView().getKind() == Member.CONSTRUCTOR) {
 						// m.getMemberView().equals(member)) {
 						m.forcePublic();
@@ -743,8 +738,7 @@ public class BcelTypeMunger extends ConcreteTypeMunger {
 			il.append(InstructionConstants.ALOAD_0);
 			pos++;
 		}
-		for (int i = 0, len = paramTypes.length; i < len; i++) {
-			Type paramType = paramTypes[i];
+		for (Type paramType : paramTypes) {
 			il.append(InstructionFactory.createLoad(paramType, pos));
 			pos += paramType.getSize();
 		}
@@ -935,7 +929,7 @@ public class BcelTypeMunger extends ConcreteTypeMunger {
 				} else {
 					annotationsOnRealMember = realMember.getAnnotations();
 				}
-				Set<ResolvedType> addedAnnotations = new HashSet<ResolvedType>();
+				Set<ResolvedType> addedAnnotations = new HashSet<>();
 				if (annotationsOnRealMember != null) {
 					for (AnnotationAJ anno : annotationsOnRealMember) {
 						AnnotationGen a = ((BcelAnnotation) anno).getBcelAnnotation();
@@ -975,8 +969,7 @@ public class BcelTypeMunger extends ConcreteTypeMunger {
 					pos++;
 				}
 				Type[] paramTypes = BcelWorld.makeBcelTypes(mangledInterMethod.getParameterTypes());
-				for (int i = 0, len = paramTypes.length; i < len; i++) {
-					Type paramType = paramTypes[i];
+				for (Type paramType : paramTypes) {
 					body.append(InstructionFactory.createLoad(paramType, pos));
 					pos += paramType.getSize();
 				}
@@ -1111,8 +1104,7 @@ public class BcelTypeMunger extends ConcreteTypeMunger {
 					body.append(InstructionFactory.createThis());
 					pos++;
 				}
-				for (int i = 0, len = paramTypes.length; i < len; i++) {
-					Type paramType = paramTypes[i];
+				for (Type paramType : paramTypes) {
 					body.append(InstructionFactory.createLoad(paramType, pos));
 					pos += paramType.getSize();
 				}
@@ -1266,8 +1258,7 @@ public class BcelTypeMunger extends ConcreteTypeMunger {
 		// Step1
 		boolean alreadyDone = false; // Compiler might have done it
 		ResolvedMember[] localMethods = onType.getDeclaredMethods();
-		for (int i = 0; i < localMethods.length; i++) {
-			ResolvedMember member = localMethods[i];
+		for (ResolvedMember member : localMethods) {
 			if (member.getName().equals(localMethodName)) {
 				// Check the params
 				if (member.getParameterSignature().equals(localParameterSig)) {
@@ -1327,8 +1318,7 @@ public class BcelTypeMunger extends ConcreteTypeMunger {
 			body.append(InstructionFactory.createThis());
 			pos++;
 		}
-		for (int i = 0, len = paramTypes.length; i < len; i++) {
-			Type paramType = paramTypes[i];
+		for (Type paramType : paramTypes) {
 			body.append(InstructionFactory.createLoad(paramType, pos));
 			// if (!bridgingSetter.getParameterTypes()[i].getErasureSignature().
 			// equals
@@ -1510,8 +1500,7 @@ public class BcelTypeMunger extends ConcreteTypeMunger {
 				pos++;
 			}
 			Type[] paramTypes = BcelWorld.makeBcelTypes(introduced.getParameterTypes());
-			for (int i = 0, len = paramTypes.length; i < len; i++) {
-				Type paramType = paramTypes[i];
+			for (Type paramType : paramTypes) {
 				body.append(InstructionFactory.createLoad(paramType, pos));
 				pos += paramType.getSize();
 			}
@@ -1695,8 +1684,7 @@ public class BcelTypeMunger extends ConcreteTypeMunger {
 				annotationsOnRealMember = realMember.getAnnotations();
 			}
 			if (annotationsOnRealMember != null) {
-				for (int i = 0; i < annotationsOnRealMember.length; i++) {
-					AnnotationAJ annotationX = annotationsOnRealMember[i];
+				for (AnnotationAJ annotationX : annotationsOnRealMember) {
 					AnnotationGen a = ((BcelAnnotation) annotationX).getBcelAnnotation();
 					AnnotationGen ag = new AnnotationGen(a, weaver.getLazyClassGen().getConstantPool(), true);
 					mg.addAnnotation(new BcelAnnotation(ag, weaver.getWorld()));
@@ -1706,8 +1694,7 @@ public class BcelTypeMunger extends ConcreteTypeMunger {
 			// case where an aspect declares an annotation
 			// on an ITD it declared on itself.
 			List<DeclareAnnotation> allDecams = weaver.getWorld().getDeclareAnnotationOnMethods();
-			for (Iterator<DeclareAnnotation> i = allDecams.iterator(); i.hasNext();) {
-				DeclareAnnotation decaMC = i.next();
+			for (DeclareAnnotation decaMC : allDecams) {
 				if (decaMC.matches(explicitConstructor, weaver.getWorld()) && mg.getEnclosingClass().getType() == aspectType) {
 					mg.addAnnotation(decaMC.getAnnotation());
 				}
@@ -1818,8 +1805,7 @@ public class BcelTypeMunger extends ConcreteTypeMunger {
 
 		body.append(InstructionFactory.createThis());
 		pos++;
-		for (int i = 0, len = paramTypes.length; i < len; i++) {
-			Type paramType = paramTypes[i];
+		for (Type paramType : paramTypes) {
 			body.append(InstructionFactory.createLoad(paramType, pos));
 			pos += paramType.getSize();
 		}
@@ -1893,8 +1879,7 @@ public class BcelTypeMunger extends ConcreteTypeMunger {
 				FieldGen fg = makeFieldGen(gen, newField);
 
 				if (annotationsOnRealMember != null) {
-					for (int i = 0; i < annotationsOnRealMember.length; i++) {
-						AnnotationAJ annotationX = annotationsOnRealMember[i];
+					for (AnnotationAJ annotationX : annotationsOnRealMember) {
 						AnnotationGen a = ((BcelAnnotation) annotationX).getBcelAnnotation();
 						AnnotationGen ag = new AnnotationGen(a, weaver.getLazyClassGen().getConstantPool(), true);
 						fg.addAnnotation(ag);
@@ -1941,8 +1926,7 @@ public class BcelTypeMunger extends ConcreteTypeMunger {
 				weaver.addInitializer(this);
 				FieldGen fg = makeFieldGen(gen,newField);
 				if (annotationsOnRealMember != null) {
-					for (int i = 0; i < annotationsOnRealMember.length; i++) {
-						AnnotationAJ annotationX = annotationsOnRealMember[i];
+					for (AnnotationAJ annotationX : annotationsOnRealMember) {
 						AnnotationGen a = ((BcelAnnotation) annotationX).getBcelAnnotation();
 						AnnotationGen ag = new AnnotationGen(a, weaver.getLazyClassGen().getConstantPool(), true);
 						fg.addAnnotation(ag);
@@ -2078,7 +2062,7 @@ public class BcelTypeMunger extends ConcreteTypeMunger {
 	}
 
 	/**
-	 * Returns a list of type variable aliases used in this munger. For example, if the ITD is 'int I<A,B>.m(List<A> las,List<B>
+	 * Returns a list of type variable aliases used in this munger. For example, if the ITD is 'int I&lt;A,B&gt;.m(List&lt;A&gt; las,List&lt;B&gt;
 	 * lbs) {}' then this returns a list containing the strings "A" and "B".
 	 */
 	public List<String> getTypeVariableAliases() {

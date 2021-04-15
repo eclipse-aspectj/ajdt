@@ -62,7 +62,6 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.AbstractMap;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -96,7 +95,7 @@ public class NonCachingClassLoaderRepository implements Repository {
 		}
 
 		public SoftHashMap() {
-			this(new HashMap<Object,SpecialValue>());
+			this(new HashMap<>());
 		}
 
 		public SoftHashMap(Map<Object,SpecialValue> map, boolean b) {
@@ -148,8 +147,7 @@ public class NonCachingClassLoaderRepository implements Repository {
 		public void clear() {
 			processQueue();
 			Set<Object> keys = map.keySet();
-			for (Iterator<Object> iterator = keys.iterator(); iterator.hasNext();) {
-				Object name = iterator.next();
+			for (Object name : keys) {
 				map.remove(name);
 			}
 		}
@@ -212,11 +210,7 @@ public class NonCachingClassLoaderRepository implements Repository {
 	 */
 	public JavaClass findClass(String className) {
 		synchronized (loadedClasses) {
-			if (loadedClasses.containsKey(className)) {
-				return loadedClasses.get(className);
-			} else {
-				return null;
-			}
+			return loadedClasses.getOrDefault(className, null);
 		}
 	}
 

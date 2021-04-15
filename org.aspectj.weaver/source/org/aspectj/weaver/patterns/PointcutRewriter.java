@@ -252,9 +252,7 @@ public class PointcutRewriter {
 		}
 		// otherwise ...
 		Pointcut[] subset = new Pointcut[ps.length - 1];
-		for (int i = 1; i < ps.length; i++) {
-			subset[i - 1] = ps[i];
-		}
+		if (ps.length - 1 >= 0) System.arraycopy(ps, 1, subset, 0, ps.length - 1);
 		return new AndPointcut(ps[0], createAndsFor(subset));
 	}
 
@@ -327,11 +325,10 @@ public class PointcutRewriter {
 	}
 
 	private Pointcut simplifyAnd(AndPointcut apc) {
-		SortedSet<Pointcut> nodes = new TreeSet<Pointcut>(new PointcutEvaluationExpenseComparator());
+		SortedSet<Pointcut> nodes = new TreeSet<>(new PointcutEvaluationExpenseComparator());
 		collectAndNodes(apc, nodes);
 		// look for A and !A, or IfFalse
-		for (Iterator<Pointcut> iter = nodes.iterator(); iter.hasNext();) {
-			Pointcut element = iter.next();
+		for (Pointcut element : nodes) {
 			if (element instanceof NotPointcut) {
 				Pointcut body = ((NotPointcut) element).getNegatedPointcut();
 				if (nodes.contains(body)) {
@@ -362,7 +359,7 @@ public class PointcutRewriter {
 	}
 
 	private Pointcut sortOrs(Pointcut pc) {
-		SortedSet<Pointcut> nodes = new TreeSet<Pointcut>(new PointcutEvaluationExpenseComparator());
+		SortedSet<Pointcut> nodes = new TreeSet<>(new PointcutEvaluationExpenseComparator());
 		collectOrNodes(pc, nodes);
 		// write out with cheapest on left
 		Iterator<Pointcut> iter = nodes.iterator();

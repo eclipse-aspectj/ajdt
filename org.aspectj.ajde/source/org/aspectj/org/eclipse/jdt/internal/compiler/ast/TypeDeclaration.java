@@ -8,7 +8,7 @@
  * https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann - Contributions for
@@ -24,6 +24,13 @@
  *                              Bug 546084 - Using Junit 5s MethodSource leads to ClassCastException
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.*;
@@ -67,7 +74,7 @@ public class TypeDeclaration extends Statement implements ProblemSeverities, Ref
 	public int maxFieldCount;
 	public int declarationSourceStart;
 	public int declarationSourceEnd;
-	public int restrictedIdentifierStart; // used only for records
+	public int restrictedIdentifierStart = -1; // used only for record and permits restricted keywords.
 	public int bodyStart;
 	public int bodyEnd; // doesn't include the trailing comment if any.
 	public CompilationResult compilationResult;
@@ -82,6 +89,26 @@ public class TypeDeclaration extends Statement implements ProblemSeverities, Ref
 
 	// 1.5 support
 	public TypeParameter[] typeParameters;
+
+	// 14 Records preview support
+	public RecordComponent[] recordComponents;
+	public int nRecordComponents;
+	public static Set<String> disallowedComponentNames;
+
+	// 15 Sealed Type preview support
+	public TypeReference[] permittedTypes;
+
+	static {
+		disallowedComponentNames = new HashSet<>(6);
+		disallowedComponentNames.add("clone"); //$NON-NLS-1$
+		disallowedComponentNames.add("finalize"); //$NON-NLS-1$
+		disallowedComponentNames.add("getClass"); //$NON-NLS-1$
+		disallowedComponentNames.add("hashCode"); //$NON-NLS-1$
+		disallowedComponentNames.add("notify");   //$NON-NLS-1$
+		disallowedComponentNames.add("notifyAll");//$NON-NLS-1$
+		disallowedComponentNames.add("toString"); //$NON-NLS-1$
+		disallowedComponentNames.add("wait"); //$NON-NLS-1$
+	}
 
 public TypeDeclaration(CompilationResult compilationResult){
 	this.compilationResult = compilationResult;
@@ -327,7 +354,94 @@ public CompilationResult compilationResult() {
 	return this.compilationResult;
 }
 
+
+public ConstructorDeclaration createDefaultConstructorForRecord(boolean needExplicitConstructorCall, boolean needToInsert) {
+	//Add to method'set, the default constuctor that just recall the
+	//super constructor with no arguments
+	//The arguments' type will be positionned by the TC so just use
+	//the default int instead of just null (consistency purpose)
+
+	ConstructorDeclaration constructor = new ConstructorDeclaration(this.compilationResult);
+	constructor.bits |= ASTNode.IsCanonicalConstructor | ASTNode.IsImplicit;
+	constructor.selector = this.name;
+	constructor.modifiers = this.modifiers & ExtraCompilerModifiers.AccVisibilityMASK;
+//	constructor.modifiers = this.modifiers & ClassFileConstants.AccPublic;
+//	constructor.modifiers |= ClassFileConstants.AccPublic; // JLS 14 8.10.5
+	constructor.arguments = getArgumentsFromComponents(this.recordComponents);
+
+	for (int i = 0, max = constructor.arguments.length; i < max; i++) {
+		if ((constructor.arguments[i].bits & ASTNode.HasTypeAnnotations) != 0) {
+			constructor.bits |= ASTNode.HasTypeAnnotations;
+			break;
+		}
+	}
+	constructor.declarationSourceStart = constructor.sourceStart =
+			constructor.bodyStart = this.sourceStart;
+	constructor.declarationSourceEnd =
+		constructor.sourceEnd = constructor.bodyEnd =  this.sourceStart - 1;
+
+	//the super call inside the constructor
+	if (needExplicitConstructorCall) {
+		constructor.constructorCall = SuperReference.implicitSuperConstructorCall();
+		constructor.constructorCall.sourceStart = this.sourceStart;
+		constructor.constructorCall.sourceEnd = this.sourceEnd;
+	}
+/* The body of the implicitly declared canonical constructor initializes each field corresponding
+	 * to a record component with the corresponding formal parameter in the order that they appear
+	 * in the record component list.*/
+	List<Statement> statements = new ArrayList<>();
+	int l = this.recordComponents != null ? this.recordComponents.length : 0;
+	if (l > 0 && this.fields != null) {
+		List<String> fNames = Arrays.stream(this.fields)
+				.filter(f -> f.isARecordComponent)
+				.map(f ->new String(f.name))
+				.collect(Collectors.toList());
+		for (int i = 0; i < l; ++i) {
+			RecordComponent component = this.recordComponents[i];
+			if (!fNames.contains(new String(component.name)))
+				continue;
+			FieldReference lhs = new FieldReference(component.name, 0);
+			lhs.receiver = ThisReference.implicitThis();
+			statements.add(new Assignment(lhs, new SingleNameReference(component.name, 0), 0));
+		}
+	}
+	constructor.statements = statements.toArray(new Statement[0]);
+
+	//adding the constructor in the methods list: rank is not critical since bindings will be sorted
+	if (needToInsert) {
+		if (this.methods == null) {
+			this.methods = new AbstractMethodDeclaration[] { constructor };
+		} else {
+			AbstractMethodDeclaration[] newMethods;
+			System.arraycopy(
+				this.methods,
+				0,
+				newMethods = new AbstractMethodDeclaration[this.methods.length + 1],
+				1,
+				this.methods.length);
+			newMethods[0] = constructor;
+			this.methods = newMethods;
+		}
+	}
+	return constructor;
+}
+
+
+private Argument[] getArgumentsFromComponents(RecordComponent[] comps) {
+	Argument[] args2 = comps == null || comps.length == 0 ? ASTNode.NO_ARGUMENTS :
+		new Argument[comps.length];
+	int count = 0;
+	for (RecordComponent comp : comps) {
+		Argument argument = new Argument(comp.name, ((long)comp.sourceStart) << 32 | comp.sourceEnd,
+				comp.type, 0); // no modifiers allowed for record components - enforce
+		args2[count++] = argument;
+	}
+	return args2;
+}
+
 public ConstructorDeclaration createDefaultConstructor(	boolean needExplicitConstructorCall, boolean needToInsert) {
+	if (this.isRecord())
+		return createDefaultConstructorForRecord(needExplicitConstructorCall, needToInsert);
 	//Add to method'set, the default constuctor that just recall the
 	//super constructor with no arguments
 	//The arguments' type will be positionned by the TC so just use
@@ -402,10 +516,10 @@ public MethodBinding createDefaultConstructorWithBinding(MethodBinding inherited
 	constructor.constructorCall.sourceEnd = this.sourceEnd;
 
 	if (argumentsLength > 0) {
-		Expression[] args;
-		args = constructor.constructorCall.arguments = new Expression[argumentsLength];
+		Expression[] args1;
+		args1 = constructor.constructorCall.arguments = new Expression[argumentsLength];
 		for (int i = argumentsLength; --i >= 0;) {
-			args[i] = new SingleNameReference((baseName + i).toCharArray(), 0L);
+			args1[i] = new SingleNameReference((baseName + i).toCharArray(), 0L);
 		}
 	}
 
@@ -434,11 +548,11 @@ public MethodBinding createDefaultConstructorWithBinding(MethodBinding inherited
 	constructor.binding.tagBits |= (inheritedConstructorBinding.tagBits & TagBits.HasMissingType);
 	constructor.binding.modifiers |= ExtraCompilerModifiers.AccIsDefaultConstructor;
 	if (inheritedConstructorBinding.parameterNonNullness != null // this implies that annotation based null analysis is enabled
-			&& argumentsLength > 0) 
+			&& argumentsLength > 0)
 	{
 		// copy nullness info from inherited constructor to the new constructor:
 		int len = inheritedConstructorBinding.parameterNonNullness.length;
-		System.arraycopy(inheritedConstructorBinding.parameterNonNullness, 0, 
+		System.arraycopy(inheritedConstructorBinding.parameterNonNullness, 0,
 				constructor.binding.parameterNonNullness = new Boolean[len], 0, len);
 	}
 	// TODO(stephan): do argument types already carry sufficient info about type annotations?
@@ -503,6 +617,20 @@ public AbstractMethodDeclaration declarationOf(MethodBinding methodBinding) {
 }
 
 /**
+ * Find the matching parse node, answers null if nothing found
+ */
+public RecordComponent declarationOf(RecordComponentBinding recordComponentBinding) {
+	if (recordComponentBinding != null && this.recordComponents != null) {
+		for (int i = 0, max = this.fields.length; i < max; i++) {
+			RecordComponent recordComponent;
+			if ((recordComponent = this.recordComponents[i]).binding == recordComponentBinding)
+				return recordComponent;
+		}
+	}
+	return null;
+}
+
+/**
  * Finds the matching type amoung this type's member types.
  * Returns null if no type with this name is found.
  * The type name is a compound name relative to this type
@@ -533,6 +661,42 @@ public CompilationUnitDeclaration getCompilationUnitDeclaration() {
 	if (this.scope != null) {
 		return this.scope.compilationUnitScope().referenceContext;
 	}
+	return null;
+}
+
+/* only for records */
+public ConstructorDeclaration getConstructor(Parser parser) {
+	if (this.methods != null) {
+		for (int i = this.methods.length; --i >= 0;) {
+			AbstractMethodDeclaration am;
+			if ((am = this.methods[i]).isConstructor()) {
+				if (!CharOperation.equals(am.selector, this.name)) {
+					// the constructor was in fact a method with no return type
+					// unless an explicit constructor call was supplied
+					ConstructorDeclaration c = (ConstructorDeclaration) am;
+					if (c.constructorCall == null || c.constructorCall.isImplicitSuper()) { //changed to a method
+						MethodDeclaration m = parser.convertToMethodDeclaration(c, this.compilationResult);
+						this.methods[i] = m;
+					}
+				} else {
+					if (am instanceof CompactConstructorDeclaration) {
+						CompactConstructorDeclaration ccd = (CompactConstructorDeclaration) am;
+						ccd.recordDeclaration = this;
+						if (ccd.arguments == null)
+							ccd.arguments = getArgumentsFromComponents(this.recordComponents);
+						return ccd;
+					}
+					// now we are looking at a "normal" constructor
+					if (this.recordComponents == null && am.arguments == null)
+						return (ConstructorDeclaration) am;
+				}
+			}
+		}
+	}
+	/* At this point we can only say that there is high possibility that there is a constructor
+	 * If it is a CCD, then definitely it is there (except for empty one); else we need to check
+	 * the bindings to say that there is a canonical constructor. To take care at binding resolution time.
+	 */
 	return null;
 }
 
@@ -587,7 +751,7 @@ public void generateCode(ClassFile enclosingClassFile) {
 			}
 		}
 		// generate all synthetic and abstract methods
-		classFile.addSpecialMethods();
+		classFile.addSpecialMethods(this);
 
 		if (this.ignoreFurtherInvestigation) { // trigger problem type generation for code gen errors
 			throw new AbortType(this.scope.referenceCompilationUnit().compilationResult, null);
@@ -699,18 +863,18 @@ private void internalAnalyseCode(FlowContext flowContext, FlowInfo flowInfo) {
 			this.scope.problemReporter().unusedPrivateType(this);
 		}
 	}
-	
+
 	// https://bugs.eclipse.org/bugs/show_bug.cgi?id=385780
-	if (this.typeParameters != null && 
+	if (this.typeParameters != null &&
 			!this.scope.referenceCompilationUnit().compilationResult.hasSyntaxError) {
 		for (int i = 0, length = this.typeParameters.length; i < length; ++i) {
 			TypeParameter typeParameter = this.typeParameters[i];
 			if ((typeParameter.binding.modifiers & ExtraCompilerModifiers.AccLocallyUsed) == 0) {
-				this.scope.problemReporter().unusedTypeParameter(typeParameter);			
+				this.scope.problemReporter().unusedTypeParameter(typeParameter);
 			}
 		}
 	}
-	
+
 	// for local classes we use the flowContext as our parent, but never use an initialization context for this purpose
 	// see Bug 360328 - [compiler][null] detect null problems in nested code (local class inside a loop)
 	FlowContext parentContext = (flowContext instanceof InitializationFlowContext) ? null : flowContext;
@@ -837,26 +1001,26 @@ private SimpleSetOfCharArray getJUnitMethodSourceValues() {
 					addJUnitMethodSourceValues(junitMethodSourceValues, annotation, methodDeclaration.selector);
 				}
 			}
-	}
+		}
 	}
 	return junitMethodSourceValues;
 }
 
 private void addJUnitMethodSourceValues(SimpleSetOfCharArray junitMethodSourceValues, Annotation annotation, char[] methodName) {
-				for (MemberValuePair memberValuePair : annotation.memberValuePairs()) {
-					if (CharOperation.equals(memberValuePair.name, TypeConstants.VALUE)) {
+	for (MemberValuePair memberValuePair : annotation.memberValuePairs()) {
+		if (CharOperation.equals(memberValuePair.name, TypeConstants.VALUE)) {
 			Expression value = memberValuePair.value;
 			if (value instanceof ArrayInitializer) { // e.g. @MethodSource({ "someMethod" })
 				ArrayInitializer arrayInitializer = (ArrayInitializer) value;
 				for (Expression arrayValue : arrayInitializer.expressions) {
 					junitMethodSourceValues.add(getValueAsChars(arrayValue));
-					}
+				}
 			} else {
 				junitMethodSourceValues.add(getValueAsChars(value));
-				}
-			return;
 			}
+			return;
 		}
+	}
 	// value member not specified (i.e. marker annotation): JUnit 5 defaults to the test method's name
 	junitMethodSourceValues.add(methodName);
 }
@@ -886,7 +1050,7 @@ public final static int kind(int flags) {
 }
 
 public boolean isRecord() {
-	return false;
+	return (this.modifiers & ExtraCompilerModifiers.AccRecord) != 0;
 }
 
 /*
@@ -1089,6 +1253,18 @@ public StringBuffer printHeader(int indent, StringBuffer output) {
 			break;
 	}
 	output.append(this.name);
+	if (this.isRecord()) {
+		output.append('(');
+		if (this.nRecordComponents > 0 && this.fields != null) {
+			for (int i = 0; i < this.nRecordComponents; i++) {
+				if (i > 0) output.append(", "); //$NON-NLS-1$
+				output.append(this.fields[i].type.getTypeName()[0]);
+				output.append(' ');
+				output.append(this.fields[i].name);
+			}
+		}
+		output.append(')');
+	}
 	if (this.typeParameters != null) {
 		output.append("<");//$NON-NLS-1$
 		for (int i = 0; i < this.typeParameters.length; i++) {
@@ -1097,7 +1273,8 @@ public StringBuffer printHeader(int indent, StringBuffer output) {
 		}
 		output.append(">");//$NON-NLS-1$
 	}
-	if (this.superclass != null) {
+
+	if (!this.isRecord() && this.superclass != null) {
 		output.append(" extends ");  //$NON-NLS-1$
 		this.superclass.print(0, output);
 	}
@@ -1116,6 +1293,13 @@ public StringBuffer printHeader(int indent, StringBuffer output) {
 		for (int i = 0; i < this.superInterfaces.length; i++) {
 			if (i > 0) output.append( ", "); //$NON-NLS-1$
 			this.superInterfaces[i].print(0, output);
+		}
+	}
+	if (this.permittedTypes != null && this.permittedTypes.length > 0) {
+		output.append(" permits "); //$NON-NLS-1$
+		for (int i = 0; i < this.permittedTypes.length; i++) {
+			if (i > 0) output.append( ", "); //$NON-NLS-1$
+			this.permittedTypes[i].print(0, output);
 		}
 	}
 	return output;
@@ -1148,7 +1332,7 @@ public void resolve() {
 				this.scope.problemReporter().varIsReservedTypeName(this);
 			}
 		}
-		RecordDeclaration.checkAndFlagRecordNameErrors(this.name, this, this.scope);
+		this.scope.problemReporter().validateRestrictedKeywords(this.name, this);
 		// resolve annotations and check @Deprecated annotation
 		long annotationTagBits = sourceType.getAnnotationTagBits();
 		if ((annotationTagBits & TagBits.AnnotationDeprecated) == 0
@@ -1168,6 +1352,7 @@ public void resolve() {
 		boolean needSerialVersion =
 						this.scope.compilerOptions().getSeverity(CompilerOptions.MissingSerialVersion) != ProblemSeverities.Ignore
 						&& sourceType.isClass()
+						&& !sourceType.isRecord()
 						&& sourceType.findSuperTypeOriginatingFrom(TypeIds.T_JavaIoExternalizable, false /*Externalizable is not a class*/) == null
 						&& sourceType.findSuperTypeOriginatingFrom(TypeIds.T_JavaIoSerializable, false /*Serializable is not a class*/) != null;
 
@@ -1236,6 +1421,11 @@ public void resolve() {
 		if (this.memberTypes != null) {
 			for (int i = 0, count = this.memberTypes.length; i < count; i++) {
 				this.memberTypes[i].resolve(this.scope);
+			}
+		}
+		if (this.recordComponents != null) {
+			for (RecordComponent rc : this.recordComponents) {
+				rc.resolve(this.initializerScope);
 			}
 		}
 		if (this.fields != null) {
@@ -1405,7 +1595,7 @@ checkOuterScope:while (outerScope != null) {
 						}
 					} else if (existing2 instanceof ReferenceBinding
 							&& existing2.isValidBinding()
-							&& outerScope.isDefinedInType((ReferenceBinding) existing2)) { 
+							&& outerScope.isDefinedInType((ReferenceBinding) existing2)) {
 							blockScope.problemReporter().typeCollidesWithEnclosingType(this);
 							break checkOuterScope;
 					} else if (existing2 == null) {
@@ -1497,11 +1687,21 @@ public void traverse(ASTVisitor visitor, CompilationUnitScope unitScope) {
 				for (int i = 0; i < length; i++)
 					this.superInterfaces[i].traverse(visitor, this.scope);
 			}
+			if (this.permittedTypes != null) {
+				int length = this.permittedTypes.length;
+				for (int i = 0; i < length; i++)
+					this.permittedTypes[i].traverse(visitor, this.scope);
+			}
 			if (this.typeParameters != null) {
 				int length = this.typeParameters.length;
 				for (int i = 0; i < length; i++) {
 					this.typeParameters[i].traverse(visitor, this.scope);
 				}
+			}
+			if (this.recordComponents != null) {
+				int length = this.recordComponents.length;
+				for (int i = 0; i < length; i++)
+					this.recordComponents[i].traverse(visitor, this.initializerScope);
 			}
 			if (this.memberTypes != null) {
 				int length = this.memberTypes.length;
@@ -1553,11 +1753,21 @@ public void traverse(ASTVisitor visitor, BlockScope blockScope) {
 				for (int i = 0; i < length; i++)
 					this.superInterfaces[i].traverse(visitor, this.scope);
 			}
+			if (this.permittedTypes != null) {
+				int length = this.permittedTypes.length;
+				for (int i = 0; i < length; i++)
+					this.permittedTypes[i].traverse(visitor, this.scope);
+			}
 			if (this.typeParameters != null) {
 				int length = this.typeParameters.length;
 				for (int i = 0; i < length; i++) {
 					this.typeParameters[i].traverse(visitor, this.scope);
 				}
+			}
+			if (this.recordComponents != null) {
+				int length = this.recordComponents.length;
+				for (int i = 0; i < length; i++)
+					this.recordComponents[i].traverse(visitor, this.initializerScope);
 			}
 			if (this.memberTypes != null) {
 				int length = this.memberTypes.length;
@@ -1609,11 +1819,21 @@ public void traverse(ASTVisitor visitor, ClassScope classScope) {
 				for (int i = 0; i < length; i++)
 					this.superInterfaces[i].traverse(visitor, this.scope);
 			}
+			if (this.permittedTypes != null) {
+				int length = this.permittedTypes.length;
+				for (int i = 0; i < length; i++)
+					this.permittedTypes[i].traverse(visitor, this.scope);
+			}
 			if (this.typeParameters != null) {
 				int length = this.typeParameters.length;
 				for (int i = 0; i < length; i++) {
 					this.typeParameters[i].traverse(visitor, this.scope);
 				}
+			}
+			if (this.recordComponents != null) {
+				int length = this.recordComponents.length;
+				for (int i = 0; i < length; i++)
+					this.recordComponents[i].traverse(visitor, this.initializerScope);
 			}
 			if (this.memberTypes != null) {
 				int length = this.memberTypes.length;

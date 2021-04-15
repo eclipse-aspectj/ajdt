@@ -72,6 +72,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.zip.ZipEntry;
@@ -106,7 +107,7 @@ public class ClassPath implements Serializable {
 	public ClassPath(String class_path) {
 		this.class_path = class_path;
 
-		ArrayList<PathEntry> vec = new ArrayList<PathEntry>();
+		List<PathEntry> vec = new ArrayList<>();
 
 		for (StringTokenizer tok = new StringTokenizer(class_path, System.getProperty("path.separator")); tok
 				.hasMoreTokens();) {
@@ -167,7 +168,7 @@ public class ClassPath implements Serializable {
 		return false;
 	}
 
-	private static final void getPathComponents(String path, ArrayList<String> list) {
+	private static final void getPathComponents(String path, List<String> list) {
 		if (path != null) {
 			StringTokenizer tok = new StringTokenizer(path, File.pathSeparator);
 
@@ -193,12 +194,12 @@ public class ClassPath implements Serializable {
 		String ext_path = System.getProperty("java.ext.dirs");
 		String vm_version = System.getProperty("java.version");
 
-		ArrayList<String> list = new ArrayList<String>();
+		ArrayList<String> list = new ArrayList<>();
 
 		getPathComponents(class_path, list);
 		getPathComponents(boot_path, list);
 
-		ArrayList<String> dirs = new ArrayList<String>();
+		ArrayList<String> dirs = new ArrayList<>();
 		getPathComponents(ext_path, dirs);
 
 		for (String string : dirs) {
@@ -226,11 +227,7 @@ public class ClassPath implements Serializable {
 		}
 
 		// On Java9 the sun.boot.class.path won't be set. System classes accessible through JRT filesystem
-		if (vm_version.startsWith("9") || vm_version.startsWith("10")
-				|| vm_version.startsWith("11")
-				|| vm_version.startsWith("12")
-				|| vm_version.startsWith("13")
-				|| vm_version.startsWith("14")) {
+		if (vm_version.matches("^(9|10|11|12|13|14|15|16|17|18|19).*")) {
 			buf.insert(0, File.pathSeparatorChar);
 			buf.insert(0, System.getProperty("java.home") + File.separator + "lib" + File.separator + JRT_FS);
 		}
@@ -365,28 +362,28 @@ public class ClassPath implements Serializable {
 		/**
 		 * @return input stream for class file.
 		 */
-		public abstract InputStream getInputStream() throws IOException;
+		InputStream getInputStream() throws IOException;
 
 		/**
 		 * @return canonical path to class file.
 		 */
-		public abstract String getPath();
+		String getPath();
 
 		/**
 		 * @return base path of found class, i.e. class is contained relative to
 		 *         that path, which may either denote a directory, or zip file
 		 */
-		public abstract String getBase();
+		String getBase();
 
 		/**
 		 * @return modification time of class file.
 		 */
-		public abstract long getTime();
+		long getTime();
 
 		/**
 		 * @return size of class file.
 		 */
-		public abstract long getSize();
+		long getSize();
 	}
 
 	private static class Dir extends PathEntry {

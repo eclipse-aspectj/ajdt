@@ -11,6 +11,7 @@
  * ******************************************************************/
 package org.aspectj.weaver.ltw;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -19,7 +20,6 @@ import java.util.Map;
 
 import org.aspectj.apache.bcel.classfile.JavaClass;
 import org.aspectj.bridge.IMessageHandler;
-import org.aspectj.util.LangUtil;
 import org.aspectj.weaver.Dump.IVisitor;
 import org.aspectj.weaver.ICrossReferenceHandler;
 import org.aspectj.weaver.ReferenceType;
@@ -80,7 +80,7 @@ public class LTWWorld extends BcelWorld implements IReflectionWorld {
 			classLoaderString = loader.getClass().getName()+":"+Integer.toString(System.identityHashCode(loader));
 		}
 		classLoaderParentString = (loader.getParent() == null ? "<NullParent>" : loader.getParent().toString());
-		setBehaveInJava5Way(LangUtil.is15VMOrGreater());
+		setBehaveInJava5Way(true);
 		annotationFinder = ReflectionWorld.makeAnnotationFinderIfAny(loader, this);
 	}
 
@@ -98,7 +98,7 @@ public class LTWWorld extends BcelWorld implements IReflectionWorld {
 	// }
 
 	/**
-	 * @Override
+	 * Override
 	 */
 	@Override
 	protected ReferenceTypeDelegate resolveDelegate(ReferenceType ty) {
@@ -180,10 +180,8 @@ public class LTWWorld extends BcelWorld implements IReflectionWorld {
 	private static Map makeConcurrentMap() {
 		if (concurrentMapClass != null) {
 			try {
-				return (Map) concurrentMapClass.newInstance();
-			} catch (InstantiationException ie) {
-			} catch (IllegalAccessException iae) {
-			}
+				return (Map) concurrentMapClass.getDeclaredConstructor().newInstance();
+			} catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException ignored) {}
 			// fall through if exceptions
 		}
 		return Collections.synchronizedMap(new HashMap());
@@ -193,9 +191,9 @@ public class LTWWorld extends BcelWorld implements IReflectionWorld {
 		String betterChoices[] = { "java.util.concurrent.ConcurrentHashMap",
 				"edu.emory.mathcs.backport.java.util.concurrent.ConcurrentHashMap",
 				"EDU.oswego.cs.dl.util.concurrent.ConcurrentHashMap" };
-		for (int i = 0; i < betterChoices.length; i++) {
+		for (String betterChoice : betterChoices) {
 			try {
-				return Class.forName(betterChoices[i]);
+				return Class.forName(betterChoice);
 			} catch (ClassNotFoundException cnfe) {
 				// try the next one
 			} catch (SecurityException se) {

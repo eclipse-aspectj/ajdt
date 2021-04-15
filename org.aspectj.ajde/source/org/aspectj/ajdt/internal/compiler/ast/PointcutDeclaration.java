@@ -13,7 +13,6 @@
 package org.aspectj.ajdt.internal.compiler.ast;
 
 import java.lang.reflect.Modifier;
-import java.util.Iterator;
 
 import org.aspectj.ajdt.internal.compiler.lookup.EclipseFactory;
 import org.aspectj.ajdt.internal.core.builder.EclipseSourceContext;
@@ -26,11 +25,9 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclarat
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.AnnotationBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ClassScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ExtraCompilerModifiers;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TagBits;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.Parser;
@@ -139,7 +136,7 @@ public class PointcutDeclaration extends AjMethodDeclaration {
 
 	public String getPointcutText() {
 		String text = getPointcut().toString();
-		if (text.indexOf("BindingTypePattern") == -1)
+		if (!text.contains("BindingTypePattern"))
 			return text;
 		// has been wrecked by resolution, try to reconstruct from tokens
 		if (pointcutDesignator != null) {
@@ -268,8 +265,8 @@ public class PointcutDeclaration extends AjMethodDeclaration {
 	 * is added. So, this method adds the attribute if someone else hasn't already.
 	 */
 	private void addVersionAttributeIfNecessary(ClassFile classFile) {
-		for (Iterator iter = classFile.extraAttributes.iterator(); iter.hasNext();) {
-			EclipseAttributeAdapter element = (EclipseAttributeAdapter) iter.next();
+		for (Object o : classFile.extraAttributes) {
+			EclipseAttributeAdapter element = (EclipseAttributeAdapter) o;
 			if (CharOperation.equals(element.getNameChars(), weaverVersionChars))
 				return;
 		}

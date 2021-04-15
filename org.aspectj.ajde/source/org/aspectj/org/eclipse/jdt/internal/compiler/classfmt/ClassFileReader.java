@@ -1,6 +1,5 @@
-// ASPECTJ
 /*******************************************************************************
- * Copyright (c) 2000, 2019 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -38,6 +37,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryNestedType;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryType;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryTypeAnnotation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IModule;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.IRecordComponent;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.ITypeAnnotationWalker;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.Constant;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BinaryTypeBinding.ExternalAnnotationStatus;
@@ -68,6 +68,8 @@ public class ClassFileReader extends ClassFileStruct implements IBinaryType {
 	private InnerClassInfo[] innerInfos;
 	private char[][] interfaceNames;
 	private int interfacesCount;
+	private char[][] permittedSubtypesNames;
+	private int permittedSubtypesCount;
 	private MethodInfo[] methods;
 	private int methodsCount;
 	private char[] signature;
@@ -85,7 +87,7 @@ public class ClassFileReader extends ClassFileStruct implements IBinaryType {
 	private char[][] nestMembers;
 	private boolean isRecord;
 	private int recordComponentsCount;
-	private ComponentInfo[] recordComponents;
+	private RecordComponentInfo[] recordComponents;
 
 private static String printTypeModifiers(int modifiers) {
 	java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
@@ -97,6 +99,7 @@ private static String printTypeModifiers(int modifiers) {
 	if ((modifiers & ClassFileConstants.AccSuper) != 0) print.print("super "); //$NON-NLS-1$
 	if ((modifiers & ClassFileConstants.AccInterface) != 0) print.print("interface "); //$NON-NLS-1$
 	if ((modifiers & ClassFileConstants.AccAbstract) != 0) print.print("abstract "); //$NON-NLS-1$
+	if ((modifiers & ExtraCompilerModifiers.AccSealed) != 0) print.print("sealed "); //$NON-NLS-1$
 	print.flush();
 	return out.toString();
 }
@@ -429,6 +432,7 @@ public ClassFileReader(byte[] classFileBytes, char[] fileName, boolean fullyInit
 					} 	else if (CharOperation.equals(attributeName, AttributeNamesConstants.RecordClass)) {
 						decodeRecords(readOffset, attributeName);
 					}
+
 					break;
 				case 'M' :
 					if (CharOperation.equals(attributeName, AttributeNamesConstants.MissingTypesName)) {
@@ -470,6 +474,23 @@ public ClassFileReader(byte[] classFileBytes, char[] fileName, boolean fullyInit
 						}
 					}
 					break;
+				case 'P' :
+					if (CharOperation.equals(attributeName, AttributeNamesConstants.PermittedSubclasses)) {
+						int offset = readOffset + 6;
+						this.permittedSubtypesCount = u2At(offset);
+						if (this.permittedSubtypesCount != 0) {
+							this.accessFlags |= ExtraCompilerModifiers.AccSealed;
+							offset += 2;
+							this.permittedSubtypesNames = new char[this.permittedSubtypesCount][];
+							for (int j = 0; j < this.permittedSubtypesCount; j++) {
+								utf8Offset =
+									this.constantPoolOffsets[u2At(this.constantPoolOffsets[u2At(offset)] + 1)];
+		 						this.permittedSubtypesNames[j] = utf8At(utf8Offset + 3, u2At(utf8Offset + 1));
+		 						offset += 2;
+							}
+						}
+					}
+					break;
 			}
 			readOffset += (6 + u4At(readOffset + 2));
 		}
@@ -497,9 +518,9 @@ private void decodeRecords(int readOffset, char[] attributeName) {
 		this.recordComponentsCount = u2At(offset);
 		if (this.recordComponentsCount != 0) {
 			offset += 2;
-			this.recordComponents = new ComponentInfo[this.recordComponentsCount];
+			this.recordComponents = new RecordComponentInfo[this.recordComponentsCount];
 			for (int j = 0; j < this.recordComponentsCount; j++) {
-				ComponentInfo component = ComponentInfo.createComponent(this.reference, this.constantPoolOffsets, offset, this.version);
+				RecordComponentInfo component = RecordComponentInfo.createComponent(this.reference, this.constantPoolOffsets, offset, this.version);
 				this.recordComponents[j] = component;
 				offset += component.sizeInBytes();
 			}
@@ -640,7 +661,7 @@ public char[] getEnclosingMethod() {
 	if (this.enclosingMethod == null) {
 		// read the name
 		StringBuffer buffer = new StringBuffer();
-		
+
 		int nameAndTypeOffset = this.constantPoolOffsets[this.enclosingNameAndTypeIndex];
 		int utf8Offset = this.constantPoolOffsets[u2At(nameAndTypeOffset + 1)];
 		buffer.append(utf8At(utf8Offset + 3, u2At(utf8Offset + 1)));
@@ -678,9 +699,9 @@ public char[] getModule() {
 	return this.moduleName;
 }
 /**
- * Returns the module declaration that this class file represents. This will be 
+ * Returns the module declaration that this class file represents. This will be
  * null for non module-info class files.
- * 
+ *
  * @return the module declaration this represents
  */
 public IBinaryModule getModuleDeclaration() {
@@ -732,6 +753,11 @@ public char[][] getInterfaceNames() {
 	return this.interfaceNames;
 }
 
+@Override
+public char[][] getPermittedSubtypeNames() {
+	return this.permittedSubtypesNames;
+}
+
 // AspectJ start - original method has added boolean parameter, this new one has the original signature and simply
 // passes in false.  This is all needed due to the support for inter type inner types
 @Override
@@ -779,7 +805,7 @@ public IBinaryNestedType[] getMemberTypes(boolean keepIncorrectlyNamedInners) { 
 				// was: && outerClassNameIdx == this.classNameIndex
 				// now:
 				&& (keepIncorrectlyNamedInners || outerClassNameIdx == this.classNameIndex)
-				// AspectJ end				
+				// AspectJ end
 				&& currentInnerInfo.getSourceName().length != 0) {
 				memberTypes[memberTypeIndex++] = currentInnerInfo;
 			}
@@ -877,6 +903,8 @@ public int getModifiers() {
 	} else {
 		modifiers = this.accessFlags;
 	}
+	if (this.permittedSubtypesCount > 0)
+		modifiers |= ExtraCompilerModifiers.AccSealed;
 	return modifiers;
 }
 
@@ -1055,6 +1083,17 @@ public boolean hasStructuralChanges(byte[] newBytes, boolean orderRequired, bool
 				return true;
 			for (int i = 0, max = this.interfacesCount; i < max; i++)
 				if (!CharOperation.equals(this.interfaceNames[i], newInterfacesNames[i]))
+					return true;
+		}
+
+		// permitted sub-types
+		char[][] newPermittedSubtypeNames = newClassFile.getPermittedSubtypeNames();
+		if (this.permittedSubtypesNames != newPermittedSubtypeNames) {
+			int newPermittedSubtypesLength = newPermittedSubtypeNames == null ? 0 : newPermittedSubtypeNames.length;
+			if (newPermittedSubtypesLength != this.permittedSubtypesCount)
+				return true;
+			for (int i = 0, max = this.permittedSubtypesCount; i < max; i++)
+				if (!CharOperation.equals(this.permittedSubtypesNames[i], newPermittedSubtypeNames[i]))
 					return true;
 		}
 
@@ -1431,9 +1470,18 @@ public String toString() {
 	return out.toString();
 }
 
-// AspectJ Extension
-public byte[] getReferenceBytes() {
-	return reference;
+@Override
+public boolean isRecord() {
+	return this.isRecord;
 }
+
+@Override
+public IRecordComponent[] getRecordComponents() {
+	return this.recordComponents;
+}
+	// AspectJ Extension
+	public byte[] getReferenceBytes() {
+		return reference;
+	}
 // End AspectJ Extension
 }

@@ -112,8 +112,8 @@ public class BcelWeaver {
 
 	private boolean inReweavableMode = false;
 
-	private transient List<UnwovenClassFile> addedClasses = new ArrayList<UnwovenClassFile>();
-	private transient List<String> deletedTypenames = new ArrayList<String>();
+	private transient List<UnwovenClassFile> addedClasses = new ArrayList<>();
+	private transient List<String> deletedTypenames = new ArrayList<>();
 
 	// These four are setup by prepareForWeave
 	private transient List<ShadowMunger> shadowMungerList = null;
@@ -244,7 +244,7 @@ public class BcelWeaver {
 
 	private List<ResolvedType> addAspectsFromJarFile(File inFile) throws FileNotFoundException, IOException {
 		ZipInputStream inStream = new ZipInputStream(new FileInputStream(inFile)); // ??? buffered
-		List<ResolvedType> addedAspects = new ArrayList<ResolvedType>();
+		List<ResolvedType> addedAspects = new ArrayList<>();
 		try {
 			while (true) {
 				ZipEntry entry = inStream.getNextEntry();
@@ -286,7 +286,7 @@ public class BcelWeaver {
 	 * @throws IOException
 	 */
 	private List<ResolvedType> addAspectsFromDirectory(File directory) throws FileNotFoundException, IOException {
-		List<ResolvedType> addedAspects = new ArrayList<ResolvedType>();
+		List<ResolvedType> addedAspects = new ArrayList<>();
 		File[] classFiles = FileUtil.listFiles(directory, new FileFilter() {
 			public boolean accept(File pathname) {
 				return pathname.getName().endsWith(".class");
@@ -350,7 +350,7 @@ public class BcelWeaver {
 	 * 
 	 */
 	public List<UnwovenClassFile> addDirectoryContents(File inFile, File outDir) throws IOException {
-		List<UnwovenClassFile> addedClassFiles = new ArrayList<UnwovenClassFile>();
+		List<UnwovenClassFile> addedClassFiles = new ArrayList<>();
 
 		// Get a list of all files (i.e. everything that isnt a directory)
 		File[] files = FileUtil.listFiles(inFile, new FileFilter() {
@@ -361,8 +361,8 @@ public class BcelWeaver {
 		});
 
 		// For each file, add it either as a real .class file or as a resource
-		for (int i = 0; i < files.length; i++) {
-			addedClassFiles.add(addClassFile(files[i], inFile, outDir));
+		for (File file : files) {
+			addedClassFiles.add(addClassFile(file, inFile, outDir));
 		}
 
 		return addedClassFiles;
@@ -373,7 +373,7 @@ public class BcelWeaver {
 	 */
 	public List<UnwovenClassFile> addJarFile(File inFile, File outDir, boolean canBeDirectory) {
 		// System.err.println("? addJarFile(" + inFile + ", " + outDir + ")");
-		List<UnwovenClassFile> addedClassFiles = new ArrayList<UnwovenClassFile>();
+		List<UnwovenClassFile> addedClassFiles = new ArrayList<>();
 		needToReweaveWorld = true;
 		JarFile inJar = null;
 
@@ -501,8 +501,7 @@ public class BcelWeaver {
 		needToReweaveWorld = xcutSet.hasChangedSinceLastReset();
 
 		// update mungers
-		for (Iterator<UnwovenClassFile> i = addedClasses.iterator(); i.hasNext();) {
-			UnwovenClassFile jc = i.next();
+		for (UnwovenClassFile jc : addedClasses) {
 			String name = jc.getClassName();
 			ResolvedType type = world.resolve(name);
 			// No overweaving guard. If you have one then when overweaving is on the
@@ -514,8 +513,7 @@ public class BcelWeaver {
 			}
 		}
 
-		for (Iterator<String> i = deletedTypenames.iterator(); i.hasNext();) {
-			String name = i.next();
+		for (String name : deletedTypenames) {
 			if (xcutSet.deleteAspect(UnresolvedType.forName(name))) {
 				needToReweaveWorld = true;
 			}
@@ -550,7 +548,7 @@ public class BcelWeaver {
 		// this code may need
 		// a bit of alteration...
 
-		Collections.sort(shadowMungerList, new Comparator<ShadowMunger>() {
+		shadowMungerList.sort(new Comparator<ShadowMunger>() {
 			public int compare(ShadowMunger sm1, ShadowMunger sm2) {
 				if (sm1.getSourceLocation() == null) {
 					return (sm2.getSourceLocation() == null ? 0 : 1);
@@ -574,8 +572,7 @@ public class BcelWeaver {
 
 	private void addCustomMungers() {
 		if (customMungerFactory != null) {
-			for (Iterator<UnwovenClassFile> i = addedClasses.iterator(); i.hasNext();) {
-				UnwovenClassFile jc = i.next();
+			for (UnwovenClassFile jc : addedClasses) {
 				String name = jc.getClassName();
 				ResolvedType type = world.resolve(name);
 				if (type.isAspect()) {
@@ -645,7 +642,7 @@ public class BcelWeaver {
 		// across the set of pointcuts....
 		// Use a map from key based on pc equality, to value based on
 		// pc identity.
-		Map<Pointcut, Pointcut> pcMap = new HashMap<Pointcut, Pointcut>();
+		Map<Pointcut, Pointcut> pcMap = new HashMap<>();
 		for (ShadowMunger munger: shadowMungers) {
 			Pointcut p = munger.getPointcut();
 			Pointcut newP = shareEntriesFromMap(p, pcMap);
@@ -739,7 +736,7 @@ public class BcelWeaver {
 		if (kindsInCommon != Shadow.NO_SHADOW_KINDS_BITS && couldEverMatchSameJoinPoints(left, right)) {
 			// we know that every branch binds every formal, so there is no
 			// ambiguity if each branch binds it in exactly the same way...
-			List<String> ambiguousNames = new ArrayList<String>();
+			List<String> ambiguousNames = new ArrayList<>();
 			for (int i = 0; i < numFormals; i++) {
 				if (leftBindings[i] == null) {
 					if (rightBindings[i] != null) {
@@ -822,12 +819,12 @@ public class BcelWeaver {
 		} else if (pc instanceof ConcreteCflowPointcut) {
 			ConcreteCflowPointcut cfp = (ConcreteCflowPointcut) pc;
 			int[] slots = cfp.getUsedFormalSlots();
-			for (int i = 0; i < slots.length; i++) {
-				bindings[slots[i]] = cfp;
-				if (foundFormals[slots[i]]) {
-					raiseAmbiguousBindingError(names[slots[i]], userPointcut);
+			for (int slot : slots) {
+				bindings[slot] = cfp;
+				if (foundFormals[slot]) {
+					raiseAmbiguousBindingError(names[slot], userPointcut);
 				} else {
-					foundFormals[slots[i]] = true;
+					foundFormals[slot] = true;
 				}
 			}
 		}
@@ -949,7 +946,7 @@ public class BcelWeaver {
 
 			manifest = new Manifest();
 
-			Attributes attributes = manifest.getMainAttributes();
+			Map attributes = manifest.getMainAttributes();
 			attributes.put(Name.MANIFEST_VERSION, WEAVER_MANIFEST_VERSION);
 			attributes.put(CREATED_BY, WEAVER_CREATED_BY);
 		}
@@ -1014,11 +1011,11 @@ public class BcelWeaver {
 			trace.enter("weave", this, input);
 		}
 		ContextToken weaveToken = CompilationAndWeavingContext.enteringPhase(CompilationAndWeavingContext.WEAVING, "");
-		Collection<String> wovenClassNames = new ArrayList<String>();
+		Collection<String> wovenClassNames = new ArrayList<>();
 		IWeaveRequestor requestor = input.getRequestor();
 
 		if (world.getModel() != null && world.isMinimalModel()) {
-			candidatesForRemoval = new HashSet<IProgramElement>();
+			candidatesForRemoval = new HashSet<>();
 		}
 		if (world.getModel() != null && !isBatchWeave) {
 			AsmManager manager = world.getModelAsAsmManager();
@@ -1065,8 +1062,8 @@ public class BcelWeaver {
 						selfMunger.forceMunge(clazz, true);
 						classType.finishedWith();
 						UnwovenClassFile[] newClasses = getClassFilesFor(clazz);
-						for (int news = 0; news < newClasses.length; news++) {
-							requestor.acceptResult(newClasses[news]);
+						for (UnwovenClassFile newClass : newClasses) {
+							requestor.acceptResult(newClass);
 						}
 						wovenClassNames.add(classFile.getClassName());
 					}
@@ -1114,7 +1111,7 @@ public class BcelWeaver {
 		// encountered).
 		// For class A, the order is superclasses of A then superinterfaces of A
 		// (and this mechanism is applied recursively)
-		List<String> typesToProcess = new ArrayList<String>();
+		List<String> typesToProcess = new ArrayList<>();
 		for (Iterator<UnwovenClassFile> iter = input.getClassFileIterator(); iter.hasNext();) {
 			UnwovenClassFile clf = iter.next();
 			if (clf.shouldBeWoven()) {
@@ -1258,10 +1255,10 @@ public class BcelWeaver {
 		// put out a warning
 		if (world.isInJava5Mode() && world.getLint().adviceDidNotMatch.isEnabled()) {
 			List l = world.getCrosscuttingMembersSet().getShadowMungers();
-			Set<AdviceLocation> alreadyWarnedLocations = new HashSet<AdviceLocation>();
+			Set<AdviceLocation> alreadyWarnedLocations = new HashSet<>();
 
-			for (Iterator iter = l.iterator(); iter.hasNext();) {
-				ShadowMunger element = (ShadowMunger) iter.next();
+			for (Object o : l) {
+				ShadowMunger element = (ShadowMunger) o;
 				// This will stop us incorrectly reporting deow checkers:
 				if (element instanceof BcelAdvice) {
 					BcelAdvice ba = (BcelAdvice) element;
@@ -1356,7 +1353,7 @@ public class BcelWeaver {
 			Set<String> aspectsPreviouslyInWorld = wsi.getAspectsAffectingType();
 			// keep track of them just to ensure unique missing aspect error
 			// reporting
-			Set<String> alreadyConfirmedReweavableState = new HashSet<String>();
+			Set<String> alreadyConfirmedReweavableState = new HashSet<>();
 			for (String requiredTypeSignature : aspectsPreviouslyInWorld) {
 				// for (Iterator iter = aspectsPreviouslyInWorld.iterator(); iter.hasNext();) {
 				// String requiredTypeName = (String) iter.next();
@@ -1430,8 +1427,8 @@ public class BcelWeaver {
 			if (newClasses[0].getClassName().equals(classFile.getClassName())) {
 				newClasses[0].setClassNameAsChars(classFile.getClassNameAsChars());
 			}
-			for (int i = 0; i < newClasses.length; i++) {
-				requestor.acceptResult(newClasses[i]);
+			for (UnwovenClassFile newClass : newClasses) {
+				requestor.acceptResult(newClass);
 			}
 		} else {
 			requestor.acceptResult(classFile);
@@ -1462,8 +1459,7 @@ public class BcelWeaver {
 		UnwovenClassFile[] ret = new UnwovenClassFile[1 + childClasses.size()];
 		ret[0] = new UnwovenClassFile(clazz.getFileName(), clazz.getClassName(), clazz.getJavaClassBytesIncludingReweavable(world));
 		int index = 1;
-		for (Iterator<UnwovenClassFile.ChildClass> iter = childClasses.iterator(); iter.hasNext();) {
-			UnwovenClassFile.ChildClass element = iter.next();
+		for (UnwovenClassFile.ChildClass element : childClasses) {
 			UnwovenClassFile childClass = new UnwovenClassFile(clazz.getFileName() + "$" + element.name, element.bytes);
 			ret[index++] = childClass;
 		}
@@ -1484,7 +1480,7 @@ public class BcelWeaver {
 		}
 		onType.clearInterTypeMungers();
 
-		List<DeclareParents> decpToRepeat = new ArrayList<DeclareParents>();
+		List<DeclareParents> decpToRepeat = new ArrayList<>();
 
 		boolean aParentChangeOccurred = false;
 		boolean anAnnotationChangeOccurred = false;
@@ -1508,9 +1504,8 @@ public class BcelWeaver {
 
 		while ((aParentChangeOccurred || anAnnotationChangeOccurred) && !decpToRepeat.isEmpty()) {
 			anAnnotationChangeOccurred = aParentChangeOccurred = false;
-			List<DeclareParents> decpToRepeatNextTime = new ArrayList<DeclareParents>();
-			for (Iterator<DeclareParents> iter = decpToRepeat.iterator(); iter.hasNext();) {
-				DeclareParents decp = iter.next();
+			List<DeclareParents> decpToRepeatNextTime = new ArrayList<>();
+			for (DeclareParents decp : decpToRepeat) {
 				boolean typeChanged = applyDeclareParents(decp, onType);
 				if (typeChanged) {
 					aParentChangeOccurred = true;
@@ -1929,8 +1924,7 @@ public class BcelWeaver {
 			writeZipEntry(getEntryName(mainClassName), clazz.getJavaClass(world).getBytes());
 			List<UnwovenClassFile.ChildClass> childClasses = clazz.getChildClasses(world);
 			if (!childClasses.isEmpty()) {
-				for (Iterator<UnwovenClassFile.ChildClass> i = childClasses.iterator(); i.hasNext();) {
-					UnwovenClassFile.ChildClass c = i.next();
+				for (UnwovenClassFile.ChildClass c : childClasses) {
 					writeZipEntry(getEntryName(mainClassName + "$" + c.name), c.bytes);
 				}
 			}
@@ -1968,7 +1962,7 @@ public class BcelWeaver {
 		// weaving
 		FastMatchInfo info = new FastMatchInfo(type, null, world);
 
-		List<ShadowMunger> result = new ArrayList<ShadowMunger>();
+		List<ShadowMunger> result = new ArrayList<>();
 
 		if (world.areInfoMessagesEnabled() && world.isTimingEnabled()) {
 			for (ShadowMunger munger : list) {

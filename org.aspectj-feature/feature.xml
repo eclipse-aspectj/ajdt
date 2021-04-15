@@ -2,7 +2,7 @@
 <feature
       id="org.aspectj"
       label="%featureName"
-      version="1.9.6.qualifier"
+      version="1.9.7.qualifier"
       provider-name="%providerName"
       plugin="org.eclipse.aspectj">
 
@@ -38,5 +38,5 @@
          install-size="0"
          version="0.0.0"
          unpack="false"/>
-         
+
 </feature>

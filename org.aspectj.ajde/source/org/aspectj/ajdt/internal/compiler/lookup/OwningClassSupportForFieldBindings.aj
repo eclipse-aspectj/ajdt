@@ -11,9 +11,9 @@
  * ******************************************************************/
 package org.aspectj.ajdt.internal.compiler.lookup;
 
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.FieldBinding;
-//import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ParameterizedFieldBinding;
+import org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
+import org.eclipse.jdt.internal.compiler.lookup.FieldBinding;
+//import org.eclipse.jdt.internal.compiler.lookup.ParameterizedFieldBinding;
 
 /**
  * Many routines in the JDT compiler use fieldBinding.declaringClass to get

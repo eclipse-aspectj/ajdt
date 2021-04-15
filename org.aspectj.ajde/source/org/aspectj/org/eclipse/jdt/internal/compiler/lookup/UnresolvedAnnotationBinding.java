@@ -60,19 +60,19 @@ public ElementValuePair[] getElementValuePairs() {
 			boolean wasToleratingMissingTypeProcessingAnnotations = this.env.mayTolerateMissingType;
 			this.env.mayTolerateMissingType = true; // https://bugs.eclipse.org/bugs/show_bug.cgi?id=360164
 			try {
-			if (value instanceof UnresolvedReferenceBinding) {
-				pair.setValue(((UnresolvedReferenceBinding) value).
-						resolve(this.env, false));
-							// no parameterized types in annotation values
-			} else if (value instanceof Object[]) {
-				Object[] values = (Object[]) value;
-				for (int j = 0; j < values.length; j++) {
-					if (values[j] instanceof UnresolvedReferenceBinding) {
-						values[j] = ((UnresolvedReferenceBinding) values[j]).resolve(this.env, false);
+				if (value instanceof UnresolvedReferenceBinding) {
+					pair.setValue(((UnresolvedReferenceBinding) value).
+							resolve(this.env, false));
+								// no parameterized types in annotation values
+				} else if (value instanceof Object[]) {
+					Object[] values = (Object[]) value;
+					for (int j = 0; j < values.length; j++) {
+						if (values[j] instanceof UnresolvedReferenceBinding) {
+							values[j] = ((UnresolvedReferenceBinding) values[j]).resolve(this.env, false);
+						}
 					}
-				}
-			} // do nothing for UnresolvedAnnotationBinding-s, since their
-			  // content is only accessed through get* methods
+				} // do nothing for UnresolvedAnnotationBinding-s, since their
+				  // content is only accessed through get* methods
 			} finally {
 				this.env.mayTolerateMissingType = wasToleratingMissingTypeProcessingAnnotations;
 			}

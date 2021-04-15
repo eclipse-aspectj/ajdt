@@ -31,12 +31,32 @@ import org.aspectj.asm.AsmManager;
 import org.aspectj.asm.HierarchyWalker;
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.asm.IRelationship;
+import org.aspectj.util.LangUtil;
 import org.aspectj.util.TypeSafeEnum;
 
 /**
  * @author Mik Kersten
  */
 class HtmlDecorator {
+
+	public static final String TYPE_NAME_LABEL;
+	public static final String CLOSING_SPAN;
+
+	static {
+		if (LangUtil.is16VMOrGreater())
+			TYPE_NAME_LABEL = "element-name type-name-label";
+		else if (LangUtil.is15VMOrGreater())
+			TYPE_NAME_LABEL = "type-name-label";
+		else if (LangUtil.is1dot8VMOrGreater())
+			TYPE_NAME_LABEL = "typeNameLabel";
+		else
+			TYPE_NAME_LABEL = "strong";
+
+		if (LangUtil.is16VMOrGreater())
+			CLOSING_SPAN = "</span>";
+				else
+			CLOSING_SPAN = "";
+	}
 
 	private static final String POINTCUT_DETAIL = "Pointcut Detail";
 	private static final String ADVICE_DETAIL = "Advice Detail";
@@ -48,7 +68,7 @@ class HtmlDecorator {
 	private static final String ITD_FIELD_SUMMARY = "Inter-Type Field Summary";
 	private static final String ITD_CONSTRUCTOR_SUMMARY = "Inter-Type Constructor Summary";
 
-	static List<String> visibleFileList = new ArrayList<String>();
+	static List<String> visibleFileList = new ArrayList<>();
 	static Hashtable declIDTable = null;
 	static File rootDir = null;
 	static String docVisibilityModifier;
@@ -58,8 +78,8 @@ class HtmlDecorator {
 		rootDir = newRootDir;
 		declIDTable = table;
 		docVisibilityModifier = docModifier;
-		for (int i = 0; i < inputFiles.length; i++) {
-			decorateHTMLFromIPEs(getProgramElements(model, inputFiles[i].getCanonicalPath()), rootDir.getCanonicalPath()
+		for (File inputFile : inputFiles) {
+			decorateHTMLFromIPEs(getProgramElements(model, inputFile.getCanonicalPath()), rootDir.getCanonicalPath()
 					+ Config.DIR_SEP_CHAR, docModifier, false);
 		}
 	}
@@ -67,8 +87,7 @@ class HtmlDecorator {
 	static void decorateHTMLFromIPEs(IProgramElement[] decls, String base, String docModifier, boolean exceededNestingLevel)
 			throws IOException {
 		if (decls != null) {
-			for (int i = 0; i < decls.length; i++) {
-				IProgramElement decl = decls[i];
+			for (IProgramElement decl : decls) {
 				decorateHTMLFromIPE(decl, base, docModifier, exceededNestingLevel);
 			}
 		}
@@ -193,7 +212,7 @@ class HtmlDecorator {
 				}
 				// only add aspect documentation if we're in the correct
 				// file for the given IProgramElement
-				if (file.getName().indexOf(fullname + ".html") != -1) {
+				if (file.getName().contains(fullname + ".html")) {
 					addAspectDocumentation(decl, fileContents, index);
 				}
 			} else {
@@ -203,7 +222,7 @@ class HtmlDecorator {
 			// moved this here because then can use the IProgramElement.Kind
 			// rather than checking to see if there's advice - this fixes
 			// the case with an inner aspect not having the title "Aspect"
-			if (decl.getKind().equals(IProgramElement.Kind.ASPECT) && file.getName().indexOf(decl.toSignatureString()) != -1) {
+			if (decl.getKind().equals(IProgramElement.Kind.ASPECT) && file.getName().contains(decl.toSignatureString())) {
 				// only want to change "Class" to "Aspect" if we're in the
 				// file corresponding to the IProgramElement
 				String fullname = "";
@@ -213,39 +232,41 @@ class HtmlDecorator {
 				} else {
 					fullname += decl.toSignatureString();
 				}
-				if (file.getName().indexOf(fullname + ".html") == -1) {
+				if (!file.getName().contains(fullname + ".html")) {
 					// we're still in the file for a parent IPE
 					continue;
 				}
 
 				boolean br = true;
-				int classStartIndex = fileContents.toString().indexOf("<BR>\nClass ");
+				contents = fileContents.toString();
+				int classStartIndex = contents.indexOf("<BR>\nClass ");
 				if (classStartIndex == -1) {
-					classStartIndex = fileContents.toString().indexOf("<H2>\nClass ");
+					classStartIndex = contents.indexOf("<H2>\nClass ");
 					br = false;
 				}
 				if (classStartIndex == -1) {
 					// Java8 looks more like this:
 					// <h2 title="Class A" class="title">Class A</h2>
-					classStartIndex = fileContents.toString().indexOf("<h2 title=\"Class ");
-					int classEndIndex = fileContents.toString().indexOf("</h2>", classStartIndex);
+					classStartIndex = contents.indexOf("<h2 title=\"Class ");
+					int classEndIndex = contents.indexOf("</h2>", classStartIndex);
 					if (classStartIndex == -1) {
 						// Java 13 - replaced h2 with h1 here
-						classStartIndex = fileContents.toString().indexOf("<h1 title=\"Class ");
-						classEndIndex = fileContents.toString().indexOf("</h1>", classStartIndex);
+						classStartIndex = contents.indexOf("<h1 title=\"Class ");
+						classEndIndex = contents.indexOf("</h1>", classStartIndex);
 					}
 					if (classEndIndex != -1) {
 						// Convert it to "<h2 title="Aspect A" class="title">Aspect A</h2>"
-						String classLine = fileContents.toString().substring(classStartIndex, classEndIndex);
+						String classLine = contents.substring(classStartIndex, classEndIndex);
 						String aspectLine = classLine.replaceAll("Class ","Aspect ");
 						fileContents.delete(classStartIndex, classEndIndex);
 						fileContents.insert(classStartIndex, aspectLine);
 					}
 				}
 				else if (classStartIndex != -1) {
-					int classEndIndex = fileContents.toString().indexOf("</H2>", classStartIndex);
-					if (classStartIndex != -1 && classEndIndex != -1) {
-						String classLine = fileContents.toString().substring(classStartIndex, classEndIndex);
+					contents = fileContents.toString();
+					int classEndIndex = contents.indexOf("</H2>", classStartIndex);
+					if (classEndIndex != -1) {
+						String classLine = contents.substring(classStartIndex, classEndIndex);
 						String aspectLine = "";
 						if (br) {
 							aspectLine += "<BR>\n" + "Aspect " + classLine.substring(11, classLine.length());
@@ -256,31 +277,42 @@ class HtmlDecorator {
 						fileContents.insert(classStartIndex, aspectLine);
 					}
 				}
-				int secondClassStartIndex = fileContents.toString().indexOf("class <B>");
+				contents = fileContents.toString();
+				int secondClassStartIndex = contents.indexOf("class <B>");
 				if (secondClassStartIndex != -1) {
 					String name = decl.toSignatureString();
-					int classEndIndex = fileContents.toString().indexOf(name + "</B><DT>");
-					if (secondClassStartIndex != -1 && classEndIndex != -1) {
-						StringBuffer sb = new StringBuffer(fileContents.toString().substring(secondClassStartIndex, classEndIndex));
+					int classEndIndex = contents.indexOf(name + "</B><DT>");
+					if (classEndIndex != -1) {
+						StringBuffer sb = new StringBuffer(contents.substring(secondClassStartIndex, classEndIndex));
 						sb.replace(0, 5, "aspect");
 						fileContents.delete(secondClassStartIndex, classEndIndex);
 						fileContents.insert(secondClassStartIndex, sb.toString());
 					}
 				}
 				else {
-					// Java8:
-					// <pre>static class <span class="typeNameLabel">ClassA.InnerAspect</span>
-					classStartIndex = fileContents.toString().indexOf("class <span class=\"typeNameLabel\">");
-					if (classStartIndex == -1) {
-						// Java7: 464604
-						// <pre>public class <span class="strong">Azpect</span>
-						classStartIndex = fileContents.toString().indexOf("class <span class=\"strong\">");
+					contents = fileContents.toString();
+					// Java16: <span class="modifiers">static class </span><span class="type-name-label">ClassA.InnerAspect</span>
+					// Java15: <pre>static class <span class="type-name-label">ClassA.InnerAspect</span>
+					// Java8: <pre>static class <span class="typeNameLabel">ClassA.InnerAspect</span>
+					// Java7 (464604): <pre>public class <span class="strong">Azpect</span>
+					String startString = "class " + CLOSING_SPAN + "<span class=\"";
+					classStartIndex = contents.indexOf(startString + TYPE_NAME_LABEL + "\">");
+					int classEndIndex = contents.indexOf("</span>", classStartIndex + startString.length());
+
+					// This is where after Java version upgrades usually tests fail or the first time.
+					// Logging context information helps fixing the issue quickly.
+					if (classStartIndex == -1 || classEndIndex == -1) {
+						System.out.println(
+							"Something unexpected went wrong in HtmlDecorator. Here is the full file causing the problem:\n\n" +
+								"------------------------------------------------------------------------\n\n" +
+								contents + "\n" +
+								"------------------------------------------------------------------------\n"
+						);
 					}
-					int classEndIndex = fileContents.toString().indexOf("</span>", classStartIndex);
+
 					if (classEndIndex != -1) {
-						// Convert it to "aspect <span class="typeNameLabel">ClassA.InnerAspect</span>"
-						String classLine = fileContents.toString().substring(classStartIndex, classEndIndex);
-						String aspectLine = "aspect"+fileContents.substring(classStartIndex+5,classEndIndex);
+						// Convert it to "aspect <span class="TYPE_NAME_LABEL">ClassA.InnerAspect</span>"
+						String aspectLine = "aspect" + contents.substring(classStartIndex + 5, classEndIndex);
 						fileContents.delete(classStartIndex, classEndIndex);
 						fileContents.insert(classStartIndex, aspectLine);
 					}
@@ -296,9 +328,9 @@ class HtmlDecorator {
 	}
 
 	static void addAspectDocumentation(IProgramElement node, StringBuffer fileBuffer, int index) {
-		List<IProgramElement> pointcuts = new ArrayList<IProgramElement>();
-		List<IProgramElement> advice = new ArrayList<IProgramElement>();
-		List<IProgramElement> declares = new ArrayList<IProgramElement>();
+		List<IProgramElement> pointcuts = new ArrayList<>();
+		List<IProgramElement> advice = new ArrayList<>();
+		List<IProgramElement> declares = new ArrayList<>();
 		List<IProgramElement> methodsDeclaredOn = StructureUtil.getDeclareInterTypeTargets(node, IProgramElement.Kind.INTER_TYPE_METHOD);
 		if (methodsDeclaredOn != null && !methodsDeclaredOn.isEmpty()) {
 			insertDeclarationsSummary(fileBuffer, methodsDeclaredOn, ITD_METHOD_SUMMARY, index);
@@ -311,8 +343,7 @@ class HtmlDecorator {
 		if (fieldsDeclaredOn != null && !constDeclaredOn.isEmpty()) {
 			insertDeclarationsSummary(fileBuffer, constDeclaredOn, ITD_CONSTRUCTOR_SUMMARY, index);
 		}
-		for (Iterator<IProgramElement> it = node.getChildren().iterator(); it.hasNext();) {
-			IProgramElement member = it.next();
+		for (IProgramElement member : node.getChildren()) {
 			if (member.getKind().equals(IProgramElement.Kind.POINTCUT)) {
 				pointcuts.add(member);
 			} else if (member.getKind().equals(IProgramElement.Kind.ADVICE)) {
@@ -365,8 +396,8 @@ class HtmlDecorator {
 		insertIndex += tableHead.length();
 
 		// insert the body of the table
-		for (int i = 0; i < decls.size(); i++) {
-			IProgramElement decl = (IProgramElement) decls.get(i);
+		for (Object o : decls) {
+			IProgramElement decl = (IProgramElement) o;
 			if (isAboveVisibility(decl)) {
 				// insert the table row accordingly
 				String comment = generateSummaryComment(decl);
@@ -413,8 +444,8 @@ class HtmlDecorator {
 
 	private static boolean declsAboveVisibilityExist(List decls) {
 		boolean exist = false;
-		for (Iterator it = decls.iterator(); it.hasNext();) {
-			IProgramElement element = (IProgramElement) it.next();
+		for (Object decl : decls) {
+			IProgramElement element = (IProgramElement) decl;
 			if (isAboveVisibility(element))
 				exist = true;
 		}
@@ -748,7 +779,7 @@ class HtmlDecorator {
 	 */
 	private static String getRelativePathFromHere(String packagePath) {
 		StringBuffer result = new StringBuffer("");
-		if (packagePath != null && (packagePath.indexOf("/") != -1)) {
+		if (packagePath != null && (packagePath.contains("/"))) {
 			StringTokenizer sTok = new StringTokenizer(packagePath, "/", false);
 			while (sTok.hasMoreTokens()) {
 				sTok.nextToken(); // don't care about the token value
@@ -810,11 +841,11 @@ class HtmlDecorator {
 	static String generateHREFName(IProgramElement decl) {
 		StringBuffer hrefLinkBuffer = new StringBuffer();
 		char[] declChars = decl.toLabelString().toCharArray();
-		for (int i = 0; i < declChars.length; i++) {
-			if (declChars[i] == '"') {
+		for (char declChar : declChars) {
+			if (declChar == '"') {
 				hrefLinkBuffer.append("quot;");
 			} else {
-				hrefLinkBuffer.append(declChars[i]);
+				hrefLinkBuffer.append(declChar);
 			}
 		}
 		return hrefLinkBuffer.toString();
@@ -899,7 +930,7 @@ class HtmlDecorator {
 		};
 
 		file.walk(walker);
-		return (IProgramElement[]) nodes.toArray(new IProgramElement[nodes.size()]);
+		return (IProgramElement[]) nodes.toArray(new IProgramElement[0]);
 	}
 
 	/**

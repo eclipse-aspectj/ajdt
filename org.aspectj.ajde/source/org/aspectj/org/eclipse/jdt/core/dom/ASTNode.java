@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2020 IBM Corporation and others.
+ * Copyright (c) 2000, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -7,6 +7,7 @@
  * https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
+ *
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -988,6 +989,22 @@ public abstract class ASTNode {
 
 
 	/**
+	 * Node type constant indicating a node of type
+	 * <code>ModuleQualifiedName</code>.
+	 * @see ModuleQualifiedName
+	 * @since 3.24
+	 */
+	public static final int MODULE_QUALIFIED_NAME = 103;
+
+	/**
+	 * Node type constant indicating a node of type
+	 * <code>PatternInstanceofExpression</code>.
+	 * @see PatternInstanceofExpression
+	 * @since 3.26
+	 */
+	public static final int PATTERN_INSTANCEOF_EXPRESSION = 104;
+
+	/**
 	 * Returns the node class for the corresponding node type.
 	 *
 	 * @param nodeType AST node type
@@ -1123,6 +1140,8 @@ public abstract class ASTNode {
 				return ParameterizedType.class;
 			case PARENTHESIZED_EXPRESSION :
 				return ParenthesizedExpression.class;
+			case PATTERN_INSTANCEOF_EXPRESSION :
+				return PatternInstanceofExpression.class;
 			case POSTFIX_EXPRESSION :
 				return PostfixExpression.class;
 			case PREFIX_EXPRESSION :
@@ -2164,6 +2183,38 @@ public abstract class ASTNode {
 		}
 	}
 
+	/**
+     * Checks that this AST operation is not used when
+     * building JLS2, JLS3, JLS4, JLS8, JLS9, JLS10, JLS11, JLS12, JLS13 or JSL14 level ASTs.
+     * <p>
+     * Use this method to prevent access to new properties that have been added in JLS15
+     * </p>
+     *
+	 * @exception UnsupportedOperationException if this operation is used below JLS15
+	 * @since 3.22
+	 */
+	final void unsupportedBelow15() {
+		if (this.ast.apiLevel < AST.JLS15_INTERNAL) {
+			throw new UnsupportedOperationException("Operation only supported in ASTs with level JLS15 and above"); //$NON-NLS-1$
+		}
+	}
+
+	/**
+     * Checks that this AST operation is not used when
+     * building JLS2, JLS3, JLS4, JLS8, JLS9, JLS10, JLS11, JLS12, JLS13, JSL14 or JSL15 level ASTs.
+     * <p>
+     * Use this method to prevent access to new properties that have been added in JLS16
+     * </p>
+     *
+	 * @exception UnsupportedOperationException if this operation is used below JLS16
+	 * @since 3.26
+	 */
+	final void unsupportedBelow16() {
+		if (this.ast.apiLevel < AST.JLS16_INTERNAL) {
+			throw new UnsupportedOperationException("Operation only supported in ASTs with level JLS16 and above"); //$NON-NLS-1$
+		}
+	}
+
 
 	/**
      * Checks that this AST operation is not used when
@@ -2250,7 +2301,7 @@ public abstract class ASTNode {
 
 	/**
  	 * Checks that this AST operation is only used when
-     * building JLS13 level ASTs.
+     * building JLS14 level ASTs.
      * <p>
      * Use this method to prevent access to new properties available only in JLS14.
      * </p>
@@ -2263,6 +2314,39 @@ public abstract class ASTNode {
 			throw new UnsupportedOperationException("Operation only supported in JLS14 AST"); //$NON-NLS-1$
 		}
 	}
+
+	/**
+ 	 * Checks that this AST operation is only used when
+     * building JLS15 level ASTs.
+     * <p>
+     * Use this method to prevent access to new properties available only in JLS15.
+     * </p>
+     *
+	 * @exception UnsupportedOperationException if this operation is not used in JLS15
+	 * @since 3.22
+	 */
+	final void supportedOnlyIn15() {
+		if (this.ast.apiLevel != AST.JLS15_INTERNAL) {
+			throw new UnsupportedOperationException("Operation only supported in JLS15 AST"); //$NON-NLS-1$
+		}
+	}
+
+	/**
+ 	 * Checks that this AST operation is only used when
+     * building JLS16 level ASTs.
+     * <p>
+     * Use this method to prevent access to new properties available only in JLS15.
+     * </p>
+     *
+	 * @exception UnsupportedOperationException if this operation is not used in JLS15
+	 * @since 3.26
+	 */
+	final void supportedOnlyIn16() {
+		if (this.ast.apiLevel != AST.JLS16_INTERNAL) {
+			throw new UnsupportedOperationException("Operation only supported in JLS16 AST"); //$NON-NLS-1$
+		}
+	}
+
 	/**
 	 * Sets or clears this node's parent node and location.
 	 * <p>

@@ -1,6 +1,6 @@
 // AspectJ
 /*******************************************************************************
- * Copyright (c) 2004, 2014 IBM Corporation and others.
+ * Copyright (c) 2004, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -11,6 +11,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
+ *     Microsoft Corporation - read formatting options from the compilation unit
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.core.dom.rewrite;
 
@@ -119,7 +120,7 @@ public class ASTRewrite {
 	 * @since 3.1
 	 */
 	private TargetSourceRangeComputer targetSourceRangeComputer = null;
-	
+
 	/**
 	 * Primary field used in representing rewrite properties efficiently.
 	 * If <code>null</code>, this rewrite has no properties.
@@ -128,7 +129,7 @@ public class ASTRewrite {
 	 * If a {@link Map}, this is the table of property name-value
 	 * mappings.
 	 * Initially <code>null</code>.
-	 * 
+	 *
 	 * @see #property2
 	 */
 	private Object property1 = null;
@@ -291,7 +292,8 @@ public class ASTRewrite {
 		char[] content= typeRoot.getBuffer().getCharacters();
 		LineInformation lineInfo= LineInformation.create(astRoot);
 		String lineDelim= typeRoot.findRecommendedLineSeparator();
-		Map options= typeRoot.getJavaProject().getOptions(true);
+		Map options= typeRoot instanceof ICompilationUnit ? ((ICompilationUnit) typeRoot).getOptions(true) :
+			typeRoot.getJavaProject().getOptions(true);
 
 		return internalRewriteAST(content, lineInfo, lineDelim, astRoot.getCommentList(), options, rootNode, (RecoveryScannerData)astRoot.getStatementsRecoveryData());
 	}
@@ -307,7 +309,6 @@ public class ASTRewrite {
 		// ASTRewriteAnalyzer visitor= new ASTRewriteAnalyzer(content, lineInfo, lineDelim, result, this.eventStore, this.nodeStore, commentNodes, options, sourceRangeComputer,recoveryScannerData);
 		ASTVisitor visitor = ASTRewriteAnalyzer.getAnalyzerVisitor(content, lineInfo, lineDelim, result, this.eventStore, this.nodeStore, commentNodes, options, sourceRangeComputer,recoveryScannerData);
 		// End AspectJ Extension
-		
 
 		rootNode.accept(visitor); // throws IllegalArgumentException
 
@@ -527,7 +528,7 @@ public class ASTRewrite {
 		if (node == null || property == null) {
 			throw new IllegalArgumentException();
 		}
-		
+
 		validateIsCorrectAST(node);
 		validateIsListProperty(property);
 		validateIsPropertyOfNode(property, node);
@@ -564,7 +565,7 @@ public class ASTRewrite {
 		Map m = (Map) this.property1;
 		return m.get(propertyName);
 	}
-	
+
 	/**
 	 * Returns an object that tracks the source range of the given node
 	 * across the rewrite to its AST. Upon return, the result object reflects
@@ -608,7 +609,7 @@ public class ASTRewrite {
 			throw new IllegalArgumentException(message);
 		}
 	}
-	
+
 	private void validateIsPropertyOfNode(StructuralPropertyDescriptor property, ASTNode node) {
 		if (!property.getNodeClass().isInstance(node)) {
 			String message= property.getId() + " is not a property of type " + node.getClass().getName(); //$NON-NLS-1$
@@ -624,14 +625,14 @@ public class ASTRewrite {
 		if (!RewriteEventStore.DEBUG) {
 			return;
 		}
-		
+
 		if (value == null) {
 			if (prop.isSimpleProperty() && ((SimplePropertyDescriptor) prop).isMandatory()
 					|| prop.isChildProperty() && ((ChildPropertyDescriptor) prop).isMandatory()) {
 				String message = "Can not remove property " + prop.getId(); //$NON-NLS-1$
 				throw new IllegalArgumentException(message);
 			}
-			
+
 		} else {
 			Class valueType;
 			if (prop.isSimpleProperty()) {

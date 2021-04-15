@@ -93,7 +93,7 @@ public abstract class ShadowMunger implements PartialOrder.PartialComparable, IH
 										+ "' due to scope exclusion in XML definition"));
 					}
 					if (excludedTypes == null) {
-						excludedTypes = new HashSet<ResolvedType>();
+						excludedTypes = new HashSet<>();
 						excludedTypes.add(type);
 						world.getExclusionMap().put(declaringType, excludedTypes);
 					} else {
@@ -213,7 +213,7 @@ public abstract class ShadowMunger implements PartialOrder.PartialComparable, IH
 				// grab javaclass... but it doesnt know the originating file
 				// }
 			}
-			if (binaryPath.indexOf("!") == -1) {
+			if (!binaryPath.contains("!")) {
 				File f = getDeclaringType().getSourceLocation().getSourceFile();
 				// Replace the source file suffix with .class
 				int i = f.getPath().lastIndexOf('.');

@@ -14,7 +14,6 @@ package org.aspectj.ajdt.internal.compiler.lookup;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 import org.aspectj.ajdt.internal.compiler.ast.AspectDeclaration;
@@ -144,8 +143,8 @@ public class PrivilegedHandler implements IPrivilegedHandler {
 		int len = m.size();
 		ResolvedMember[] ret = new ResolvedMember[len];
 		int index = 0;
-		for (Iterator i = m.iterator(); i.hasNext();) {
-			ret[index++] = (ResolvedMember) i.next();
+		for (Object o : m) {
+			ret[index++] = (ResolvedMember) o;
 		}
 		return ret;
 	}

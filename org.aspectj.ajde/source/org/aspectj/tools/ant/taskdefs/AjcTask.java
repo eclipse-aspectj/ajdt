@@ -22,7 +22,6 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
 
@@ -115,8 +114,6 @@ public class AjcTask extends MatchingTask {
 	 * </pre>
 	 *
 	 * @param javac the Javac command to implement (not null)
-	 * @param ajc the AjcTask to adapt (not null)
-	 * @param destDir the File class destination directory (may be null)
 	 * @return null if no error, or String error otherwise
 	 */
 	public String setupAjc(Javac javac) {
@@ -207,7 +204,7 @@ public class AjcTask extends MatchingTask {
 		int loc = path.lastIndexOf(prefix);
 		if ((-1 != loc) && ((loc + minLength) <= path.length())) {
 			String rest = path.substring(loc + prefixLength);
-			if (-1 != rest.indexOf(File.pathSeparator)) {
+			if (rest.contains(File.pathSeparator)) {
 				return null;
 			}
 			if (rest.startsWith(infix) || rest.startsWith(altInfix)) {
@@ -253,9 +250,9 @@ public class AjcTask extends MatchingTask {
 
 	public static final String COMMAND_EDITOR_NAME = AjcTask.class.getName() + ".COMMAND_EDITOR";
 
-	static final String[] TARGET_INPUTS = new String[] { "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "1.9", "9", "10", "11", "12", "13", "14" };
-	static final String[] SOURCE_INPUTS = new String[] { "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "1.9", "9", "10", "11", "12", "13", "14" };
-	static final String[] COMPLIANCE_INPUTS = new String[] { "-1.3", "-1.4", "-1.5", "-1.6", "-1.7", "-1.8", "-1.9", "-9", "-10", "-11", "-12", "-13", "-14" };
+	static final String[] TARGET_INPUTS = new String[] { "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "1.9", "9", "10", "11", "12", "13", "14", "15" };
+	static final String[] SOURCE_INPUTS = new String[] { "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "1.9", "9", "10", "11", "12", "13", "14", "15" };
+	static final String[] COMPLIANCE_INPUTS = new String[] { "-1.3", "-1.4", "-1.5", "-1.6", "-1.7", "-1.8", "-1.9", "-9", "-10", "-11", "-12", "-13", "-14", "15" };
 
 	private static final ICommandEditor COMMAND_EDITOR;
 
@@ -290,7 +287,7 @@ public class AjcTask extends MatchingTask {
 			if (null != editorClassName) {
 				ClassLoader cl = AjcTask.class.getClassLoader();
 				Class editorClass = cl.loadClass(editorClassName);
-				editor = (ICommandEditor) editorClass.newInstance();
+				editor = (ICommandEditor) editorClass.getDeclaredConstructor().newInstance();
 			}
 		} catch (Throwable t) {
 			System.err.println("Warning: unable to load command editor");
@@ -602,7 +599,7 @@ public class AjcTask extends MatchingTask {
 	}
 
 	/**
-	 * -Xlint - set default level of -Xlint messages to warning (same as </code>-Xlint:warning</code>)
+	 * -Xlint - set default level of -Xlint messages to warning (same as <code>-Xlint:warning</code>)
 	 */
 	public void setXlintwarnings(boolean xlintwarnings) {
 		cmd.addFlag("-Xlint", xlintwarnings);
@@ -719,7 +716,7 @@ public class AjcTask extends MatchingTask {
 	public CompilerArg createCompilerarg() {
 		CompilerArg compilerArg = new CompilerArg();
 		if (compilerArgs == null) {
-			compilerArgs = new ArrayList<CompilerArg>();
+			compilerArgs = new ArrayList<>();
 		}
 		compilerArgs.add(compilerArg);
 		return compilerArg;
@@ -827,7 +824,7 @@ public class AjcTask extends MatchingTask {
 	 */
 	public void setInpathDirCopyFilter(String filter) {
 		if (null != filter) {
-			if (-1 == filter.indexOf("**/*.class")) {
+			if (!filter.contains("**/*.class")) {
 				filter = "**/*.class," + filter;
 			}
 		}
@@ -868,7 +865,7 @@ public class AjcTask extends MatchingTask {
 	public void setMessageHolderClass(String className) {
 		try {
 			Class mclass = Class.forName(className);
-			IMessageHolder holder = (IMessageHolder) mclass.newInstance();
+			IMessageHolder holder = (IMessageHolder) mclass.getDeclaredConstructor().newInstance();
 			setMessageHolder(holder);
 		} catch (Throwable t) {
 			String m = "unable to instantiate message holder: " + className;
@@ -892,7 +889,7 @@ public class AjcTask extends MatchingTask {
 	public void setCommandEditorClass(String className) { // skip Ant interface?
 		try {
 			Class mclass = Class.forName(className);
-			setCommandEditor((ICommandEditor) mclass.newInstance());
+			setCommandEditor((ICommandEditor) mclass.getDeclaredConstructor().newInstance());
 		} catch (Throwable t) {
 			String m = "unable to instantiate command editor: " + className;
 			throw new BuildException(m, t);
@@ -1159,11 +1156,10 @@ public class AjcTask extends MatchingTask {
 
 	// package-private for testing
 	String[] makeCommand() {
-		ArrayList result = new ArrayList();
 		if (0 < ignored.size()) {
-			for (Iterator iter = ignored.iterator(); iter.hasNext();) {
-				logVerbose("ignored: " + iter.next());
-			}
+            for (Object o : ignored) {
+                logVerbose("ignored: " + o);
+            }
 		}
 		// when copying resources, use temp jar for class output
 		// then copy temp jar contents and resources to output jar
@@ -1182,7 +1178,7 @@ public class AjcTask extends MatchingTask {
 			outjarFixedup = true;
 		}
 
-		result.addAll(cmd.extractArguments());
+		ArrayList result = new ArrayList(cmd.extractArguments());
 		addListArgs(result);
 
 		String[] command = (String[]) result.toArray(new String[0]);
@@ -1254,7 +1250,7 @@ public class AjcTask extends MatchingTask {
 	}
 
 	/**
-	 * @throw BuildException if options conflict
+	 * @throws BuildException if options conflict
 	 */
 	protected void verifyOptions() {
 		StringBuffer sb = new StringBuffer();
@@ -1344,7 +1340,7 @@ public class AjcTask extends MatchingTask {
 					String message = fail.getMessage();
 					if (LangUtil.isEmpty(message)) {
 						message = "<no message>";
-					} else if (-1 != message.indexOf(USAGE_SUBSTRING)) {
+					} else if (message.contains(USAGE_SUBSTRING)) {
 						continue;
 					}
 					Throwable t = fail.getThrown();
@@ -1378,7 +1374,6 @@ public class AjcTask extends MatchingTask {
 	 *
 	 * @param args String[] of the complete compiler command to execute
 	 *
-	 * @see DefaultCompilerAdapter#executeExternalCompile(String[], int)
 	 * @throws BuildException if ajc aborts (negative value) or if failonerror and there were compile errors.
 	 */
 	protected void executeInOtherVM(String[] args) {
@@ -1511,7 +1506,6 @@ public class AjcTask extends MatchingTask {
 	}
 
 	// ------------------------------ setup and reporting
-	/** @return null if path null or empty, String rendition otherwise */
 	protected static void addFlaggedPath(String flag, Path path, List<String> list) {
 		if (!LangUtil.isEmpty(flag) && ((null != path) && (0 < path.size()))) {
 			list.add(flag);
@@ -1576,14 +1570,15 @@ public class AjcTask extends MatchingTask {
 			}
 		}
 		if (0 < adapterFiles.size()) {
-			for (Iterator iter = adapterFiles.iterator(); iter.hasNext();) {
-				File file = (File) iter.next();
-				if (file.canRead() && FileUtil.hasSourceSuffix(file)) {
-					list.add(file.getAbsolutePath());
-				} else {
-					this.logger.warning("skipping file: " + file);
-				}
-			}
+            for (Object adapterFile : adapterFiles) {
+                File file = (File) adapterFile;
+                if (file.canRead() && FileUtil.hasSourceSuffix(file)) {
+                    list.add(file.getAbsolutePath());
+                }
+                else {
+                    this.logger.warning("skipping file: " + file);
+                }
+            }
 		}
 	}
 
@@ -2037,7 +2032,7 @@ public class AjcTask extends MatchingTask {
 		// }
 
 		List extractArguments() {
-			ArrayList result = new ArrayList();
+			List result = new ArrayList();
 			String[] cmds = command.getArguments();
 			if (!LangUtil.isEmpty(cmds)) {
 				result.addAll(Arrays.asList(cmds));

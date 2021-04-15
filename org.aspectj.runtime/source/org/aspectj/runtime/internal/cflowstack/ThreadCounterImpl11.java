@@ -13,7 +13,6 @@
  * ******************************************************************/
 package org.aspectj.runtime.internal.cflowstack;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -49,8 +48,8 @@ public class ThreadCounterImpl11 implements ThreadCounter {
 					Thread t = (Thread)e.nextElement();
 					if (!t.isAlive()) dead_stacks.add(t);
 				}
-				for (Iterator e = dead_stacks.iterator(); e.hasNext(); ) {
-					Thread t = (Thread)e.next();
+				for (Object dead_stack : dead_stacks) {
+					Thread t = (Thread) dead_stack;
 					counters.remove(t);
 				}
 				change_count = 0;

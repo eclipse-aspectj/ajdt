@@ -13,7 +13,6 @@ package org.aspectj.tools.ajdoc;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.aspectj.asm.AsmManager;
@@ -42,21 +41,19 @@ public class StructureUtil {
 	 * @return null if a relationship of that kind is not found
 	 */
 	public static List<String> getTargets(IProgramElement node, IRelationship.Kind kind, String relName) {
-		List<IRelationship> relations = new ArrayList<IRelationship>();
+		List<IRelationship> relations = new ArrayList<>();
 		List<IRelationship> rels = node.getModel().getRelationshipMap().get(node);
 		if (rels != null) {
 			relations.addAll(rels);
 		}
-		for (Iterator<IProgramElement> iter = node.getChildren().iterator(); iter.hasNext();) {
-			IProgramElement child = (IProgramElement) iter.next();
+		for (IProgramElement child : node.getChildren()) {
 			// if we're not a type, or if we are and the child is code, then
 			// we want to get the relationships for this child - this means that the
 			// correct relationships appear against the type in the ajdoc
 			if (!node.getKind().isType() || child.getKind().equals(IProgramElement.Kind.CODE)) {
 				List<IRelationship> childRelations = node.getModel().getRelationshipMap().get(child);
 				if (childRelations != null) {
-					for (Iterator<IRelationship> iterator = childRelations.iterator(); iterator.hasNext();) {
-						IRelationship rel = (IRelationship) iterator.next();
+					for (IRelationship rel : childRelations) {
 						if (!relations.contains(rel)) {
 							relations.add(rel);
 						}
@@ -66,12 +63,11 @@ public class StructureUtil {
 		}
 		if (relations == null || relations.isEmpty())
 			return null;
-		List<String> targets = new ArrayList<String>();
-		for (Iterator<IRelationship> it = relations.iterator(); it.hasNext();) {
-			IRelationship rtn = (IRelationship) it.next();
+		List<String> targets = new ArrayList<>();
+		for (IRelationship rtn : relations) {
 			if (rtn.getKind().equals(kind) && ((relName != null && relName.equals(rtn.getName())) || relName == null)) {
 				List<String> targs = rtn.getTargets();
-				for (String element: targs) {
+				for (String element : targs) {
 					if (!targets.contains(element)) {
 						targets.add(element);
 					}
@@ -82,7 +78,7 @@ public class StructureUtil {
 	}
 
 	static List<IProgramElement> getDeclareInterTypeTargets(IProgramElement node, IProgramElement.Kind kind) {
-		List<IProgramElement> targets = new ArrayList<IProgramElement>();
+		List<IProgramElement> targets = new ArrayList<>();
 		List<String> stringTargets = StructureUtil.getTargets(node, IRelationship.Kind.DECLARE_INTER_TYPE);
 		if (stringTargets == null) {
 			return null;
@@ -125,8 +121,8 @@ public class StructureUtil {
 		}
 
 		String modifiers = "";
-		for (Iterator modIt = node.getModifiers().iterator(); modIt.hasNext();) {
-			modifiers += modIt.next() + " ";
+		for (IProgramElement.Modifiers value : node.getModifiers()) {
+			modifiers += value + " ";
 		}
 
 		if (node.getKind().equals(IProgramElement.Kind.METHOD) || node.getKind().equals(IProgramElement.Kind.FIELD)) {

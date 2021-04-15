@@ -400,7 +400,7 @@ public class Database {
 		 * 8388608 for a file starting at 32G
 		 *
 		 */
-		long setasideChunks = Long.getLong("org.aspectj.org.eclipse.jdt.core.parser.nd.chunks", 0); //$NON-NLS-1$
+		long setasideChunks = Long.getLong("org.eclipse.jdt.core.parser.nd.chunks", 0); //$NON-NLS-1$
 		if (setasideChunks != 0) {
 			setVersion(getVersion());
 			createNewChunks((int) setasideChunks);

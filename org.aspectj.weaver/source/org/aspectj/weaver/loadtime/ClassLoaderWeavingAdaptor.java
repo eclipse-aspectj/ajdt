@@ -69,33 +69,33 @@ public class ClassLoaderWeavingAdaptor extends WeavingAdaptor {
 
 	private boolean initialized;
 
-	private List<TypePattern> dumpTypePattern = new ArrayList<TypePattern>();
+	private List<TypePattern> dumpTypePattern = new ArrayList<>();
 	private boolean dumpBefore = false;
 	private boolean dumpDirPerClassloader = false;
 
 	private boolean hasExcludes = false;
-	private List<TypePattern> excludeTypePattern = new ArrayList<TypePattern>(); // anything
-	private List<String> excludeStartsWith = new ArrayList<String>(); // com.foo..*
-	private List<String> excludeStarDotDotStar = new ArrayList<String>(); // *..*CGLIB*
-	private List<String> excludeExactName = new ArrayList<String>(); // com.foo.Bar
-	private List<String> excludeEndsWith = new ArrayList<String>(); // com.foo.Bar
-	private List<String[]> excludeSpecial = new ArrayList<String[]>();
+	private List<TypePattern> excludeTypePattern = new ArrayList<>(); // anything
+	private List<String> excludeStartsWith = new ArrayList<>(); // com.foo..*
+	private List<String> excludeStarDotDotStar = new ArrayList<>(); // *..*CGLIB*
+	private List<String> excludeExactName = new ArrayList<>(); // com.foo.Bar
+	private List<String> excludeEndsWith = new ArrayList<>(); // com.foo.Bar
+	private List<String[]> excludeSpecial = new ArrayList<>();
 
 	private boolean hasIncludes = false;
-	private List<TypePattern> includeTypePattern = new ArrayList<TypePattern>();
-	private List<String> includeStartsWith = new ArrayList<String>();
-	private List<String> includeExactName = new ArrayList<String>();
+	private List<TypePattern> includeTypePattern = new ArrayList<>();
+	private List<String> includeStartsWith = new ArrayList<>();
+	private List<String> includeExactName = new ArrayList<>();
 	private boolean includeStar = false;
 
-	private List<TypePattern> aspectExcludeTypePattern = new ArrayList<TypePattern>();
-	private List<String> aspectExcludeStartsWith = new ArrayList<String>();
-	private List<TypePattern> aspectIncludeTypePattern = new ArrayList<TypePattern>();
-	private List<String> aspectIncludeStartsWith = new ArrayList<String>();
+	private List<TypePattern> aspectExcludeTypePattern = new ArrayList<>();
+	private List<String> aspectExcludeStartsWith = new ArrayList<>();
+	private List<TypePattern> aspectIncludeTypePattern = new ArrayList<>();
+	private List<String> aspectIncludeStartsWith = new ArrayList<>();
 
 	private StringBuffer namespace;
 	private IWeavingContext weavingContext;
 
-	private List<ConcreteAspectCodeGen> concreteAspects = new ArrayList<ConcreteAspectCodeGen>();
+	private List<ConcreteAspectCodeGen> concreteAspects = new ArrayList<>();
 
 	private static Trace trace = TraceFactory.getTraceFactory().getTrace(ClassLoaderWeavingAdaptor.class);
 
@@ -218,9 +218,8 @@ public class ClassLoaderWeavingAdaptor extends WeavingAdaptor {
 	 * @return
 	 */
 	List<String> getAspectClassNames(List<Definition> definitions) {
-		List<String> aspects = new LinkedList<String>();
-		for (Iterator<Definition> it = definitions.iterator(); it.hasNext(); ) {
-			Definition def = it.next();
+		List<String> aspects = new LinkedList<>();
+		for (Definition def : definitions) {
 			List<String> defAspects = def.getAspectClassNames();
 			if (defAspects != null) {
 				aspects.addAll(defAspects);
@@ -239,7 +238,7 @@ public class ClassLoaderWeavingAdaptor extends WeavingAdaptor {
 			trace.enter("parseDefinitions", this);
 		}
 
-		List<Definition> definitions = new ArrayList<Definition>();
+		List<Definition> definitions = new ArrayList<>();
 		try {
 			info("register classloader " + getClassLoaderName(loader));
 			// TODO av underoptimized: we will parse each XML once per CL that see it
@@ -278,7 +277,7 @@ public class ClassLoaderWeavingAdaptor extends WeavingAdaptor {
 					Enumeration<URL> xmls = weavingContext.getResources(nextDefinition);
 					// System.out.println("? registerDefinitions: found-aop.xml=" + xmls.hasMoreElements() + ", loader=" + loader);
 
-					Set<URL> seenBefore = new HashSet<URL>();
+					Set<URL> seenBefore = new HashSet<>();
 					while (xmls.hasMoreElements()) {
 						URL xml = xmls.nextElement();
 						if (trace.isTraceEnabled()) {
@@ -372,7 +371,7 @@ public class ClassLoaderWeavingAdaptor extends WeavingAdaptor {
 		world.performExtraConfiguration(weaverOption.xSet);
 		world.setXnoInline(weaverOption.noInline);
 		// AMC - autodetect as per line below, needed for AtAjLTWTests.testLTWUnweavable
-		world.setBehaveInJava5Way(LangUtil.is15VMOrGreater());
+		world.setBehaveInJava5Way(true);
 		world.setAddSerialVerUID(weaverOption.addSerialVersionUID);
 
 		/* First load defaults */
@@ -598,9 +597,9 @@ public class ClassLoaderWeavingAdaptor extends WeavingAdaptor {
 	private void registerIncludeExclude(final BcelWeaver weaver, final ClassLoader loader, final List<Definition> definitions) {
 		String fastMatchInfo = null;
 		for (Definition definition : definitions) {
-			for (Iterator<String> iterator1 = definition.getIncludePatterns().iterator(); iterator1.hasNext();) {
+			for (String value : definition.getIncludePatterns()) {
 				hasIncludes = true;
-				String include = iterator1.next();
+				String include = value;
 				fastMatchInfo = looksLikeStartsWith(include);
 				if (fastMatchInfo != null) {
 					includeStartsWith.add(fastMatchInfo);
@@ -613,9 +612,9 @@ public class ClassLoaderWeavingAdaptor extends WeavingAdaptor {
 					includeTypePattern.add(includePattern);
 				}
 			}
-			for (Iterator<String> iterator1 = definition.getExcludePatterns().iterator(); iterator1.hasNext();) {
+			for (String s : definition.getExcludePatterns()) {
 				hasExcludes = true;
-				String exclude = iterator1.next();
+				String exclude = s;
 				fastMatchInfo = looksLikeStartsWith(exclude);
 				if (fastMatchInfo != null) {
 					excludeStartsWith.add(fastMatchInfo);
@@ -628,8 +627,8 @@ public class ClassLoaderWeavingAdaptor extends WeavingAdaptor {
 				} else if (exclude
 						.equals("org.codehaus.groovy..* && !org.codehaus.groovy.grails.web.servlet.mvc.SimpleGrailsController*")) {
 					// TODO need a more sophisticated analysis here, to allow for similar situations
-					excludeSpecial.add(new String[] { "org.codehaus.groovy.",
-							"org.codehaus.groovy.grails.web.servlet.mvc.SimpleGrailsController" });
+					excludeSpecial.add(new String[]{"org.codehaus.groovy.",
+							"org.codehaus.groovy.grails.web.servlet.mvc.SimpleGrailsController"});
 					// for the related test:
 					// } else if (exclude.equals("testdata..* && !testdata.sub.Oran*")) {
 					// excludeSpecial.add(new String[] { "testdata.", "testdata.sub.Oran" });
@@ -663,7 +662,7 @@ public class ClassLoaderWeavingAdaptor extends WeavingAdaptor {
 	 * Checks if the pattern looks like "com.foo.Bar" - an exact name
 	 */
 	private String looksLikeExactName(String typePattern) {
-		if (hasSpaceAnnotationPlus(typePattern, 0) || typePattern.indexOf("*") != -1) {
+		if (hasSpaceAnnotationPlus(typePattern, 0) || typePattern.contains("*")) {
 			return null;
 		}
 		return typePattern.replace('$', '.');
@@ -737,8 +736,7 @@ public class ClassLoaderWeavingAdaptor extends WeavingAdaptor {
 	 */
 	private void registerDump(final BcelWeaver weaver, final ClassLoader loader, final List<Definition> definitions) {
 		for (Definition definition : definitions) {
-			for (Iterator<String> iterator1 = definition.getDumpPatterns().iterator(); iterator1.hasNext();) {
-				String dump = iterator1.next();
+			for (String dump : definition.getDumpPatterns()) {
 				TypePattern pattern = new PatternParser(dump).parseTypePattern();
 				dumpTypePattern.add(pattern);
 			}
@@ -828,9 +826,9 @@ public class ClassLoaderWeavingAdaptor extends WeavingAdaptor {
 				}
 			}
 			boolean fastAccept = false;// defaults to false if no fast include
-			for (int i = 0; i < includeStartsWith.size(); i++) {
+			for (String s : includeStartsWith) {
 				didSomeIncludeMatching = true;
-				fastAccept = fastClassName.startsWith(includeStartsWith.get(i));
+				fastAccept = fastClassName.startsWith(s);
 				if (fastAccept) {
 					return true;
 				}
@@ -866,9 +864,9 @@ public class ClassLoaderWeavingAdaptor extends WeavingAdaptor {
 					}
 				}
 			}
-			for (int i = 0; i < includeStartsWith.size(); i++) {
+			for (String s : includeStartsWith) {
 				didSomeIncludeMatching = true;
-				boolean fastaccept = fastClassName.startsWith(includeStartsWith.get(i));
+				boolean fastaccept = fastClassName.startsWith(s);
 				if (fastaccept) {
 					return true;
 				}
@@ -898,14 +896,14 @@ public class ClassLoaderWeavingAdaptor extends WeavingAdaptor {
 		// still try to avoid ResolvedType if we have simple patterns
 		// EXCLUDE: if one match then reject
 		String fastClassName = aspectClassName.replace('/', '.').replace('.', '$');
-		for (int i = 0; i < aspectExcludeStartsWith.size(); i++) {
-			if (fastClassName.startsWith(aspectExcludeStartsWith.get(i))) {
+		for (String value : aspectExcludeStartsWith) {
+			if (fastClassName.startsWith(value)) {
 				return false;
 			}
 		}
 		// INCLUDE: if one match then accept
-		for (int i = 0; i < aspectIncludeStartsWith.size(); i++) {
-			if (fastClassName.startsWith(aspectIncludeStartsWith.get(i))) {
+		for (String s : aspectIncludeStartsWith) {
+			if (fastClassName.startsWith(s)) {
 				return true;
 			}
 		}
@@ -946,8 +944,7 @@ public class ClassLoaderWeavingAdaptor extends WeavingAdaptor {
 		// TODO AV - optimize for className.startWith only
 		ResolvedType classInfo = weaver.getWorld().resolve(UnresolvedType.forName(className), true);
 		// dump
-		for (Iterator<TypePattern> iterator = dumpTypePattern.iterator(); iterator.hasNext();) {
-			TypePattern typePattern = iterator.next();
+		for (TypePattern typePattern : dumpTypePattern) {
 			if (typePattern.matchesStatically(classInfo)) {
 				// dump match
 				return true;
@@ -1005,7 +1002,7 @@ public class ClassLoaderWeavingAdaptor extends WeavingAdaptor {
 	 */
 	public void flushGeneratedClasses() {
 		// System.err.println("? ClassLoaderWeavingAdaptor.flushGeneratedClasses() generatedClasses=" + generatedClasses);
-		generatedClasses = new HashMap<String, IUnwovenClassFile>();
+		generatedClasses = new HashMap<>();
 	}
 
 	/**

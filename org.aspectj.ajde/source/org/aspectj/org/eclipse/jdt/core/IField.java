@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -90,5 +90,13 @@ boolean isEnumConstant() throws JavaModelException;
  * @since 3.1
  */
 boolean isResolved();
+/**
+ * Returns whether this field represents a record component.
+ *
+ * @return whether this field represents a record component.
+ * @throws JavaModelException
+ * @since 3.26
+ */
+boolean isRecordComponent() throws JavaModelException;
 
 }

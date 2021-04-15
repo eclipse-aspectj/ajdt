@@ -114,7 +114,7 @@ public class ErrorTypeImpl extends DeclaredTypeImpl implements ErrorType {
 	public TypeKind getKind() {
 		return TypeKind.ERROR;
 	}
-	
+
 	@Override
 	public String toString() {
 		return new String(_binding.readableName());

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -26,6 +26,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.impl.Constant;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.ReferenceContext;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.FieldBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.RecordComponentBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TagBits;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeIds;
 import org.aspectj.org.eclipse.jdt.internal.core.JavaElement;
@@ -94,9 +95,9 @@ class VariableBinding implements IVariableBinding {
 			case TypeIds.T_char:
 				return Character.valueOf(c.charValue());
 			case TypeIds.T_double:
-				return new Double(c.doubleValue());
+				return Double.valueOf(c.doubleValue());
 			case TypeIds.T_float:
-				return new Float(c.floatValue());
+				return Float.valueOf(c.floatValue());
 			case TypeIds.T_int:
 				return Integer.valueOf(c.intValue());
 			case TypeIds.T_long:
@@ -215,6 +216,16 @@ class VariableBinding implements IVariableBinding {
 						defaultBindingResolver.getBindingsToNodesMap());
 			}
 			return null;
+		}else if (isRecordComponent()) {
+			if (this.resolver instanceof DefaultBindingResolver) {
+				DefaultBindingResolver defaultBindingResolver = (DefaultBindingResolver) this.resolver;
+				if (!defaultBindingResolver.fromJavaProject) return null;
+				return Util.getUnresolvedJavaElement(
+						(RecordComponentBinding) this.binding,
+						defaultBindingResolver.workingCopyOwner,
+						defaultBindingResolver.getBindingsToNodesMap());
+			}
+			return null;
 		}
 		// local variable
 		if (!(this.resolver instanceof DefaultBindingResolver)) return null;
@@ -258,6 +269,9 @@ class VariableBinding implements IVariableBinding {
 		char[] typeSig = this.binding.type.genericTypeSignature();
 		JavaElement parent = null;
 		IMethodBinding declaringMethod = getDeclaringMethod();
+		if (this.binding instanceof RecordComponentBinding) {
+			return null; // TODO : SEE Bug 562736/ BUG 562637
+		}
 		final LocalVariableBinding localVariableBinding = (LocalVariableBinding) this.binding;
 		if (declaringMethod == null) {
 			ReferenceContext referenceContext = localVariableBinding.declaringScope.referenceContext();
@@ -381,6 +395,11 @@ class VariableBinding implements IVariableBinding {
 		return (!this.binding.isFinal() && this.binding.isEffectivelyFinal());
 	}
 
+	@Override
+	public boolean isRecordComponent() {
+		return this.binding instanceof RecordComponentBinding;
+	}
+
 	/*
 	 * For debugging purpose only.
 	 * @see java.lang.Object#toString()
@@ -389,4 +408,5 @@ class VariableBinding implements IVariableBinding {
 	public String toString() {
 		return this.binding.toString();
 	}
+
 }

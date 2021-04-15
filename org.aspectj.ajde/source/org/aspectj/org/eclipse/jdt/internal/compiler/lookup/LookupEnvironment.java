@@ -67,7 +67,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.util.SimpleLookupTable;
 
 /**
  * AspectJ Extension - made many methods and fields more visible for extension
- * 
+ *
  * Also modified error checking on getType(char[][] compoundName) to allow
  * refering to inner types directly.
  */
@@ -99,7 +99,7 @@ public class LookupEnvironment implements ProblemReasons, TypeConstants {
 	// End AspectJ Extension
 
 	TypeSystem typeSystem;					 	// SHARED
-	
+
 	public INameEnvironment nameEnvironment;	// SHARED
 	public CompilerOptions globalOptions;		// SHARED
 
@@ -110,10 +110,10 @@ public class LookupEnvironment implements ProblemReasons, TypeConstants {
 	// step 2 : conect the hierarchy (connect bindings)
 	// step 3 : build fields and method bindings.
 	protected int stepCompleted; // ROOT_ONLY AspectJ Extension - raised visibility
-	public ITypeRequestor typeRequestor; // SHARED
+	public ITypeRequestor typeRequestor;		// SHARED
 
 	private SimpleLookupTable uniqueParameterizedGenericMethodBindings;
-	
+
 	// key is a string with the method selector value is an array of method bindings
 	private SimpleLookupTable uniquePolymorphicMethodBindings;
 	private SimpleLookupTable uniqueGetClassMethodBinding; // https://bugs.eclipse.org/bugs/show_bug.cgi?id=300734
@@ -229,7 +229,7 @@ public ModuleBinding getModule(char[] name) {
 				this.typeRequestor.accept(mod, this);
 				moduleBinding = this.root.knownModules.get(name);
 			}
-		} else 
+		} else
 			return this.UnNamedModule;
 	}
 	return moduleBinding;
@@ -262,7 +262,7 @@ public ReferenceBinding askForType(char[][] compoundName, /*@NonNull*/ModuleBind
 		if (answer == null) continue;
 
 		ModuleBinding answerModule = answer.moduleBinding != null ? answer.moduleBinding : this.UnNamedModule;
-	
+
 		if (answer.isBinaryType()) {
 			// the type was found as a .class file
 			PackageBinding pkg = answerModule.environment.computePackageFrom(compoundName, false /* valid pkg */);
@@ -324,7 +324,7 @@ ReferenceBinding askForType(PackageBinding packageBinding, char[] name, ModuleBi
 			return candidate; // saw enough
 		ModuleBinding answerModule = answer.moduleBinding != null ? answer.moduleBinding : this.UnNamedModule;
 		PackageBinding answerPackage = packageBinding;
-		
+
 		if (answerModule != null) {
 			if (!answerPackage.isDeclaredIn(answerModule))
 				continue; // this answer is not reachable via the packageBinding
@@ -403,12 +403,12 @@ private NameEnvironmentAnswer[] askForTypeFromModules(ModuleBinding clientModule
 			NameEnvironmentAnswer answer = oracle.apply(otherModules[i]);
 			if (answer != null) {
 				if (answer.moduleBinding == null) {
-				char[] nameFromAnswer = answer.moduleName();
+					char[] nameFromAnswer = answer.moduleName();
 					if (CharOperation.equals(nameFromAnswer, otherModules[i].moduleName)) {
-					answer.moduleBinding = otherModules[i];
-				} else {
-					answer.moduleBinding = getModule(nameFromAnswer);
-				}
+						answer.moduleBinding = otherModules[i];
+					} else {
+						answer.moduleBinding = getModule(nameFromAnswer);
+					}
 				}
 				answers[i] = answer;
 				found = true;
@@ -430,7 +430,7 @@ private static NameEnvironmentAnswer fromSplitPackageOrOracle(IModuleAwareNameEn
 			if (binding instanceof UnresolvedReferenceBinding)
 				binding = ((UnresolvedReferenceBinding) binding).resolve(module.environment, false);
 			if (binding.isValidBinding())
-			return new NameEnvironmentAnswer(binding, module);
+				return new NameEnvironmentAnswer(binding, module);
 		}
 	}
 	return moduleEnv.findType(name, packageBinding.compoundName, module.nameForLookup());
@@ -441,7 +441,7 @@ private ModuleBinding getModuleFromAnswer(NameEnvironmentAnswer answer) {
 		ModuleBinding moduleBinding;
 		if (!this.useModuleSystem || moduleName == ModuleBinding.UNNAMED) {
 			moduleBinding = this.UnNamedModule;
-		} else { 
+		} else {
 			moduleBinding = this.knownModules.get(moduleName);
 			if (moduleBinding == null && this.nameEnvironment instanceof IModuleAwareNameEnvironment) {
 				IModule iModule = ((IModuleAwareNameEnvironment) this.nameEnvironment).getModule(moduleName);
@@ -479,7 +479,9 @@ public void buildTypeBindings(CompilationUnitDeclaration unit, AccessRestriction
 		scope = new CompilationUnitScope(unit, this.globalOptions);
 		unitModule = unit.moduleDeclaration.setBinding(new SourceModuleBinding(moduleName, scope, this.root));
 	} else {
-		unitModule = unit.module(this);
+		if (this.globalOptions.sourceLevel >= ClassFileConstants.JDK9) {
+			unitModule = unit.module(this);
+		}
 		scope = new CompilationUnitScope(unit, unitModule != null ? unitModule.environment : this);
 	}
 	scope.buildTypeBindings(accessRestriction);
@@ -765,7 +767,7 @@ private PackageBinding computePackageFrom(char[][] constantPoolName, boolean isM
 			}
 		}
 		if (packageBinding == null || packageBinding == TheNotFoundPackage) {
-			packageBinding = this.module.createDeclaredToplevelPackage(constantPoolName[0]); 
+			packageBinding = this.module.createDeclaredToplevelPackage(constantPoolName[0]);
 		}
 		if (isMissing) packageBinding.tagBits |= TagBits.HasMissingType;
 		this.knownPackages.put(constantPoolName[0], packageBinding); // TODO: split?
@@ -806,7 +808,7 @@ private PackageBinding computePackageFrom(char[][] constantPoolName, boolean isM
 			if (incarnation.hasCompilationUnit(false)) {
 				if (candidate != null) {
 					candidate = null;
-					break; // likely to report "accessible from more than one module" downstream 
+					break; // likely to report "accessible from more than one module" downstream
 				}
 				candidate = incarnation;
 			}
@@ -890,7 +892,7 @@ public TypeBinding convertToRawType(TypeBinding type, boolean forceRawEnclosingT
 		if (!((ReferenceBinding)originalType).hasEnclosingInstanceContext()) {
 			convertedEnclosing = (ReferenceBinding) originalEnclosing.original();
 		} else {
-			if (originalEnclosing.kind() == Binding.RAW_TYPE) {			
+			if (originalEnclosing.kind() == Binding.RAW_TYPE) {
 				convertedEnclosing = originalEnclosing;
 				needToConvert = true;
 			} else if (forceRawEnclosingType && !needToConvert/*stop recursion when conversion occurs*/) {
@@ -926,7 +928,7 @@ public ReferenceBinding[] convertToRawTypes(ReferenceBinding[] originalTypes, bo
     for (int i = 0, length = originalTypes.length; i < length; i++) {
         ReferenceBinding originalType = originalTypes[i];
         ReferenceBinding convertedType = (ReferenceBinding) convertToRawType(forceErasure ? originalType.erasure() : originalType, forceRawEnclosingType);
-        if (TypeBinding.notEquals(convertedType, originalType)) {        
+        if (TypeBinding.notEquals(convertedType, originalType)) {
             if (convertedTypes == originalTypes) {
                 System.arraycopy(originalTypes, 0, convertedTypes = new ReferenceBinding[length], 0, i);
             }
@@ -1040,7 +1042,7 @@ public TypeBinding createIntersectionType18(ReferenceBinding[] intersectingTypes
 		});
 	}
 	return this.typeSystem.getIntersectionType18(intersectingTypes);
-}	
+}
 
 public BinaryTypeBinding createBinaryTypeFrom(IBinaryType binaryType, PackageBinding packageBinding, AccessRestriction accessRestriction) {
 	return createBinaryTypeFrom(binaryType, packageBinding, true, accessRestriction);
@@ -1099,7 +1101,7 @@ public MissingTypeBinding createMissingType(PackageBinding packageBinding, char[
  * 3. Create the method bindings
  */
 public PackageBinding createPackage(char[][] compoundName) {
-	return createPlainPackage(compoundName);	
+	return createPlainPackage(compoundName);
 }
 public PlainPackageBinding createPlainPackage(char[][] compoundName) {
 	PackageBinding packageBinding = this.module.getDeclaredPackage(CharOperation.concatWith(compoundName, '.'));
@@ -1256,7 +1258,7 @@ public PolymorphicMethodBinding createPolymorphicMethod(MethodBinding originalPo
 	String key = new String(originalPolymorphicMethod.selector);
 	PolymorphicMethodBinding[] cachedInfo = (PolymorphicMethodBinding[]) this.uniquePolymorphicMethodBindings.get(key);
 	int parametersLength = parameters == null ? 0: parameters.length;
-	TypeBinding[] parametersTypeBinding = new TypeBinding[parametersLength]; 
+	TypeBinding[] parametersTypeBinding = new TypeBinding[parametersLength];
 	for (int i = 0; i < parametersLength; i++) {
 		TypeBinding parameterTypeBinding = parameters[i];
 		if (parameterTypeBinding.id == TypeIds.T_null) {
@@ -1378,7 +1380,7 @@ public ParameterizedTypeBinding createParameterizedType(ReferenceBinding generic
 	return this.typeSystem.getParameterizedType(genericType, typeArguments, enclosingType, annotations);
 }
 public ReferenceBinding maybeCreateParameterizedType(ReferenceBinding nonGenericType, ReferenceBinding enclosingType) {
-	boolean canSeeEnclosingTypeParameters = enclosingType != null 
+	boolean canSeeEnclosingTypeParameters = enclosingType != null
 			&& (enclosingType.isParameterizedType() | enclosingType.isRawType())
 			&& !nonGenericType.isStatic();
 	if (canSeeEnclosingTypeParameters)
@@ -1489,6 +1491,35 @@ public ReferenceBinding getCachedType(char[][] compoundName) {
 	}
 	return result;
 }
+private boolean flaggedJavaBaseTypeErrors(ReferenceBinding result, char[][] compoundName) {
+	assert result != null && !result.isValidBinding();
+	if (CharOperation.equals(TypeConstants.JAVA, compoundName[0])) {
+		ReferenceBinding type = getType(compoundName, javaBaseModule());
+		if (type != null && type.isValidBinding()) {
+			PackageBinding pack = type.getPackage();
+			char[] readableName = pack != null ? pack.readableName() : null;
+			if (readableName != null) {
+				// 7.4.3 : The packages java, java.lang, and java.io are always observable.
+				if (CharOperation.equals(readableName, TypeConstants.JAVA)
+						|| CharOperation.equals(readableName, CharOperation.concatWith(TypeConstants.JAVA_LANG, '.'))
+						|| CharOperation.equals(readableName, CharOperation.concatWith(TypeConstants.JAVA_IO, '.'))) {
+					PackageBinding currentPack = getTopLevelPackage(readableName);
+					ModuleBinding visibleModule = currentPack != null ? currentPack.enclosingModule : null;
+					if (visibleModule != null && visibleModule != javaBaseModule()) {
+						// A type from java.base is not visible
+						if (!this.globalOptions.enableJdtDebugCompileMode) {
+							this.problemReporter.conflictingPackageInModules(compoundName, this.root.unitBeingCompleted, this.missingClassFileLocation,
+									readableName, TypeConstants.JAVA_BASE, visibleModule.readableName());
+							return true;
+						}
+					}
+				}
+			}
+		}
+	}
+	return false;
+}
+
 public ReferenceBinding getCachedType0(char[][] compoundName) {
 	if (compoundName.length == 1) {
 		return this.defaultPackage.getType0(compoundName[0]);
@@ -1522,7 +1553,7 @@ public char[][] getNullableAnnotationName() {
 }
 
 public AnnotationBinding getNonNullAnnotation() {
-	if (this.nonNullAnnotation != null) 
+	if (this.nonNullAnnotation != null)
 		return this.nonNullAnnotation;
 	if (this.root != this) {
 		return this.nonNullAnnotation = this.root.getNonNullAnnotation();
@@ -1669,7 +1700,7 @@ PackageBinding getTopLevelPackage(char[] name) {
 			return null;
 		return packageBinding;
 	}
-		if (this.nameEnvironment.isPackage(null, name)) {
+	if (this.nameEnvironment.isPackage(null, name)) {
 		this.knownPackages.put(name, packageBinding = this.module.createDeclaredToplevelPackage(name));
 		return packageBinding;
 	}
@@ -1722,8 +1753,8 @@ public ReferenceBinding getType(char[][] compoundName, ModuleBinding mod) {
 	// compoundName refers to a nested type incorrectly (for example, package1.A$B)
 	//	AspectJ Extension - commented out "if" case
 	//XXX how else are we supposed to refer to nested types???
-	//if (referenceBinding.isNestedType())
-	//	return new ProblemReferenceBinding(compoundName, referenceBinding, InternalNameProvided);
+//	if (referenceBinding.isNestedType())
+//		return new ProblemReferenceBinding(compoundName, referenceBinding, InternalNameProvided);
 	//	End AspectJ Extension
 	return referenceBinding;
 }
@@ -1767,10 +1798,10 @@ private ReferenceBinding getTypeFromCompoundName(char[][] compoundName, boolean 
 	}
 	if (binding == TheNotFoundType) {
 		// report the missing class file first
-		if (!wasMissingType) {
-			/* Since missing types have been already been complained against while producing binaries, there is no class path 
-			 * misconfiguration now that did not also exist in some equivalent form while producing the class files which encode 
-			 * these missing types. So no need to bark again. Note that wasMissingType == true signals a type referenced in a .class 
+		if (!wasMissingType && !flaggedJavaBaseTypeErrors(binding, compoundName)) {
+			/* Since missing types have been already been complained against while producing binaries, there is no class path
+			 * misconfiguration now that did not also exist in some equivalent form while producing the class files which encode
+			 * these missing types. So no need to bark again. Note that wasMissingType == true signals a type referenced in a .class
 			 * file which could not be found when the binary was produced. See https://bugs.eclipse.org/bugs/show_bug.cgi?id=364450 */
 			this.problemReporter.isClassPathCorrect(compoundName, this.root.unitBeingCompleted, this.missingClassFileLocation, false);
 		}
@@ -1819,7 +1850,7 @@ ReferenceBinding getTypeFromConstantPoolName(char[] signature, int start, int en
 *
 * NOTE: Does answer base types & array types.
 */
-TypeBinding getTypeFromSignature(char[] signature, int start, int end, boolean isParameterized, TypeBinding enclosingType, 
+TypeBinding getTypeFromSignature(char[] signature, int start, int end, boolean isParameterized, TypeBinding enclosingType,
 		char[][][] missingTypeNames, ITypeAnnotationWalker walker)
 {
 	int dimension = 0;
@@ -1832,7 +1863,7 @@ TypeBinding getTypeFromSignature(char[] signature, int start, int end, boolean i
 	if (dimension > 0 && walker != ITypeAnnotationWalker.EMPTY_ANNOTATION_WALKER) {
 		for (int i = 0; i < dimension; i++) {
 			AnnotationBinding [] annotations = BinaryTypeBinding.createAnnotations(walker.getAnnotationsAtCursor(0, true), this, missingTypeNames);
-			if (annotations != Binding.NO_ANNOTATIONS) { 
+			if (annotations != Binding.NO_ANNOTATIONS) {
 				if (annotationsOnDimensions == null)
 					annotationsOnDimensions = new AnnotationBinding[dimension][];
 					annotationsOnDimensions[i] = annotations;
@@ -1840,7 +1871,7 @@ TypeBinding getTypeFromSignature(char[] signature, int start, int end, boolean i
 			walker = walker.toNextArrayDimension();
 		}
 	}
-	
+
 	if (end == -1)
 		end = signature.length - 1;
 
@@ -1882,20 +1913,20 @@ TypeBinding getTypeFromSignature(char[] signature, int start, int end, boolean i
 	} else {
 		binding = getTypeFromConstantPoolName(signature, start + 1, end, isParameterized, missingTypeNames); // skip leading 'L' or 'T'
 	}
-	
+
 	if (isParameterized) {
 		if (dimension != 0)
 			throw new IllegalStateException();
 		return binding;
 	}
-	
+
 	if (walker != ITypeAnnotationWalker.EMPTY_ANNOTATION_WALKER) {
 		binding = annotateType(binding, walker, missingTypeNames);
 	}
-	
+
 	if (dimension != 0)
 		binding =  this.typeSystem.getArrayType(binding, dimension, AnnotatableTypeSystem.flattenedAnnotations(annotationsOnDimensions));
-	
+
 	return binding;
 }
 
@@ -1956,8 +1987,8 @@ boolean qualifiedNameMatchesSignature(char[][] name, char[] signature) {
 	return false;
 }
 
-public TypeBinding getTypeFromTypeSignature(SignatureWrapper wrapper, TypeVariableBinding[] staticVariables, ReferenceBinding enclosingType, 
-		char[][][] missingTypeNames, ITypeAnnotationWalker walker) 
+public TypeBinding getTypeFromTypeSignature(SignatureWrapper wrapper, TypeVariableBinding[] staticVariables, ReferenceBinding enclosingType,
+		char[][][] missingTypeNames, ITypeAnnotationWalker walker)
 {
 	// TypeVariableSignature = 'T' Identifier ';'
 	// ArrayTypeSignature = '[' TypeSignature
@@ -1974,7 +2005,7 @@ public TypeBinding getTypeFromTypeSignature(SignatureWrapper wrapper, TypeVariab
 	if (dimension > 0 && walker != ITypeAnnotationWalker.EMPTY_ANNOTATION_WALKER) {
 		for (int i = 0; i < dimension; i++) {
 			AnnotationBinding [] annotations = BinaryTypeBinding.createAnnotations(walker.getAnnotationsAtCursor(0, true), this, missingTypeNames);
-			if (annotations != Binding.NO_ANNOTATIONS) { 
+			if (annotations != Binding.NO_ANNOTATIONS) {
 				if (annotationsOnDimensions == null)
 					annotationsOnDimensions = new AnnotationBinding[dimension][];
 					annotationsOnDimensions[i] = annotations;
@@ -2038,7 +2069,7 @@ public TypeBinding getTypeFromTypeSignature(SignatureWrapper wrapper, TypeVariab
 		if (memberType == null)
 			this.problemReporter.corruptedSignature(currentType, wrapper.signature, memberStart); // aborts
 		if(memberType.isStatic()) {
-			// may happen for class files generated by eclipse before bug 460491 was fixed. 
+			// may happen for class files generated by eclipse before bug 460491 was fixed.
 			walker = savedWalker;
 		} else {
 			walker = walker.toNextNestedType();
@@ -2049,7 +2080,7 @@ public TypeBinding getTypeFromTypeSignature(SignatureWrapper wrapper, TypeVariab
 		} else {
 			typeArguments = null;
 		}
-		if (typeArguments != null || 											// has type arguments, or ... 
+		if (typeArguments != null || 											// has type arguments, or ...
 				(!memberType.isStatic() && currentType.isParameterizedType())) 	// ... can see type arguments of enclosing
 		{
 			if (memberType.isStatic())
@@ -2159,7 +2190,7 @@ public void reset() {
 	this.accessRestrictions = new HashMap(3);
 
 	this.verifier = null;
-	
+
 	// NOTE: remember to fix #updateCaches(...) when adding unique binding caches
 	this.uniqueParameterizedGenericMethodBindings = new SimpleLookupTable(3);
 	this.uniquePolymorphicMethodBindings = new SimpleLookupTable(3);
@@ -2262,8 +2293,9 @@ public boolean containsNullTypeAnnotation(AnnotationBinding[] typeAnnotations) {
 		if (typeAnnotation.type.hasNullBit(TypeIds.BitNonNullAnnotation|TypeIds.BitNullableAnnotation))
 			return true;
 	}
-	return false;	
+	return false;
 }
+
 public Binding getInaccessibleBinding(char[][] compoundName, ModuleBinding clientModule) {
 	if (this.root != this)
 		return this.root.getInaccessibleBinding(compoundName, clientModule);

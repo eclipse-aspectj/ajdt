@@ -1,6 +1,6 @@
 // ASPECTJ
 /*******************************************************************************
- * Copyright (c) 2000, 2019 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -8,7 +8,7 @@
  * https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann <stephan@cs.tu-berlin.de> - Contributions for
@@ -36,7 +36,7 @@
  *							Bug 529556 - [18.3] Add content assist support for 'var' as a type
  *        Andy Clement (GoPivotal, Inc) aclement@gopivotal.com - Contributions for
  *							Bug 409250 - [1.8][compiler] Various loose ends in 308 code generation
- *							Bug 426616 - [1.8][compiler] Type Annotations, multiple problems 
+ *							Bug 426616 - [1.8][compiler] Type Annotations, multiple problems
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
@@ -46,7 +46,6 @@ import static org.aspectj.org.eclipse.jdt.internal.compiler.ast.ExpressionContex
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
 
 import org.aspectj.org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.*;
@@ -57,16 +56,9 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.flow.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.RecoveryScanner;
 
-@SuppressWarnings("rawtypes")
 public class LocalDeclaration extends AbstractVariableDeclaration {
 
 	public LocalVariableBinding binding;
-
-	/**
-	 * For pattern variable, resolve() may store here an obligation to be checked when we have
-	 * a flow info that tells us whether a potential duplicates is in fact in scope.
-	 */
-	Consumer<FlowInfo> duplicateCheckObligation;
 
 	public LocalDeclaration(
 		char[] name,
@@ -89,9 +81,9 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 		return flowInfo;
 	}
 	this.initialization.checkNPEbyUnboxing(currentScope, flowContext, flowInfo);
-	
+
 	FlowInfo preInitInfo = null;
-	boolean shouldAnalyseResource = this.binding != null 
+	boolean shouldAnalyseResource = this.binding != null
 			&& flowInfo.reachMode() == FlowInfo.REACHABLE
 			&& currentScope.compilerOptions().analyseResourceLeaks
 			&& FakedTrackingVariable.isAnyCloseable(this.initialization.resolvedType);
@@ -168,14 +160,14 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 				//	break generateInit;
 				// same code:
 				// if binding unused generate then discard the value
-				this.initialization.generateCode(currentScope, codeStream, true); // AspectJ: final param needs to be true (was false) 
+				this.initialization.generateCode(currentScope, codeStream, true); // AspectJ: final param needs to be true (was false)
 				// new code:
 					if (TypeBinding.equalsEquals(this.binding.type,TypeBinding.LONG) || TypeBinding.equalsEquals(this.binding.type,TypeBinding.DOUBLE)) {
 						codeStream.pop2();
 					} else {
 						codeStream.pop();
 					}
-				// End AspectJ Extension	
+				// End AspectJ Extension
 				break generateInit;
 			}
 			this.initialization.generateCode(currentScope, codeStream, true);
@@ -205,17 +197,17 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 	}
 
 	// for local variables
-	public void getAllAnnotationContexts(int targetType, LocalVariableBinding localVariable, List allAnnotationContexts) {
+	public void getAllAnnotationContexts(int targetType, LocalVariableBinding localVariable, List<AnnotationContext> allAnnotationContexts) {
 		AnnotationCollector collector = new AnnotationCollector(this, targetType, localVariable, allAnnotationContexts);
 		this.traverseWithoutInitializer(collector, (BlockScope) null);
 	}
 
 	// for arguments
-	public void getAllAnnotationContexts(int targetType, int parameterIndex, List allAnnotationContexts) {
+	public void getAllAnnotationContexts(int targetType, int parameterIndex, List<AnnotationContext> allAnnotationContexts) {
 		AnnotationCollector collector = new AnnotationCollector(this, targetType, parameterIndex, allAnnotationContexts);
 		this.traverse(collector, (BlockScope) null);
 	}
-		
+
 	public boolean isArgument() {
 		return false;
 	}
@@ -226,7 +218,7 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 		// Perform upwards projection on type wrt mentioned type variables
 		TypeBinding[] mentionedTypeVariables= findCapturedTypeVariables(newType);
 		if (mentionedTypeVariables != null && mentionedTypeVariables.length > 0) {
-			newType = newType.upwardsProjection(this.binding.declaringScope, mentionedTypeVariables); 	
+			newType = newType.upwardsProjection(this.binding.declaringScope, mentionedTypeVariables);
 		}
 		this.type.resolvedType = newType;
 		if (this.binding != null) {
@@ -249,7 +241,7 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 		if (mentioned.isEmpty()) return null;
 		return mentioned.toArray(new TypeVariableBinding[mentioned.size()]);
 	}
-	
+
 	private static Expression findPolyExpression(Expression e) {
 		// This is simpler than using an ASTVisitor, since we only care about a very few select cases.
 		if (e instanceof FunctionalExpression) {
@@ -272,7 +264,7 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 		}
 		return null;
 	}
-	
+
 	@Override
 	public void resolve(BlockScope scope) {
 		resolve(scope, false);
@@ -316,24 +308,14 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 
 		Binding existingVariable = scope.getBinding(this.name, Binding.VARIABLE, this, false /*do not resolve hidden field*/);
 		if (existingVariable != null && existingVariable.isValidBinding()){
-			boolean localExists = existingVariable instanceof LocalVariableBinding; 
-			if (localExists && isPatternVariable
-					&& (((LocalVariableBinding) existingVariable).modifiers & ExtraCompilerModifiers.AccPatternVariable) != 0)
-			{
-				this.duplicateCheckObligation = (flowInfo) -> {
-					if (flowInfo.isDefinitelyAssigned((LocalVariableBinding) existingVariable)) {
-						scope.problemReporter().redefineLocal(this);
-					}
-				};
-			} else {
+			boolean localExists = existingVariable instanceof LocalVariableBinding;
 			if (localExists && (this.bits & ASTNode.ShadowsOuterLocal) != 0 && scope.isLambdaSubscope() && this.hiddenVariableDepth == 0) {
-					scope.problemReporter().lambdaRedeclaresLocal(this);
+				scope.problemReporter().lambdaRedeclaresLocal(this);
 			} else if (localExists && this.hiddenVariableDepth == 0) {
-					scope.problemReporter().redefineLocal(this);
+				scope.problemReporter().redefineLocal(this);
 			} else {
 				scope.problemReporter().localVariableHiding(this, existingVariable, false);
 			}
-		}
 		}
 
 		if ((this.modifiers & ClassFileConstants.AccFinal)!= 0 && this.initialization == null) {
@@ -341,10 +323,10 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 		}
 		if (isTypeNameVar) {
 			// Create binding for the initializer's type
-			// In order to resolve self-referential initializers, we must declare the variable with a placeholder type (j.l.Object), and then patch it later 
+			// In order to resolve self-referential initializers, we must declare the variable with a placeholder type (j.l.Object), and then patch it later
 			this.binding = new LocalVariableBinding(this, variableType != null ? variableType : scope.getJavaLangObject(), this.modifiers, false) {
 				private boolean isInitialized = false;
-				
+
 				@Override
 				public void markReferenced() {
 					if (! this.isInitialized) {
@@ -369,6 +351,9 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 
 		if (variableType == null) {
 			if (this.initialization != null) {
+				if (this.initialization instanceof CastExpression) {
+					((CastExpression)this.initialization).setVarTypeDeclaration(true);
+				}
 				this.initialization.resolveType(scope); // want to report all possible errors
 				if (isTypeNameVar && this.initialization.resolvedType != null) {
 					if (TypeBinding.equalsEquals(TypeBinding.NULL, this.initialization.resolvedType)) {
@@ -388,11 +373,10 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 		if (variableTypeInferenceError) {
 			return;
 		}
-
 		boolean resolveAnnotationsEarly = false;
-		if (scope.environment().usesNullTypeAnnotations() 
+		if (scope.environment().usesNullTypeAnnotations()
 				&& !isTypeNameVar // 'var' does not provide a target type
-				&& variableType != null && variableType.isValidBinding()) { 
+				&& variableType != null && variableType.isValidBinding()) {
 			resolveAnnotationsEarly = this.initialization instanceof Invocation
 					|| this.initialization instanceof ConditionalExpression
 					|| this.initialization instanceof SwitchExpression
@@ -456,7 +440,7 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 		}
 		// if init could be a constant only resolve annotation at the end, for constant to be positioned before (96991)
 		if (!resolveAnnotationsEarly)
-		resolveAnnotations(scope, this.annotations, this.binding, true);
+			resolveAnnotations(scope, this.annotations, this.binding, true);
 		Annotation.isTypeUseCompatible(this.type, scope, this.annotations);
 		validateNullAnnotations(scope);
 	}
@@ -512,8 +496,8 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 		}
 		visitor.endVisit(this, scope);
 	}
-	
-	private void traverseWithoutInitializer(ASTVisitor visitor, BlockScope scope) {		
+
+	private void traverseWithoutInitializer(ASTVisitor visitor, BlockScope scope) {
 		if (visitor.visit(this, scope)) {
 			if (this.annotations != null) {
 				int annotationsLength = this.annotations.length;
@@ -526,12 +510,12 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 	}
 
 	public boolean isRecoveredFromLoneIdentifier() { // recovered from lonely identifier or identifier cluster ?
-		return this.name == RecoveryScanner.FAKE_IDENTIFIER && 
+		return this.name == RecoveryScanner.FAKE_IDENTIFIER &&
 				(this.type instanceof SingleTypeReference || (this.type instanceof QualifiedTypeReference && !(this.type instanceof ArrayQualifiedTypeReference))) && this.initialization == null && !this.type.isBaseTypeReference();
 	}
-	
+
 	public boolean isTypeNameVar(Scope scope) {
 		return this.type != null && this.type.isTypeNameVar(scope);
 	}
-	
+
 }

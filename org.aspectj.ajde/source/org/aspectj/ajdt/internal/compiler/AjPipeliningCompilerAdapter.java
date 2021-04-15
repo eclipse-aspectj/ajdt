@@ -14,7 +14,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -65,28 +64,28 @@ import org.aspectj.weaver.bcel.UnwovenClassFile;
  * Here is the compiler loop difference when pipelining.
  * 
  * the old way: Finished diet parsing [C:\temp\ajcSandbox\aspectjhead\ajcTest23160.tmp\ClassOne.java] Finished diet parsing
- * [C:\temp\ajcSandbox\aspectjhead\ajcTest23160.tmp\ClassTwo.java] > AjLookupEnvironment.completeTypeBindings() <
+ * [C:\temp\ajcSandbox\aspectjhead\ajcTest23160.tmp\ClassTwo.java] &gt; AjLookupEnvironment.completeTypeBindings() &lt;
  * AjLookupEnvironment.completeTypeBindings() compiling C:\temp\ajcSandbox\aspectjhead\ajcTest23160.tmp\ClassOne.java
- * >Compiler.process(C:\temp\ajcSandbox\aspectjhead\ajcTest23160.tmp\ClassOne.java)
- * <Compiler.process(C:\temp\ajcSandbox\aspectjhead\ajcTest23160.tmp\ClassOne.java) compiling
+ * &gt;Compiler.process(C:\temp\ajcSandbox\aspectjhead\ajcTest23160.tmp\ClassOne.java)
+ * &lt;Compiler.process(C:\temp\ajcSandbox\aspectjhead\ajcTest23160.tmp\ClassOne.java) compiling
  * C:\temp\ajcSandbox\aspectjhead\ajcTest23160.tmp\ClassTwo.java
- * >Compiler.process(C:\temp\ajcSandbox\aspectjhead\ajcTest23160.tmp\ClassTwo.java)
- * <Compiler.process(C:\temp\ajcSandbox\aspectjhead\ajcTest23160.tmp\ClassTwo.java) >AjCompilerAdapter.weave()
- * >BcelWeaver.prepareForWeave <BcelWeaver.prepareForWeave woven class ClassOne (from
+ * &gt;Compiler.process(C:\temp\ajcSandbox\aspectjhead\ajcTest23160.tmp\ClassTwo.java)
+ * &lt;Compiler.process(C:\temp\ajcSandbox\aspectjhead\ajcTest23160.tmp\ClassTwo.java) &gt;AjCompilerAdapter.weave()
+ * &gt;BcelWeaver.prepareForWeave &lt;BcelWeaver.prepareForWeave woven class ClassOne (from
  * C:\temp\ajcSandbox\aspectjhead\ajcTest23160.tmp\ClassOne.java) woven class ClassTwo (from
- * C:\temp\ajcSandbox\aspectjhead\ajcTest23160.tmp\ClassTwo.java) <AjCompilerAdapter.weave()
+ * C:\temp\ajcSandbox\aspectjhead\ajcTest23160.tmp\ClassTwo.java) &lt;AjCompilerAdapter.weave()
  * 
  * the new way (see the compiling/weaving mixed up): Finished diet parsing
  * [C:\temp\ajcSandbox\aspectjhead\ajcTest23160.tmp\ClassOne.java] Finished diet parsing
- * [C:\temp\ajcSandbox\aspectjhead\ajcTest23160.tmp\ClassTwo.java] >AjLookupEnvironment.completeTypeBindings()
- * <AjLookupEnvironment.completeTypeBindings() compiling C:\temp\ajcSandbox\aspectjhead\ajcTest23160.tmp\ClassOne.java
- * >Compiler.process(C:\temp\ajcSandbox\aspectjhead\ajcTest23160.tmp\ClassOne.java)
- * <Compiler.process(C:\temp\ajcSandbox\aspectjhead\ajcTest23160.tmp\ClassOne.java) >AjCompilerAdapter.weave()
- * >BcelWeaver.prepareForWeave <BcelWeaver.prepareForWeave woven class ClassOne (from
- * C:\temp\ajcSandbox\aspectjhead\ajcTest23160.tmp\ClassOne.java) <AjCompilerAdapter.weave() compiling
+ * [C:\temp\ajcSandbox\aspectjhead\ajcTest23160.tmp\ClassTwo.java] &gt;AjLookupEnvironment.completeTypeBindings()
+ * &lt;AjLookupEnvironment.completeTypeBindings() compiling C:\temp\ajcSandbox\aspectjhead\ajcTest23160.tmp\ClassOne.java
+ * &gt;Compiler.process(C:\temp\ajcSandbox\aspectjhead\ajcTest23160.tmp\ClassOne.java)
+ * &lt;Compiler.process(C:\temp\ajcSandbox\aspectjhead\ajcTest23160.tmp\ClassOne.java) &gt;AjCompilerAdapter.weave()
+ * &gt;BcelWeaver.prepareForWeave &lt;BcelWeaver.prepareForWeave woven class ClassOne (from
+ * C:\temp\ajcSandbox\aspectjhead\ajcTest23160.tmp\ClassOne.java) &lt;AjCompilerAdapter.weave() compiling
  * C:\temp\ajcSandbox\aspectjhead\ajcTest23160.tmp\ClassTwo.java
- * >Compiler.process(C:\temp\ajcSandbox\aspectjhead\ajcTest23160.tmp\ClassTwo.java)
- * <Compiler.process(C:\temp\ajcSandbox\aspectjhead\ajcTest23160.tmp\ClassTwo.java) >AjCompilerAdapter.weave() woven class ClassTwo
+ * &gt;Compiler.process(C:\temp\ajcSandbox\aspectjhead\ajcTest23160.tmp\ClassTwo.java)
+ * &lt;Compiler.process(C:\temp\ajcSandbox\aspectjhead\ajcTest23160.tmp\ClassTwo.java) &gt;AjCompilerAdapter.weave() woven class ClassTwo
  * (from C:\temp\ajcSandbox\aspectjhead\ajcTest23160.tmp\ClassTwo.java) <AjCompilerAdapter.weave()
  * 
  * 
@@ -108,7 +107,7 @@ public class AjPipeliningCompilerAdapter extends AbstractCompilerAdapter {
 	private IOutputClassFileNameProvider outputFileNameProvider;
 	private IBinarySourceProvider binarySourceProvider;
 	private WeaverMessageHandler weaverMessageHandler;
-	private Map<String, List<UnwovenClassFile>> binarySourceSetForFullWeave = new HashMap<String, List<UnwovenClassFile>>();
+	private Map<String, List<UnwovenClassFile>> binarySourceSetForFullWeave = new HashMap<>();
 
 	private ContextToken processingToken = null;
 	private ContextToken resolvingToken = null;
@@ -118,7 +117,7 @@ public class AjPipeliningCompilerAdapter extends AbstractCompilerAdapter {
 	private AjState incrementalCompilationState;
 
 	// Maintains a list of whats weaving - whilst the pipeline is stalled, this accumulates aspects.
-	List<InterimCompilationResult> resultsPendingWeave = new ArrayList<InterimCompilationResult>();
+	List<InterimCompilationResult> resultsPendingWeave = new ArrayList<>();
 
 	// pipelining info
 	private boolean pipelineStalled = true;
@@ -136,8 +135,8 @@ public class AjPipeliningCompilerAdapter extends AbstractCompilerAdapter {
 	 * @param weaver the weaver
 	 * @param intRequestor recipient of interim compilation results from compiler (pre-weave)
 	 * @param outputFileNameProvider implementor of a strategy providing output file names for results
-	 * @param binarySourceEntries binary source that we didn't compile, but that we need to weave
-	 * @param resultSetForFullWeave if we are doing an incremental build, and the weaver determines that we need to weave the world,
+	 * @param binarySourceProvider binary source that we didn't compile, but that we need to weave
+	 * @param incrementalCompilationState if we are doing an incremental build, and the weaver determines that we need to weave the world,
 	 *        this is the set of intermediate results that will be passed to the weaver.
 	 */
 	public AjPipeliningCompilerAdapter(Compiler compiler, boolean isBatchCompile, BcelWorld world, BcelWeaver weaver,
@@ -191,8 +190,8 @@ public class AjPipeliningCompilerAdapter extends AbstractCompilerAdapter {
 		}
 
 		if (!reportedErrors && units != null) {
-			for (int i = 0; i < units.length; i++) {
-				if (units[i] != null && units[i].compilationResult != null && units[i].compilationResult.hasErrors()) {
+			for (CompilationUnitDeclaration unit : units) {
+				if (unit != null && unit.compilationResult != null && unit.compilationResult.hasErrors()) {
 					reportedErrors = true;
 					break; // TODO break or exit here?
 				}
@@ -200,13 +199,13 @@ public class AjPipeliningCompilerAdapter extends AbstractCompilerAdapter {
 		}
 
 		// Break the units into two lists...
-		List<CompilationUnitDeclaration> aspects = new ArrayList<CompilationUnitDeclaration>();
-		List<CompilationUnitDeclaration> nonaspects = new ArrayList<CompilationUnitDeclaration>();
-		for (int i = 0; i < units.length; i++) {
-			if (containsAnAspect(units[i])) {
-				aspects.add(units[i]);
+		List<CompilationUnitDeclaration> aspects = new ArrayList<>();
+		List<CompilationUnitDeclaration> nonaspects = new ArrayList<>();
+		for (CompilationUnitDeclaration unit : units) {
+			if (containsAnAspect(unit)) {
+				aspects.add(unit);
 			} else {
-				nonaspects.add(units[i]);
+				nonaspects.add(unit);
 			}
 		}
 
@@ -230,7 +229,7 @@ public class AjPipeliningCompilerAdapter extends AbstractCompilerAdapter {
 			if (pipelineOutput == null) {
 				pipelineOutput = new Hashtable();
 			}
-			pipelineOutput.put("filesContainingAspects", new Integer(toWaitFor).toString());
+			pipelineOutput.put("filesContainingAspects", Integer.toString(toWaitFor));
 			StringBuffer order = new StringBuffer();
 			order.append("[");
 			for (int i = 0; i < units.length; i++) {
@@ -255,7 +254,7 @@ public class AjPipeliningCompilerAdapter extends AbstractCompilerAdapter {
 	}
 
 	public void beforeCompiling(ICompilationUnit[] sourceUnits) {
-		resultsPendingWeave = new ArrayList<InterimCompilationResult>();
+		resultsPendingWeave = new ArrayList<>();
 		reportedErrors = false;
 		droppingBackToFullBuild = false;
 	}
@@ -347,8 +346,8 @@ public class AjPipeliningCompilerAdapter extends AbstractCompilerAdapter {
 		int sourceStart = md.sourceStart;
 		int[] separators = md.compilationResult.lineSeparatorPositions;
 		int declarationStartLine = 1;
-		for (int i = 0; i < separators.length; i++) {
-			if (sourceStart < separators[i]) {
+		for (int separator : separators) {
+			if (sourceStart < separator) {
 				break;
 			}
 			declarationStartLine++;
@@ -385,8 +384,8 @@ public class AjPipeliningCompilerAdapter extends AbstractCompilerAdapter {
 		try {
 			// not great ... but one more check before we continue, see pr132314
 			if (!reportedErrors && units != null) {
-				for (int i = 0; i < units.length; i++) {
-					if (units[i] != null && units[i].compilationResult != null && units[i].compilationResult.hasErrors()) {
+				for (CompilationUnitDeclaration unit : units) {
+					if (unit != null && unit.compilationResult != null && unit.compilationResult.hasErrors()) {
 						reportedErrors = true;
 						break;
 					}
@@ -475,9 +474,8 @@ public class AjPipeliningCompilerAdapter extends AbstractCompilerAdapter {
 
 	private List<InterimCompilationResult> getBinarySourcesFrom(Map<String, List<UnwovenClassFile>> binarySourceEntries) {
 		// Map is fileName |-> List<UnwovenClassFile>
-		List<InterimCompilationResult> ret = new ArrayList<InterimCompilationResult>();
-		for (Iterator<String> binIter = binarySourceEntries.keySet().iterator(); binIter.hasNext();) {
-			String sourceFileName = binIter.next();
+		List<InterimCompilationResult> ret = new ArrayList<>();
+		for (String sourceFileName : binarySourceEntries.keySet()) {
 			List<UnwovenClassFile> unwovenClassFiles = binarySourceEntries.get(sourceFileName);
 			// XXX - see bugs 57432,58679 - final parameter on next call should be "compiler.options.maxProblemsPerUnit"
 			CompilationResult result = new CompilationResult(sourceFileName.toCharArray(), 0, 0, Integer.MAX_VALUE);
@@ -489,8 +487,7 @@ public class AjPipeliningCompilerAdapter extends AbstractCompilerAdapter {
 	}
 
 	private void notifyRequestor() {
-		for (Iterator iter = resultsPendingWeave.iterator(); iter.hasNext();) {
-			InterimCompilationResult iresult = (InterimCompilationResult) iter.next();
+		for (InterimCompilationResult iresult : resultsPendingWeave) {
 			compiler.requestor.acceptResult(iresult.result().tagAsAccepted());
 		}
 	}
@@ -500,8 +497,7 @@ public class AjPipeliningCompilerAdapter extends AbstractCompilerAdapter {
 		if (debugPipeline) {
 			System.err.println(">.weaveQueuedEntries()");
 		}
-		for (Iterator iter = resultsPendingWeave.iterator(); iter.hasNext();) {
-			InterimCompilationResult iresult = (InterimCompilationResult) iter.next();
+		for (InterimCompilationResult iresult : resultsPendingWeave) {
 			for (int i = 0; i < iresult.unwovenClassFiles().length; i++) {
 				weaver.addClassFile(iresult.unwovenClassFiles()[i], false);
 			}
@@ -602,15 +598,14 @@ public class AjPipeliningCompilerAdapter extends AbstractCompilerAdapter {
 	private boolean containsAnAspect(CompilationUnitDeclaration cud) {
 		TypeDeclaration[] typeDecls = cud.types;
 		if (typeDecls != null) {
-			for (int i = 0; i < typeDecls.length; i++) { // loop through top level types in the file
-				TypeDeclaration declaration = typeDecls[i];
+			for (TypeDeclaration declaration : typeDecls) { // loop through top level types in the file
 				if (isAspect(declaration)) {
 					return true;
 				}
 				if (declaration.memberTypes != null) {
 					TypeDeclaration[] memberTypes = declaration.memberTypes;
-					for (int j = 0; j < memberTypes.length; j++) { // loop through inner types
-						if (containsAnAspect(memberTypes[j])) {
+					for (TypeDeclaration memberType : memberTypes) { // loop through inner types
+						if (containsAnAspect(memberType)) {
 							return true;
 						}
 					}
@@ -626,8 +621,8 @@ public class AjPipeliningCompilerAdapter extends AbstractCompilerAdapter {
 		}
 		if (tDecl.memberTypes != null) {
 			TypeDeclaration[] memberTypes = tDecl.memberTypes;
-			for (int j = 0; j < memberTypes.length; j++) { // loop through inner types
-				if (containsAnAspect(memberTypes[j])) {
+			for (TypeDeclaration memberType : memberTypes) { // loop through inner types
+				if (containsAnAspect(memberType)) {
 					return true;
 				}
 			}

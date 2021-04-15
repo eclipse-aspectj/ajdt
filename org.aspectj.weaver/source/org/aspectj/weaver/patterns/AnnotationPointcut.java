@@ -13,7 +13,6 @@ package org.aspectj.weaver.patterns;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -141,8 +140,8 @@ public class AnnotationPointcut extends NameBindingPointcut {
 				if (kind == Shadow.FieldGet || kind == Shadow.FieldSet) {
 					// FIXME asc should include supers with getInterTypeMungersIncludingSupers ?
 					List mungers = rMember.getDeclaringType().resolve(shadow.getIWorld()).getInterTypeMungers();
-					for (Iterator iter = mungers.iterator(); iter.hasNext();) {
-						ConcreteTypeMunger typeMunger = (ConcreteTypeMunger) iter.next();
+					for (Object munger : mungers) {
+						ConcreteTypeMunger typeMunger = (ConcreteTypeMunger) munger;
 						if (typeMunger.getMunger() instanceof NewFieldTypeMunger) {
 							ResolvedMember fakerm = typeMunger.getSignature();
 							if (fakerm.equals(member)) {
@@ -162,8 +161,7 @@ public class AnnotationPointcut extends NameBindingPointcut {
 
 	private ResolvedMember findMethod(ResolvedType aspectType, ResolvedMember ajcMethod) {
 		ResolvedMember decMethods[] = aspectType.getDeclaredMethods();
-		for (int i = 0; i < decMethods.length; i++) {
-			ResolvedMember member = decMethods[i];
+		for (ResolvedMember member : decMethods) {
 			if (member.equals(ajcMethod)) {
 				return member;
 			}
@@ -264,7 +262,7 @@ public class AnnotationPointcut extends NameBindingPointcut {
 	@Override
 	public List<BindingPattern> getBindingAnnotationTypePatterns() {
 		if (annotationTypePattern instanceof BindingPattern) { // BindingAnnotationTypePattern) {
-			List<BindingPattern> l = new ArrayList<BindingPattern>();
+			List<BindingPattern> l = new ArrayList<>();
 			l.add((BindingPattern)annotationTypePattern);
 			return l;
 		} else {

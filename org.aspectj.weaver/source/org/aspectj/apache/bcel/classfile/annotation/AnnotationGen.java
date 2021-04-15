@@ -44,7 +44,7 @@ public class AnnotationGen {
 	}
 
 	private List<NameValuePair> copyValues(List<NameValuePair> in, ConstantPool cpool, boolean copyPoolEntries) {
-		List<NameValuePair> out = new ArrayList<NameValuePair>();
+		List<NameValuePair> out = new ArrayList<>();
 		for (NameValuePair nvp : in) {
 			out.add(new NameValuePair(nvp, cpool, copyPoolEntries));
 		}
@@ -82,15 +82,14 @@ public class AnnotationGen {
 	public void dump(DataOutputStream dos) throws IOException {
 		dos.writeShort(typeIndex); // u2 index of type name in cpool
 		dos.writeShort(pairs.size()); // u2 element_value pair count
-		for (int i = 0; i < pairs.size(); i++) {
-			NameValuePair envp = pairs.get(i);
+		for (NameValuePair envp : pairs) {
 			envp.dump(dos);
 		}
 	}
 
 	public void addElementNameValuePair(NameValuePair evp) {
 		if (pairs == Collections.EMPTY_LIST) {
-			pairs = new ArrayList<NameValuePair>();
+			pairs = new ArrayList<>();
 		}
 		pairs.add(evp);
 	}

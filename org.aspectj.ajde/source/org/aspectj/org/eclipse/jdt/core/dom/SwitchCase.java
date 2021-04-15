@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2019 IBM Corporation and others.
+ * Copyright (c) 2000, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -7,7 +7,6 @@
  * https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -46,7 +45,6 @@ public class SwitchCase extends Statement {
 
 	/**
 	 * The "expression" structural property of this node type (child type: {@link Expression}). (added in JEP 325).
-	 * @noreference This property is not intended to be referenced by clients as it is a part of Java preview feature.
 	 * @since 3.18
 	 */
 	public static final ChildListPropertyDescriptor EXPRESSIONS2_PROPERTY  =
@@ -54,7 +52,6 @@ public class SwitchCase extends Statement {
 
 	/**
 	 * The "switchLabeledRule" structural property of this node type (type: {@link Boolean}).
-	 * @noreference This property is not intended to be referenced by clients as it is a part of Java preview feature.
 	 * @since 3.18
 	 */
 	public static final SimplePropertyDescriptor SWITCH_LABELED_RULE_PROPERTY =
@@ -136,7 +133,7 @@ public class SwitchCase extends Statement {
 	 */
 	SwitchCase(AST ast) {
 		super(ast);
-		if (ast.apiLevel >= AST.JLS14) {
+		if (ast.apiLevel >= AST.JLS14_INTERNAL) {
 			this.expressions = new ASTNode.NodeList(EXPRESSIONS2_PROPERTY );
 		}
 	}
@@ -194,7 +191,7 @@ public class SwitchCase extends Statement {
 		SwitchCase result = new SwitchCase(target);
 		result.setSourceRange(getStartPosition(), getLength());
 		result.copyLeadingComment(this);
-		if (this.ast.apiLevel >= AST.JLS14) {
+		if (this.ast.apiLevel >= AST.JLS14_INTERNAL) {
 			result.expressions().addAll(
 				ASTNode.copySubtrees(target, expressions()));
 		} else {
@@ -214,7 +211,7 @@ public class SwitchCase extends Statement {
 	void accept0(ASTVisitor visitor) {
 		boolean visitChildren = visitor.visit(this);
 		if (visitChildren) {
-			if (this.ast.apiLevel >= AST.JLS14) {
+			if (this.ast.apiLevel >= AST.JLS14_INTERNAL) {
 				acceptChildren(visitor, this.expressions);
 			} else {
 				acceptChild(visitor, getExpression());
@@ -323,7 +320,7 @@ public class SwitchCase extends Statement {
 	 *    <code>false</code> if this is a non-default switch case
 	 */
 	public boolean isDefault()  {
-		if (this.ast.apiLevel >= AST.JLS14) {
+		if (this.ast.apiLevel >= AST.JLS14_INTERNAL) {
 			return expressions().isEmpty();
 		}
 		return getExpression() == null;

@@ -115,7 +115,7 @@ class CompilationUnitResolver extends Compiler {
 	CategorizedProblem abortProblem;
 
 	private IProgressMonitor monitor;
-	
+
 	/**
 	 * Set to <code>true</code> if the receiver was initialized using a java project name environment
 	 */
@@ -181,7 +181,7 @@ class CompilationUnitResolver extends Compiler {
 		SourceTypeElementInfo sourceType = (SourceTypeElementInfo) sourceTypes[0];
 		accept((org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit) sourceType.getHandle().getCompilationUnit(), accessRestriction);
 	}
-	
+
 	@Override
 	public synchronized void accept(org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit sourceUnit, AccessRestriction accessRestriction) {
 		super.accept(sourceUnit, accessRestriction);
@@ -262,7 +262,7 @@ class CompilationUnitResolver extends Compiler {
 					? resolver.getKey().toCharArray() // binary binding
 					: resolver.hasModuleName()
 					    ? resolver.moduleName()
-					: CharOperation.concatWith(resolver.compoundName(), '.'); // package binding or base type binding
+					    : CharOperation.concatWith(resolver.compoundName(), '.'); // package binding or base type binding
 				this.requestedKeys.put(key, resolver);
 			}
 			worked(1);
@@ -300,7 +300,7 @@ class CompilationUnitResolver extends Compiler {
 		// new code:
 		AST ast = ASTParser.getAST(apiLevel, JavaCore.ENABLED.equals(options.get(JavaCore.COMPILER_PB_ENABLE_PREVIEW_FEATURES)));
 		// End AspectJ Extension
-				String sourceModeSetting = (String) options.get(JavaCore.COMPILER_SOURCE);
+		String sourceModeSetting = (String) options.get(JavaCore.COMPILER_SOURCE);
 		long sourceLevel = CompilerOptions.versionToJdkLevel(sourceModeSetting);
 		if (sourceLevel == 0) {
 			// unknown sourceModeSetting
@@ -422,46 +422,46 @@ class CompilationUnitResolver extends Compiler {
 	}
 
 	public static void parse(ICompilationUnit[] compilationUnits, ASTRequestor astRequestor, int apiLevel, Map options, int flags, IProgressMonitor monitor) {
-			CompilerOptions compilerOptions = new CompilerOptions(options);
-			compilerOptions.ignoreMethodBodies = (flags & ICompilationUnit.IGNORE_METHOD_BODIES) != 0;
-			Parser parser = new CommentRecorderParser(
-				new ProblemReporter(
-						DefaultErrorHandlingPolicies.proceedWithAllProblems(),
-						compilerOptions,
-						new DefaultProblemFactory()),
-				false);
-			int unitLength = compilationUnits.length;
+		CompilerOptions compilerOptions = new CompilerOptions(options);
+		compilerOptions.ignoreMethodBodies = (flags & ICompilationUnit.IGNORE_METHOD_BODIES) != 0;
+		Parser parser = new CommentRecorderParser(
+			new ProblemReporter(
+					DefaultErrorHandlingPolicies.proceedWithAllProblems(),
+					compilerOptions,
+					new DefaultProblemFactory()),
+			false);
+		int unitLength = compilationUnits.length;
 		SubMonitor subMonitor = SubMonitor.convert(monitor);
-			for (int i = 0; i < unitLength; i++) {
+		for (int i = 0; i < unitLength; i++) {
 			subMonitor.setWorkRemaining(unitLength - i);
-				org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit sourceUnit = (org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit) compilationUnits[i];
+			org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit sourceUnit = (org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit) compilationUnits[i];
 			CompilationResult compilationResult = new CompilationResult(sourceUnit, 0, 0,
 					compilerOptions.maxProblemsPerUnit);
-				CompilationUnitDeclaration compilationUnitDeclaration = parser.dietParse(sourceUnit, compilationResult);
+			CompilationUnitDeclaration compilationUnitDeclaration = parser.dietParse(sourceUnit, compilationResult);
 
-				if (compilationUnitDeclaration.ignoreMethodBodies) {
-					compilationUnitDeclaration.ignoreFurtherInvestigation = true;
-					// if initial diet parse did not work, no need to dig into method bodies.
-					continue;
+			if (compilationUnitDeclaration.ignoreMethodBodies) {
+				compilationUnitDeclaration.ignoreFurtherInvestigation = true;
+				// if initial diet parse did not work, no need to dig into method bodies.
+				continue;
+			}
+
+			//fill the methods bodies in order for the code to be generated
+			//real parse of the method....
+			org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration[] types = compilationUnitDeclaration.types;
+			if (types != null) {
+				for (int j = 0, typeLength = types.length; j < typeLength; j++) {
+					types[j].parseMethods(parser, compilationUnitDeclaration);
 				}
+			}
 
-				//fill the methods bodies in order for the code to be generated
-				//real parse of the method....
-				org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration[] types = compilationUnitDeclaration.types;
-				if (types != null) {
-					for (int j = 0, typeLength = types.length; j < typeLength; j++) {
-						types[j].parseMethods(parser, compilationUnitDeclaration);
-					}
-				}
-
-				// convert AST
+			// convert AST
 			CompilationUnit node = convert(compilationUnitDeclaration, parser.scanner.getSource(), apiLevel, options,
 					false/* don't resolve binding */, null/* no owner needed */, null/* no binding table needed */,
 					flags /* flags */, subMonitor.split(1), true);
-				node.setTypeRoot(compilationUnits[i]);
+			node.setTypeRoot(compilationUnits[i]);
 
-				// accept AST
-				astRequestor.acceptAST(compilationUnits[i], node);
+			// accept AST
+			astRequestor.acceptAST(compilationUnits[i], node);
 		}
 	}
 	public static void parse(
@@ -472,58 +472,58 @@ class CompilationUnitResolver extends Compiler {
 			Map options,
 			int flags,
 			IProgressMonitor monitor) {
-			CompilerOptions compilerOptions = new CompilerOptions(options);
-			compilerOptions.ignoreMethodBodies = (flags & ICompilationUnit.IGNORE_METHOD_BODIES) != 0;
-			Parser parser = new CommentRecorderParser(
-				new ProblemReporter(
-						DefaultErrorHandlingPolicies.proceedWithAllProblems(),
-						compilerOptions,
-						new DefaultProblemFactory()),
-				false);
-			int unitLength = sourceUnits.length;
+		CompilerOptions compilerOptions = new CompilerOptions(options);
+		compilerOptions.ignoreMethodBodies = (flags & ICompilationUnit.IGNORE_METHOD_BODIES) != 0;
+		Parser parser = new CommentRecorderParser(
+			new ProblemReporter(
+					DefaultErrorHandlingPolicies.proceedWithAllProblems(),
+					compilerOptions,
+					new DefaultProblemFactory()),
+			false);
+		int unitLength = sourceUnits.length;
 		SubMonitor subMonitor = SubMonitor.convert(monitor, unitLength);
-			for (int i = 0; i < unitLength; i++) {
+		for (int i = 0; i < unitLength; i++) {
 			SubMonitor iterationMonitor = subMonitor.split(1);
-				char[] contents = null;
-				String encoding = encodings != null ? encodings[i] : null;
-				try {
-					contents = Util.getFileCharContent(new File(sourceUnits[i]), encoding);
-				} catch(IOException e) {
-					// go to the next unit
-					continue;
-				}
-				if (contents == null) {
-					// go to the next unit
-					continue;
-				}
-				org.aspectj.org.eclipse.jdt.internal.compiler.batch.CompilationUnit compilationUnit = new org.aspectj.org.eclipse.jdt.internal.compiler.batch.CompilationUnit(contents, sourceUnits[i], encoding);
-				org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit sourceUnit = compilationUnit;
-				CompilationResult compilationResult = new CompilationResult(sourceUnit, 0, 0, compilerOptions.maxProblemsPerUnit);
-				CompilationUnitDeclaration compilationUnitDeclaration = parser.dietParse(sourceUnit, compilationResult);
+			char[] contents = null;
+			String encoding = encodings != null ? encodings[i] : null;
+			try {
+				contents = Util.getFileCharContent(new File(sourceUnits[i]), encoding);
+			} catch(IOException e) {
+				// go to the next unit
+				continue;
+			}
+			if (contents == null) {
+				// go to the next unit
+				continue;
+			}
+			org.aspectj.org.eclipse.jdt.internal.compiler.batch.CompilationUnit compilationUnit = new org.aspectj.org.eclipse.jdt.internal.compiler.batch.CompilationUnit(contents, sourceUnits[i], encoding);
+			org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit sourceUnit = compilationUnit;
+			CompilationResult compilationResult = new CompilationResult(sourceUnit, 0, 0, compilerOptions.maxProblemsPerUnit);
+			CompilationUnitDeclaration compilationUnitDeclaration = parser.dietParse(sourceUnit, compilationResult);
 
-				if (compilationUnitDeclaration.ignoreMethodBodies) {
-					compilationUnitDeclaration.ignoreFurtherInvestigation = true;
-					// if initial diet parse did not work, no need to dig into method bodies.
-					continue;
-				}
+			if (compilationUnitDeclaration.ignoreMethodBodies) {
+				compilationUnitDeclaration.ignoreFurtherInvestigation = true;
+				// if initial diet parse did not work, no need to dig into method bodies.
+				continue;
+			}
 
-				//fill the methods bodies in order for the code to be generated
-				//real parse of the method....
-				org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration[] types = compilationUnitDeclaration.types;
-				if (types != null) {
-					for (int j = 0, typeLength = types.length; j < typeLength; j++) {
-						types[j].parseMethods(parser, compilationUnitDeclaration);
-					}
+			//fill the methods bodies in order for the code to be generated
+			//real parse of the method....
+			org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration[] types = compilationUnitDeclaration.types;
+			if (types != null) {
+				for (int j = 0, typeLength = types.length; j < typeLength; j++) {
+					types[j].parseMethods(parser, compilationUnitDeclaration);
 				}
+			}
 
-				// convert AST
+			// convert AST
 			CompilationUnit node = convert(compilationUnitDeclaration, parser.scanner.getSource(), apiLevel, options,
 					false/* don't resolve binding */, null/* no owner needed */, null/* no binding table needed */,
 					flags /* flags */, iterationMonitor, true);
-				node.setTypeRoot(null);
+			node.setTypeRoot(null);
 
-				// accept AST
-				astRequestor.acceptAST(sourceUnits[i], node);
+			// accept AST
+			astRequestor.acceptAST(sourceUnits[i], node);
 		}
 	}
 	public static CompilationUnitDeclaration parse(
@@ -582,7 +582,7 @@ class CompilationUnitResolver extends Compiler {
 			}
 		} else {
 				//fill the methods bodies in order for the code to be generated
-				//real parse of the method....			
+				//real parse of the method....
 				org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration[] types = compilationUnitDeclaration.types;
 				if (types != null) {
 					for (int j = 0, typeLength = types.length; j < typeLength; j++) {
@@ -607,7 +607,7 @@ class CompilationUnitResolver extends Compiler {
 		CancelableNameEnvironment environment = null;
 		CancelableProblemFactory problemFactory = null;
 		try {
-				int amountOfWork = (compilationUnits.length + bindingKeys.length) * 2; // 1 for beginToCompile, 1 for resolve
+			int amountOfWork = (compilationUnits.length + bindingKeys.length) * 2; // 1 for beginToCompile, 1 for resolve
 			SubMonitor subMonitor = SubMonitor.convert(monitor, amountOfWork);
 			environment = new CancelableNameEnvironment(((JavaProject) javaProject), owner, subMonitor);
 			problemFactory = new CancelableProblemFactory(subMonitor);
@@ -624,8 +624,7 @@ class CompilationUnitResolver extends Compiler {
 					javaProject != null);
 			resolver.resolve(compilationUnits, bindingKeys, requestor, apiLevel, options, owner, flags);
 			if (NameLookup.VERBOSE) {
-				System.out.println(Thread.currentThread() + " TIME SPENT in NameLoopkup#seekTypesInSourcePackage: " + environment.nameLookup.timeSpentInSeekTypesInSourcePackage + "ms");  //$NON-NLS-1$ //$NON-NLS-2$
-				System.out.println(Thread.currentThread() + " TIME SPENT in NameLoopkup#seekTypesInBinaryPackage: " + environment.nameLookup.timeSpentInSeekTypesInBinaryPackage + "ms");  //$NON-NLS-1$ //$NON-NLS-2$
+				environment.printTimeSpent();
 			}
 		} catch (JavaModelException e) {
 			// project doesn't exist -> simple parse without resolving
@@ -653,7 +652,7 @@ class CompilationUnitResolver extends Compiler {
 			INameEnvironmentWithProgress environment = null;
 			CancelableProblemFactory problemFactory = null;
 			try {
-					int amountOfWork = (sourceUnits.length + bindingKeys.length) * 2; // 1 for beginToCompile, 1 for resolve
+				int amountOfWork = (sourceUnits.length + bindingKeys.length) * 2; // 1 for beginToCompile, 1 for resolve
 				SubMonitor subMonitor = SubMonitor.convert(monitor, amountOfWork);
 				Classpath[] allEntries = new Classpath[classpaths.size()];
 				classpaths.toArray(allEntries);
@@ -673,8 +672,7 @@ class CompilationUnitResolver extends Compiler {
 				resolver.resolve(sourceUnits, encodings, bindingKeys, requestor, apiLevel, options, flags);
 				if (NameLookup.VERBOSE && (environment instanceof CancelableNameEnvironment)) {
 					CancelableNameEnvironment cancelableNameEnvironment = (CancelableNameEnvironment) environment;
-					System.out.println(Thread.currentThread() + " TIME SPENT in NameLoopkup#seekTypesInSourcePackage: " + cancelableNameEnvironment.nameLookup.timeSpentInSeekTypesInSourcePackage + "ms");  //$NON-NLS-1$ //$NON-NLS-2$
-					System.out.println(Thread.currentThread() + " TIME SPENT in NameLoopkup#seekTypesInBinaryPackage: " + cancelableNameEnvironment.nameLookup.timeSpentInSeekTypesInBinaryPackage + "ms");  //$NON-NLS-1$ //$NON-NLS-2$
+					cancelableNameEnvironment.printTimeSpent();
 				}
 			} finally {
 				if (environment != null) {
@@ -748,8 +746,7 @@ class CompilationUnitResolver extends Compiler {
 			}
 			if (NameLookup.VERBOSE && environment instanceof CancelableNameEnvironment) {
 				CancelableNameEnvironment cancelableNameEnvironment = (CancelableNameEnvironment) environment;
-				System.out.println(Thread.currentThread() + " TIME SPENT in NameLoopkup#seekTypesInSourcePackage: " + cancelableNameEnvironment.nameLookup.timeSpentInSeekTypesInSourcePackage + "ms");  //$NON-NLS-1$ //$NON-NLS-2$
-				System.out.println(Thread.currentThread() + " TIME SPENT in NameLoopkup#seekTypesInBinaryPackage: " + cancelableNameEnvironment.nameLookup.timeSpentInSeekTypesInBinaryPackage + "ms");  //$NON-NLS-1$ //$NON-NLS-2$
+				cancelableNameEnvironment.printTimeSpent();
 			}
 			return unit;
 		} finally {
@@ -1253,24 +1250,24 @@ class CompilationUnitResolver extends Compiler {
 				CompilationUnitDeclaration previousUnit = this.lookupEnvironment.unitBeingCompleted;
 				this.lookupEnvironment.unitBeingCompleted = unit;
 				try {
-				// fault in fields & methods
-				unit.scope.faultInTypes();
-				if (unit.scope != null && verifyMethods) {
-					// http://dev.eclipse.org/bugs/show_bug.cgi?id=23117
- 					// verify inherited methods
-					unit.scope.verifyMethods(this.lookupEnvironment.methodVerifier());
-				}
-				// type checking
-				unit.resolve();
+					// fault in fields & methods
+					unit.scope.faultInTypes();
+					if (unit.scope != null && verifyMethods) {
+						// http://dev.eclipse.org/bugs/show_bug.cgi?id=23117
+	 					// verify inherited methods
+						unit.scope.verifyMethods(this.lookupEnvironment.methodVerifier());
+					}
+					// type checking
+					unit.resolve();
 
-				// flow analysis
-				if (analyzeCode) unit.analyseCode();
+					// flow analysis
+					if (analyzeCode) unit.analyseCode();
 
-				// code generation
-				if (generateCode) unit.generateCode();
+					// code generation
+					if (generateCode) unit.generateCode();
 
-				// finalize problems (suppressWarnings)
-				unit.finalizeProblems();
+					// finalize problems (suppressWarnings)
+					unit.finalizeProblems();
 				} finally {
 					this.lookupEnvironment.unitBeingCompleted = previousUnit; // paranoia, always null in org.aspectj.org.eclipse.jdt.core.tests.dom.RunAllTests
 				}

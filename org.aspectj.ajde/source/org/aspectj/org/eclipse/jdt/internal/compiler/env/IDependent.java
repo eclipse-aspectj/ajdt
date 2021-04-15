@@ -38,7 +38,7 @@ public interface IDependent {
  *  "/lib/some.zip|/com/q/Y.class".
  *
  * The proper file name includes the suffix extension (e.g.&nbsp;".java")
- * e.g.&nbsp;"c:/org.aspectj.org.eclipse.jdt/internal/compileri/env/IDependent.java"
+ * e.g.&nbsp;"c:/org/aspectj/org/eclipse/jdt/internal/compileri/env/IDependent.java"
  *
  * Return null if no file defines the type.
  */

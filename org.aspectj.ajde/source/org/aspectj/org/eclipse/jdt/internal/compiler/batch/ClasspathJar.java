@@ -72,7 +72,7 @@ public class ClasspathJar extends ClasspathLocation {
 	private final static int MAXOPEN_DEFAULT = 1000;
     private static List openArchives = new ArrayList();
 	// End AspectJ Extension
-	
+
 protected File file;
 protected ZipFile zipFile;
 protected ZipFile annotationZipFile;
@@ -80,7 +80,7 @@ protected boolean closeZipFileAtEnd;
 protected Set<String> packageCache;
 protected List<String> annotationPaths;
 
-// AspectJ Extension	
+// AspectJ Extension
 static {
 	String openarchivesString = getSystemPropertyWithoutSecurityException("org.aspectj.weaver.openarchives",Integer.toString(MAXOPEN_DEFAULT));
 	maxOpenArchives=Integer.parseInt(openarchivesString);
@@ -152,7 +152,7 @@ public NameEnvironmentAnswer findClass(char[] typeName, String qualifiedPackageN
 		return null; // most common case
 
 	try {
-	    ensureOpen(); // AspectJ Extension 
+	    ensureOpen(); // AspectJ Extension
 		IBinaryType reader = ClassFileReader.read(this.zipFile, qualifiedBinaryFileName);
 		if (reader != null) {
 			char[] modName = this.module == null ? null : this.module.name();
@@ -192,7 +192,9 @@ public NameEnvironmentAnswer findClass(char[] typeName, String qualifiedPackageN
 }
 @Override
 public boolean hasAnnotationFileFor(String qualifiedTypeName) {
-	return this.zipFile.getEntry(qualifiedTypeName+ExternalAnnotationProvider.ANNOTATION_FILE_SUFFIX) != null; 
+	if (this.zipFile == null)
+		return false;
+	return this.zipFile.getEntry(qualifiedTypeName+ExternalAnnotationProvider.ANNOTATION_FILE_SUFFIX) != null;
 }
 @Override
 public char[][][] findTypeNames(final String qualifiedPackageName, String moduleName) {
@@ -205,23 +207,23 @@ public char[][][] findTypeNames(final String qualifiedPackageName, String module
 	try {
         ensureOpen();
 	} catch (IOException ioe) {
-		// Doesn't normally occur - probably means since starting the compile 
+		// Doesn't normally occur - probably means since starting the compile
 		// you have removed one of the jars.
 		ioe.printStackTrace();
 		return null;
 	}
 	// End AspectJ Extension
-	
-		nextEntry : for (Enumeration e = this.zipFile.entries(); e.hasMoreElements(); ) {
-			String fileName = ((ZipEntry) e.nextElement()).getName();
 
-			// add the package name & all of its parent packages
-			int last = fileName.lastIndexOf('/');
-			if (last > 0) {
-				// extract the package name
-				String packageName = fileName.substring(0, last);
-				if (!qualifiedPackageName.equals(packageName))
-					continue nextEntry;
+	nextEntry : for (Enumeration e = this.zipFile.entries(); e.hasMoreElements(); ) {
+		String fileName = ((ZipEntry) e.nextElement()).getName();
+
+		// add the package name & all of its parent packages
+		int last = fileName.lastIndexOf('/');
+		if (last > 0) {
+			// extract the package name
+			String packageName = fileName.substring(0, last);
+			if (!qualifiedPackageName.equals(packageName))
+				continue nextEntry;
 			int indexOfDot = fileName.lastIndexOf('.');
 			if (indexOfDot != -1) {
 				String typeName = fileName.substring(last + 1, indexOfDot);
@@ -256,7 +258,7 @@ void acceptModule(ClassFileReader reader) {
 	}
 }
 void acceptModule(byte[] content) {
-	if (content == null) 
+	if (content == null)
 		return;
 	ClassFileReader reader = null;
 	try {
@@ -288,7 +290,7 @@ public synchronized char[][] getModulesDeclaringPackage(String qualifiedPackageN
 	try {
         ensureOpen();
 	} catch (IOException ioe) {
-		// Doesn't normally occur - probably means since starting the compile 
+		// Doesn't normally occur - probably means since starting the compile
 		// you have removed one of the jars.
 		ioe.printStackTrace();
 		return singletonModuleNameIf(false);
@@ -296,7 +298,7 @@ public synchronized char[][] getModulesDeclaringPackage(String qualifiedPackageN
 	// End AspectJ Extension
 	this.packageCache = new HashSet<>(41);
 	this.packageCache.add(Util.EMPTY_STRING);
-	
+
 	for (Enumeration e = this.zipFile.entries(); e.hasMoreElements(); ) {
 		String fileName = ((ZipEntry) e.nextElement()).getName();
 		addToPackageCache(fileName, false);
@@ -315,9 +317,10 @@ public boolean hasCompilationUnit(String qualifiedPackageName, String moduleName
 			if (tail.toLowerCase().endsWith(SUFFIX_STRING_class))
 				return true;
 		}
-	}	
+	}
 	return false;
 }
+
 @Override
 public char[][] listPackages() {
 	Set<String> packageNames = new HashSet<>();
@@ -337,7 +340,7 @@ public void reset() {
 		if (this.zipFile != null) {
 		// AspectJ Extension
 		// old code:
-		//try { 
+		//try {
 		//	this.zipFile.close(); // AspectJ Extension - dont do this
 		//} catch(IOException e) {
 		//	// ignore

@@ -11,7 +11,7 @@
  * ******************************************************************/
 package org.aspectj.ajdt.internal.compiler.lookup;
 
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LocalTypeBinding;
+import org.eclipse.jdt.internal.compiler.lookup.LocalTypeBinding;
 
 /**
  * Anonymous classes are not discovered until the block in which they are

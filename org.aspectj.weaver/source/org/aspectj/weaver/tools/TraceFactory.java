@@ -10,8 +10,6 @@
  *******************************************************************************/
 package org.aspectj.weaver.tools;
 
-import org.aspectj.util.LangUtil;
-
 public abstract class TraceFactory {
     
 	public final static String DEBUG_PROPERTY = "org.aspectj.tracing.debug";
@@ -32,7 +30,7 @@ public abstract class TraceFactory {
     protected static boolean getBoolean(String name, boolean def) {
 		String defaultValue = String.valueOf(def);
 		String value = System.getProperty(name,defaultValue);
-		return Boolean.valueOf(value).booleanValue();
+		return Boolean.valueOf(value);
 	}
 
 	static {
@@ -47,7 +45,7 @@ public abstract class TraceFactory {
 			}
 			else {
 	    		Class factoryClass = Class.forName(factoryName);
-	    		instance = (TraceFactory)factoryClass.newInstance();
+	    		instance = (TraceFactory)factoryClass.getDeclaredConstructor().newInstance();
 			}
 		}
     	catch (Throwable th) {
@@ -58,12 +56,9 @@ public abstract class TraceFactory {
 		 * Try to load external trace infrastructure using supplied factories
 		 */
     	if (instance == null) try {
-			if (LangUtil.is15VMOrGreater()) {
+			{
 	    		Class factoryClass = Class.forName("org.aspectj.weaver.tools.Jdk14TraceFactory");
-	    		instance = (TraceFactory)factoryClass.newInstance();
-			} else {
-	    		Class factoryClass = Class.forName("org.aspectj.weaver.tools.CommonsTraceFactory");
-	    		instance = (TraceFactory)factoryClass.newInstance();
+	    		instance = (TraceFactory)factoryClass.getDeclaredConstructor().newInstance();
 			}
     	}
     	catch (Throwable th) {

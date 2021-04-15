@@ -61,6 +61,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import org.aspectj.apache.bcel.Constants;
@@ -690,7 +691,7 @@ public class InstructionList implements Serializable {
 			return;
 		}
 
-		ArrayList<InstructionHandle> target_vec = new ArrayList<InstructionHandle>();
+		List<InstructionHandle> target_vec = new ArrayList<>();
 
 		for (InstructionHandle ih = first; ih != null; ih = ih.next) {
 			ih.getInstruction().dispose(); // e.g. BranchInstructions release their targets
@@ -703,9 +704,7 @@ public class InstructionList implements Serializable {
 
 			Set<InstructionTargeter> targeters = ih.getTargeters();
 			boolean isOK = false;
-			Iterator<InstructionTargeter> tIter = targeters.iterator();
-			while (tIter.hasNext()) {
-				InstructionTargeter instructionTargeter = tIter.next();
+			for (InstructionTargeter instructionTargeter : targeters) {
 				if (instructionTargeter.getClass().getName().endsWith("ShadowRange")
 						|| instructionTargeter.getClass().getName().endsWith("ExceptionRange")
 						|| instructionTargeter.getClass().getName().endsWith("LineNumberTag")) {
@@ -953,8 +952,8 @@ public class InstructionList implements Serializable {
 				if (i instanceof InstructionSelect) {
 					InstructionHandle[] targets = ((InstructionSelect) i).getTargets();
 
-					for (int j = 0; j < targets.length; j++) {
-						inst = targets[j].instruction;
+					for (InstructionHandle target : targets) {
+						inst = target.instruction;
 						if (!contains(inst)) {
 							throw new ClassGenException("Branch target of " + Constants.OPCODE_NAMES[i.opcode] + ":" + inst
 									+ " not in instruction list");
@@ -1005,7 +1004,7 @@ public class InstructionList implements Serializable {
 	 */
 	public Instruction[] getInstructions() {
 		ByteSequence bytes = new ByteSequence(getByteCode());
-		ArrayList<Instruction> instructions = new ArrayList<Instruction>();
+		List<Instruction> instructions = new ArrayList<>();
 
 		try {
 			while (bytes.available() > 0) {
@@ -1091,7 +1090,7 @@ public class InstructionList implements Serializable {
 	 * @return complete, i.e., deep copy of this list
 	 */
 	public InstructionList copy() {
-		HashMap<InstructionHandle, InstructionHandle> map = new HashMap<InstructionHandle, InstructionHandle>();
+		HashMap<InstructionHandle, InstructionHandle> map = new HashMap<>();
 		InstructionList il = new InstructionList();
 
 		/*
@@ -1247,15 +1246,15 @@ public class InstructionList implements Serializable {
 	 * @see MethodGen
 	 */
 	public void redirectLocalVariables(LocalVariableGen[] lg, InstructionHandle old_target, InstructionHandle new_target) {
-		for (int i = 0; i < lg.length; i++) {
-			InstructionHandle start = lg[i].getStart();
-			InstructionHandle end = lg[i].getEnd();
+		for (LocalVariableGen localVariableGen : lg) {
+			InstructionHandle start = localVariableGen.getStart();
+			InstructionHandle end = localVariableGen.getEnd();
 
 			if (start == old_target) {
-				lg[i].setStart(new_target);
+				localVariableGen.setStart(new_target);
 			}
 			if (end == old_target) {
-				lg[i].setEnd(new_target);
+				localVariableGen.setEnd(new_target);
 			}
 		}
 	}
@@ -1269,17 +1268,17 @@ public class InstructionList implements Serializable {
 	 * @see MethodGen
 	 */
 	public void redirectExceptionHandlers(CodeExceptionGen[] exceptions, InstructionHandle old_target, InstructionHandle new_target) {
-		for (int i = 0; i < exceptions.length; i++) {
-			if (exceptions[i].getStartPC() == old_target) {
-				exceptions[i].setStartPC(new_target);
+		for (CodeExceptionGen exception : exceptions) {
+			if (exception.getStartPC() == old_target) {
+				exception.setStartPC(new_target);
 			}
 
-			if (exceptions[i].getEndPC() == old_target) {
-				exceptions[i].setEndPC(new_target);
+			if (exception.getEndPC() == old_target) {
+				exception.setEndPC(new_target);
 			}
 
-			if (exceptions[i].getHandlerPC() == old_target) {
-				exceptions[i].setHandlerPC(new_target);
+			if (exception.getHandlerPC() == old_target) {
+				exception.setHandlerPC(new_target);
 			}
 		}
 	}

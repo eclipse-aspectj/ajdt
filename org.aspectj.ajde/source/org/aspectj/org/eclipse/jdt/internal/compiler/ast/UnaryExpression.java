@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2020 IBM Corporation and others.
+ * Copyright (c) 2000, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -224,7 +224,24 @@ public class UnaryExpression extends OperatorExpression {
 		output.append(operatorToString()).append(' ');
 		return this.expression.printExpression(0, output);
 	}
+	@Override
+	public void collectPatternVariablesToScope(LocalVariableBinding[] variables, BlockScope scope) {
+		this.expression.collectPatternVariablesToScope(variables, scope);
+		if (((this.bits & OperatorMASK) >> OperatorSHIFT) == NOT) {
+			variables = this.expression.getPatternVariablesWhenTrue();
+			if (variables != null)
+				this.addPatternVariablesWhenFalse(variables);
 
+			variables = this.expression.getPatternVariablesWhenFalse();
+			if (variables != null)
+				this.addPatternVariablesWhenTrue(variables);
+		} else {
+			variables = this.expression.getPatternVariablesWhenTrue();
+			this.addPatternVariablesWhenTrue(variables);
+			variables = this.expression.getPatternVariablesWhenFalse();
+			this.addPatternVariablesWhenFalse(variables);
+		}
+	}
 	@Override
 	public TypeBinding resolveType(BlockScope scope) {
 		boolean expressionIsCast;
@@ -315,6 +332,14 @@ public class UnaryExpression extends OperatorExpression {
 			CastExpression.checkNeedForArgumentCast(scope, tableId, operatorSignature, this.expression, expressionTypeID);
 		}
 		return this.resolvedType;
+	}
+	@Override
+	public boolean containsPatternVariable() {
+		return this.expression.containsPatternVariable();
+	}
+	@Override
+	protected LocalDeclaration getPatternVariableIntroduced() {
+		return this.expression.getPatternVariableIntroduced();
 	}
 
 	@Override

@@ -15,10 +15,11 @@ package org.aspectj.weaver.tools.cache;
 /**
  * Interface for the backing to the cache; usually a file,
  * but could be an in-memory backing for testing.
- * <p/>
+ * <p>
  * aspectj and jvmti provide no suitable guarantees
  * on locking for class redefinitions, so every implementation
  * must have a some locking mechanism to prevent invalid reads.
+ * </p>
  */
 public interface CacheBacking {
 	/**
@@ -28,36 +29,36 @@ public interface CacheBacking {
 	 * @param regex
 	 * @return
 	 */
-	public String[] getKeys(String regex);
+	String[] getKeys(String regex);
 
 	/**
 	 * Remove an entry from the cache
 	 *
 	 * @param ref
 	 */
-	public void remove(CachedClassReference ref);
+	void remove(CachedClassReference ref);
 
 	/**
 	 * Clear the entire cache
 	 */
-	public void clear();
+	void clear();
 
 	/**
 	 * Get a cache entry
 	 *
 	 * @param ref entry to retrieve
 	 * @param originalBytes Pre-weaving class bytes - required in order to
-	 * ensure that the cached entry refers to the same original class 
+	 * ensure that the cached entry refers to the same original class
 	 * @return the cached bytes or null, if the entry does not exist
 	 */
-	public CachedClassEntry get(CachedClassReference ref, byte[] originalBytes);
+	CachedClassEntry get(CachedClassReference ref, byte[] originalBytes);
 
 	/**
 	 * Put an entry in the cache
 	 *
 	 * @param entry key of the entry
 	 * @param originalBytes Pre-weaving class bytes - required in order to
-	 * ensure that the cached entry refers to the same original class 
+	 * ensure that the cached entry refers to the same original class
 	 */
-	public void put(CachedClassEntry entry, byte[] originalBytes);
+	void put(CachedClassEntry entry, byte[] originalBytes);
 }

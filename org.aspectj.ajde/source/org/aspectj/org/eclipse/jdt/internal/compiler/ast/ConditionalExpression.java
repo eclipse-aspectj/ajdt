@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2020 IBM Corporation and others.
+ * Copyright (c) 2000, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -33,6 +33,7 @@ package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
 import static org.aspectj.org.eclipse.jdt.internal.compiler.ast.ExpressionContext.*;
 
+import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
@@ -448,12 +449,70 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext,
 	}
 
 	@Override
-	public void initializePatternVariables(BlockScope scope, CodeStream codeStream) {
-		this.condition.initializePatternVariables(scope, codeStream);
-		this.valueIfTrue.initializePatternVariables(scope, codeStream);
-		this.valueIfFalse.initializePatternVariables(scope, codeStream);
+	public void addPatternVariables(BlockScope scope, CodeStream codeStream) {
+		this.condition.addPatternVariables(scope, codeStream);
+		this.valueIfTrue.addPatternVariables(scope, codeStream);
+		this.valueIfFalse.addPatternVariables(scope, codeStream);
 	}
+	@Override
+	public void collectPatternVariablesToScope(LocalVariableBinding[] variables, BlockScope scope) {
+		this.valueIfFalse.collectPatternVariablesToScope(null, scope);
+		this.valueIfTrue.collectPatternVariablesToScope(null, scope);
+		if (this.valueIfFalse.containsPatternVariable() && this.valueIfTrue.containsPatternVariable() ) {
+			LocalVariableBinding[] first = this.valueIfTrue.patternVarsWhenTrue;
+			LocalVariableBinding[] second = this.valueIfFalse.patternVarsWhenTrue;
+			if (first != null && second != null) {
+				for (LocalVariableBinding localVariableBinding : first) {
+					char[] name = localVariableBinding.name;
+					for (LocalVariableBinding localVariableBinding2 : second) {
+						if (CharOperation.equals(name, localVariableBinding2.name)) {
+							scope.problemReporter().illegalRedeclarationOfPatternVar(localVariableBinding2, localVariableBinding2.declaration);
+						}
+					}
+				}
+			}
+			first = this.valueIfTrue.patternVarsWhenFalse;
+			second = this.valueIfFalse.patternVarsWhenFalse;
+			if (first != null && second != null) {
+				for (LocalVariableBinding localVariableBinding : first) {
+					char[] name = localVariableBinding.name;
+					for (LocalVariableBinding localVariableBinding2 : second) {
+						if (CharOperation.equals(name, localVariableBinding2.name)) {
+							scope.problemReporter().illegalRedeclarationOfPatternVar(localVariableBinding2, localVariableBinding2.declaration);
+						}
+					}
+				}
+			}
+		}
 
+		if (!this.condition.containsPatternVariable()) {
+			return;
+		}
+		if (this.condition.getPatternVariableIntroduced() != null) {
+			char[] name = this.condition.getPatternVariableIntroduced().name;
+			LocalDeclaration localVar = this.valueIfTrue.getPatternVariableIntroduced();
+			if (localVar != null && CharOperation.equals(name, localVar.name)) {
+					scope.problemReporter().illegalRedeclarationOfPatternVar(localVar.binding, localVar);
+					return;
+			}
+			localVar = this.valueIfFalse.getPatternVariableIntroduced();
+			if (localVar != null && CharOperation.equals(name, localVar.name)) {
+				scope.problemReporter().illegalRedeclarationOfPatternVar(localVar.binding, localVar);
+				return;
+			}
+		}
+		this.condition.collectPatternVariablesToScope(this.patternVarsWhenTrue, scope);
+
+		variables = this.condition.getPatternVariablesWhenTrue();
+		this.valueIfTrue.addPatternVariablesWhenTrue(variables);
+		this.valueIfFalse.addPatternVariablesWhenFalse(variables);
+		this.valueIfTrue.collectPatternVariablesToScope(variables, scope);
+
+		variables = this.condition.getPatternVariablesWhenFalse();
+		this.valueIfTrue.addPatternVariablesWhenFalse(variables);
+		this.valueIfFalse.addPatternVariablesWhenTrue(variables);
+		this.valueIfFalse.collectPatternVariablesToScope(variables, scope);
+	}
 	@Override
 	public TypeBinding resolveType(BlockScope scope) {
 		// JLS3 15.25
@@ -470,6 +529,8 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext,
 				this.valueIfFalse.setExpectedType(this.expectedType);
 			}
 		}
+
+		collectPatternVariablesToScope(null, scope);
 
 		if (this.constant != Constant.NotAConstant) {
 			this.constant = Constant.NotAConstant;
@@ -495,8 +556,20 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext,
 			if (this.originalValueIfFalseType == null || !this.originalValueIfFalseType.isValidBinding())
 				return this.resolvedType = null;
 		}
+		// Propagate the constant value from the valueIfTrue and valueIFFalse expression if it is possible
+		Constant condConstant, trueConstant, falseConstant;
+		if ((condConstant = this.condition.constant) != Constant.NotAConstant
+			&& (trueConstant = this.valueIfTrue.constant) != Constant.NotAConstant
+			&& (falseConstant = this.valueIfFalse.constant) != Constant.NotAConstant) {
+			// all terms are constant expression so we can propagate the constant
+			// from valueIFTrue or valueIfFalse to the receiver constant
+			this.constant = condConstant.booleanValue() ? trueConstant : falseConstant;
+		}
 		if (isPolyExpression()) {
 			if (this.expectedType == null || !this.expectedType.isProperType(true)) {
+				// We will be back here in case of a PolyTypeBinding. So, to enable
+				// further processing, set it back to default.
+				this.constant = Constant.NotAConstant;
 				return new PolyTypeBinding(this);
 			}
 			return this.resolvedType = computeConversions(scope, this.expectedType) ? this.expectedType : null;
@@ -539,15 +612,6 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext,
 						valueIfFalseType = unboxedIfFalseType;
 					}
 			}
-		}
-		// Propagate the constant value from the valueIfTrue and valueIFFalse expression if it is possible
-		Constant condConstant, trueConstant, falseConstant;
-		if ((condConstant = this.condition.constant) != Constant.NotAConstant
-			&& (trueConstant = this.valueIfTrue.constant) != Constant.NotAConstant
-			&& (falseConstant = this.valueIfFalse.constant) != Constant.NotAConstant) {
-			// all terms are constant expression so we can propagate the constant
-			// from valueIFTrue or valueIfFalse to the receiver constant
-			this.constant = condConstant.booleanValue() ? trueConstant : falseConstant;
 		}
 		if (TypeBinding.equalsEquals(valueIfTrueType, valueIfFalseType)) { // harmed the implicit conversion
 			this.valueIfTrue.computeConversion(scope, valueIfTrueType, this.originalValueIfTrueType);

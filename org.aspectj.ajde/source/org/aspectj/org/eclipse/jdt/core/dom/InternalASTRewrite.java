@@ -48,7 +48,7 @@ class InternalASTRewrite extends NodeEventHandler {
 
 	protected final RewriteEventStore eventStore;
 	protected final NodeInfoStore nodeStore;
-	/** ASTNode clone -> ASTNode original */ 
+	/** ASTNode clone -> ASTNode original */
 	protected final Hashtable clonedNodes;
 
 	int cloneDepth = 0;
@@ -100,19 +100,11 @@ class InternalASTRewrite extends NodeEventHandler {
 			String lineDelim= TextUtilities.getDefaultLineDelimiter(document);
 			List comments= rootNode.getCommentList();
 
-			// MERGECONFLICT
-			// AspectJ Extension - use the factory instead of building one directly
-			// old code:
-			// ASTRewriteAnalyzer visitor = new ASTRewriteAnalyzer(content, lineInfo, lineDelim, result, this.eventStore, this.nodeStore, comments, options, xsrComputer);
-			// new code:
-//			ASTVisitor visitor = ASTRewriteAnalyzer.getAnalyzerVisitor(content, lineInfo, lineInfoneDelim, result, this.eventStore, this.nodeStore, comments, options, xsrComputer);
-			// End AspectJ Extension
-			
 			Map currentOptions = options == null ? JavaCore.getOptions() : options;
+			// AspectJ Extension - use the factory instead of building one directly
 			// OLD
-//			ASTRewriteAnalyzer visitor = new ASTRewriteAnalyzer(content, lineInfo, lineDelim, result, this.eventStore, this.nodeStore, comments, currentOptions, xsrComputer, (RecoveryScannerData)rootNode.getStatementsRecoveryData());
-			
-			// NEW  CAST NEEDED???
+			// ASTRewriteAnalyzer visitor = new ASTRewriteAnalyzer(content, lineInfo, lineDelim, result, this.eventStore, this.nodeStore, comments, currentOptions, xsrComputer, (RecoveryScannerData)rootNode.getStatementsRecoveryData());
+			// NEW: CAST NEEDED???
 			ASTRewriteAnalyzer visitor = (ASTRewriteAnalyzer) ASTRewriteAnalyzer.getAnalyzerVisitor(content, lineInfo, lineDelim, result, this.eventStore, this.nodeStore, comments, currentOptions, xsrComputer, (RecoveryScannerData)rootNode.getStatementsRecoveryData());
 			rootNode.accept(visitor);
 		}
@@ -125,7 +117,7 @@ class InternalASTRewrite extends NodeEventHandler {
 				/*
 				 * A modified node cannot be considered as cloned any more.
 				 * we can't copy the original formatting/comments and at the same time modify the node.
-				 * 
+				 *
 				 * Workaround for https://bugs.eclipse.org/405699 is to remove such nodes from clonedNodes
 				 * and instead mark all children as cloned (or skip them if they are not in clonedNodes).
 				 */
@@ -146,11 +138,11 @@ class InternalASTRewrite extends NodeEventHandler {
 						}
 					}
 				}
-				
+
 				node = node.getParent();
 			}
 		}
-		
+
 		ASTNode source = (ASTNode)this.clonedNodes.get(newChild);
 		if(source != null) {
 			if(this.cloneDepth == 0) {

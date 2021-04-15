@@ -11,9 +11,9 @@
  * ******************************************************************/
 package org.aspectj.ajdt.internal.compiler.parser;
 
-import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
-import org.aspectj.org.eclipse.jdt.internal.compiler.parser.Parser;
-import org.aspectj.org.eclipse.jdt.internal.compiler.parser.TheOriginalJDTParserClass;
+import org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
+import org.eclipse.jdt.internal.compiler.parser.Parser;
+import org.eclipse.jdt.internal.compiler.parser.TheOriginalJDTParserClass;
 
 
 /**

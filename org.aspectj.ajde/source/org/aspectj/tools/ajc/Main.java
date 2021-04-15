@@ -87,17 +87,18 @@ public class Main {
 	/**
 	 * Convenience method to run ajc and collect String lists of messages. This can be reflectively invoked with the List collecting
 	 * parameters supplied by a parent class loader. The String messages take the same form as command-line messages.
+	 * This method does not catch unchecked exceptions thrown by the compiler.
 	 * 
 	 * @param args the String[] args to pass to the compiler
 	 * @param useSystemExit if true and errors, return System.exit(errs)
 	 * @param fails the List sink, if any, for String failure (or worse) messages
 	 * @param errors the List sink, if any, for String error messages
 	 * @param warnings the List sink, if any, for String warning messages
-	 * @param info the List sink, if any, for String info messages
+	 * @param infos the List sink, if any, for String info messages
+	 * @param usages the List sink, if any, for String usage messages
 	 * @return number of messages reported with level ERROR or above
-	 * @throws any unchecked exceptions the compiler does
 	 */
-	public static int bareMain(String[] args, boolean useSystemExit, List fails, List errors, List warnings, List infos) {
+	public static int bareMain(String[] args, boolean useSystemExit, List fails, List errors, List warnings, List infos, List usages) {
 		Main main = new Main();
 		MessageHandler holder = new MessageHandler();
 		main.setHolder(holder);
@@ -108,6 +109,7 @@ public class Main {
 			readMessages(holder, IMessage.ERROR, false, errors);
 			readMessages(holder, IMessage.WARNING, false, warnings);
 			readMessages(holder, IMessage.INFO, false, infos);
+			readMessages(holder, IMessage.USAGE, false, usages);
 		}
 		return holder.numMessages(IMessage.ERROR, true);
 	}
@@ -119,8 +121,8 @@ public class Main {
 		}
 		IMessage[] messages = holder.getMessages(kind, orGreater);
 		if (!LangUtil.isEmpty(messages)) {
-			for (int i = 0; i < messages.length; i++) {
-				sink.add(MessagePrinter.render(messages[i]));
+			for (IMessage message : messages) {
+				sink.add(MessagePrinter.render(message));
 			}
 		}
 	}
@@ -141,7 +143,7 @@ public class Main {
 	}
 
 	private static boolean flagInArgs(String flag, String[] args) {
-		return ((null != args) && (Arrays.asList(args).indexOf(flag) != -1));
+		return ((null != args) && (Arrays.asList(args).contains(flag)));
 	}
 
 	/**
@@ -218,7 +220,7 @@ public class Main {
 	 * 
 	 * @param args the String[] command line for the compiler
 	 * @param useSystemExit if true, use System.exit(int) to complete unless one of the args is -noExit. and signal result (0 no
-	 *        exceptions/error, <0 exceptions, >0 compiler errors).
+	 *        exceptions/error, &lt;0 exceptions, &gt;0 compiler errors).
 	 */
 	public void runMain(String[] args, boolean useSystemExit) {
 		// Urk - default no check for AJDT, enabled here for Ant, command-line
@@ -264,8 +266,8 @@ public class Main {
 
 		boolean skipExit = false;
 		if (useSystemExit && !LangUtil.isEmpty(args)) { // sigh - pluck -noExit
-			for (int i = 0; i < args.length; i++) {
-				if ("-noExit".equals(args[i])) {
+			for (String arg : args) {
+				if ("-noExit".equals(arg)) {
 					skipExit = true;
 					break;
 				}
@@ -295,9 +297,8 @@ public class Main {
 		final String customMessageHolder = parmInArgs(MESSAGE_HOLDER_OPTION, args);
 		if (customMessageHolder != null) {
 			try {
-				holder = (IMessageHolder) Class.forName(customMessageHolder).newInstance();
+				holder = (IMessageHolder) Class.forName(customMessageHolder).getDeclaredConstructor().newInstance();
 			} catch (Exception ex) {
-				holder = ourHandler;
 				throw new AbortException("Failed to create custom message holder of class '" + customMessageHolder + "' : " + ex);
 			}
 		}
@@ -453,7 +454,6 @@ public class Main {
 	 * Call System.exit(int) with values derived from the number of failures/aborts or errors in messages.
 	 * 
 	 * @param messages the IMessageHolder to interrogate.
-	 * @param messages
 	 */
 	protected void systemExit(IMessageHolder messages) {
 		int num = lastFails; // messages.numMessages(IMessage.FAIL, true);
@@ -484,7 +484,6 @@ public class Main {
 	 * 
 	 * @param pass true result of the command
 	 * @param holder IMessageHolder with messages from the command
-	 * @see reportCommandResults(IMessageHolder)
 	 * @return false if the process should abort
 	 */
 	protected boolean report(boolean pass, IMessageHolder holder) {
@@ -570,7 +569,7 @@ public class Main {
 				File file = loc.getSourceFile();
 				if (null != file) {
 					String name = file.getName();
-					if (!toString || (-1 == text.indexOf(name))) {
+					if (!toString || (!text.contains(name))) {
 						sb.append(FileUtil.getBestPath(file));
 						if (loc.getLine() > 0) {
 							sb.append(":" + loc.getLine());
@@ -641,6 +640,8 @@ public class Main {
 			if (IMessage.WARNING.isSameOrLessThan(kind)) {
 				return System.err;
 			} else if (verbose && IMessage.INFO.equals(kind)) {
+				return System.out;
+			} else if (IMessage.USAGE.equals(kind)) {
 				return System.out;
 			} else if (IMessage.WEAVEINFO.equals(kind)) {
 				return System.out;
@@ -725,7 +726,7 @@ public class Main {
 		}
 
 		/**
-		 * @param argList read and strip incremental args from this
+		 * @param args read and strip incremental args from this
 		 * @param sink IMessageHandler for error messages
 		 * @return String[] remainder of args
 		 */

@@ -1,6 +1,6 @@
 //AspectJ
 /*******************************************************************************
- * Copyright (c) 2000, 2019 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -196,7 +196,7 @@ public class CompilerOptions {
 	public static final String OPTION_PessimisticNullAnalysisForFreeTypeVariables = "org.eclipse.jdt.core.compiler.problem.pessimisticNullAnalysisForFreeTypeVariables";  //$NON-NLS-1$
 	public static final String OPTION_ReportNonNullTypeVariableFromLegacyInvocation = "org.eclipse.jdt.core.compiler.problem.nonnullTypeVariableFromLegacyInvocation"; //$NON-NLS-1$
 	public static final String OPTION_ReportAnnotatedTypeArgumentToUnannotated = "org.eclipse.jdt.core.compiler.problem.annotatedTypeArgumentToUnannotated"; //$NON-NLS-1$
-	
+
 	public static final String OPTION_ReportUnlikelyCollectionMethodArgumentType = "org.eclipse.jdt.core.compiler.problem.unlikelyCollectionMethodArgumentType"; //$NON-NLS-1$
 	public static final String OPTION_ReportUnlikelyCollectionMethodArgumentTypeStrict = "org.eclipse.jdt.core.compiler.problem.unlikelyCollectionMethodArgumentTypeStrict"; //$NON-NLS-1$
 	public static final String OPTION_ReportUnlikelyEqualsArgumentType = "org.eclipse.jdt.core.compiler.problem.unlikelyEqualsArgumentType"; //$NON-NLS-1$
@@ -235,6 +235,8 @@ public class CompilerOptions {
 	public static final String VERSION_12 = "12"; //$NON-NLS-1$
 	public static final String VERSION_13 = "13"; //$NON-NLS-1$
 	public static final String VERSION_14 = "14"; //$NON-NLS-1$
+	public static final String VERSION_15 = "15"; //$NON-NLS-1$
+	public static final String VERSION_16 = "16"; //$NON-NLS-1$
 	/*
 	 * Note: Whenever a new version is added, make sure getLatestVersion()
 	 * is updated with it.
@@ -289,7 +291,7 @@ public class CompilerOptions {
 	public static final int UnnecessaryTypeCheck = IrritantSet.GROUP0 | ASTNode.Bit27;
 	public static final int UndocumentedEmptyBlock = IrritantSet.GROUP0 | ASTNode.Bit28;
 	public static final int IndirectStaticAccess = IrritantSet.GROUP0 | ASTNode.Bit29;
-	
+
 	// group 1
 	public static final int UnnecessaryElse  = IrritantSet.GROUP1 | ASTNode.Bit1;
 	public static final int UncheckedTypeOperation = IrritantSet.GROUP1 | ASTNode.Bit2;
@@ -359,30 +361,30 @@ public class CompilerOptions {
 	// when picking up a later version of this class, if new constants have been added to 
 	// the above list, then AjCompilerOptions will need updating also.
 	// End AspectJ Extension
-		
+
 	// Severity level for handlers
-	/** 
-	 * Defaults defined at {@link IrritantSet#COMPILER_DEFAULT_ERRORS} 
+	/**
+	 * Defaults defined at {@link IrritantSet#COMPILER_DEFAULT_ERRORS}
 	 * @see #resetDefaults()
 	 */
 	public IrritantSet errorThreshold; // AspectJ raised visibility
-	/** 
+	/**
 	 * Defaults defined at {@link IrritantSet#COMPILER_DEFAULT_WARNINGS}
 	 * @see #resetDefaults()
 	 */
 	public IrritantSet warningThreshold; // AspectJ raised visibility
-	/** 
+	/**
 	 * Defaults defined at {@link IrritantSet#COMPILER_DEFAULT_INFOS}
 	 * @see #resetDefaults()
 	 */
 	protected IrritantSet infoThreshold;
-	
+
 	/**
 	 * Default settings are to be defined in {@link CompilerOptions#resetDefaults()}
 	 */
-	
+
 	/** Classfile debug information, may contain source file name, line numbers, local variable tables, etc... */
-	public int produceDebugAttributes; 
+	public int produceDebugAttributes;
 	/** Classfile method parameters information as per JEP 118... */
 	public boolean produceMethodParameters;
 	/** Indicates whether generic signature should be generated for lambda expressions */
@@ -396,7 +398,7 @@ public class CompilerOptions {
 	public long originalComplianceLevel;
 	/** Java source level, refers to a JDK version, e.g. {@link ClassFileConstants#JDK1_4} */
 	public long sourceLevel;
-	/** Original Java source level, refers to a JDK version, e.g. {@link ClassFileConstants#JDK1_4} 
+	/** Original Java source level, refers to a JDK version, e.g. {@link ClassFileConstants#JDK1_4}
 	 *  Usually same as the field sourceLevel, though the latter could deviate to create temporary sandbox
 	 *  modes during reconcile operations. See https://bugs.eclipse.org/bugs/show_bug.cgi?id=323633
 	 * */
@@ -408,7 +410,7 @@ public class CompilerOptions {
 	/** Compiler trace verbosity */
 	public boolean verbose;
 	/** Indicates whether reference info is desired */
-	public boolean produceReferenceInfo;	
+	public boolean produceReferenceInfo;
 	/** Indicates if unused/optimizable local variables need to be preserved (debugging purpose) */
 	public boolean preserveAllLocalVariables;
 	/** Indicates whether literal expressions are inlined at parse-time or not */
@@ -518,11 +520,11 @@ public class CompilerOptions {
 	public boolean analyseResourceLeaks;
 	/** Should missing enum cases be reported even if a default case exists in the same switch? */
 	public boolean reportMissingEnumCaseDespiteDefault;
-	
+
 	/** When checking for unlikely argument types of of Map.get() et al, perform strict analysis against the expected type */
 	public boolean reportUnlikelyCollectionMethodArgumentTypeStrict;
 
-	/** Should the compiler tolerate illegal ambiguous varargs invocation in compliance < 1.7 
+	/** Should the compiler tolerate illegal ambiguous varargs invocation in compliance < 1.7
 	 * to be bug compatible with javac? (bug 383780) */
 	public static boolean tolerateIllegalAmbiguousVarargsInvocation;
 	{
@@ -569,7 +571,7 @@ public class CompilerOptions {
 		"rawtypes", //$NON-NLS-1$
 		"removal", //$NON-NLS-1$
 		"resource", //$NON-NLS-1$
-		"restriction", //$NON-NLS-1$		
+		"restriction", //$NON-NLS-1$
 		"serial", //$NON-NLS-1$
 		"static-access", //$NON-NLS-1$
 		"static-method", //$NON-NLS-1$
@@ -613,7 +615,7 @@ public class CompilerOptions {
 	 * Return the latest Java language version supported by the Eclipse compiler
 	 */
 	public static String getLatestVersion() {
-		return VERSION_14;
+		return VERSION_16;
 	}
 	/**
 	 * Return the most specific option key controlling this irritant. Note that in some case, some irritant is controlled by
@@ -847,9 +849,9 @@ public class CompilerOptions {
 			default:
 				if(major > ClassFileConstants.MAJOR_VERSION_10) {
 					return "" + (major - ClassFileConstants.MAJOR_VERSION_0); //$NON-NLS-1$
-				} 
+				}
 				return  Util.EMPTY_STRING; // unknown version
-				
+
 		}
 		return Util.EMPTY_STRING; // unknown version
 	}
@@ -1246,7 +1248,7 @@ public class CompilerOptions {
 		return null;
 	}
 
-	
+
 	public Map<String, String> getMap() {
 		Map<String, String> optionsMap = new HashMap<>(30);
 		optionsMap.put(OPTION_LocalVariableAttribute, (this.produceDebugAttributes & ClassFileConstants.ATTR_VARS) != 0 ? GENERATE : DO_NOT_GENERATE);
@@ -1472,7 +1474,7 @@ public class CompilerOptions {
 		this.errorThreshold = new IrritantSet(IrritantSet.COMPILER_DEFAULT_ERRORS);
 		this.warningThreshold = new IrritantSet(IrritantSet.COMPILER_DEFAULT_WARNINGS);
 		this.infoThreshold = new IrritantSet(IrritantSet.COMPILER_DEFAULT_INFOS);
-		
+
 		// by default only lines and source attributes are generated.
 		this.produceDebugAttributes = ClassFileConstants.ATTR_SOURCE | ClassFileConstants.ATTR_LINES;
 		this.complianceLevel = this.originalComplianceLevel = ClassFileConstants.JDK1_4; // by default be compliant with 1.4
@@ -1488,7 +1490,7 @@ public class CompilerOptions {
 
 		// indicates if unused/optimizable local variables need to be preserved (debugging purpose)
 		this.preserveAllLocalVariables = false;
-		
+
 		this.produceMethodParameters = false;
 
 		// indicates whether literal expressions are inlined at parse-time or not
@@ -1506,17 +1508,17 @@ public class CompilerOptions {
 		// deprecation report
 		this.reportDeprecationInsideDeprecatedCode = false;
 		this.reportDeprecationWhenOverridingDeprecatedMethod = false;
-		
+
 		// unused parameters report
 		this.reportUnusedParameterWhenImplementingAbstract = false;
 		this.reportUnusedParameterWhenOverridingConcrete = false;
 		this.reportUnusedParameterIncludeDocCommentReference = true;
-		
+
 		// unused declaration of thrown exception
 		this.reportUnusedDeclaredThrownExceptionWhenOverriding = false;
 		this.reportUnusedDeclaredThrownExceptionIncludeDocCommentReference = true;
 		this.reportUnusedDeclaredThrownExceptionExemptExceptionAndThrowable = true;
-		
+
 		// constructor/setter parameter hiding
 		this.reportSpecialParameterHidingField = false;
 
@@ -1528,7 +1530,7 @@ public class CompilerOptions {
 		this.reportInvalidJavadocTagsDeprecatedRef = false;
 		this.reportInvalidJavadocTagsNotVisibleRef = false;
 		this.reportMissingJavadocTagDescription = RETURN_TAG;
-		
+
 		// check missing javadoc tags
 		this.reportMissingJavadocTagsVisibility = ClassFileConstants.AccPublic;
 		this.reportMissingJavadocTagsOverriding = false;
@@ -1537,7 +1539,7 @@ public class CompilerOptions {
 		// check missing javadoc comments
 		this.reportMissingJavadocCommentsVisibility = ClassFileConstants.AccPublic;
 		this.reportMissingJavadocCommentsOverriding = false;
-		
+
 		// JSR bytecode inlining and sharing
 		this.inlineJsrBytecode = false;
 		this.shareCommonFinallyBlocks = false;
@@ -1568,21 +1570,21 @@ public class CompilerOptions {
 
 		// enable annotation processing by default only in batch mode
 		this.processAnnotations = false;
-		
+
 		// disable missing override annotation reporting for interface method implementation
 		this.reportMissingOverrideAnnotationForInterfaceMethodImplementation = true;
-		
+
 		// dead code detection
 		this.reportDeadCodeInTrivialIfStatement = false;
-		
+
 		// ignore method bodies
 		this.ignoreMethodBodies = false;
-		
+
 		this.ignoreSourceFolderWarningOption = false;
-		
+
 		// allow null info from asserts to be considered downstream by default
 		this.includeNullInfoFromAsserts = false;
-		
+
 		this.isAnnotationBasedNullAnalysisEnabled = false;
 		this.nullableAnnotationName = DEFAULT_NULLABLE_ANNOTATION_NAME;
 		this.nonNullAnnotationName = DEFAULT_NONNULL_ANNOTATION_NAME;
@@ -1590,7 +1592,7 @@ public class CompilerOptions {
 		this.intendedDefaultNonNullness = 0;
 		this.enableSyntacticNullAnalysisForFields = false;
 		this.inheritNullAnnotations = false;
-		
+
 		this.analyseResourceLeaks = true;
 
 		this.reportMissingEnumCaseDespiteDefault = false;
@@ -1737,7 +1739,7 @@ public class CompilerOptions {
 			} else if (DISABLED.equals(optionValue)) {
 				this.reportDeadCodeInTrivialIfStatement = false;
 			}
-		}		
+		}
 		if ((optionValue = optionsMap.get(OPTION_MaxProblemPerUnit)) != null) {
 			String stringValue = optionValue;
 			try {
@@ -2123,9 +2125,9 @@ public class CompilerOptions {
 				this.enablePreviewFeatures = false;
 			}
 		}
-		if ((optionValue = optionsMap.get(OPTION_ReportPreviewFeatures)) != null) 
+		if ((optionValue = optionsMap.get(OPTION_ReportPreviewFeatures)) != null)
 			updateSeverity(PreviewFeatureUsed, optionValue);
-		if ((optionValue = optionsMap.get(OPTION_ReportSuppressWarningNotFullyAnalysed)) != null) 
+		if ((optionValue = optionsMap.get(OPTION_ReportSuppressWarningNotFullyAnalysed)) != null)
 			updateSeverity(SuppressWarningsNotAnalysed, optionValue);
 
 		if ((optionValue = optionsMap.get(OPTION_JdtDebugCompileMode)) != null) {
@@ -2278,7 +2280,7 @@ public class CompilerOptions {
 		buf.append("\n\t- SuppressWarnings not fully analysed: ").append(getSeverityString(SuppressWarningsNotAnalysed)); //$NON-NLS-1$
 		return buf.toString();
 	}
-	
+
 	protected void updateSeverity(int irritant, Object severityString) {
 		if (ERROR.equals(severityString)) {
 			this.errorThreshold.set(irritant);
@@ -2299,7 +2301,7 @@ public class CompilerOptions {
 		}
 	}
 
-	/** 
+	/**
 	 * Note, if you have a LookupEnvironment you should instead ask
 	 * {@link org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment#usesNullTypeAnnotations()}. */
 	public boolean usesNullTypeAnnotations() {

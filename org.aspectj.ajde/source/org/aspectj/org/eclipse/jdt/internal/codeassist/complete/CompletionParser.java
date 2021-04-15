@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2019 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -31,16 +31,101 @@ package org.aspectj.org.eclipse.jdt.internal.codeassist.complete;
 import java.util.HashSet;
 
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.aspectj.org.eclipse.jdt.internal.compiler.*;
+import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
+import org.aspectj.org.eclipse.jdt.internal.codeassist.impl.AssistParser;
+import org.aspectj.org.eclipse.jdt.internal.codeassist.impl.Keywords;
+import org.aspectj.org.eclipse.jdt.internal.codeassist.impl.RestrictedIdentifiers;
+import org.aspectj.org.eclipse.jdt.internal.compiler.CompilationResult;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AND_AND_Expression;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractVariableDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AllocationExpression;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Annotation;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Argument;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ArrayAllocationExpression;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ArrayInitializer;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ArrayReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AssertStatement;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Assignment;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.BinaryExpression;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Block;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CaseStatement;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CastExpression;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CompoundAssignment;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ConditionalExpression;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ConstructorDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.EmptyStatement;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.EqualExpression;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ExplicitConstructorCall;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ForStatement;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.IfStatement;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ImportReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Initializer;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.InstanceOfExpression;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.IntLiteral;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.LocalDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.MarkerAnnotation;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.MemberValuePair;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.MessageSend;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ModuleDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ModuleReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.NameReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.NormalAnnotation;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.OR_OR_Expression;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ParameterizedQualifiedTypeReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ParameterizedSingleTypeReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.PrefixExpression;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.QualifiedAllocationExpression;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.QualifiedNameReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ReferenceExpression;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ReturnStatement;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.SingleNameReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.SingleTypeReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Statement;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.StringLiteral;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.SuperReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.SwitchExpression;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.SwitchStatement;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.SynchronizedStatement;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ThisReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ThrowStatement;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TrueLiteral;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TryStatement;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeParameter;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.UnaryExpression;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.UnionTypeReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.WhileStatement;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Wildcard;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
-import org.aspectj.org.eclipse.jdt.internal.compiler.env.*;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.*;
-import org.aspectj.org.eclipse.jdt.internal.compiler.parser.*;
-import org.aspectj.org.eclipse.jdt.internal.compiler.problem.*;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit;
+import org.aspectj.org.eclipse.jdt.internal.compiler.impl.JavaFeature;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ExtraCompilerModifiers;
+import org.aspectj.org.eclipse.jdt.internal.compiler.parser.JavadocParser;
+import org.aspectj.org.eclipse.jdt.internal.compiler.parser.Parser;
+import org.aspectj.org.eclipse.jdt.internal.compiler.parser.RecoveredAnnotation;
+import org.aspectj.org.eclipse.jdt.internal.compiler.parser.RecoveredBlock;
+import org.aspectj.org.eclipse.jdt.internal.compiler.parser.RecoveredElement;
+import org.aspectj.org.eclipse.jdt.internal.compiler.parser.RecoveredField;
+import org.aspectj.org.eclipse.jdt.internal.compiler.parser.RecoveredInitializer;
+import org.aspectj.org.eclipse.jdt.internal.compiler.parser.RecoveredLocalVariable;
+import org.aspectj.org.eclipse.jdt.internal.compiler.parser.RecoveredMethod;
+import org.aspectj.org.eclipse.jdt.internal.compiler.parser.RecoveredModule;
+import org.aspectj.org.eclipse.jdt.internal.compiler.parser.RecoveredPackageVisibilityStatement;
+import org.aspectj.org.eclipse.jdt.internal.compiler.parser.RecoveredProvidesStatement;
+import org.aspectj.org.eclipse.jdt.internal.compiler.parser.RecoveredType;
+import org.aspectj.org.eclipse.jdt.internal.compiler.parser.RecoveredUnit;
+import org.aspectj.org.eclipse.jdt.internal.compiler.parser.TerminalTokens;
+import org.aspectj.org.eclipse.jdt.internal.compiler.problem.AbortCompilation;
+import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.HashtableOfObjectToInt;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
-import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
-import org.aspectj.org.eclipse.jdt.internal.codeassist.impl.*;
 
 public class CompletionParser extends AssistParser {
 	// OWNER
@@ -1173,7 +1258,7 @@ private Statement buildMoreCompletionEnclosingContext(Statement statement) {
 	}
 	while (index >= 0) {
 		// Try to find an enclosing if statement even if one is not found immediately preceding the completion node.
-		if (index != -1 && this.elementInfoStack[index] == IF && this.elementObjectInfoStack[index] != null) {
+		if (this.elementInfoStack[index] == IF && this.elementObjectInfoStack[index] != null) {
 			Expression condition = (Expression)this.elementObjectInfoStack[index];
 
 			// If currentElement is a RecoveredLocalVariable then it can be contained in the if statement
@@ -1515,7 +1600,7 @@ private boolean checkClassLiteralAccess() {
 	}
 	return false;
 }
-private boolean checkKeyword() {
+private boolean checkKeywordAndRestrictedIdentifiers() {
 	if (this.currentElement instanceof RecoveredUnit) {
 		RecoveredUnit unit = (RecoveredUnit) this.currentElement;
 		if (unit.unitDeclaration.isModuleInfo()) return false;
@@ -1526,18 +1611,18 @@ private boolean checkKeyword() {
 			char[] ident = this.identifierStack[ptr];
 			long pos = this.identifierPositionStack[ptr];
 
-			char[][] keywords = new char[Keywords.COUNT][];
+			char[][] keywordsAndRestrictedIndentifiers = new char[Keywords.COUNT+RestrictedIdentifiers.COUNT][];
 			int count = 0;
 			if(unit.typeCount == 0
 				&& (!this.compilationUnit.isPackageInfo() || this.compilationUnit.currentPackage != null)
 				&& this.lastModifiers == ClassFileConstants.AccDefault) {
-				keywords[count++] = Keywords.IMPORT;
+				keywordsAndRestrictedIndentifiers[count++] = Keywords.IMPORT;
 			}
 			if(unit.typeCount == 0
 				&& unit.importCount == 0
 				&& this.lastModifiers == ClassFileConstants.AccDefault
 				&& this.compilationUnit.currentPackage == null) {
-				keywords[count++] = Keywords.PACKAGE;
+				keywordsAndRestrictedIndentifiers[count++] = Keywords.PACKAGE;
 			}
 			if (!this.compilationUnit.isPackageInfo()) {
 				if((this.lastModifiers & ClassFileConstants.AccPublic) == 0) {
@@ -1548,31 +1633,41 @@ private boolean checkKeyword() {
 						}
 					}
 					if(hasNoPublicType) {
-						keywords[count++] = Keywords.PUBLIC;
+						keywordsAndRestrictedIndentifiers[count++] = Keywords.PUBLIC;
 					}
 				}
 				if((this.lastModifiers & ClassFileConstants.AccAbstract) == 0
 					&& (this.lastModifiers & ClassFileConstants.AccFinal) == 0) {
-					keywords[count++] = Keywords.ABSTRACT;
+					keywordsAndRestrictedIndentifiers[count++] = Keywords.ABSTRACT;
 				}
 				if((this.lastModifiers & ClassFileConstants.AccAbstract) == 0
 					&& (this.lastModifiers & ClassFileConstants.AccFinal) == 0) {
-					keywords[count++] = Keywords.FINAL;
+					keywordsAndRestrictedIndentifiers[count++] = Keywords.FINAL;
 				}
 
-				keywords[count++] = Keywords.CLASS;
+				keywordsAndRestrictedIndentifiers[count++] = Keywords.CLASS;
 				if (this.options.complianceLevel >= ClassFileConstants.JDK1_5) {
-					keywords[count++] = Keywords.ENUM;
+					keywordsAndRestrictedIndentifiers[count++] = Keywords.ENUM;
 				}
-
 				if((this.lastModifiers & ClassFileConstants.AccFinal) == 0) {
-					keywords[count++] = Keywords.INTERFACE;
+					keywordsAndRestrictedIndentifiers[count++] = Keywords.INTERFACE;
+				}
+				if (JavaFeature.RECORDS.isSupported(this.options)) {
+					keywordsAndRestrictedIndentifiers[count++] = RestrictedIdentifiers.RECORD;
+				}
+				if (JavaFeature.SEALED_CLASSES.isSupported(this.options)) {
+					boolean nonSeal = (this.lastModifiers & ExtraCompilerModifiers.AccNonSealed) != 0;
+					boolean seal = (this.lastModifiers & ExtraCompilerModifiers.AccSealed) != 0;
+					if (!nonSeal && !seal) {
+						keywordsAndRestrictedIndentifiers[count++] = RestrictedIdentifiers.SEALED;
+						keywordsAndRestrictedIndentifiers[count++] = RestrictedIdentifiers.NON_SEALED;
+					}
 				}
 			}
-			if(count != 0) {
-				System.arraycopy(keywords, 0, keywords = new char[count][], 0, count);
+			if (count != 0) {
+				System.arraycopy(keywordsAndRestrictedIndentifiers, 0, keywordsAndRestrictedIndentifiers = new char[count][], 0, count);
 
-				this.assistNode = new CompletionOnKeyword2(ident, pos, keywords);
+				this.assistNode = new CompletionOnKeyword2(ident, pos, keywordsAndRestrictedIndentifiers);
 				this.lastCheckPoint = this.assistNode.sourceEnd + 1;
 				this.isOrphanCompletionNode = true;
 				return true;
@@ -2143,6 +2238,11 @@ private void classHeaderExtendsOrImplements(boolean isInterface, boolean isRecor
 						}
 						keywords[count++] = Keywords.IMPLEMENTS;
 					}
+					if (this.options.enablePreviewFeatures) {
+						boolean sealed = (type.modifiers & ExtraCompilerModifiers.AccSealed) != 0;
+						if (sealed)
+							keywords[count++] = RestrictedIdentifiers.PERMITS;
+					}
 
 					System.arraycopy(keywords, 0, keywords = new char[count][], 0, count);
 
@@ -2182,7 +2282,8 @@ public void completionIdentifierCheck(){
 	//if (assistNode != null) return;
 
 	if (checkMemberValueName()) return;
-	if (checkKeyword()) return;
+
+	if(checkKeywordAndRestrictedIdentifiers()) return;
 	if (checkModuleInfoConstructs()) return;
 	if (checkRecoveredType()) return;
 	if (checkRecoveredMethod()) return;
@@ -2472,15 +2573,27 @@ protected void consumeClassHeaderExtends() {
 			RecoveredType recoveredType = (RecoveredType)this.currentElement;
 			/* filter out cases where scanner is still inside type header */
 			if (!recoveredType.foundOpeningBrace) {
+				char[][] keywords = new char[2][];
+				int count = 0;
 				TypeDeclaration type = recoveredType.typeDeclaration;
 				if(type.superInterfaces == null) {
-					type.superclass = new CompletionOnKeyword1(
+					keywords[count++] = Keywords.IMPLEMENTS;
+				}
+				if (this.options.enablePreviewFeatures) {
+					boolean sealed = (type.modifiers & ExtraCompilerModifiers.AccSealed) != 0;
+					if (sealed)
+						keywords[count++] = RestrictedIdentifiers.PERMITS;
+				}
+				System.arraycopy(keywords, 0, keywords = new char[count][], 0, count);
+				if(count > 0) {
+					CompletionOnKeyword1 completionOnKeyword = new CompletionOnKeyword1(
 						this.identifierStack[ptr],
 						this.identifierPositionStack[ptr],
-						Keywords.IMPLEMENTS);
+						keywords);
+					type.superclass = completionOnKeyword;
 					type.superclass.bits |= ASTNode.IsSuperType;
-					this.assistNode = type.superclass;
-					this.lastCheckPoint = type.superclass.sourceEnd + 1;
+					this.assistNode = completionOnKeyword;
+					this.lastCheckPoint = completionOnKeyword.sourceEnd + 1;
 				}
 			}
 		}
@@ -2514,7 +2627,6 @@ protected void consumeClassTypeElt() {
 	super.consumeClassTypeElt();
 	popElement(K_NEXT_TYPEREF_IS_EXCEPTION);
 }
-
 @Override
 protected void consumeCompilationUnit() {
 	this.javadoc = null;
@@ -2631,8 +2743,10 @@ protected void consumeEmptyStatement() {
 	   we don't know whether it is the first or subsequent statement in a block to be able to
 	   decide whether to call contactNodeLists. See Parser.consumeBlockStatement(s)
 	*/
-	if (this.shouldStackAssistNode && this.assistNode != null)
-		this.astStack[this.astPtr] = this.assistNodeParent instanceof MessageSend ? this.assistNodeParent : this.assistNode;
+	if (this.shouldStackAssistNode && this.assistNode != null) {
+		this.astStack[this.astPtr] = (this.assistNodeParent instanceof MessageSend)
+				|| (this.assistNodeParent instanceof ParameterizedSingleTypeReference) ? this.assistNodeParent : this.assistNode;
+	}
 	this.shouldStackAssistNode = false;
 }
 @Override
@@ -2712,7 +2826,7 @@ protected void consumeEnterVariable() {
 
 		// recovery
 		if (this.currentElement != null) {
-			if(!checkKeyword() && !(this.currentElement instanceof RecoveredUnit && ((RecoveredUnit)this.currentElement).typeCount == 0)) {
+			if(!checkKeywordAndRestrictedIdentifiers() && !(this.currentElement instanceof RecoveredUnit && ((RecoveredUnit)this.currentElement).typeCount == 0)) {
 				int nameSourceStart = (int)(this.identifierPositionStack[this.identifierPtr] >>> 32);
 				this.intPtr--;
 				TypeReference type = getTypeReference(this.intStack[this.intPtr--]);
@@ -4929,6 +5043,10 @@ public NameReference createSingleAssistNameReference(char[] assistName, long pos
 				keywords[count++]= Keywords.CLASS;
 				if (this.options.complianceLevel >= ClassFileConstants.JDK10) {
 					keywords[count++]= Keywords.VAR;
+				}
+				if (this.options.complianceLevel >= ClassFileConstants.JDK16) {
+					keywords[count++]= Keywords.INTERFACE;
+					keywords[count++]= Keywords.ENUM;
 				}
 
 				if(this.previousKind == K_BLOCK_DELIMITER) {

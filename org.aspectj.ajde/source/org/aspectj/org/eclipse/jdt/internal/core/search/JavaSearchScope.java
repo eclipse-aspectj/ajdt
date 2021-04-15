@@ -338,7 +338,7 @@ private void add(String projectPath, String relativePath, String containerPath, 
  *
  * 1. /P/src/pkg/X.java
  * 2. /P/src/pkg
- * 3. /P/lib.jar|org.aspectj.org.eclipse.jdt/core/IJavaElement.class
+ * 3. /P/lib.jar|org/aspectj/org/eclipse/jdt/core/IJavaElement.class
  * 4. /home/mylib.jar|x/y/z/X.class
  * 5. c:\temp\mylib.jar|x/y/Y.class
  *
@@ -680,5 +680,10 @@ public String toString() {
 		}
 	}
 	return result.toString();
+}
+
+@Override
+public boolean isParallelSearchSupported() {
+	return true;
 }
 }

@@ -38,7 +38,7 @@ public class CountingMessageHandler implements IMessageHandler {
 	public CountingMessageHandler(IMessageHandler delegate) {
 		LangUtil.throwIaxIfNull(delegate, "delegate");
 		this.delegate = delegate;
-		this.counters = new Hashtable<IMessage.Kind, IntHolder>();
+		this.counters = new Hashtable<>();
 		proxy = (delegate instanceof CountingMessageHandler ? (CountingMessageHandler) delegate : null);
 	}
 
@@ -90,9 +90,9 @@ public class CountingMessageHandler implements IMessageHandler {
 	 * Return count of messages seen through this interface.
 	 * 
 	 * @param kind the IMessage.Kind of the messages to count (if null, count all)
-	 * @param orGreater if true, then count this kind and any considered greater by the ordering of IMessage.Kind.COMPARATOR
+	 * @param orGreater if true, then count this kind and any considered greater by the ordering of IMessage.Kind#COMPARATOR
 	 * @return number of messages of this kind (optionally or greater)
-	 * @see IMessage.Kind.COMPARATOR
+	 * @see IMessage.Kind#COMPARATOR
 	 */
 	public int numMessages(IMessage.Kind kind, boolean orGreater) {
 		if (null != proxy) {

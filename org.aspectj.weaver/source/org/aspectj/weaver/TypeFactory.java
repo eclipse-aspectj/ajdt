@@ -20,7 +20,7 @@ public class TypeFactory {
 	/**
 	 * Create a parameterized version of a generic type.
 	 * 
-	 * @param aGenericType
+	 * @param aBaseType
 	 * @param someTypeParameters note, in the case of an inner type of a parameterized type, this parameter may legitimately be null
 	 * @param inAWorld
 	 * @return
@@ -289,7 +289,7 @@ public class TypeFactory {
 
 	private static UnresolvedType[] createTypeParams(String typeParameterSpecification) {
 		String remainingToProcess = typeParameterSpecification;
-		List<UnresolvedType> types = new ArrayList<UnresolvedType>();
+		List<UnresolvedType> types = new ArrayList<>();
 		while (remainingToProcess.length() != 0) {
 			int endOfSig = 0;
 			int anglies = 0;
@@ -358,7 +358,7 @@ public class TypeFactory {
 
 	/**
 	 * Create a signature then delegate to the other factory method. Same input/output: baseTypeSignature="LSomeType;" arguments[0]=
-	 * something with sig "Pcom/Foo<Ljava/lang/String;>;" signature created = "PSomeType<Pcom/Foo<Ljava/lang/String;>;>;"
+	 * something with sig "Pcom/Foo&lt;Ljava/lang/String;&gt;;" signature created = "PSomeType&lt;Pcom/Foo&lt;Ljava/lang/String;&gt;;&gt;;"
 	 */
 	public static UnresolvedType createUnresolvedParameterizedType(String baseTypeSignature, UnresolvedType[] arguments) {
 		StringBuffer parameterizedSig = new StringBuffer();
@@ -366,8 +366,8 @@ public class TypeFactory {
 		parameterizedSig.append(baseTypeSignature.substring(1, baseTypeSignature.length() - 1));
 		if (arguments.length > 0) {
 			parameterizedSig.append("<");
-			for (int i = 0; i < arguments.length; i++) {
-				parameterizedSig.append(arguments[i].getSignature());
+			for (UnresolvedType argument : arguments) {
+				parameterizedSig.append(argument.getSignature());
 			}
 			parameterizedSig.append(">");
 		}

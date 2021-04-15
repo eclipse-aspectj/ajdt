@@ -1,6 +1,6 @@
 // ASPECTJ
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -46,6 +46,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Argument;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.LambdaExpression;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.RecordComponent;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeReference.AnnotationPosition;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
@@ -303,7 +304,7 @@ public MethodBinding findPrivilegedBinding(SourceTypeBinding invocationType, Inv
 		return Scope.findPrivilegedHandler(invocationType).getPrivilegedAccessMethod(this, forLocation); //notePrivilegedTypeAccess(this, null);
 	} else {
 		return null;
-	}
+}
 }
 //End AspectJ Extension
 
@@ -325,7 +326,6 @@ public final boolean canBeSeenBy(PackageBinding invocationPackage) {
 public boolean canBeSeenBy(TypeBinding receiverType, InvocationSite invocationSite, Scope scope) {
 
 	SourceTypeBinding invocationType = scope.invocationType(); // AspectJ Extension - was scope.enclosingSourceType()
-
 	if (this.declaringClass.isInterface() && isStatic() && !isPrivate()) {
 		// Static interface methods can be explicitly invoked only through the type reference of the declaring interface or implicitly in the interface itself or via static import.
 		if (scope.compilerOptions().sourceLevel < ClassFileConstants.JDK1_8)
@@ -334,9 +334,9 @@ public boolean canBeSeenBy(TypeBinding receiverType, InvocationSite invocationSi
 			return true;
 		return false;
 	}
-	
+
 	if (isPublic()) return true;
-	
+
 
 	if (TypeBinding.equalsEquals(invocationType, this.declaringClass) && TypeBinding.equalsEquals(invocationType, receiverType)) return true;
 
@@ -549,8 +549,8 @@ public final char[] constantPoolName() {
 
 /**
  * After method verifier has finished, fill in missing @NonNull specification from the applicable default.
- * @param needToApplyParameterNonNullDefault 
- * @param needToApplyReturnNonNullDefault 
+ * @param needToApplyParameterNonNullDefault
+ * @param needToApplyReturnNonNullDefault
  */
 protected void fillInDefaultNonNullness(AbstractMethodDeclaration sourceMethod, boolean needToApplyReturnNonNullDefault, ParameterNonNullDefaultProvider needToApplyParameterNonNullDefault) {
 	if (this.parameterNonNullness == null)
@@ -622,7 +622,7 @@ protected void fillInDefaultNonNullness18(AbstractMethodDeclaration sourceMethod
 	if (original.returnType != null && hasNonNullDefaultForReturnType(sourceMethod) && original.returnType.acceptsNonNullDefault()) {
 		if ((this.returnType.tagBits & TagBits.AnnotationNullMASK) == 0) {
 			this.returnType = env.createAnnotatedType(this.returnType, new AnnotationBinding[]{env.getNonNullAnnotation()});
-		} else if (sourceMethod instanceof MethodDeclaration && (this.returnType.tagBits & TagBits.AnnotationNonNull) != 0 
+		} else if (sourceMethod instanceof MethodDeclaration && (this.returnType.tagBits & TagBits.AnnotationNonNull) != 0
 						&& ((MethodDeclaration)sourceMethod).hasNullTypeAnnotation(AnnotationPosition.MAIN_TYPE)) {
 			sourceMethod.scope.problemReporter().nullAnnotationIsRedundant(sourceMethod, -1/*signifies method return*/);
 		}
@@ -850,6 +850,12 @@ public final boolean isBridge() {
 */
 public final boolean isConstructor() {
 	return this.selector == TypeConstants.INIT;
+}
+
+/* Answer true if the receiver is a compact constructor
+*/
+public final boolean isCompactConstructor() {
+	return (this.modifiers &  ExtraCompilerModifiers.AccCompactConstructor) != 0;
 }
 
 /* Answer true if the receiver has default visibility
@@ -1297,7 +1303,7 @@ public AbstractMethodDeclaration sourceMethod() {
 	// AspectJ Extension
 	// AspectJ has synthetic methods that do have a source rep (e.g. pointcuts)
 	// TODO could do this through overriding? maybe if we did use a subtype, but not sure we do
-	// TODO can't recognize via ajc$ because they might be annotation style 
+	// TODO can't recognize via ajc$ because they might be annotation style
 	// old code:
 //	if (isSynthetic()) {
 //		return null;
@@ -1327,6 +1333,9 @@ public AbstractMethodDeclaration sourceMethod() {
 public LambdaExpression sourceLambda() {
 	return null;
 }
+public RecordComponent sourceRecordComponent() {
+	return null;
+}
 public final int sourceStart() {
 	AbstractMethodDeclaration method = sourceMethod();
 	if (method == null) {
@@ -1336,7 +1345,7 @@ public final int sourceStart() {
 	}
 	return method.sourceStart;
 }
-    //AspectJ Extension	
+    //AspectJ Extension
 	/**
 	 * Subtypes can override this to return true if an access method should be
 	 * used when referring to this method binding.  Currently used
@@ -1490,9 +1499,9 @@ public boolean redeclaresPublicObjectMethod(Scope scope) {
 	MethodBinding [] methods = javaLangObject.getMethods(this.selector);
 	for (int i = 0, length = methods == null ? 0 : methods.length; i < length; i++) {
 		final MethodBinding method = methods[i];
-		if (!method.isPublic() || method.isStatic() || method.parameters.length != this.parameters.length) 
+		if (!method.isPublic() || method.isStatic() || method.parameters.length != this.parameters.length)
 			continue;
-		if (MethodVerifier.doesMethodOverride(this, method, scope.environment())) 
+		if (MethodVerifier.doesMethodOverride(this, method, scope.environment()))
 			return true;
 	}
 	return false;

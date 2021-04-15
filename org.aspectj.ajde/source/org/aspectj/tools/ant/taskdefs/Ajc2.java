@@ -14,13 +14,11 @@ package org.aspectj.tools.ant.taskdefs;
 
 import org.apache.tools.ant.*;
 import org.apache.tools.ant.types.*;
-import org.apache.tools.ant.types.Path;
 import org.apache.tools.ant.taskdefs.*;
 import org.apache.tools.ant.util.JavaEnvUtils;
 
 import java.io.*;
 import java.util.List;
-import java.util.Iterator;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
 
@@ -31,7 +29,7 @@ import java.util.StringTokenizer;
  * This task was developed by the <a href="http://aspectj.org">AspectJ Project</a>
  *
  * @author <a href="mailto:palm@parc.xerox.com">Jeffrey Palm</a>
- * @see    org.aspectj.tools.ant.taskdefs.compilers.AjcCompiler
+ * @see    org.aspectj.tools.ant.taskdefs.compilers.Ajc
  */
 public class Ajc2 extends Javac {
 
@@ -177,9 +175,9 @@ public class Ajc2 extends Javac {
     }
 
     /**
-     * Returns if the <code>-preprocess</code> flag is turned on.
+     * Set the <code>-preprocess</code> flag.
      *
-     * @return <code>true</code> if the <code>-preprocess</code> flag is on.
+     * @param preprocess <code>true</code> turns on the <code>-preprocess</code> flag.
      * @see    Ajc2#preprocess
      */
     public void setPreprocess(boolean preprocess) {
@@ -290,7 +288,7 @@ public class Ajc2 extends Javac {
      * to <code>true</code>.
      *
      * @return new PatternSet.NameEntry to be added to the include list.
-     * @see    org.apache.tools.taskdefs.Javac#createInclude()
+     * @see    org.apache.tools.ant.taskdefs.Javac#createInclude()
      */
     public PatternSet.NameEntry createInclude() {
         haveIncludes = true;
@@ -302,7 +300,7 @@ public class Ajc2 extends Javac {
      * to <code>true</code>.
      *
      * @return new PatternSet.NameEntry to be added to the exclude list.
-     * @see    org.apache.tools.taskdefs.Javac#createExclude()
+     * @see    org.apache.tools.ant.taskdefs.Javac#createExclude()
      */    
     public PatternSet.NameEntry createExclude() {
         haveExcludes = true;
@@ -314,7 +312,7 @@ public class Ajc2 extends Javac {
      * to <code>true</code>.
      *
      * @param includes Comma-separated list of includes.
-     * @see   org.apache.tools.taskdefs.Javac#setIncludes(java.lang.String)
+     * @see   org.apache.tools.ant.taskdefs.Javac#setIncludes(java.lang.String)
      */
     public void setIncludes(String includes) {
         haveIncludes = true;
@@ -326,7 +324,7 @@ public class Ajc2 extends Javac {
      * to <code>true</code>.
      *
      * @param excludes Comma-separated list of excludes.
-     * @see   org.apache.tools.taskdefs.Javac#setExcludes(java.lang.String)
+     * @see   org.apache.tools.ant.taskdefs.Javac#setExcludes(java.lang.String)
      */    
     public void setExcludes(String excludes) {
         haveExcludes = true;
@@ -416,11 +414,10 @@ public class Ajc2 extends Javac {
         List newIncludes = new ArrayList();
         List newArguments = new ArrayList();
         if (argfiles != null) {
-            Iterator iter = argfiles.iterator();
-            while (iter.hasNext()) {
-                File argfile = ((Argfile)iter.next()).getFile();
-                expandArgfile(argfile, newIncludes, newArguments);
-            }
+			for (Object o : argfiles) {
+				File argfile = ((Argfile) o).getFile();
+				expandArgfile(argfile, newIncludes, newArguments);
+			}
         }
 
         // If there aren't any includes, but we've used an argfile then we should
@@ -434,21 +431,20 @@ public class Ajc2 extends Javac {
 
         // Otherwise we want to add all .java files to the compileList
         else {
-            for (int i = 0; i < files.length; i++) {
-                File newFile = new File(srcDir, files[i]);
-                if (newFile != null &&
-                    newFile.exists() &&
-                    newFile.getName().endsWith(".java")) {
-                    newFiles.add(newFile);
-                }
-            }
+			for (String file : files) {
+				File newFile = new File(srcDir, file);
+				if (newFile != null &&
+						newFile.exists() &&
+						newFile.getName().endsWith(".java")) {
+					newFiles.add(newFile);
+				}
+			}
         }
 
         // Add the new included files
-        Iterator iter = newIncludes.iterator();
-        while (iter.hasNext()) {
-            newFiles.add((File)iter.next());
-        }
+		for (Object newInclude : newIncludes) {
+			newFiles.add((File) newInclude);
+		}
 
         // This is the same behavior found in Javac
         int newFileSize = newFiles.size();
@@ -500,7 +496,7 @@ public class Ajc2 extends Javac {
                 }
 
                 // If there are stars we'll try to resolve the file here
-                else if (line.indexOf("*") != -1) {
+                else if (line.contains("*")) {
                     log("The argfile line '" + line + "' is invalid",
                         Project.MSG_WARN);
                 }

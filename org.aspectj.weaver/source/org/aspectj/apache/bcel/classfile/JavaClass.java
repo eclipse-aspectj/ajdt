@@ -62,6 +62,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -260,18 +261,18 @@ public class JavaClass extends Modifiers implements Cloneable, Node {
 		file.writeShort(superclassnameIdx);
 
 		file.writeShort(interfaces.length);
-		for (int i = 0; i < interfaces.length; i++) {
-			file.writeShort(interfaces[i]);
+		for (int anInterface : interfaces) {
+			file.writeShort(anInterface);
 		}
 
 		file.writeShort(fields.length);
-		for (int i = 0; i < fields.length; i++) {
-			fields[i].dump(file);
+		for (Field field : fields) {
+			field.dump(file);
 		}
 
 		file.writeShort(methods.length);
-		for (int i = 0; i < methods.length; i++) {
-			methods[i].dump(file);
+		for (Method method : methods) {
+			method.dump(file);
 		}
 
 		AttributeUtils.writeAttributes(attributes, file);
@@ -286,9 +287,8 @@ public class JavaClass extends Modifiers implements Cloneable, Node {
 	public AnnotationGen[] getAnnotations() {
 		if (annotationsOutOfDate) {
 			// Find attributes that contain annotation data
-			List<AnnotationGen> accumulatedAnnotations = new ArrayList<AnnotationGen>();
-			for (int i = 0; i < attributes.length; i++) {
-				Attribute attribute = attributes[i];
+			List<AnnotationGen> accumulatedAnnotations = new ArrayList<>();
+			for (Attribute attribute : attributes) {
 				if (attribute instanceof RuntimeAnnos) {
 					RuntimeAnnos runtimeAnnotations = (RuntimeAnnos) attribute;
 					accumulatedAnnotations.addAll(runtimeAnnotations.getAnnotations());
@@ -366,9 +366,7 @@ public class JavaClass extends Modifiers implements Cloneable, Node {
 	 * @return A org.aspectj.apache.bcel.classfile.Method corresponding to java.lang.reflect.Method if any
 	 */
 	public Method getMethod(java.lang.reflect.Method m) {
-		for (int i = 0; i < methods.length; i++) {
-			Method method = methods[i];
-
+		for (Method method : methods) {
 			if (m.getName().equals(method.getName()) && m.getModifiers() == method.getModifiers()
 					&& Type.getSignature(m).equals(method.getSignature())) {
 				return method;
@@ -379,8 +377,7 @@ public class JavaClass extends Modifiers implements Cloneable, Node {
 	}
 
 	public Method getMethod(java.lang.reflect.Constructor<?> c) {
-		for (int i = 0; i < methods.length; i++) {
-			Method method = methods[i];
+		for (Method method : methods) {
 			if (method.getName().equals("<init>") && c.getModifiers() == method.getModifiers()
 					&& Type.getSignature(c).equals(method.getSignature())) {
 				return method;
@@ -552,29 +549,29 @@ public class JavaClass extends Modifiers implements Cloneable, Node {
 
 		if (attributes.length > 0) {
 			buf.append("\nAttribute(s):\n");
-			for (int i = 0; i < attributes.length; i++) {
-				buf.append(indent(attributes[i]));
+			for (Attribute attribute : attributes) {
+				buf.append(indent(attribute));
 			}
 		}
 
 		if (annotations != null && annotations.length > 0) {
 			buf.append("\nAnnotation(s):\n");
-			for (int i = 0; i < annotations.length; i++) {
-				buf.append(indent(annotations[i]));
+			for (AnnotationGen annotation : annotations) {
+				buf.append(indent(annotation));
 			}
 		}
 
 		if (fields.length > 0) {
 			buf.append("\n" + fields.length + " fields:\n");
-			for (int i = 0; i < fields.length; i++) {
-				buf.append("\t" + fields[i] + '\n');
+			for (Field field : fields) {
+				buf.append("\t" + field + '\n');
 			}
 		}
 
 		if (methods.length > 0) {
 			buf.append("\n" + methods.length + " methods:\n");
-			for (int i = 0; i < methods.length; i++) {
-				buf.append("\t" + methods[i] + '\n');
+			for (Method method : methods) {
+				buf.append("\t" + method + '\n');
 			}
 		}
 
@@ -615,12 +612,12 @@ public class JavaClass extends Modifiers implements Cloneable, Node {
 			return;
 		}
 		// Attribute[] attrs = attributes.getAttributes();
-		for (int i = 0; i < attributes.length; i++) {
-			if (attributes[i] instanceof InnerClasses) {
-				InnerClass[] innerClasses = ((InnerClasses) attributes[i]).getInnerClasses();
-				for (int j = 0; j < innerClasses.length; j++) {
+		for (Attribute attribute : attributes) {
+			if (attribute instanceof InnerClasses) {
+				InnerClass[] innerClasses = ((InnerClasses) attribute).getInnerClasses();
+				for (InnerClass innerClass : innerClasses) {
 					boolean innerClassAttributeRefersToMe = false;
-					String inner_class_name = cpool.getConstantString(innerClasses[j].getInnerClassIndex(),
+					String inner_class_name = cpool.getConstantString(innerClass.getInnerClassIndex(),
 							Constants.CONSTANT_Class);
 					inner_class_name = Utility.compactClassName(inner_class_name);
 					if (inner_class_name.equals(getClassName())) {
@@ -628,7 +625,7 @@ public class JavaClass extends Modifiers implements Cloneable, Node {
 					}
 					if (innerClassAttributeRefersToMe) {
 						this.isNested = true;
-						if (innerClasses[j].getInnerNameIndex() == 0) {
+						if (innerClass.getInnerNameIndex() == 0) {
 							this.isAnonymous = true;
 						}
 					}
@@ -684,8 +681,8 @@ public class JavaClass extends Modifiers implements Cloneable, Node {
 
 		JavaClass[] super_classes = getSuperClasses();
 
-		for (int i = 0; i < super_classes.length; i++) {
-			if (super_classes[i].equals(super_class)) {
+		for (JavaClass superClass : super_classes) {
+			if (superClass.equals(super_class)) {
 				return true;
 			}
 		}
@@ -746,11 +743,11 @@ public class JavaClass extends Modifiers implements Cloneable, Node {
 	 */
 	public JavaClass[] getSuperClasses() {
 		JavaClass clazz = this;
-		List<JavaClass> vec = new ArrayList<JavaClass>();
+		List<JavaClass> vec = new ArrayList<>();
 		for (clazz = clazz.getSuperClass(); clazz != null; clazz = clazz.getSuperClass()) {
 			vec.add(clazz);
 		}
-		return vec.toArray(new JavaClass[vec.size()]);
+		return vec.toArray(new JavaClass[0]);
 	}
 
 	/**
@@ -776,8 +773,8 @@ public class JavaClass extends Modifiers implements Cloneable, Node {
 	 * Get all interfaces implemented by this JavaClass (transitively).
 	 */
 	public Collection<JavaClass> getAllInterfaces() {
-		Queue<JavaClass> queue = new LinkedList<JavaClass>();
-		List<JavaClass> interfaceList = new ArrayList<JavaClass>();
+		Queue<JavaClass> queue = new LinkedList<>();
+		List<JavaClass> interfaceList = new ArrayList<>();
 
 		queue.add(this);
 
@@ -795,9 +792,7 @@ public class JavaClass extends Modifiers implements Cloneable, Node {
 				}
 			}
 
-			for (int i = 0; i < interfaces.length; i++) {
-				queue.add(interfaces[i]);
-			}
+			Collections.addAll(queue, interfaces);
 		}
 
 		return interfaceList;

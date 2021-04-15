@@ -11,9 +11,9 @@
  * ******************************************************************/
 package org.aspectj.ajdt.internal.compiler.lookup;
 
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
-//import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ParameterizedMethodBinding;
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
+import org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
+//import org.eclipse.jdt.internal.compiler.lookup.ParameterizedMethodBinding;
+import org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
 
 /**
  * Many routines in the JDT compiler use methodBinding.declaringClass to get

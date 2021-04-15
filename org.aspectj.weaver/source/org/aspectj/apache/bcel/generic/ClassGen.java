@@ -61,7 +61,6 @@ import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -97,11 +96,11 @@ public class ClassGen extends Modifiers implements Cloneable {
 	private int major = Constants.MAJOR_1_1;
 	private int minor = Constants.MINOR_1_1;
 	private ConstantPool cpool;
-	private List<Field> fieldsList = new ArrayList<Field>();
-	private List<Method> methodsList = new ArrayList<Method>();
-	private List<Attribute> attributesList = new ArrayList<Attribute>();
-	private List<String> interfaceList = new ArrayList<String>();
-	private List<AnnotationGen> annotationsList = new ArrayList<AnnotationGen>();
+	private List<Field> fieldsList = new ArrayList<>();
+	private List<Method> methodsList = new ArrayList<>();
+	private List<Attribute> attributesList = new ArrayList<>();
+	private List<String> interfaceList = new ArrayList<>();
+	private List<AnnotationGen> annotationsList = new ArrayList<>();
 
 	public ClassGen(String classname, String superclassname, String filename, int modifiers, String[] interfacenames,
 			ConstantPool cpool) {
@@ -141,8 +140,8 @@ public class ClassGen extends Modifiers implements Cloneable {
 		Field[] fields = clazz.getFields();
 		String[] interfaces = clazz.getInterfaceNames();
 
-		for (int i = 0; i < interfaces.length; i++) {
-			addInterface(interfaces[i]);
+		for (String anInterface : interfaces) {
+			addInterface(anInterface);
 		}
 
 		// OPTIMIZE Could make unpacking lazy, done on first reference
@@ -165,12 +164,12 @@ public class ClassGen extends Modifiers implements Cloneable {
 			}
 		}
 
-		for (int i = 0; i < methods.length; i++) {
-			addMethod(methods[i]);
+		for (Method method : methods) {
+			addMethod(method);
 		}
 
-		for (int i = 0; i < fields.length; i++) {
-			addField(fields[i]);
+		for (Field field : fields) {
+			addField(field);
 		}
 	}
 
@@ -187,7 +186,7 @@ public class ClassGen extends Modifiers implements Cloneable {
 			attributes = attributesList;
 		} else {
 			// TODO: Sometime later, trash any attributes called 'RuntimeVisibleAnnotations' or 'RuntimeInvisibleAnnotations'
-			attributes = new ArrayList<Attribute>();
+			attributes = new ArrayList<>();
 			attributes.addAll(Utility.getAnnotationAttributes(cpool, annotationsList));
 			attributes.addAll(attributesList);
 		}
@@ -196,7 +195,7 @@ public class ClassGen extends Modifiers implements Cloneable {
 		ConstantPool cp = this.cpool.getFinalConstantPool();
 
 		return new JavaClass(classnameIndex, superclassnameIndex, filename, major, minor, modifiers, cp, interfaces, fields,
-				methods, attributes.toArray(new Attribute[attributes.size()]));// OPTIMIZE avoid toArray()?
+				methods, attributes.toArray(new Attribute[0]));// OPTIMIZE avoid toArray()?
 	}
 
 	public void addInterface(String name) {
@@ -367,14 +366,12 @@ public class ClassGen extends Modifiers implements Cloneable {
 
 	public void setMethods(Method[] methods) {
 		methodsList.clear();
-		for (int m = 0; m < methods.length; m++)
-			addMethod(methods[m]);
+		for (Method method : methods) addMethod(method);
 	}
 
 	public void setFields(Field[] fs) {
 		fieldsList.clear();
-		for (int m = 0; m < fs.length; m++)
-			addField(fs[m]);
+		for (Field f : fs) addField(f);
 	}
 
 	public void setMethodAt(Method method, int pos) {
@@ -498,21 +495,20 @@ public class ClassGen extends Modifiers implements Cloneable {
 			String[] names = getInterfaceNames();
 			if (names != null) {
 				Arrays.sort(names);
-				for (int i = 0; i < names.length; i++)
-					dos.writeUTF(names[i]);
+				for (String name : names) dos.writeUTF(name);
 			}
 
 			// 4. ordered list of fields (ignoring private static and private transient fields):
 			// (relevant modifiers are ACC_PUBLIC, ACC_PRIVATE,
 			// ACC_PROTECTED, ACC_STATIC, ACC_FINAL, ACC_VOLATILE,
 			// ACC_TRANSIENT)
-			List<Field> relevantFields = new ArrayList<Field>();
+			List<Field> relevantFields = new ArrayList<>();
 			for (Field field : fieldsList) {
 				if (!(field.isPrivate() && field.isStatic()) && !(field.isPrivate() && field.isTransient())) {
 					relevantFields.add(field);
 				}
 			}
-			Collections.sort(relevantFields, new FieldComparator());
+			relevantFields.sort(new FieldComparator());
 			int relevantFlags = Constants.ACC_PUBLIC | Constants.ACC_PRIVATE | Constants.ACC_PROTECTED | Constants.ACC_STATIC
 					| Constants.ACC_FINAL | Constants.ACC_VOLATILE | Constants.ACC_TRANSIENT;
 			for (Field f : relevantFields) {
@@ -522,8 +518,8 @@ public class ClassGen extends Modifiers implements Cloneable {
 			}
 
 			// some up front method processing: discover clinit, init and ordinary methods of interest:
-			List<Method> relevantMethods = new ArrayList<Method>();
-			List<Method> relevantCtors = new ArrayList<Method>();
+			List<Method> relevantMethods = new ArrayList<>();
+			List<Method> relevantCtors = new ArrayList<>();
 			boolean hasClinit = false;
 			for (Method m : methodsList) {
 				boolean couldBeInitializer = m.getName().charAt(0) == '<';
@@ -537,8 +533,8 @@ public class ClassGen extends Modifiers implements Cloneable {
 						relevantMethods.add(m);
 				}
 			}
-			Collections.sort(relevantCtors, new ConstructorComparator());
-			Collections.sort(relevantMethods, new MethodComparator());
+			relevantCtors.sort(new ConstructorComparator());
+			relevantMethods.sort(new MethodComparator());
 
 			// 5. If a class initializer exists, write out the following:
 			// 1. The name of the method, <clinit>.

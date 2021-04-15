@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2019 IBM Corporation and others.
+ * Copyright (c) 2000, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -62,6 +62,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.impl.Constant;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Binding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.FieldBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.RecordComponentBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeIds;
@@ -1357,6 +1358,18 @@ public class Util {
 	public static JavaElement getUnresolvedJavaElement(FieldBinding binding, WorkingCopyOwner workingCopyOwner, BindingsToNodesMap bindingsToNodes) {
 		if (binding.declaringClass == null) return null; // array length
 		JavaElement unresolvedJavaElement = getUnresolvedJavaElement(binding.declaringClass, workingCopyOwner, bindingsToNodes);
+		if (unresolvedJavaElement == null || unresolvedJavaElement.getElementType() != IJavaElement.TYPE) {
+			return null;
+		}
+		return (JavaElement) ((IType) unresolvedJavaElement).getField(String.valueOf(binding.name));
+	}
+
+	/**
+	 * Return the java element corresponding to the given compiler binding.
+	 */
+	public static JavaElement getUnresolvedJavaElement(RecordComponentBinding binding, WorkingCopyOwner workingCopyOwner, BindingsToNodesMap bindingsToNodes) {
+		if (binding.declaringRecord == null) return null; // array length
+		JavaElement unresolvedJavaElement = getUnresolvedJavaElement(binding.declaringRecord, workingCopyOwner, bindingsToNodes);
 		if (unresolvedJavaElement == null || unresolvedJavaElement.getElementType() != IJavaElement.TYPE) {
 			return null;
 		}
@@ -2908,10 +2921,10 @@ public class Util {
 				return Character.valueOf(constant.charValue());
 			case TypeIds.T_float :
 				memberValuePair.valueKind = IMemberValuePair.K_FLOAT;
-				return new Float(constant.floatValue());
+				return Float.valueOf(constant.floatValue());
 			case TypeIds.T_double :
 				memberValuePair.valueKind = IMemberValuePair.K_DOUBLE;
-				return new Double(constant.doubleValue());
+				return Double.valueOf(constant.doubleValue());
 			case TypeIds.T_boolean :
 				memberValuePair.valueKind = IMemberValuePair.K_BOOLEAN;
 				return Boolean.valueOf(constant.booleanValue());
@@ -2942,10 +2955,10 @@ public class Util {
 				return Integer.valueOf(constant.intValue() * -1);
 			case TypeIds.T_float :
 				memberValuePair.valueKind = IMemberValuePair.K_FLOAT;
-				return new Float(constant.floatValue() * -1.0f);
+				return Float.valueOf(constant.floatValue() * -1.0f);
 			case TypeIds.T_double :
 				memberValuePair.valueKind = IMemberValuePair.K_DOUBLE;
-				return new Double(constant.doubleValue() * -1.0);
+				return Double.valueOf(constant.doubleValue() * -1.0);
 			case TypeIds.T_long :
 				memberValuePair.valueKind = IMemberValuePair.K_LONG;
 				return Long.valueOf(constant.longValue() * -1L);

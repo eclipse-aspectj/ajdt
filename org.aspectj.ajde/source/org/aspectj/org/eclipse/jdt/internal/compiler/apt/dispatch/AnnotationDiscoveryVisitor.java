@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2006, 2017 IBM Corporation and others.
+ * Copyright (c) 2006, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -7,7 +7,7 @@
  * https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -27,6 +27,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ConstructorDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ModuleDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.RecordComponent;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeParameter;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.ReferenceContext;
@@ -40,12 +41,13 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.FieldBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ModuleBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.RecordComponentBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeVariableBinding;
 
 /**
- * This class is used to visit the JDT compiler internal AST to discover annotations, 
+ * This class is used to visit the JDT compiler internal AST to discover annotations,
  * in the course of dispatching to annotation processors.
  */
 public class AnnotationDiscoveryVisitor extends ASTVisitor {
@@ -100,7 +102,7 @@ public class AnnotationDiscoveryVisitor extends ASTVisitor {
 					annotations,
 					constructorBinding);
 		}
-		
+
 		TypeParameter[] typeParameters = constructorDeclaration.typeParameters;
 		if (typeParameters != null) {
 			int typeParametersLength = typeParameters.length;
@@ -108,7 +110,7 @@ public class AnnotationDiscoveryVisitor extends ASTVisitor {
 				typeParameters[i].traverse(this, constructorDeclaration.scope);
 			}
 		}
-		
+
 		Argument[] arguments = constructorDeclaration.arguments;
 		if (arguments != null) {
 			int argumentLength = arguments.length;
@@ -137,6 +139,22 @@ public class AnnotationDiscoveryVisitor extends ASTVisitor {
 	}
 
 	@Override
+	public boolean visit(RecordComponent recordComponent, BlockScope scope) {
+		Annotation[] annotations = recordComponent.annotations;
+		if (annotations != null) {
+			RecordComponentBinding recordComponentBinding = recordComponent.binding;
+			if (recordComponentBinding == null) {
+				return false;
+			}
+			((SourceTypeBinding) recordComponentBinding.declaringRecord).resolveTypeFor(recordComponentBinding);
+			if (recordComponent.binding == null) {
+				return false;
+			}
+			this.resolveAnnotations(scope, annotations, recordComponentBinding);
+		}
+		return false;
+	}
+	@Override
 	public boolean visit(TypeParameter typeParameter, ClassScope scope) {
 		Annotation[] annotations = typeParameter.annotations;
 		if (annotations != null) {
@@ -148,7 +166,7 @@ public class AnnotationDiscoveryVisitor extends ASTVisitor {
 		}
 		return false;
 	}
-	
+
 	@Override
 	public boolean visit(TypeParameter typeParameter, BlockScope scope) {
 		Annotation[] annotations = typeParameter.annotations;
@@ -157,7 +175,7 @@ public class AnnotationDiscoveryVisitor extends ASTVisitor {
 			if (binding == null) {
 				return false;
 			}
-			// when we get here, it is guaranteed that class type parameters are connected, but method type parameters may not be.			
+			// when we get here, it is guaranteed that class type parameters are connected, but method type parameters may not be.
 			MethodBinding methodBinding = (MethodBinding) binding.declaringElement;
 			((SourceTypeBinding) methodBinding.declaringClass).resolveTypesFor(methodBinding);
 			this.resolveAnnotations(scope, annotations, binding);
@@ -179,7 +197,7 @@ public class AnnotationDiscoveryVisitor extends ASTVisitor {
 					annotations,
 					methodBinding);
 		}
-		
+
 		TypeParameter[] typeParameters = methodDeclaration.typeParameters;
 		if (typeParameters != null) {
 			int typeParametersLength = typeParameters.length;
@@ -187,7 +205,7 @@ public class AnnotationDiscoveryVisitor extends ASTVisitor {
 				typeParameters[i].traverse(this, methodDeclaration.scope);
 			}
 		}
-		
+
 		Argument[] arguments = methodDeclaration.arguments;
 		if (arguments != null) {
 			int argumentLength = arguments.length;
@@ -235,17 +253,24 @@ public class AnnotationDiscoveryVisitor extends ASTVisitor {
 		if (binding == null) {
 			return false;
 		}
-		module.resolveTypeDirectives(scope);
-		// The above call also resolvesAnnotations
+		//module.resolveTypeDirectives(scope);
+		// The above call also resolvesAnnotations <=== actually this doesn't populate _annoToElement which is what we need
+
+		Annotation[] annotations = module.annotations;
+		if (annotations != null) {
+			this.resolveAnnotations(module.scope, 
+					annotations, 
+					binding);
+		}
 		return true;
 	}
 
 	private void resolveAnnotations(BlockScope scope, Annotation[] annotations, Binding currentBinding) {
-		
+
 		int length = annotations == null ? 0 : annotations.length;
 		if (length == 0)
 			return;
-		
+
 		boolean old = scope.insideTypeAnnotation;
 		scope.insideTypeAnnotation = true;
 		currentBinding.getAnnotationTagBits();

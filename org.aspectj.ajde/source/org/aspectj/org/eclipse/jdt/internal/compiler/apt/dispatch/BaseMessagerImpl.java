@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2015 BEA Systems, Inc. and others 
+ * Copyright (c) 2007, 2020 BEA Systems, Inc. and others
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -10,7 +10,7 @@
  *
  * Contributors:
  *    wharley@bea.com - derived base class from BatchMessagerImpl
- *    
+ *
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.apt.dispatch;
 
@@ -23,11 +23,13 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.CompilationResult;
 import org.aspectj.org.eclipse.jdt.internal.compiler.apt.model.AnnotationMemberValue;
 import org.aspectj.org.eclipse.jdt.internal.compiler.apt.model.AnnotationMirrorImpl;
 import org.aspectj.org.eclipse.jdt.internal.compiler.apt.model.ExecutableElementImpl;
+import org.aspectj.org.eclipse.jdt.internal.compiler.apt.model.ModuleElementImpl;
 import org.aspectj.org.eclipse.jdt.internal.compiler.apt.model.TypeElementImpl;
 import org.aspectj.org.eclipse.jdt.internal.compiler.apt.model.VariableElementImpl;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ArrayInitializer;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.LocalDeclaration;
@@ -40,6 +42,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Binding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.FieldBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.SourceModuleBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemSeverities;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
@@ -50,13 +53,13 @@ public class BaseMessagerImpl {
 
 	/**
 	 * Create a CategorizedProblem that can be reported to an ICompilerRequestor, etc.
-	 * 
+	 *
 	 * @param e the element against which to report the message.  If the element is not
 	 * in the set of elements being compiled in the current round, the reference context
 	 * and filename will be set to null.
 	 * @return
 	 */
-	public static AptProblem createProblem(Kind kind, CharSequence msg, Element e, 
+	public static AptProblem createProblem(Kind kind, CharSequence msg, Element e,
 			AnnotationMirror a, AnnotationValue v) {
 		ReferenceContext referenceContext = null;
 		Annotation[] elementAnnotations = null;
@@ -64,6 +67,18 @@ public class BaseMessagerImpl {
 		int endPosition = 0;
 		if (e != null) {
 			switch(e.getKind()) {
+				case MODULE:
+					ModuleElementImpl moduleElementImpl = (ModuleElementImpl) e;
+					Binding moduleBinding = moduleElementImpl._binding;
+					if (moduleBinding instanceof SourceModuleBinding) {
+						SourceModuleBinding sourceModuleBinding = (SourceModuleBinding) moduleBinding;
+						CompilationUnitDeclaration unitDeclaration = (CompilationUnitDeclaration) sourceModuleBinding.scope.referenceContext();
+						referenceContext = unitDeclaration;
+						elementAnnotations = unitDeclaration.moduleDeclaration.annotations;
+						startPosition = unitDeclaration.moduleDeclaration.sourceStart;
+						endPosition = unitDeclaration.moduleDeclaration.sourceEnd;
+					}
+					break;
 				case ANNOTATION_TYPE :
 				case INTERFACE :
 				case CLASS :

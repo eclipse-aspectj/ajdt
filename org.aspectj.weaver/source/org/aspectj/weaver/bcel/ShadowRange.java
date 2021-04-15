@@ -12,8 +12,6 @@
 
 package org.aspectj.weaver.bcel;
 
-import java.util.Iterator;
-
 import org.aspectj.apache.bcel.generic.Instruction;
 import org.aspectj.apache.bcel.generic.InstructionBranch;
 import org.aspectj.apache.bcel.generic.InstructionFactory;
@@ -190,9 +188,7 @@ final class ShadowRange extends Range {
 		// now go through again and update variable slots that have been altered as a result
 		// of remapping...
 		for (InstructionHandle newIh = freshBody.getStart(); newIh != freshBody.getEnd(); newIh = newIh.getNext()) {
-			Iterator<InstructionTargeter> tIter = newIh.getTargeters().iterator();
-			while (tIter.hasNext()) {
-				InstructionTargeter source = tIter.next();
+			for (InstructionTargeter source : newIh.getTargeters()) {
 				if (source instanceof LocalVariableTag) {
 					LocalVariableTag lvt = (LocalVariableTag) source;
 					if (!lvt.isRemapped() && remap.hasKey(lvt.getSlot())) {

@@ -17,7 +17,6 @@ import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -35,7 +34,7 @@ import org.aspectj.weaver.tools.cache.SimpleCacheFactory;
  * Adapter between the generic class pre processor interface and the AspectJ weaver Load time weaving consistency relies on
  * Bcel.setRepository
  * 
- * @author <a href="mailto:alex AT gnilux DOT com">Alexandre Vasseur</a>
+ * @author Alexandre Vasseur (alex AT gnilux DOT com)
  */
 public class Aj implements ClassPreProcessor {
 
@@ -44,7 +43,7 @@ public class Aj implements ClassPreProcessor {
 
 	/**
 	 * References are added to this queue when their associated classloader is removed, and once on here that indicates that we
-	 * should tidy up the adaptor map and remove the adaptor (weaver) from the map we are maintaining from adaptorkey > adaptor
+	 * should tidy up the adaptor map and remove the adaptor (weaver) from the map we are maintaining from adaptorkey &gt; adaptor
 	 * (weaver)
 	 */
 	private static ReferenceQueue adaptorQueue = new ReferenceQueue();
@@ -199,8 +198,7 @@ public class Aj implements ClassPreProcessor {
 				System.err.println("Weaver adaptors before queue processing:");
 				Map<AdaptorKey,ExplicitlyInitializedClassLoaderWeavingAdaptor> m = WeaverContainer.weavingAdaptors;
 				Set<AdaptorKey> keys = m.keySet();
-				for (Iterator<AdaptorKey> iterator = keys.iterator(); iterator.hasNext();) {
-					Object object = iterator.next();
+				for (Object object : keys) {
 					System.err.println(object + " = " + WeaverContainer.weavingAdaptors.get(object));
 				}
 			}
@@ -223,8 +221,7 @@ public class Aj implements ClassPreProcessor {
 				System.err.println("Weaver adaptors after queue processing:");
 				Map<AdaptorKey,ExplicitlyInitializedClassLoaderWeavingAdaptor> m = WeaverContainer.weavingAdaptors;
 				Set<AdaptorKey> keys = m.keySet();
-				for (Iterator<AdaptorKey> iterator = keys.iterator(); iterator.hasNext();) {
-					Object object = iterator.next();
+				for (Object object : keys) {
 					System.err.println(object + " = " + WeaverContainer.weavingAdaptors.get(object));
 				}
 			}
@@ -267,7 +264,7 @@ public class Aj implements ClassPreProcessor {
 			if (loadersToSkipProperty != null && loadersToSkip == null) {
 				if (st.hasMoreTokens()) {
 //					System.out.println("aj.weaving.loadersToSkip is set. Skipping loaders: '"+loadersToSkipProperty+"'");
-					loadersToSkip = new ArrayList<String>();
+					loadersToSkip = new ArrayList<>();
 				}
 				while (st.hasMoreTokens()) {
 					String nextLoader = st.nextToken();
@@ -285,7 +282,7 @@ public class Aj implements ClassPreProcessor {
 	static class WeaverContainer {
 
 		final static Map<AdaptorKey,ExplicitlyInitializedClassLoaderWeavingAdaptor> weavingAdaptors = 
-				Collections.synchronizedMap(new HashMap<AdaptorKey,ExplicitlyInitializedClassLoaderWeavingAdaptor>());
+				Collections.synchronizedMap(new HashMap<>());
 
 		static WeavingAdaptor getWeaver(ClassLoader loader, IWeavingContext weavingContext) {
 			ExplicitlyInitializedClassLoaderWeavingAdaptor adaptor = null;

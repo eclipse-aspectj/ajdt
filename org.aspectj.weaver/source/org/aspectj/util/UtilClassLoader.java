@@ -22,7 +22,6 @@ import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -40,7 +39,7 @@ public class UtilClassLoader extends URLClassLoader {
         super(urls);
         LangUtil.throwIaxIfNotAssignable(dirs, File.class, "dirs");
         this.urlsForDebugString = urls;
-        ArrayList<File> dcopy = new ArrayList<File>();
+        List<File> dcopy = new ArrayList<>();
         
         if (!LangUtil.isEmpty(dirs)) {
             dcopy.addAll(Arrays.asList(dirs));
@@ -102,12 +101,12 @@ public class UtilClassLoader extends URLClassLoader {
     /** @return null if class not found or byte[] of class otherwise */
     private byte[] readClass(String className) throws ClassNotFoundException {
         final String fileName = className.replace('.', '/')+".class";
-        for (Iterator<File> iter = dirs.iterator(); iter.hasNext();) {
-            File file = new File(iter.next(), fileName);
-            if (file.canRead()) { 
-                return getClassData(file);
-            }
-        }
+		for (File dir : dirs) {
+			File file = new File(dir, fileName);
+			if (file.canRead()) {
+				return getClassData(file);
+			}
+		}
         return null; 
     }
         

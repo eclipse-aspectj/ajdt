@@ -35,8 +35,8 @@ public class DefaultProblem extends CategorizedProblem {
 	// End AspectJ Extension
 
 	// cannot directly point to IJavaModelMarker constants from within batch compiler
-	private static final String MARKER_TYPE_PROBLEM = "org.aspectj.org.eclipse.jdt.core.problem"; //$NON-NLS-1$
-	private static final String MARKER_TYPE_TASK = "org.aspectj.org.eclipse.jdt.core.task"; //$NON-NLS-1$
+	private static final String MARKER_TYPE_PROBLEM = "org.eclipse.jdt.core.problem"; //$NON-NLS-1$
+	private static final String MARKER_TYPE_TASK = "org.eclipse.jdt.core.task"; //$NON-NLS-1$
 
 	public static final Object[] EMPTY_VALUES = {};
 

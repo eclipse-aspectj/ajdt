@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -138,7 +137,7 @@ public class AjBuildManager implements IOutputClassFileNameProvider, IBinarySour
 	private boolean batchCompile = true;
 	private INameEnvironment environment;
 
-	private Map<String, List<UnwovenClassFile>> /* String -> List<UCF> */binarySourcesForTheNextCompile = new HashMap<String, List<UnwovenClassFile>>();
+	private Map<String, List<UnwovenClassFile>> /* String -> List<UCF> */binarySourcesForTheNextCompile = new HashMap<>();
 
 	// FIXME asc should this really be in here?
 	// private AsmManager structureModel;
@@ -453,35 +452,31 @@ public class AjBuildManager implements IOutputClassFileNameProvider, IBinarySour
 
 	private void copyResourcesToDestination() throws IOException {
 		// resources that we need to copy are contained in the injars and inpath only
-		for (Iterator i = buildConfig.getInJars().iterator(); i.hasNext();) {
-			File inJar = (File) i.next();
-			copyResourcesFromJarFile(inJar);
-		}
+        for (File inJar : buildConfig.getInJars()) {
+            copyResourcesFromJarFile(inJar);
+        }
 
-		for (Iterator i = buildConfig.getInpath().iterator(); i.hasNext();) {
-			File inPathElement = (File) i.next();
-			if (inPathElement.isDirectory()) {
-				copyResourcesFromDirectory(inPathElement);
-			} else {
-				copyResourcesFromJarFile(inPathElement);
-			}
-		}
+        for (File inPathElement : buildConfig.getInpath()) {
+            if (inPathElement.isDirectory()) {
+                copyResourcesFromDirectory(inPathElement);
+            }
+            else {
+                copyResourcesFromJarFile(inPathElement);
+            }
+        }
 
 		if (buildConfig.getSourcePathResources() != null) {
-			for (Iterator i = buildConfig.getSourcePathResources().keySet().iterator(); i.hasNext();) {
-				String resource = (String) i.next();
-				File from = buildConfig.getSourcePathResources().get(resource);
-				copyResourcesFromFile(from, resource, from);
-			}
+            for (String resource : buildConfig.getSourcePathResources().keySet()) {
+                File from = buildConfig.getSourcePathResources().get(resource);
+                copyResourcesFromFile(from, resource, from);
+            }
 		}
 
 		writeManifest();
 	}
 
 	private void copyResourcesFromJarFile(File jarFile) throws IOException {
-		JarInputStream inStream = null;
-		try {
-			inStream = new JarInputStream(new FileInputStream(jarFile));
+		try (JarInputStream inStream = new JarInputStream(new FileInputStream(jarFile))) {
 			while (true) {
 				ZipEntry entry = inStream.getNextEntry();
 				if (entry == null) {
@@ -498,10 +493,6 @@ public class AjBuildManager implements IOutputClassFileNameProvider, IBinarySour
 				}
 
 				inStream.closeEntry();
-			}
-		} finally {
-			if (inStream != null) {
-				inStream.close();
 			}
 		}
 	}
@@ -520,12 +511,12 @@ public class AjBuildManager implements IOutputClassFileNameProvider, IBinarySour
 		});
 
 		// For each file, add it either as a real .class file or as a resource
-		for (int i = 0; i < files.length; i++) {
-			// ASSERT: files[i].getAbsolutePath().startsWith(inFile.getAbsolutePath()
-			// or we are in trouble...
-			String filename = files[i].getAbsolutePath().substring(dir.getAbsolutePath().length() + 1);
-			copyResourcesFromFile(files[i], filename, dir);
-		}
+        for (File file : files) {
+            // ASSERT: files[i].getAbsolutePath().startsWith(inFile.getAbsolutePath()
+            // or we are in trouble...
+            String filename = file.getAbsolutePath().substring(dir.getAbsolutePath().length() + 1);
+            copyResourcesFromFile(file, filename, dir);
+        }
 	}
 
 	private void copyResourcesFromFile(File f, String filename, File src) throws IOException {
@@ -642,9 +633,9 @@ public class AjBuildManager implements IOutputClassFileNameProvider, IBinarySour
 	}
 
 	private boolean acceptResource(String resourceName, boolean fromFile) {
-		if ((resourceName.startsWith("CVS/")) || (resourceName.indexOf("/CVS/") != -1) || (resourceName.endsWith("/CVS"))
+		if ((resourceName.startsWith("CVS/")) || (resourceName.contains("/CVS/")) || (resourceName.endsWith("/CVS"))
 				|| (resourceName.endsWith(".class")) || (resourceName.startsWith(".svn/"))
-				|| (resourceName.indexOf("/.svn/") != -1) || (resourceName.endsWith("/.svn")) ||
+				|| (resourceName.contains("/.svn/")) || (resourceName.endsWith("/.svn")) ||
 				// Do not copy manifests if either they are coming from a jar or we are writing to a jar
 				(resourceName.toUpperCase().equals(MANIFEST_NAME) && (!fromFile || zos != null))) {
 			return false;
@@ -663,28 +654,28 @@ public class AjBuildManager implements IOutputClassFileNameProvider, IBinarySour
 
 		Map<File, List<String>> outputDirsAndAspects = findOutputDirsForAspects();
 		Set<Map.Entry<File, List<String>>> outputDirs = outputDirsAndAspects.entrySet();
-		for (Iterator<Map.Entry<File, List<String>>> iterator = outputDirs.iterator(); iterator.hasNext();) {
-			Map.Entry<File, List<String>> entry = iterator.next();
-			File outputDir = entry.getKey();
-			List<String> aspects = entry.getValue();
-			ByteArrayOutputStream baos = getOutxmlContents(aspects);
-			if (zos != null) {
-				ZipEntry newEntry = new ZipEntry(filename);
+        for (Map.Entry<File, List<String>> entry : outputDirs) {
+            File outputDir = entry.getKey();
+            List<String> aspects = entry.getValue();
+            ByteArrayOutputStream baos = getOutxmlContents(aspects);
+            if (zos != null) {
+                ZipEntry newEntry = new ZipEntry(filename);
 
-				zos.putNextEntry(newEntry);
-				zos.write(baos.toByteArray());
-				zos.closeEntry();
-			} else {
-				File outputFile = new File(outputDir, filename);
-				OutputStream fos = FileUtil.makeOutputStream(outputFile);
-				fos.write(baos.toByteArray());
-				fos.close();
-				if (buildConfig.getCompilationResultDestinationManager() != null) {
-					buildConfig.getCompilationResultDestinationManager().reportFileWrite(outputFile.getPath(),
-							CompilationResultDestinationManager.FILETYPE_RESOURCE);
-				}
-			}
-		}
+                zos.putNextEntry(newEntry);
+                zos.write(baos.toByteArray());
+                zos.closeEntry();
+            }
+            else {
+                File outputFile = new File(outputDir, filename);
+                OutputStream fos = FileUtil.makeOutputStream(outputFile);
+                fos.write(baos.toByteArray());
+                fos.close();
+                if (buildConfig.getCompilationResultDestinationManager() != null) {
+                    buildConfig.getCompilationResultDestinationManager().reportFileWrite(outputFile.getPath(),
+                            CompilationResultDestinationManager.FILETYPE_RESOURCE);
+                }
+            }
+        }
 	}
 
 	private ByteArrayOutputStream getOutxmlContents(List aspectNames) {
@@ -693,10 +684,10 @@ public class AjBuildManager implements IOutputClassFileNameProvider, IBinarySour
 		ps.println("<aspectj>");
 		ps.println("<aspects>");
 		if (aspectNames != null) {
-			for (Iterator i = aspectNames.iterator(); i.hasNext();) {
-				String name = (String) i.next();
-				ps.println("<aspect name=\"" + name + "\"/>");
-			}
+            for (Object aspectName : aspectNames) {
+                String name = (String) aspectName;
+                ps.println("<aspect name=\"" + name + "\"/>");
+            }
 		}
 		ps.println("</aspects>");
 		ps.println("</aspectj>");
@@ -710,7 +701,7 @@ public class AjBuildManager implements IOutputClassFileNameProvider, IBinarySour
 	 * aspects which are sent to that ouptut directory
 	 */
 	private Map<File, List<String>> findOutputDirsForAspects() {
-		Map<File, List<String>> outputDirsToAspects = new HashMap<File, List<String>>();
+		Map<File, List<String>> outputDirsToAspects = new HashMap<>();
 		Map<String, char[]> aspectNamesToFileNames = state.getAspectNamesToFileNameMap();
 		if (buildConfig.getCompilationResultDestinationManager() == null
 				|| buildConfig.getCompilationResultDestinationManager().getAllOutputLocations().size() == 1) {
@@ -719,7 +710,7 @@ public class AjBuildManager implements IOutputClassFileNameProvider, IBinarySour
 			if (buildConfig.getCompilationResultDestinationManager() != null) {
 				outputDir = buildConfig.getCompilationResultDestinationManager().getDefaultOutputLocation();
 			}
-			List<String> aspectNames = new ArrayList<String>();
+			List<String> aspectNames = new ArrayList<>();
 			if (aspectNamesToFileNames != null) {
 				Set<String> keys = aspectNamesToFileNames.keySet();
 				for (String name : keys) {
@@ -729,23 +720,22 @@ public class AjBuildManager implements IOutputClassFileNameProvider, IBinarySour
 			outputDirsToAspects.put(outputDir, aspectNames);
 		} else {
 			List outputDirs = buildConfig.getCompilationResultDestinationManager().getAllOutputLocations();
-			for (Iterator iterator = outputDirs.iterator(); iterator.hasNext();) {
-				File outputDir = (File) iterator.next();
-				outputDirsToAspects.put(outputDir, new ArrayList<String>());
-			}
+            for (Object dir : outputDirs) {
+                File outputDir = (File) dir;
+                outputDirsToAspects.put(outputDir, new ArrayList<>());
+            }
 			if (aspectNamesToFileNames != null) {
 				Set<Map.Entry<String, char[]>> entrySet = aspectNamesToFileNames.entrySet();
-				for (Iterator<Map.Entry<String, char[]>> iterator = entrySet.iterator(); iterator.hasNext();) {
-					Map.Entry<String, char[]> entry = iterator.next();
-					String aspectName = entry.getKey();
-					char[] fileName = entry.getValue();
-					File outputDir = buildConfig.getCompilationResultDestinationManager().getOutputLocationForClass(
-							new File(new String(fileName)));
-					if (!outputDirsToAspects.containsKey(outputDir)) {
-						outputDirsToAspects.put(outputDir, new ArrayList<String>());
-					}
-					((List) outputDirsToAspects.get(outputDir)).add(aspectName);
-				}
+                for (Map.Entry<String, char[]> entry : entrySet) {
+                    String aspectName = entry.getKey();
+                    char[] fileName = entry.getValue();
+                    File outputDir = buildConfig.getCompilationResultDestinationManager().getOutputLocationForClass(
+                            new File(new String(fileName)));
+                    if (!outputDirsToAspects.containsKey(outputDir)) {
+                        outputDirsToAspects.put(outputDir, new ArrayList<>());
+                    }
+                    ((List) outputDirsToAspects.get(outputDir)).add(aspectName);
+                }
 			}
 		}
 		return outputDirsToAspects;
@@ -799,7 +789,7 @@ public class AjBuildManager implements IOutputClassFileNameProvider, IBinarySour
 		}
 		model.setRoot(new ProgramElement(structureModel, rootLabel, kind, new ArrayList()));
 
-		model.setFileMap(new HashMap<String, IProgramElement>());
+		model.setFileMap(new HashMap<>());
 		// setStructureModel(model);
 		state.setStructureModel(structureModel);
 		// state.setRelationshipMap(AsmManager.getDefault().getRelationshipMap());
@@ -904,12 +894,12 @@ public class AjBuildManager implements IOutputClassFileNameProvider, IBinarySour
 				// (they are like 'source' files then), and enables a cleaner incremental treatment of
 				// class file changes in indirs.
 				File[] binSrcs = FileUtil.listFiles(inPathElement, binarySourceFilter);
-				for (int j = 0; j < binSrcs.length; j++) {
-					UnwovenClassFile ucf = bcelWeaver.addClassFile(binSrcs[j], inPathElement, outputDir);
-					List<UnwovenClassFile> ucfl = new ArrayList<UnwovenClassFile>();
-					ucfl.add(ucf);
-					state.recordBinarySource(binSrcs[j].getPath(), ucfl);
-				}
+                for (File binSrc : binSrcs) {
+                    UnwovenClassFile ucf = bcelWeaver.addClassFile(binSrc, inPathElement, outputDir);
+                    List<UnwovenClassFile> ucfl = new ArrayList<>();
+                    ucfl.add(ucf);
+                    state.recordBinarySource(binSrc.getPath(), ucfl);
+                }
 			}
 		}
 
@@ -1034,10 +1024,9 @@ public class AjBuildManager implements IOutputClassFileNameProvider, IBinarySour
 		// Translate from strings to File objects
 		String[] filenames = new String[files.size()];
 		int idx = 0;
-		for (Iterator<File> fIterator = files.iterator(); fIterator.hasNext();) {
-			File f = fIterator.next();
-			filenames[idx++] = f.getPath();
-		}
+        for (File f : files) {
+            filenames[idx++] = f.getPath();
+        }
 
 		environment = state.getNameEnvironment();
 
@@ -1154,48 +1143,48 @@ public class AjBuildManager implements IOutputClassFileNameProvider, IBinarySour
 				if (!hasErrors || proceedOnError()) {
 					Collection<ClassFile> classFiles = unitResult.compiledTypes.values();
 					boolean shouldAddAspectName = (buildConfig.getOutxmlName() != null);
-					for (Iterator<ClassFile> iter = classFiles.iterator(); iter.hasNext();) {
-						ClassFile classFile = iter.next();
-						String filename = new String(classFile.fileName());
-						String classname = filename.replace('/', '.');
-						filename = filename.replace('/', File.separatorChar) + ".class";
+                    for (ClassFile classFile : classFiles) {
+                        String filename = new String(classFile.fileName());
+                        String classname = filename.replace('/', '.');
+                        filename = filename.replace('/', File.separatorChar) + ".class";
 
-						try {
-							if (buildConfig.getOutputJar() == null) {
-								String outfile = writeDirectoryEntry(unitResult, classFile, filename);
-								getWorld().classWriteEvent(classFile.getCompoundName());
-								if (environmentSupportsIncrementalCompilation) {
-									if (!classname.endsWith("$ajcMightHaveAspect")) {
-										ResolvedType type = getBcelWorld().resolve(classname);
-										if (type.isAspect()) {
-											state.recordAspectClassFile(outfile);
-										}
-									}
-								}
-							} else {
-								writeZipEntry(classFile, filename);
-							}
-							if (shouldAddAspectName && !classname.endsWith("$ajcMightHaveAspect")) {
-								addAspectName(classname, unitResult.getFileName());
-							}
-						} catch (IOException ex) {
-							IMessage message = EclipseAdapterUtils.makeErrorMessage(new String(unitResult.fileName),
-									CANT_WRITE_RESULT, ex);
-							handler.handleMessage(message);
-						}
+                        try {
+                            if (buildConfig.getOutputJar() == null) {
+                                String outfile = writeDirectoryEntry(unitResult, classFile, filename);
+                                getWorld().classWriteEvent(classFile.getCompoundName());
+                                if (environmentSupportsIncrementalCompilation) {
+                                    if (!classname.endsWith("$ajcMightHaveAspect")) {
+                                        ResolvedType type = getBcelWorld().resolve(classname);
+                                        if (type.isAspect()) {
+                                            state.recordAspectClassFile(outfile);
+                                        }
+                                    }
+                                }
+                            }
+                            else {
+                                writeZipEntry(classFile, filename);
+                            }
+                            if (shouldAddAspectName && !classname.endsWith("$ajcMightHaveAspect")) {
+                                addAspectName(classname, unitResult.getFileName());
+                            }
+                        } catch (IOException ex) {
+                            IMessage message = EclipseAdapterUtils.makeErrorMessage(new String(unitResult.fileName),
+                                    CANT_WRITE_RESULT, ex);
+                            handler.handleMessage(message);
+                        }
 
-					}
+                    }
 					state.noteNewResult(unitResult);
 					unitResult.compiledTypes.clear(); // free up references to AjClassFile instances
 				}
 
 				if (unitResult.hasProblems() || unitResult.hasTasks()) {
 					IProblem[] problems = unitResult.getAllProblems();
-					for (int i = 0; i < problems.length; i++) {
-						IMessage message = EclipseAdapterUtils.makeMessage(unitResult.compilationUnit, problems[i], getBcelWorld(),
-								progressListener);
-						handler.handleMessage(message);
-					}
+                    for (IProblem problem : problems) {
+                        IMessage message = EclipseAdapterUtils.makeMessage(unitResult.compilationUnit, problem, getBcelWorld(),
+                                progressListener);
+                        handler.handleMessage(message);
+                    }
 				}
 
 			}
@@ -1314,14 +1303,15 @@ public class AjBuildManager implements IOutputClassFileNameProvider, IBinarySour
 		}
 		StringBuffer buf = new StringBuffer();
 		boolean first = true;
-		for (Iterator it = buildConfig.getFullClasspath().iterator(); it.hasNext();) {
-			if (first) {
-				first = false;
-			} else {
-				buf.append(File.pathSeparator);
-			}
-			buf.append(it.next().toString());
-		}
+        for (String s : buildConfig.getFullClasspath()) {
+            if (first) {
+                first = false;
+            }
+            else {
+                buf.append(File.pathSeparator);
+            }
+            buf.append(s.toString());
+        }
 		return buf.toString();
 	}
 
@@ -1349,47 +1339,50 @@ public class AjBuildManager implements IOutputClassFileNameProvider, IBinarySour
 		}
 
 		String ret = null;
-		for (Iterator<String> it = buildConfig.getFullClasspath().iterator(); it.hasNext();) {
-			File p = new File(it.next());
-			// pr112830, allow variations on aspectjrt.jar of the form aspectjrtXXXXXX.jar
-			if (p.isFile() && p.getName().startsWith("aspectjrt") && p.getName().endsWith(".jar")) {
+        for (String s : buildConfig.getFullClasspath()) {
+            File p = new File(s);
+            // pr112830, allow variations on aspectjrt.jar of the form aspectjrtXXXXXX.jar
+            if (p.isFile() && p.getName().startsWith("aspectjrt") && p.getName().endsWith(".jar")) {
 
-				try {
-					String version = null;
-					Manifest manifest = new JarFile(p).getManifest();
-					if (manifest == null) {
-						ret = "no manifest found in " + p.getAbsolutePath() + ", expected " + Version.getText();
-						continue;
-					}
-					Attributes attr = manifest.getAttributes("org/aspectj/lang/");
-					if (null != attr) {
-						version = attr.getValue(Attributes.Name.IMPLEMENTATION_VERSION);
-						if (null != version) {
-							version = version.trim();
-						}
-					}
-					// assume that users of development aspectjrt.jar know what they're doing
-					if (version != null && (Version.DEVELOPMENT.equals(version) || version.endsWith("BUILD-SNAPSHOT"))) {
-						// MessageUtil.info(holder,
-						// "running with development version of aspectjrt.jar in " +
-						// p.getAbsolutePath());
-						return null;
-					} else if (!Version.getText().equals(version)) {
-						ret = "bad version number found in " + p.getAbsolutePath() + " expected " + Version.getText() + " found "
-								+ version;
-						continue;
-					}
-				} catch (IOException ioe) {
-					ret = "bad jar file found in " + p.getAbsolutePath() + " error: " + ioe;
-				}
-				return null; // this is the "OK" return value!
-			} else if (p.isFile() && p.getName().indexOf("org.aspectj.runtime") != -1) {
-				// likely to be a variant from the springsource bundle repo b272591
-				return null;
-			} else {
-				// might want to catch other classpath errors
-			}
-		}
+                try {
+                    String version = null;
+                    Manifest manifest = new JarFile(p).getManifest();
+                    if (manifest == null) {
+                        ret = "no manifest found in " + p.getAbsolutePath() + ", expected " + Version.getText();
+                        continue;
+                    }
+                    Attributes attr = manifest.getAttributes("org/aspectj/lang/");
+                    if (null != attr) {
+                        version = attr.getValue(Attributes.Name.IMPLEMENTATION_VERSION);
+                        if (null != version) {
+                            version = version.trim();
+                        }
+                    }
+                    // assume that users of development aspectjrt.jar know what they're doing
+                    if (version != null && (Version.DEVELOPMENT.equals(version) || version.endsWith("BUILD-SNAPSHOT"))) {
+                        // MessageUtil.info(holder,
+                        // "running with development version of aspectjrt.jar in " +
+                        // p.getAbsolutePath());
+                        return null;
+                    }
+                    else if (!Version.getText().equals(version)) {
+                        ret = "bad version number found in " + p.getAbsolutePath() + " expected " + Version.getText() + " found "
+                                + version;
+                        continue;
+                    }
+                } catch (IOException ioe) {
+                    ret = "bad jar file found in " + p.getAbsolutePath() + " error: " + ioe;
+                }
+                return null; // this is the "OK" return value!
+            }
+            else if (p.isFile() && p.getName().contains("org.aspectj.runtime")) {
+                // likely to be a variant from the springsource bundle repo b272591
+                return null;
+            }
+            else {
+                // might want to catch other classpath errors
+            }
+        }
 
 		if (ret != null) {
 			return ret; // last error found in potentially matching jars...
@@ -1547,10 +1540,10 @@ public class AjBuildManager implements IOutputClassFileNameProvider, IBinarySour
 			AjBuildConfig config = (AjBuildConfig) data;
 			List classpath = config.getClasspath();
 			sb.append("with classpath: ");
-			for (Iterator iter = classpath.iterator(); iter.hasNext();) {
-				sb.append(iter.next().toString());
-				sb.append(File.pathSeparator);
-			}
+            for (Object o : classpath) {
+                sb.append(o.toString());
+                sb.append(File.pathSeparator);
+            }
 			return sb.toString();
 		}
 

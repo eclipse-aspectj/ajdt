@@ -209,12 +209,12 @@ public class WeaverMessageHandler implements IMessageHandler {
 
 	private IProblem[] buildSeeAlsoProblems(IProblem originalProblem, List sourceLocations, CompilationResult problemSource,
 			boolean usedBinarySourceFileName) {
-		List<IProblem> ret = new ArrayList<IProblem>();
+		List<IProblem> ret = new ArrayList<>();
 
-		for (int i = 0; i < sourceLocations.size(); i++) {
-			ISourceLocation loc = (ISourceLocation) sourceLocations.get(i);
+		for (Object sourceLocation : sourceLocations) {
+			ISourceLocation loc = (ISourceLocation) sourceLocation;
 			if (loc != null) {
-				DefaultProblem dp = new DefaultProblem(loc.getSourceFile().getPath().toCharArray(), "see also", 0, new String[] {},
+				DefaultProblem dp = new DefaultProblem(loc.getSourceFile().getPath().toCharArray(), "see also", 0, new String[]{},
 						ProblemSeverities.Ignore, getStartPos(loc, null), getEndPos(loc, null), loc.getLine(), loc.getColumn());
 				ret.add(dp);
 			} else {

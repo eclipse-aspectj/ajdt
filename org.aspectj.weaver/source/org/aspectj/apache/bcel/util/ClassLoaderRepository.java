@@ -70,7 +70,6 @@ import java.util.WeakHashMap;
 
 import org.aspectj.apache.bcel.classfile.ClassParser;
 import org.aspectj.apache.bcel.classfile.JavaClass;
-import org.aspectj.apache.bcel.util.ClassLoaderRepository.SoftHashMap.SpecialValue;
 
 /**
  * The repository maintains information about which classes have been loaded.
@@ -88,8 +87,8 @@ public class ClassLoaderRepository implements Repository {
 	private ClassLoaderReference loaderRef;
 
 	// Choice of cache...
-	private WeakHashMap<URL, SoftReference<JavaClass>> localCache = new WeakHashMap<URL, SoftReference<JavaClass>>();
-	private static SoftHashMap /* <URL,JavaClass> */sharedCache = new SoftHashMap(Collections.synchronizedMap(new HashMap<Object, SpecialValue>()));
+	private WeakHashMap<URL, SoftReference<JavaClass>> localCache = new WeakHashMap<>();
+	private static SoftHashMap /* <URL,JavaClass> */sharedCache = new SoftHashMap(Collections.synchronizedMap(new HashMap<>()));
 
 	// For fast translation of the classname *intentionally not static*
 	private SoftHashMap /* <String,URL> */nameMap = new SoftHashMap(new HashMap(), false);
@@ -216,7 +215,7 @@ public class ClassLoaderRepository implements Repository {
 			sharedCache.put(url, clazz);
 		} else {
 			clazz.setRepository(this);
-			localCache.put(url, new SoftReference<JavaClass>(clazz));
+			localCache.put(url, new SoftReference<>(clazz));
 		}
 	}
 

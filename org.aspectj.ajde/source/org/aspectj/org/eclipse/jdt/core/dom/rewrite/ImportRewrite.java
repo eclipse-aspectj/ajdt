@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2019 IBM Corporation and others.
+ * Copyright (c) 2000, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -7,7 +7,6 @@
  * https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     John Glassmyer <jogl@google.com> - import group sorting is broken - https://bugs.eclipse.org/430303
@@ -53,6 +52,7 @@ import org.aspectj.org.eclipse.jdt.core.dom.IAnnotationBinding;
 import org.aspectj.org.eclipse.jdt.core.dom.IBinding;
 import org.aspectj.org.eclipse.jdt.core.dom.IMemberValuePairBinding;
 import org.aspectj.org.eclipse.jdt.core.dom.IMethodBinding;
+import org.aspectj.org.eclipse.jdt.core.dom.IPackageBinding;
 import org.aspectj.org.eclipse.jdt.core.dom.ITypeBinding;
 import org.aspectj.org.eclipse.jdt.core.dom.IVariableBinding;
 import org.aspectj.org.eclipse.jdt.core.dom.ImportDeclaration;
@@ -108,56 +108,56 @@ public final class ImportRewrite {
 	/**
 	 * Used to determine how a type will be used, so that unwanted annotations can be filtered,
 	 * which is in particular relevant for avoiding redundant null annotations in the scope of {@code @NonNullByDefault}.
-	 * This enum is a superset of org.aspectj.org.eclipse.jdt.annotation.DefaultLocation, and roughly corresponds
+	 * This enum is a superset of org.eclipse.jdt.annotation.DefaultLocation, and roughly corresponds
 	 * to the classification of type locations as introduced by JSR 308.
 	 *
 	 * @since 3.13
 	 */
 	public enum TypeLocation {
 		/**
-		 * see org.aspectj.org.eclipse.jdt.annotation.DefaultLocation.PARAMETER
+		 * see org.eclipse.jdt.annotation.DefaultLocation.PARAMETER
 		 *
 		 * @since 3.13
 		 */
 		PARAMETER,
 
 		/**
-		 * see org.aspectj.org.eclipse.jdt.annotation.DefaultLocation.RETURN_TYPE
+		 * see org.eclipse.jdt.annotation.DefaultLocation.RETURN_TYPE
 		 *
 		 * @since 3.13
 		 */
 		RETURN_TYPE,
 
 		/**
-		 * see org.aspectj.org.eclipse.jdt.annotation.DefaultLocation.FIELD
+		 * see org.eclipse.jdt.annotation.DefaultLocation.FIELD
 		 *
 		 * @since 3.13
 		 */
 		FIELD,
 
 		/**
-		 * see org.aspectj.org.eclipse.jdt.annotation.DefaultLocation.TYPE_PARAMETER
+		 * see org.eclipse.jdt.annotation.DefaultLocation.TYPE_PARAMETER
 		 *
 		 * @since 3.13
 		 */
 		TYPE_PARAMETER,
 
 		/**
-		 * see org.aspectj.org.eclipse.jdt.annotation.DefaultLocation.TYPE_BOUND
+		 * see org.eclipse.jdt.annotation.DefaultLocation.TYPE_BOUND
 		 *
 		 * @since 3.13
 		 */
 		TYPE_BOUND,
 
 		/**
-		 * see org.aspectj.org.eclipse.jdt.annotation.DefaultLocation.TYPE_ARGUMENT
+		 * see org.eclipse.jdt.annotation.DefaultLocation.TYPE_ARGUMENT
 		 *
 		 * @since 3.13
 		 */
 		TYPE_ARGUMENT,
 
 		/**
-		 * see org.aspectj.org.eclipse.jdt.annotation.DefaultLocation.ARRAY_CONTENTS
+		 * see org.eclipse.jdt.annotation.DefaultLocation.ARRAY_CONTENTS
 		 *
 		 * @since 3.13
 		 */
@@ -166,7 +166,7 @@ public final class ImportRewrite {
 		/**
 		 * The special value {@link #LOCAL_VARIABLE} is used for local variables: their nullness is determines by flow analysis,
 		 * so top level nullness annotations are usually not needed for local variables (unless their type is a free
-		 * type variable). Does not correspond to a value in org.aspectj.org.eclipse.jdt.annotation.DefaultLocation.
+		 * type variable). Does not correspond to a value in org.eclipse.jdt.annotation.DefaultLocation.
 		 *
 		 * @since 3.13
 		 */
@@ -175,7 +175,7 @@ public final class ImportRewrite {
 		/**
 		 * The special value {@link #CAST} is used for casts.
 		 * Casts are never affected by {@code @NonNullByDefault}
-		 * Does not correspond to a value in org.aspectj.org.eclipse.jdt.annotation.DefaultLocation.
+		 * Does not correspond to a value in org.eclipse.jdt.annotation.DefaultLocation.
 		 *
 		 * @since 3.13
 		 */
@@ -184,7 +184,7 @@ public final class ImportRewrite {
 		/**
 		 * The special value {@link #INSTANCEOF} is used for {@code instanceof} expressions.
 		 * Null annotations are not supported in this location.
-		 * Does not correspond to a value in org.aspectj.org.eclipse.jdt.annotation.DefaultLocation.
+		 * Does not correspond to a value in org.eclipse.jdt.annotation.DefaultLocation.
 		 *
 		 * @since 3.13
 		 */
@@ -193,7 +193,7 @@ public final class ImportRewrite {
 		/**
 		 * The special value {@link #NEW} is used for {@code new} expressions (object allocations).
 		 * Null annotations are not supported in this location.
-		 * Does not correspond to a value in org.aspectj.org.eclipse.jdt.annotation.DefaultLocation.
+		 * Does not correspond to a value in org.eclipse.jdt.annotation.DefaultLocation.
 		 *
 		 * @since 3.13
 		 */
@@ -202,7 +202,7 @@ public final class ImportRewrite {
 		/**
 		 * The special value {@link #RECEIVER} is used for the receiver type in a method declaration or method reference.
 		 * Null annotations are not supported in this location.
-		 * Does not correspond to a value in org.aspectj.org.eclipse.jdt.annotation.DefaultLocation.
+		 * Does not correspond to a value in org.eclipse.jdt.annotation.DefaultLocation.
 		 *
 		 * @since 3.13
 		 */
@@ -210,7 +210,7 @@ public final class ImportRewrite {
 
 		/**
 		 * The special value {@link #EXCEPTION} is used for exception types in catch and throws declarations, which are
-		 * implicitly non-null. Does not correspond to a value in org.aspectj.org.eclipse.jdt.annotation.DefaultLocation.
+		 * implicitly non-null. Does not correspond to a value in org.eclipse.jdt.annotation.DefaultLocation.
 		 *
 		 * @since 3.13
 		 */
@@ -219,7 +219,7 @@ public final class ImportRewrite {
 		/**
 		 * The special value {@link #OTHER} is used for locations where type annotations are illegal, like type literals
 		 * (X.class), annotations, or as scope for static field accesses. Does not correspond to a value in
-		 * org.aspectj.org.eclipse.jdt.annotation.DefaultLocation.
+		 * org.eclipse.jdt.annotation.DefaultLocation.
 		 *
 		 * @since 3.13
 		 */
@@ -227,7 +227,7 @@ public final class ImportRewrite {
 
 		/**
 		 * The special value {@link #UNKNOWN} is used for invocations that don't specify the intended type usage. Does not
-		 * correspond to a value in org.aspectj.org.eclipse.jdt.annotation.DefaultLocation.
+		 * correspond to a value in org.eclipse.jdt.annotation.DefaultLocation.
 		 *
 		 * @since 3.13
 		 */
@@ -773,7 +773,7 @@ public final class ImportRewrite {
 
 				String erasureName= Signature.toString(erasureSig);
 				if (erasureSig.charAt(0) == Signature.C_RESOLVED) {
-					erasureName= internalAddImport(erasureName, context);
+					erasureName= internalAddImport(erasureName, context, false);
 				}
 				Type baseType= ast.newSimpleType(ast.newName(erasureName));
 				String[] typeArguments= Signature.getTypeArguments(typeSig);
@@ -883,7 +883,7 @@ public final class ImportRewrite {
 
 		String qualifiedName= getRawQualifiedName(normalizedBinding);
 		if (qualifiedName.length() > 0) {
-			String str= internalAddImport(qualifiedName, context);
+			String str= internalAddImport(qualifiedName, context, isTypeInUnnamedPackage(normalizedBinding));
 
 			ITypeBinding[] typeArguments= normalizedBinding.getTypeArguments();
 			if (typeArguments.length > 0) {
@@ -1053,13 +1053,13 @@ public final class ImportRewrite {
 	public String addImport(String qualifiedTypeName, ImportRewriteContext context) {
 		int angleBracketOffset= qualifiedTypeName.indexOf('<');
 		if (angleBracketOffset != -1) {
-			return internalAddImport(qualifiedTypeName.substring(0, angleBracketOffset), context) + qualifiedTypeName.substring(angleBracketOffset);
+			return internalAddImport(qualifiedTypeName.substring(0, angleBracketOffset), context, false) + qualifiedTypeName.substring(angleBracketOffset);
 		}
 		int bracketOffset= qualifiedTypeName.indexOf('[');
 		if (bracketOffset != -1) {
-			return internalAddImport(qualifiedTypeName.substring(0, bracketOffset), context) + qualifiedTypeName.substring(bracketOffset);
+			return internalAddImport(qualifiedTypeName.substring(0, bracketOffset), context, false) + qualifiedTypeName.substring(bracketOffset);
 		}
-		return internalAddImport(qualifiedTypeName, context);
+		return internalAddImport(qualifiedTypeName, context, false);
 	}
 
 	/**
@@ -1198,7 +1198,7 @@ public final class ImportRewrite {
 		return simpleName;
 	}
 
-	private String internalAddImport(String fullTypeName, ImportRewriteContext context) {
+	private String internalAddImport(String fullTypeName, ImportRewriteContext context, boolean isTypeInUnnamedPackage) {
 		int idx= fullTypeName.lastIndexOf('.');
 		String typeContainerName, typeName;
 		if (idx != -1) {
@@ -1217,7 +1217,8 @@ public final class ImportRewrite {
 			context= this.defaultContext;
 
 		int res= context.findInContext(typeContainerName, typeName, ImportRewriteContext.KIND_TYPE);
-		if (res == ImportRewriteContext.RES_NAME_CONFLICT) {
+		if (res == ImportRewriteContext.RES_NAME_CONFLICT
+				|| isTypeInUnnamedPackage) {
 			return fullTypeName;
 		}
 		if (res == ImportRewriteContext.RES_NAME_UNKNOWN) {
@@ -1315,7 +1316,7 @@ public final class ImportRewrite {
 
 		CompilationUnit usedAstRoot= this.astRoot;
 		if (usedAstRoot == null) {
-			ASTParser parser= ASTParser.newParser(AST.JLS13);
+			ASTParser parser= ASTParser.newParser(AST.JLS_Latest);
 			parser.setSource(this.compilationUnit);
 			parser.setFocalPosition(0); // reduced AST
 			parser.setResolveBindings(false);
@@ -1518,7 +1519,7 @@ public final class ImportRewrite {
 		boolean annotsPresent = annotationBinding != null && annotationBinding.length > 0;
 
 		String qualifiedName= getRawQualifiedName(normalizedBinding);
-		String res = qualifiedName.length() > 0 ? internalAddImport(qualifiedName, context) : getRawName(normalizedBinding);
+		String res = qualifiedName.length() > 0 ? internalAddImport(qualifiedName, context, isTypeInUnnamedPackage(normalizedBinding)) : getRawName(normalizedBinding);
 
 		if (annotsPresent) {
 			int dotIndex = res != null ? res.lastIndexOf('.') : -1;
@@ -1661,5 +1662,16 @@ public final class ImportRewrite {
 		} else {
 			return null;
 		}
+	}
+
+	private static boolean isTypeInUnnamedPackage(ITypeBinding binding) {
+		boolean isInUnnamedPackage= false;
+		if (binding != null) {
+			IPackageBinding pBinding= binding.getPackage();
+			if (pBinding != null) {
+				isInUnnamedPackage= pBinding.isUnnamed();
+			}
+		}
+		return isInUnnamedPackage;
 	}
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2019 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -24,6 +24,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ParameterizedGenericMethodBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.RawTypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.SyntheticMethodBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TagBits;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeVariableBinding;
@@ -70,6 +71,22 @@ class MethodBinding implements IMethodBinding {
 	@Override
 	public boolean isConstructor() {
 		return this.binding.isConstructor();
+	}
+
+	/**
+	 * @see IMethodBinding#isCompactConstructor()
+	 */
+	@Override
+	public boolean isCompactConstructor() {
+		return this.binding.isCompactConstructor();
+	}
+
+	/**
+	 * @see IMethodBinding#isCanonicalConstructor()
+	 */
+	@Override
+	public boolean isCanonicalConstructor() {
+		return ((this.binding.tagBits & TagBits.IsCanonicalConstructor) != 0);
 	}
 
 	/**
@@ -590,5 +607,11 @@ class MethodBinding implements IMethodBinding {
 	@Override
 	public IVariableBinding[] getSyntheticOuterLocals() {
 		return NO_VARIABLE_BINDINGS;
+	}
+
+	@Override
+	public boolean isSyntheticRecordMethod() {
+		return ((getDeclaringClass().isRecord()) &&
+				(this.binding instanceof SyntheticMethodBinding));
 	}
 }

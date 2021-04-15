@@ -65,16 +65,16 @@ public class PushinCollector {
 	private String suffix;
 
 	// This first collection stores the 'text' for the declarations.
-	private Map<AbstractMethodDeclaration, RepresentationAndLocation> codeRepresentation = new HashMap<AbstractMethodDeclaration, RepresentationAndLocation>();
+	private Map<AbstractMethodDeclaration, RepresentationAndLocation> codeRepresentation = new HashMap<>();
 
 	// This stores the new annotations
-	private Map<SourceTypeBinding, List<String>> additionalAnnotations = new HashMap<SourceTypeBinding, List<String>>();
+	private Map<SourceTypeBinding, List<String>> additionalAnnotations = new HashMap<>();
 
 	// This stores the new parents
-	private Map<SourceTypeBinding, List<ExactTypePattern>> additionalParents = new HashMap<SourceTypeBinding, List<ExactTypePattern>>();
+	private Map<SourceTypeBinding, List<ExactTypePattern>> additionalParents = new HashMap<>();
 
 	// This indicates which types are affected by which intertype declarations
-	private Map<SourceTypeBinding, List<AbstractMethodDeclaration>> newDeclarations = new HashMap<SourceTypeBinding, List<AbstractMethodDeclaration>>();
+	private Map<SourceTypeBinding, List<AbstractMethodDeclaration>> newDeclarations = new HashMap<>();
 
 	private PushinCollector(World world, Properties configuration) {
 		this.world = world;
@@ -253,20 +253,12 @@ public class PushinCollector {
 			// can be null for binary weave (there is no source method)
 			return;
 		}
-		List<AbstractMethodDeclaration> amds = newDeclarations.get(sourceType);
-		if (amds == null) {
-			amds = new ArrayList<AbstractMethodDeclaration>();
-			newDeclarations.put(sourceType, amds);
-		}
+		List<AbstractMethodDeclaration> amds = newDeclarations.computeIfAbsent(sourceType, k -> new ArrayList<>());
 		amds.add(sourceMethod);
 	}
 
 	public void tagAsMunged(SourceTypeBinding sourceType, String annotationString) {
-		List<String> annos = additionalAnnotations.get(sourceType);
-		if (annos == null) {
-			annos = new ArrayList<String>();
-			additionalAnnotations.put(sourceType, annos);
-		}
+		List<String> annos = additionalAnnotations.computeIfAbsent(sourceType, k -> new ArrayList<>());
 		annos.add(annotationString);
 	}
 
@@ -320,11 +312,7 @@ public class PushinCollector {
 
 	public void tagAsMunged(SourceTypeBinding sourceType, TypePattern typePattern) {
 		if (typePattern instanceof ExactTypePattern) {
-			List<ExactTypePattern> annos = additionalParents.get(sourceType);
-			if (annos == null) {
-				annos = new ArrayList<ExactTypePattern>();
-				additionalParents.put(sourceType, annos);
-			}
+			List<ExactTypePattern> annos = additionalParents.computeIfAbsent(sourceType, k -> new ArrayList<>());
 			annos.add((ExactTypePattern) typePattern);
 		}
 	}

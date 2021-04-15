@@ -11,7 +11,6 @@ package org.aspectj.weaver.patterns;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -82,7 +81,7 @@ public class WildAnnotationTypePattern extends AnnotationTypePattern {
 		// - the value names are for valid annotation fields
 		// - the specified values are of the correct type
 		// - for enums, check the specified values can be resolved in the specified scope
-		Map<String,String> replacementValues = new HashMap<String,String>();
+		Map<String,String> replacementValues = new HashMap<>();
 		Set<String> keys = annotationValues.keySet();
 		ResolvedMember[] ms = annotationType.getDeclaredMethods();
 		for (String k: keys) {
@@ -93,8 +92,7 @@ public class WildAnnotationTypePattern extends AnnotationTypePattern {
 			}
 			String v = annotationValues.get(k);
 			boolean validKey = false;
-			for (int i = 0; i < ms.length; i++) {
-				ResolvedMember resolvedMember = ms[i];
+			for (ResolvedMember resolvedMember : ms) {
 				if (resolvedMember.getName().equals(key) && resolvedMember.isAbstract()) {
 					validKey = true;
 					ResolvedType t = resolvedMember.getReturnType().resolve(scope.getWorld());
@@ -213,7 +211,7 @@ public class WildAnnotationTypePattern extends AnnotationTypePattern {
 						break;
 					} else {
 						if (t.isAnnotation()) {
-							if (v.indexOf("(") != -1) {
+							if (v.contains("(")) {
 								throw new RuntimeException(
 										"Compiler limitation: annotation values can only currently be marker annotations (no values): "
 												+ v);
@@ -239,8 +237,8 @@ public class WildAnnotationTypePattern extends AnnotationTypePattern {
 //							}
 //							replacementValues.put(k, rt.getSignature());
 						} else {
-							scope.message(MessageUtil.error(WeaverMessages.format(WeaverMessages.UNSUPPORTED_ANNOTATION_VALUE_TYPE,t), getSourceLocation()));
-							replacementValues.put(k,"");
+							scope.message(MessageUtil.error(WeaverMessages.format(WeaverMessages.UNSUPPORTED_ANNOTATION_VALUE_TYPE, t), getSourceLocation()));
+							replacementValues.put(k, "");
 						}
 					}
 				}
@@ -265,8 +263,8 @@ public class WildAnnotationTypePattern extends AnnotationTypePattern {
 		}
 		if (isForParameterAnnotationMatch()) {
 			if (parameterAnnotations != null && parameterAnnotations.length != 0) {
-				for (int i = 0; i < parameterAnnotations.length; i++) {
-					if (typePattern.matches(parameterAnnotations[i], TypePattern.STATIC).alwaysTrue()) {
+				for (ResolvedType parameterAnnotation : parameterAnnotations) {
+					if (typePattern.matches(parameterAnnotation, TypePattern.STATIC).alwaysTrue()) {
 						return FuzzyBoolean.YES;
 					}
 				}
@@ -276,8 +274,8 @@ public class WildAnnotationTypePattern extends AnnotationTypePattern {
 			// matched by the typePattern.
 			ResolvedType[] annTypes = annotated.getAnnotationTypes();
 			if (annTypes != null && annTypes.length != 0) {
-				for (int i = 0; i < annTypes.length; i++) {
-					if (typePattern.matches(annTypes[i], TypePattern.STATIC).alwaysTrue()) {
+				for (ResolvedType annType : annTypes) {
+					if (typePattern.matches(annType, TypePattern.STATIC).alwaysTrue()) {
 						return FuzzyBoolean.YES;
 					}
 				}
@@ -298,7 +296,7 @@ public class WildAnnotationTypePattern extends AnnotationTypePattern {
 			if (typePattern instanceof WildTypePattern && (annotationValues == null || annotationValues.isEmpty())) {
 				WildTypePattern wildTypePattern = (WildTypePattern) typePattern;
 				String fullyQualifiedName = wildTypePattern.maybeGetCleanName();
-				if (fullyQualifiedName != null && fullyQualifiedName.indexOf(".") != -1) {
+				if (fullyQualifiedName != null && fullyQualifiedName.contains(".")) {
 					ResolvedType resolvedType = world.resolve(UnresolvedType.forName(fullyQualifiedName));
 					if (resolvedType != null && !resolvedType.isMissing()) {
 						typePattern = new ExactTypePattern(resolvedType, false, false);
@@ -368,8 +366,7 @@ public class WildAnnotationTypePattern extends AnnotationTypePattern {
 		} else {
 			s.writeInt(annotationValues.size());
 			Set<String> key = annotationValues.keySet();
-			for (Iterator<String> keys = key.iterator(); keys.hasNext();) {
-				String k = keys.next();
+			for (String k : key) {
 				s.writeUTF(k);
 				s.writeUTF(annotationValues.get(k));
 			}
@@ -393,7 +390,7 @@ public class WildAnnotationTypePattern extends AnnotationTypePattern {
 		if (s.getMajorVersion() >= WeaverVersionInfo.WEAVER_VERSION_MAJOR_AJ160M2) {
 			int annotationValueCount = s.readInt();
 			if (annotationValueCount > 0) {
-				Map<String, String> aValues = new HashMap<String, String>();
+				Map<String, String> aValues = new HashMap<>();
 				for (int i = 0; i < annotationValueCount; i++) {
 					String key = s.readUTF();
 					String val = s.readUTF();

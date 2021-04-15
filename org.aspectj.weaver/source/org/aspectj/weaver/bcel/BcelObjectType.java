@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -113,8 +112,8 @@ public class BcelObjectType extends AbstractReferenceTypeDelegate {
 	private boolean isCodeStyleAspect = false; // not redundant with field
 	// above!
 
-	private WeakReference<ResolvedType> superTypeReference = new WeakReference<ResolvedType>(null);
-	private WeakReference<ResolvedType[]> superInterfaceReferences = new WeakReference<ResolvedType[]>(null);
+	private WeakReference<ResolvedType> superTypeReference = new WeakReference<>(null);
+	private WeakReference<ResolvedType[]> superInterfaceReferences = new WeakReference<>(null);
 
 	private int bitflag = 0x0000;
 
@@ -237,7 +236,7 @@ public class BcelObjectType extends AbstractReferenceTypeDelegate {
 			}
 			World world = getResolvedTypeX().getWorld();
 			supertype = world.resolve(UnresolvedType.forSignature(superclassSignature));
-			superTypeReference = new WeakReference<ResolvedType>(supertype);
+			superTypeReference = new WeakReference<>(supertype);
 		}
 		return supertype;
 	}
@@ -275,7 +274,7 @@ public class BcelObjectType extends AbstractReferenceTypeDelegate {
 					interfaceTypes[i] = getResolvedTypeX().getWorld().resolve(UnresolvedType.forSignature(interfaceSignatures[i]));
 				}
 			}
-			superInterfaceReferences = new WeakReference<ResolvedType[]>(interfaceTypes);
+			superInterfaceReferences = new WeakReference<>(interfaceTypes);
 			return interfaceTypes;
 		} else {
 			return cachedInterfaceTypes;
@@ -386,9 +385,9 @@ public class BcelObjectType extends AbstractReferenceTypeDelegate {
 		} catch (RuntimeException re) {
 			throw new RuntimeException("Problem processing attributes in " + javaClass.getFileName(), re);
 		}
-		List<ResolvedPointcutDefinition> pointcuts = new ArrayList<ResolvedPointcutDefinition>();
-		typeMungers = new ArrayList<ConcreteTypeMunger>();
-		declares = new ArrayList<Declare>();
+		List<ResolvedPointcutDefinition> pointcuts = new ArrayList<>();
+		typeMungers = new ArrayList<>();
+		declares = new ArrayList<>();
 		processAttributes(l, pointcuts, false);
 		ReferenceType type = getResolvedTypeX();
 		AsmManager asmManager = ((BcelWorld) type.getWorld()).getModelAsAsmManager();
@@ -399,7 +398,7 @@ public class BcelObjectType extends AbstractReferenceTypeDelegate {
 		if (pointcuts.size() == 0) {
 			this.pointcuts = ResolvedPointcutDefinition.NO_POINTCUTS;
 		} else {
-			this.pointcuts = pointcuts.toArray(new ResolvedPointcutDefinition[pointcuts.size()]);
+			this.pointcuts = pointcuts.toArray(new ResolvedPointcutDefinition[0]);
 		}
 
 		resolveAnnotationDeclares(l);
@@ -462,8 +461,7 @@ public class BcelObjectType extends AbstractReferenceTypeDelegate {
 	private void resolveAnnotationDeclares(List<AjAttribute> attributeList) {
 		FormalBinding[] bindings = new org.aspectj.weaver.patterns.FormalBinding[0];
 		IScope bindingScope = new BindingScope(getResolvedTypeX(), getResolvedTypeX().getSourceContext(), bindings);
-		for (Iterator<AjAttribute> iter = attributeList.iterator(); iter.hasNext();) {
-			AjAttribute a = iter.next();
+		for (AjAttribute a : attributeList) {
 			if (a instanceof AjAttribute.DeclareAttribute) {
 				Declare decl = (((AjAttribute.DeclareAttribute) a).getDeclare());
 				if (decl instanceof DeclareErrorOrWarning) {
@@ -605,8 +603,7 @@ public class BcelObjectType extends AbstractReferenceTypeDelegate {
 				return false;
 			} else {
 				String lookingForSignature = ofType.getSignature();
-				for (int a = 0; a < annos.length; a++) {
-					AnnotationGen annotation = annos[a];
+				for (AnnotationGen annotation : annos) {
 					if (lookingForSignature.equals(annotation.getTypeSignature())) {
 						return true;
 					}
@@ -641,8 +638,7 @@ public class BcelObjectType extends AbstractReferenceTypeDelegate {
 					AnnotationAJ ax = annotations[i];
 					if (ax.getTypeName().equals(UnresolvedType.AT_RETENTION.getName())) {
 						List<NameValuePair> values = ((BcelAnnotation) ax).getBcelAnnotation().getValues();
-						for (Iterator<NameValuePair> it = values.iterator(); it.hasNext();) {
-							NameValuePair element = it.next();
+						for (NameValuePair element : values) {
 							EnumElementValue v = (EnumElementValue) element.getValue();
 							retentionPolicy = v.getEnumValueString();
 							return retentionPolicy;
@@ -659,8 +655,8 @@ public class BcelObjectType extends AbstractReferenceTypeDelegate {
 		if (targetKinds == null) {
 			return true;
 		}
-		for (int i = 0; i < targetKinds.length; i++) {
-			if (targetKinds[i].equals(AnnotationTargetKind.TYPE)) {
+		for (AnnotationTargetKind targetKind : targetKinds) {
+			if (targetKind.equals(AnnotationTargetKind.TYPE)) {
 				return true;
 			}
 		}
@@ -674,11 +670,10 @@ public class BcelObjectType extends AbstractReferenceTypeDelegate {
 		bitflag |= DISCOVERED_ANNOTATION_TARGET_KINDS;
 		annotationTargetKinds = null; // null means we have no idea or the
 		// @Target annotation hasn't been used
-		List<AnnotationTargetKind> targetKinds = new ArrayList<AnnotationTargetKind>();
+		List<AnnotationTargetKind> targetKinds = new ArrayList<>();
 		if (isAnnotation()) {
 			AnnotationAJ[] annotationsOnThisType = getAnnotations();
-			for (int i = 0; i < annotationsOnThisType.length; i++) {
-				AnnotationAJ a = annotationsOnThisType[i];
+			for (AnnotationAJ a : annotationsOnThisType) {
 				if (a.getTypeName().equals(UnresolvedType.AT_TARGET.getName())) {
 					Set<String> targets = a.getTargets();
 					if (targets != null) {
@@ -774,13 +769,9 @@ public class BcelObjectType extends AbstractReferenceTypeDelegate {
 				// proceeding with resolution.
 				GenericSignature.FormalTypeParameter[] extraFormals = getFormalTypeParametersFromOuterClass();
 				if (extraFormals.length > 0) {
-					List<FormalTypeParameter> allFormals = new ArrayList<FormalTypeParameter>();
-					for (int i = 0; i < formalsForResolution.length; i++) {
-						allFormals.add(formalsForResolution[i]);
-					}
-					for (int i = 0; i < extraFormals.length; i++) {
-						allFormals.add(extraFormals[i]);
-					}
+					List<FormalTypeParameter> allFormals = new ArrayList<>();
+					Collections.addAll(allFormals, formalsForResolution);
+					Collections.addAll(allFormals, extraFormals);
 					formalsForResolution = new GenericSignature.FormalTypeParameter[allFormals.size()];
 					allFormals.toArray(formalsForResolution);
 				}

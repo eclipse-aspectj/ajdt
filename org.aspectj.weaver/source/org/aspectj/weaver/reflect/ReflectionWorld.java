@@ -8,15 +8,14 @@
  * ******************************************************************/
 package org.aspectj.weaver.reflect;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 import org.aspectj.bridge.AbortException;
 import org.aspectj.bridge.IMessage;
 import org.aspectj.bridge.IMessageHandler;
-import org.aspectj.util.LangUtil;
 import org.aspectj.weaver.BCException;
 import org.aspectj.weaver.IWeavingSupport;
 import org.aspectj.weaver.ReferenceType;
@@ -35,12 +34,12 @@ import org.aspectj.weaver.World;
  */
 public class ReflectionWorld extends World implements IReflectionWorld {
 
-	private static Map<WeakClassLoaderReference, ReflectionWorld> rworlds = Collections.synchronizedMap(new HashMap<WeakClassLoaderReference, ReflectionWorld>());
+	private static Map<WeakClassLoaderReference, ReflectionWorld> rworlds = Collections.synchronizedMap(new HashMap<>());
 
 	private WeakClassLoaderReference classLoaderReference;
 	private AnnotationFinder annotationFinder;
 	private boolean mustUseOneFourDelegates = false; // for testing
-	private Map<String,Class<?>> inProgressResolutionClasses = new HashMap<String,Class<?>>();
+	private Map<String,Class<?>> inProgressResolutionClasses = new HashMap<>();
 	
 	public static ReflectionWorld getReflectionWorldFor(WeakClassLoaderReference classLoaderReference) {
 		
@@ -92,7 +91,7 @@ public class ReflectionWorld extends World implements IReflectionWorld {
 	
 	public ReflectionWorld(WeakClassLoaderReference classloaderRef) {
 		this.setMessageHandler(new ExceptionBasedMessageHandler());
-		setBehaveInJava5Way(LangUtil.is15VMOrGreater());
+		setBehaveInJava5Way(true);
 		classLoaderReference = classloaderRef;
 		annotationFinder = makeAnnotationFinderIfAny(classLoaderReference.getClassLoader(), this);
 	}
@@ -100,7 +99,7 @@ public class ReflectionWorld extends World implements IReflectionWorld {
 	public ReflectionWorld(ClassLoader aClassLoader) {
 		super();
 		this.setMessageHandler(new ExceptionBasedMessageHandler());
-		setBehaveInJava5Way(LangUtil.is15VMOrGreater());
+		setBehaveInJava5Way(true);
 		classLoaderReference = new WeakClassLoaderReference(aClassLoader);
 		annotationFinder = makeAnnotationFinderIfAny(classLoaderReference.getClassLoader(), this);
 	}
@@ -117,19 +116,18 @@ public class ReflectionWorld extends World implements IReflectionWorld {
 	public static AnnotationFinder makeAnnotationFinderIfAny(ClassLoader loader, World world) {
 		AnnotationFinder annotationFinder = null;
 		try {
-			if (LangUtil.is15VMOrGreater()) {
-				Class<?> java15AnnotationFinder = Class.forName("org.aspectj.weaver.reflect.Java15AnnotationFinder");
-				annotationFinder = (AnnotationFinder) java15AnnotationFinder.newInstance();
-				annotationFinder.setClassLoader(loader);
-				annotationFinder.setWorld(world);
-			}
+			Class<?> java15AnnotationFinder = Class.forName("org.aspectj.weaver.reflect.Java15AnnotationFinder");
+			annotationFinder = (AnnotationFinder) java15AnnotationFinder.getDeclaredConstructor().newInstance();
+			annotationFinder.setClassLoader(loader);
+			annotationFinder.setWorld(world);
 		} catch (ClassNotFoundException ex) {
 			// must be on 1.4 or earlier
-		} catch (IllegalAccessException ex) {
+		} catch (IllegalAccessException | InstantiationException | NoSuchMethodException ex) {
 			// not so good
 			throw new BCException("AspectJ internal error", ex);
-		} catch (InstantiationException ex) {
-			throw new BCException("AspectJ internal error", ex);
+		}
+		catch (InvocationTargetException e) {
+			e.printStackTrace();
 		}
 		return annotationFinder;
 	}
