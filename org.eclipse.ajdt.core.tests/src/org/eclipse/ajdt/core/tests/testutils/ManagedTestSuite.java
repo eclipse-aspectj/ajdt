@@ -118,8 +118,10 @@ public class ManagedTestSuite extends TestSuite {
 				// of the test/thread itself. This may not work as desired in
 				// all cases, but is almost certainly better than leaving the
 				// "stuck" test hanging.
+				// TODO: Use a clean, non-deprecated way to stop the thread
 				System.err.println("[TIMEOUT] " + test);
-				testThread.stop(new Error(debugInfo));
+				// Thread::stop(Throwable) no longer exists in JDK 9+
+				testThread.stop(/*new Error(debugInfo)*/);
 			}
 			catch (Throwable e) {
 				e.printStackTrace();
