@@ -49,10 +49,10 @@
 	</modules>
 
 	<properties>
-		<tycho-version>0.23.1</tycho-version>
-		<tycho-extras-version>0.23.1</tycho-extras-version>
+		<tycho-version>2.3.0</tycho-version>
+		<tycho-extras-version>2.3.0</tycho-extras-version>
 		<tycho.surefire.extra.vmargs></tycho.surefire.extra.vmargs>
-		<aspectj-maven-compiler-version>1.8</aspectj-maven-compiler-version>
+		<aspectj-maven-compiler-version>1.12.6</aspectj-maven-compiler-version>
 	</properties>
   
 	<profiles>
@@ -157,6 +157,7 @@ https://download.eclipse.org/equinox/
 						<artifactId>target-platform-configuration</artifactId>
 						<configuration>
 							<includePackedArtifacts>true</includePackedArtifacts>
+							<executionEnvironment>JavaSE-1.8</executionEnvironment>
 						</configuration>
 					</plugin>
 <!--					<plugin>
@@ -226,6 +227,7 @@ https://download.eclipse.org/equinox/
 						<artifactId>target-platform-configuration</artifactId>
 						<configuration>
 							<includePackedArtifacts>true</includePackedArtifacts>
+							<executionEnvironment>JavaSE-1.8</executionEnvironment>
 						</configuration>
 					</plugin>
 					<plugin>
@@ -320,6 +322,7 @@ https://download.eclipse.org/equinox/
 							<arch>x86_64</arch>
 						</environment>
 					</environments>
+					<executionEnvironment>JavaSE-1.8</executionEnvironment>
 				</configuration>
 			</plugin>
 
