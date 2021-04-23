@@ -29,7 +29,8 @@ import org.eclipse.jdt.core.dom.SimpleType;
 import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.internal.corext.fix.IProposableFix;
 import org.eclipse.jdt.internal.corext.fix.PotentialProgrammingProblemsFix;
-import org.eclipse.jdt.internal.corext.fix.SerialVersionDefaultOperation;
+import org.eclipse.jdt.internal.corext.fix.PotentialProgrammingProblemsFixCore;
+import org.eclipse.jdt.internal.corext.fix.SerialVersionDefaultOperationCore;
 import org.eclipse.jdt.internal.ui.text.correction.SerialVersionSubProcessor;
 import org.eclipse.jdt.ui.text.java.IInvocationContext;
 import org.eclipse.jdt.ui.text.java.IProblemLocation;
@@ -42,7 +43,7 @@ import org.eclipse.jdt.ui.text.java.IProblemLocation;
  * Copied from {@link org.eclipse.jdt.internal.ui.text.correction.SerialVersionSubProcessor} and
  * {@link org.eclipse.jdt.internal.corext.fix.PotentialProgrammingProblemsFix}
  */
-public class AJSerialVersionSubProcessor extends PotentialProgrammingProblemsFix {
+public class AJSerialVersionSubProcessor extends PotentialProgrammingProblemsFixCore {
     
     protected AJSerialVersionSubProcessor(String name,
             CompilationUnit compilationUnit,
@@ -94,7 +95,7 @@ public class AJSerialVersionSubProcessor extends PotentialProgrammingProblemsFix
         if (declaringNode == null)
             return null;
         
-        SerialVersionDefaultOperation defop= new SerialVersionDefaultOperation(unit, new ASTNode[] {declaringNode});
+        SerialVersionDefaultOperationCore defop= new SerialVersionDefaultOperationCore(unit, new ASTNode[] {declaringNode});
         IProposableFix fix1= new AJSerialVersionSubProcessor("Add default serial version ID (AspectJ)", compilationUnit, new CompilationUnitRewriteOperation[] {defop});
         
         AJSerialVersionHashOperation hashop= new AJSerialVersionHashOperation(unit, new ASTNode[] {declaringNode});
@@ -138,6 +139,7 @@ public class AJSerialVersionSubProcessor extends PotentialProgrammingProblemsFix
     /**
      * from PotentialProgrammingProblemsFix
      */
+    /*
     private static ASTNode getDeclarationNode(SimpleName name) {        
         ASTNode parent= name.getParent();
         if (!(parent instanceof AbstractTypeDeclaration)) {
@@ -153,5 +155,6 @@ public class AJSerialVersionSubProcessor extends PotentialProgrammingProblemsFix
         }
         return parent;
     }
+    */
 
 }

@@ -60,8 +60,9 @@ import org.eclipse.jdt.core.util.IFieldInfo;
 import org.eclipse.jdt.core.util.IInnerClassesAttribute;
 import org.eclipse.jdt.core.util.IInnerClassesAttributeEntry;
 import org.eclipse.jdt.core.util.IMethodInfo;
-import org.eclipse.jdt.internal.corext.fix.AbstractSerialVersionOperation;
+import org.eclipse.jdt.internal.corext.fix.AbstractSerialVersionOperationCore;
 import org.eclipse.jdt.internal.corext.fix.LinkedProposalModel;
+import org.eclipse.jdt.internal.corext.fix.LinkedProposalModelCore;
 import org.eclipse.jdt.internal.corext.util.Messages;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.text.correction.CorrectionMessages;
@@ -78,7 +79,7 @@ import org.eclipse.ui.PlatformUI;
  * 
  * @since 3.1
  */
-public final class AJSerialVersionHashOperation extends AbstractSerialVersionOperation { // AspectJ Change
+public final class AJSerialVersionHashOperation extends AbstractSerialVersionOperationCore { // AspectJ Change
 
     private static final String STATIC_CLASS_INITIALIZER= "<clinit>"; //$NON-NLS-1$
 
@@ -457,5 +458,11 @@ public final class AJSerialVersionHashOperation extends AbstractSerialVersionOpe
             return type.resolveBinding();
         }
         return null;
+    }
+
+    @Override
+    protected void addLinkedPositions(ASTRewrite rewrite, VariableDeclarationFragment fragment,
+      LinkedProposalModelCore positionGroups) {
+      // TODO Auto-generated method stub
     }
 }
