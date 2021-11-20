@@ -2,18 +2,18 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: AspectJ Runtime
 Bundle-SymbolicName: org.aspectj.runtime
-Bundle-Version: 1.9.7.qualifier
+Bundle-Version: 1.9.8.qualifier
 Bundle-Vendor: Eclipse AspectJ Development Tools
-Export-Package: org.aspectj.internal.lang.annotation;version="1.9.7",
- org.aspectj.internal.lang.reflect;version="1.9.7",
- org.aspectj.lang;version="1.9.7",
- org.aspectj.lang.annotation;version="1.9.7",
- org.aspectj.lang.internal.lang;version="1.9.7",
- org.aspectj.lang.reflect;version="1.9.7",
- org.aspectj.runtime;version="1.9.7",
- org.aspectj.runtime.internal;version="1.9.7",
- org.aspectj.runtime.internal.cflowstack;version="1.9.7",
- org.aspectj.runtime.reflect;version="1.9.7"
+Export-Package: org.aspectj.internal.lang.annotation;version="1.9.8",
+ org.aspectj.internal.lang.reflect;version="1.9.8",
+ org.aspectj.lang;version="1.9.8",
+ org.aspectj.lang.annotation;version="1.9.8",
+ org.aspectj.lang.internal.lang;version="1.9.8",
+ org.aspectj.lang.reflect;version="1.9.8",
+ org.aspectj.runtime;version="1.9.8",
+ org.aspectj.runtime.internal;version="1.9.8",
+ org.aspectj.runtime.internal.cflowstack;version="1.9.8",
+ org.aspectj.runtime.reflect;version="1.9.8"
 Eclipse-BundleShape: jar
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Bundle-ClassPath: .

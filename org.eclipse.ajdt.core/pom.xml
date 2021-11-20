@@ -24,9 +24,9 @@
 					</excludeResources>
 				</configuration>
 			</plugin>
-			
+
 			<plugin>
-				<groupId>com.nickwongdev</groupId>
+				<groupId>dev.aspectj</groupId>
 				<artifactId>aspectj-maven-plugin</artifactId>
 			</plugin>
 

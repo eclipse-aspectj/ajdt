@@ -25,7 +25,7 @@
 				</configuration>
 			</plugin>
 			<plugin>
-				<groupId>com.nickwongdev</groupId>
+				<groupId>dev.aspectj</groupId>
 				<artifactId>aspectj-maven-plugin</artifactId>
 			</plugin>
 
@@ -54,7 +54,7 @@
 					<forkedProcessTimeoutInSeconds>7200</forkedProcessTimeoutInSeconds>
 					<showEclipseLog>true</showEclipseLog>
 					<argLine>-Xmx1024m -XX:MaxPermSize=256m ${tycho.surefire.extra.vmargs}</argLine>
-					
+
 					<testClass>org.eclipse.ajdt.core.tests.AllCoreTests</testClass>
 
 					<testFailureIgnore>true</testFailureIgnore>-

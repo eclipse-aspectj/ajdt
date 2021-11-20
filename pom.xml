@@ -12,7 +12,7 @@
 		<module>org.aspectj.weaver</module>
 		<module>org.aspectj.ajde</module>
 		<module>org.aspectj-feature</module>
-		
+
 		<!-- AJDT -->
 		<module>org.eclipse.ajdt.core</module>
 		<module>org.eclipse.ajdt.doc.user</module>
@@ -23,15 +23,15 @@
 		<module>org.eclipse.contribution.visualiser</module>
 		<module>org.eclipse.contribution.xref.core</module>
 		<module>org.eclipse.contribution.xref.ui</module>
-		
+
 		<module>org.eclipse.ajdt-feature</module>
 		<module>org.eclipse.ajdt.sdk-feature</module>
 		<module>org.eclipse.contribution.weaving-feature</module>
 		<module>org.eclipse.contribution.xref-feature</module>
-		
+
 		<module>org.eclipse.equinox.weaving.aspectj</module>
 		<module>org.eclipse.equinox.weaving.sdk</module>
-		
+
 		<!-- Tests -->
 		<module>org.eclipse.ajdt.core.tests</module>
 		<module>org.eclipse.ajdt.ui.tests</module>
@@ -56,9 +56,9 @@
 		<tycho-version>2.3.0</tycho-version>
 		<tycho-extras-version>2.3.0</tycho-extras-version>
 		<tycho.surefire.extra.vmargs></tycho.surefire.extra.vmargs>
-		<aspectj-maven-compiler-version>1.12.6</aspectj-maven-compiler-version>
+		<aspectj-maven-compiler-version>1.13.1</aspectj-maven-compiler-version>
 	</properties>
-  
+
 	<profiles>
 		<profile>
 			<id>e45</id>
@@ -74,7 +74,7 @@
 				</repository>
 			</repositories>
 		</profile>
-		
+
 		<profile>
 			<id>e46</id>
 			<properties>
@@ -156,6 +156,25 @@
 		</profile>
 
 		<profile>
+			<id>e421</id>
+			<properties>
+				<platform.version>e421</platform.version>
+				<!--
+				Go here - download 4.X look at version of weaving hook!
+				https://download.eclipse.org/equinox/
+				-->
+				<weaving.hook.version>1.3.0.v20210202-1256</weaving.hook.version>
+			</properties>
+			<repositories>
+				<repository>
+					<id>2021-09-releases</id>
+					<layout>p2</layout>
+					<url>https://download.eclipse.org/releases/2021-09/</url>
+				</repository>
+			</repositories>
+		</profile>
+
+		<profile>
 			<id>os-macosx</id>
 			<activation>
 				<os>
@@ -166,7 +185,7 @@
 				<tycho.surefire.extra.vmargs>-XstartOnFirstThread</tycho.surefire.extra.vmargs>
 			</properties>
 		</profile>
-				
+
 		<profile>
 			<id>eclipse-sign</id>
 			<build>
@@ -377,7 +396,7 @@
 				</plugin>
 
 				<plugin>
-					<groupId>com.nickwongdev</groupId>
+					<groupId>dev.aspectj</groupId>
 					<artifactId>aspectj-maven-plugin</artifactId>
 					<version>${aspectj-maven-compiler-version}</version>
 					<executions>

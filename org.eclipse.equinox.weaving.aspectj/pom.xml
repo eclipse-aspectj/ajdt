@@ -5,7 +5,7 @@ All rights reserved. This program and the accompanying materials
 are made available under the terms of the Eclipse Distribution License v1.0
 which accompanies this distribution, and is available at
 http://www.eclipse.org/org/documents/edl-v10.php
- 
+
 Contributors:
 Igor Fedorenko - initial implementation
 -->
@@ -38,7 +38,7 @@ Igor Fedorenko - initial implementation
 			</plugin>
 
 			<plugin>
-				<groupId>com.nickwongdev</groupId>
+				<groupId>dev.aspectj</groupId>
 				<artifactId>aspectj-maven-plugin</artifactId>
 			</plugin>
 
