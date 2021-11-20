@@ -2,9 +2,9 @@
  * Copyright (c) 2002-2010 Contributors
  * All rights reserved.
  * This program and the accompanying materials are made available
- * under the terms of the Eclipse Public License v1.0
+ * under the terms of the Eclipse Public License v 2.0
  * which accompanies this distribution and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
  *
  * Contributors:
  *     PARC                 initial implementation
@@ -754,7 +754,11 @@ public final class LazyClassGen {
 		// are required (unless turning off the verifier)
 		if ((myGen.getMajor() == Constants.MAJOR_1_6 && world.shouldGenerateStackMaps()) || myGen.getMajor() > Constants.MAJOR_1_6) {
 			if (!AsmDetector.isAsmAround) {
-				throw new BCException("Unable to find Asm for stackmap generation (Looking for 'aj.org.objectweb.asm.ClassReader'). Stackmap generation for woven code is required to avoid verify errors on a Java 1.7 or higher runtime");
+				throw new BCException(
+					"Unable to find ASM classes (" + AsmDetector.CLASS_READER + ", " + AsmDetector.CLASS_VISITOR + ") " +
+						"for stackmap generation. Stackmap generation for woven code is required to avoid verify errors " +
+						"on a Java 1.7 or higher runtime."
+				);
 			}
 			wovenClassFileData = StackMapAdder.addStackMaps(world, wovenClassFileData);
 		}

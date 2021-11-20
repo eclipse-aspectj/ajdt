@@ -13,8 +13,6 @@
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.core;
 
-import org.aspectj.org.eclipse.jdt.core.IJavaElement;
-
 
 public class BinaryLambdaExpression extends LambdaExpression {
 
@@ -31,7 +29,7 @@ public class BinaryLambdaExpression extends LambdaExpression {
 	}
 
 	@Override
-	public IJavaElement getPrimaryElement(boolean checkOwner) {
+	public JavaElement getPrimaryElement(boolean checkOwner) {
 		return this;
 	}
 

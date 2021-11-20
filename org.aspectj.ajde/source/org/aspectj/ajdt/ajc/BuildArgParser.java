@@ -2,9 +2,9 @@
  * Copyright (c) 2002 Palo Alto Research Center, Incorporated (PARC).
  * All rights reserved.
  * This program and the accompanying materials are made available
- * under the terms of the Eclipse Public License v1.0
+ * under the terms of the Eclipse Public License v 2.0
  * which accompanies this distribution and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
  *
  * Contributors:
  *     PARC     initial implementation
@@ -413,6 +413,10 @@ public class BuildArgParser extends Main {
 		// ??? eclipse seems to put outdir on the classpath
 		// ??? we're brave and believe we don't need it
 		return ret;
+	}
+
+	public FileSystem.Classpath[] getCheckedClasspaths() {
+		return checkedClasspaths;
 	}
 
 	private void addExtDirs(String extdirs, List classpathCollector) {

@@ -1,10 +1,10 @@
 /********************************************************************
- * Copyright (c) 2010 Contributors. All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://eclipse.org/legal/epl-v10.html 
- *  
+ * Copyright (c) 2010 Contributors. All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
  * Contributors: Nieraj Singh - initial implementation
  *******************************************************************/
 package org.aspectj.org.eclipse.jdt.core.dom;
@@ -16,8 +16,8 @@ public class OrTypePattern extends AbstractBooleanTypePattern {
 	public static final String OR_OPERATOR = "||";
 
 	OrTypePattern(AST ast,
-			org.aspectj.org.eclipse.jdt.core.dom.TypePattern left,
-			org.aspectj.org.eclipse.jdt.core.dom.TypePattern right) {
+			AbstractTypePattern left,
+			AbstractTypePattern right) {
 		super(ast, left, right, OR_OPERATOR);
 	}
 
@@ -27,7 +27,7 @@ public class OrTypePattern extends AbstractBooleanTypePattern {
 
 	ASTNode clone0(AST target) {
 		OrTypePattern cloned = new OrTypePattern(target,
-				(TypePattern) getLeft().clone(target), (TypePattern) getRight()
+				(AbstractTypePattern) getLeft().clone(target), (AbstractTypePattern) getRight()
 						.clone(target));
 		cloned.setSourceRange(getStartPosition(), getLength());
 		return cloned;

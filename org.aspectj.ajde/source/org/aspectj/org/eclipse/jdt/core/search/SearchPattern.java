@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2020 IBM Corporation and others.
+ * Copyright (c) 2000, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -18,8 +18,18 @@ import java.util.regex.Pattern;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
-import org.aspectj.org.eclipse.jdt.core.*;
-import org.aspectj.org.eclipse.jdt.core.compiler.*;
+import org.aspectj.org.eclipse.jdt.core.IField;
+import org.aspectj.org.eclipse.jdt.core.IImportDeclaration;
+import org.aspectj.org.eclipse.jdt.core.IJavaElement;
+import org.aspectj.org.eclipse.jdt.core.IMember;
+import org.aspectj.org.eclipse.jdt.core.IMethod;
+import org.aspectj.org.eclipse.jdt.core.IModularClassFile;
+import org.aspectj.org.eclipse.jdt.core.IType;
+import org.aspectj.org.eclipse.jdt.core.ITypeParameter;
+import org.aspectj.org.eclipse.jdt.core.JavaModelException;
+import org.aspectj.org.eclipse.jdt.core.Signature;
+import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
+import org.aspectj.org.eclipse.jdt.core.compiler.InvalidInputException;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.AccessRuleSet;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.Scanner;
@@ -33,7 +43,22 @@ import org.aspectj.org.eclipse.jdt.internal.core.search.IndexQueryRequestor;
 import org.aspectj.org.eclipse.jdt.internal.core.search.JavaSearchScope;
 import org.aspectj.org.eclipse.jdt.internal.core.search.StringOperation;
 import org.aspectj.org.eclipse.jdt.internal.core.search.indexing.IIndexConstants;
-import org.aspectj.org.eclipse.jdt.internal.core.search.matching.*;
+import org.aspectj.org.eclipse.jdt.internal.core.search.indexing.QualifierQuery;
+import org.aspectj.org.eclipse.jdt.internal.core.search.matching.AndPattern;
+import org.aspectj.org.eclipse.jdt.internal.core.search.matching.ConstructorPattern;
+import org.aspectj.org.eclipse.jdt.internal.core.search.matching.FieldPattern;
+import org.aspectj.org.eclipse.jdt.internal.core.search.matching.LocalVariablePattern;
+import org.aspectj.org.eclipse.jdt.internal.core.search.matching.MatchLocator;
+import org.aspectj.org.eclipse.jdt.internal.core.search.matching.MethodPattern;
+import org.aspectj.org.eclipse.jdt.internal.core.search.matching.ModulePattern;
+import org.aspectj.org.eclipse.jdt.internal.core.search.matching.OrPattern;
+import org.aspectj.org.eclipse.jdt.internal.core.search.matching.PackageDeclarationPattern;
+import org.aspectj.org.eclipse.jdt.internal.core.search.matching.PackageReferencePattern;
+import org.aspectj.org.eclipse.jdt.internal.core.search.matching.QualifiedTypeDeclarationPattern;
+import org.aspectj.org.eclipse.jdt.internal.core.search.matching.SuperTypeReferencePattern;
+import org.aspectj.org.eclipse.jdt.internal.core.search.matching.TypeDeclarationPattern;
+import org.aspectj.org.eclipse.jdt.internal.core.search.matching.TypeParameterPattern;
+import org.aspectj.org.eclipse.jdt.internal.core.search.matching.TypeReferencePattern;
 
 
 /**
@@ -266,6 +291,21 @@ public abstract class SearchPattern {
 	public IJavaElement focus;
 
 	/**
+	 * The encoded index qualifier query which is used to narrow down number of indexes to search based on the qualifier.
+	 * This is optional. In absence all indexes provided by scope will be searched.
+	 * <br>
+	 * The encoded query format is as following
+	 * <pre>
+	 * CATEGORY1[,CATEGORY2]:SIMPLE_KEY:QUALIFIED_KEY
+	 * </pre>
+	 * if the category is not provided, then the index qualifier search will be done for all type of qualifiers.
+	 *
+	 * @noreference This field is not intended to be referenced by clients.
+	 * @see QualifierQuery#encodeQuery(org.aspectj.org.eclipse.jdt.internal.core.search.indexing.QualifierQuery.QueryCategory[], char[], char[])
+	 */
+	public char[] indexQualifierQuery;
+
+	/**
 	 * @noreference This field is not intended to be referenced by clients.
 	 */
 	public int kind;
@@ -341,7 +381,7 @@ public void acceptMatch(String relativePath, String containerPath, char separato
 		// Note that requestor has to verify if needed whether the document violates the access restriction or not
 		AccessRuleSet access = javaSearchScope.getAccessRuleSet(relativePath, containerPath);
 		if (access != JavaSearchScope.NOT_ENCLOSED) { // scope encloses the document path
-			StringBuffer documentPath = new StringBuffer(containerPath.length() + 1 + relativePath.length());
+			StringBuilder documentPath = new StringBuilder(containerPath.length() + 1 + relativePath.length());
 			documentPath.append(containerPath);
 			documentPath.append(separator);
 			documentPath.append(relativePath);
@@ -349,7 +389,7 @@ public void acceptMatch(String relativePath, String containerPath, char separato
 				throw new OperationCanceledException();
 		}
 	} else {
-		StringBuffer buffer = new StringBuffer(containerPath.length() + 1 + relativePath.length());
+		StringBuilder buffer = new StringBuilder(containerPath.length() + 1 + relativePath.length());
 		buffer.append(containerPath);
 		buffer.append(separator);
 		buffer.append(relativePath);
@@ -2029,6 +2069,28 @@ public static SearchPattern createPattern(IJavaElement element, int limitTo, int
 					typeSignature,
 					limitTo,
 					matchRule);
+
+			//If field is record's component, create a OR pattern comprising of record's component and its accessor methods
+			IType declaringType = field.getDeclaringType();
+			try {
+				if( declaringType.isRecord()){
+					MethodPattern accessorMethodPattern = new MethodPattern(name,
+							declaringQualification,
+							declaringSimpleName,
+							typeQualification,
+							typeSimpleName,
+							null,
+							null,
+							field.getDeclaringType(),
+							limitTo,
+							matchRule);
+
+					searchPattern= new OrPattern(searchPattern,accessorMethodPattern);
+				}
+			} catch (JavaModelException e1) {
+			// continue with previous searchPattern
+			}
+
 			break;
 		case IJavaElement.IMPORT_DECLARATION :
 			String elementName = element.getElementName();

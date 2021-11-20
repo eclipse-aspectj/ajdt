@@ -1,14 +1,14 @@
 /* *******************************************************************
- * Copyright (c) 1999-2001 Xerox Corporation, 
+ * Copyright (c) 1999-2001 Xerox Corporation,
  *               2002 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     Xerox/PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     Xerox/PARC     initial implementation
  *     Mik Kersten	  port to AspectJ 1.1+ code base
  * ******************************************************************/
 
@@ -22,17 +22,25 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Hashtable;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.StringTokenizer;
+import java.util.Vector;
 
 import org.aspectj.asm.AsmManager;
 import org.aspectj.bridge.IMessage;
 import org.aspectj.bridge.Version;
 import org.aspectj.util.FileUtil;
+import org.aspectj.util.LangUtil;
 
 /**
  * This is an old implementation of ajdoc that does not use an OO style. However, it does the job, and should serve to evolve a
  * lightweight ajdoc implementation until we can make a properly extended javadoc implementation.
- * 
+ *
  * @author Mik Kersten
  */
 public class Main implements Config {
@@ -256,8 +264,10 @@ public class Main implements Config {
 			for (int k = 0; k < fileList.size(); k++) {
 				javadocargs[numExtraArgs + options.size() + packageList.size() + k] = fileList.elementAt(k);
 			}
-			options = new Vector<>();
-			Collections.addAll(options, javadocargs);
+			if (LangUtil.is9VMOrGreater()) {
+				options = new Vector<>();
+				Collections.addAll(options, javadocargs);
+			}
 		} else {
 			javadocargs = new String[options.size() + signatureFiles.length];
 			for (int k = 0; k < options.size(); k++) {
@@ -270,7 +280,11 @@ public class Main implements Config {
 				files.add(StructureUtil.translateAjPathName(signatureFile.getCanonicalPath()));
 			}
 		}
-		JavadocRunner.callJavadocViaToolProvider(options, files);
+		if (LangUtil.is9VMOrGreater()) {
+			JavadocRunner.callJavadocViaToolProvider(options, files);
+		} else {
+			JavadocRunner.callJavadoc(javadocargs);
+		}
 	}
 
 	/**
@@ -767,9 +781,9 @@ public class Main implements Config {
 	/* This section of code handles errors that occur during compilation */
 	static final String internalErrorMessage = "                                                                  \n"
 			+ "If this has not already been logged as a bug raised please raise  \n"
-			+ "a new AspectJ bug at https://bugs.eclipse.org/bugs including the  \n"
-			+ "text below. To make the bug a priority, please also include a test\n"
-			+ "program that can reproduce this problem.\n ";
+			+ "a new AspectJ bug at https://github.com/eclipse/org.aspectj/issues \n"
+			+ "including the text below. To make the bug a priority, please also \n"
+			+ "include a test program that can reproduce this problem.\n ";
 
 	static public void handleInternalError(Throwable uncaughtThrowable) {
 		System.err.println("An internal error occured in ajdoc");

@@ -31,7 +31,23 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
-import org.aspectj.org.eclipse.jdt.core.*;
+import org.aspectj.org.eclipse.jdt.core.CompletionRequestor;
+import org.aspectj.org.eclipse.jdt.core.IBuffer;
+import org.aspectj.org.eclipse.jdt.core.IClassFile;
+import org.aspectj.org.eclipse.jdt.core.IClasspathEntry;
+import org.aspectj.org.eclipse.jdt.core.ICodeAssist;
+import org.aspectj.org.eclipse.jdt.core.ICompilationUnit;
+import org.aspectj.org.eclipse.jdt.core.IJavaElement;
+import org.aspectj.org.eclipse.jdt.core.IJavaModelStatusConstants;
+import org.aspectj.org.eclipse.jdt.core.IMember;
+import org.aspectj.org.eclipse.jdt.core.IOrdinaryClassFile;
+import org.aspectj.org.eclipse.jdt.core.IPackageFragmentRoot;
+import org.aspectj.org.eclipse.jdt.core.IType;
+import org.aspectj.org.eclipse.jdt.core.ITypeRoot;
+import org.aspectj.org.eclipse.jdt.core.JavaCore;
+import org.aspectj.org.eclipse.jdt.core.JavaModelException;
+import org.aspectj.org.eclipse.jdt.core.Signature;
+import org.aspectj.org.eclipse.jdt.core.WorkingCopyOwner;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileReader;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFormatException;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ExternalAnnotationDecorator;
@@ -40,10 +56,8 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryType;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IDependent;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IModule;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.SuffixConstants;
-import org.aspectj.org.eclipse.jdt.internal.core.nd.java.JavaNames;
 import org.aspectj.org.eclipse.jdt.internal.core.nd.java.model.BinaryTypeDescriptor;
 import org.aspectj.org.eclipse.jdt.internal.core.nd.java.model.BinaryTypeFactory;
-import org.aspectj.org.eclipse.jdt.internal.core.nd.util.CharArrayUtils;
 import org.aspectj.org.eclipse.jdt.internal.core.util.MementoTokenizer;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
 
@@ -253,8 +267,8 @@ private IBinaryType getJarBinaryTypeInfo() throws CoreException, IOException, Cl
 		if (entry != null) {
 			PackageFragment pkg = (PackageFragment) getParent();
 			String entryName = Util.concatWith(pkg.names, getElementName(), '/');
-			entryName = new String(CharArrayUtils.concat(
-					JavaNames.fieldDescriptorToBinaryName(descriptor.fieldDescriptor), SuffixConstants.SUFFIX_CLASS));
+			entryName = new String(Util.concat(
+					BinaryTypeFactory.fieldDescriptorToBinaryName(descriptor.fieldDescriptor), SuffixConstants.SUFFIX_CLASS));
 			IProject project = javaProject.getProject();
 			IPath externalAnnotationPath = ClasspathEntry.getExternalAnnotationPath(entry, project, false); // unresolved for use in ExternalAnnotationTracker
 			if (externalAnnotationPath != null) {
@@ -340,7 +354,7 @@ public void close() throws JavaModelException {
  * @see IMember
  */
 @Override
-public IClassFile getClassFile() {
+public ClassFile getClassFile() {
 	return this;
 }
 /**

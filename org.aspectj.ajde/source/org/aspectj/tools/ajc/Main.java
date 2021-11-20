@@ -1,13 +1,13 @@
 /* *******************************************************************
  * Copyright (c) 2002 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     PARC     initial implementation
  * ******************************************************************/
 
 package org.aspectj.tools.ajc;
@@ -44,19 +44,19 @@ import org.aspectj.weaver.Dump;
  * error stream.
  * <p>
  * Clients can handle all messages by registering a holder:
- * 
+ *
  * <pre>
  * Main main = new Main();
  * IMessageHolder holder = new MessageHandler();
  * main.setHolder(holder);
  * </pre>
- * 
+ *
  * Clients can get control after each command completes by installing a Runnable:
- * 
+ *
  * <pre>
  * main.setCompletionRunner(new Runnable() {..});
  * </pre>
- * 
+ *
  */
 public class Main {
 	/** Header used when rendering exceptions for users */
@@ -88,7 +88,7 @@ public class Main {
 	 * Convenience method to run ajc and collect String lists of messages. This can be reflectively invoked with the List collecting
 	 * parameters supplied by a parent class loader. The String messages take the same form as command-line messages.
 	 * This method does not catch unchecked exceptions thrown by the compiler.
-	 * 
+	 *
 	 * @param args the String[] args to pass to the compiler
 	 * @param useSystemExit if true and errors, return System.exit(errs)
 	 * @param fails the List sink, if any, for String failure (or worse) messages
@@ -98,7 +98,10 @@ public class Main {
 	 * @param usages the List sink, if any, for String usage messages
 	 * @return number of messages reported with level ERROR or above
 	 */
-	public static int bareMain(String[] args, boolean useSystemExit, List fails, List errors, List warnings, List infos, List usages) {
+	public static int bareMain(
+		String[] args, boolean useSystemExit,
+		List<String> fails, List<String> errors, List<String> warnings, List<String> infos, List<String> usages
+	) {
 		Main main = new Main();
 		MessageHandler holder = new MessageHandler();
 		main.setHolder(holder);
@@ -115,7 +118,7 @@ public class Main {
 	}
 
 	/** Read messages of a given kind into a List as String */
-	private static void readMessages(IMessageHolder holder, IMessage.Kind kind, boolean orGreater, List sink) {
+	private static void readMessages(IMessageHolder holder, IMessage.Kind kind, boolean orGreater, List<String> sink) {
 		if ((null == sink) || (null == holder)) {
 			return;
 		}
@@ -157,7 +160,7 @@ public class Main {
 		if (0 < sink.length()) {
 			sink.append(", ");
 		}
-		sink.append(numItems + " ");
+		sink.append(numItems).append(" ");
 		if (!LangUtil.isEmpty(label)) {
 			sink.append(label);
 		}
@@ -217,7 +220,7 @@ public class Main {
 	/**
 	 * Run without throwing exceptions but optionally using System.exit(..). This sets up a message handler which emits messages
 	 * immediately, so report(boolean, IMessageHandler) only reports total number of errors or warnings.
-	 * 
+	 *
 	 * @param args the String[] command line for the compiler
 	 * @param useSystemExit if true, use System.exit(int) to complete unless one of the args is -noExit. and signal result (0 no
 	 *        exceptions/error, &lt;0 exceptions, &gt;0 compiler errors).
@@ -308,21 +311,20 @@ public class Main {
 	/**
 	 * Run without using System.exit(..), putting all messages in holder:
 	 * <ul>
-	 * <li>ERROR: compiler error</li>
-	 * <li>WARNING: compiler warning</li>
-	 * <li>FAIL: command error (bad arguments, exception thrown)</li>
+	 *   <li>ERROR: compiler error</li>
+	 *   <li>WARNING: compiler warning</li>
+	 *   <li>FAIL: command error (bad arguments, exception thrown)</li>
 	 * </ul>
 	 * This handles incremental behavior:
 	 * <ul>
-	 * <li>If args include "-incremental", repeat for every input char until 'q' is entered.
-	 * <li>
-	 * <li>If args include "-incrementalTagFile {file}", repeat every time we detect that {file} modification time has changed.</li>
-	 * <li>Either way, list files recompiled each time if args includes "-verbose".</li>
-	 * <li>Exit when the commmand/compiler throws any Throwable.</li>
+	 *   <li>If args include "-incremental", repeat for every input char until 'q' is entered.
+	 *   <li>If args include "-incrementalTagFile {file}", repeat every time we detect that {file} modification time has changed.</li>
+	 *   <li>Either way, list files recompiled each time if args includes "-verbose".</li>
+	 *   <li>Exit when the commmand/compiler throws any Throwable.</li>
 	 * </ul>
 	 * When complete, this contains all the messages of the final run of the command and/or any FAIL messages produced in running
 	 * the command, including any Throwable thrown by the command itself.
-	 * 
+	 *
 	 * @param args the String[] command line for the compiler
 	 * @param holder the MessageHandler sink for messages.
 	 */
@@ -341,7 +343,7 @@ public class Main {
 				fail(holder, "Couldn't open log file: " + logFileName, e);
 			}
 			Date now = new Date();
-			logStream.println(now.toString());
+			logStream.println(now);
 			if (flagInArgs("-verbose", args)) {
 				ourHandler.setInterceptor(new LogModeMessagePrinter(true, logStream));
 			} else {
@@ -409,7 +411,6 @@ public class Main {
 		} finally {
 			if (logStream != null) {
 				logStream.close();
-				logStream = null;
 			}
 			if (fos != null) {
 				try {
@@ -417,7 +418,6 @@ public class Main {
 				} catch (IOException e) {
 					fail(holder, "unexpected exception", e);
 				}
-				fos = null;
 			}
 			command = null;
 		}
@@ -430,7 +430,7 @@ public class Main {
 
 	/**
 	 * Set holder to be passed all messages. When holder is set, messages will not be printed by default.
-	 * 
+	 *
 	 * @param holder the IMessageHolder sink for all messages (use null to restore default behavior)
 	 */
 	public void setHolder(IMessageHolder holder) {
@@ -443,7 +443,7 @@ public class Main {
 
 	/**
 	 * Install a Runnable to be invoked synchronously after each compile completes.
-	 * 
+	 *
 	 * @param runner the Runnable to invoke - null to disable
 	 */
 	public void setCompletionRunner(Runnable runner) {
@@ -452,7 +452,7 @@ public class Main {
 
 	/**
 	 * Call System.exit(int) with values derived from the number of failures/aborts or errors in messages.
-	 * 
+	 *
 	 * @param messages the IMessageHolder to interrogate.
 	 */
 	protected void systemExit(IMessageHolder messages) {
@@ -466,7 +466,7 @@ public class Main {
 		}
 		System.exit(0);
 	}
-	
+
 
 	/** Messages to the user */
 	protected void outMessage(String message) { // XXX coordinate with MessagePrinter
@@ -478,10 +478,10 @@ public class Main {
 	 * Report results from a (possibly-incremental) compile run. This delegates to any reportHandler or otherwise prints summary
 	 * counts of errors/warnings to System.err (if any errors) or System.out (if only warnings). WARNING: this silently ignores
 	 * other messages like FAIL, but clears the handler of all messages when returning true. XXX false
-	 * 
+	 *
 	 * This implementation ignores the pass parameter but clears the holder after reporting on the assumption messages were
 	 * handled/printed already. (ignoring UnsupportedOperationException from holder.clearMessages()).
-	 * 
+	 *
 	 * @param pass true result of the command
 	 * @param holder IMessageHolder with messages from the command
 	 * @return false if the process should abort
@@ -503,7 +503,7 @@ public class Main {
 			if (0 < sb.length()) {
 				PrintStream out = (0 < (lastErrors + lastFails) ? System.err : System.out);
 				out.println(""); // XXX "wrote class file" messages no eol?
-				out.println(sb.toString());
+				out.println(sb);
 			}
 		}
 		return result;
@@ -530,7 +530,7 @@ public class Main {
 
 		/**
 		 * Print errors and warnings to System.err, and optionally info to System.out, rendering message String only.
-		 * 
+		 *
 		 * @return false always
 		 */
 		@Override
@@ -547,7 +547,7 @@ public class Main {
 		/**
 		 * Render message differently. If abort, then prefix stack trace with feedback request. If the actual message is empty, then
 		 * use toString on the whole. Prefix message part with file:line; If it has context, suffix message with context.
-		 * 
+		 *
 		 * @param message the IMessage to render
 		 * @return String rendering IMessage (never null)
 		 */
@@ -576,7 +576,7 @@ public class Main {
 						}
 						int col = loc.getColumn();
 						if (0 < col) {
-							sb.append(":" + col);
+							sb.append(":").append(col);
 						}
 						sb.append(" ");
 					}
@@ -624,7 +624,7 @@ public class Main {
 
 		/**
 		 * No-op
-		 * 
+		 *
 		 * @see org.aspectj.bridge.IMessageHandler#isIgnoring(org.aspectj.bridge.IMessage.Kind)
 		 * @param kind
 		 */
@@ -652,7 +652,7 @@ public class Main {
 
 		/**
 		 * No-op
-		 * 
+		 *
 		 * @see org.aspectj.bridge.IMessageHandler#ignore(org.aspectj.bridge.IMessage.Kind)
 		 * @param kind
 		 */
@@ -697,8 +697,10 @@ public class Main {
 		public static long DEFAULT_DELAY = 1000 * 5;
 
 		/** @see init(String[]) */
-		private static String[][] OPTIONS = new String[][] { new String[] { INCREMENTAL_OPTION },
-				new String[] { TAG_FILE_OPTION, null } };
+		private static final String[][] OPTIONS = new String[][] {
+			new String[] { INCREMENTAL_OPTION },
+			new String[] { TAG_FILE_OPTION, null }
+		};
 
 		/** true between init(String[]) and doRepeatCommand() that returns false */
 		private boolean running;

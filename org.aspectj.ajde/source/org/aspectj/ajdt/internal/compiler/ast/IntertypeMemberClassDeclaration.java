@@ -1,12 +1,12 @@
 /* *******************************************************************
  * Copyright (c) 2010 Contributors
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
  *     Andy Clement - SpringSource
  * ******************************************************************/
 package org.aspectj.ajdt.internal.compiler.ast;
@@ -36,7 +36,7 @@ import org.aspectj.weaver.ResolvedTypeMunger;
 
 /**
  * Represents an intertype member class declaration.
- * 
+ *
  * @author Andy Clement
  * @since 1.6.9
  */
@@ -203,7 +203,8 @@ public class IntertypeMemberClassDeclaration extends TypeDeclaration {
 			// this is the original version in case tricking the JDT causes grief (if you reinstate this variant, you
 			// will need to change the expected messages output for some of the generic ITD tests)
 			// scope.isStatic = Modifier.isStatic(declaredModifiers);
-			scope.parent = interTypeScope;
+			// Use setter in order to also update member 'compilationUnitScope'
+			scope.setParent(interTypeScope);
 		}
 		scopeSetup = true;
 	}
