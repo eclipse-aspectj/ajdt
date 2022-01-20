@@ -53,7 +53,7 @@
 					<useUIHarness>true</useUIHarness>
 					<forkedProcessTimeoutInSeconds>7200</forkedProcessTimeoutInSeconds>
 					<showEclipseLog>true</showEclipseLog>
-					<argLine>-Xmx1024m -XX:MaxPermSize=256m ${tycho.surefire.extra.vmargs}</argLine>
+					<argLine>-Xmx1024m ${tycho.surefire.extra.vmargs}</argLine>
 
 					<testClass>org.eclipse.ajdt.core.tests.AllCoreTests</testClass>
 
