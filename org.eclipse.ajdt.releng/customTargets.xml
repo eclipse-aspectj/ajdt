@@ -188,9 +188,9 @@
 			token="92.2.29" value="${ajde.version}"/>
 		<replace file="${buildDirectory}/features/org.aspectj/feature.xml"
 			token="92.2.29" value="${ajde.version}"/>
-		<!-- 
+		<!--
 		 These property files are not available at this point
-		 If we ever need these files, these should be set later 
+		 If we ever need these files, these should be set later
 		<replace file="${buildDirectory}/finalPluginsVersions.properties"
 			token="92.2.29" value="${ajde.version}"/>
 		<replace file="${buildDirectory}/finalPluginsVersions.ANY_ANY_ANY.properties"
@@ -201,8 +201,8 @@
 	</target>
 
 	<target name="create-p2-inf-for-equinox-weavings" description="Creates the p2.inf file for equinox aspects to that it is auto-started">
-		<copy file="${workdir}/org.eclipse.ajdt.releng/provisioning_support/p2.inf" 
-			toDir="${buildDirectory}/plugins/org.eclipse.equinox.weaving.aspectj/META-INF" 
+		<copy file="${workdir}/org.eclipse.ajdt.releng/provisioning_support/p2.inf"
+			toDir="${buildDirectory}/plugins/org.eclipse.equinox.weaving.aspectj/META-INF"
 		  failonerror="true" />
 	</target>
 
@@ -280,8 +280,8 @@
 	</target>
 
 	<!-- ===================================================================== -->
-	<!-- 
-			OK...this is a bit of a hack, but we need to ensure that the EA version number is the same as 
+	<!--
+			OK...this is a bit of a hack, but we need to ensure that the EA version number is the same as
 			the tag that we checked out from CVS.  To do that, we need to go into each of the
 			build.properties files for the EA features, plugins, and fragments and add a 'qualifier' entry
 	 -->
@@ -322,7 +322,7 @@
 
 		<!-- workaround for https://bugs.eclipse.org/bugs/show_bug.cgi?id=369880 can remove when we start building against 4.2 M5 or later.  -->
 		<replace file="${buildDirectory}/plugins/org.eclipse.equinox.weaving.hook/META-INF/MANIFEST.MF"
-			token="Bundle-RequiredExecutionEnvironment: J2SE-1.5" value=""/>
+			token="Bundle-RequiredExecutionEnvironment: JavaSE-1.8" value=""/>
 	</target>
 
 	<!-- ===================================================================== -->

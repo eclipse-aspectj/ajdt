@@ -39,7 +39,7 @@ Require-Bundle: org.eclipse.core.runtime;bundle-version="[3.6.0,4.3.0)",
  org.aspectj.weaver,
  org.eclipse.jdt.apt.core,
  org.eclipse.team.core;bundle-version="3.8.1100"
-Bundle-RequiredExecutionEnvironment: J2SE-1.5
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy;exclude:="org.eclipse.ajdt.core.lazystart"
 Eclipse-AspectBundle: finished
 Import-Package: org.eclipse.jdt.apt.core.internal.util,

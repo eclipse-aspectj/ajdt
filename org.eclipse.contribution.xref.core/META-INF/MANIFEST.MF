@@ -13,6 +13,6 @@ Export-Package: org.eclipse.contribution.xref.core,
 Require-Bundle: org.eclipse.core.runtime,
  org.aspectj.runtime,
  org.eclipse.jdt.core;visibility:=reexport
-Bundle-RequiredExecutionEnvironment: J2SE-1.5
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Eclipse-AspectBundle: finished
