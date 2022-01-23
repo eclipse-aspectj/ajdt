@@ -802,7 +802,7 @@ public class AjState implements CompilerConfigurationChangeFlags, TypeDelegateRe
 
 	@Override
 	public String toString() {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		// null config means failed build i think as it is only set on successful full build?
 		sb.append("AjState(").append((buildConfig == null ? "NULLCONFIG" : buildConfig.getConfigFile().toString())).append(")");
 		return sb.toString();
@@ -993,7 +993,7 @@ public class AjState implements CompilerConfigurationChangeFlags, TypeDelegateRe
 			if (f.exists() && !f.isDirectory() && (f.lastModified() >= lastSuccessfulBuildTime)) {
 				return true;
 			}
-			if (checkClassFiles && f.exists() && f.isDirectory()) {
+			if (checkClassFiles && f.isDirectory()) {
 
 				// We should use here a list/set of directories we know have or have not changed - some kind of
 				// List<File> buildConfig.getClasspathEntriesWithChangedContents()
@@ -1045,7 +1045,7 @@ public class AjState implements CompilerConfigurationChangeFlags, TypeDelegateRe
 			if (f.exists() && !f.isDirectory() && (f.lastModified() >= lastSuccessfulBuildTime)) {
 				return true;
 			}
-			if (checkClassFiles && f.exists() && f.isDirectory()) {
+			if (checkClassFiles && f.isDirectory()) {
 
 				// We should use here a list/set of directories we know have or have not changed - some kind of
 				// List<File> buildConfig.getClasspathEntriesWithChangedContents()
@@ -2189,7 +2189,7 @@ public class AjState implements CompilerConfigurationChangeFlags, TypeDelegateRe
 	// }
 
 	private String stringifySet(Set<?> l) {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		sb.append("{");
 		for (Iterator<?> iter = l.iterator(); iter.hasNext();) {
 			Object el = iter.next();

@@ -280,7 +280,7 @@ public class ValidateAtAspectJAnnotationsVisitor extends ASTVisitor {
 			if (perClause != null && !perClause.equals("")) {
 				ISourceContext context = new EclipseSourceContext(unit.compilationResult, pcLoc[0]);
 				Pointcut pc = new PatternParser(perClause, context).maybeParsePerClause();
-				FormalBinding[] bindings = new FormalBinding[0];
+				FormalBinding[] bindings = FormalBinding.NONE;
 				if (pc != null)
 					pc.resolve(new EclipseScope(bindings, typeDecl.scope));
 			}
@@ -430,9 +430,9 @@ public class ValidateAtAspectJAnnotationsVisitor extends ASTVisitor {
 
 	private FormalBinding[] buildFormalAdviceBindingsFrom(MethodDeclaration mDecl) {
 		if (mDecl.arguments == null)
-			return new FormalBinding[0];
+			return FormalBinding.NONE;
 		if (mDecl.binding == null)
-			return new FormalBinding[0];
+			return FormalBinding.NONE;
 		EclipseFactory factory = EclipseFactory.fromScopeLookupEnvironment(mDecl.scope);
 		String extraArgName = maybeGetExtraArgName();
 		if (extraArgName == null)
@@ -528,6 +528,7 @@ public class ValidateAtAspectJAnnotationsVisitor extends ASTVisitor {
 
 		boolean noValueSupplied = true;
 		boolean containsIfPcd = false;
+		boolean isIfTrueOrFalse = false;
 		int[] pcLocation = new int[2];
 		String pointcutExpression = getStringLiteralFor("value", ajAnnotations.pointcutAnnotation, pcLocation);
 		try {
@@ -538,6 +539,11 @@ public class ValidateAtAspectJAnnotationsVisitor extends ASTVisitor {
 			} else {
 				noValueSupplied = false;
 				pc = new PatternParser(pointcutExpression, context).parsePointcut();
+				if (pc instanceof IfPointcut) {
+					if (((IfPointcut)pc).alwaysFalse() || ((IfPointcut)pc).alwaysTrue()) {
+						isIfTrueOrFalse = true;
+					}
+				}
 			}
 			pcDecl.pointcutDesignator = (pc == null) ? null : new PointcutDesignator(pc);
 			pcDecl.setGenerateSyntheticPointcutMethod();
@@ -592,10 +598,10 @@ public class ValidateAtAspectJAnnotationsVisitor extends ASTVisitor {
 					methodDeclaration.returnType.sourceEnd,
 					"Methods annotated with @Pointcut must return void unless the pointcut contains an if() expression");
 		}
-		if (!returnsBoolean && containsIfPcd) {
+		if (!returnsBoolean && containsIfPcd && !isIfTrueOrFalse) {
 			methodDeclaration.scope.problemReporter().signalError(methodDeclaration.returnType.sourceStart,
 					methodDeclaration.returnType.sourceEnd,
-					"Methods annotated with @Pointcut must return boolean when the pointcut contains an if() expression");
+					"Methods annotated with @Pointcut must return boolean when the pointcut contains an if() expression unless it is if(false) or if(true)");
 		}
 
 		if (methodDeclaration.statements != null && methodDeclaration.statements.length > 0 && !containsIfPcd) {

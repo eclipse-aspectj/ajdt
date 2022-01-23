@@ -60,12 +60,12 @@ public class JDTLikeHandleProvider implements IElementHandleProvider {
 			if (end != -1) {
 				configFile = configFile.substring(start + 1, end);
 			} else {
-				configFile = new StringBuffer("=").append(configFile.substring(start + 1)).toString();
+				configFile = new StringBuilder("=").append(configFile.substring(start + 1)).toString();
 			}
 			ipe.setHandleIdentifier(configFile);
 			return configFile;
 		} else if (ipe.getKind() == IProgramElement.Kind.SOURCE_FOLDER) {
-			StringBuffer sb = new StringBuffer();
+			StringBuilder sb = new StringBuilder();
 			sb.append(createHandleIdentifier(ipe.getParent())).append("/");
 			// pr249216 - escape any embedded slashes
 			String folder = ipe.getName();
@@ -86,7 +86,7 @@ public class JDTLikeHandleProvider implements IElementHandleProvider {
 			parent = ipe.getParent().getParent();
 		}
 
-		StringBuffer handle = new StringBuffer();
+		StringBuilder handle = new StringBuilder();
 		// add the handle for the parent
 		handle.append(createHandleIdentifier(parent));
 		// add the correct delimiter for this ipe
@@ -133,7 +133,7 @@ public class JDTLikeHandleProvider implements IElementHandleProvider {
 		}
 		List<String> sourceRefs = ipe.getParameterSignaturesSourceRefs();
 		List<char[]> parameterTypes = ipe.getParameterSignatures();
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		if (sourceRefs != null) {
 			for (String sourceRef : sourceRefs) {
 				sb.append(HandleProviderDelimiter.getDelimiter(ipe));
@@ -227,7 +227,7 @@ public class JDTLikeHandleProvider implements IElementHandleProvider {
 							String existingHandle = object.getHandleIdentifier();
 							int suffixPosition = existingHandle.indexOf('!');
 							if (suffixPosition != -1) {
-								count = Integer.valueOf(existingHandle.substring(suffixPosition + 1)) + 1;
+								count = Integer.parseInt(existingHandle.substring(suffixPosition + 1)) + 1;
 							} else {
 								if (count == 1) {
 									count = 2;
@@ -279,7 +279,7 @@ public class JDTLikeHandleProvider implements IElementHandleProvider {
 							String existingHandle = object.getHandleIdentifier();
 							int suffixPosition = existingHandle.indexOf('!');
 							if (suffixPosition != -1) {
-								count = Integer.valueOf(existingHandle.substring(suffixPosition + 1)) + 1;
+								count = Integer.parseInt(existingHandle.substring(suffixPosition + 1)) + 1;
 							} else {
 								if (count == 1) {
 									count = 2;
@@ -314,7 +314,7 @@ public class JDTLikeHandleProvider implements IElementHandleProvider {
 							int suffixPosition = existingHandle.lastIndexOf('!');
 							int lastSquareBracket = existingHandle.lastIndexOf('['); // type delimiter
 							if (suffixPosition != -1 && lastSquareBracket < suffixPosition) { // pr260384
-								count = Integer.valueOf(existingHandle.substring(suffixPosition + 1)) + 1;
+								count = Integer.parseInt(existingHandle.substring(suffixPosition + 1)) + 1;
 							} else {
 								if (count == 1) {
 									count = 2;
@@ -334,7 +334,7 @@ public class JDTLikeHandleProvider implements IElementHandleProvider {
 							int suffixPosition = existingHandle.lastIndexOf('!');
 							int lastSquareBracket = existingHandle.lastIndexOf('['); // type delimiter
 							if (suffixPosition != -1 && lastSquareBracket < suffixPosition) { // pr260384
-								count = Integer.valueOf(existingHandle.substring(suffixPosition + 1)) + 1;
+								count = Integer.parseInt(existingHandle.substring(suffixPosition + 1)) + 1;
 							} else {
 								if (count == 1) {
 									count = 2;
@@ -383,7 +383,7 @@ public class JDTLikeHandleProvider implements IElementHandleProvider {
 					String existingHandle = object.getHandleIdentifier();
 					int suffixPosition = existingHandle.indexOf('!');
 					if (suffixPosition != -1) {
-						count = Integer.valueOf(existingHandle.substring(suffixPosition + 1)) + 1;
+						count = Integer.parseInt(existingHandle.substring(suffixPosition + 1)) + 1;
 					} else {
 						if (count == 1) {
 							count = 2;

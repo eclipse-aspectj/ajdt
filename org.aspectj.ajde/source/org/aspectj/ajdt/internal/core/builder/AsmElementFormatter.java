@@ -16,6 +16,7 @@ package org.aspectj.ajdt.internal.core.builder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.StringJoiner;
 
 import org.aspectj.ajdt.internal.compiler.ast.AdviceDeclaration;
 import org.aspectj.ajdt.internal.compiler.ast.DeclareDeclaration;
@@ -70,7 +71,7 @@ public class AsmElementFormatter {
 				node.setCorrespondingType(ad.returnType.toString()); // returnTypeToString(0));
 			}
 
-			StringBuffer details = new StringBuffer();
+			StringBuilder details = new StringBuilder();
 			if (ad.pointcutDesignator != null) {
 				details.append(AsmRelationshipUtils.genPointcutDetails(ad.pointcutDesignator.getPointcut()));
 			} else {
@@ -110,7 +111,7 @@ public class AsmElementFormatter {
 				node.setName(name + AsmRelationshipUtils.DECLARE_PARENTS);
 
 				String kindOfDP = null;
-				StringBuffer details = new StringBuffer("");
+				StringBuilder details = new StringBuilder("");
 				TypePattern[] newParents = dp.getParents().getTypePatterns();
 				for (int i = 0; i < newParents.length; i++) {
 					TypePattern tp = newParents[i];
@@ -248,7 +249,7 @@ public class AsmElementFormatter {
 	}
 
 	private String genDecaLabel(DeclareAnnotation deca) {
-		StringBuffer sb = new StringBuffer("");
+		StringBuilder sb = new StringBuilder("");
 		sb.append(deca.getPatternAsString());
 		sb.append(" : ");
 		sb.append(deca.getAnnotationString());
@@ -256,14 +257,11 @@ public class AsmElementFormatter {
 	}
 
 	private String genPrecedenceListLabel(TypePatternList list) {
-		String tpList = "";
+		StringJoiner tpList = new StringJoiner(", ");
 		for (int i = 0; i < list.size(); i++) {
-			tpList += genTypePatternLabel(list.get(i));
-			if (i < list.size() - 1) {
-				tpList += ", ";
-			}
+			tpList.add(genTypePatternLabel(list.get(i)));
 		}
-		return tpList;
+		return tpList.toString();
 	}
 
 	// private String genArguments(MethodDeclaration md) {
@@ -284,7 +282,7 @@ public class AsmElementFormatter {
 
 	private String handleSigForReference(TypeReference ref, TypeBinding tb, MethodScope scope) {
 		try {
-			StringBuffer sb = new StringBuffer();
+			StringBuilder sb = new StringBuilder();
 			createHandleSigForReference(ref, tb, scope, sb);
 			return sb.toString();
 		} catch (Throwable t) {
@@ -299,7 +297,7 @@ public class AsmElementFormatter {
 	 * handle. Whether a type is qualified or unqualified in its source reference is actually reflected in the handle and this code
 	 * allows for that.
 	 */
-	private void createHandleSigForReference(TypeReference ref, TypeBinding tb, MethodScope scope, StringBuffer handleSig) {
+	private void createHandleSigForReference(TypeReference ref, TypeBinding tb, MethodScope scope, StringBuilder handleSig) {
 		if (ref instanceof Wildcard) {
 			Wildcard w = (Wildcard) ref;
 			if (w.bound == null) {

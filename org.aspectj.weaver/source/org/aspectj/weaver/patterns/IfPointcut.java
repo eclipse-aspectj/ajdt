@@ -273,7 +273,7 @@ public class IfPointcut extends Pointcut {
 					} else {
 						if (state.size() == 0 || currentStateIndex > state.size()) {
 							String[] paramNames = testMethod.getParameterNames();
-							StringBuffer errorParameter = new StringBuffer();
+							StringBuilder errorParameter = new StringBuilder();
 							if (paramNames != null) {
 								errorParameter.append(testMethod.getParameterTypes()[i].getName()).append(" ");
 								errorParameter.append(paramNames[i]);
@@ -308,7 +308,7 @@ public class IfPointcut extends Pointcut {
 				}
 			}
 
-			ret = Test.makeAnd(ret, Test.makeCall(testMethod, (Expr[]) args.toArray(new Expr[0])));
+			ret = Test.makeAnd(ret, Test.makeCall(testMethod, (Expr[]) args.toArray(Expr.NONE)));
 
 			// Remember...
 			ifLastMatchedShadowId = shadow.shadowId;
@@ -354,7 +354,7 @@ public class IfPointcut extends Pointcut {
 			ResolvedPointcutDefinition def = bindings.peekEnclosingDefinition();
 			if (def != null) {
 				ResolvedType aspect = inAspect.getWorld().resolve(def.getDeclaringType());
-				for (Iterator memberIter = aspect.getMethods(true, true); memberIter.hasNext();) {
+				for (Iterator<ResolvedMember> memberIter = aspect.getMethods(true, true); memberIter.hasNext();) {
 					ResolvedMember method = (ResolvedMember) memberIter.next();
 					if (def.getName().equals(method.getName())
 							&& def.getParameterTypes().length == method.getParameterTypes().length) {

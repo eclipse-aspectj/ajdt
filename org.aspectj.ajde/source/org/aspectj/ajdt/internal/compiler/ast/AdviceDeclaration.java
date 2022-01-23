@@ -141,9 +141,9 @@ public class AdviceDeclaration extends AjMethodDeclaration {
 
 			// XXX set these correctly
 			formalsUnchangedToProceed = new boolean[baseArgumentCount];
-			proceedCallSignatures = new ResolvedMember[0];
+			proceedCallSignatures = ResolvedMember.NONE;
 			proceedInInners = false;
-			declaredExceptions = new UnresolvedType[0];
+			declaredExceptions = UnresolvedType.NONE;
 
 			for (Proceed call : proceedCalls) {
 				if (call.inInner) {
@@ -308,7 +308,7 @@ public class AdviceDeclaration extends AjMethodDeclaration {
 	}
 
 	private String buildArgNameRepresentation() {
-		StringBuffer args = new StringBuffer();
+		StringBuilder args = new StringBuilder();
 		int numArgsWeCareAbout = getDeclaredParameterCount();
 		if (this.arguments != null) {
 			for (int i = 0; i < numArgsWeCareAbout; i++) {

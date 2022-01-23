@@ -75,7 +75,7 @@ public class DeclareDeclaration extends AjMethodDeclaration {
 			DeclareParents dp = (DeclareParents) declareDecl;
 			String childPattern = dp.getChild().toString();
 			Collection parentPatterns = dp.getParents().getExactTypes();
-			StringBuffer parents = new StringBuffer();
+			StringBuilder parents = new StringBuilder();
 			for (Iterator iter = parentPatterns.iterator(); iter.hasNext();) {
 				UnresolvedType urt = ((UnresolvedType) iter.next());
 				parents.append(urt.getName());
@@ -147,7 +147,7 @@ public class DeclareDeclaration extends AjMethodDeclaration {
 			return null;
 		}
 
-		EclipseScope scope = new EclipseScope(new FormalBinding[0], classScope);
+		EclipseScope scope = new EclipseScope(FormalBinding.NONE, classScope);
 
 		declareDecl.resolve(scope);
 		return declareDecl;
@@ -174,7 +174,7 @@ public class DeclareDeclaration extends AjMethodDeclaration {
 		super.postParse(typeDec);
 		int declareSequenceNumberInType = ((AspectDeclaration) typeDec).declareCounter++;
 		// FIXME asc the name should perhaps include the hashcode of the pattern (type/sig) for binary compatibility reasons!
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		sb.append("ajc$declare");
 		// Declares can choose to provide a piece of the name - to enable
 		// them to be easily distinguised at weave time (e.g. see declare annotation)

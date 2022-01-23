@@ -45,7 +45,7 @@ public class JavaLangTypeToResolvedTypeConverter {
 
 	public ResolvedType fromType(Type type) {
 		if (type instanceof Class) {
-			Class clazz = (Class) type;
+			Class<?> clazz = (Class<?>) type;
 			String name = clazz.getName();
 			/**
 			 * getName() can return:
@@ -87,14 +87,14 @@ public class JavaLangTypeToResolvedTypeConverter {
 			if (inprogressVar != null) {
 				return inprogressVar;
 			}
-			java.lang.reflect.TypeVariable tv = (java.lang.reflect.TypeVariable) type;
+			java.lang.reflect.TypeVariable<?> tv = (java.lang.reflect.TypeVariable<?>) type;
 			TypeVariable rt_tv = new TypeVariable(tv.getName());
 			TypeVariableReferenceType tvrt = new TypeVariableReferenceType(rt_tv, getWorld());
 			typeVariablesInProgress.put(type, tvrt); // record what we are working on, for recursion case
 			Type[] bounds = tv.getBounds();
 			ResolvedType[] resBounds = fromTypes(bounds);
 			ResolvedType upperBound = resBounds[0];
-			ResolvedType[] additionalBounds = new ResolvedType[0];
+			ResolvedType[] additionalBounds = ResolvedType.EMPTY_RESOLVED_TYPE_ARRAY;
 			if (resBounds.length > 1) {
 				additionalBounds = new ResolvedType[resBounds.length - 1];
 				System.arraycopy(resBounds, 1, additionalBounds, 0, additionalBounds.length);

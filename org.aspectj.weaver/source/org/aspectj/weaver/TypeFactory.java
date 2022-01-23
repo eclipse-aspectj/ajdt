@@ -113,7 +113,7 @@ public class TypeFactory {
 				return new UnresolvedType(signature, signatureErasure, UnresolvedType.NONE);
 			} else {
 				int endOfParams = locateMatchingEndAngleBracket(signature, startOfParams);
-				StringBuffer erasureSig = new StringBuffer(signature);
+				StringBuilder erasureSig = new StringBuilder(signature);
 				erasureSig.setCharAt(0, 'L');
 				while (startOfParams != -1) {
 					erasureSig.delete(startOfParams, endOfParams + 1);
@@ -210,7 +210,7 @@ public class TypeFactory {
 				return new UnresolvedType(signature);
 			} else {
 				int endOfParams = locateMatchingEndAngleBracket(signature, leftAngleBracket);
-				StringBuffer erasureSig = new StringBuffer(signature);
+				StringBuilder erasureSig = new StringBuilder(signature);
 				erasureSig.setCharAt(0, 'L');
 				while (leftAngleBracket != -1) {
 					erasureSig.delete(leftAngleBracket, endOfParams + 1);
@@ -275,7 +275,7 @@ public class TypeFactory {
 		return idx;
 	}
 
-	private static int locateFirstBracket(StringBuffer signature) {
+	private static int locateFirstBracket(StringBuilder signature) {
 		int idx = 0;
 		int max = signature.length();
 		while (idx < max) {
@@ -361,7 +361,7 @@ public class TypeFactory {
 	 * something with sig "Pcom/Foo&lt;Ljava/lang/String;&gt;;" signature created = "PSomeType&lt;Pcom/Foo&lt;Ljava/lang/String;&gt;;&gt;;"
 	 */
 	public static UnresolvedType createUnresolvedParameterizedType(String baseTypeSignature, UnresolvedType[] arguments) {
-		StringBuffer parameterizedSig = new StringBuffer();
+		StringBuilder parameterizedSig = new StringBuilder();
 		parameterizedSig.append(ResolvedType.PARAMETERIZED_TYPE_IDENTIFIER);
 		parameterizedSig.append(baseTypeSignature.substring(1, baseTypeSignature.length() - 1));
 		if (arguments.length > 0) {

@@ -34,7 +34,7 @@ public class ReflectionBasedReferenceTypeDelegateFactory {
 	public static ReflectionBasedReferenceTypeDelegate createDelegate(ReferenceType forReferenceType, World inWorld,
 			ClassLoader usingClassLoader) {
 		try {
-			Class c = Class.forName(forReferenceType.getName(), false, usingClassLoader);
+			Class<?> c = Class.forName(forReferenceType.getName(), false, usingClassLoader);
 			ReflectionBasedReferenceTypeDelegate rbrtd = create15Delegate(forReferenceType, c, usingClassLoader, inWorld);
 			if (rbrtd != null) {
 				return rbrtd; // can be null if we didn't find the class the delegate logic loads
@@ -57,7 +57,7 @@ public class ReflectionBasedReferenceTypeDelegateFactory {
 	public static ReflectionBasedReferenceTypeDelegate create14Delegate(ReferenceType forReferenceType, World inWorld,
 			ClassLoader usingClassLoader) {
 		try {
-			Class c = Class.forName(forReferenceType.getName(), false, usingClassLoader);
+			Class<?> c = Class.forName(forReferenceType.getName(), false, usingClassLoader);
 			return new ReflectionBasedReferenceTypeDelegate(c, usingClassLoader, inWorld, forReferenceType);
 		} catch (ClassNotFoundException cnfEx) {
 			return null;
@@ -68,7 +68,7 @@ public class ReflectionBasedReferenceTypeDelegateFactory {
 	private static ReflectionBasedReferenceTypeDelegate create15Delegate(ReferenceType forReferenceType, Class forClass,
 			ClassLoader usingClassLoader, World inWorld) {
 		try {
-			Class delegateClass = Class.forName("org.aspectj.weaver.reflect.Java15ReflectionBasedReferenceTypeDelegate");
+			Class<?> delegateClass = Class.forName("org.aspectj.weaver.reflect.Java15ReflectionBasedReferenceTypeDelegate");
 			ReflectionBasedReferenceTypeDelegate ret = (ReflectionBasedReferenceTypeDelegate) delegateClass.getDeclaredConstructor().newInstance();
 			ret.initialize(forReferenceType, forClass, usingClassLoader, inWorld);
 			return ret;
@@ -92,8 +92,8 @@ public class ReflectionBasedReferenceTypeDelegateFactory {
 
 	private static GenericSignatureInformationProvider createGenericSignatureProvider(World inWorld) {
 		try {
-			Class providerClass = Class.forName("org.aspectj.weaver.reflect.Java15GenericSignatureInformationProvider");
-			Constructor cons = providerClass.getConstructor(new Class[] { World.class });
+			Class<?> providerClass = Class.forName("org.aspectj.weaver.reflect.Java15GenericSignatureInformationProvider");
+			Constructor<?> cons = providerClass.getConstructor(new Class[] { World.class });
 			GenericSignatureInformationProvider ret = (GenericSignatureInformationProvider) cons
 					.newInstance(new Object[] { inWorld });
 			return ret;
@@ -160,8 +160,8 @@ public class ReflectionBasedReferenceTypeDelegateFactory {
 
 	public static ResolvedMember createStaticInitMember(Class forType, World inWorld) {
 		return new ResolvedMemberImpl(org.aspectj.weaver.Member.STATIC_INITIALIZATION, toResolvedType(forType,
-				(IReflectionWorld) inWorld), Modifier.STATIC, UnresolvedType.VOID, "<clinit>", new UnresolvedType[0],
-				new UnresolvedType[0]);
+				(IReflectionWorld) inWorld), Modifier.STATIC, UnresolvedType.VOID, "<clinit>", UnresolvedType.NONE,
+				UnresolvedType.NONE);
 	}
 
 	public static ResolvedMember createResolvedConstructor(Constructor aConstructor, World inWorld) {
@@ -181,7 +181,7 @@ public class ReflectionBasedReferenceTypeDelegateFactory {
 	public static ResolvedMember createResolvedField(Field aField, World inWorld) {
 		ReflectionBasedResolvedMemberImpl ret = new ReflectionBasedResolvedMemberImpl(org.aspectj.weaver.Member.FIELD,
 				toResolvedType(aField.getDeclaringClass(), (IReflectionWorld) inWorld), aField.getModifiers(), toResolvedType(
-						aField.getType(), (IReflectionWorld) inWorld), aField.getName(), new UnresolvedType[0], aField);
+						aField.getType(), (IReflectionWorld) inWorld), aField.getName(), UnresolvedType.NONE, aField);
 		if (inWorld instanceof IReflectionWorld) {
 			ret.setAnnotationFinder(((IReflectionWorld) inWorld).getAnnotationFinder());
 		}
@@ -204,7 +204,7 @@ public class ReflectionBasedReferenceTypeDelegateFactory {
 		}
 	}
 
-	private static ResolvedType toResolvedType(Class aClass, IReflectionWorld aWorld) {
+	private static ResolvedType toResolvedType(Class<?> aClass, IReflectionWorld aWorld) {
 		return aWorld.resolve(aClass);
 	}
 

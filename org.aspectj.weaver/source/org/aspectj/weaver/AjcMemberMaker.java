@@ -140,7 +140,7 @@ public class AjcMemberMaker {
 		// public static a.X ajc$createAspectInstance(java.lang.String)
 		ResolvedMemberImpl rm = new ResolvedMemberImpl(Member.METHOD, declaringType, PUBLIC_STATIC, declaringType, // return value
 				NameMangler.PERTYPEWITHIN_CREATEASPECTINSTANCE_METHOD,
-				new UnresolvedType[] { UnresolvedType.forSignature("Ljava/lang/String;") }, new UnresolvedType[] {});
+				new UnresolvedType[] { UnresolvedType.forSignature("Ljava/lang/String;") }, UnresolvedType.NONE);
 		return rm;
 	}
 
@@ -255,7 +255,7 @@ public class AjcMemberMaker {
 			} else {
 				args = new UnresolvedType[] { fieldDeclaringType };
 			}
-			StringBuffer name = new StringBuffer("ajc$get$");
+			StringBuilder name = new StringBuilder("ajc$get$");
 			name.append(field.getName());
 			return new ResolvedMemberImpl(Member.METHOD, fieldDeclaringType, PUBLIC_STATIC, field.getReturnType(), name.toString(),
 					args);
@@ -289,7 +289,7 @@ public class AjcMemberMaker {
 			} else {
 				args = new UnresolvedType[] { fieldDeclaringType, field.getType() };
 			}
-			StringBuffer name = new StringBuffer("ajc$set$");
+			StringBuilder name = new StringBuilder("ajc$set$");
 			name.append(field.getName());
 			return new ResolvedMemberImpl(Member.METHOD, fieldDeclaringType, PUBLIC_STATIC, UnresolvedType.VOID, name.toString(),
 					args);

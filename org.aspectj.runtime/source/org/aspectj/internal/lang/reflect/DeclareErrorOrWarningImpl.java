@@ -24,7 +24,7 @@ public class DeclareErrorOrWarningImpl implements DeclareErrorOrWarning {
 	private PointcutExpression pc;
 	private String msg;
 	private boolean isError;
-	private AjType declaringType;
+	private AjType<?> declaringType;
 
 	public DeclareErrorOrWarningImpl(String pointcut, String message, boolean isError, AjType decType) {
 		this.pc = new PointcutExpressionImpl(pointcut);
@@ -48,7 +48,7 @@ public class DeclareErrorOrWarningImpl implements DeclareErrorOrWarning {
 	}
 
 	public String toString() {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		sb.append("declare ");
 		sb.append(isError() ? "error : " : "warning : ");
 		sb.append(getPointcutExpression().asString());

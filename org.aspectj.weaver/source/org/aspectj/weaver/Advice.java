@@ -104,7 +104,7 @@ public abstract class Advice extends ShadowMunger {
 		if (signature != null) {
 			bindingParameterTypes = signature.getParameterTypes();
 		} else {
-			bindingParameterTypes = new UnresolvedType[0];
+			bindingParameterTypes = UnresolvedType.NONE;
 		}
 	}
 
@@ -429,7 +429,7 @@ public abstract class Advice extends ShadowMunger {
 
 	@Override
 	public String toString() {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		sb.append("(").append(getKind()).append(extraParametersToString());
 		sb.append(": ").append(pointcut).append("->").append(signature).append(")");
 		return sb.toString();

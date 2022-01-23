@@ -146,7 +146,7 @@ public class StandardPointcutParser {
 	 * @param supportedPointcutKinds a set of PointcutPrimitives this parser should support
 	 * @throws UnsupportedOperationException if the set contains if, cflow, or cflow below
 	 */
-	private StandardPointcutParser(Set/* <PointcutPrimitives> */supportedPointcutKinds, World world) {
+	private StandardPointcutParser(Set<PointcutPrimitive> supportedPointcutKinds, World world) {
 		supportedPrimitives = supportedPointcutKinds;
 		for (Object supportedPointcutKind : supportedPointcutKinds) {
 			PointcutPrimitive element = (PointcutPrimitive) supportedPointcutKind;
@@ -306,7 +306,7 @@ public class StandardPointcutParser {
 		return current;
 	}
 
-	private IScope buildResolutionScope(Class inScope, PointcutParameter[] formalParameters) {
+	private IScope buildResolutionScope(Class<?> inScope, PointcutParameter[] formalParameters) {
 		if (formalParameters == null) {
 			formalParameters = new PointcutParameter[0];
 		}
@@ -342,7 +342,7 @@ public class StandardPointcutParser {
 		}
 	}
 
-	private UnresolvedType toUnresolvedType(Class clazz) {
+	private UnresolvedType toUnresolvedType(Class<?> clazz) {
 		if (clazz.isArray()) {
 			return UnresolvedType.forSignature(clazz.getName().replace('.', '/'));
 		} else {
@@ -485,7 +485,7 @@ public class StandardPointcutParser {
 	}
 
 	private String buildUserMessageFromParserException(String pc, ParserException ex) {
-		StringBuffer msg = new StringBuffer();
+		StringBuilder msg = new StringBuilder();
 		msg.append("Pointcut is not well-formed: expecting '");
 		msg.append(ex.getMessage());
 		msg.append("'");

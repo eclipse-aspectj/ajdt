@@ -117,10 +117,10 @@ public class ClassPath implements Serializable {
 				File file = new File(path);
 
 				try {
-					if (file.exists()) {
-						if (file.isDirectory()) {
-							vec.add(new Dir(path));
-						} else if (file.getName().endsWith("jrt-fs.jar")) { // TODO a bit crude...
+					if (file.isDirectory()) {
+						vec.add(new Dir(path));
+					} else if (file.exists()) {
+						if (file.getName().endsWith("jrt-fs.jar")) { // TODO a bit crude...
 							vec.add(new JImage());
 						} else {
 							vec.add(new Zip(new ZipFile(file)));
@@ -217,7 +217,7 @@ public class ClassPath implements Serializable {
 					list.add(ext_dir.toString() + File.separatorChar + extension);
 		}
 
-		StringBuffer buf = new StringBuffer();
+		StringBuilder buf = new StringBuilder();
 
 		for (Iterator<String> e = list.iterator(); e.hasNext();) {
 			buf.append(e.next());

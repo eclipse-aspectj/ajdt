@@ -71,7 +71,7 @@ public class GenericSignatureParser {
 		this.inputString = sig;
 		tokenStream = tokenize(sig);
 		tokenIndex = 0;
-		FormalTypeParameter[] formals = new FormalTypeParameter[0];
+		FormalTypeParameter[] formals = FormalTypeParameter.NONE;
 		TypeSignature returnType = null;
 		// FormalTypeParameters-opt
 		if (maybeEat("<")) {
@@ -176,7 +176,7 @@ public class GenericSignatureParser {
 	private ClassTypeSignature parseClassTypeSignature() {
 		SimpleClassTypeSignature outerType = null;
 		SimpleClassTypeSignature[] nestedTypes = new SimpleClassTypeSignature[0];
-		StringBuffer ret = new StringBuffer();
+		StringBuilder ret = new StringBuilder();
 		String identifier = eatIdentifier();
 		ret.append(identifier);
 		while (maybeEat("/")) {
@@ -215,7 +215,7 @@ public class GenericSignatureParser {
 	 * Helper method to digest nested types, slightly more complex than necessary to cope with some android related
 	 * incorrect classes (see bug 406167)
 	 */
-	private SimpleClassTypeSignature[] parseNestedTypesHelper(StringBuffer ret) {
+	private SimpleClassTypeSignature[] parseNestedTypesHelper(StringBuilder ret) {
 		boolean brokenSignature = false;
 		SimpleClassTypeSignature[] nestedTypes;
 		List<SimpleClassTypeSignature> nestedTypeList = new ArrayList<>();
@@ -318,7 +318,7 @@ public class GenericSignatureParser {
 		char[] chars = signatureString.toCharArray();
 		int index = 0;
 		List<String> tokens = new ArrayList<>();
-		StringBuffer identifier = new StringBuffer();
+		StringBuilder identifier = new StringBuilder();
 		boolean inParens = false;
 		boolean inArray = false;
 		boolean couldSeePrimitive = false;
@@ -327,32 +327,32 @@ public class GenericSignatureParser {
 			case '<':
 				if (identifier.length() > 0)
 					tokens.add(identifier.toString());
-				identifier = new StringBuffer();
+				identifier = new StringBuilder();
 				tokens.add("<");
 				break;
 			case '>':
 				if (identifier.length() > 0)
 					tokens.add(identifier.toString());
-				identifier = new StringBuffer();
+				identifier = new StringBuilder();
 				tokens.add(">");
 				break;
 			case ':':
 				if (identifier.length() > 0)
 					tokens.add(identifier.toString());
-				identifier = new StringBuffer();
+				identifier = new StringBuilder();
 				tokens.add(":");
 				break;
 			case '/':
 				if (identifier.length() > 0)
 					tokens.add(identifier.toString());
-				identifier = new StringBuffer();
+				identifier = new StringBuilder();
 				tokens.add("/");
 				couldSeePrimitive = false;
 				break;
 			case ';':
 				if (identifier.length() > 0)
 					tokens.add(identifier.toString());
-				identifier = new StringBuffer();
+				identifier = new StringBuilder();
 				tokens.add(";");
 				couldSeePrimitive = true;
 				inArray = false;
@@ -360,7 +360,7 @@ public class GenericSignatureParser {
 			case '^':
 				if (identifier.length() > 0)
 					tokens.add(identifier.toString());
-				identifier = new StringBuffer();
+				identifier = new StringBuilder();
 				tokens.add("^");
 				break;
 			case '+':
@@ -375,7 +375,7 @@ public class GenericSignatureParser {
 			case '.':
 				if (identifier.length() > 0)
 					tokens.add(identifier.toString());
-				identifier = new StringBuffer();
+				identifier = new StringBuilder();
 				couldSeePrimitive = false;
 				tokens.add(".");
 				break;

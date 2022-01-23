@@ -27,7 +27,7 @@ public class GenericSignature {
 		public ClassTypeSignature[] superInterfaceSignatures = ClassTypeSignature.NONE;
 
 		public String toString() {
-			StringBuffer ret = new StringBuffer();
+			StringBuilder ret = new StringBuilder();
 			ret.append(formalTypeParameters.toString());
 			ret.append(superclassSignature.toString());
 			for (ClassTypeSignature superInterfaceSignature : superInterfaceSignatures) {
@@ -38,7 +38,7 @@ public class GenericSignature {
 	}
 
 	public static class MethodTypeSignature {
-		public FormalTypeParameter[] formalTypeParameters = new FormalTypeParameter[0];
+		public FormalTypeParameter[] formalTypeParameters = FormalTypeParameter.NONE;
 		public TypeSignature[] parameters = new TypeSignature[0];
 		public TypeSignature returnType;
 		public FieldTypeSignature[] throwsSignatures = new FieldTypeSignature[0];
@@ -52,7 +52,7 @@ public class GenericSignature {
 		}
 
 		public String toString() {
-			StringBuffer sb = new StringBuffer();
+			StringBuilder sb = new StringBuilder();
 			if (formalTypeParameters.length > 0) {
 				sb.append("<");
 				for (FormalTypeParameter formalTypeParameter : formalTypeParameters) {
@@ -84,7 +84,7 @@ public class GenericSignature {
 		public FieldTypeSignature[] interfaceBounds;
 
 		public String toString() {
-			StringBuffer ret = new StringBuffer();
+			StringBuilder ret = new StringBuilder();
 			ret.append("T");
 			ret.append(identifier);
 			ret.append(":");
@@ -208,7 +208,7 @@ public class GenericSignature {
 		}
 
 		public String toString() {
-			StringBuffer sb = new StringBuffer();
+			StringBuilder sb = new StringBuilder();
 			sb.append(identifier);
 			if (typeArguments.length > 0) {
 				sb.append("<");
@@ -240,7 +240,7 @@ public class GenericSignature {
 		public String toString() {
 			if (isWildcard)
 				return "*";
-			StringBuffer sb = new StringBuffer();
+			StringBuilder sb = new StringBuilder();
 			if (isPlus)
 				sb.append("+");
 			if (isMinus)

@@ -153,7 +153,7 @@ public class Main {
 	 * append nothing if numItems is 0, numItems + label + (numItems > 1? "s" : "") otherwise, prefixing with " " if sink has
 	 * content
 	 */
-	private static void appendNLabel(StringBuffer sink, String label, int numItems) {
+	private static void appendNLabel(StringBuilder sink, String label, int numItems) {
 		if (0 == numItems) {
 			return;
 		}
@@ -496,7 +496,7 @@ public class Main {
 		if (holder == ourHandler) {
 			lastErrors = holder.numMessages(IMessage.ERROR, false);
 			int warnings = holder.numMessages(IMessage.WARNING, false);
-			StringBuffer sb = new StringBuffer();
+			StringBuilder sb = new StringBuilder();
 			appendNLabel(sb, "fail|abort", lastFails);
 			appendNLabel(sb, "error", lastErrors);
 			appendNLabel(sb, "warning", warnings);
@@ -554,7 +554,7 @@ public class Main {
 		public static String render(IMessage message) {
 			// IMessage.Kind kind = message.getKind();
 
-			StringBuffer sb = new StringBuffer();
+			StringBuilder sb = new StringBuilder();
 			String text = message.getMessage();
 			if (text.equals(AbortException.NO_MESSAGE_TEXT)) {
 				text = null;

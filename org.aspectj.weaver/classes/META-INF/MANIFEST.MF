@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
-Created-By: Apache Maven 3.6.3
+Created-By: Apache Maven 3.8.1
 Built-By: alexa
-Build-Jdk: 17
+Build-Jdk: 11.0.11
 Agent-Class: org.aspectj.weaver.loadtime.Agent
 Automatic-Module-Name: org.aspectj.weaver
 Can-Redefine-Classes: true

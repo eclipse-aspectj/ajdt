@@ -353,7 +353,7 @@ public class LangUtil {
 			try {
 				String value = System.getProperty(propertyName);
 				if (null != value) {
-					return Boolean.valueOf(value);
+					return Boolean.parseBoolean(value);
 				}
 			} catch (Throwable t) {
 				// default below
@@ -805,7 +805,7 @@ public class LangUtil {
 		if (LangUtil.isEmpty(in) || LangUtil.isEmpty(sought)) {
 			return in;
 		}
-		StringBuffer result = new StringBuffer();
+		StringBuilder result = new StringBuilder();
 		final int len = sought.length();
 		int start = 0;
 		int loc;
@@ -1510,7 +1510,7 @@ public class LangUtil {
 
 			@Override
 			public String toString() {
-				StringBuffer sb = new StringBuffer();
+				StringBuilder sb = new StringBuilder();
 				append(sb, fromProcess, "process");
 				append(sb, fromOutPipe, " stdout");
 				append(sb, fromErrPipe, " stderr");
@@ -1522,7 +1522,7 @@ public class LangUtil {
 				}
 			}
 
-			private void append(StringBuffer sb, Throwable thrown, String label) {
+			private void append(StringBuilder sb, Throwable thrown, String label) {
 				if (null != thrown) {
 					sb.append("from " + label + ": ");
 					sb.append(LangUtil.renderExceptionShort(thrown));

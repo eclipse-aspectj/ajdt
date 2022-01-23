@@ -349,9 +349,9 @@ public class EclipseSourceType extends AbstractReferenceTypeDelegate {
 			declaredFields.add(factory.makeResolvedMember(f));
 		}
 
-		this.declaredPointcuts = declaredPointcuts.toArray(new ResolvedPointcutDefinition[0]);
-		this.declaredMethods = declaredMethods.toArray(new ResolvedMember[0]);
-		this.declaredFields = declaredFields.toArray(new ResolvedMember[0]);
+		this.declaredPointcuts = declaredPointcuts.toArray(ResolvedPointcutDefinition.NO_POINTCUTS);
+		this.declaredMethods = declaredMethods.toArray(ResolvedMember.NONE);
+		this.declaredFields = declaredFields.toArray(ResolvedMember.NONE);
 	}
 
 	private final static char[] valuesCharArray = "values".toCharArray();
@@ -395,10 +395,10 @@ public class EclipseSourceType extends AbstractReferenceTypeDelegate {
 
 	private FormalBinding[] buildFormalAdviceBindingsFrom(AbstractMethodDeclaration mDecl) {
 		if (mDecl.arguments == null) {
-			return new FormalBinding[0];
+			return FormalBinding.NONE;
 		}
 		if (mDecl.binding == null) {
-			return new FormalBinding[0];
+			return FormalBinding.NONE;
 		}
 		EclipseFactory factory = EclipseFactory.fromScopeLookupEnvironment(mDecl.scope);
 		String extraArgName = "";// maybeGetExtraArgName();
@@ -1147,13 +1147,12 @@ public class EclipseSourceType extends AbstractReferenceTypeDelegate {
 			} else {
 				kind = null;
 			}
-		} else if (binding instanceof SourceTypeBinding) {
+		} else if (binding instanceof SourceTypeBinding && ((SourceTypeBinding)binding).scope != null) {
 			SourceTypeBinding sourceSc = (SourceTypeBinding) binding;
 			if (sourceSc.scope.referenceContext instanceof AspectDeclaration) {
 				// code style
 				kind = ((AspectDeclaration) sourceSc.scope.referenceContext).perClause.getKind();
-			} else { // if (sourceSc.scope.referenceContext instanceof
-				// TypeDeclaration) {
+			} else { // if (sourceSc.scope.referenceContext instanceof TypeDeclaration) {
 				// if @Aspect: perFromSuper, else if @Aspect(..) get from anno
 				// value, else null
 				kind = getPerClauseForTypeDeclaration((sourceSc.scope.referenceContext));
@@ -1198,7 +1197,7 @@ public class EclipseSourceType extends AbstractReferenceTypeDelegate {
 	@Override
 	public TypeVariable[] getTypeVariables() {
 		if (declaration.typeParameters == null) {
-			return new TypeVariable[0];
+			return TypeVariable.NONE;
 		}
 		TypeVariable[] typeVariables = new TypeVariable[declaration.typeParameters.length];
 		for (int i = 0; i < typeVariables.length; i++) {

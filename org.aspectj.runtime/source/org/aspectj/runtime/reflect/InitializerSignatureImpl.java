@@ -20,9 +20,9 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
 
 class InitializerSignatureImpl extends CodeSignatureImpl implements InitializerSignature {
-	private Constructor constructor;
+    private Constructor<?> constructor;
 
-    InitializerSignatureImpl(int modifiers, Class declaringType) {
+    InitializerSignatureImpl(int modifiers, Class<?> declaringType) {
         super(modifiers, Modifier.isStatic(modifiers) ? "<clinit>" : "<init>", declaringType, EMPTY_CLASS_ARRAY,
               EMPTY_STRING_ARRAY, EMPTY_CLASS_ARRAY);
     }
@@ -36,7 +36,7 @@ class InitializerSignatureImpl extends CodeSignatureImpl implements InitializerS
     }
 
     protected String createToString(StringMaker sm) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         buf.append(sm.makeModifiersString(getModifiers()));
         buf.append(sm.makePrimaryTypeName(getDeclaringType(),getDeclaringTypeName()));
         buf.append(".");

@@ -235,7 +235,7 @@ public class Java15ReflectionBasedReferenceTypeDelegate extends ReflectionBasedR
 		return ret;
 	}
 
-	private ResolvedMember createGenericConstructorMember(Constructor forConstructor) {
+	private ResolvedMember createGenericConstructorMember(Constructor<?> forConstructor) {
 		ReflectionBasedResolvedMemberImpl ret = new ReflectionBasedResolvedMemberImpl(org.aspectj.weaver.Member.METHOD,
 				getGenericResolvedType(), forConstructor.getModifiers(),
 				// to return what BCEL returns the return type is void
@@ -250,7 +250,7 @@ public class Java15ReflectionBasedReferenceTypeDelegate extends ReflectionBasedR
 	private ResolvedMember createGenericFieldMember(Field forField) {
 		ReflectionBasedResolvedMemberImpl ret = new ReflectionBasedResolvedMemberImpl(org.aspectj.weaver.Member.FIELD,
 				getGenericResolvedType(), forField.getModifiers(), typeConverter.fromType(forField.getType()), forField.getName(),
-				new UnresolvedType[0], forField);
+				UnresolvedType.NONE, forField);
 		ret.setAnnotationFinder(this.annotationFinder);
 		ret.setGenericSignatureInformationProvider(new Java15GenericSignatureInformationProvider(this.getWorld()));
 		return ret;
@@ -268,7 +268,7 @@ public class Java15ReflectionBasedReferenceTypeDelegate extends ReflectionBasedR
 			} else {
 				parser = new InternalUseOnlyPointcutParser(classLoaderReference.getClassLoader());
 			}
-			Set additionalPointcutHandlers = world.getRegisteredPointcutHandlers();
+			Set<PointcutDesignatorHandler> additionalPointcutHandlers = world.getRegisteredPointcutHandlers();
 			for (Object additionalPointcutHandler : additionalPointcutHandlers) {
 				PointcutDesignatorHandler handler = (PointcutDesignatorHandler) additionalPointcutHandler;
 				parser.registerPointcutDesignatorHandler(handler);

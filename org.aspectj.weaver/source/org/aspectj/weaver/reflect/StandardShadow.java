@@ -44,10 +44,10 @@ public class StandardShadow extends Shadow {
 	private Var[] argsVars = null;
 	private Var atThisVar = null;
 	private Var atTargetVar = null;
-	private Map atArgsVars = new HashMap();
-	private Map withinAnnotationVar = new HashMap();
-	private Map withinCodeAnnotationVar = new HashMap();
-	private Map annotationVar = new HashMap();
+	private Map<ResolvedType, Var[]> atArgsVars = new HashMap<>();
+	private Map<ResolvedType, Var> withinAnnotationVar = new HashMap<>();
+	private Map<ResolvedType, Var> withinCodeAnnotationVar = new HashMap<>();
+	private Map<ResolvedType, Var> annotationVar = new HashMap<>();
 	private AnnotationFinder annotationFinder;
 
 	public static Shadow makeExecutionShadow(World inWorld, java.lang.reflect.Member forMethod, MatchingContext withContext) {
@@ -111,7 +111,7 @@ public class StandardShadow extends Shadow {
 		Kind kind = Shadow.StaticInitialization;
 		if (clinit == -1) {
 			Member clinitMember = new ResolvedMemberImpl(org.aspectj.weaver.Member.STATIC_INITIALIZATION, forType, Modifier.STATIC,
-					UnresolvedType.VOID, "<clinit>", new UnresolvedType[0], new UnresolvedType[0]);
+					UnresolvedType.VOID, "<clinit>", UnresolvedType.NONE, UnresolvedType.NONE);
 			return new StandardShadow(inWorld, kind, clinitMember, null, forType, null, withContext);
 		} else {
 			return new StandardShadow(inWorld, kind, members[clinit], null, forType, null, withContext);

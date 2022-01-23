@@ -168,7 +168,7 @@ class HtmlDecorator {
 		System.out.println("> Decorating " + file.getCanonicalPath() + "...");
 		BufferedReader reader = new BufferedReader(new FileReader(file));
 
-		StringBuffer fileContents = new StringBuffer();
+		StringBuilder fileContents = new StringBuilder();
 		String line = reader.readLine();
 		while (line != null) {
 			fileContents.append(line + "\n");
@@ -283,7 +283,7 @@ class HtmlDecorator {
 					String name = decl.toSignatureString();
 					int classEndIndex = contents.indexOf(name + "</B><DT>");
 					if (classEndIndex != -1) {
-						StringBuffer sb = new StringBuffer(contents.substring(secondClassStartIndex, classEndIndex));
+						StringBuilder sb = new StringBuilder(contents.substring(secondClassStartIndex, classEndIndex));
 						sb.replace(0, 5, "aspect");
 						fileContents.delete(secondClassStartIndex, classEndIndex);
 						fileContents.insert(secondClassStartIndex, sb.toString());
@@ -327,7 +327,7 @@ class HtmlDecorator {
 		fos.close();
 	}
 
-	static void addAspectDocumentation(IProgramElement node, StringBuffer fileBuffer, int index) {
+	static void addAspectDocumentation(IProgramElement node, StringBuilder fileBuffer, int index) {
 		List<IProgramElement> pointcuts = new ArrayList<>();
 		List<IProgramElement> advice = new ArrayList<>();
 		List<IProgramElement> declares = new ArrayList<>();
@@ -381,7 +381,7 @@ class HtmlDecorator {
 		}
 	}
 
-	static void insertDeclarationsSummary(StringBuffer fileBuffer, List decls, String kind, int index) {
+	static void insertDeclarationsSummary(StringBuilder fileBuffer, List decls, String kind, int index) {
 		if (!declsAboveVisibilityExist(decls))
 			return;
 
@@ -479,7 +479,7 @@ class HtmlDecorator {
 		}
 	}
 
-	static void insertDeclarationsDetails(StringBuffer fileBuffer, List decls, String kind, int index) {
+	static void insertDeclarationsDetails(StringBuilder fileBuffer, List decls, String kind, int index) {
 		if (!declsAboveVisibilityExist(decls))
 			return;
 		int insertIndex = findDetailsIndex(fileBuffer, index);
@@ -535,7 +535,7 @@ class HtmlDecorator {
 	/**
 	 * TODO: don't place the summary first.
 	 */
-	static int findSummaryIndex(StringBuffer fileBuffer, int index) {
+	static int findSummaryIndex(StringBuilder fileBuffer, int index) {
 		String fbs = fileBuffer.toString();
 		String MARKER_1 = "<!-- =========== FIELD SUMMARY =========== -->";
 		String MARKER_2 = "<!-- ======== CONSTRUCTOR SUMMARY ======== -->";
@@ -550,7 +550,7 @@ class HtmlDecorator {
 		}
 	}
 
-	static int findDetailsIndex(StringBuffer fileBuffer, int index) {
+	static int findDetailsIndex(StringBuilder fileBuffer, int index) {
 		String fbs = fileBuffer.toString();
 		String MARKER_1 = "<!-- ========= CONSTRUCTOR DETAIL ======== -->";
 		String MARKER_2 = "<!-- ============ FIELD DETAIL =========== -->";
@@ -569,11 +569,11 @@ class HtmlDecorator {
 		}
 	}
 
-	static void decorateDocWithRel(IProgramElement node, StringBuffer fileContentsBuffer, int index, List targets,
+	static void decorateDocWithRel(IProgramElement node, StringBuilder fileContentsBuffer, int index, List targets,
 			HtmlRelationshipKind relKind) {
 		if (targets != null && !targets.isEmpty()) {
-			String adviceDoc = "<TABLE WIDTH=\"100%\" BGCOLOR=#FFFFFF><TR>"
-					+ "<TD width=\"15%\" bgcolor=\"#FFD8B0\"><B><FONT COLOR=000000>" + relKind.toString() + "</font></b></td><td>";
+			StringBuilder adviceDoc = new StringBuilder("<TABLE WIDTH=\"100%\" BGCOLOR=#FFFFFF><TR>"
+					+ "<TD width=\"15%\" bgcolor=\"#FFD8B0\"><B><FONT COLOR=000000>" + relKind.toString() + "</font></b></td><td>");
 
 			String relativePackagePath = getRelativePathFromHere(node.getPackageName().replace('.', '/') + Config.DIR_SEP_CHAR);
 
@@ -618,7 +618,7 @@ class HtmlDecorator {
 					parent = parent.getParent();
 					names.add(parent.toLinkLabelString());
 				}
-				StringBuffer sbuff = new StringBuffer();
+				StringBuilder sbuff = new StringBuilder();
 				for (int i = names.size() - 1; i >= 0; i--) {
 					String element = (String) names.get(i);
 					if (i == 0) {
@@ -634,7 +634,7 @@ class HtmlDecorator {
 
 				// need to replace " with quot; otherwise the links wont work
 				// for 'matches declare' relationship
-				StringBuffer sb = new StringBuffer(currDecl.toLabelString());
+				StringBuilder sb = new StringBuilder(currDecl.toLabelString());
 				int nextQuote = sb.toString().indexOf("\"");
 				while (nextQuote != -1) {
 					sb.deleteCharAt(nextQuote);
@@ -644,19 +644,19 @@ class HtmlDecorator {
 				hrefLink += sbuff.toString() + ".html" + "#" + sb.toString();
 
 				if (!addedNames.contains(hrefName)) {
-					adviceDoc = adviceDoc + "<A HREF=\"" + hrefLink + "\"><tt>" + hrefName.replace('/', '.') + "</tt></A>";
+					adviceDoc.append("<A HREF=\"").append(hrefLink).append("\"><tt>").append(hrefName.replace('/', '.')).append("</tt></A>");
 
 					if (it.hasNext())
-						adviceDoc += ", ";
+						adviceDoc.append(", ");
 					addedNames.add(hrefName);
 				}
 			}
-			adviceDoc += "</TR></TD></TABLE>\n";
-			fileContentsBuffer.insert(index, adviceDoc);
+			adviceDoc.append("</TR></TD></TABLE>\n");
+			fileContentsBuffer.insert(index, adviceDoc.toString());
 		}
 	}
 
-	static void decorateMemberDocumentation(IProgramElement node, StringBuffer fileContentsBuffer, int index) {
+	static void decorateMemberDocumentation(IProgramElement node, StringBuilder fileContentsBuffer, int index) {
 		List<String> targets = StructureUtil.getTargets(node, IRelationship.Kind.ADVICE);
 		decorateDocWithRel(node, fileContentsBuffer, index, targets, HtmlRelationshipKind.ADVISED_BY);
 
@@ -710,24 +710,29 @@ class HtmlDecorator {
 		}
 		if (targets == null)
 			return "";
-		String entry = "<TABLE WIDTH=\"100%\" BGCOLOR=#FFFFFF><TR>";
+		StringBuilder entry = new StringBuilder("<TABLE WIDTH=\"100%\" BGCOLOR=#FFFFFF><TR>");
 
 		IProgramElement.Kind kind = decl.getKind();
 		if (kind.equals(IProgramElement.Kind.ADVICE)) {
-			entry += "<TD width=\"10%\" bgcolor=\"#FFD8B0\"><B><FONT COLOR=000000>" + HtmlRelationshipKind.ADVISES.toString()
-					+ "</b></font></td><td>";
+			entry.append("<TD width=\"10%\" bgcolor=\"#FFD8B0\"><B><FONT COLOR=000000>")
+					.append(HtmlRelationshipKind.ADVISES)
+					.append("</b></font></td><td>");
 		} else if (kind.equals(IProgramElement.Kind.DECLARE_WARNING) || kind.equals(IProgramElement.Kind.DECLARE_ERROR)) {
-			entry += "<TD width=\"10%\" bgcolor=\"#FFD8B0\"><B><FONT COLOR=000000>" + HtmlRelationshipKind.MATCHED_BY.toString()
-					+ "</b></font></td><td>";
+			entry.append("<TD width=\"10%\" bgcolor=\"#FFD8B0\"><B><FONT COLOR=000000>")
+					.append(HtmlRelationshipKind.MATCHED_BY)
+					.append("</b></font></td><td>");
 		} else if (kind.isDeclareAnnotation()) {
-			entry += "<TD width=\"10%\" bgcolor=\"#FFD8B0\"><B><FONT COLOR=000000>" + HtmlRelationshipKind.ANNOTATES.toString()
-					+ "</b></font></td><td>";
+			entry.append("<TD width=\"10%\" bgcolor=\"#FFD8B0\"><B><FONT COLOR=000000>")
+					.append(HtmlRelationshipKind.ANNOTATES)
+					.append("</b></font></td><td>");
 		} else if (kind.equals(IProgramElement.Kind.DECLARE_SOFT)) {
-			entry += "<TD width=\"10%\" bgcolor=\"#FFD8B0\"><B><FONT COLOR=000000>" + HtmlRelationshipKind.SOFTENS.toString()
-					+ "</b></font></td><td>";
+			entry.append("<TD width=\"10%\" bgcolor=\"#FFD8B0\"><B><FONT COLOR=000000>")
+					.append(HtmlRelationshipKind.SOFTENS)
+					.append("</b></font></td><td>");
 		} else {
-			entry += "<TD width=\"10%\" bgcolor=\"#FFD8B0\"><B><FONT COLOR=000000>" + HtmlRelationshipKind.DECLARED_ON.toString()
-					+ "</b></font></td><td>";
+			entry.append("<TD width=\"10%\" bgcolor=\"#FFD8B0\"><B><FONT COLOR=000000>")
+					.append(HtmlRelationshipKind.DECLARED_ON)
+					.append("</b></font></td><td>");
 		}
 
 		String relativePackagePath = getRelativePathFromHere(decl.getPackageName().replace('.', '/') + Config.DIR_SEP_CHAR);
@@ -759,15 +764,15 @@ class HtmlDecorator {
 				}
 
 				if (!addedNames.contains(hrefName)) {
-					entry += "<A HREF=\"" + hrefLink + "\"><tt>" + hrefName.replace('/', '.') + "</tt></A>"; // !!! don't replace
+					entry.append("<A HREF=\"").append(hrefLink).append("\"><tt>").append(hrefName.replace('/', '.')).append("</tt></A>"); // !!! don't replace
 					if (it.hasNext())
-						entry += ", ";
+						entry.append(", ");
 					addedNames.add(hrefName);
 				}
 			}
 		}
-		entry += "</B></FONT></TD></TR></TABLE>\n</TR></TD>\n";
-		return entry;
+		entry.append("</B></FONT></TD></TR></TABLE>\n</TR></TD>\n");
+		return entry.toString();
 	}
 
 	/**
@@ -778,7 +783,7 @@ class HtmlDecorator {
 	 * @return String consisting of multiple "../" parts, one for each component part of the input <code>packagePath</code>.
 	 */
 	private static String getRelativePathFromHere(String packagePath) {
-		StringBuffer result = new StringBuffer("");
+		StringBuilder result = new StringBuilder("");
 		if (packagePath != null && (packagePath.contains("/"))) {
 			StringTokenizer sTok = new StringTokenizer(packagePath, "/", false);
 			while (sTok.hasMoreTokens()) {
@@ -839,7 +844,7 @@ class HtmlDecorator {
 	}
 
 	static String generateHREFName(IProgramElement decl) {
-		StringBuffer hrefLinkBuffer = new StringBuffer();
+		StringBuilder hrefLinkBuffer = new StringBuilder();
 		char[] declChars = decl.toLabelString().toCharArray();
 		for (char declChar : declChars) {
 			if (declChar == '"') {
@@ -873,7 +878,7 @@ class HtmlDecorator {
 		if (comment == null)
 			return "";
 
-		String formattedComment = "";
+		StringBuilder formattedComment = new StringBuilder();
 		// strip the comment markers
 
 		int startIndex = comment.indexOf("/**");
@@ -909,12 +914,12 @@ class HtmlDecorator {
 				// if ( linkIndex != -1 ) {
 				// line = line.substring(0, linkIndex) + line.substring(linkIndex);
 				// }
-				formattedComment += line;
+				formattedComment.append(line);
 			}
 		} catch (IOException ioe) {
 			throw new Error("Couldn't format comment for declaration: " + decl.getName());
 		}
-		return formattedComment;
+		return formattedComment.toString();
 	}
 
 	static public IProgramElement[] getProgramElements(AsmManager model, String filename) {
