@@ -1,4 +1,8 @@
 Manifest-Version: 1.0
+Automatic-Module-Name: org.aspectj.weaver
+Agent-Class: org.aspectj.weaver.loadtime.Agent
+Premain-Class: org.aspectj.weaver.loadtime.Agent
+Can-Redefine-Classes: true
 Bundle-ManifestVersion: 2
 Bundle-Name: AspectJ Weaver
 Bundle-SymbolicName: org.aspectj.weaver
@@ -30,5 +34,3 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ClassPath: .
 Implementation-Version: 1.9.8
 Implementation-Vendor: aspectj.org
-Premain-Class: org.aspectj.weaver.loadtime.Agent
-Can-Redefine-Classes: true

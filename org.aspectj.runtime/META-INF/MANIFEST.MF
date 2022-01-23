@@ -1,4 +1,5 @@
 Manifest-Version: 1.0
+Automatic-Module-Name: org.aspectj.runtime
 Bundle-ManifestVersion: 2
 Bundle-Name: AspectJ Runtime
 Bundle-SymbolicName: org.aspectj.runtime
@@ -17,3 +18,5 @@ Export-Package: org.aspectj.internal.lang.annotation;version="1.9.8",
 Eclipse-BundleShape: jar
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ClassPath: .
+Implementation-Version: 1.9.8
+Implementation-Vendor: aspectj.org
