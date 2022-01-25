@@ -9,3 +9,4 @@ bin_ajc_task/
 # IntelliJ IDEA
 .idea/
 *.iml
+idea-bundles/
