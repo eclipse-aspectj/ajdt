@@ -12,7 +12,7 @@
 		<module>org.aspectj.weaver</module>
 		<module>org.aspectj.ajde</module>
 		<module>org.aspectj-feature</module>
-		
+
 		<!-- AJDT -->
 		<module>org.eclipse.ajdt.core</module>
 		<module>org.eclipse.ajdt.doc.user</module>
@@ -23,15 +23,15 @@
 		<module>org.eclipse.contribution.visualiser</module>
 		<module>org.eclipse.contribution.xref.core</module>
 		<module>org.eclipse.contribution.xref.ui</module>
-		
+
 		<module>org.eclipse.ajdt-feature</module>
 		<module>org.eclipse.ajdt.sdk-feature</module>
 		<module>org.eclipse.contribution.weaving-feature</module>
 		<module>org.eclipse.contribution.xref-feature</module>
-		
+
 		<module>org.eclipse.equinox.weaving.aspectj</module>
 		<module>org.eclipse.equinox.weaving.sdk</module>
-		
+
 		<!-- Tests -->
 		<module>org.eclipse.ajdt.core.tests</module>
 		<module>org.eclipse.ajdt.ui.tests</module>
@@ -54,7 +54,7 @@
 		<tycho.surefire.extra.vmargs></tycho.surefire.extra.vmargs>
 		<aspectj-maven-compiler-version>1.8</aspectj-maven-compiler-version>
 	</properties>
-  
+
 	<profiles>
 		<profile>
 			<id>e45</id>
@@ -70,7 +70,7 @@
 				</repository>
 			</repositories>
 		</profile>
-		
+
 		<profile>
 			<id>e46</id>
 			<properties>
@@ -147,7 +147,7 @@ https://download.eclipse.org/equinox/
 				<tycho.surefire.extra.vmargs>-XstartOnFirstThread</tycho.surefire.extra.vmargs>
 			</properties>
 		</profile>
-				
+
 		<profile>
 			<id>eclipse-sign</id>
 			<build>
@@ -352,6 +352,9 @@ https://download.eclipse.org/equinox/
 					<groupId>org.eclipse.cbi.maven.plugins</groupId>
 					<artifactId>eclipse-jarsigner-plugin</artifactId>
 					<version>1.3.2</version>
+					<configuration>
+						<excludeInnerJars>true</excludeInnerJars>
+					</configuration>
 				</plugin>
 
 			</plugins>
