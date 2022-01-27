@@ -1,0 +1,72 @@
+name: Build AJDT
+
+on:
+  workflow_dispatch:
+    inputs:
+      runTests:
+        type: boolean
+        description: Run tests
+        required: true
+        default: 'false'
+  push:
+    branches:
+      - '*'
+      - '!gh-pages'
+  pull_request:
+    branches:
+      - '*'
+      - '!gh-pages'
+
+jobs:
+  build:
+
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, windows-latest, macOS-latest ]
+        # Tycho only supports LTS, other Java releases only short-term
+        java: [ 11, 17 ]
+      fail-fast: false
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+
+      - name: Set Git options
+        # Check out as-is, commit Unix-style line endings
+        run: git config --global core.autocrlf input
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Set up cache for ~./m2/repository
+        uses: actions/cache@v2.1.7
+        with:
+          path: |
+            ~/.m2/repository
+            !~/.m2/repository/org/eclipse/ajdt
+            !~/.m2/repository/org/aspectj/ajde
+          key: maven-${{ matrix.os }}-java${{ matrix.java }}-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            maven-${{ matrix.os }}-java${{ matrix.java }}-
+            maven-${{ matrix.os }}-
+
+      - name: Set up JDK
+        uses: actions/setup-java@v2.5.0
+        with:
+          java-version: ${{ matrix.java }}
+          distribution: adopt-hotspot
+
+      - name: Print tool versions
+        run: |
+          java -version
+          mvn --batch-mode --version
+
+      - name: Build + package (no tests)
+        run: mvn --errors --batch-mode -DskipTests -Pe421 clean verify
+
+      - name: Run tests
+        if: ${{ github.event.inputs.runTests == 'true' }}
+        # UI tests need frame buffer on Linux
+        uses: GabrielBB/xvfb-action@v1
+        with:
+          run: mvn --errors --batch-mode -Pe421 verify
