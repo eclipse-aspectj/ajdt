@@ -18,8 +18,7 @@ Igor Fedorenko - initial implementation
 		<version>2.2.4-SNAPSHOT</version>
 	</parent>
 
-	<groupId>org.eclipse.ajdt</groupId>
-	<artifactId>org.eclipse.equinox.weaving.aspectj</artifactId>
+  <artifactId>org.eclipse.equinox.weaving.aspectj</artifactId>
 	<version>1.0.400-SNAPSHOT</version>
 	<packaging>eclipse-plugin</packaging>
 
