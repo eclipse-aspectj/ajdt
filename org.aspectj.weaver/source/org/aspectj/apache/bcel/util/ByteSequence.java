@@ -53,11 +53,12 @@ package org.aspectj.apache.bcel.util;
  * information on the Apache Software Foundation, please see
  * <http://www.apache.org/>.
  */
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
 
 /**
  * Utility class that implements a sequence of bytes which can be read
- * via the `readByte()' method. This is used to implement a wrapper for the 
+ * via the `readByte()' method. This is used to implement a wrapper for the
  * Java byte code stream to gain some more readability.
  *
  * @version $Id: ByteSequence.java,v 1.3 2008/05/28 23:52:53 aclement Exp $
@@ -66,12 +67,12 @@ import java.io.*;
 public final class ByteSequence extends DataInputStream {
   private ByteArrayStream byte_stream;
 
-  public ByteSequence(byte[] bytes) { 
+  public ByteSequence(byte[] bytes) {
     super(new ByteArrayStream(bytes));
     byte_stream = (ByteArrayStream)in;
   }
 
-  public final int getIndex()   { return byte_stream.getPosition(); }    
+  public final int getIndex()   { return byte_stream.getPosition(); }
   final  void      unreadByte() { byte_stream.unreadByte(); }
 
   private static final class ByteArrayStream extends ByteArrayInputStream {

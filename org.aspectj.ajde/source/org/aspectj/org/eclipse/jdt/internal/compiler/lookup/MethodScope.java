@@ -1,5 +1,5 @@
 /*******************************************************************************
- *  * Copyright (c) 2000, 2017 IBM Corporation and others.
+ *  * Copyright (c) 2000, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -8,7 +8,6 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann - Contributions for
  *								bug 349326 - [1.7] new warning for missing try-with-resources
@@ -51,7 +50,9 @@ public class MethodScope extends BlockScope {
 	// note that #initializedField can be null AND lastVisibleFieldID >= 0, when processing instance field initializers.
 
 	// flow analysis
-	public int analysisIndex; // for setting flow-analysis id
+	/* By specifying {@code -Djdt.flow.test.extra=true} tests can push all flow analysis into the extra bits of UnconditionalFlowInfo. */
+	private static int baseAnalysisIndex = 0;
+	public int analysisIndex = baseAnalysisIndex; // for setting flow-analysis id
 	public boolean isPropagatingInnerClassEmulation;
 
 	// for local variables table attributes
@@ -64,6 +65,15 @@ public class MethodScope extends BlockScope {
 
 	// remember suppressed warning re missing 'default:' to give hints on possibly related flow problems
 	public boolean hasMissingSwitchDefault; // TODO(stephan): combine flags to a bitset?
+
+	public boolean isCompactConstructorScope = false;
+
+	static {
+		if (Boolean.getBoolean("jdt.flow.test.extra")) { //$NON-NLS-1$
+			baseAnalysisIndex = 64;
+			System.out.println("JDT/Core testing with -Djdt.flow.test.extra=true"); //$NON-NLS-1$
+		}
+	}
 
 public MethodScope(Scope parent, ReferenceContext context, boolean isStatic) {
 	super(METHOD_SCOPE, parent);
@@ -106,7 +116,9 @@ private void checkAndSetModifiersForConstructor(MethodBinding methodBinding) {
 	if ((modifiers & ExtraCompilerModifiers.AccAlternateModifierProblem) != 0)
 		problemReporter().duplicateModifierForMethod(declaringClass, (AbstractMethodDeclaration) this.referenceContext);
 
-	if ((((ConstructorDeclaration) this.referenceContext).bits & ASTNode.IsDefaultConstructor) != 0) {
+	int astNodeBits = ((ConstructorDeclaration) this.referenceContext).bits;
+	if ((astNodeBits & ASTNode.IsDefaultConstructor) != 0
+			||((astNodeBits & ASTNode.IsImplicit) != 0 && (astNodeBits & ASTNode.IsCanonicalConstructor) != 0))  {
 		// certain flags are propagated from declaring class onto constructor
 		final int DECLARING_FLAGS = ClassFileConstants.AccEnum|ClassFileConstants.AccPublic|ClassFileConstants.AccProtected;
 		final int VISIBILITY_FLAGS = ClassFileConstants.AccPrivate|ClassFileConstants.AccPublic|ClassFileConstants.AccProtected;
@@ -200,7 +212,7 @@ private void checkAndSetModifiersForMethod(MethodBinding methodBinding) {
 			}
 			if (reportIllegalModifierCombination) {
 				problemReporter().illegalModifierCombinationForInterfaceMethod((AbstractMethodDeclaration) this.referenceContext);
-			} 
+			}
 			if (sourceLevel >= ClassFileConstants.JDK9 && (methodBinding.modifiers & ClassFileConstants.AccPrivate) != 0) {
 				int remaining = realModifiers & ~expectedModifiers;
 				if (remaining == 0) { // check for the combination of allowed modifiers with private
@@ -229,7 +241,7 @@ private void checkAndSetModifiersForMethod(MethodBinding methodBinding) {
 		LocalTypeBinding local = (LocalTypeBinding) declaringClass;
 		TypeReference ref = local.scope.referenceContext.allocation.type;
 		if (ref != null && (ref.bits & ASTNode.IsDiamond) != 0) {
-			// 
+			//
 			if ((realModifiers & (ClassFileConstants.AccPrivate | ClassFileConstants.AccStatic )) == 0) {
 				methodBinding.tagBits |= TagBits.AnnotationOverride;
 			}
@@ -279,8 +291,10 @@ private void checkAndSetModifiersForMethod(MethodBinding methodBinding) {
 		problemReporter().nativeMethodsCannotBeStrictfp(declaringClass, (AbstractMethodDeclaration) this.referenceContext);
 
 	// static members are only authorized in a static member or top level type
-	if (((realModifiers & ClassFileConstants.AccStatic) != 0) && declaringClass.isNestedType() && !declaringClass.isStatic())
-		problemReporter().unexpectedStaticModifierForMethod(declaringClass, (AbstractMethodDeclaration) this.referenceContext);
+	if (sourceLevel < ClassFileConstants.JDK16) {
+		if (((realModifiers & ClassFileConstants.AccStatic) != 0) && declaringClass.isNestedType() && !declaringClass.isStatic())
+			problemReporter().unexpectedStaticModifierForMethod(declaringClass, (AbstractMethodDeclaration) this.referenceContext);
+	}
 
 	methodBinding.modifiers = modifiers;
 }
@@ -395,7 +409,9 @@ MethodBinding createMethod(AbstractMethodDeclaration method) {
 	Argument[] argTypes = method.arguments;
 	int argLength = argTypes == null ? 0 : argTypes.length;
 	if (argLength > 0) {
-		Argument argument = argTypes[--argLength];
+		Argument argument = argTypes[argLength - 1];
+		method.binding.parameterNames = new char[argLength][];
+		method.binding.parameterNames[--argLength] = argument.name;
 		if (argument.isVarArgs() && sourceLevel >= ClassFileConstants.JDK1_5)
 			method.binding.modifiers |= ClassFileConstants.AccVarargs;
 		if (CharOperation.equals(argument.name, ConstantPool.This)) {
@@ -403,6 +419,7 @@ MethodBinding createMethod(AbstractMethodDeclaration method) {
 		}
 		while (--argLength >= 0) {
 			argument = argTypes[argLength];
+			method.binding.parameterNames[argLength] = argument.name;
 			if (argument.isVarArgs() && sourceLevel >= ClassFileConstants.JDK1_5)
 				problemReporter().illegalVararg(argument, method);
 			if (CharOperation.equals(argument.name, ConstantPool.This)) {
@@ -421,13 +438,20 @@ MethodBinding createMethod(AbstractMethodDeclaration method) {
 
 	TypeParameter[] typeParameters = method.typeParameters();
 	// https://bugs.eclipse.org/bugs/show_bug.cgi?id=324850, If they exist at all, process type parameters irrespective of source level.
-    if (typeParameters == null || typeParameters.length == 0) {
-	    method.binding.typeVariables = Binding.NO_TYPE_VARIABLES;
+	if (typeParameters == null || typeParameters.length == 0) {
+		method.binding.typeVariables = Binding.NO_TYPE_VARIABLES;
 	} else {
 		method.binding.typeVariables = createTypeVariables(typeParameters, method.binding);
 		method.binding.modifiers |= ExtraCompilerModifiers.AccGenericSignature;
 	}
+    checkAndSetRecordCanonicalConsAndMethods(method);
 	return method.binding;
+}
+private void checkAndSetRecordCanonicalConsAndMethods(AbstractMethodDeclaration am) {
+	if (am.binding != null && (am.bits & ASTNode.IsImplicit) != 0) {
+		am.binding.tagBits |= TagBits.isImplicit;
+		am.binding.tagBits |= (am.bits & ASTNode.IsCanonicalConstructor) != 0 ? TagBits.IsCanonicalConstructor : 0;
+	}
 }
 
 /**

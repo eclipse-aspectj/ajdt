@@ -1,12 +1,12 @@
 /* *******************************************************************
  * Copyright (c) 2005 Contributors.
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
  * Andy Clement          initial implementation
  * ******************************************************************/
 package org.aspectj.ajdt.internal.core.builder;
@@ -17,7 +17,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -28,8 +27,8 @@ import org.aspectj.weaver.CompressingDataOutputStream;
 /**
  * Central point for all things incremental... - keeps track of the state recorded for each different config file - allows limited
  * interaction with these states
- * 
- * - records dependency/change info for particular classpaths > this will become what JDT keeps in its 'State' object when its
+ *
+ * - records dependency/change info for particular classpaths &gt; this will become what JDT keeps in its 'State' object when it's
  * finished
  */
 public class IncrementalStateManager {
@@ -39,7 +38,7 @@ public class IncrementalStateManager {
 	// SECRETAPI will consume more memory, so turn on at your own risk ;) Set to 'true' when memory usage is understood
 	public static boolean recordIncrementalStates = false;
 	public static boolean debugIncrementalStates = false;
-	private static Hashtable<String, AjState> incrementalStates = new Hashtable<String, AjState>();
+	private static Hashtable<String, AjState> incrementalStates = new Hashtable<>();
 
 	public static void recordSuccessfulBuild(String buildConfig, AjState state) {
 		if (!recordIncrementalStates) {
@@ -55,8 +54,7 @@ public class IncrementalStateManager {
 	public static void persist() {
 		// check serialization works
 		Set<Map.Entry<String, AjState>> entries = incrementalStates.entrySet();
-		for (Iterator<Map.Entry<String, AjState>> iterator = entries.iterator(); iterator.hasNext();) {
-			Map.Entry<String, AjState> entry = iterator.next();
+		for (Map.Entry<String, AjState> entry : entries) {
 			System.out.println("Name " + entry.getKey());
 			File f = new File("n:/temp/foo.ajstate");
 			try {
@@ -77,8 +75,7 @@ public class IncrementalStateManager {
 	}
 
 	public static void clearIncrementalStates() {
-		for (Iterator iter = incrementalStates.values().iterator(); iter.hasNext();) {
-			AjState element = (AjState) iter.next();
+		for (AjState element : incrementalStates.values()) {
 			element.wipeAllKnowledge();
 		}
 		incrementalStates.clear();
@@ -101,8 +98,7 @@ public class IncrementalStateManager {
 			System.err.println("> findStateManagingOutputLocation(" + location + ") has " + allStates.size()
 					+ " states to look through");
 		}
-		for (Iterator<AjState> iter = allStates.iterator(); iter.hasNext();) {
-			AjState element = iter.next();
+		for (AjState element : allStates) {
 			AjBuildConfig ajbc = element.getBuildConfig();
 			if (ajbc == null) {
 				// FIXME asc why can it ever be null?
@@ -121,8 +117,8 @@ public class IncrementalStateManager {
 			CompilationResultDestinationManager outputManager = ajbc.getCompilationResultDestinationManager();
 			if (outputManager != null) {
 				List outputDirs = outputManager.getAllOutputLocations();
-				for (Iterator iterator = outputDirs.iterator(); iterator.hasNext();) {
-					File dir = (File) iterator.next();
+				for (Object o : outputDirs) {
+					File dir = (File) o;
 					if (dir.equals(location)) {
 						if (debugIncrementalStates) {
 							System.err.println("< findStateManagingOutputLocation(" + location + ") returning " + element);

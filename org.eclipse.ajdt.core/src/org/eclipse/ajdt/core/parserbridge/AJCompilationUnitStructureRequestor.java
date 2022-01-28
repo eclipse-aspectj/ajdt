@@ -939,6 +939,11 @@ public class AJCompilationUnitStructureRequestor extends
         }
     }
     
+    //@Override
+    public void exitRecordComponent(int declarationEnd, int declarationSourceEnd) {
+        System.out.println("exitRecordComponent");
+    }
+
     private ILocalVariable[] createMethodParameters(JavaElement handle, String[] parameterTypes, char[][] argumentNames, int reasonableOffset) {
         if (argumentNames == null) {
             return null;

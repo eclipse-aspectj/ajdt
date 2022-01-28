@@ -2,11 +2,11 @@
  * Copyright (c) 2005 Contributors.
  * All rights reserved.
  * This program and the accompanying materials are made available
- * under the terms of the Eclipse Public License v1.0
+ * under the terms of the Eclipse Public License v 2.0
  * which accompanies this distribution and is available at
- * http://eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
  *
- * Contributors: 
+ * Contributors:
  *     Alexandre Vasseur     initial implementation
  * ******************************************************************/
 
@@ -20,7 +20,7 @@ import org.aspectj.weaver.patterns.TypePattern;
  * Type munger for annotation style ITD declare parents. with an interface AND an implementation. Given the aspect that has a field
  * public static Interface fieldI = ... // impl. we will weave in the Interface' methods and delegate to the aspect public static
  * field fieldI
- * 
+ *
  * Note: this munger DOES NOT handles the interface addition to the target classes - a regular Parent kinded munger must be added in
  * coordination.
  */
@@ -51,7 +51,7 @@ public class MethodDelegateTypeMunger extends ResolvedTypeMunger {
 
 	/**
 	 * Construct a new type munger for @AspectJ ITD
-	 * 
+	 *
 	 * @param signature
 	 * @param aspect
 	 * @param implClassName
@@ -114,8 +114,7 @@ public class MethodDelegateTypeMunger extends ResolvedTypeMunger {
 	public ResolvedMember getDelegateFactoryMethod(World w) {
 		ResolvedType aspectType = w.resolve(aspect);
 		ResolvedMember[] methods = aspectType.getDeclaredMethods();
-		for (int i = 0; i < methods.length; i++) {
-			ResolvedMember rm = methods[i];
+		for (ResolvedMember rm : methods) {
 			if (rm.getName().equals(factoryMethodName) && rm.getSignature().equals(factoryMethodSignature)) {
 				return rm;
 			}
@@ -131,7 +130,7 @@ public class MethodDelegateTypeMunger extends ResolvedTypeMunger {
 		kind.write(s);
 		signature.write(s);
 		aspect.write(s);
-		s.writeUTF(implClassName);
+		s.writeUTF(implClassName==null?"":implClassName);
 		typePattern.write(s);
 		fieldType.write(s);
 		s.writeUTF(factoryMethodName);
@@ -144,6 +143,9 @@ public class MethodDelegateTypeMunger extends ResolvedTypeMunger {
 		ResolvedMemberImpl signature = ResolvedMemberImpl.readResolvedMember(s, context);
 		UnresolvedType aspect = UnresolvedType.read(s);
 		String implClassName = s.readUTF();
+		if (implClassName.equals("")) {
+			implClassName = null;
+		}
 		TypePattern tp = TypePattern.read(s, context);
 		MethodDelegateTypeMunger typeMunger = new MethodDelegateTypeMunger(signature, aspect, implClassName, tp);
 		UnresolvedType fieldType = null;
@@ -164,7 +166,7 @@ public class MethodDelegateTypeMunger extends ResolvedTypeMunger {
 
 	/**
 	 * Match based on given type pattern, only classes can be matched
-	 * 
+	 *
 	 * @param matchType
 	 * @param aspectType
 	 * @return true if match
@@ -180,7 +182,7 @@ public class MethodDelegateTypeMunger extends ResolvedTypeMunger {
 
 	/**
 	 * Needed for reweavable
-	 * 
+	 *
 	 * @return true
 	 */
 	public boolean changesPublicSignature() {
@@ -198,7 +200,7 @@ public class MethodDelegateTypeMunger extends ResolvedTypeMunger {
 
 		/**
 		 * Construct a new type munger for @AspectJ ITD
-		 * 
+		 *
 		 * @param field
 		 * @param aspect
 		 * @param typePattern
@@ -241,7 +243,7 @@ public class MethodDelegateTypeMunger extends ResolvedTypeMunger {
 
 		/**
 		 * Match based on given type pattern, only classes can be matched
-		 * 
+		 *
 		 * @param matchType
 		 * @param aspectType
 		 * @return true if match

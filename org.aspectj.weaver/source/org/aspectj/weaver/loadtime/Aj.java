@@ -2,9 +2,9 @@
  * Copyright (c) 2005 Contributors.
  * All rights reserved.
  * This program and the accompanying materials are made available
- * under the terms of the Eclipse Public License v1.0
+ * under the terms of the Eclipse Public License v 2.0
  * which accompanies this distribution and is available at
- * http://eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
  *
  * Contributors:
  *   Alexandre Vasseur         initial implementation
@@ -17,7 +17,6 @@ import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -34,8 +33,8 @@ import org.aspectj.weaver.tools.cache.SimpleCacheFactory;
 /**
  * Adapter between the generic class pre processor interface and the AspectJ weaver Load time weaving consistency relies on
  * Bcel.setRepository
- * 
- * @author <a href="mailto:alex AT gnilux DOT com">Alexandre Vasseur</a>
+ *
+ * @author Alexandre Vasseur (alex AT gnilux DOT com)
  */
 public class Aj implements ClassPreProcessor {
 
@@ -44,14 +43,14 @@ public class Aj implements ClassPreProcessor {
 
 	/**
 	 * References are added to this queue when their associated classloader is removed, and once on here that indicates that we
-	 * should tidy up the adaptor map and remove the adaptor (weaver) from the map we are maintaining from adaptorkey > adaptor
+	 * should tidy up the adaptor map and remove the adaptor (weaver) from the map we are maintaining from adaptorkey &gt; adaptor
 	 * (weaver)
 	 */
 	private static ReferenceQueue adaptorQueue = new ReferenceQueue();
 
 	private static Trace trace = TraceFactory.getTraceFactory().getTrace(Aj.class);
 
-	public Aj() { 
+	public Aj() {
 		this(null);
 	}
 
@@ -76,12 +75,12 @@ public class Aj implements ClassPreProcessor {
 
 	@Override
 	public byte[] preProcess(String className, byte[] bytes, ClassLoader loader, ProtectionDomain protectionDomain) {
-		if (loader == null || className == null || 
+		if (loader == null || className == null ||
 			loader.getClass().getName().equals(deleLoader) || loader.getClass().getName().equals(deleLoader2)) {
 			// skip boot loader, null classes (hibernate), or those from a reflection loader
 			return bytes;
 		}
-		
+
 		if (loadersToSkip != null) {
 			// Check whether to reject it
 			if (loadersToSkip.contains(loader.getClass().getName())) {
@@ -188,7 +187,7 @@ public class Aj implements ClassPreProcessor {
 	 * The reference queue is only processed when a request is made for a weaver adaptor. This means there can be one or two stale
 	 * weavers left around. If the user knows they have finished all their weaving, they might wish to call removeStaleAdaptors
 	 * which will process anything left on the reference queue containing adaptorKeys for garbage collected classloaders.
-	 * 
+	 *
 	 * @param displayProgress produce System.err info on the tidying up process
 	 * @return number of stale weavers removed
 	 */
@@ -199,8 +198,7 @@ public class Aj implements ClassPreProcessor {
 				System.err.println("Weaver adaptors before queue processing:");
 				Map<AdaptorKey,ExplicitlyInitializedClassLoaderWeavingAdaptor> m = WeaverContainer.weavingAdaptors;
 				Set<AdaptorKey> keys = m.keySet();
-				for (Iterator<AdaptorKey> iterator = keys.iterator(); iterator.hasNext();) {
-					Object object = iterator.next();
+				for (Object object : keys) {
 					System.err.println(object + " = " + WeaverContainer.weavingAdaptors.get(object));
 				}
 			}
@@ -223,8 +221,7 @@ public class Aj implements ClassPreProcessor {
 				System.err.println("Weaver adaptors after queue processing:");
 				Map<AdaptorKey,ExplicitlyInitializedClassLoaderWeavingAdaptor> m = WeaverContainer.weavingAdaptors;
 				Set<AdaptorKey> keys = m.keySet();
-				for (Iterator<AdaptorKey> iterator = keys.iterator(); iterator.hasNext();) {
-					Object object = iterator.next();
+				for (Object object : keys) {
 					System.err.println(object + " = " + WeaverContainer.weavingAdaptors.get(object));
 				}
 			}
@@ -255,7 +252,7 @@ public class Aj implements ClassPreProcessor {
 			}
 		}
 	}
-	
+
 	public static List<String> loadersToSkip = null;
 
 	static {
@@ -267,7 +264,7 @@ public class Aj implements ClassPreProcessor {
 			if (loadersToSkipProperty != null && loadersToSkip == null) {
 				if (st.hasMoreTokens()) {
 //					System.out.println("aj.weaving.loadersToSkip is set. Skipping loaders: '"+loadersToSkipProperty+"'");
-					loadersToSkip = new ArrayList<String>();
+					loadersToSkip = new ArrayList<>();
 				}
 				while (st.hasMoreTokens()) {
 					String nextLoader = st.nextToken();
@@ -284,8 +281,8 @@ public class Aj implements ClassPreProcessor {
 	 */
 	static class WeaverContainer {
 
-		final static Map<AdaptorKey,ExplicitlyInitializedClassLoaderWeavingAdaptor> weavingAdaptors = 
-				Collections.synchronizedMap(new HashMap<AdaptorKey,ExplicitlyInitializedClassLoaderWeavingAdaptor>());
+		final static Map<AdaptorKey,ExplicitlyInitializedClassLoaderWeavingAdaptor> weavingAdaptors =
+				Collections.synchronizedMap(new HashMap<>());
 
 		static WeavingAdaptor getWeaver(ClassLoader loader, IWeavingContext weavingContext) {
 			ExplicitlyInitializedClassLoaderWeavingAdaptor adaptor = null;
@@ -314,7 +311,7 @@ public class Aj implements ClassPreProcessor {
 			}
 			// perform the initialization
 			return adaptor.getWeavingAdaptor(loader, weavingContext);
-		
+
 
 		}
 		private static final ClassLoader myClassLoader = WeavingAdaptor.class.getClassLoader();
@@ -355,7 +352,7 @@ public class Aj implements ClassPreProcessor {
 	/**
 	 * Check to see if any classes have been generated for a particular classes loader. Calls
 	 * ClassLoaderWeavingAdaptor.generatedClassesExist()
-	 * 
+	 *
 	 * @param loader the class cloder
 	 * @return true if classes have been generated.
 	 */

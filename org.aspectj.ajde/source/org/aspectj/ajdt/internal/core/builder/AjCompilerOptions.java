@@ -1,13 +1,13 @@
 /* *******************************************************************
  * Copyright (c) 2002 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     PARC     initial implementation
  * ******************************************************************/
 package org.aspectj.ajdt.internal.core.builder;
 
@@ -120,7 +120,7 @@ public class AjCompilerOptions extends CompilerOptions {
 	@Override
 	public Map<String,String> getMap() {
 		Map<String,String> map = super.getMap();
-		// now add AspectJ additional options		
+		// now add AspectJ additional options
 		map.put(OPTION_ReportInvalidAbsoluteTypeName, getSeverityString(InvalidAbsoluteTypeName));
 		map.put(OPTION_ReportInvalidWildcardTypeName, getSeverityString(InvalidWildCardTypeName));
 		map.put(OPTION_ReportUnresolvableMember, getSeverityString(UnresolvableMember));
@@ -286,18 +286,18 @@ public class AjCompilerOptions extends CompilerOptions {
 
 	@Override
 	public String toString() {
-		StringBuffer buf = new StringBuffer(super.toString());
+		StringBuilder buf = new StringBuilder(super.toString());
 		// now add AspectJ additional options
 		buf.append("\n\tAspectJ Specific Options:");
 		buf.append("\n\t- terminate after compilation: ").append(this.terminateAfterCompilation ? ENABLED : DISABLED); //$NON-NLS-1$
 		buf.append("\n\t- no inline (X option): ").append(this.xNoInline ? ENABLED : DISABLED); //$NON-NLS-1$
 		buf.append("\n\t- generate serializable aspects (X option): ").append(this.xSerializableAspects ? ENABLED : DISABLED); //$NON-NLS-1$
 		buf.append("\n\t- lazy thisJoinPoint (X option): ").append(this.xLazyThisJoinPoint ? ENABLED : DISABLED); //$NON-NLS-1$
-		buf.append("\n\t- generate non-reweavable class files (X option): ").append(this.xNotReweavable ? ENABLED : DISABLED); //$NON-NLS-1$	
+		buf.append("\n\t- generate non-reweavable class files (X option): ").append(this.xNotReweavable ? ENABLED : DISABLED); //$NON-NLS-1$
 		buf.append("\n\t- has member support (X option): ").append(this.xHasMember ? ENABLED : DISABLED); //$NON-NLS-1$
 
-		buf.append("\n\t- generate AJDE model: ").append(this.generateModel ? ENABLED : DISABLED); //$NON-NLS-1$		
-		buf.append("\n\t- generate Javadocs in AJDE model: ").append(this.generateJavaDocsInModel ? ENABLED : DISABLED); //$NON-NLS-1$		
+		buf.append("\n\t- generate AJDE model: ").append(this.generateModel ? ENABLED : DISABLED); //$NON-NLS-1$
+		buf.append("\n\t- generate Javadocs in AJDE model: ").append(this.generateJavaDocsInModel ? ENABLED : DISABLED); //$NON-NLS-1$
 		buf.append("\n\t- generate Emacs symbol files: ").append(this.generateEmacsSymFiles ? ENABLED : DISABLED); //$NON-NLS-1$
 		buf.append("\n\t- suppress @AspectJ processing: ").append(this.noAtAspectJProcessing ? ENABLED : DISABLED); //$NON-NLS-1$
 

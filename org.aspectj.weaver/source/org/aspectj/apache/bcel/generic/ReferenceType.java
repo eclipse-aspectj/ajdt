@@ -60,7 +60,7 @@ import org.aspectj.apache.bcel.classfile.JavaClass;
 
 /**
  * Super class for object and array types.
- * 
+ *
  * @version $Id: ReferenceType.java,v 1.6 2009/09/09 22:18:20 aclement Exp $
  * @author <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
@@ -280,10 +280,10 @@ public abstract class ReferenceType extends Type {
 		this_sups[0] = Repository.lookupClass(thiz.getClassName());
 		t_sups[0] = Repository.lookupClass(other.getClassName());
 
-		for (int i = 0; i < t_sups.length; i++) {
-			for (int j = 0; j < this_sups.length; j++) {
-				if (this_sups[j].equals(t_sups[i])) {
-					return new ObjectType(this_sups[j].getClassName());
+		for (JavaClass t_sup : t_sups) {
+			for (JavaClass this_sup : this_sups) {
+				if (this_sup.equals(t_sup)) {
+					return new ObjectType(this_sup.getClassName());
 				}
 			}
 		}

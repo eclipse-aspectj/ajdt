@@ -1,14 +1,14 @@
 /* *******************************************************************
  * Copyright (c) 2004 IBM Corporation
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     Matthew Webster, Adrian Colyer, 
- *     Martin Lippert     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     Matthew Webster, Adrian Colyer,
+ *     Martin Lippert     initial implementation
  *     Andy Clement
  *     Roy Varghese - Bug 473555
  * ******************************************************************/
@@ -71,7 +71,7 @@ public abstract class ExtensibleURLClassLoader extends URLClassLoader {
 		try {
 			unresolvedType = UnresolvedType.forName(name);
 		} catch (BCException bce) {
-			if (bce.getMessage().indexOf("nameToSignature") == -1) {
+			if (!bce.getMessage().contains("nameToSignature")) {
 				bce.printStackTrace(System.err);
 			}
 			return null;
@@ -87,7 +87,7 @@ public abstract class ExtensibleURLClassLoader extends URLClassLoader {
 		return b;
 	}
 
-	private Class defineClass(String name, byte[] bytes /* ClassPathManager.ClassFile classFile */) throws IOException {
+	private Class<?> defineClass(String name, byte[] bytes /* ClassPathManager.ClassFile classFile */) throws IOException {
 		String packageName = getPackageName(name);
 		if (packageName != null) {
 			Package pakkage = getPackage(packageName);
@@ -103,7 +103,7 @@ public abstract class ExtensibleURLClassLoader extends URLClassLoader {
 		int offset = className.lastIndexOf('.');
 		return (offset == -1) ? null : className.substring(0, offset);
 	}
-	
+
 	@Override
 	public void close() throws IOException {
 		super.close();

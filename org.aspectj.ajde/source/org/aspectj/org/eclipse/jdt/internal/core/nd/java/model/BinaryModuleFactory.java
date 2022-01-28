@@ -39,7 +39,6 @@ import org.aspectj.org.eclipse.jdt.internal.core.JavaModelManager;
 import org.aspectj.org.eclipse.jdt.internal.core.JrtPackageFragmentRoot;
 import org.aspectj.org.eclipse.jdt.internal.core.ModularClassFile;
 import org.aspectj.org.eclipse.jdt.internal.core.PackageFragmentRoot;
-import org.aspectj.org.eclipse.jdt.internal.core.nd.java.JavaIndex;
 
 /**
  * <strong>FIXME:</strong> this class is a stub as of now, it does not support modules in the new index.
@@ -55,7 +54,7 @@ public class BinaryModuleFactory {
 	 * a location on the filesystem.
 	 */
 	private static BinaryModuleDescriptor createDescriptor(PackageFragmentRoot root, ModularClassFile classFile) {
-		IPath location = JavaIndex.getLocationForElement(root);
+		IPath location = BinaryTypeFactory.getLocationForElement(root);
 		if (location == null) {
 			return null;
 		}
@@ -86,8 +85,8 @@ public class BinaryModuleFactory {
 	 * the file on disk, the type is read from the index. Otherwise the type is read from disk. Returns null if
 	 * no such type exists.
 	 * <strong>caveat</strong> modules are not yet supported in the index.
-	 * 
-	 * @throws ClassFormatException 
+	 *
+	 * @throws ClassFormatException
 	 */
 	public static IBinaryModule readModule(BinaryModuleDescriptor descriptor, IProgressMonitor monitor) throws JavaModelException, ClassFormatException {
 // FIXME: support module in the new index
@@ -100,7 +99,7 @@ public class BinaryModuleFactory {
 //		}
 		return rawReadModule(descriptor, true);
 	}
-	
+
 	public static IBinaryModule rawReadModule(BinaryModuleDescriptor descriptor, boolean fullyInitialize) throws JavaModelException, ClassFormatException {
 		try {
 			return rawReadModuleTestForExists(descriptor, fullyInitialize, true);
@@ -112,7 +111,7 @@ public class BinaryModuleFactory {
 	/**
 	 * Read the class file from disk, circumventing the index's cache. This should only be used by callers
 	 * that need to read information from the class file which aren't present in the index (such as method bodies).
-	 * 
+	 *
 	 * @return the newly-created IBinaryModule or null if the given class file does not exist.
 	 * @throws ClassFormatException if the class file existed but was corrupt
 	 * @throws JavaModelException if unable to read the class file due to a transient failure
@@ -149,7 +148,7 @@ public class BinaryModuleFactory {
 			IFile file = ResourcesPlugin.getWorkspace().getRoot().getFile(new Path(new String(descriptor.workspacePath)));
 			byte[] contents;
 			try (InputStream stream = file.getContents(true)) {
-				contents = org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.getInputStreamAsByteArray(stream, -1);
+				contents = org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.getInputStreamAsByteArray(stream);
 			} catch (CoreException e) {
 				IStatus status = e.getStatus();
 				if (status.getCode() == IResourceStatus.RESOURCE_NOT_FOUND) {

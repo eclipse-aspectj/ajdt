@@ -1,11 +1,11 @@
 /* *******************************************************************
  * Copyright (c) 2004 IBM Corporation.
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
  * ******************************************************************/
 package org.aspectj.weaver.patterns;
 
@@ -19,7 +19,7 @@ import org.aspectj.weaver.patterns.Pointcut.MatchesNothingPointcut;
 
 /**
  * Performs term rewriting for pointcut expressions.
- * 
+ *
  * @author colyer
  * @author clement
  */
@@ -252,9 +252,7 @@ public class PointcutRewriter {
 		}
 		// otherwise ...
 		Pointcut[] subset = new Pointcut[ps.length - 1];
-		for (int i = 1; i < ps.length; i++) {
-			subset[i - 1] = ps[i];
-		}
+		if (ps.length - 1 >= 0) System.arraycopy(ps, 1, subset, 0, ps.length - 1);
 		return new AndPointcut(ps[0], createAndsFor(subset));
 	}
 
@@ -327,11 +325,10 @@ public class PointcutRewriter {
 	}
 
 	private Pointcut simplifyAnd(AndPointcut apc) {
-		SortedSet<Pointcut> nodes = new TreeSet<Pointcut>(new PointcutEvaluationExpenseComparator());
+		SortedSet<Pointcut> nodes = new TreeSet<>(new PointcutEvaluationExpenseComparator());
 		collectAndNodes(apc, nodes);
 		// look for A and !A, or IfFalse
-		for (Iterator<Pointcut> iter = nodes.iterator(); iter.hasNext();) {
-			Pointcut element = iter.next();
+		for (Pointcut element : nodes) {
 			if (element instanceof NotPointcut) {
 				Pointcut body = ((NotPointcut) element).getNegatedPointcut();
 				if (nodes.contains(body)) {
@@ -362,7 +359,7 @@ public class PointcutRewriter {
 	}
 
 	private Pointcut sortOrs(Pointcut pc) {
-		SortedSet<Pointcut> nodes = new TreeSet<Pointcut>(new PointcutEvaluationExpenseComparator());
+		SortedSet<Pointcut> nodes = new TreeSet<>(new PointcutEvaluationExpenseComparator());
 		collectOrNodes(pc, nodes);
 		// write out with cheapest on left
 		Iterator<Pointcut> iter = nodes.iterator();

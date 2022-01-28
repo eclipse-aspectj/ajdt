@@ -11,7 +11,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Stephan Herrmann - contributions for 
+ *     Stephan Herrmann - contributions for
  *     							bug 337868 - [compiler][model] incomplete support for package-info.java when using SearchableEnvironment
  *     							bug 186342 - [compiler][null] Using annotations for null checking
  *******************************************************************************/
@@ -500,7 +500,7 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 		});
 	}
 
-	class APTProblem {
+	static class APTProblem {
 		CategorizedProblem problem;
 		ReferenceContext context;
 		APTProblem(CategorizedProblem problem, ReferenceContext context) {
@@ -508,7 +508,7 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 			this.context = context;
 		}
 	}
-	
+
 	protected void backupAptProblems() {
 		if (this.unitsToProcess == null) return;
 		for (int i = 0; i < this.totalUnits; i++) {
@@ -537,7 +537,7 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 			}
 		}
 	}
-	
+
 	protected void restoreAptProblems() {
 		if (this.unitsToProcess != null && this.aptProblems!= null) {
 			for (int i = 0; i < this.totalUnits; i++) {
@@ -607,10 +607,7 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 				while (true) {
 					try {
 						unit = processingTask.removeNextUnit(); // waits if no units are in the processed queue
-					} catch (Error e) {
-						unit = processingTask.unitToProcess;
-						throw e;
-					} catch (RuntimeException e) {
+					} catch (Error | RuntimeException e) {
 						unit = processingTask.unitToProcess;
 						throw e;
 					}
@@ -642,10 +639,7 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 			}
 		} catch (AbortCompilation e) {
 			this.handleInternalException(e, unit);
-		} catch (Error e) {
-			this.handleInternalException(e, unit, null);
-			throw e; // rethrow
-		} catch (RuntimeException e) {
+		} catch (Error | RuntimeException e) {
 			this.handleInternalException(e, unit, null);
 			throw e; // rethrow
 		} finally {
@@ -658,6 +652,7 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 			// AspectJ Extension end
 			this.annotationProcessorStartIndex  = 0;
 			this.stats.endTime = System.currentTimeMillis();
+			this.stats.overallTime += this.stats.endTime - this.stats.startTime;
 		}
 	}
 
@@ -665,7 +660,7 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 		if (next < this.totalUnits) {
 			CompilationUnitDeclaration unit = this.unitsToProcess[next];
 			if (this.annotationProcessorManager == null || next < this.annotationProcessorStartIndex) {
-			this.unitsToProcess[next] = null; // release reference to processed unit declaration
+				this.unitsToProcess[next] = null; // release reference to processed unit declaration
 			}
 			return unit;
 		}
@@ -824,14 +819,29 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 		this.parser = new Parser(this.problemReporter, this.options.parseLiteralExpressionsAsConstants);
 	}
 
+	private  void abortIfPreviewNotAllowed(ICompilationUnit[] sourceUnits, int maxUnits) {
+		if (!this.options.enablePreviewFeatures)
+			return;
+		try {
+			if (this.options.sourceLevel != ClassFileConstants.getLatestJDKLevel()) {
+				this.problemReporter.abortDueToPreviewEnablingNotAllowed(CompilerOptions.versionFromJdkLevel(this.options.sourceLevel), CompilerOptions.getLatestVersion());
+			}
+		} catch (AbortCompilation a) {
+			// best effort to find a way for reporting this problem: report on the first source
+			if (a.compilationResult == null) {
+				a.compilationResult = new CompilationResult(sourceUnits[0], 0, maxUnits, this.options.maxProblemsPerUnit);
+			}
+			throw a;
+		}
+	}
 	/**
 	 * Add the initial set of compilation units into the loop
 	 *  ->  build compilation unit declarations, their bindings and record their results.
 	 */
 	protected void internalBeginToCompile(ICompilationUnit[] sourceUnits, int maxUnits) {
+		abortIfPreviewNotAllowed(sourceUnits,maxUnits);
 		if (!this.useSingleThread && maxUnits >= ReadManager.THRESHOLD)
 			this.parser.readManager = new ReadManager(sourceUnits, maxUnits);
-
 		// Switch the current policy and compilation result for this unit to the requested one.
 		for (int i = 0; i < maxUnits; i++) {
 			CompilationResult unitResult = null;
@@ -908,15 +918,15 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 
 		long analyzeStart = System.currentTimeMillis();
 		this.stats.resolveTime += analyzeStart - resolveStart;
-		
-		//No need of analysis or generation of code if statements are not required		
+
+		//No need of analysis or generation of code if statements are not required
 		if (!this.options.ignoreMethodBodies) unit.analyseCode(); // flow analysis
 
 		long generateStart = System.currentTimeMillis();
 		this.stats.analyzeTime += generateStart - analyzeStart;
-	
+
 		if (!this.options.ignoreMethodBodies) unit.generateCode(); // code generation
-		
+
 		// reference info
 		if (this.options.produceReferenceInfo && unit.scope != null)
 			unit.scope.storeDependencyInfo();
@@ -934,6 +944,14 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 
 	protected void processAnnotations() {
 		try {
+			processAnnotationsInternal();
+		} finally {
+			this.annotationProcessorManager.cleanUp();
+		}
+	}
+
+	private void processAnnotationsInternal() {
+		try { // AspectJ
 		int newUnitSize = 0;
 		int newClassFilesSize = 0;
 		int bottom = this.annotationProcessorStartIndex;
@@ -990,32 +1008,37 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 				this.annotationProcessorManager.reset();
 			}
 		} while (newUnitSize != 0 || newClassFilesSize != 0);
-		
+
 		this.annotationProcessorManager.processAnnotations(null, null, true);
-		// process potential units added in the final round see 329156 
+		// process potential units added in the final round see 329156
 		ICompilationUnit[] newUnits = this.annotationProcessorManager.getNewUnits();
 		newUnitSize = newUnits.length;
-		if (newUnitSize != 0) {
-			ICompilationUnit[] newProcessedUnits = newUnits.clone(); // remember new units in case a source type collision occurs
-			try {
-				this.lookupEnvironment.isProcessingAnnotations = true;
-				internalBeginToCompile(newUnits, newUnitSize);
-			} catch (SourceTypeCollisionException e) {
-				e.isLastRound = true;
-				e.newAnnotationProcessorUnits = newProcessedUnits;
-				throw e;
-			} finally {
-				this.lookupEnvironment.isProcessingAnnotations = false;
-				this.annotationProcessorManager.reset();
+		try {
+			if (newUnitSize != 0) {
+				ICompilationUnit[] newProcessedUnits = newUnits.clone(); // remember new units in case a source type collision occurs
+				try {
+					this.lookupEnvironment.isProcessingAnnotations = true;
+					internalBeginToCompile(newUnits, newUnitSize);
+				} catch (SourceTypeCollisionException e) {
+					e.isLastRound = true;
+					e.newAnnotationProcessorUnits = newProcessedUnits;
+					throw e;
+				}
 			}
-		} else {
+		} finally {
+			this.lookupEnvironment.isProcessingAnnotations = false;
 			this.annotationProcessorManager.reset();
+			this.annotationProcessorManager.cleanUp();
 		}
 		// Units added in final round don't get annotation processed
 		this.annotationProcessorStartIndex = this.totalUnits;
+		// AspectJ - start
+		// Used to be done in reset calls above but if you do that
+		// the last processing round can't load new classes
 		} finally {
 			this.annotationProcessorManager.closeClassLoader();
 		}
+		// AspectJ - end
 	}
 
 	public void reset() {
@@ -1088,10 +1111,7 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 		} catch (AbortCompilation e) {
 			this.handleInternalException(e, unit);
 			return unit == null ? this.unitsToProcess[0] : unit;
-		} catch (Error e) {
-			this.handleInternalException(e, unit, null);
-			throw e; // rethrow
-		} catch (RuntimeException e) {
+		} catch (Error | RuntimeException e) {
 			this.handleInternalException(e, unit, null);
 			throw e; // rethrow
 		} finally {

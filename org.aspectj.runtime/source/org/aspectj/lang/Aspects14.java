@@ -2,9 +2,9 @@
  * Copyright (c) 2006 Contributors.
  * All rights reserved.
  * This program and the accompanying materials are made available
- * under the terms of the Eclipse Public License v1.0
+ * under the terms of the Eclipse Public License v 2.0
  * which accompanies this distribution and is available at
- * http://eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
  *
  * Contributors:
  * variant of Aspects in the aspectj5rt project - this one isn't Java5   - Andy Clement
@@ -17,7 +17,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
 /**
- * For users working on a level of Java prior to Java5, Aspects14 handles generic aspectOf methods when they 
+ * For users working on a level of Java prior to Java5, Aspects14 handles generic aspectOf methods when they
  * are not available in the aspects but added later on through load time weaving.  Users on Java5 should use
  * the class Aspects instead.
  * Aspects14.aspectOf(..) is doing reflective calls to the aspect aspectOf, so for better performance
@@ -95,7 +95,7 @@ public class Aspects14 {
      */
     public static boolean hasAspect(Class aspectClass) throws NoAspectBoundException {
         try {
-            return ((Boolean)getSingletonOrThreadHasAspect(aspectClass).invoke(null, EMPTY_OBJECT_ARRAY)).booleanValue();
+            return (Boolean) getSingletonOrThreadHasAspect(aspectClass).invoke(null, EMPTY_OBJECT_ARRAY);
         } catch (Exception e) {
             return false;
         }
@@ -110,7 +110,7 @@ public class Aspects14 {
      */
     public static boolean hasAspect(Class aspectClass, Object perObject) throws NoAspectBoundException {
         try {
-            return ((Boolean)getPerObjectHasAspect(aspectClass).invoke(null, new Object[]{perObject})).booleanValue();
+            return (Boolean) getPerObjectHasAspect(aspectClass).invoke(null, new Object[]{perObject});
         } catch (Exception e) {
             return false;
         }
@@ -125,7 +125,7 @@ public class Aspects14 {
      */
     public static boolean hasAspect(Class aspectClass, Class perTypeWithin) throws NoAspectBoundException {
         try {
-            return ((Boolean)getPerTypeWithinHasAspect(aspectClass).invoke(null, new Object[]{perTypeWithin})).booleanValue();
+            return (Boolean) getPerTypeWithinHasAspect(aspectClass).invoke(null, new Object[]{perTypeWithin});
         } catch (Exception e) {
             return false;
         }
@@ -133,26 +133,26 @@ public class Aspects14 {
 
     // -- aspectOf
 
-    private static Method getSingletonOrThreadAspectOf(Class aspectClass) throws NoSuchMethodException {
+    private static Method getSingletonOrThreadAspectOf(Class<?> aspectClass) throws NoSuchMethodException {
         Method method = aspectClass.getDeclaredMethod(ASPECTOF, EMPTY_CLASS_ARRAY);
         return checkAspectOf(method, aspectClass);
     }
 
-    private static Method getPerObjectAspectOf(Class aspectClass) throws NoSuchMethodException {
+    private static Method getPerObjectAspectOf(Class<?> aspectClass) throws NoSuchMethodException {
         Method method = aspectClass.getDeclaredMethod(ASPECTOF, PEROBJECT_CLASS_ARRAY);
         return checkAspectOf(method, aspectClass);
     }
 
-    private static Method getPerTypeWithinAspectOf(Class aspectClass) throws NoSuchMethodException {
+    private static Method getPerTypeWithinAspectOf(Class<?> aspectClass) throws NoSuchMethodException {
         Method method = aspectClass.getDeclaredMethod(ASPECTOF, PERTYPEWITHIN_CLASS_ARRAY);
         return checkAspectOf(method, aspectClass);
     }
 
-    private static Method checkAspectOf(Method method, Class aspectClass) throws NoSuchMethodException {
+    private static Method checkAspectOf(Method method, Class<?> aspectClass) throws NoSuchMethodException {
         method.setAccessible(true);
         if (!method.isAccessible()
             || !Modifier.isPublic(method.getModifiers())
-            || !Modifier.isStatic(method.getModifiers())) {            
+            || !Modifier.isStatic(method.getModifiers())) {
             throw new NoSuchMethodException(aspectClass.getName() + ".aspectOf(..) is not accessible public static");
         }
         return method;
@@ -160,22 +160,22 @@ public class Aspects14 {
 
     // -- hasAspect
 
-    private static Method getSingletonOrThreadHasAspect(Class aspectClass) throws NoSuchMethodException {
+    private static Method getSingletonOrThreadHasAspect(Class<?> aspectClass) throws NoSuchMethodException {
         Method method = aspectClass.getDeclaredMethod(HASASPECT, EMPTY_CLASS_ARRAY);
         return checkHasAspect(method, aspectClass);
     }
 
-    private static Method getPerObjectHasAspect(Class aspectClass) throws NoSuchMethodException {
+    private static Method getPerObjectHasAspect(Class<?> aspectClass) throws NoSuchMethodException {
         Method method = aspectClass.getDeclaredMethod(HASASPECT, PEROBJECT_CLASS_ARRAY);
         return checkHasAspect(method, aspectClass);
     }
 
-    private static Method getPerTypeWithinHasAspect(Class aspectClass) throws NoSuchMethodException {
+    private static Method getPerTypeWithinHasAspect(Class<?> aspectClass) throws NoSuchMethodException {
         Method method = aspectClass.getDeclaredMethod(HASASPECT, PERTYPEWITHIN_CLASS_ARRAY);
         return checkHasAspect(method, aspectClass);
     }
 
-    private static Method checkHasAspect(Method method, Class aspectClass) throws NoSuchMethodException {
+    private static Method checkHasAspect(Method method, Class<?> aspectClass) throws NoSuchMethodException {
         method.setAccessible(true);
         if (!method.isAccessible()
             || !Modifier.isPublic(method.getModifiers())

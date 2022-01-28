@@ -42,7 +42,7 @@ public final class SourceRange implements ISourceRange {
 
 	/**
 	 * Instantiate a new source range using the given offset and the given length.
-	 * 
+	 *
 	 * @param offset the given offset
 	 * @param length the given length
 	 */
@@ -80,7 +80,7 @@ public final class SourceRange implements ISourceRange {
 
 	@Override
 	public String toString() {
-		StringBuffer buffer = new StringBuffer();
+		StringBuilder buffer = new StringBuilder();
 		buffer.append("[offset="); //$NON-NLS-1$
 		buffer.append(this.offset);
 		buffer.append(", length="); //$NON-NLS-1$

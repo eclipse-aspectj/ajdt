@@ -1,13 +1,13 @@
 /* *******************************************************************
  * Copyright (c) 2008 Contributors
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     Andy Clement     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     Andy Clement     initial implementation
  * ******************************************************************/
 package org.aspectj.weaver.patterns;
 
@@ -28,11 +28,11 @@ import org.aspectj.weaver.VersionedDataInputStream;
 import org.aspectj.weaver.World;
 
 /**
- * Represents an attempt to bind the field of an annotation within a pointcut. For example:<br>
- * <code><pre>
+ * Represents an attempt to bind the field of an annotation within a pointcut. For example:
+ * <pre><code>
  * before(Level lev): execution(* *(..)) &amp;&amp; @annotation(TraceAnnotation(lev))
- * </pre></code><br>
- * This binding annotation type pattern will be for 'lev'.
+ * </code></pre>
+ * <p>This binding annotation type pattern will be for 'lev'.</p>
  */
 public class ExactAnnotationFieldTypePattern extends ExactAnnotationTypePattern {
 
@@ -106,8 +106,7 @@ public class ExactAnnotationFieldTypePattern extends ExactAnnotationTypePattern 
 		ResolvedMember[] annotationFields = theAnnotationType.getDeclaredMethods();
 		field = null;
 		boolean looksAmbiguous = false;
-		for (int i = 0; i < annotationFields.length; i++) {
-			ResolvedMember resolvedMember = annotationFields[i];
+		for (ResolvedMember resolvedMember : annotationFields) {
 			if (resolvedMember.getReturnType().equals(formalBinding.getType())) {
 				if (field != null) {
 					boolean haveProblem = true;
@@ -244,7 +243,7 @@ public class ExactAnnotationFieldTypePattern extends ExactAnnotationTypePattern 
 		if (!resolved && formalName != null) {
 			return formalName;
 		}
-		StringBuffer ret = new StringBuffer();
+		StringBuilder ret = new StringBuilder();
 		ret.append("@").append(annotationType.toString());
 		ret.append("(").append(formalName).append(")");
 		return ret.toString();

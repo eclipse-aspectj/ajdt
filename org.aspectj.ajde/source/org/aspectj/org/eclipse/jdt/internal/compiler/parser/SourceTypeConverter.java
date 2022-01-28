@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -31,6 +31,7 @@ package org.aspectj.org.eclipse.jdt.internal.compiler.parser;
 
 import org.aspectj.org.eclipse.jdt.core.IAnnotatable;
 import org.aspectj.org.eclipse.jdt.core.IAnnotation;
+import org.aspectj.org.eclipse.jdt.core.IField;
 import org.aspectj.org.eclipse.jdt.core.IImportDeclaration;
 import org.aspectj.org.eclipse.jdt.core.IJavaElement;
 import org.aspectj.org.eclipse.jdt.core.ILocalVariable;
@@ -131,7 +132,7 @@ public class SourceTypeConverter extends TypeConverter {
 		org.aspectj.org.eclipse.jdt.core.ICompilationUnit cuHandle = topLevelTypeInfo.getHandle().getCompilationUnit();
 		this.cu = (ICompilationUnit) cuHandle;
 		final CompilationUnitElementInfo compilationUnitElementInfo = (CompilationUnitElementInfo) ((JavaElement) this.cu).getElementInfo();
-		if (this.has1_5Compliance && 
+		if (this.has1_5Compliance &&
 				(compilationUnitElementInfo.annotationNumber >= CompilationUnitElementInfo.ANNOTATION_THRESHOLD_FOR_DIET_PARSE ||
 				(compilationUnitElementInfo.hasFunctionalTypes && (this.flags & LOCAL_TYPE) != 0))) {
 			// If more than 10 annotations, diet parse as this is faster, but not if
@@ -195,7 +196,7 @@ public class SourceTypeConverter extends TypeConverter {
 		ModuleDescriptionInfo moduleInfo = (ModuleDescriptionInfo) module;
 		org.aspectj.org.eclipse.jdt.core.ICompilationUnit cuHandle = moduleInfo.getHandle().getCompilationUnit();
 		this.cu = (ICompilationUnit) cuHandle;
-		// always parse, because (a) dietParse is always sufficient, (b) we don't yet have the necessary conversion methods for module directives 
+		// always parse, because (a) dietParse is always sufficient, (b) we don't yet have the necessary conversion methods for module directives
 		return new Parser(this.problemReporter, true).dietParse(this.cu, compilationResult);
 	}
 
@@ -241,6 +242,30 @@ public class SourceTypeConverter extends TypeConverter {
 
 	/*
 	 * Convert a field source element into a parsed field declaration
+	 */
+	private RecordComponent convertRecordComponents(SourceField component,
+										TypeDeclaration type,
+										CompilationResult compilationResult) throws JavaModelException {
+
+		SourceFieldElementInfo compInfo = (SourceFieldElementInfo) component.getElementInfo();
+		RecordComponent comp = new RecordComponent(null, -1, -1);
+
+		int start = compInfo.getNameSourceStart();
+		int end = compInfo.getNameSourceEnd();
+
+		comp.name = component.getElementName().toCharArray();
+		comp.sourceStart = start;
+		comp.sourceEnd = end;
+		comp.declarationSourceStart = compInfo.getDeclarationSourceStart();
+		comp.declarationSourceEnd = compInfo.getDeclarationSourceEnd();
+		comp.type = createTypeReference(compInfo.getTypeName(), start, end);
+
+		/* convert annotations */
+		comp.annotations = convertAnnotations(component);
+		return comp;
+	}
+	/*
+	 * Convert a record component source element into a parsed record component declaration
 	 */
 	private FieldDeclaration convert(SourceField fieldHandle, TypeDeclaration type, CompilationResult compilationResult) throws JavaModelException {
 
@@ -475,8 +500,18 @@ public class SourceTypeConverter extends TypeConverter {
 		SourceTypeElementInfo typeInfo = (SourceTypeElementInfo) typeHandle.getElementInfo();
 		if (typeInfo.isAnonymousMember())
 			throw new AnonymousMemberFound();
-		/* create type declaration - can be member type */
+		/* create type/record declaration - can be member type */
 		TypeDeclaration type = new TypeDeclaration(compilationResult);
+		if ((TypeDeclaration.kind(typeInfo.getModifiers()) == TypeDeclaration.RECORD_DECL)) {
+			// The first choice constructor that takes CompilationResult as arg is not setting all the fields
+			// Hence, use the one that does
+			type.modifiers |= ExtraCompilerModifiers.AccRecord;
+			IField[] recordComponents = typeHandle.getRecordComponents();
+			type.recordComponents = new RecordComponent[recordComponents.length];
+			for(int i = 0; i < recordComponents.length; i++) {
+				type.recordComponents[i] = convertRecordComponents((SourceField)recordComponents[i], type, compilationResult);
+			}
+		}
 		if (typeInfo.getEnclosingType() == null) {
 			if (typeHandle.isAnonymous()) {
 				type.name = CharOperation.NO_CHAR;
@@ -533,6 +568,14 @@ public class SourceTypeConverter extends TypeConverter {
 			for (int i = 0; i < interfaceCount; i++) {
 				type.superInterfaces[i] = createTypeReference(interfaceNames[i], start, end, true /* include generics */);
 				type.superInterfaces[i].bits |= ASTNode.IsSuperType;
+			}
+		}
+		char[][] permittedSubtypeNames = typeInfo.getPermittedSubtypeNames();
+		int permittedSubtypeCount = permittedSubtypeNames == null ? 0 : permittedSubtypeNames.length;
+		if (permittedSubtypeCount > 0) {
+			type.permittedTypes = new TypeReference[permittedSubtypeCount];
+			for (int i = 0; i < permittedSubtypeCount; i++) {
+				type.permittedTypes[i] = createTypeReference(permittedSubtypeNames[i], start, end, true /* include generics */);
 			}
 		}
 		/* convert member types */

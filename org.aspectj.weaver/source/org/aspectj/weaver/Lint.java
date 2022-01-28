@@ -1,13 +1,13 @@
 /* *******************************************************************
  * Copyright (c) 2002 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     PARC     initial implementation
  * ******************************************************************/
 
 package org.aspectj.weaver;
@@ -19,7 +19,6 @@ import java.io.InputStream;
 import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 
@@ -30,7 +29,7 @@ import org.aspectj.weaver.tools.Trace;
 import org.aspectj.weaver.tools.TraceFactory;
 
 public class Lint {
-	Map<String, Lint.Kind> kinds = new HashMap<String, Lint.Kind>();
+	Map<String, Lint.Kind> kinds = new HashMap<>();
 	/* private */World world;
 
 	public final Kind invalidAbsoluteTypeName = new Kind("invalidAbsoluteTypeName", "no match for this type name: {0}");
@@ -166,7 +165,7 @@ public class Lint {
 			kind.setKind(messageKind);
 		}
 	}
-	
+
 	public void setFromMap(Map<String,String> lintOptionsMap) {
 		for (String key: lintOptionsMap.keySet()) {
 			String value = lintOptionsMap.get(key);
@@ -234,8 +233,8 @@ public class Lint {
 
 	@SuppressWarnings("rawtypes")
 	public void setFromProperties(Properties properties) {
-		for (Iterator i = properties.entrySet().iterator(); i.hasNext();) {
-			Map.Entry entry = (Map.Entry) i.next();
+		for (Map.Entry<Object, Object> objectObjectEntry : properties.entrySet()) {
+			Map.Entry entry = (Map.Entry) objectObjectEntry;
 			Kind kind = kinds.get(entry.getKey());
 			if (kind == null) {
 				MessageUtil.error(world.getMessageHandler(), WeaverMessages.format(WeaverMessages.XLINT_KEY_ERROR, entry.getKey()));

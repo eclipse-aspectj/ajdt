@@ -1,13 +1,13 @@
 /* *******************************************************************
  * Copyright (c) 2002 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     PARC     initial implementation
  * ******************************************************************/
 
 package org.aspectj.weaver;
@@ -18,7 +18,6 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -47,7 +46,7 @@ public abstract class Shadow {
 	protected final Shadow enclosingShadow;
 	protected List<ShadowMunger> mungers = Collections.emptyList();
 	protected boolean needAroundClosureStacking = false;
-	
+
 	public int shadowId = nextShadowID++; // every time we build a shadow, it gets a new id
 
 	// ----
@@ -82,7 +81,7 @@ public abstract class Shadow {
 
 	/**
 	 * the type of the this object here
-	 * 
+	 *
 	 * @throws IllegalStateException if there is no this here
 	 */
 	public final UnresolvedType getThisType() {
@@ -98,7 +97,7 @@ public abstract class Shadow {
 
 	/**
 	 * a var referencing this
-	 * 
+	 *
 	 * @throws IllegalStateException if there is no target here
 	 */
 	public abstract Var getThisVar();
@@ -118,7 +117,7 @@ public abstract class Shadow {
 
 	/**
 	 * the type of the target object here
-	 * 
+	 *
 	 * @throws IllegalStateException if there is no target here
 	 */
 	public final UnresolvedType getTargetType() {
@@ -130,7 +129,7 @@ public abstract class Shadow {
 
 	/**
 	 * a var referencing the target
-	 * 
+	 *
 	 * @throws IllegalStateException if there is no target here
 	 */
 	public abstract Var getTargetVar();
@@ -266,7 +265,7 @@ public abstract class Shadow {
 
 	/**
 	 * returns the resolved signature of the thing under this shadow
-	 * 
+	 *
 	 */
 	public ResolvedMember getResolvedSignature() {
 		if (resolvedSignature == null) {
@@ -350,11 +349,11 @@ public abstract class Shadow {
 	 */
 	public static int howMany(int i) {
 		int count = 0;
-		for (int j = 0; j < SHADOW_KINDS.length; j++) {
-			if ((i & SHADOW_KINDS[j].bit) != 0) {
-				count++;
-			}
-		}
+        for (Kind shadowKind : SHADOW_KINDS) {
+            if ((i & shadowKind.bit) != 0) {
+                count++;
+            }
+        }
 		return count;
 	}
 
@@ -399,7 +398,7 @@ public abstract class Shadow {
 
 		/**
 		 * These shadow kinds have return values that can be bound in after returning(Dooberry doo) advice.
-		 * 
+		 *
 		 * @return
 		 */
 		public boolean hasReturnValue() {
@@ -481,17 +480,17 @@ public abstract class Shadow {
 
 	/**
 	 * Only does the check if the munger requires it (@AJ aspects don't)
-	 * 
+	 *
 	 * @param munger
 	 * @return
 	 */
 	protected boolean checkMunger(ShadowMunger munger) {
 		if (munger.mustCheckExceptions()) {
-			for (Iterator<ResolvedType> i = munger.getThrownExceptions().iterator(); i.hasNext();) {
-				if (!checkCanThrow(munger, i.next())) {
-					return false;
-				}
-			}
+            for (ResolvedType resolvedType : munger.getThrownExceptions()) {
+                if (!checkCanThrow(munger, resolvedType)) {
+                    return false;
+                }
+            }
 		}
 		return true;
 	}
@@ -522,18 +521,18 @@ public abstract class Shadow {
 
 	private boolean isDeclaredException(ResolvedType resolvedTypeX, Member member) {
 		ResolvedType[] excs = getIWorld().resolve(member.getExceptions(getIWorld()));
-		for (int i = 0, len = excs.length; i < len; i++) {
-			if (excs[i].isAssignableFrom(resolvedTypeX)) {
-				return true;
-			}
-		}
+        for (ResolvedType exc : excs) {
+            if (exc.isAssignableFrom(resolvedTypeX)) {
+                return true;
+            }
+        }
 		return false;
 	}
 
 	public void addMunger(ShadowMunger munger) {
 		if (checkMunger(munger)) {
 			if (mungers == Collections.EMPTY_LIST) {
-				mungers = new ArrayList<ShadowMunger>();
+				mungers = new ArrayList<>();
 			}
 			this.mungers.add(munger);
 		}
@@ -550,7 +549,7 @@ public abstract class Shadow {
 
 	private void sortMungers() {
 
-		List sorted = PartialOrder.sort(mungers);
+		List<ShadowMunger> sorted = PartialOrder.sort(mungers);
 
 		// Bunch of code to work out whether to report xlints for advice that isn't ordered at this Joinpoint
 		possiblyReportUnorderedAdvice(sorted);
@@ -566,12 +565,12 @@ public abstract class Shadow {
 	}
 
 	// not quite optimal... but the xlint is ignore by default
-	private void possiblyReportUnorderedAdvice(List sorted) {
+	private void possiblyReportUnorderedAdvice(List<ShadowMunger> sorted) {
 		if (sorted != null && getIWorld().getLint().unorderedAdviceAtShadow.isEnabled() && mungers.size() > 1) {
 
 			// Stores a set of strings of the form 'aspect1:aspect2' which indicates there is no
 			// precedence specified between the two aspects at this shadow.
-			Set<String> clashingAspects = new HashSet<String>();
+			Set<String> clashingAspects = new HashSet<>();
 			int max = mungers.size();
 
 			// Compare every pair of advice mungers
@@ -596,7 +595,7 @@ public abstract class Shadow {
 								// Ask the world if it knows about precedence between these
 								Integer order = getIWorld().getPrecedenceIfAny(adviceA.concreteAspect, adviceB.concreteAspect);
 
-								if (order != null && order.equals(new Integer(0))) {
+								if (order != null && order.equals(0)) {
 									String key = adviceA.getDeclaringAspect() + ":" + adviceB.getDeclaringAspect();
 									String possibleExistingKey = adviceB.getDeclaringAspect() + ":" + adviceA.getDeclaringAspect();
 									if (!clashingAspects.contains(possibleExistingKey)) {
@@ -608,13 +607,12 @@ public abstract class Shadow {
 					}
 				}
 			}
-			for (Iterator<String> iter = clashingAspects.iterator(); iter.hasNext();) {
-				String element = iter.next();
-				String aspect1 = element.substring(0, element.indexOf(":"));
-				String aspect2 = element.substring(element.indexOf(":") + 1);
-				getIWorld().getLint().unorderedAdviceAtShadow.signal(new String[] { this.toString(), aspect1, aspect2 },
-						this.getSourceLocation(), null);
-			}
+            for (String element : clashingAspects) {
+                String aspect1 = element.substring(0, element.indexOf(":"));
+                String aspect2 = element.substring(element.indexOf(":") + 1);
+                getIWorld().getLint().unorderedAdviceAtShadow.signal(new String[]{this.toString(), aspect1, aspect2},
+                        this.getSourceLocation(), null);
+            }
 		}
 	}
 
@@ -628,11 +626,11 @@ public abstract class Shadow {
 
 	/** Actually implement the (non-empty) mungers associated with this shadow */
 	private void implementMungers() {
-		World world = getIWorld(); 
+		World world = getIWorld();
 		needAroundClosureStacking = false;
 		int annotationStyleWithAroundAndProceedCount = 0;
 		for (ShadowMunger munger: mungers) {
-			if (munger.getDeclaringType()!= null && 
+			if (munger.getDeclaringType()!= null &&
 				munger.getDeclaringType().isAnnotationStyleAspect() &&
 				munger.isAroundAdvice() &&
 				munger.bindsProceedingJoinPoint()) {
@@ -659,7 +657,7 @@ public abstract class Shadow {
 	}
 
 	public String toResolvedString(World world) {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		sb.append(getKind());
 		sb.append("(");
 		Member m = getSignature();
@@ -689,7 +687,7 @@ public abstract class Shadow {
 	 * manipulation!
 	 */
 	public static Set<Kind> toSet(int i) {
-		Set<Kind> results = new HashSet<Kind>();
+		Set<Kind> results = new HashSet<>();
 		for (int j = 0; j < Shadow.SHADOW_KINDS.length; j++) {
 			Kind k = Shadow.SHADOW_KINDS[j];
 			if (k.isSet(i)) {

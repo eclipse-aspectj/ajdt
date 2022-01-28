@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2010 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Andrew Eisenberg - initial API and implementation
  *******************************************************************************/
@@ -13,13 +13,13 @@ package org.eclipse.ajdt.internal.core.search;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.aspectj.org.eclipse.jdt.core.dom.AbstractTypePattern;
 import org.aspectj.org.eclipse.jdt.core.dom.AnyWithAnnotationTypePattern;
 import org.aspectj.org.eclipse.jdt.core.dom.DeclareAnnotationDeclaration;
 import org.aspectj.org.eclipse.jdt.core.dom.IdentifierTypePattern;
 import org.aspectj.org.eclipse.jdt.core.dom.PatternNode;
 import org.aspectj.org.eclipse.jdt.core.dom.SimpleName;
 import org.aspectj.org.eclipse.jdt.core.dom.TypeCategoryTypePattern;
-import org.aspectj.org.eclipse.jdt.core.dom.TypePattern;
 import org.eclipse.ajdt.core.javaelements.DeclareElement;
 import org.eclipse.ajdt.core.javaelements.IAspectJElement;
 import org.eclipse.ajdt.core.javaelements.IntertypeElement;
@@ -45,7 +45,7 @@ public class ExtraPackageReferenceFinder extends AbstractExtraReferenceFinder<Pa
     protected List<IAspectJElement> getRelevantChildren(IParent parent) throws JavaModelException {
         IJavaElement[] children = parent.getChildren();
         List<IAspectJElement> allItds = new LinkedList<IAspectJElement>();
-        
+
         for (IJavaElement elt : children) {
             if (elt instanceof IntertypeElement || elt instanceof DeclareElement) {
                 allItds.add((IAspectJElement) elt);
@@ -92,25 +92,25 @@ public class ExtraPackageReferenceFinder extends AbstractExtraReferenceFinder<Pa
         ensurePkgNames(pattern);
         return new PackageReferenceDeclareVisitor(pkgNames, participant, decl, contents);
     }
-    
+
     class PackageReferenceDeclareVisitor extends DeclareVisitor {
         public PackageReferenceDeclareVisitor(char[] pkgNames, SearchParticipant participant,
                 DeclareElement decl, char[] fileContents) throws JavaModelException {
             super(participant, decl, fileContents);
         }
-        
+
         @Override
         public boolean visit(IdentifierTypePattern node) {
             findMatchInTypePattern(node);
             return super.visit(node);
         }
-        
+
         @Override
         public boolean visit(AnyWithAnnotationTypePattern node) {
             findMatchInTypePattern(node);
             return true;
         }
-        
+
         @Override
         public boolean visit(TypeCategoryTypePattern node) {
             findMatchInTypePattern(node);
@@ -120,12 +120,12 @@ public class ExtraPackageReferenceFinder extends AbstractExtraReferenceFinder<Pa
         /**
          * @param node
          */
-        protected void findMatchInTypePattern(TypePattern node) {
+        protected void findMatchInTypePattern(AbstractTypePattern node) {
             String detail = node.getTypePatternExpression();
             if (detail != null) {
                 if (isMatch(detail, 0, detail.length())) {
                     int actualStart = node.getStartPosition() + offset;
-                    acceptMatch(new PackageReferenceMatch(decl, SearchMatch.A_ACCURATE, 
+                    acceptMatch(new PackageReferenceMatch(decl, SearchMatch.A_ACCURATE,
                             actualStart, pkgNames.length - 1, false, participant, decl.getResource()));
                 } else if (isComplexTypePattern(detail)) {
                     // must do something more complex
@@ -143,7 +143,7 @@ public class ExtraPackageReferenceFinder extends AbstractExtraReferenceFinder<Pa
                     // +1 because the length is off by one...missing the '@'
                     int actualStart = node.getStartPosition() + 1 + offset;
                     int actualLength = pkgNames.length - 1;
-                    acceptMatch(new PackageReferenceMatch(decl, SearchMatch.A_ACCURATE, 
+                    acceptMatch(new PackageReferenceMatch(decl, SearchMatch.A_ACCURATE,
                             actualStart, actualLength, false, participant, decl.getResource()));
                 }
             }
@@ -163,6 +163,6 @@ public class ExtraPackageReferenceFinder extends AbstractExtraReferenceFinder<Pa
         protected void findMatchesInComplexPattern(PatternNode node) {
             // FIXADE not implemented.
         }
-        
+
     }
 }

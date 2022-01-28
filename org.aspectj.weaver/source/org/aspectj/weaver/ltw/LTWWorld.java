@@ -1,16 +1,17 @@
 /* *******************************************************************
  * Copyright (c) 2005 Contributors.
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
  *   Ron Bodkin		Initial implementation
  * ******************************************************************/
 package org.aspectj.weaver.ltw;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -19,7 +20,6 @@ import java.util.Map;
 
 import org.aspectj.apache.bcel.classfile.JavaClass;
 import org.aspectj.bridge.IMessageHandler;
-import org.aspectj.util.LangUtil;
 import org.aspectj.weaver.Dump.IVisitor;
 import org.aspectj.weaver.ICrossReferenceHandler;
 import org.aspectj.weaver.ReferenceType;
@@ -35,14 +35,14 @@ import org.aspectj.weaver.reflect.ReflectionWorld;
 /**
  * @author adrian
  * @author Ron Bodkin
- * 
+ *
  *         For use in LT weaving
- * 
+ *
  *         Backed by both a BcelWorld and a ReflectionWorld
- * 
+ *
  *         Needs a callback when a woven class is defined This is the trigger for us to ditch the class from Bcel and cache it in
  *         the reflective world instead.
- * 
+ *
  *         Create by passing in a classloader, message handler
  */
 public class LTWWorld extends BcelWorld implements IReflectionWorld {
@@ -80,7 +80,7 @@ public class LTWWorld extends BcelWorld implements IReflectionWorld {
 			classLoaderString = loader.getClass().getName()+":"+Integer.toString(System.identityHashCode(loader));
 		}
 		classLoaderParentString = (loader.getParent() == null ? "<NullParent>" : loader.getParent().toString());
-		setBehaveInJava5Way(LangUtil.is15VMOrGreater());
+		setBehaveInJava5Way(true);
 		annotationFinder = ReflectionWorld.makeAnnotationFinderIfAny(loader, this);
 	}
 
@@ -98,7 +98,7 @@ public class LTWWorld extends BcelWorld implements IReflectionWorld {
 	// }
 
 	/**
-	 * @Override
+	 * Override
 	 */
 	@Override
 	protected ReferenceTypeDelegate resolveDelegate(ReferenceType ty) {
@@ -156,7 +156,7 @@ public class LTWWorld extends BcelWorld implements IReflectionWorld {
 	/**
 	 * Remove this class from the typeMap. Call back to be made from a publishing class loader The class loader should, ideally,
 	 * make this call on each not yet working
-	 * 
+	 *
 	 * @param clazz
 	 */
 	public void loadedClass(Class clazz) {
@@ -170,32 +170,30 @@ public class LTWWorld extends BcelWorld implements IReflectionWorld {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.aspectj.weaver.reflect.IReflectionWorld#resolve(java.lang.Class)
 	 */
 	public ResolvedType resolve(Class aClass) {
 		return ReflectionWorld.resolve(this, aClass);
 	}
 
-	private static Map makeConcurrentMap() {
+	private static Map<?, ?> makeConcurrentMap() {
 		if (concurrentMapClass != null) {
 			try {
-				return (Map) concurrentMapClass.newInstance();
-			} catch (InstantiationException ie) {
-			} catch (IllegalAccessException iae) {
-			}
+				return (Map) concurrentMapClass.getDeclaredConstructor().newInstance();
+			} catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException ignored) {}
 			// fall through if exceptions
 		}
-		return Collections.synchronizedMap(new HashMap());
+		return Collections.synchronizedMap(new HashMap<>());
 	}
 
-	private static Class makeConcurrentMapClass() {
+	private static Class<?> makeConcurrentMapClass() {
 		String betterChoices[] = { "java.util.concurrent.ConcurrentHashMap",
 				"edu.emory.mathcs.backport.java.util.concurrent.ConcurrentHashMap",
 				"EDU.oswego.cs.dl.util.concurrent.ConcurrentHashMap" };
-		for (int i = 0; i < betterChoices.length; i++) {
+		for (String betterChoice : betterChoices) {
 			try {
-				return Class.forName(betterChoices[i]);
+				return Class.forName(betterChoice);
 			} catch (ClassNotFoundException cnfe) {
 				// try the next one
 			} catch (SecurityException se) {
@@ -217,7 +215,7 @@ public class LTWWorld extends BcelWorld implements IReflectionWorld {
 	// One type is completed at a time, if multiple need doing then they
 	// are queued up
 	private boolean typeCompletionInProgress = false;
-	private List/* ResolvedType */typesForCompletion = new ArrayList();
+	private List<ResolvedType> typesForCompletion = new ArrayList<>();
 
 	@Override
 	protected void completeBinaryType(ResolvedType ret) {

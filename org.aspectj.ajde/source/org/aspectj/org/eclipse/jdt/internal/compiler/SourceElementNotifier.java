@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008, 2017 IBM Corporation and others.
+ * Copyright (c) 2008, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -165,18 +165,23 @@ protected char[] getSuperclassName(TypeDeclaration typeDeclaration) {
 	TypeReference superclass = typeDeclaration.superclass;
 	return superclass != null ? CharOperation.concatWith(superclass.getParameterizedTypeName(), '.') : null;
 }
+protected char[][] getPermittedSubTypes(TypeDeclaration typeDeclaration) {
+	return extractTypeReferences(typeDeclaration.permittedTypes);
+}
 protected char[][] getThrownExceptions(AbstractMethodDeclaration methodDeclaration) {
-	char[][] thrownExceptionTypes = null;
-	TypeReference[] thrownExceptions = methodDeclaration.thrownExceptions;
+	return extractTypeReferences(methodDeclaration.thrownExceptions);
+}
+private char[][] extractTypeReferences(TypeReference[] thrownExceptions) {
+	char[][] names = null;
 	if (thrownExceptions != null) {
 		int thrownExceptionLength = thrownExceptions.length;
-		thrownExceptionTypes = new char[thrownExceptionLength][];
+		names = new char[thrownExceptionLength][];
 		for (int i = 0; i < thrownExceptionLength; i++) {
-			thrownExceptionTypes[i] =
+			names[i] =
 				CharOperation.concatWith(thrownExceptions[i].getParameterizedTypeName(), '.');
 		}
 	}
-	return thrownExceptionTypes;
+	return names;
 }
 protected char[][] getTypeParameterBounds(TypeParameter typeParameter) {
 	TypeReference firstBound = typeParameter.type;
@@ -249,6 +254,8 @@ protected void notifySourceElementRequestor(AbstractMethodDeclaration methodDecl
 		this.visitIfNeeded(methodDeclaration);
 		return;
 	}
+	if ((methodDeclaration.bits & org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode.IsImplicit) != 0)
+		return;
 
 	if (methodDeclaration.isDefaultConstructor()) {
 		if (this.reportReferenceInfo) {
@@ -278,11 +285,11 @@ protected void notifySourceElementRequestor(AbstractMethodDeclaration methodDecl
 	char[][] argumentNames = null;
 	boolean isVarArgs = false;
 	Argument[] arguments = methodDeclaration.arguments;
-	ParameterInfo[] parameterInfos = null; 
+	ParameterInfo[] parameterInfos = null;
 	ISourceElementRequestor.MethodInfo methodInfo = new ISourceElementRequestor.MethodInfo();
 	methodInfo.typeAnnotated = ((methodDeclaration.bits & ASTNode.HasTypeAnnotations) != 0);
 
-	if (arguments != null) {
+	if (arguments != null && arguments.length > 0) {
 		Object[][] argumentInfos = getArgumentInfos(arguments);
 		parameterInfos = (ParameterInfo[]) argumentInfos[0];
 		argumentTypes = (char[][]) argumentInfos[1][0];
@@ -304,6 +311,7 @@ protected void notifySourceElementRequestor(AbstractMethodDeclaration methodDecl
 				currentModifiers |= ClassFileConstants.AccDeprecated;
 
 			methodInfo.isConstructor = true;
+			methodInfo.isCanonicalConstr = methodDeclaration.isCanonicalConstructor();
 			methodInfo.declarationStart = methodDeclaration.declarationSourceStart;
 			methodInfo.modifiers = currentModifiers;
 			methodInfo.name = methodDeclaration.selector;
@@ -452,7 +460,7 @@ public void notifySourceElementRequestor(
 				nodes[index++] = types[i];
 			}
 		}
-		
+
 		if (parsedUnit.moduleDeclaration != null)
 			nodes[index++] = parsedUnit.moduleDeclaration;
 
@@ -533,6 +541,10 @@ protected void notifySourceElementRequestor(FieldDeclaration fieldDeclaration, T
 				fieldInfo.declarationStart = fieldDeclaration.declarationSourceStart;
 				fieldInfo.name = fieldDeclaration.name;
 				fieldInfo.modifiers = deprecated ? (currentModifiers & ExtraCompilerModifiers.AccJustFlag) | ClassFileConstants.AccDeprecated : currentModifiers & ExtraCompilerModifiers.AccJustFlag;
+				if (fieldDeclaration.isARecordComponent) {
+					fieldInfo.modifiers |= ExtraCompilerModifiers.AccRecord;
+					fieldInfo.isRecordComponent = true;
+				}
 				fieldInfo.type = typeName;
 				fieldInfo.nameSourceStart = fieldDeclaration.sourceStart;
 				fieldInfo.nameSourceEnd = fieldDeclaration.sourceEnd;
@@ -616,6 +628,40 @@ protected void notifySourceElementRequestor(ModuleDeclaration moduleDeclaration)
 		this.requestor.exitModule(moduleDeclaration.declarationSourceEnd);
 	}
 }
+//protected void notifySourceElementRequestor(RecordComponent recordComponent, TypeDeclaration declaringType) {
+//	assert declaringType.isRecord();
+//
+//	// range check
+//	boolean isInRange =
+//				this.initialPosition <= recordComponent.declarationSourceStart
+//				&& this.eofPosition >= recordComponent.declarationSourceEnd;
+//	int recordComponentEndPosition = this.sourceEnds.get(recordComponent);
+//	if (recordComponentEndPosition == -1) {
+//		// use the declaration source end by default
+//		recordComponentEndPosition = recordComponent.declarationSourceEnd;
+//	}
+//	if (isInRange) {
+//		char[] typeName = CharOperation.concatWith(recordComponent.type.getParameterizedTypeName(), '.');
+//		ISourceElementRequestor.RecordComponentInfo recordComponentInfo = new ISourceElementRequestor.RecordComponentInfo();
+//		recordComponentInfo.typeAnnotated = ((recordComponent.bits & ASTNode.HasTypeAnnotations) != 0);
+//		recordComponentInfo.declarationStart = recordComponent.declarationSourceStart;
+//		recordComponentInfo.name = recordComponent.name;
+//		recordComponentInfo.type = typeName;
+//		recordComponentInfo.nameSourceStart = recordComponent.sourceStart;
+//		recordComponentInfo.nameSourceEnd = recordComponent.sourceEnd;
+//		recordComponentInfo.categories = this.nodesToCategories.get(recordComponent);
+//		recordComponentInfo.annotations = recordComponent.annotations;
+//		recordComponentInfo.node = recordComponent;
+//		this.requestor.enterRecordComponent(recordComponentInfo);
+//	}
+//	this.visitIfNeeded(recordComponent, declaringType);
+//	if (isInRange){
+//		this.requestor.exitRecordComponent(
+//			recordComponentEndPosition,
+//			recordComponent.declarationSourceEnd);
+//	}
+//
+//}
 protected void notifySourceElementRequestor(TypeDeclaration typeDeclaration, boolean notifyTypePresence, TypeDeclaration declaringType, ImportReference currentPackage) {
 
 	if (CharOperation.equals(TypeConstants.PACKAGE_INFO_NAME, typeDeclaration.name)) return;
@@ -662,7 +708,10 @@ protected void notifySourceElementRequestor(TypeDeclaration typeDeclaration, boo
 			} else {
 				typeInfo.declarationStart = typeDeclaration.allocation.sourceStart;
 			}
-			typeInfo.modifiers = deprecated ? (currentModifiers & ExtraCompilerModifiers.AccJustFlag) | ClassFileConstants.AccDeprecated : currentModifiers & ExtraCompilerModifiers.AccJustFlag;
+			typeInfo.modifiers = deprecated
+					? (currentModifiers & ExtraCompilerModifiers.AccJustFlag) | ClassFileConstants.AccDeprecated
+					: currentModifiers & ExtraCompilerModifiers.AccJustFlag;
+			typeInfo.modifiers |= currentModifiers & (ExtraCompilerModifiers.AccSealed | ExtraCompilerModifiers.AccNonSealed);
 			typeInfo.name = typeDeclaration.name;
 			typeInfo.nameSourceStart = isEnumInit ? typeDeclaration.allocation.enumConstant.sourceStart : typeDeclaration.sourceStart;
 			typeInfo.nameSourceEnd = sourceEnd(typeDeclaration);
@@ -675,7 +724,9 @@ protected void notifySourceElementRequestor(TypeDeclaration typeDeclaration, boo
 			typeInfo.annotations = typeDeclaration.annotations;
 			typeInfo.extraFlags = ExtraFlags.getExtraFlags(typeDeclaration);
 			typeInfo.node = typeDeclaration;
-			this.requestor.enterType(typeInfo);
+			if ((currentModifiers & ExtraCompilerModifiers.AccSealed) != 0) {
+				typeInfo.permittedSubtypes = getPermittedSubTypes(typeDeclaration);
+			}
 			switch (kind) {
 				case TypeDeclaration.CLASS_DECL :
 					if (superclassName != null)
@@ -690,7 +741,12 @@ protected void notifySourceElementRequestor(TypeDeclaration typeDeclaration, boo
 				case TypeDeclaration.ANNOTATION_TYPE_DECL :
 					implicitSuperclassName = TypeConstants.CharArray_JAVA_LANG_ANNOTATION_ANNOTATION;
 					break;
+				case TypeDeclaration.RECORD_DECL :
+ 					implicitSuperclassName = TypeConstants.CharArray_JAVA_LANG_RECORD;
+ 					typeInfo.modifiers |= ExtraCompilerModifiers.AccRecord;
+ 					break;
 			}
+			this.requestor.enterType(typeInfo);
 		}
 		if (this.nestedTypeIndex == this.typeNames.length) {
 			// need a resize
@@ -742,6 +798,7 @@ protected void notifySourceElementRequestor(TypeDeclaration typeDeclaration, boo
 			case 2 :
 				memberTypeIndex++;
 				notifySourceElementRequestor(nextMemberDeclaration, true, null, currentPackage);
+				break;
 		}
 	}
 	if (notifyTypePresence){
@@ -777,7 +834,7 @@ private void fillModuleInfo(ModuleDeclaration mod, ISourceElementRequestor.Modul
 				}
 			}
 			exps[i] = exp;
-		}					
+		}
 		modInfo.exports = exps;
 	}
 	if (mod.servicesCount > 0) {

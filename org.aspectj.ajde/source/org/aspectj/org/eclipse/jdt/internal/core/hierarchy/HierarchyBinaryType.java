@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -27,6 +27,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryMethod;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryNestedType;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryType;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryTypeAnnotation;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.IRecordComponent;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.ITypeAnnotationWalker;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BinaryTypeBinding.ExternalAnnotationStatus;
@@ -119,7 +120,7 @@ public char[] getFileName() {
 @Override
 public char[] getGenericSignature() {
 	if (this.typeParameterSignatures != null && this.genericSignature == null) {
-		StringBuffer buffer = new StringBuffer();
+		StringBuilder buffer = new StringBuilder();
 		buffer.append('<');
 		for (int i = 0, length = this.typeParameterSignatures.length; i < length; i++) {
 			buffer.append(this.typeParameterSignatures[i]);
@@ -233,6 +234,10 @@ public boolean isLocal() {
 	return false;  // index did not record this information (since unused for hierarchies)
 }
 @Override
+public boolean isRecord() {
+	return false;  // index did not record this information (since unused for hierarchies)
+}
+@Override
 public boolean isMember() {
 	return false;  // index did not record this information (since unused for hierarchies)
 }
@@ -287,7 +292,7 @@ public char[] sourceFileName() {
 }
 @Override
 public String toString() {
-	StringBuffer buffer = new StringBuffer();
+	StringBuilder buffer = new StringBuilder();
 	if (this.modifiers == ClassFileConstants.AccPublic) {
 		buffer.append("public "); //$NON-NLS-1$
 	}
@@ -300,6 +305,9 @@ public String toString() {
 			break;
 		case TypeDeclaration.ENUM_DECL :
 			buffer.append("enum "); //$NON-NLS-1$
+			break;
+		case TypeDeclaration.RECORD_DECL :
+			buffer.append("record "); //$NON-NLS-1$
 			break;
 	}
 	if (this.name != null) {
@@ -333,5 +341,10 @@ public char[] getModule() {
 @Override
 public ExternalAnnotationStatus getExternalAnnotationStatus() {
 	return ExternalAnnotationStatus.NOT_EEA_CONFIGURED;
+}
+
+@Override
+public IRecordComponent[] getRecordComponents() {
+	return null;
 }
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -24,6 +24,7 @@ import org.aspectj.org.eclipse.jdt.core.JavaModelException;
 import org.aspectj.org.eclipse.jdt.core.dom.AST;
 import org.aspectj.org.eclipse.jdt.core.dom.CompilationUnit;
 import org.aspectj.org.eclipse.jdt.internal.core.SortElementsOperation;
+import org.aspectj.org.eclipse.jdt.internal.core.dom.util.DOMASTUtil;
 import org.eclipse.text.edits.TextEdit;
 import org.eclipse.text.edits.TextEditGroup;
 
@@ -50,17 +51,7 @@ public final class CompilationUnitSorter {
      * @deprecated marking deprecated as it is using deprecated code
      */
     private static void checkASTLevel(int level) {
-        switch (level) {
-        case AST.JLS2 :
-        case AST.JLS3 :
-        case AST.JLS4 :
-        case AST.JLS8 :
-        case AST.JLS9 :
-        case AST.JLS10 :
-            break;
-        default :
-            throw new IllegalArgumentException();
-        }
+        DOMASTUtil.checkASTLevel(level);
     }
 
 	/**
@@ -84,7 +75,6 @@ public final class CompilationUnitSorter {
 	 * Integer i2 = (Integer) b2.getProperty(RELATIVE_ORDER);
 	 * return i1.intValue() - i2.intValue(); // preserve original order
 	 * </pre>
-	 * </p>
 	 *
 	 * @see #sort(ICompilationUnit, int[], Comparator, int, IProgressMonitor)
 	 * @see org.aspectj.org.eclipse.jdt.core.dom.BodyDeclaration
@@ -127,34 +117,35 @@ public final class CompilationUnitSorter {
 	 * The body declarations passed as parameters to the comparator
 	 * always carry at least the following minimal signature information:
 	 * <br>
-	 * <table border="1" width="80%" cellpadding="5">
+	 * <table border="1">
 	 *	  <tr>
-	 *	    <td width="20%"><code>TypeDeclaration</code></td>
-	 *	    <td width="50%"><code>modifiers, isInterface, name, superclass,
+	 *	    <td><code>TypeDeclaration</code></td>
+	 *	    <td><code>modifiers, isInterface, name, superclass,
 	 *	      superInterfaces<br>
      *		  RELATIVE_ORDER property</code></td>
 	 *	  </tr>
 	 *	  <tr>
-	 *	    <td width="20%"><code>FieldDeclaration</code></td>
-	 *	    <td width="50%"><code>modifiers, type, fragments
+	 *	    <td><code>FieldDeclaration</code></td>
+	 *	    <td><code>modifiers, type, fragments
 	 *        (VariableDeclarationFragments
 	 *	      with name only)<br>
      *		  RELATIVE_ORDER property</code></td>
 	 *	  </tr>
 	 *	  <tr>
-	 *	    <td width="20%"><code>MethodDeclaration</code></td>
-	 *	    <td width="50%"><code>modifiers, isConstructor, returnType, name,
+	 *	    <td><code>MethodDeclaration</code></td>
+	 *	    <td><code>modifiers, isConstructor, returnType, name,
 	 *		  parameters
 	 *	      (SingleVariableDeclarations with name and type only),
 	 *		  thrownExceptions<br>
      *		  RELATIVE_ORDER property</code></td>
 	 *	  </tr>
 	 *	  <tr>
-	 *	    <td width="20%"><code>Initializer</code></td>
-	 *	    <td width="50%"><code>modifiers<br>
+	 *	    <td><code>Initializer</code></td>
+	 *	    <td><code>modifiers<br>
      *		  RELATIVE_ORDER property</code></td>
 	 *	  </tr>
 	 * </table>
+	 * <p>
 	 * Clients should not rely on the AST nodes being properly parented or on
 	 * having source range information. (Future releases may provide options
 	 * for requesting additional information like source positions, full ASTs,
@@ -242,51 +233,51 @@ public final class CompilationUnitSorter {
      * The body declarations passed as parameters to the comparator
      * always carry at least the following minimal signature information:
      * <br>
-     * <table border="1" width="80%" cellpadding="5">
+     * <table border="1">
      *    <tr>
-     *      <td width="20%"><code>TypeDeclaration</code></td>
-     *      <td width="50%"><code>modifiers, isInterface, name, superclass,
+     *      <td><code>TypeDeclaration</code></td>
+     *      <td><code>modifiers, isInterface, name, superclass,
      *        superInterfaces, typeParameters<br>
      *        RELATIVE_ORDER property</code></td>
      *    </tr>
      *    <tr>
-     *      <td width="20%"><code>FieldDeclaration</code></td>
-     *      <td width="50%"><code>modifiers, type, fragments
+     *      <td><code>FieldDeclaration</code></td>
+     *      <td><code>modifiers, type, fragments
      *        (VariableDeclarationFragments
      *        with name only)<br>
      *        RELATIVE_ORDER property</code></td>
      *    </tr>
      *    <tr>
-     *      <td width="20%"><code>MethodDeclaration</code></td>
-     *      <td width="50%"><code>modifiers, isConstructor, returnType, name,
+     *      <td><code>MethodDeclaration</code></td>
+     *      <td><code>modifiers, isConstructor, returnType, name,
      *        typeParameters, parameters
      *        (SingleVariableDeclarations with name, type, and modifiers only),
      *        thrownExceptions<br>
      *        RELATIVE_ORDER property</code></td>
      *    </tr>
      *    <tr>
-     *      <td width="20%"><code>Initializer</code></td>
-     *      <td width="50%"><code>modifiers<br>
+     *      <td><code>Initializer</code></td>
+     *      <td><code>modifiers<br>
      *        RELATIVE_ORDER property</code></td>
      *    </tr>
      *    <tr>
-     *      <td width="20%"><code>AnnotationTypeDeclaration</code></td>
-     *      <td width="50%"><code>modifiers, name<br>
+     *      <td><code>AnnotationTypeDeclaration</code></td>
+     *      <td><code>modifiers, name<br>
      *        RELATIVE_ORDER property</code></td>
      *    </tr>
      *    <tr>
-     *      <td width="20%"><code>AnnotationTypeMemberDeclaration</code></td>
-     *      <td width="50%"><code>modifiers, name, type, default<br>
+     *      <td><code>AnnotationTypeMemberDeclaration</code></td>
+     *      <td><code>modifiers, name, type, default<br>
      *        RELATIVE_ORDER property</code></td>
      *    </tr>
      *    <tr>
-     *      <td width="20%"><code>EnumDeclaration</code></td>
-     *      <td width="50%"><code>modifiers, name, superInterfaces<br>
+     *      <td><code>EnumDeclaration</code></td>
+     *      <td><code>modifiers, name, superInterfaces<br>
      *        RELATIVE_ORDER property</code></td>
      *    </tr>
      *    <tr>
-     *      <td width="20%"><code>EnumConstantDeclaration</code></td>
-     *      <td width="50%"><code>modifiers, name, arguments<br>
+     *      <td><code>EnumConstantDeclaration</code></td>
+     *      <td><code>modifiers, name, arguments<br>
      *        RELATIVE_ORDER property</code></td>
      *    </tr>
      * </table>
@@ -294,7 +285,6 @@ public final class CompilationUnitSorter {
      * having source range information. (Future releases may provide options
      * for requesting additional information like source positions, full ASTs,
      * non-recursive sorting, etc.)
-     * </p>
      *
      * @param level the AST level; one of the <code>{@link AST}.JLS*</code> constants
      * @param compilationUnit the given compilation unit, which must be a
@@ -371,55 +361,54 @@ public final class CompilationUnitSorter {
 	 * <p>
 	 * The body declarations passed as parameters to the comparator always carry
 	 * at least the following minimal signature information: <br>
-	 * <table border="1" width="80%" cellpadding="5">
+	 * <table border="1">
 	 * <tr>
-	 * <td width="20%"><code>TypeDeclaration</code></td>
-	 * <td width="50%"><code>modifiers, isInterface, name, superclass,
+	 * <td><code>TypeDeclaration</code></td>
+	 * <td><code>modifiers, isInterface, name, superclass,
 	 *        superInterfaces, typeParameters<br>
 	 *        RELATIVE_ORDER property</code></td>
 	 * </tr>
 	 * <tr>
-	 * <td width="20%"><code>FieldDeclaration</code></td>
-	 * <td width="50%"><code>modifiers, type, fragments
+	 * <td><code>FieldDeclaration</code></td>
+	 * <td><code>modifiers, type, fragments
 	 *        (VariableDeclarationFragments
 	 *        with name only)<br>
 	 *        RELATIVE_ORDER property</code></td>
 	 * </tr>
 	 * <tr>
-	 * <td width="20%"><code>MethodDeclaration</code></td>
-	 * <td width="50%"><code>modifiers, isConstructor, returnType, name,
+	 * <td><code>MethodDeclaration</code></td>
+	 * <td><code>modifiers, isConstructor, returnType, name,
 	 *        typeParameters, parameters
 	 *        (SingleVariableDeclarations with name, type, and modifiers only),
 	 *        thrownExceptions<br>
 	 *        RELATIVE_ORDER property</code></td>
 	 * </tr>
 	 * <tr>
-	 * <td width="20%"><code>Initializer</code></td>
-	 * <td width="50%"><code>modifiers<br>
+	 * <td><code>Initializer</code></td>
+	 * <td><code>modifiers<br>
 	 *        RELATIVE_ORDER property</code></td>
 	 * </tr>
 	 * <tr>
-	 * <td width="20%"><code>AnnotationTypeDeclaration</code></td>
-	 * <td width="50%"><code>modifiers, name<br>
+	 * <td><code>AnnotationTypeDeclaration</code></td>
+	 * <td><code>modifiers, name<br>
 	 *        RELATIVE_ORDER property</code></td>
 	 * </tr>
 	 * <tr>
-	 * <td width="20%"><code>AnnotationTypeMemberDeclaration</code></td>
-	 * <td width="50%"><code>modifiers, name, type, default<br>
+	 * <td><code>AnnotationTypeMemberDeclaration</code></td>
+	 * <td><code>modifiers, name, type, default<br>
 	 *        RELATIVE_ORDER property</code></td>
 	 * </tr>
 	 * <tr>
-	 * <td width="20%"><code>EnumDeclaration</code></td>
-	 * <td width="50%"><code>modifiers, name, superInterfaces<br>
+	 * <td><code>EnumDeclaration</code></td>
+	 * <td><code>modifiers, name, superInterfaces<br>
 	 *        RELATIVE_ORDER property</code></td>
 	 * </tr>
 	 * <tr>
-	 * <td width="20%"><code>EnumConstantDeclaration</code></td>
-	 * <td width="50%"><code>modifiers, name, arguments<br>
+	 * <td><code>EnumConstantDeclaration</code></td>
+	 * <td><code>modifiers, name, arguments<br>
 	 *        RELATIVE_ORDER property</code></td>
 	 * </tr>
 	 * </table>
-	 * </p>
 	 *
 	 * @param unit
 	 *            the CompilationUnit to sort

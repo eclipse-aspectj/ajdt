@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -107,7 +107,7 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 			(this.action == null
 				? actionInfo
 				: (actionInfo.mergedWith(loopingContext.initsOnContinue))).copy());
-	/* https://bugs.eclipse.org/bugs/show_bug.cgi?id=367023, we reach the condition at the bottom via two arcs, 
+	/* https://bugs.eclipse.org/bugs/show_bug.cgi?id=367023, we reach the condition at the bottom via two arcs,
 	   one by free fall and another by continuing... Merge initializations propagated through the two pathways,
 	   cf, while and for loops.
 	*/
@@ -136,7 +136,7 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 		loopingContext.simulateThrowAfterLoopBack(loopbackFlowInfo);
 	}
 	// end of loop
-	FlowInfo mergedInfo = 
+	FlowInfo mergedInfo =
 		FlowInfo.mergedOptimizedBranches(
 						(loopingContext.initsOnBreak.tagBits & FlowInfo.UNREACHABLE) != 0
 								? loopingContext.initsOnBreak
@@ -227,12 +227,28 @@ public StringBuffer printStatement(int indent, StringBuffer output) {
 
 @Override
 public void resolve(BlockScope scope) {
-	TypeBinding type = this.condition.resolveTypeExpecting(scope, TypeBinding.BOOLEAN);
-	this.condition.computeConversion(scope, type, type);
-	if (this.action != null)
-		this.action.resolve(scope);
+	if (containsPatternVariable()) {
+		this.condition.collectPatternVariablesToScope(null, scope);
+		LocalVariableBinding[] patternVariablesInFalseScope = this.condition.getPatternVariablesWhenFalse();
+		TypeBinding type = this.condition.resolveTypeExpecting(scope, TypeBinding.BOOLEAN);
+		this.condition.computeConversion(scope, type, type);
+		if (this.action != null) {
+			this.action.resolve(scope);
+			this.action.promotePatternVariablesIfApplicable(patternVariablesInFalseScope,
+					() -> !this.action.breaksOut(null));
+		}
+	} else {
+		TypeBinding type = this.condition.resolveTypeExpecting(scope, TypeBinding.BOOLEAN);
+		this.condition.computeConversion(scope, type, type);
+		if (this.action != null)
+			this.action.resolve(scope);
+	}
 }
 
+@Override
+public boolean containsPatternVariable() {
+	return this.condition.containsPatternVariable();
+}
 @Override
 public void traverse(ASTVisitor visitor, BlockScope scope) {
 	if (visitor.visit(this, scope)) {
@@ -250,7 +266,7 @@ public boolean doesNotCompleteNormally() {
 	boolean isConditionTrue = cst == null || cst != Constant.NotAConstant && cst.booleanValue() == true;
 	cst = this.condition.optimizedBooleanConstant();
 	boolean isConditionOptimizedTrue = cst == null ? true : cst != Constant.NotAConstant && cst.booleanValue() == true;
-	
+
 	if (isConditionTrue || isConditionOptimizedTrue)
 		return this.action == null || !this.action.breaksOut(null);
 	if (this.action == null || this.action.breaksOut(null))
@@ -262,4 +278,28 @@ public boolean doesNotCompleteNormally() {
 public boolean completesByContinue() {
 	return this.action.continuesAtOuterLabel();
 }
+
+@Override
+public boolean canCompleteNormally() {
+	Constant cst = this.condition.constant;
+	boolean isConditionTrue = cst == null || cst != Constant.NotAConstant && cst.booleanValue() == true;
+	cst = this.condition.optimizedBooleanConstant();
+	boolean isConditionOptimizedTrue = cst == null ? true : cst != Constant.NotAConstant && cst.booleanValue() == true;
+
+	if (!(isConditionTrue || isConditionOptimizedTrue)) {
+		if (this.action == null || this.action.canCompleteNormally())
+			return true;
+		if (this.action != null && this.action.continueCompletes())
+			return true;
+	}
+	if (this.action != null && this.action.breaksOut(null))
+		return true;
+
+	return false;
+}
+@Override
+public boolean continueCompletes() {
+	return this.action.continuesAtOuterLabel();
+}
+
 }

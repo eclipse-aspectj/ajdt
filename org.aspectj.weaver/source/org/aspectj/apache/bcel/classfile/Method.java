@@ -67,7 +67,7 @@ import org.aspectj.apache.bcel.generic.Type;
 /**
  * This class represents the method info structure, i.e., the representation for a method in the class. See JVM specification for
  * details. A method has access flags, a name, a signature and a number of attributes.
- * 
+ *
  * @version $Id: Method.java,v 1.11 2009/09/15 19:40:12 aclement Exp $
  * @author <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
@@ -151,7 +151,7 @@ public final class Method extends FieldOrMethod {
 	public final String toString() {
 		ConstantUtf8 c;
 		String name, signature, access; // Short cuts to constant pool
-		StringBuffer buf;
+		StringBuilder buf;
 
 		access = Utility.accessToString(modifiers);
 
@@ -163,13 +163,12 @@ public final class Method extends FieldOrMethod {
 		name = c.getValue();
 
 		signature = Utility.methodSignatureToString(signature, name, access, true, getLocalVariableTable());
-		buf = new StringBuffer(signature);
+		buf = new StringBuilder(signature);
 
-		for (int i = 0; i < attributes.length; i++) {
-			Attribute a = attributes[i];
-			if (!((a instanceof Code) || (a instanceof ExceptionTable)))
-				buf.append(" [" + a.toString() + "]");
-		}
+        for (Attribute a : attributes) {
+            if (!((a instanceof Code) || (a instanceof ExceptionTable)))
+                buf.append(" [" + a.toString() + "]");
+        }
 
 		ExceptionTable e = getExceptionTable();
 		if (e != null) {
@@ -212,25 +211,25 @@ public final class Method extends FieldOrMethod {
 		// Find attributes that contain annotation data
 		Attribute[] attrs = getAttributes();
 
-		for (int i = 0; i < attrs.length; i++) {
-			Attribute attribute = attrs[i];
-			if (attribute instanceof RuntimeVisParamAnnos) {
-				parameterAnnotationsVis = (RuntimeVisParamAnnos) attribute;
-			} else if (attribute instanceof RuntimeInvisParamAnnos) {
-				parameterAnnotationsInvis = (RuntimeInvisParamAnnos) attribute;
-			}
-		}
+        for (Attribute attribute : attrs) {
+            if (attribute instanceof RuntimeVisParamAnnos) {
+                parameterAnnotationsVis = (RuntimeVisParamAnnos) attribute;
+            }
+            else if (attribute instanceof RuntimeInvisParamAnnos) {
+                parameterAnnotationsInvis = (RuntimeInvisParamAnnos) attribute;
+            }
+        }
 
 		boolean foundSome = false;
 		// Build a list of annotation arrays, one per argument
 		if (parameterAnnotationsInvis != null || parameterAnnotationsVis != null) {
-			List<AnnotationGen[]> annotationsForEachParameter = new ArrayList<AnnotationGen[]>();
+			List<AnnotationGen[]> annotationsForEachParameter = new ArrayList<>();
 			AnnotationGen[] visibleOnes = null;
 			AnnotationGen[] invisibleOnes = null;
 			for (int i = 0; i < parameterCount; i++) {
 				int count = 0;
-				visibleOnes = new AnnotationGen[0];
-				invisibleOnes = new AnnotationGen[0];
+				visibleOnes = AnnotationGen.NO_ANNOTATIONS;
+				invisibleOnes = AnnotationGen.NO_ANNOTATIONS;
 				if (parameterAnnotationsVis != null) {
 					visibleOnes = parameterAnnotationsVis.getAnnotationsOnParameter(i);
 					count += visibleOnes.length;

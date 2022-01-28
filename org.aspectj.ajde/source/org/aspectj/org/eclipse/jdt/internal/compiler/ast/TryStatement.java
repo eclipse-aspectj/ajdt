@@ -93,6 +93,7 @@ public class TryStatement extends SubRoutineStatement {
 	private ExceptionLabel[] resourceExceptionLabels;
 	private int[] caughtExceptionsCatchBlocks;
 
+	public SwitchExpression enclosingSwitchExpression = null;
 @Override
 public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, FlowInfo flowInfo) {
 
@@ -148,7 +149,7 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 
 		FlowInfo tryInfo = flowInfo.copy();
 		for (int i = 0; i < resourcesLength; i++) {
-			final Statement resource = this.resources[i];			
+			final Statement resource = this.resources[i];
 			tryInfo = resource.analyseCode(currentScope, handlingContext, tryInfo);
 			this.postResourcesInitStateIndexes[i] = currentScope.methodScope().recordInitializationStates(tryInfo);
 			TypeBinding resolvedType = null;
@@ -156,19 +157,20 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 			if (resource instanceof LocalDeclaration) {
 				localVariableBinding = ((LocalDeclaration) resource).binding;
 				resolvedType = localVariableBinding.type;
-			} else { //expression
-				if (resource instanceof NameReference && ((NameReference) resource).binding instanceof LocalVariableBinding) {
-					localVariableBinding = (LocalVariableBinding) ((NameReference) resource).binding;
-				}
-				resolvedType = ((Expression) resource).resolvedType;
-			}
-			if (localVariableBinding != null) {
-				localVariableBinding.useFlag = LocalVariableBinding.USED; // Is implicitly used anyways.
 				if (localVariableBinding.closeTracker != null) {
 					// this was false alarm, we don't need to track the resource
 					localVariableBinding.closeTracker.withdraw();
 					localVariableBinding.closeTracker = null;
 				}
+			} else { //expression
+				if (resource instanceof NameReference && ((NameReference) resource).binding instanceof LocalVariableBinding) {
+					localVariableBinding = (LocalVariableBinding) ((NameReference) resource).binding;
+				}
+				resolvedType = ((Expression) resource).resolvedType;
+				recordCallingClose(currentScope, flowContext, tryInfo, (Expression)resource);
+			}
+			if (localVariableBinding != null) {
+				localVariableBinding.useFlag = LocalVariableBinding.USED; // Is implicitly used anyways.
 			}
 			MethodBinding closeMethod = findCloseMethod(resource, resolvedType);
 			if (closeMethod != null && closeMethod.isValidBinding() && closeMethod.returnType.id == TypeIds.T_void) {
@@ -247,7 +249,7 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 				null,
 				this.scope,
 				flowInfo);
-		insideSubContext.initsOnFinally = handlingContext.initsOnFinally; 
+		insideSubContext.initsOnFinally = handlingContext.initsOnFinally;
 
 		subInfo =
 			this.finallyBlock
@@ -283,19 +285,20 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 			if (resource instanceof LocalDeclaration) {
 				localVariableBinding = ((LocalDeclaration) this.resources[i]).binding;
 				resolvedType = localVariableBinding.type;
-			} else { // Expression
-				if (resource instanceof NameReference && ((NameReference) resource).binding instanceof LocalVariableBinding) {
-					localVariableBinding = (LocalVariableBinding)((NameReference) resource).binding;
-				}
-				resolvedType = ((Expression) resource).resolvedType;
-			}
-			if (localVariableBinding != null) {
-				localVariableBinding.useFlag = LocalVariableBinding.USED; // Is implicitly used anyways.
 				if (localVariableBinding.closeTracker != null) {
 					// this was false alarm, we don't need to track the resource
 					localVariableBinding.closeTracker.withdraw();
 					// keep the tracking variable in the resourceBinding in order to prevent creating a new one while analyzing the try block
 				}
+			} else { // Expression
+				if (resource instanceof NameReference && ((NameReference) resource).binding instanceof LocalVariableBinding) {
+					localVariableBinding = (LocalVariableBinding)((NameReference) resource).binding;
+				}
+				recordCallingClose(currentScope, flowContext, tryInfo, (Expression)resource);
+				resolvedType = ((Expression) resource).resolvedType;
+			}
+			if (localVariableBinding != null) {
+				localVariableBinding.useFlag = LocalVariableBinding.USED; // Is implicitly used anyways.
 			}
 			MethodBinding closeMethod = findCloseMethod(resource, resolvedType);
 			if (closeMethod != null && closeMethod.isValidBinding() && closeMethod.returnType.id == TypeIds.T_void) {
@@ -372,6 +375,17 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 				currentScope.methodScope().recordInitializationStates(mergedInfo);
 			return mergedInfo;
 		}
+	}
+}
+private void recordCallingClose(BlockScope currentScope, FlowContext flowContext, FlowInfo flowInfo, Expression closeTarget) {
+	FakedTrackingVariable trackingVariable = FakedTrackingVariable.getCloseTrackingVariable(closeTarget, flowInfo, flowContext);
+	if (trackingVariable != null) { // null happens if target is not a local variable or not an AutoCloseable
+		if (trackingVariable.methodScope == currentScope.methodScope()) {
+			trackingVariable.markClose(flowInfo, flowContext);
+		} else {
+			trackingVariable.markClosedInNestedMethod();
+		}
+		trackingVariable.markClosedEffectivelyFinal();
 	}
 }
 private MethodBinding findCloseMethod(final ASTNode resource, TypeBinding type) {
@@ -574,7 +588,7 @@ public void generateCode(BlockScope currentScope, CodeStream codeStream) {
 			for (int i = resourceCount; i >= 0; i--) {
 				BranchLabel exitLabel = new BranchLabel(codeStream);
 				this.resourceExceptionLabels[i].placeEnd(); // outer handler if any is the one that should catch exceptions out of close()
-				
+
 				Statement stmt = i > 0 ? this.resources[i - 1] : null;
 				if ((this.bits & ASTNode.IsTryBlockExiting) == 0) {
 					// inline resource closure
@@ -605,8 +619,8 @@ public void generateCode(BlockScope currentScope, CodeStream codeStream) {
 
 				codeStream.pushExceptionOnStack(this.scope.getJavaLangThrowable());
 				this.resourceExceptionLabels[i].place();
-				if (i == resourceCount) { 
-					// inner most try's catch/finally can be a lot simpler. 
+				if (i == resourceCount) {
+					// inner most try's catch/finally can be a lot simpler.
 					codeStream.store(this.primaryExceptionVariable, false);
 					// fall through, invoke close() and re-throw.
 				} else {
@@ -629,7 +643,7 @@ public void generateCode(BlockScope currentScope, CodeStream codeStream) {
 				if (i > 0) {
 					// inline resource close here rather than bracketing the current catch block with a try region.
 					BranchLabel postCloseLabel = new BranchLabel(codeStream);
-					generateCodeSnippet(stmt, codeStream, postCloseLabel, true /* record */, i, codeStream.position);						
+					generateCodeSnippet(stmt, codeStream, postCloseLabel, true /* record */, i, codeStream.position);
 					postCloseLabel.place();
 				}
 				codeStream.load(this.primaryExceptionVariable);
@@ -885,8 +899,8 @@ public void generateCode(BlockScope currentScope, CodeStream codeStream) {
 	codeStream.recordPositionsFrom(pc, this.sourceStart);
 }
 private void generateCodeSnippet(Statement statement, CodeStream codeStream, BranchLabel postCloseLabel, boolean record, int... values) {
-	
-	int i = -1; 
+
+	int i = -1;
 	int invokeCloseStartPc = -1;
 	if (record) {
 		i = values[0];
@@ -927,11 +941,11 @@ private boolean isDuplicateResourceReference(int index) {
 		Binding refBinding =  ref instanceof NameReference ? ((NameReference) ref).binding :
 			ref instanceof FieldReference ? ((FieldReference) ref).binding : null;
 		if (refBinding == null) return false;
-		
+
 		//TODO: For field accesses in the form of a.b.c and b.c - could there be a non-trivial dup - to check?
 		for (int i = 0; i < index; i++) {
 			Statement stmt = this.resources[i];
-			Binding b = stmt instanceof LocalDeclaration ? ((LocalDeclaration) stmt).binding : 
+			Binding b = stmt instanceof LocalDeclaration ? ((LocalDeclaration) stmt).binding :
 				stmt instanceof NameReference ? ((NameReference) stmt).binding :
 						stmt instanceof FieldReference ? ((FieldReference) stmt).binding : null;
 			if (b == refBinding) {
@@ -967,11 +981,17 @@ public boolean generateSubRoutineInvocation(BlockScope currentScope, CodeStream 
 	int finallyMode = finallyMode();
 	switch(finallyMode) {
 		case FINALLY_DOES_NOT_COMPLETE :
+			if (this.switchExpression != null) {
+				this.finallyBlock.generateCode(currentScope, codeStream);
+				return true;
+			}
 			codeStream.goto_(this.subRoutineStartLabel);
 			return true;
 
 		case NO_FINALLY :
-			exitDeclaredExceptionHandlers(codeStream);
+			if (this.switchExpression == null) { // already taken care at Yield
+				exitDeclaredExceptionHandlers(codeStream);
+			}
 			return false;
 	}
 	// optimize subroutine invocation sequences, using the targetLocation (if any)
@@ -1163,7 +1183,7 @@ public void resolve(BlockScope upperScope) {
 
 			if (!methodScope.isInsideInitializer()) {
 				MethodBinding methodBinding = methodScope.referenceContext instanceof AbstractMethodDeclaration ?
-					((AbstractMethodDeclaration) methodScope.referenceContext).binding : (methodScope.referenceContext instanceof LambdaExpression ? 
+					((AbstractMethodDeclaration) methodScope.referenceContext).binding : (methodScope.referenceContext instanceof LambdaExpression ?
 							((LambdaExpression)methodScope.referenceContext).binding : null);
 				if (methodBinding != null) {
 					TypeBinding methodReturnType = methodBinding.returnType;
@@ -1333,7 +1353,7 @@ public boolean doesNotCompleteNormally() {
 public boolean completesByContinue() {
 	if (this.tryBlock.completesByContinue()) {
 		return (this.finallyBlock == null) ? true :
-			!this.finallyBlock.doesNotCompleteNormally() || this.finallyBlock.completesByContinue(); 
+			!this.finallyBlock.doesNotCompleteNormally() || this.finallyBlock.completesByContinue();
 	}
 	if (this.catchBlocks != null) {
 		for (int i = 0; i < this.catchBlocks.length; i++) {
@@ -1344,5 +1364,35 @@ public boolean completesByContinue() {
 		}
 	}
 	return this.finallyBlock != null && this.finallyBlock.completesByContinue();
+}
+@Override
+public boolean canCompleteNormally() {
+	if (this.tryBlock.canCompleteNormally()) {
+		return (this.finallyBlock != null) ? this.finallyBlock.canCompleteNormally() : true;
+	}
+	if (this.catchBlocks != null) {
+		for (int i = 0; i < this.catchBlocks.length; i++) {
+			if (this.catchBlocks[i].canCompleteNormally()) {
+				return (this.finallyBlock != null) ? this.finallyBlock.canCompleteNormally() : true;
+			}
+		}
+	}
+	return false;
+}
+@Override
+public boolean continueCompletes() {
+	if (this.tryBlock.continueCompletes()) {
+		return (this.finallyBlock == null) ? true :
+			this.finallyBlock.canCompleteNormally() || this.finallyBlock.continueCompletes();
+	}
+	if (this.catchBlocks != null) {
+		for (int i = 0; i < this.catchBlocks.length; i++) {
+			if (this.catchBlocks[i].continueCompletes()) {
+				return (this.finallyBlock == null) ? true :
+					this.finallyBlock.canCompleteNormally() || this.finallyBlock.continueCompletes();
+			}
+		}
+	}
+	return this.finallyBlock != null && this.finallyBlock.continueCompletes();
 }
 }

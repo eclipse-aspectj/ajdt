@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2005, 2017 IBM Corporation and others.
+ * Copyright (c) 2005, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -34,6 +34,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.AnnotationBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Binding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.FieldBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ModuleBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ParameterizedTypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding;
@@ -59,9 +60,9 @@ public class RoundEnvImpl implements RoundEnvironment
 		AnnotationDiscoveryVisitor visitor = new AnnotationDiscoveryVisitor(_processingEnv);
 		if (_units != null) {
 			for (CompilationUnitDeclaration unit : _units) {
-				unit.scope.suppressImportErrors = true;
+				unit.scope.environment.suppressImportErrors = true;
 				unit.traverse(visitor, unit.scope);
-				unit.scope.suppressImportErrors = false;
+				unit.scope.environment.suppressImportErrors = false;
 			}
 		}
 		_annoToUnit = visitor._annoToElement;
@@ -235,6 +236,11 @@ public class RoundEnvImpl implements RoundEnvironment
 						throw new IllegalArgumentException("Top-level type binding could not be converted to element: " + typeBinding); //$NON-NLS-1$
 					}
 					elements.add(element);
+					ModuleBinding binding = typeBinding.module();
+					if (binding != null) {
+						Element m = _factory.newElement(binding);
+						elements.add(m);
+					}
 				}
 			}
 			_rootElements = elements;

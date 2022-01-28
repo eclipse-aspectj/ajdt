@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -7,7 +7,7 @@
  * https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -106,15 +106,15 @@ public class CompilationUnitProblemFinder extends Compiler {
 
 		CompilationResult result =
 			new CompilationResult(sourceTypes[0].getFileName(), 1, 1, this.options.maxProblemsPerUnit);
-		
+
 		// https://bugs.eclipse.org/bugs/show_bug.cgi?id=305259, build the compilation unit in its own sand box.
 		final long savedComplianceLevel = this.options.complianceLevel;
 		final long savedSourceLevel = this.options.sourceLevel;
-		
+
 		LookupEnvironment environment = packageBinding.environment;
 		if (environment == null)
 			environment = this.lookupEnvironment;
-		
+
 		try {
 			IJavaProject project = ((SourceTypeElementInfo) sourceTypes[0]).getHandle().getJavaProject();
 			this.options.complianceLevel = CompilerOptions.versionToJdkLevel(project.getOption(JavaCore.COMPILER_COMPLIANCE, true));
@@ -132,7 +132,9 @@ public class CompilationUnitProblemFinder extends Compiler {
 
 			if (unit != null) {
 				environment.buildTypeBindings(unit, accessRestriction);
+				CompilationUnitDeclaration previousUnitBeingCompleted = this.lookupEnvironment.unitBeingCompleted;
 				environment.completeTypeBindings(unit);
+				this.lookupEnvironment.unitBeingCompleted = previousUnitBeingCompleted;
 			}
 		} finally {
 			this.options.complianceLevel = savedComplianceLevel;
@@ -152,14 +154,14 @@ public class CompilationUnitProblemFinder extends Compiler {
 		}
 		CompilationResult result =
 				new CompilationResult(TypeConstants.MODULE_INFO_FILE_NAME, 1, 1, this.options.maxProblemsPerUnit);
-			
+
 		// https://bugs.eclipse.org/bugs/show_bug.cgi?id=305259, build the compilation unit in its own sand box.
 		final long savedComplianceLevel = this.options.complianceLevel;
 		final long savedSourceLevel = this.options.sourceLevel;
-		
+
 		if (environment == null)
 			environment = this.lookupEnvironment;
-		
+
 		try {
 			IJavaProject project = handle.getJavaProject();
 			this.options.complianceLevel = CompilerOptions.versionToJdkLevel(project.getOption(JavaCore.COMPILER_COMPLIANCE, true));
@@ -232,7 +234,7 @@ public class CompilationUnitProblemFinder extends Compiler {
 	}
 
 	/*
-	 * Can return null if the process was aborted or canceled 
+	 * Can return null if the process was aborted or canceled
 	 */
 	public static CompilationUnitDeclaration process(
 			CompilationUnit unitElement,
@@ -244,7 +246,7 @@ public class CompilationUnitProblemFinder extends Compiler {
 			IProgressMonitor monitor)
 		throws JavaModelException {
 
-		JavaProject project = (JavaProject) unitElement.getJavaProject();
+		JavaProject project = unitElement.getJavaProject();
 		CancelableNameEnvironment environment = null;
 		CancelableProblemFactory problemFactory = null;
 		CompilationUnitProblemFinder problemFinder = null;
@@ -313,7 +315,7 @@ public class CompilationUnitProblemFinder extends Compiler {
 		} catch(RuntimeException e) {
 			// avoid breaking other tools due to internal compiler failure (40334)
 			String lineDelimiter = unitElement.findRecommendedLineSeparator();
-			StringBuffer message = new StringBuffer("Exception occurred during problem detection:");  //$NON-NLS-1$
+			StringBuilder message = new StringBuilder("Exception occurred during problem detection:");  //$NON-NLS-1$
 			message.append(lineDelimiter);
 			message.append("----------------------------------- SOURCE BEGIN -------------------------------------"); //$NON-NLS-1$
 			message.append(lineDelimiter);

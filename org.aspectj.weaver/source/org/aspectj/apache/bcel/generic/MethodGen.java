@@ -53,11 +53,10 @@ package org.aspectj.apache.bcel.generic;
  * information on the Apache Software Foundation, please see
  * <http://www.apache.org/>.
  */
-
 import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Stack;
 
 import org.aspectj.apache.bcel.Constants;
@@ -80,10 +79,10 @@ import org.aspectj.apache.bcel.classfile.annotation.RuntimeParamAnnos;
  * Template class for building up a method. This is done by defining exception handlers, adding thrown exceptions, local variables
  * and attributes, whereas the 'LocalVariableTable' and 'LineNumberTable' attributes will be set automatically for the code. Use
  * stripAttributes() if you don't like this.
- * 
+ *
  * While generating code it may be necessary to insert NOP operations. You can use the `removeNOPs' method to get rid off them. The
  * resulting method object can be obtained via the `getMethod()' method.
- * 
+ *
  * @version $Id: MethodGen.java,v 1.17 2011/05/19 23:23:46 aclement Exp $
  * @author <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @author <A HREF="http://www.vmeng.com/beard">Patrick C. Beard</A> [setMaxStack()]
@@ -103,11 +102,11 @@ public class MethodGen extends FieldGenOrMethodGen {
 
 	private int highestLineNumber = 0;
 
-	private ArrayList<LocalVariableGen> localVariablesList = new ArrayList<LocalVariableGen>();
-	private ArrayList<LineNumberGen> lineNumbersList = new ArrayList<LineNumberGen>();
-	private ArrayList<CodeExceptionGen> exceptionsList = new ArrayList<CodeExceptionGen>();
-	private ArrayList<String> exceptionsThrown = new ArrayList<String>();
-	private ArrayList<Attribute> codeAttributesList = new ArrayList<Attribute>();
+	private List<LocalVariableGen> localVariablesList = new ArrayList<>();
+	private List<LineNumberGen> lineNumbersList = new ArrayList<>();
+	private ArrayList<CodeExceptionGen> exceptionsList = new ArrayList<>();
+	private ArrayList<String> exceptionsThrown = new ArrayList<>();
+	private List<Attribute> codeAttributesList = new ArrayList<>();
 	private List<AnnotationGen>[] param_annotations; // Array of lists containing AnnotationGen objects
 	private boolean hasParameterAnnotations = false;
 	private boolean haveUnpackedParameterAnnotations = false;
@@ -116,10 +115,10 @@ public class MethodGen extends FieldGenOrMethodGen {
 	 * Declare method. If the method is non-static the constructor automatically declares a local variable `$this' in slot 0. The
 	 * actual code is contained in the `il' parameter, which may further manipulated by the user. But he must take care not to
 	 * remove any instruction (handles) that are still referenced from this object.
-	 * 
+	 *
 	 * For example one may not add a local variable and later remove the instructions it refers to without causing havoc. It is safe
 	 * however if you remove that local variable, too.
-	 * 
+	 *
 	 * @param access_flags access qualifiers
 	 * @param return_type method type
 	 * @param arg_types argument types
@@ -165,7 +164,7 @@ public class MethodGen extends FieldGenOrMethodGen {
 		// throw new ClassGenException("'void' is an illegal argument type for a method");
 		// }
 		// }
-		//	
+		//
 		// if(arg_names != null) { // Names for variables provided?
 		// if(size != arg_names.length)
 		// throw new ClassGenException("Mismatch in argument array lengths: " +
@@ -193,7 +192,7 @@ public class MethodGen extends FieldGenOrMethodGen {
 
 	/**
 	 * Instantiate from existing method.
-	 * 
+	 *
 	 * @param m method
 	 * @param class_name class name containing this method
 	 * @param cp constant pool
@@ -212,8 +211,8 @@ public class MethodGen extends FieldGenOrMethodGen {
 						.getCode()) : null, cp);
 
 		Attribute[] attributes = m.getAttributes();
-		for (int i = 0; i < attributes.length; i++) {
-			Attribute a = attributes[i];
+		for (Attribute attribute : attributes) {
+			Attribute a = attribute;
 
 			if (a instanceof Code) {
 				Code code = (Code) a;
@@ -254,15 +253,14 @@ public class MethodGen extends FieldGenOrMethodGen {
 				}
 
 				Attribute[] codeAttrs = code.getAttributes();
-				for (int j = 0; j < codeAttrs.length; j++) {
-					a = codeAttrs[j];
+				for (Attribute codeAttr : codeAttrs) {
+					a = codeAttr;
 
 					if (a instanceof LineNumberTable) {
 						LineNumber[] ln = ((LineNumberTable) a).getLineNumberTable();
 						if (useTags) {
 							// abracadabra, lets create tags rather than linenumbergens.
-							for (int k = 0; k < ln.length; k++) {
-								LineNumber l = ln[k];
+							for (LineNumber l : ln) {
 								int lnum = l.getLineNumber();
 								if (lnum > highestLineNumber) {
 									highestLineNumber = lnum;
@@ -271,8 +269,7 @@ public class MethodGen extends FieldGenOrMethodGen {
 								il.findHandle(l.getStartPC(), arrayOfInstructions, true).addTargeter(lt);
 							}
 						} else {
-							for (int k = 0; k < ln.length; k++) {
-								LineNumber l = ln[k];
+							for (LineNumber l : ln) {
 								addLineNumber(il.findHandle(l.getStartPC(), arrayOfInstructions, true), l.getLineNumber());
 							}
 						}
@@ -282,8 +279,7 @@ public class MethodGen extends FieldGenOrMethodGen {
 						if (useTags) {
 							LocalVariable[] lv = ((LocalVariableTable) a).getLocalVariableTable();
 
-							for (int k = 0; k < lv.length; k++) {
-								LocalVariable l = lv[k];
+							for (LocalVariable l : lv) {
 								Type t = Type.getType(l.getSignature());
 								LocalVariableTag lvt = new LocalVariableTag(t, l.getSignature(), l.getName(), l.getIndex(), l
 										.getStartPC());
@@ -307,8 +303,7 @@ public class MethodGen extends FieldGenOrMethodGen {
 
 							removeLocalVariables();
 
-							for (int k = 0; k < lv.length; k++) {
-								LocalVariable l = lv[k];
+							for (LocalVariable l : lv) {
 								InstructionHandle start = il.findHandle(l.getStartPC(), arrayOfInstructions);
 								InstructionHandle end = il.findHandle(l.getStartPC() + l.getLength(), arrayOfInstructions);
 								// AMC, this actually gives us the first instruction AFTER the range,
@@ -333,8 +328,8 @@ public class MethodGen extends FieldGenOrMethodGen {
 				}
 			} else if (a instanceof ExceptionTable) {
 				String[] names = ((ExceptionTable) a).getExceptionNames();
-				for (int j = 0; j < names.length; j++) {
-					addException(names[j]);
+				for (String s : names) {
+					addException(s);
 				}
 			} else if (a instanceof RuntimeAnnos) {
 				RuntimeAnnos runtimeAnnotations = (RuntimeAnnos) a;
@@ -367,7 +362,7 @@ public class MethodGen extends FieldGenOrMethodGen {
 
 	/**
 	 * Adds a local variable to this method and assigns an index automatically.
-	 * 
+	 *
 	 * @param name variable name
 	 * @param type variable type
 	 * @param start from where the variable is valid, if this is null, it is valid from the start
@@ -429,7 +424,7 @@ public class MethodGen extends FieldGenOrMethodGen {
 	/*
 	 * If the range of the variable has not been set yet, it will be set to be valid from the start to the end of the instruction
 	 * list.
-	 * 
+	 *
 	 * @return array of declared local variables sorted by index
 	 */
 	public LocalVariableGen[] getLocalVariables() {
@@ -471,7 +466,7 @@ public class MethodGen extends FieldGenOrMethodGen {
 
 	/**
 	 * Give an instruction a line number corresponding to the source code line.
-	 * 
+	 *
 	 * @param ih instruction to tag
 	 * @return new line number object
 	 * @see LineNumber
@@ -522,7 +517,7 @@ public class MethodGen extends FieldGenOrMethodGen {
 	/**
 	 * Add an exception handler, i.e., specify region where a handler is active and an instruction where the actual handling is
 	 * done.
-	 * 
+	 *
 	 * @param start_pc Start of region (inclusive)
 	 * @param end_pc End of region (inclusive)
 	 * @param handler_pc Where handling is done
@@ -583,7 +578,7 @@ public class MethodGen extends FieldGenOrMethodGen {
 
 	/**
 	 * Add an exception possibly thrown by this method.
-	 * 
+	 *
 	 * @param class_name (fully qualified) name of exception
 	 */
 	public void addException(String class_name) {
@@ -634,7 +629,7 @@ public class MethodGen extends FieldGenOrMethodGen {
 	 * Add an attribute to the code. Currently, the JVM knows about the LineNumberTable, LocalVariableTable and StackMap attributes,
 	 * where the former two will be generated automatically and the latter is used for the MIDP only. Other attributes will be
 	 * ignored by the JVM but do no harm.
-	 * 
+	 *
 	 * @param a attribute to be added
 	 */
 	public void addCodeAttribute(Attribute a) {
@@ -647,8 +642,8 @@ public class MethodGen extends FieldGenOrMethodGen {
 		}
 		Attribute[] attrs = Utility.getParameterAnnotationAttributes(cp, param_annotations);
 		if (attrs != null) {
-			for (int i = 0; i < attrs.length; i++) {
-				addAttribute(attrs[i]);
+			for (Attribute attr : attrs) {
+				addAttribute(attr);
 			}
 		}
 	}
@@ -679,7 +674,7 @@ public class MethodGen extends FieldGenOrMethodGen {
 	/**
 	 * Get method object. Never forget to call setMaxStack() or setMaxStack(max), respectively, before calling this method (the same
 	 * applies for max locals).
-	 * 
+	 *
 	 * @return method object
 	 */
 	public Method getMethod() {
@@ -722,8 +717,8 @@ public class MethodGen extends FieldGenOrMethodGen {
 		 * Each attribute causes 6 additional header bytes
 		 */
 		int attrs_len = 0;
-		for (int i = 0; i < code_attrs.length; i++) {
-			attrs_len += (code_attrs[i].getLength() + 6);
+		for (Attribute code_attr : code_attrs) {
+			attrs_len += (code_attr.getLength() + 6);
 		}
 
 		CodeException[] c_exc = getCodeExceptions();
@@ -734,8 +729,7 @@ public class MethodGen extends FieldGenOrMethodGen {
 		if ((il != null) && !isAbstract()) {
 			// Remove any stale code attribute
 			List<Attribute> attributes = getAttributes();
-			for (int i = 0; i < attributes.size(); i++) {
-				Attribute a = attributes.get(i);
+			for (Attribute a : attributes) {
 				if (a instanceof Code) {
 					removeAttribute(a);
 				}
@@ -885,10 +879,10 @@ public class MethodGen extends FieldGenOrMethodGen {
 	public void setMaxLocals() {
 		setMaxLocals(false);
 	}
-	
+
 	/**
 	 * Compute maximum number of local variables.
-	 * 
+	 *
 	 * @param respectLocalVariableTable if true and the local variable table indicates more are in use
 	 * than the code suggests, respect the higher value from the local variable table data.
 	 */
@@ -897,8 +891,8 @@ public class MethodGen extends FieldGenOrMethodGen {
 			int max = isStatic() ? 0 : 1;
 
 			if (parameterTypes != null) {
-				for (int i = 0; i < parameterTypes.length; i++) {
-					max += parameterTypes[i].getSize();
+				for (Type parameterType : parameterTypes) {
+					max += parameterType.getSize();
 				}
 			}
 
@@ -938,8 +932,8 @@ public class MethodGen extends FieldGenOrMethodGen {
 	}
 
 	static final class BranchStack {
-		Stack<BranchTarget> branchTargets = new Stack<BranchTarget>();
-		Hashtable<InstructionHandle, BranchTarget> visitedTargets = new Hashtable<InstructionHandle, BranchTarget>();
+		Stack<BranchTarget> branchTargets = new Stack<>();
+		Map<InstructionHandle, BranchTarget> visitedTargets = new Hashtable<>();
 
 		public void push(InstructionHandle target, int stackDepth) {
 			if (visited(target)) {
@@ -972,7 +966,7 @@ public class MethodGen extends FieldGenOrMethodGen {
 
 	/**
 	 * Computes stack usage of an instruction list by performing control flow analysis.
-	 * 
+	 *
 	 * @return maximum stack depth used by method
 	 */
 	public static int getMaxStack(ConstantPool cp, InstructionList il, CodeExceptionGen[] et) {
@@ -985,8 +979,8 @@ public class MethodGen extends FieldGenOrMethodGen {
 		 * Initially, populate the branch stack with the exception handlers, because these aren't (necessarily) branched to
 		 * explicitly. In each case, the stack will have depth 1, containing the exception object.
 		 */
-		for (int i = 0, max = et.length; i < max; i++) {
-			InstructionHandle handlerPos = et[i].getHandlerPC();
+		for (CodeExceptionGen codeExceptionGen : et) {
+			InstructionHandle handlerPos = codeExceptionGen.getHandlerPC();
 			if (handlerPos != null) {
 				// it must be at least 1 since there is an exception handler
 				maxStackDepth = 1;
@@ -1014,8 +1008,8 @@ public class MethodGen extends FieldGenOrMethodGen {
 					// explore all of the select's targets. the default target is handled below.
 					InstructionSelect select = (InstructionSelect) branch;
 					InstructionHandle[] targets = select.getTargets();
-					for (int i = 0; i < targets.length; i++) {
-						branchTargets.push(targets[i], stackDepth);
+					for (InstructionHandle target : targets) {
+						branchTargets.push(target, stackDepth);
 					}
 					// nothing to fall through to.
 					ih = null;
@@ -1056,7 +1050,7 @@ public class MethodGen extends FieldGenOrMethodGen {
 
 	/**
 	 * Return string representation close to declaration format, `public static void main(String[]) throws IOException', e.g.
-	 * 
+	 *
 	 * @return String representation of the method.
 	 */
 	@Override
@@ -1066,11 +1060,11 @@ public class MethodGen extends FieldGenOrMethodGen {
 
 		signature = Utility.methodSignatureToString(signature, name, access, true, getLocalVariableTable(cp));
 
-		StringBuffer buf = new StringBuffer(signature);
+		StringBuilder buf = new StringBuilder(signature);
 
 		if (exceptionsThrown.size() > 0) {
-			for (Iterator<String> e = exceptionsThrown.iterator(); e.hasNext();) {
-				buf.append("\n\t\tthrows " + e.next());
+			for (String s : exceptionsThrown) {
+				buf.append("\n\t\tthrows " + s);
 			}
 		}
 
@@ -1111,7 +1105,7 @@ public class MethodGen extends FieldGenOrMethodGen {
 				if (!hasParameterAnnotations) {
 					param_annotations = new List[parameterTypes.length];
 					for (int j = 0; j < parameterTypes.length; j++) {
-						param_annotations[j] = new ArrayList<AnnotationGen>();
+						param_annotations[j] = new ArrayList<>();
 					}
 				}
 
@@ -1144,9 +1138,9 @@ public class MethodGen extends FieldGenOrMethodGen {
 	}
 
 	private List /* AnnotationGen */<AnnotationGen> makeMutableVersion(AnnotationGen[] mutableArray) {
-		List<AnnotationGen> result = new ArrayList<AnnotationGen>();
-		for (int i = 0; i < mutableArray.length; i++) {
-			result.add(new AnnotationGen(mutableArray[i], getConstantPool(), false));
+		List<AnnotationGen> result = new ArrayList<>();
+		for (AnnotationGen annotationGen : mutableArray) {
+			result.add(new AnnotationGen(annotationGen, getConstantPool(), false));
 		}
 		return result;
 	}
@@ -1161,7 +1155,7 @@ public class MethodGen extends FieldGenOrMethodGen {
 		if (existingAnnotations != null) {
 			existingAnnotations.add(annotation);
 		} else {
-			List<AnnotationGen> l = new ArrayList<AnnotationGen>();
+			List<AnnotationGen> l = new ArrayList<>();
 			l.add(annotation);
 			param_annotations[parameterIndex] = l;
 		}

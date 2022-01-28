@@ -2,9 +2,9 @@
  * Copyright (c) 2012 Contributors.
  * All rights reserved.
  * This program and the accompanying materials are made available
- * under the terms of the Eclipse Public License v1.0
+ * under the terms of the Eclipse Public License v 2.0
  * which accompanies this distribution and is available at
- * http://eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
  *
  * Contributors:
  *   John Kew (vmware)         	initial implementation
@@ -59,7 +59,7 @@ public abstract class AbstractIndexedFileCacheBacking extends AbstractFileCacheB
     		return EMPTY_KEYS;
     	}
 
-        Collection<String>  matches=new LinkedList<String>();
+        Collection<String>  matches= new LinkedList<>();
         synchronized(index) {
             for (String key : index.keySet()) {
                 if (key.matches(regex)) {
@@ -71,7 +71,7 @@ public abstract class AbstractIndexedFileCacheBacking extends AbstractFileCacheB
         if (matches.isEmpty()) {
             return EMPTY_KEYS;
         } else {
-            return matches.toArray(new String[matches.size()]);
+            return matches.toArray(new String[0]);
         }
     }
 
@@ -96,7 +96,7 @@ public abstract class AbstractIndexedFileCacheBacking extends AbstractFileCacheB
     protected abstract Map<String, IndexEntry> getIndex ();
 
     protected Map<String, IndexEntry> readIndex (File cacheDir, File cacheFile) {
-        Map<String, IndexEntry> indexMap=new TreeMap<String, IndexEntry>();
+        Map<String, IndexEntry> indexMap= new TreeMap<>();
         IndexEntry[]            idxValues=readIndex(cacheFile);
         if (LangUtil.isEmpty(idxValues)) {
         	if ((logger != null) && logger.isTraceEnabled()) {
@@ -195,7 +195,7 @@ public abstract class AbstractIndexedFileCacheBacking extends AbstractFileCacheB
     }
 
 	/**
-	 * The default index entry in the index file 
+	 * The default index entry in the index file
 	 */
 	public static class IndexEntry implements Serializable, Cloneable {
 		private static final long serialVersionUID = 756391290557029363L;
@@ -205,7 +205,7 @@ public abstract class AbstractIndexedFileCacheBacking extends AbstractFileCacheB
 		public boolean ignored;
 		public long crcClass;
 		public long crcWeaved;
-		
+
 		public IndexEntry () {
 			super();
 		}

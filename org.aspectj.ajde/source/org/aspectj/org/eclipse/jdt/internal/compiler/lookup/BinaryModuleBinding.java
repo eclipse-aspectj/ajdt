@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 GK Software SE, and others.
+ * Copyright (c) 2017, 2019 GK Software SE, and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -28,10 +28,11 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IModuleAwareNameEnvironment;
 
 public class BinaryModuleBinding extends ModuleBinding {
-	
+
 	private static class AutomaticModuleBinding extends ModuleBinding {
 
 		boolean autoNameFromManifest;
+		boolean hasScannedPackages;
 
 		public AutomaticModuleBinding(IModule module, LookupEnvironment existingEnvironment) {
 			super(module.name(), existingEnvironment);
@@ -40,7 +41,8 @@ public class BinaryModuleBinding extends ModuleBinding {
 			this.autoNameFromManifest = module.isAutoNameFromManifest();
 			this.requires = Binding.NO_MODULES;
 			this.requiresTransitive = Binding.NO_MODULES;
-			this.exportedPackages = Binding.NO_PACKAGES;
+			this.exportedPackages = Binding.NO_PLAIN_PACKAGES;
+			this.hasScannedPackages = false;
 		}
 		@Override
 		public boolean hasUnstableAutoName() {
@@ -58,16 +60,32 @@ public class BinaryModuleBinding extends ModuleBinding {
 			return this.requiresTransitive;
 		}
 		@Override
+		PlainPackageBinding getDeclaredPackage(char[] flatName) {
+			if (!this.hasScannedPackages) {
+				for (char[] packageName : (((IModuleAwareNameEnvironment)this.environment.nameEnvironment).listPackages(nameForCUCheck()))) {
+					getOrCreateDeclaredPackage(CharOperation.splitOn('.', packageName));
+				}
+				this.hasScannedPackages = true;
+			}
+			return this.declaredPackages.get(flatName);
+		}
+
+		@Override
 		public char[] nameForLookup() {
 			return ANY_NAMED;
 		}
+
+		@Override
+		public char[] nameForCUCheck() {
+			return this.moduleName;
+		}
 	}
-	
+
 	private IPackageExport[] unresolvedExports;
 	private IPackageExport[] unresolvedOpens;
 	private char[][] unresolvedUses;
 	private IService[] unresolvedProvides;
-	
+
 	/**
 	 * Construct a named module from binary, could be an auto module - or from an info from Java Model.
 	 * <p>
@@ -88,7 +106,7 @@ public class BinaryModuleBinding extends ModuleBinding {
 		existingEnvironment.root.knownModules.put(this.moduleName, this);
 		cachePartsFrom(module);
 	}
-	
+
 	void cachePartsFrom(IBinaryModule module) {
 		if (module.isOpen())
 			this.modifiers |= ClassFileConstants.ACC_OPEN;
@@ -108,7 +126,7 @@ public class BinaryModuleBinding extends ModuleBinding {
 			}
 			// TODO(SHMOD): handle null case
 		}
-		if (count < this.requiresTransitive.length)
+		if (count < this.requires.length)
 			System.arraycopy(this.requires, 0, this.requires = new ModuleBinding[count], 0, count);
 		if (transitiveCount < this.requiresTransitive.length)
 			System.arraycopy(this.requiresTransitive, 0, this.requiresTransitive = new ModuleBinding[transitiveCount], 0, transitiveCount);
@@ -150,73 +168,51 @@ public class BinaryModuleBinding extends ModuleBinding {
 	}
 
 	@Override
-	public PackageBinding[] getExports() {
+	public PlainPackageBinding[] getExports() {
 		if (this.exportedPackages == null && this.unresolvedExports != null)
 			resolvePackages();
 		return super.getExports();
 	}
-	
+
 	@Override
-	public PackageBinding[] getOpens() {
+	public PlainPackageBinding[] getOpens() {
 		if (this.openedPackages == null && this.unresolvedOpens != null)
 			resolvePackages();
 		return super.getOpens();
 	}
 
 	private void resolvePackages() {
-		this.exportedPackages = new PackageBinding[this.unresolvedExports.length];
+		this.exportedPackages = new PlainPackageBinding[this.unresolvedExports.length];
 		int count = 0;
 		for (int i = 0; i < this.unresolvedExports.length; i++) {
 			IPackageExport export = this.unresolvedExports[i];
-			PackageBinding declaredPackage = forcedGetExportedPackage(CharOperation.splitOn('.', export.name()));
-			if (declaredPackage != null) {
-				this.exportedPackages[count++] = declaredPackage;
-				if (declaredPackage instanceof SplitPackageBinding)
-					declaredPackage = ((SplitPackageBinding) declaredPackage).getIncarnation(this);
-				if (declaredPackage != null) {
-					declaredPackage.isExported = Boolean.TRUE;
-					recordExportRestrictions(declaredPackage, export.targets());
-				}
-			}
+			// when resolving "exports" in a binary module we simply assume the package must exist,
+			// since this has been checked already when compiling that module.
+			PlainPackageBinding declaredPackage = getOrCreateDeclaredPackage(CharOperation.splitOn('.', export.name()));
+			this.exportedPackages[count++] = declaredPackage;
+			declaredPackage.isExported = Boolean.TRUE;
+			recordExportRestrictions(declaredPackage, export.targets());
 		}
 		if (count < this.exportedPackages.length)
-			System.arraycopy(this.exportedPackages, 0, this.exportedPackages = new PackageBinding[count], 0, count);
-		
-		this.openedPackages = new PackageBinding[this.unresolvedOpens.length];
+			System.arraycopy(this.exportedPackages, 0, this.exportedPackages = new PlainPackageBinding[count], 0, count);
+
+		this.openedPackages = new PlainPackageBinding[this.unresolvedOpens.length];
 		count = 0;
 		for (int i = 0; i < this.unresolvedOpens.length; i++) {
 			IPackageExport opens = this.unresolvedOpens[i];
-			PackageBinding declaredPackage = getVisiblePackage(CharOperation.splitOn('.', opens.name()));
-			if (declaredPackage != null) {
-				this.openedPackages[count++] = declaredPackage;
-				if (declaredPackage instanceof SplitPackageBinding)
-					declaredPackage = ((SplitPackageBinding) declaredPackage).getIncarnation(this);
-				if (declaredPackage != null) {
-					recordOpensRestrictions(declaredPackage, opens.targets());
-				}
-			} else {
-				// TODO(SHMOD): report incomplete module path?
-			}
+			PlainPackageBinding declaredPackage = getOrCreateDeclaredPackage(CharOperation.splitOn('.', opens.name()));
+			this.openedPackages[count++] = declaredPackage;
+			recordOpensRestrictions(declaredPackage, opens.targets());
 		}
 		if (count < this.openedPackages.length)
-			System.arraycopy(this.openedPackages, 0, this.openedPackages = new PackageBinding[count], 0, count);
+			System.arraycopy(this.openedPackages, 0, this.openedPackages = new PlainPackageBinding[count], 0, count);
 	}
-	
-	PackageBinding forcedGetExportedPackage(char[][] compoundName) {
-		// when resolving "exports" in a binary module we simply assume the package must exist,
-		// since this has been checked already when compiling that module.
-		PackageBinding binding = getVisiblePackage(compoundName);
-		if (binding != null)
-			return binding;
-		if (compoundName.length > 1) {
-			PackageBinding parent = forcedGetExportedPackage(CharOperation.subarray(compoundName, 0, compoundName.length-1));
-			binding = new PackageBinding(compoundName, parent, this.environment, this);
-			parent.addPackage(binding, this, true);
-			return binding;
-		}
-		binding = new PackageBinding(compoundName[0], this.environment, this);
-		addPackage(binding, true);
-		return binding;
+
+	@Override
+	PlainPackageBinding getDeclaredPackage(char[] flatName) {
+		getExports(); // triggers initialization of exported packages into declaredPackages
+		completeIfNeeded(UpdateKind.PACKAGE);
+		return super.getDeclaredPackage(flatName);
 	}
 
 	@Override
@@ -228,7 +224,7 @@ public class BinaryModuleBinding extends ModuleBinding {
 		}
 		return super.getUses();
 	}
-	
+
 	@Override
 	public TypeBinding[] getServices() {
 		if (this.services == null)

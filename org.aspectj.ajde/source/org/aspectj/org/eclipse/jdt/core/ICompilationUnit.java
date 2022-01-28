@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -11,8 +11,12 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     IBM Corporation - added J2SE 1.5 support
+ *     Microsoft Corporation - support custom options at compilation unit level
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.core;
+
+import java.util.Collections;
+import java.util.Map;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.aspectj.org.eclipse.jdt.core.dom.ASTParser;
@@ -418,11 +422,11 @@ IImportDeclaration[] getImports() throws JavaModelException;
  */
 ICompilationUnit getPrimary();
 /**
- * Returns <tt>null</tt> if this <code>ICompilationUnit</code> is the primary
+ * Returns <code>null</code> if this <code>ICompilationUnit</code> is the primary
  * working copy, or this <code>ICompilationUnit</code> is not a working copy,
  * otherwise the <code>WorkingCopyOwner</code>
- * 
- * @return <tt>null</tt> if this <code>ICompilationUnit</code> is the primary
+ *
+ * @return <code>null</code> if this <code>ICompilationUnit</code> is the primary
  * working copy, or this <code>ICompilationUnit</code> is not a working copy,
  * otherwise the <code>WorkingCopyOwner</code>
  * @since 3.0
@@ -558,6 +562,57 @@ public boolean hasResourceChanged();
 boolean isWorkingCopy();
 
 /**
+ * Sets the ICompilationUnit custom options. All and only the options explicitly included in the given table
+ * are remembered; all previous option settings are forgotten, including ones not explicitly
+ * mentioned.
+ * <p>
+ * For a complete description of the configurable options, see <code>JavaCore#getDefaultOptions</code>.
+ * </p>
+ *
+ * @param newOptions the new custom options for this compilation unit
+ * @see JavaCore#setOptions(java.util.Hashtable)
+ * @since 3.25
+ */
+default void setOptions(Map<String, String> newOptions) {
+	// Do nothing by default
+}
+
+/**
+ * Returns the table of the current custom options for this ICompilationUnit. If there is no <code>setOptions</code> called
+ * for the ICompliationUnit, then return an empty table.
+ *
+ * @return the table of the current custom options for this ICompilationUnit
+ * @since 3.25
+ */
+default Map<String, String> getCustomOptions() {
+	return Collections.emptyMap();
+}
+
+/**
+ * Returns the table of the options for this ICompilationUnit, which includes its custom options and options
+ * inherited from its parent JavaProject. The boolean argument <code>inheritJavaCoreOptions</code> allows
+ * to directly merge the global ones from <code>JavaCore</code>.
+ * <p>
+ * For a complete description of the configurable options, see <code>JavaCore#getDefaultOptions</code>.
+ * </p>
+ *
+ * @param inheritJavaCoreOptions - boolean indicating whether the JavaCore options should be inherited as well
+ * @return table of current settings of all options
+ * @see JavaCore#getDefaultOptions()
+ * @since 3.25
+ */
+default Map<String, String> getOptions(boolean inheritJavaCoreOptions) {
+	IJavaProject parentProject = getJavaProject();
+	Map<String, String> options = parentProject == null ? JavaCore.getOptions() : parentProject.getOptions(inheritJavaCoreOptions);
+	Map<String, String> customOptions = getCustomOptions();
+	if (customOptions != null) {
+		options.putAll(customOptions);
+	}
+
+	return options;
+}
+
+/**
  * Reconciles the contents of this working copy, sends out a Java delta
  * notification indicating the nature of the change of the working copy since
  * the last time it was either reconciled or made consistent
@@ -602,7 +657,7 @@ boolean isWorkingCopy();
  * </p>
  *
  * @param astLevel either {@link #NO_AST} if no AST is wanted,
- * or the {@linkplain AST#newAST(int) AST API level} of the AST if one is wanted
+ * or the {@linkplain AST#newAST(int, boolean) AST API level} of the AST if one is wanted
  * @param forceProblemDetection boolean indicating whether problem should be
  *   recomputed even if the source hasn't changed
  * @param owner the owner of working copies that take precedence over the
@@ -671,7 +726,7 @@ CompilationUnit reconcile(int astLevel, boolean forceProblemDetection, WorkingCo
  * </p>
  *
  * @param astLevel either {@link #NO_AST} if no AST is wanted,
- * or the {@linkplain AST#newAST(int) AST API level} of the AST if one is wanted
+ * or the {@linkplain AST#newAST(int, boolean) AST API level} of the AST if one is wanted
  * @param forceProblemDetection boolean indicating whether problem should be
  *   recomputed even if the source hasn't changed
  * @param enableStatementsRecovery if <code>true</code> statements recovery is enabled.
@@ -736,7 +791,6 @@ CompilationUnit reconcile(int astLevel, boolean forceProblemDetection, boolean e
  *   <li>the requested level of AST API is not supported</li>
  *   <li>the working copy was already consistent and problem detection is not forced</li>
  * </ul>
- * </p>
  *
  * <p>
  * If statements recovery is enabled by passing the {@link #ENABLE_STATEMENTS_RECOVERY} bit in the given reconcile flag
@@ -751,7 +805,7 @@ CompilationUnit reconcile(int astLevel, boolean forceProblemDetection, boolean e
  * </p>
  *
  * @param astLevel either {@link #NO_AST} if no AST is wanted,
- * or the {@linkplain AST#newAST(int) AST API level} of the AST if one is wanted
+ * or the {@linkplain AST#newAST(int, boolean) AST API level} of the AST if one is wanted
  * @param reconcileFlags the given reconcile flags
  * @param owner the owner of working copies that take precedence over the
  *   original compilation units, or <code>null</code> if the primary working

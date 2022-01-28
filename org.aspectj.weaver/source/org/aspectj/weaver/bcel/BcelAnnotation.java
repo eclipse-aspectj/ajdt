@@ -1,11 +1,11 @@
 /* *******************************************************************
  * Copyright (c) 2008 Contributors
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
  * ******************************************************************/
 package org.aspectj.weaver.bcel;
 
@@ -27,7 +27,7 @@ import org.aspectj.weaver.World;
 /**
  * Wraps a Bcel Annotation object and uses it to answer AnnotationAJ method calls. This is cheaper than translating all Bcel
  * annotations into AnnotationAJ objects.
- * 
+ *
  * @author AndyClement
  */
 public class BcelAnnotation extends AbstractAnnotationAJ {
@@ -45,7 +45,7 @@ public class BcelAnnotation extends AbstractAnnotationAJ {
 	}
 
 	public String toString() {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		List<NameValuePair> nvPairs = bcelAnnotation.getValues();
 		sb.append("Anno[" + getTypeSignature() + " " + (isRuntimeVisible() ? "rVis" : "rInvis"));
 		if (nvPairs.size() > 0) {
@@ -75,9 +75,9 @@ public class BcelAnnotation extends AbstractAnnotationAJ {
 		NameValuePair envp = values.get(0);
 		ArrayElementValue aev = (ArrayElementValue) envp.getValue();
 		ElementValue[] evs = aev.getElementValuesArray();
-		Set<String> targets = new HashSet<String>();
-		for (int i = 0; i < evs.length; i++) {
-			EnumElementValue ev = (EnumElementValue) evs[i];
+		Set<String> targets = new HashSet<>();
+		for (ElementValue elementValue : evs) {
+			EnumElementValue ev = (EnumElementValue) elementValue;
 			targets.add(ev.getEnumValueString());
 		}
 		return targets;
@@ -104,7 +104,7 @@ public class BcelAnnotation extends AbstractAnnotationAJ {
 	 */
 	@Override
 	public String stringify() {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		sb.append("@").append(type.getClassName());
 		List<NameValuePair> values = bcelAnnotation.getValues();
 		if (values != null && values.size() != 0) {

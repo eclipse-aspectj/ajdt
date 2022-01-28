@@ -1,13 +1,13 @@
 /* *******************************************************************
  * Copyright (c) 2002 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     PARC     initial implementation
  * ******************************************************************/
 package org.aspectj.weaver;
 
@@ -140,7 +140,7 @@ public class AjcMemberMaker {
 		// public static a.X ajc$createAspectInstance(java.lang.String)
 		ResolvedMemberImpl rm = new ResolvedMemberImpl(Member.METHOD, declaringType, PUBLIC_STATIC, declaringType, // return value
 				NameMangler.PERTYPEWITHIN_CREATEASPECTINSTANCE_METHOD,
-				new UnresolvedType[] { UnresolvedType.forSignature("Ljava/lang/String;") }, new UnresolvedType[] {});
+				new UnresolvedType[] { UnresolvedType.forSignature("Ljava/lang/String;") }, UnresolvedType.NONE);
 		return rm;
 	}
 
@@ -238,9 +238,9 @@ public class AjcMemberMaker {
 	}
 
 	/**
-	 * Return a resolvedmember representing the synthetic getter for the field. The old style (<1.6.9) is a heavyweight static
+	 * Return a resolvedmember representing the synthetic getter for the field. The old style (&lt;1.6.9) is a heavyweight static
 	 * method with a long name. The new style (1.6.9 and later) is short, and reusable across aspects.
-	 * 
+	 *
 	 * @param aspectType the aspect attempting the access
 	 * @param field the field to be accessed
 	 * @param shortSyntax is the old (long) or new (short) style format being used
@@ -255,7 +255,7 @@ public class AjcMemberMaker {
 			} else {
 				args = new UnresolvedType[] { fieldDeclaringType };
 			}
-			StringBuffer name = new StringBuffer("ajc$get$");
+			StringBuilder name = new StringBuilder("ajc$get$");
 			name.append(field.getName());
 			return new ResolvedMemberImpl(Member.METHOD, fieldDeclaringType, PUBLIC_STATIC, field.getReturnType(), name.toString(),
 					args);
@@ -272,9 +272,9 @@ public class AjcMemberMaker {
 	}
 
 	/**
-	 * Return a resolvedmember representing the synthetic setter for the field. The old style (<1.6.9) is a heavyweight static
+	 * Return a resolvedmember representing the synthetic setter for the field. The old style (&lt;1.6.9) is a heavyweight static
 	 * method with a long name. The new style (1.6.9 and later) is short, not always static, and reusable across aspects.
-	 * 
+	 *
 	 * @param aspectType the aspect attempting the access
 	 * @param field the field to be accessed
 	 * @param shortSyntax is the old or new style format being used
@@ -289,7 +289,7 @@ public class AjcMemberMaker {
 			} else {
 				args = new UnresolvedType[] { fieldDeclaringType, field.getType() };
 			}
-			StringBuffer name = new StringBuffer("ajc$set$");
+			StringBuilder name = new StringBuilder("ajc$set$");
 			name.append(field.getName());
 			return new ResolvedMemberImpl(Member.METHOD, fieldDeclaringType, PUBLIC_STATIC, UnresolvedType.VOID, name.toString(),
 					args);
@@ -566,8 +566,8 @@ public class AjcMemberMaker {
 	}
 
 	/**
-	 * Sometimes the intertyped method requires a bridge method alongside it. For example if the method 'N SomeI<N>.m()' is put onto
-	 * an interface 'interface I<N extends Number>' and then a concrete implementation is 'class C implements I<Float>' then the ITD
+	 * Sometimes the intertyped method requires a bridge method alongside it. For example if the method 'N SomeI&lt;N&gt;.m()' is put onto
+	 * an interface 'interface I&lt;N extends Number&gt;' and then a concrete implementation is 'class C implements I&lt;Float&gt;' then the ITD
 	 * on the interface will be 'Number m()', whereas the ITD on the 'topmostimplementor' will be 'Float m()'. A bridge method needs
 	 * to be created in the topmostimplementor 'Number m()' that delegates to 'Float m()'
 	 */

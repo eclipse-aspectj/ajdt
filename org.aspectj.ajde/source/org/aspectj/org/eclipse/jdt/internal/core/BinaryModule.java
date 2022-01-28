@@ -19,6 +19,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.aspectj.org.eclipse.jdt.core.IAnnotation;
 import org.aspectj.org.eclipse.jdt.core.IJavaElement;
+import org.aspectj.org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.aspectj.org.eclipse.jdt.core.ISourceRange;
 import org.aspectj.org.eclipse.jdt.core.JavaModelException;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
@@ -31,7 +32,7 @@ import org.aspectj.org.eclipse.jdt.internal.core.JavaModelManager.PerProjectInfo
 public class BinaryModule extends BinaryMember implements AbstractModule {
 
 	private IBinaryModule info;
-	
+
 	/** For creating a pure handle from its memento. */
 	public BinaryModule(JavaElement parent, String name) {
 		super(parent, name);
@@ -44,8 +45,8 @@ public class BinaryModule extends BinaryMember implements AbstractModule {
 	@Override
 	public IModule getModuleInfo() throws JavaModelException {
 		if (this.info == null) {
-			ModularClassFile classFile = (ModularClassFile) this.parent;
-			this.info = classFile.getBinaryModuleInfo();			
+			ModularClassFile classFile = (ModularClassFile) this.getParent();
+			this.info = classFile.getBinaryModuleInfo();
 		}
 		return this.info;
 	}
@@ -63,6 +64,11 @@ public class BinaryModule extends BinaryMember implements AbstractModule {
 	@Override
 	public boolean isBinary() {
 		return true;
+	}
+	@Override
+	public boolean isSystemModule() {
+		IPackageFragmentRoot pfr = (IPackageFragmentRoot) getAncestor(IJavaElement.PACKAGE_FRAGMENT_ROOT);
+		return pfr instanceof JrtPackageFragmentRoot;
 	}
 	@Override
 	public int getFlags() throws JavaModelException {
@@ -102,7 +108,7 @@ public class BinaryModule extends BinaryMember implements AbstractModule {
 		synchronized (projectInfo.javadocCache) {
 			cachedJavadoc = (JavadocContents) projectInfo.javadocCache.get(this);
 		}
-		
+
 		if (cachedJavadoc != null && cachedJavadoc != BinaryType.EMPTY_JAVADOC) {
 			return cachedJavadoc;
 		}

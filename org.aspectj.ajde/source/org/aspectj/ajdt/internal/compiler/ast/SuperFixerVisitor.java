@@ -1,13 +1,13 @@
 /* *******************************************************************
  * Copyright (c) 2002 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     PARC     initial implementation
  * ******************************************************************/
 
 package org.aspectj.ajdt.internal.compiler.ast;
@@ -54,7 +54,7 @@ public class SuperFixerVisitor extends ASTVisitor {
 		this.method = method;
 		this.targetClass = targetClass;
 	}
-	
+
 	private static final char[] ctor = "<init>".toCharArray();
 
 	public boolean visit(TypeDeclaration localTypeDeclaration, BlockScope scope) {
@@ -63,9 +63,9 @@ public class SuperFixerVisitor extends ASTVisitor {
 				localTypeDeclaration.binding.modifiers |=Modifier.PUBLIC;
 				MethodBinding[] bindings = localTypeDeclaration.binding.methods;
 				if (bindings!=null) {
-					for (int i=0,max=bindings.length;i<max;i++) {
-						if (CharOperation.equals(bindings[i].selector,ctor)) {
-							bindings[i].modifiers|=Modifier.PUBLIC;
+					for (MethodBinding binding : bindings) {
+						if (CharOperation.equals(binding.selector, ctor)) {
+							binding.modifiers |= Modifier.PUBLIC;
 						}
 					}
 				}

@@ -1,12 +1,12 @@
 /* *******************************************************************
  * Copyright (c) 2002 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
  *     PARC     initial implementation
  *     Alexandre Vasseur    @AspectJ ITDs
  * ******************************************************************/
@@ -73,7 +73,7 @@ public abstract class ResolvedTypeMunger {
 			}
 		}
 		// boolean aChangeOccurred = false;
-		//		
+		//
 		// UnresolvedType rt = signature.getReturnType();
 		// if (rt.isParameterizedType() || rt.isGenericType()) {rt = rt.getRawType();aChangeOccurred=true;}
 		// UnresolvedType[] pt = signature.getParameterTypes();
@@ -99,7 +99,7 @@ public abstract class ResolvedTypeMunger {
 
 	// fromType is guaranteed to be a non-abstract aspect
 	// public ConcreteTypeMunger concretize(World world, ResolvedType aspectType) {
-	//    	
+	//
 	// ConcreteTypeMunger munger = world.concreteTypeMunger(this, aspectType);
 	// return munger;
 	// }
@@ -168,7 +168,7 @@ public abstract class ResolvedTypeMunger {
 	}
 
 	protected static Set<ResolvedMember> readSuperMethodsCalled(VersionedDataInputStream s) throws IOException {
-		Set<ResolvedMember> ret = new HashSet<ResolvedMember>();
+		Set<ResolvedMember> ret = new HashSet<>();
 		int n = -1;
 		if (s.isAtLeast169()) {
 			n = s.readByte();
@@ -189,7 +189,7 @@ public abstract class ResolvedTypeMunger {
 			s.writeByte(0);
 			return;
 		}
-		List<ResolvedMember> ret = new ArrayList<ResolvedMember>(superMethodsCalled);
+		List<ResolvedMember> ret = new ArrayList<>(superMethodsCalled);
 		Collections.sort(ret);
 		int n = ret.size();
 		s.writeByte(n);
@@ -217,8 +217,8 @@ public abstract class ResolvedTypeMunger {
 					File f = (File) ois.readObject();
 					Integer ii = (Integer) ois.readObject();
 					Integer offset = (Integer) ois.readObject();
-					ret = new SourceLocation(f, ii.intValue());
-					ret.setOffset(offset.intValue());
+					ret = new SourceLocation(f, ii);
+					ret.setOffset(offset);
 				}
 			} else {
 				boolean validLocation = b == 2;
@@ -259,11 +259,11 @@ public abstract class ResolvedTypeMunger {
 		} else {
 			s.writeByte(0);
 			ObjectOutputStream oos = new ObjectOutputStream(s);
-			oos.writeObject(new Boolean(location != null));
+			oos.writeObject(location != null);
 			if (location != null) {
 				oos.writeObject(location.getSourceFile());
-				oos.writeObject(new Integer(location.getLine()));
-				oos.writeObject(new Integer(location.getOffset()));
+				oos.writeObject(location.getLine());
+				oos.writeObject(location.getOffset());
 			}
 			oos.flush();
 			oos.close();
@@ -378,7 +378,7 @@ public abstract class ResolvedTypeMunger {
 				count = s.readInt();
 			}
 			if (count != 0) {
-				List<String> aliases = new ArrayList<String>();
+				List<String> aliases = new ArrayList<>();
 				for (int i = 0; i < count; i++) {
 					aliases.add(s.readUTF());
 				}
@@ -414,7 +414,7 @@ public abstract class ResolvedTypeMunger {
 
 	/**
 	 * return true if type variables are specified with the target type for this ITD. e.g. this would return true:
-	 * "int I<A,B>.m() { return 42; }"
+	 * "int I&lt;A,B&gt;.m() { return 42; }"
 	 */
 	public boolean sharesTypeVariablesWithGenericType() {
 		return (typeVariableAliases != null && typeVariableAliases.size() > 0);
@@ -477,10 +477,10 @@ public abstract class ResolvedTypeMunger {
 	/**
 	 * Some type mungers are created purely to help with the implementation of shadow mungers. For example to support the cflow()
 	 * pointcut we create a new cflow field in the aspect, and that is added via a BcelCflowCounterFieldAdder.
-	 * 
+	 *
 	 * During compilation we need to compare sets of type mungers, and if some only come into existence after the 'shadowy' type
 	 * things have been processed, we need to ignore them during the comparison.
-	 * 
+	 *
 	 * Returning true from this method indicates the type munger exists to support 'shadowy' stuff - and so can be ignored in some
 	 * comparison.
 	 */

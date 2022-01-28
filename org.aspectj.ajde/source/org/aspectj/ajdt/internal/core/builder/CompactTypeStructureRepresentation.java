@@ -1,12 +1,12 @@
 /* *******************************************************************
  * Copyright (c) 2005 Contributors
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
  *     Andy Clement   promoted member type from AjState
  * ******************************************************************/
 package org.aspectj.ajdt.internal.core.builder;
@@ -19,6 +19,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryMethod;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryNestedType;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryType;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryTypeAnnotation;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.IRecordComponent;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.ITypeAnnotationWalker;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BinaryTypeBinding.ExternalAnnotationStatus;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment;
@@ -41,14 +42,14 @@ public class CompactTypeStructureRepresentation implements IBinaryType {
 	char[] genericSignature;
 	char[] superclassName;
 	char[][] interfaces;
-	
+
 	char[] enclosingMethod;
-	
+
 	char[][][] missingTypeNames;
 
 	// this is the extra state that enables us to be an IBinaryType
 	char[] enclosingTypeName;
-	boolean isLocal, isAnonymous, isMember;
+	boolean isLocal, isAnonymous, isMember, isRecord;
 	char[] sourceFileName;
 	char[] fileName;
 	char[] sourceName;
@@ -59,7 +60,8 @@ public class CompactTypeStructureRepresentation implements IBinaryType {
 	IBinaryNestedType[] memberTypes;
 	IBinaryAnnotation[] annotations;
 	IBinaryTypeAnnotation[] typeAnnotations;
-	
+	IRecordComponent[] recordComponents;
+
 
 	public CompactTypeStructureRepresentation(ClassFileReader cfr, boolean isAspect) {
 
@@ -97,13 +99,15 @@ public class CompactTypeStructureRepresentation implements IBinaryType {
 		// }
 		this.superclassName = cfr.getSuperclassName(); // slashes...
 		interfaces = cfr.getInterfaceNames();
+		isRecord = cfr.isRecord();
+		recordComponents = cfr.getRecordComponents();
 
 	}
 
 	public char[][][] getMissingTypeNames() {
 		return missingTypeNames;
 	}
-	
+
 	public char[] getEnclosingTypeName() {
 		return enclosingTypeName;
 	}
@@ -115,7 +119,7 @@ public class CompactTypeStructureRepresentation implements IBinaryType {
 	public char[] getGenericSignature() {
 		return genericSignature;
 	}
-	
+
 	public char[] getEnclosingMethod() {
 		return enclosingMethod;
 	}
@@ -134,6 +138,11 @@ public class CompactTypeStructureRepresentation implements IBinaryType {
 
 	public boolean isLocal() {
 		return isLocal;
+	}
+
+	@Override
+	public boolean isRecord() {
+		return isRecord;
 	}
 
 	public boolean isMember() {
@@ -162,6 +171,11 @@ public class CompactTypeStructureRepresentation implements IBinaryType {
 
 	public IBinaryField[] getFields() {
 		return binFields;
+	}
+
+	@Override
+	public IRecordComponent[] getRecordComponents() {
+		return recordComponents;
 	}
 
 	public IBinaryMethod[] getMethods() {

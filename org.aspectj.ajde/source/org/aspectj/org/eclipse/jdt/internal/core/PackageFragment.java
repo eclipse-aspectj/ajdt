@@ -186,7 +186,7 @@ public boolean equals(Object o) {
 
 	PackageFragment other = (PackageFragment) o;
 	return Util.equalArraysOrNull(this.names, other.names) &&
-			this.parent.equals(other.parent);
+			this.getParent().equals(other.getParent());
 }
 @Override
 public boolean exists() {
@@ -423,7 +423,7 @@ public IResource resource(PackageFragmentRoot root) {
  */
 @Override
 public IResource getUnderlyingResource() throws JavaModelException {
-	IResource rootResource = this.parent.getUnderlyingResource();
+	IResource rootResource = this.getParent().getUnderlyingResource();
 	if (rootResource == null) {
 		//jar package fragment root that has no associated resource
 		return null;
@@ -447,7 +447,7 @@ public IResource getUnderlyingResource() throws JavaModelException {
 }
 @Override
 public int hashCode() {
-	int hash = this.parent.hashCode();
+	int hash = this.getParent().hashCode();
 	for (int i = 0, length = this.names.length; i < length; i++)
 		hash = Util.combineHashCodes(this.names[i].hashCode(), hash);
 	return hash;
@@ -587,7 +587,7 @@ public String getAttachedJavadoc(IProgressMonitor monitor) throws JavaModelExcep
 	String contents = getURLContents(baseLocation, String.valueOf(pathBuffer));
 	if (monitor != null && monitor.isCanceled()) throw new OperationCanceledException();
 	if (contents == null) return null;
-	
+
 	contents = (new JavadocContents(contents)).getPackageDoc();
 	if (contents == null) contents = ""; //$NON-NLS-1$
 	synchronized (projectInfo.javadocCache) {

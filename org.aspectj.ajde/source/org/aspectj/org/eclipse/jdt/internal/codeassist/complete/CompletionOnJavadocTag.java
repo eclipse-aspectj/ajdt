@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -16,6 +16,7 @@ package org.aspectj.org.eclipse.jdt.internal.codeassist.complete;
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.JavadocSingleNameReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ClassScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodScope;
@@ -88,6 +89,10 @@ public class CompletionOnJavadocTag extends JavadocSingleNameReference implement
 				// bug https://bugs.eclipse.org/bugs/show_bug.cgi?id=255752
 				// Check for FAKE_TYPE_NAME to allow proposals (@see CompletionParser#consumeCompilationUnit)
 				CompilationUnitDeclaration compilationUnit = scope.referenceCompilationUnit();
+				if(compilationUnit != null && compilationUnit.isModuleInfo() ) {
+					specifiedTags = MODULE_TAGS;
+					break;
+				}
 				if (compilationUnit != null &&
 						(compilationUnit.types.length > 0 && compilationUnit.types[0].name == CompletionParser.FAKE_TYPE_NAME)) {
 					specifiedTags = CLASS_TAGS;
@@ -127,7 +132,9 @@ public class CompletionOnJavadocTag extends JavadocSingleNameReference implement
 							switch (scope.kind) {
 								case Scope.CLASS_SCOPE:
 									if (scope.compilerOptions().sourceLevel >= ClassFileConstants.JDK1_5) {
-										if (((ClassScope)scope).referenceContext.binding.isGenericType()) {
+										TypeDeclaration typeDecl = ((ClassScope)scope).referenceContext;
+										boolean isRecordWithComponent = typeDecl.isRecord() && typeDecl.nRecordComponents >0 ;
+										if (((ClassScope)scope).referenceContext.binding.isGenericType() || isRecordWithComponent) {
 											filteredTags[size++] = possibleTag;
 										}
 									}

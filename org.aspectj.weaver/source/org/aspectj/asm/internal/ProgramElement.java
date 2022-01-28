@@ -1,13 +1,13 @@
 /* *******************************************************************
  * Copyright (c) 2003,2010 Contributors.
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     Mik Kersten     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     Mik Kersten     initial implementation
  *     Andy Clement, IBM, SpringSource    Extensions for better IDE representation
  * ******************************************************************/
 
@@ -223,7 +223,7 @@ public class ProgramElement implements IProgramElement {
 	}
 
 	private static List<IProgramElement.Modifiers> genModifiers(int modifiers) {
-		List<IProgramElement.Modifiers> modifiersList = new ArrayList<IProgramElement.Modifiers>();
+		List<IProgramElement.Modifiers> modifiersList = new ArrayList<>();
 		if ((modifiers & AccStatic) != 0) {
 			modifiersList.add(IProgramElement.Modifiers.STATIC);
 		}
@@ -364,7 +364,7 @@ public class ProgramElement implements IProgramElement {
 		if (b == null) {
 			return false;
 		}
-		return b.booleanValue();
+		return b;
 	}
 
 	public String[] getRemovedAnnotationTypes() {
@@ -432,11 +432,11 @@ public class ProgramElement implements IProgramElement {
 			// check if someone is calling us with something that is a signature already
 			assert name.charAt(0) != '[';
 
-			if (name.indexOf("<") == -1) {
+			if (!name.contains("<")) {
 				// not parameterized
 				return new StringBuilder("L").append(name.replace('.', '/')).append(';').toString();
 			} else {
-				StringBuffer nameBuff = new StringBuffer();
+				StringBuilder nameBuff = new StringBuilder();
 				int nestLevel = 0;
 				nameBuff.append("L");
 				for (int i = 0; i < name.length(); i++) {
@@ -448,7 +448,7 @@ public class ProgramElement implements IProgramElement {
 					case '<':
 						nameBuff.append("<");
 						nestLevel++;
-						StringBuffer innerBuff = new StringBuffer();
+						StringBuilder innerBuff = new StringBuilder();
 						while (nestLevel > 0) {
 							c = name.charAt(++i);
 							if (c == '<') {
@@ -459,7 +459,7 @@ public class ProgramElement implements IProgramElement {
 							}
 							if (c == ',' && nestLevel == 1) {
 								nameBuff.append(nameToSignature(innerBuff.toString()));
-								innerBuff = new StringBuffer();
+								innerBuff = new StringBuilder();
 							} else {
 								if (nestLevel > 0) {
 									innerBuff.append(c);
@@ -497,7 +497,7 @@ public class ProgramElement implements IProgramElement {
 	}
 
 	/**
-	 * Trim down fully qualified types to their short form (e.g. a.b.c.D<e.f.G> becomes D<G>)
+	 * Trim down fully qualified types to their short form (e.g., a.b.c.D&lt;e.f.G&gt; becomes D&lt;G&gt;)
 	 */
 	public static String trim(String fqname) {
 		int i = fqname.indexOf("<");
@@ -544,14 +544,14 @@ public class ProgramElement implements IProgramElement {
 		if (children == null) {
 			return;
 		}
-		for (Iterator<IProgramElement> it = children.iterator(); it.hasNext();) {
-			(it.next()).setParent(this);
+		for (IProgramElement child : children) {
+			child.setParent(this);
 		}
 	}
 
 	public void addChild(IProgramElement child) {
 		if (children == null || children == Collections.EMPTY_LIST) {
-			children = new ArrayList<IProgramElement>();
+			children = new ArrayList<>();
 		}
 		children.add(child);
 		child.setParent(this);
@@ -559,7 +559,7 @@ public class ProgramElement implements IProgramElement {
 
 	public void addChild(int position, IProgramElement child) {
 		if (children == null || children == Collections.EMPTY_LIST) {
-			children = new ArrayList<IProgramElement>();
+			children = new ArrayList<>();
 		}
 		children.add(position, child);
 		child.setParent(this);
@@ -611,7 +611,7 @@ public class ProgramElement implements IProgramElement {
 
 	/**
 	 * Convenience mechanism for setting new modifiers which do not require knowledge of the private internal representation
-	 * 
+	 *
 	 * @param newModifier
 	 */
 	public void addModifiers(IProgramElement.Modifiers newModifier) {
@@ -623,7 +623,7 @@ public class ProgramElement implements IProgramElement {
 	}
 
 	public String toSignatureString(boolean getFullyQualifiedArgTypes) {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		sb.append(name);
 
 		List<char[]> ptypes = getParameterTypes();
@@ -655,7 +655,7 @@ public class ProgramElement implements IProgramElement {
 	}
 
 	/**
-	 * TODO: move the "parent != null"==>injar heuristic to more explicit
+	 * TODO: move the "parent != null"&rarr;injar heuristic to more explicit
 	 */
 	public String toLinkLabelString() {
 		return toLinkLabelString(true);
@@ -750,9 +750,8 @@ public class ProgramElement implements IProgramElement {
 		if (l == null || l.isEmpty()) {
 			return Collections.emptyList();
 		}
-		List<char[]> params = new ArrayList<char[]>();
-		for (Iterator<char[]> iter = l.iterator(); iter.hasNext();) {
-			char[] param = iter.next();
+		List<char[]> params = new ArrayList<>();
+		for (char[] param : l) {
 			params.add(NameConvertor.convertFromSignature(param));
 		}
 		return params;
@@ -806,7 +805,7 @@ public class ProgramElement implements IProgramElement {
 
 	private void fixMap() {
 		if (kvpairs == Collections.EMPTY_MAP) {
-			kvpairs = new HashMap<String, Object>();
+			kvpairs = new HashMap<>();
 		}
 	}
 

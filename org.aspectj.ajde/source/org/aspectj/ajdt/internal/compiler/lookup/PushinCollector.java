@@ -1,12 +1,12 @@
 /* *******************************************************************
  * Copyright (c) 2010 Contributors
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
  *     Andy Clement - SpringSource
  * ******************************************************************/
 package org.aspectj.ajdt.internal.compiler.lookup;
@@ -42,7 +42,7 @@ import org.aspectj.weaver.patterns.TypePattern;
  * <li>itd ctor
  * <li>declare parents
  * </ul>
- * 
+ *
  * @author Andy Clement
  * @since 1.6.9
  */
@@ -65,16 +65,16 @@ public class PushinCollector {
 	private String suffix;
 
 	// This first collection stores the 'text' for the declarations.
-	private Map<AbstractMethodDeclaration, RepresentationAndLocation> codeRepresentation = new HashMap<AbstractMethodDeclaration, RepresentationAndLocation>();
+	private Map<AbstractMethodDeclaration, RepresentationAndLocation> codeRepresentation = new HashMap<>();
 
 	// This stores the new annotations
-	private Map<SourceTypeBinding, List<String>> additionalAnnotations = new HashMap<SourceTypeBinding, List<String>>();
+	private Map<SourceTypeBinding, List<String>> additionalAnnotations = new HashMap<>();
 
 	// This stores the new parents
-	private Map<SourceTypeBinding, List<ExactTypePattern>> additionalParents = new HashMap<SourceTypeBinding, List<ExactTypePattern>>();
+	private Map<SourceTypeBinding, List<ExactTypePattern>> additionalParents = new HashMap<>();
 
 	// This indicates which types are affected by which intertype declarations
-	private Map<SourceTypeBinding, List<AbstractMethodDeclaration>> newDeclarations = new HashMap<SourceTypeBinding, List<AbstractMethodDeclaration>>();
+	private Map<SourceTypeBinding, List<AbstractMethodDeclaration>> newDeclarations = new HashMap<>();
 
 	private PushinCollector(World world, Properties configuration) {
 		this.world = world;
@@ -133,7 +133,7 @@ public class PushinCollector {
 		}
 
 		// Process all types working from end to start as whatever we do (insert-wise) will affect locations later in the file
-		StringBuffer sourceContents = new StringBuffer();
+		StringBuilder sourceContents = new StringBuilder();
 		// put the whole original file in the buffer
 		boolean changed = false;
 		sourceContents.append(compilationUnitDeclaration.compilationResult.compilationUnit.getContents());
@@ -165,8 +165,8 @@ public class PushinCollector {
 			TypeReference sr = sourceTypeBinding.scope.referenceContext.superclass;
 			TypeReference[] trs = sourceTypeBinding.scope.referenceContext.superInterfaces;
 			List<ExactTypePattern> newParents = additionalParents.get(sourceTypeBinding);
-			StringBuffer extendsString = new StringBuffer();
-			StringBuffer implementsString = new StringBuffer();
+			StringBuilder extendsString = new StringBuilder();
+			StringBuilder implementsString = new StringBuilder();
 			if (newParents != null && newParents.size() > 0) {
 				for (ExactTypePattern newParent : newParents) {
 					ResolvedType newParentType = newParent.getExactType().resolve(world);
@@ -253,20 +253,12 @@ public class PushinCollector {
 			// can be null for binary weave (there is no source method)
 			return;
 		}
-		List<AbstractMethodDeclaration> amds = newDeclarations.get(sourceType);
-		if (amds == null) {
-			amds = new ArrayList<AbstractMethodDeclaration>();
-			newDeclarations.put(sourceType, amds);
-		}
+		List<AbstractMethodDeclaration> amds = newDeclarations.computeIfAbsent(sourceType, k -> new ArrayList<>());
 		amds.add(sourceMethod);
 	}
 
 	public void tagAsMunged(SourceTypeBinding sourceType, String annotationString) {
-		List<String> annos = additionalAnnotations.get(sourceType);
-		if (annos == null) {
-			annos = new ArrayList<String>();
-			additionalAnnotations.put(sourceType, annos);
-		}
+		List<String> annos = additionalAnnotations.computeIfAbsent(sourceType, k -> new ArrayList<>());
 		annos.add(annotationString);
 	}
 
@@ -280,7 +272,7 @@ public class PushinCollector {
 	}
 
 	private String getOutputFileFor(CompilationUnitDeclaration unit) {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 
 		// Create the directory portion of the output location
 		if (specifiedOutputDirectory != null) {
@@ -320,11 +312,7 @@ public class PushinCollector {
 
 	public void tagAsMunged(SourceTypeBinding sourceType, TypePattern typePattern) {
 		if (typePattern instanceof ExactTypePattern) {
-			List<ExactTypePattern> annos = additionalParents.get(sourceType);
-			if (annos == null) {
-				annos = new ArrayList<ExactTypePattern>();
-				additionalParents.put(sourceType, annos);
-			}
+			List<ExactTypePattern> annos = additionalParents.computeIfAbsent(sourceType, k -> new ArrayList<>());
 			annos.add((ExactTypePattern) typePattern);
 		}
 	}

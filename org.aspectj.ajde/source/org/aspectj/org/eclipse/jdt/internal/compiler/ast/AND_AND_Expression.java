@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -70,6 +70,7 @@ public class AND_AND_Expression extends BinaryExpression {
 				rightInfo.setReachMode(FlowInfo.UNREACHABLE_OR_DEAD);
 			}
 		}
+		this.left.updateFlowOnBooleanResult(rightInfo, true);
 		rightInfo = this.right.analyseCode(currentScope, flowContext, rightInfo);
 		if ((flowContext.tagBits & FlowContext.INSIDE_NEGATION) != 0)
 			flowContext.expireNullCheckedFieldInfo();
@@ -271,7 +272,25 @@ public class AND_AND_Expression extends BinaryExpression {
 			codeStream.removeNotDefinitelyAssignedVariables(currentScope, this.mergedInitStateIndex);
 		}
 	}
+	@Override
+	public void collectPatternVariablesToScope(LocalVariableBinding[] variables, BlockScope scope) {
+		this.addPatternVariablesWhenTrue(variables);
+		// If upper level already supplied positive new vars for us, also make those available to the left expr
+		this.left.addPatternVariablesWhenTrue(this.patternVarsWhenTrue);
 
+		this.left.collectPatternVariablesToScope(this.patternVarsWhenTrue, scope);
+
+		variables = this.left.getPatternVariablesWhenTrue();
+		this.addPatternVariablesWhenTrue(variables);
+		this.right.addPatternVariablesWhenTrue(variables);
+
+		variables = this.left.getPatternVariablesWhenFalse();
+		this.right.addPatternVariablesWhenFalse(variables);
+
+		this.right.collectPatternVariablesToScope(this.patternVarsWhenTrue, scope);
+		variables = this.right.getPatternVariablesWhenTrue();
+		this.addPatternVariablesWhenTrue(variables);
+	}
 	@Override
 	public boolean isCompactableOperation() {
 		return false;

@@ -1,13 +1,13 @@
 /* *******************************************************************
  * Copyright (c) 2002 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     PARC     initial implementation
  * ******************************************************************/
 
 package org.aspectj.ajdt.internal.compiler.ast;
@@ -52,12 +52,12 @@ import org.aspectj.weaver.UnresolvedType;
 
 /**
  * An inter-type method declaration.
- * 
+ *
  * @author Jim Hugunin
  */
 public class InterTypeMethodDeclaration extends InterTypeDeclaration {
 	public InterTypeMethodDeclaration(CompilationResult result, TypeReference onType) {
-		super(result, onType); 
+		super(result, onType);
 	}
 
 	@Override
@@ -103,7 +103,7 @@ public class InterTypeMethodDeclaration extends InterTypeDeclaration {
 		if (!Modifier.isStatic(declaredModifiers)) {
 			this.arguments = AstUtil.insert(AstUtil.makeFinalArgument("ajc$this_".toCharArray(), onTypeBinding), this.arguments);
 			binding.parameters = AstUtil.insert(onTypeBinding, binding.parameters);
-			
+
 			// If the inserted argument is a generic type, we should include the associated type variables to ensure
 			// the generated signature is correct (it will be checked by eclipse when this type is consumed in binary form).
 			TypeVariableBinding onTypeTVBs[] = onTypeBinding.typeVariables();
@@ -162,9 +162,7 @@ public class InterTypeMethodDeclaration extends InterTypeDeclaration {
 				ReferenceBinding supertype = onTypeBinding.superclass();
 				while (supertype != null && reportError) {
 					MethodBinding[] possibles = supertype.getMethods(declaredSelector);
-					for (int i = 0; i < possibles.length; i++) {
-						MethodBinding mb = possibles[i];
-
+					for (MethodBinding mb : possibles) {
 						boolean couldBeMatch = true;
 						if (mb.parameters.length != realthing.parameters.length)
 							couldBeMatch = false;
@@ -290,11 +288,11 @@ public class InterTypeMethodDeclaration extends InterTypeDeclaration {
 
 		Argument[] itdArgs = this.arguments;
 		if (itdArgs != null) {
-			for (int a = 0; a < itdArgs.length; a++) {
-				LocalVariableBinding lvb = itdArgs[a].binding;
+			for (Argument itdArg : itdArgs) {
+				LocalVariableBinding lvb = itdArg.binding;
 				LocalVariableBinding lvbCopy = new LocalVariableBinding(lvb.name, lvb.type, lvb.modifiers, true);
 				// e37: have to create a declaration so that the check in ClassFile (line 2538) won't skip it
-				lvbCopy.declaration = new LocalDeclaration(itdArgs[a].name,0,0);
+				lvbCopy.declaration = new LocalDeclaration(itdArg.name, 0, 0);
 				codeStream.record(lvbCopy);
 				lvbCopy.recordInitializationStartPC(0);
 				lvbCopy.resolvedPosition = lvb.resolvedPosition;
@@ -311,9 +309,9 @@ public class InterTypeMethodDeclaration extends InterTypeDeclaration {
 			codeStream.aload_0();
 			resolvedPosition = 1;
 		}
-		for (int i = 0; i < length; i++) {
-			codeStream.load(parameters[i], resolvedPosition);
-			if ((parameters[i] == TypeBinding.DOUBLE) || (parameters[i] == TypeBinding.LONG))
+		for (TypeBinding parameter : parameters) {
+			codeStream.load(parameter, resolvedPosition);
+			if ((parameter == TypeBinding.DOUBLE) || (parameter == TypeBinding.LONG))
 				resolvedPosition += 2;
 			else
 				resolvedPosition++;
@@ -338,7 +336,7 @@ public class InterTypeMethodDeclaration extends InterTypeDeclaration {
 				}
 			}
 		}
-		classFile.completeCodeAttribute(codeAttributeOffset);
+		classFile.completeCodeAttribute(codeAttributeOffset,scope);
 		attributeNumber++;
 		classFile.completeMethodInfo(binding,methodAttributeOffset, attributeNumber);
 	}

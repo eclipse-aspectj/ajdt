@@ -1,12 +1,12 @@
 /* *******************************************************************
  * Copyright (c) 2005 Contributors.
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
  *   Adrian Colyer			Initial implementation
  * ******************************************************************/
 package org.aspectj.weaver.bcel;
@@ -37,7 +37,7 @@ public class BcelGenericSignatureToTypeXConverter {
 
 	public static ResolvedType classTypeSignature2TypeX(GenericSignature.ClassTypeSignature aClassTypeSignature,
 			GenericSignature.FormalTypeParameter[] typeParams, World world) throws GenericSignatureFormatException {
-		Map<GenericSignature.FormalTypeParameter, ReferenceType> typeMap = new HashMap<GenericSignature.FormalTypeParameter, ReferenceType>();
+		Map<GenericSignature.FormalTypeParameter, ReferenceType> typeMap = new HashMap<>();
 		ResolvedType ret = classTypeSignature2TypeX(aClassTypeSignature, typeParams, world, typeMap);
 		fixUpCircularDependencies(ret, typeMap);
 		return ret;
@@ -52,7 +52,7 @@ public class BcelGenericSignatureToTypeXConverter {
 		// each type in the hierarchy may have type arguments
 
 		// first build the 'raw type' signature
-		StringBuffer sig = new StringBuffer();
+		StringBuilder sig = new StringBuilder();
 		sig.append(aClassTypeSignature.outerType.identifier.replace(';', ' ').trim());
 		for (int i = 0; i < aClassTypeSignature.nestedTypes.length; i++) {
 			sig.append("$");
@@ -100,7 +100,7 @@ public class BcelGenericSignatureToTypeXConverter {
 
 	public static ResolvedType fieldTypeSignature2TypeX(GenericSignature.FieldTypeSignature aFieldTypeSignature,
 			GenericSignature.FormalTypeParameter[] typeParams, World world) throws GenericSignatureFormatException {
-		Map<GenericSignature.FormalTypeParameter, ReferenceType> typeMap = new HashMap<GenericSignature.FormalTypeParameter, ReferenceType>();
+		Map<GenericSignature.FormalTypeParameter, ReferenceType> typeMap = new HashMap<>();
 		ResolvedType ret = fieldTypeSignature2TypeX(aFieldTypeSignature, typeParams, world, typeMap);
 		fixUpCircularDependencies(ret, typeMap);
 		return ret;
@@ -133,7 +133,7 @@ public class BcelGenericSignatureToTypeXConverter {
 
 	public static TypeVariable formalTypeParameter2TypeVariable(GenericSignature.FormalTypeParameter aFormalTypeParameter,
 			GenericSignature.FormalTypeParameter[] typeParams, World world) throws GenericSignatureFormatException {
-		Map<GenericSignature.FormalTypeParameter, ReferenceType> typeMap = new HashMap<GenericSignature.FormalTypeParameter, ReferenceType>();
+		Map<GenericSignature.FormalTypeParameter, ReferenceType> typeMap = new HashMap<>();
 		return formalTypeParameter2TypeVariable(aFormalTypeParameter, typeParams, world, typeMap);
 	}
 
@@ -185,7 +185,7 @@ public class BcelGenericSignatureToTypeXConverter {
 
 	public static ResolvedType typeSignature2TypeX(GenericSignature.TypeSignature aTypeSig,
 			GenericSignature.FormalTypeParameter[] typeParams, World world) throws GenericSignatureFormatException {
-		Map<GenericSignature.FormalTypeParameter, ReferenceType> typeMap = new HashMap<GenericSignature.FormalTypeParameter, ReferenceType>();
+		Map<GenericSignature.FormalTypeParameter, ReferenceType> typeMap = new HashMap<>();
 		ResolvedType ret = typeSignature2TypeX(aTypeSig, typeParams, world, typeMap);
 		fixUpCircularDependencies(ret, typeMap);
 		return ret;
@@ -208,9 +208,9 @@ public class BcelGenericSignatureToTypeXConverter {
 			Map<GenericSignature.FormalTypeParameter, ReferenceType> inProgressTypeVariableResolutions)
 			throws GenericSignatureFormatException {
 		GenericSignature.FormalTypeParameter typeVarBounds = null;
-		for (int i = 0; i < typeParams.length; i++) {
-			if (typeParams[i].identifier.equals(aTypeVarSig.typeVariableName)) {
-				typeVarBounds = typeParams[i];
+		for (GenericSignature.FormalTypeParameter typeParam : typeParams) {
+			if (typeParam.identifier.equals(aTypeVarSig.typeVariableName)) {
+				typeVarBounds = typeParam;
 				break;
 			}
 		}
@@ -240,10 +240,10 @@ public class BcelGenericSignatureToTypeXConverter {
 		ReferenceType rt = (ReferenceType) aTypeX;
 		TypeVariable[] typeVars = rt.getTypeVariables();
 		if (typeVars != null) {
-			for (int i = 0; i < typeVars.length; i++) {
-				if (typeVars[i].getUpperBound() instanceof FTPHolder) {
-					GenericSignature.FormalTypeParameter key = ((FTPHolder) typeVars[i].getUpperBound()).ftpToBeSubstituted;
-					typeVars[i].setUpperBound(typeVariableResolutions.get(key));
+			for (TypeVariable typeVar : typeVars) {
+				if (typeVar.getUpperBound() instanceof FTPHolder) {
+					GenericSignature.FormalTypeParameter key = ((FTPHolder) typeVar.getUpperBound()).ftpToBeSubstituted;
+					typeVar.setUpperBound(typeVariableResolutions.get(key));
 				}
 			}
 		}

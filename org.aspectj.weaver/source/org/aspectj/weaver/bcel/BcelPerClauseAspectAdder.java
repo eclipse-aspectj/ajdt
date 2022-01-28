@@ -2,14 +2,16 @@
  * Copyright (c) 2005 Contributors.
  * All rights reserved.
  * This program and the accompanying materials are made available
- * under the terms of the Eclipse Public License v1.0
+ * under the terms of the Eclipse Public License v 2.0
  * which accompanies this distribution and is available at
- * http://eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
  *
  * Contributors:
  * initial implementation              Alexandre Vasseur
  *******************************************************************************/
 package org.aspectj.weaver.bcel;
+
+import java.util.List;
 
 import org.aspectj.apache.bcel.Constants;
 import org.aspectj.apache.bcel.generic.InstructionBranch;
@@ -31,7 +33,7 @@ import org.aspectj.weaver.patterns.PerClause;
 
 /**
  * Adds aspectOf(), hasAspect() etc to the annotation defined aspects
- * 
+ *
  * @author Alexandre Vasseur
  * @author Andy Clement
  */
@@ -140,9 +142,8 @@ public class BcelPerClauseAspectAdder extends BcelTypeMunger {
 	}
 
 	private boolean hasPerClauseMembersAlready(LazyClassGen classGen) {
-		ResolvedMember[] methods = classGen.getBcelObjectType().getDeclaredMethods();
-		for (int i = 0; i < methods.length; i++) {
-			ResolvedMember method = methods[i];
+		List<LazyMethodGen> methodGens = classGen.getMethodGens();
+		for (LazyMethodGen method: methodGens) {
 			if ("aspectOf".equals(method.getName())) {
 				if ("()".equals(method.getParameterSignature()) && (kind == PerClause.SINGLETON || kind == PerClause.PERCFLOW)) {
 					return true;
@@ -542,7 +543,7 @@ public class BcelPerClauseAspectAdder extends BcelTypeMunger {
 
 	/**
 	 * Add standard Synthetic (if wished) and AjSynthetic (always) attributes
-	 * 
+	 *
 	 * @param methodGen
 	 * @param makeJavaSynthetic true if standard Synthetic attribute must be set as well (invisible to user)
 	 */

@@ -33,7 +33,7 @@ public interface IUpdatableModule {
 	 */
 	enum UpdateKind { MODULE, PACKAGE }
 
-	class AddExports implements Consumer<IUpdatableModule> {
+	static class AddExports implements Consumer<IUpdatableModule> {
 
 		char[] name;
 		char[][] targets;
@@ -43,18 +43,17 @@ public interface IUpdatableModule {
 		}
 		@Override
 		public void accept(IUpdatableModule t) {
-			// TODO Auto-generated method stub
 			t.addExports(this.name, this.targets);
 		}
-		
+
 		public char[] getName() {
 			return this.name;
 		}
-		
+
 		public char[][] getTargetModules() {
 			return this.targets;
 		}
-		
+
 		public UpdateKind getKind() {
 			return UpdateKind.PACKAGE;
 		}
@@ -63,7 +62,7 @@ public interface IUpdatableModule {
 			if (this == other) return true;
 			if (!(other instanceof AddExports)) return false;
 			AddExports pu = (AddExports) other;
-			
+
 			if (!CharOperation.equals(this.name, pu.name))
 				return false;
 			if (!CharOperation.equals(this.targets, pu.targets))
@@ -80,12 +79,17 @@ public interface IUpdatableModule {
 			}
 			return hash;
 		}
+		@Override
+		public String toString() {
+			return "add-exports " + CharOperation.charToString(this.name) + "=" + CharOperation.charToString(CharOperation.concatWith(this.targets, ','));  //$NON-NLS-1$//$NON-NLS-2$
+		}
+
 	}
-	
-	class AddReads implements Consumer<IUpdatableModule> {
+
+	static class AddReads implements Consumer<IUpdatableModule> {
 
 		char[] targetModule;
-		
+
 		public AddReads(char[] target) {
 			this.targetModule = target;
 		}
@@ -94,11 +98,11 @@ public interface IUpdatableModule {
 			// TODO Auto-generated method stub
 			t.addReads(this.targetModule);
 		}
-		
+
 		public char[] getTarget() {
 			return this.targetModule;
 		}
-		
+
 		public UpdateKind getKind() {
 			return UpdateKind.MODULE;
 		}
@@ -114,9 +118,13 @@ public interface IUpdatableModule {
 		public int hashCode() {
 			return CharOperation.hashCode(this.targetModule);
 		}
+		@Override
+		public String toString() {
+			return "add-read " + CharOperation.charToString(this.targetModule); //$NON-NLS-1$
+		}
 	}
 	/** Structure for update operations, sorted by {@link UpdateKind}. */
-	class UpdatesByKind {
+	static class UpdatesByKind {
 		List<Consumer<IUpdatableModule>> moduleUpdates = Collections.emptyList();
 		List<Consumer<IUpdatableModule>> packageUpdates = Collections.emptyList();
 		public List<Consumer<IUpdatableModule>> getList(UpdateKind kind, boolean create) {
@@ -132,6 +140,21 @@ public interface IUpdatableModule {
 				default:
 					throw new IllegalArgumentException("Unknown enum value "+kind); //$NON-NLS-1$
 			}
+		}
+		@Override
+		public String toString() {
+			StringBuilder result = new StringBuilder();
+			for (Consumer<IUpdatableModule> consumer : this.moduleUpdates) {
+				if(result.length() > 0)
+					result.append("\n"); //$NON-NLS-1$
+				result.append(consumer);
+			}
+			for (Consumer<IUpdatableModule> consumer : this.packageUpdates) {
+				if(result.length() > 0)
+					result.append("\n"); //$NON-NLS-1$
+				result.append(consumer);
+			}
+			return result.toString();
 		}
 	}
 

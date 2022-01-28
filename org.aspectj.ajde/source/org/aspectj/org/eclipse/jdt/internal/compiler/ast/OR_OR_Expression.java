@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -75,6 +75,7 @@ public class OR_OR_Expression extends BinaryExpression {
 				rightInfo.setReachMode(FlowInfo.UNREACHABLE_OR_DEAD);
 			}
 		}
+		this.left.updateFlowOnBooleanResult(rightInfo, false);
 		rightInfo = this.right.analyseCode(currentScope, flowContext, rightInfo);
 		if ((flowContext.tagBits & FlowContext.INSIDE_NEGATION) == 0)
 			flowContext.expireNullCheckedFieldInfo();
@@ -276,7 +277,35 @@ public class OR_OR_Expression extends BinaryExpression {
 			codeStream.removeNotDefinitelyAssignedVariables(currentScope, this.mergedInitStateIndex);
 		}
 	}
+	@Override
+	public void collectPatternVariablesToScope(LocalVariableBinding[] variables, BlockScope scope) {
+		LocalVariableBinding[] temp = variables;
+		this.left.collectPatternVariablesToScope(variables, scope);
 
+		// Just keep the ones in false scope
+		variables = this.left.getPatternVariablesWhenFalse();
+		this.addPatternVariablesWhenFalse(variables);
+
+		int length = (variables == null ? 0 : variables.length) + (temp == null ? 0 : temp.length);
+		LocalVariableBinding[] newArray = new LocalVariableBinding[length];
+		if (variables != null) {
+			System.arraycopy(variables, 0, newArray, 0, variables.length);
+		}
+		if (temp != null) {
+			System.arraycopy(temp, 0, newArray, (variables == null ? 0 : variables.length), temp.length);
+		}
+		this.right.collectPatternVariablesToScope(newArray, scope);
+		variables = this.right.getPatternVariablesWhenFalse();
+		this.addPatternVariablesWhenFalse(variables);
+
+		// do this at the end, otherwise we will end up with
+		// same variable we just added from left to right
+		variables = this.left.getPatternVariablesWhenTrue();
+		this.right.addPatternVariablesWhenFalse(variables);
+
+		variables = this.left.getPatternVariablesWhenFalse();
+		this.right.addPatternVariablesWhenTrue(variables);
+	}
 	@Override
 	public boolean isCompactableOperation() {
 		return false;

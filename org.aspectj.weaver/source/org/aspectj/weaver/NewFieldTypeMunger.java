@@ -1,13 +1,13 @@
 /* *******************************************************************
  * Copyright (c) 2002 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     PARC     initial implementation
  * ******************************************************************/
 
 package org.aspectj.weaver;
@@ -22,9 +22,9 @@ import org.aspectj.weaver.AjAttribute.WeaverVersionInfo;
 
 /**
  * Code that created version one style ITD type mungers will be using direct field access from the dispatchers
- * 
+ *
  * @author Andy
- * 
+ *
  */
 public class NewFieldTypeMunger extends ResolvedTypeMunger {
 
@@ -57,9 +57,9 @@ public class NewFieldTypeMunger extends ResolvedTypeMunger {
 	public static ResolvedTypeMunger readField(VersionedDataInputStream s, ISourceContext context) throws IOException {
 		ISourceLocation sloc = null;
 		ResolvedMember fieldSignature = ResolvedMemberImpl.readResolvedMember(s, context);
-		Set superMethodsCalled = readSuperMethodsCalled(s);
+		Set<ResolvedMember> superMethodsCalled = readSuperMethodsCalled(s);
 		sloc = readSourceLocation(s);
-		List aliases = readInTypeAliases(s);
+		List<String> aliases = readInTypeAliases(s);
 		NewFieldTypeMunger munger = new NewFieldTypeMunger(fieldSignature, superMethodsCalled, aliases);
 		if (sloc != null) {
 			munger.setSourceLocation(sloc);

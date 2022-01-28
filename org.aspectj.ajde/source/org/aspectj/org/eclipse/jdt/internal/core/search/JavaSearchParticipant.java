@@ -33,9 +33,21 @@ import org.aspectj.org.eclipse.jdt.internal.core.search.matching.MatchLocator;
  * the workspace or no exist yet, and thus aren't just resources).
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
-public class JavaSearchParticipant extends SearchParticipant {
+public class JavaSearchParticipant extends SearchParticipant implements IParallelizable {
 
-	private ThreadLocal indexSelector = new ThreadLocal();
+	private final ThreadLocal indexSelector = new ThreadLocal();
+
+	/**
+	 * The only reason this field exist is the unfortunate idea to share created source indexer
+	 * between three calls to this search participant in IndexManager.scheduleDocumentIndexing().
+	 * <p>
+	 * The field is supposed to be set in indexDocument() and potentially reused
+	 * in later calls to resolveDocument() and indexResolvedDocument(), all in the same thread.
+	 * <p>
+	 * This is the only purpose of this field, and allows us not to manage it via ThreadLocal.
+	 * <p>
+	 * See org.aspectj.org.eclipse.jdt.internal.core.search.indexing.IndexManager.scheduleDocumentIndexing()
+	 */
 	private SourceIndexer sourceIndexer;
 
 	@Override
@@ -67,8 +79,14 @@ public class JavaSearchParticipant extends SearchParticipant {
 
 		String documentPath = document.getPath();
 		if (org.aspectj.org.eclipse.jdt.internal.core.util.Util.isJavaLikeFileName(documentPath)) {
-			this.sourceIndexer = new SourceIndexer(document);
-			this.sourceIndexer.indexDocument();
+			SourceIndexer indexer = new SourceIndexer(document);
+			indexer.indexDocument();
+
+			// if the indexer should index resolved document too, remember it for later
+			// See org.aspectj.org.eclipse.jdt.internal.core.search.indexing.IndexManager.scheduleDocumentIndexing()
+			if(document.shouldIndexResolvedDocument()) {
+				this.sourceIndexer = indexer;
+			}
 		} else if (org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.isClassFileName(documentPath)) {
 			new BinaryIndexer(document).indexDocument();
 		} else if (documentPath.endsWith(TypeConstants.AUTOMATIC_MODULE_NAME)) {
@@ -80,9 +98,13 @@ public class JavaSearchParticipant extends SearchParticipant {
 	public void indexResolvedDocument(SearchDocument document, IPath indexPath) {
 		String documentPath = document.getPath();
 		if (org.aspectj.org.eclipse.jdt.internal.core.util.Util.isJavaLikeFileName(documentPath)) {
-			if (this.sourceIndexer != null)
-				this.sourceIndexer.indexResolvedDocument();
-			this.sourceIndexer = null;
+			SourceIndexer indexer = this.sourceIndexer;
+			if (indexer != null) {
+				indexer.indexResolvedDocument();
+				// Cleanup reference, it is not more needed by the IndexManager
+				// See org.aspectj.org.eclipse.jdt.internal.core.search.indexing.IndexManager.scheduleDocumentIndexing()
+				this.sourceIndexer = null;
+			}
 		}
 	}
 
@@ -90,8 +112,9 @@ public class JavaSearchParticipant extends SearchParticipant {
 	public void resolveDocument(SearchDocument document) {
 		String documentPath = document.getPath();
 		if (org.aspectj.org.eclipse.jdt.internal.core.util.Util.isJavaLikeFileName(documentPath)) {
-			if (this.sourceIndexer != null)
-				this.sourceIndexer.resolveDocument();
+			SourceIndexer indexer = this.sourceIndexer;
+			if (indexer != null)
+				indexer.resolveDocument();
 		}
 	}
 
@@ -114,11 +137,7 @@ public class JavaSearchParticipant extends SearchParticipant {
 
 	@Override
 	public IPath[] selectIndexes(SearchPattern pattern, IJavaSearchScope scope) {
-		IndexSelector selector = (IndexSelector) this.indexSelector.get();
-		if (selector == null) {
-			selector = new IndexSelector(scope, pattern);
-			this.indexSelector.set(selector);
-		}
+		IndexSelector selector = getIndexSelector(pattern, scope);
 		IndexLocation[] urls = selector.getIndexLocations();
 		IPath[] paths = new IPath[urls.length];
 		for (int i = 0; i < urls.length; i++) {
@@ -127,13 +146,23 @@ public class JavaSearchParticipant extends SearchParticipant {
 		return paths;
 	}
 
-	public IndexLocation[] selectIndexURLs(SearchPattern pattern, IJavaSearchScope scope) {
+	private IndexSelector getIndexSelector(SearchPattern pattern, IJavaSearchScope scope) {
 		IndexSelector selector = (IndexSelector) this.indexSelector.get();
 		if (selector == null) {
 			selector = new IndexSelector(scope, pattern);
 			this.indexSelector.set(selector);
 		}
+		return selector;
+	}
+
+	public IndexLocation[] selectIndexURLs(SearchPattern pattern, IJavaSearchScope scope) {
+		IndexSelector selector = getIndexSelector(pattern, scope);
 		return selector.getIndexLocations();
+	}
+
+	@Override
+	public boolean isParallelSearchSupported() {
+		return true;
 	}
 
 }

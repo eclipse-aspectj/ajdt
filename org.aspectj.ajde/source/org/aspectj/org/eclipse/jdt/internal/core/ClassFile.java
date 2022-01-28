@@ -31,7 +31,23 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
-import org.aspectj.org.eclipse.jdt.core.*;
+import org.aspectj.org.eclipse.jdt.core.CompletionRequestor;
+import org.aspectj.org.eclipse.jdt.core.IBuffer;
+import org.aspectj.org.eclipse.jdt.core.IClassFile;
+import org.aspectj.org.eclipse.jdt.core.IClasspathEntry;
+import org.aspectj.org.eclipse.jdt.core.ICodeAssist;
+import org.aspectj.org.eclipse.jdt.core.ICompilationUnit;
+import org.aspectj.org.eclipse.jdt.core.IJavaElement;
+import org.aspectj.org.eclipse.jdt.core.IJavaModelStatusConstants;
+import org.aspectj.org.eclipse.jdt.core.IMember;
+import org.aspectj.org.eclipse.jdt.core.IOrdinaryClassFile;
+import org.aspectj.org.eclipse.jdt.core.IPackageFragmentRoot;
+import org.aspectj.org.eclipse.jdt.core.IType;
+import org.aspectj.org.eclipse.jdt.core.ITypeRoot;
+import org.aspectj.org.eclipse.jdt.core.JavaCore;
+import org.aspectj.org.eclipse.jdt.core.JavaModelException;
+import org.aspectj.org.eclipse.jdt.core.Signature;
+import org.aspectj.org.eclipse.jdt.core.WorkingCopyOwner;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileReader;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFormatException;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ExternalAnnotationDecorator;
@@ -40,10 +56,8 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryType;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IDependent;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IModule;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.SuffixConstants;
-import org.aspectj.org.eclipse.jdt.internal.core.nd.java.JavaNames;
 import org.aspectj.org.eclipse.jdt.internal.core.nd.java.model.BinaryTypeDescriptor;
 import org.aspectj.org.eclipse.jdt.internal.core.nd.java.model.BinaryTypeFactory;
-import org.aspectj.org.eclipse.jdt.internal.core.nd.util.CharArrayUtils;
 import org.aspectj.org.eclipse.jdt.internal.core.util.MementoTokenizer;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
 
@@ -82,7 +96,7 @@ protected boolean buildStructure(OpenableElementInfo info, IProgressMonitor pm, 
 		info.setChildren(JavaElement.NO_ELEMENTS);
 		return false;
 	}
-	
+
 	// Make the type
 	IType type = getType();
 	info.setChildren(new IJavaElement[] {type});
@@ -146,11 +160,7 @@ public boolean existsUsingJarTypeCache() {
 		}
 		try {
 			info = getJarBinaryTypeInfo();
-		} catch (CoreException e) {
-			// leave info null
-		} catch (IOException e) {
-			// leave info null
-		} catch (ClassFormatException e) {
+		} catch (CoreException | IOException | ClassFormatException e) {
 			// leave info null
 		}
 		manager.putJarTypeInfo(type, info == null ? JavaModelCache.NON_EXISTING_JAR_TYPE_INFO : info);
@@ -238,7 +248,7 @@ private IBinaryType getJarBinaryTypeInfo() throws CoreException, IOException, Cl
 	} else {
 		result = BinaryTypeFactory.readType(descriptor, null);
 	}
-		
+
 	if (result == null) {
 		return null;
 	}
@@ -246,16 +256,23 @@ private IBinaryType getJarBinaryTypeInfo() throws CoreException, IOException, Cl
 	// TODO(sxenos): setup the external annotation provider if the IBinaryType came from the index
 	if (root.getKind() == IPackageFragmentRoot.K_BINARY) {
 		JavaProject javaProject = (JavaProject) getAncestor(IJavaElement.JAVA_PROJECT);
-		IClasspathEntry entry = javaProject.getClasspathEntryFor(getPath());
+		IClasspathEntry entry;
+		try {
+			entry = javaProject.getClasspathEntryFor(getPath());
+		} catch (JavaModelException jme) {
+			// Access via cached ClassFile/PF/PFR of a closed project?
+			// Ignore and continue with result undecorated
+			return result;
+		}
 		if (entry != null) {
 			PackageFragment pkg = (PackageFragment) getParent();
 			String entryName = Util.concatWith(pkg.names, getElementName(), '/');
-			entryName = new String(CharArrayUtils.concat(
-					JavaNames.fieldDescriptorToBinaryName(descriptor.fieldDescriptor), SuffixConstants.SUFFIX_CLASS));
+			entryName = new String(Util.concat(
+					BinaryTypeFactory.fieldDescriptorToBinaryName(descriptor.fieldDescriptor), SuffixConstants.SUFFIX_CLASS));
 			IProject project = javaProject.getProject();
 			IPath externalAnnotationPath = ClasspathEntry.getExternalAnnotationPath(entry, project, false); // unresolved for use in ExternalAnnotationTracker
 			if (externalAnnotationPath != null) {
-				result = setupExternalAnnotationProvider(project, externalAnnotationPath, result, 
+				result = setupExternalAnnotationProvider(project, externalAnnotationPath, result,
 						entryName.substring(0, entryName.length() - SuffixConstants.SUFFIX_CLASS.length));
 			} else if (entry.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
 				result = new ExternalAnnotationDecorator(result, true);
@@ -337,7 +354,7 @@ public void close() throws JavaModelException {
  * @see IMember
  */
 @Override
-public IClassFile getClassFile() {
+public ClassFile getClassFile() {
 	return this;
 }
 /**

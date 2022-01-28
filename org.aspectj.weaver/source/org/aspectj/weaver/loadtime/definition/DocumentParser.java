@@ -2,9 +2,9 @@
  * Copyright (c) 2005 Contributors.
  * All rights reserved.
  * This program and the accompanying materials are made available
- * under the terms of the Eclipse Public License v1.0
+ * under the terms of the Eclipse Public License v 2.0
  * which accompanies this distribution and is available at
- * http://eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
  *
  * Contributors:
  *   Alexandre Vasseur         initial implementation
@@ -22,7 +22,6 @@ import javax.xml.parsers.SAXParserFactory;
 
 import org.aspectj.util.LangUtil;
 import org.aspectj.weaver.loadtime.definition.Definition.AdviceKind;
-import org.aspectj.weaver.loadtime.definition.Definition.DeclareAnnotation;
 import org.aspectj.weaver.loadtime.definition.Definition.DeclareAnnotationKind;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
@@ -33,7 +32,7 @@ import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.helpers.XMLReaderFactory;
 
 /**
- * 
+ *
  * @author Alexandre Vasseur
  * @author A. Nevado
  * @author Andy Clement
@@ -84,7 +83,7 @@ public class DocumentParser extends DefaultHandler {
 
 	private Definition.ConcreteAspect activeConcreteAspectDefinition;
 
-	private static Hashtable<String, Definition> parsedFiles = new Hashtable<String, Definition>();
+	private static Hashtable<String, Definition> parsedFiles = new Hashtable<>();
 	private static boolean CACHE;
 	private static final boolean LIGHTPARSER;
 

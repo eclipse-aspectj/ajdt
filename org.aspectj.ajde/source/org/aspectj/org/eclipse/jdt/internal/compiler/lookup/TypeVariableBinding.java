@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -7,7 +7,7 @@
  * https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann <stephan@cs.tu-berlin.de> - Contributions for
@@ -42,6 +42,7 @@
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
 
+import java.util.Arrays;
 import java.util.Set;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
@@ -75,7 +76,7 @@ public class TypeVariableBinding extends ReferenceBinding {
 	public ReferenceBinding[] superInterfaces; // MUST NOT be modified directly, use setter !
 	public char[] genericTypeSignature;
 	LookupEnvironment environment;
-	
+
 	public TypeVariableBinding(char[] sourceName, Binding declaringElement, int rank, LookupEnvironment environment) {
 		this.sourceName = sourceName;
 		this.declaringElement = declaringElement;
@@ -86,7 +87,7 @@ public class TypeVariableBinding extends ReferenceBinding {
 		this.typeBits = TypeIds.BitUninitialized;
 		computeId(environment);
 	}
-	
+
 	// for subclass CaptureBinding
 	protected TypeVariableBinding(char[] sourceName, LookupEnvironment environment) {
 		this.sourceName = sourceName;
@@ -294,7 +295,8 @@ public class TypeVariableBinding extends ReferenceBinding {
 	}
 
 	private BoundCheckStatus nullBoundCheck(Scope scope, TypeBinding argumentType, TypeBinding substitutedSuperType, Substitution substitution, ASTNode location, BoundCheckStatus previousStatus) {
-		if (NullAnnotationMatching.analyse(this, argumentType, substitutedSuperType, substitution, -1, null, CheckMode.BOUND_CHECK).isAnyMismatch()) {
+		NullAnnotationMatching status = NullAnnotationMatching.analyse(this, argumentType, substitutedSuperType, substitution, -1, null, CheckMode.BOUND_CHECK);
+		if (status.isAnyMismatch() && !status.isAnnotatedToUnannotated()) {
 			if (location != null)
 				scope.problemReporter().nullityMismatchTypeArgument(this, argumentType, location);
 			return BoundCheckStatus.NULL_PROBLEM;
@@ -375,7 +377,7 @@ public class TypeVariableBinding extends ReferenceBinding {
 	 */
 	@Override
 	public char[] computeUniqueKey(boolean isLeaf) {
-		StringBuffer buffer = new StringBuffer();
+		StringBuilder buffer = new StringBuilder();
 		Binding declaring = this.declaringElement;
 		if (!isLeaf && declaring.kind() == Binding.METHOD) { // see https://bugs.eclipse.org/bugs/show_bug.cgi?id=97902
 			MethodBinding methodBinding = (MethodBinding) declaring;
@@ -408,14 +410,14 @@ public class TypeVariableBinding extends ReferenceBinding {
 	    }
 	    return this.superclass.constantPoolName(); // java/lang/Object
 	}
-	
+
 	@Override
 	public TypeBinding clone(TypeBinding enclosingType) {
 		return new TypeVariableBinding(this);
 	}
 	@Override
 	public String annotatedDebugName() {
-		StringBuffer buffer = new StringBuffer(10);
+		StringBuilder buffer = new StringBuilder(10);
 		buffer.append(super.annotatedDebugName());
 		if (!this.inRecursiveFunction) {
 			this.inRecursiveFunction = true;
@@ -461,7 +463,7 @@ public class TypeVariableBinding extends ReferenceBinding {
 	 * T:LY<TT;>
 	 */
 	public char[] genericSignature() {
-	    StringBuffer sig = new StringBuffer(10);
+	    StringBuilder sig = new StringBuilder(10);
 	    sig.append(this.sourceName).append(':');
 	   	int interfaceLength = this.superInterfaces == null ? 0 : this.superInterfaces.length;
 	    if (interfaceLength == 0 || TypeBinding.equalsEquals(this.firstBound, this.superclass)) {
@@ -590,7 +592,7 @@ public class TypeVariableBinding extends ReferenceBinding {
 
 	// to prevent infinite recursion when inspecting recursive generics:
 	boolean inRecursiveFunction = false;
-	
+
 	@Override
 	public boolean enterRecursiveFunction() {
 		if (this.inRecursiveFunction)
@@ -605,7 +607,7 @@ public class TypeVariableBinding extends ReferenceBinding {
 
 	// to prevent infinite recursion when inspecting recursive generics:
 	boolean inRecursiveProjectionFunction = false;
-	
+
 	public boolean enterRecursiveProjectionFunction() {
 		if (this.inRecursiveProjectionFunction)
 			return false;
@@ -621,7 +623,7 @@ public class TypeVariableBinding extends ReferenceBinding {
 		// handle recursive calls:
 		if (this.inRecursiveFunction) // be optimistic, since this node is not an inference variable
 			return true;
-		
+
 		this.inRecursiveFunction = true;
 		try {
 			if (this.superclass != null && !this.superclass.isProperType(admitCapture18)) {
@@ -713,7 +715,7 @@ public class TypeVariableBinding extends ReferenceBinding {
 	public int kind() {
 		return Binding.TYPE_PARAMETER;
 	}
-	
+
 	@Override
 	public boolean mentionsAny(TypeBinding[] parameters, int idx) {
 		if (this.inRecursiveFunction)
@@ -778,7 +780,7 @@ public class TypeVariableBinding extends ReferenceBinding {
 			return this;
 
 		long nullTagBits = this.tagBits & TagBits.AnnotationNullMASK;
-		
+
 		TypeBinding oldSuperclass = this.superclass, oldFirstInterface = null;
 		if (this.superclass != null) {
 			ReferenceBinding resolveType = (ReferenceBinding) BinaryTypeBinding.resolveType(this.superclass, this.environment, true /* raw conversion */);
@@ -829,7 +831,7 @@ public class TypeVariableBinding extends ReferenceBinding {
 		this.modifiers &= ~ExtraCompilerModifiers.AccUnresolved;
 		return this;
 	}
-	
+
 	@Override
 	public void setTypeAnnotations(AnnotationBinding[] annotations, boolean evalNullAnnotations) {
 		if (getClass() == TypeVariableBinding.class) {
@@ -853,12 +855,12 @@ public class TypeVariableBinding extends ReferenceBinding {
 	public ReferenceBinding superclass() {
 		return this.superclass;
 	}
-	
+
 	@Override
 	public ReferenceBinding[] superInterfaces() {
 		return this.superInterfaces;
 	}
-	
+
 	/**
 	 * @see java.lang.Object#toString()
 	 */
@@ -866,7 +868,7 @@ public class TypeVariableBinding extends ReferenceBinding {
 	public String toString() {
 		if (this.hasTypeAnnotations())
 			return annotatedDebugName();
-		StringBuffer buffer = new StringBuffer(10);
+		StringBuilder buffer = new StringBuilder(10);
 		buffer.append('<').append(this.sourceName);//.append('[').append(this.rank).append(']');
 		if (this.superclass != null && TypeBinding.equalsEquals(this.firstBound, this.superclass)) {
 		    buffer.append(" extends ").append(this.superclass.debugName()); //$NON-NLS-1$
@@ -953,7 +955,7 @@ public class TypeVariableBinding extends ReferenceBinding {
 		AnnotationBinding[] newAnnotations = this.environment.filterNullTypeAnnotations(this.typeAnnotations);
 		if (newAnnotations.length > 0)
 			return this.environment.createAnnotatedType(unannotated, newAnnotations);
-		return unannotated; 
+		return unannotated;
 	}
 	/**
 	 * Upper bound doesn't perform erasure
@@ -963,6 +965,17 @@ public class TypeVariableBinding extends ReferenceBinding {
 			return this.firstBound;
 		}
 		return this.superclass; // java/lang/Object
+	}
+
+	public TypeBinding[] allUpperBounds() {
+		if (this.superclass == null)
+			return this.superInterfaces;
+		if (this.superInterfaces == null || this.superInterfaces.length == 0)
+			return new TypeBinding[] { this.superclass };
+		int nInterfaces = this.superInterfaces.length;
+		TypeBinding[] all = Arrays.copyOf(this.superInterfaces, nInterfaces+1);
+		all[nInterfaces] = this.superclass;
+		return all;
 	}
 
 	public void evaluateNullAnnotations(Scope scope, TypeParameter parameter) {
@@ -979,7 +992,7 @@ public class TypeVariableBinding extends ReferenceBinding {
 						this.firstBound = nullMismatchOnBound(parameter, this.firstBound, superNullTagBits, nullTagBits, scope);
 				}
 			}
-		}	
+		}
 		ReferenceBinding[] interfaces = this.superInterfaces;
 		int length;
 		if (interfaces != null && (length = interfaces.length) != 0) {
@@ -1131,9 +1144,9 @@ public class TypeVariableBinding extends ReferenceBinding {
 
 	@Override
 	public boolean isFreeTypeVariable() {
-		return this.environment.usesNullTypeAnnotations() 
-				&& this.environment.globalOptions.pessimisticNullAnalysisForFreeTypeVariablesEnabled 
-				&& (this.tagBits & TagBits.AnnotationNullMASK) == 0;	
+		return this.environment.usesNullTypeAnnotations()
+				&& this.environment.globalOptions.pessimisticNullAnalysisForFreeTypeVariablesEnabled
+				&& (this.tagBits & TagBits.AnnotationNullMASK) == 0;
 	}
 
 	@Override

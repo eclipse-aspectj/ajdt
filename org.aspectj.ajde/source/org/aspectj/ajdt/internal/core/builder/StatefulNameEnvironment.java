@@ -1,12 +1,12 @@
 /* *******************************************************************
  * Copyright (c) 2002 IBM and other contributors
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
  *     Palo Alto Research Center, Incorporated (PARC)
  *     Andy Clement
  * ******************************************************************/
@@ -39,10 +39,10 @@ public class StatefulNameEnvironment implements IModuleAwareNameEnvironment {
 
 	public StatefulNameEnvironment(IModuleAwareNameEnvironment baseEnvironment, Map<String,File> classesFromName, AjState state) {
 		this.classesFromName = classesFromName;
-		this.inflatedClassFilesCache = new HashMap<String,NameEnvironmentAnswer>();
+		this.inflatedClassFilesCache = new HashMap<>();
 		this.baseEnvironment = baseEnvironment;
 		this.state = state;
-		packageNames = new HashSet<String>();
+		packageNames = new HashSet<>();
 		for (String className: classesFromName.keySet()) {
 			addAllPackageNames(className);
 		}
@@ -63,9 +63,9 @@ public class StatefulNameEnvironment implements IModuleAwareNameEnvironment {
 			return new NameEnvironmentAnswer(seenOnPreviousBuild, null);
 		}
 		if (this.inflatedClassFilesCache.containsKey(name)) {
-			return (NameEnvironmentAnswer) this.inflatedClassFilesCache.get(name);
+			return this.inflatedClassFilesCache.get(name);
 		} else {
-			File fileOnDisk = (File) classesFromName.get(name);
+			File fileOnDisk = classesFromName.get(name);
 			// System.err.println("find: " + name + " found: " + cf);
 			if (fileOnDisk == null) {
 				return null;
@@ -91,7 +91,7 @@ public class StatefulNameEnvironment implements IModuleAwareNameEnvironment {
 		this.classesFromName = Collections.emptyMap();
 		this.packageNames.clear();
 	}
-	
+
 	@Override
 	public NameEnvironmentAnswer findType(char[] typeName, char[][] packageName) {
 		NameEnvironmentAnswer ret = findType(new String(CharOperation.concatWith(packageName, typeName, '.')));
@@ -140,10 +140,6 @@ public class StatefulNameEnvironment implements IModuleAwareNameEnvironment {
 		return baseEnvironment.findType(typeName, packageName, moduleName);
 	}
 
-	@Override
-	public char[][] getModulesDeclaringPackage(char[][] parentPackageName, char[] name, char[] moduleName) {
-		return baseEnvironment.getModulesDeclaringPackage(parentPackageName, name, moduleName);
-	}
 
 	@Override
 	public boolean hasCompilationUnit(char[][] qualifiedPackageName, char[] moduleName, boolean checkCUs) {
@@ -158,6 +154,16 @@ public class StatefulNameEnvironment implements IModuleAwareNameEnvironment {
 	@Override
 	public char[][] getAllAutomaticModules() {
 		return baseEnvironment.getAllAutomaticModules();
+	}
+
+	@Override
+	public char[][] getModulesDeclaringPackage(char[][] arg0, char[] arg1) {
+		return baseEnvironment.getModulesDeclaringPackage(arg0, arg1);
+	}
+
+	@Override
+	public char[][] listPackages(char[] arg0) {
+		return baseEnvironment.listPackages(arg0);
 	}
 
 }

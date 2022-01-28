@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2006, 2017 BEA Systems, Inc. and others
+ * Copyright (c) 2006, 2021 BEA Systems, Inc. and others
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -7,7 +7,7 @@
  * https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- * 
+ *
  * Contributors:
  *    Igor Fedorenko - extracted from ElementsImpl
  *******************************************************************************/
@@ -32,6 +32,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ModuleBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.PackageBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TagBits;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.HashtableOfModule;
 
 /**
@@ -93,10 +94,13 @@ public class ElementsImpl9 extends ElementsImpl {
 		if (null == binding) {
 			return null;
 		}
+		if ((binding.tagBits & TagBits.HasMissingType) != 0) {
+			return null;
+		}
 		return new TypeElementImpl(_env, binding, null);
 	}
 
-	
+
 	@Override
 	public Origin getOrigin(Element e) {
 		return Origin.EXPLICIT;
@@ -170,15 +174,7 @@ public class ElementsImpl9 extends ElementsImpl {
 		final char[][] compoundName = CharOperation.splitOn('.', name.toString().toCharArray());
 		PackageBinding p = null;
 		if (mBinding != null) {
-			
-			int length = compoundName.length;
-			if (length > 1) {
-				char[][] parent = new char[compoundName.length - 1][];
-				System.arraycopy(compoundName, 0, parent, 0, length - 1);
-				p = mBinding.getPackage(parent, compoundName[length - 1]);
-			} else {
-				p = mBinding.getTopLevelPackage(compoundName[0]);
-			}
+			p = mBinding.getVisiblePackage(compoundName);
 		} else {
 			p = _env.getLookupEnvironment().createPackage(compoundName);
 		}
@@ -186,4 +182,8 @@ public class ElementsImpl9 extends ElementsImpl {
 			return null;
 		return (PackageElement) _env.getFactory().newElement(p);
 	}
+	public boolean isAutomaticModule(ModuleElement module) {
+		ModuleBinding mBinding = ((ModuleElementImpl) module).binding;
+        return mBinding.isAutomatic();
+    }
 }

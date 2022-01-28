@@ -37,6 +37,8 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.SubMonitor;
+import org.aspectj.org.eclipse.jdt.core.IModuleDescription;
+import org.aspectj.org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.aspectj.org.eclipse.jdt.core.IType;
 import org.aspectj.org.eclipse.jdt.core.JavaModelException;
 import org.aspectj.org.eclipse.jdt.core.Signature;
@@ -116,11 +118,20 @@ public void accept(IBinaryType binaryType, PackageBinding packageBinding, Access
 	if (progressMonitor != null && progressMonitor.isCanceled())
 		throw new OperationCanceledException();
 
+	sanitizeBinaryType(binaryType);
 	BinaryTypeBinding typeBinding = this.lookupEnvironment.createBinaryTypeFrom(binaryType, packageBinding, accessRestriction);
 	try {
 		this.remember(binaryType, typeBinding);
 	} catch (AbortCompilation e) {
 		// ignore
+	}
+}
+
+private void sanitizeBinaryType(IGenericType binaryType) {
+	if (binaryType instanceof HierarchyBinaryType) {
+		HierarchyBinaryType hierarchyBinaryType = (HierarchyBinaryType) binaryType;
+		if (hierarchyBinaryType.getSuperclassName() == null)
+			hierarchyBinaryType.recordSuperclass(CharOperation.concatWith(TypeConstants.JAVA_LANG_OBJECT, '/'));
 	}
 }
 
@@ -135,7 +146,7 @@ public void accept(ICompilationUnit sourceUnit, AccessRestriction accessRestrict
 		CompilationResult unitResult = new CompilationResult(sourceUnit, 1, 1, this.options.maxProblemsPerUnit);
 		CompilationUnitDeclaration parsedUnit = basicParser().dietParse(sourceUnit, unitResult);
 		this.lookupEnvironment.buildTypeBindings(parsedUnit, accessRestriction);
-		this.lookupEnvironment.completeTypeBindings(parsedUnit, true); // work done inside checkAndSetImports() 
+		this.lookupEnvironment.completeTypeBindings(parsedUnit, true); // work done inside checkAndSetImports()
 	} else {
 		//System.out.println("Cannot accept compilation units inside the HierarchyResolver.");
 		this.lookupEnvironment.problemReporter.abortDueToInternalError(
@@ -502,21 +513,18 @@ private void rememberAllTypes(CompilationUnitDeclaration parsedUnit, org.aspectj
 			rememberWithMemberTypes(type, cu.getType(new String(type.name)));
 		}
 	}
-	if (!includeLocalTypes || (parsedUnit.localTypes == null && parsedUnit.functionalExpressions == null))
+	if (!includeLocalTypes || (parsedUnit.localTypes.isEmpty() && parsedUnit.functionalExpressions == null))
 		return;
-	
+
 	HandleFactory factory = new HandleFactory();
-	HashSet existingElements = new HashSet(parsedUnit.localTypeCount + parsedUnit.functionalExpressionsCount);
-	HashMap knownScopes = new HashMap(parsedUnit.localTypeCount + parsedUnit.functionalExpressionsCount);
-	
-	if (parsedUnit.localTypes != null) {
-		for (int i = 0; i < parsedUnit.localTypeCount; i++) {
-			LocalTypeBinding localType = parsedUnit.localTypes[i];
-			ClassScope classScope = localType.scope;
-			TypeDeclaration typeDecl = classScope.referenceType();
-			IType typeHandle = (IType)factory.createElement(classScope, cu, existingElements, knownScopes);
-			rememberWithMemberTypes(typeDecl, typeHandle);
-		}
+	HashSet existingElements = new HashSet(parsedUnit.localTypes.size() + parsedUnit.functionalExpressionsCount);
+	HashMap knownScopes = new HashMap(parsedUnit.localTypes.size() + parsedUnit.functionalExpressionsCount);
+
+	for (LocalTypeBinding localType : parsedUnit.localTypes.values()) {
+		ClassScope classScope = localType.scope;
+		TypeDeclaration typeDecl = classScope.referenceType();
+		IType typeHandle = (IType)factory.createElement(classScope, cu, existingElements, knownScopes);
+		rememberWithMemberTypes(typeDecl, typeHandle);
 	}
 	if (parsedUnit.functionalExpressions != null) {
 		for (int i = 0; i < parsedUnit.functionalExpressionsCount; i++) {
@@ -573,7 +581,7 @@ private void reportHierarchy(IType focus, TypeDeclaration focusLocalType, Refere
 	for (int current = this.typeIndex; current >= 0; current--) {
 		if (progressMonitor != null && progressMonitor.isCanceled())
 			throw new OperationCanceledException();
-		
+
 		ReferenceBinding typeBinding = this.typeBindings[current];
 
 		// java.lang.Object treated at the end
@@ -624,6 +632,7 @@ private void reset(){
 public void resolve(IGenericType suppliedType) {
 	try {
 		if (suppliedType.isBinaryType()) {
+			sanitizeBinaryType(suppliedType);
 			BinaryTypeBinding binaryTypeBinding = this.lookupEnvironment.cacheBinaryType((IBinaryType) suppliedType, false/*don't need field and method (bug 125067)*/, null /*no access restriction*/);
 			remember(suppliedType, binaryTypeBinding);
 			// We still need to add superclasses and superinterfaces bindings (see https://bugs.eclipse.org/bugs/show_bug.cgi?id=53095)
@@ -745,15 +754,15 @@ public void resolve(Openable[] openables, HashSet localTypes, IProgressMonitor m
 							flags,
 							this.lookupEnvironment.problemReporter,
 							result);
-					
-					// We would have got all the necessary local types by now and hence there is no further need 
-					// to parse the method bodies. Parser.getMethodBodies, which is called latter in this function, 
-					// will not parse the method statements if ASTNode.HasAllMethodBodies is set. 
+
+					// We would have got all the necessary local types by now and hence there is no further need
+					// to parse the method bodies. Parser.getMethodBodies, which is called latter in this function,
+					// will not parse the method statements if ASTNode.HasAllMethodBodies is set.
 					if (containsLocalType && parsedUnit != null) parsedUnit.bits |= ASTNode.HasAllMethodBodies;
 				} else {
 					// create parsed unit from file
 					IFile file = (IFile) cu.getResource();
-					ICompilationUnit sourceUnit = this.builder.createCompilationUnitFromPath(openable, file);
+					ICompilationUnit sourceUnit = this.builder.createCompilationUnitFromPath(openable, file, findAssociatedModuleName(openable));
 					CompilationResult unitResult = new CompilationResult(sourceUnit, i, openablesLength, this.options.maxProblemsPerUnit);
 					parsedUnit = parser.dietParse(sourceUnit, unitResult);
 				}
@@ -786,6 +795,7 @@ public void resolve(Openable[] openables, HashSet localTypes, IProgressMonitor m
 				}
 				if (binaryType != null) {
 					try {
+						sanitizeBinaryType(binaryType);
 						BinaryTypeBinding binaryTypeBinding = this.lookupEnvironment.cacheBinaryType(binaryType, false/*don't need field and method (bug 125067)*/, null /*no access restriction*/);
 						remember(binaryType, binaryTypeBinding);
 						if (openable.equals(focusOpenable)) {
@@ -891,6 +901,23 @@ public void resolve(Openable[] openables, HashSet localTypes, IProgressMonitor m
 		reset();
 	}
 }
+
+private char[] findAssociatedModuleName(Openable openable) {
+	IModuleDescription module = null;
+	IPackageFragmentRoot root = openable.getPackageFragmentRoot();
+	try {
+		if (root.getKind() == IPackageFragmentRoot.K_SOURCE)
+			module = root.getJavaProject().getModuleDescription(); // from any root in this project
+		else
+			module = root.getModuleDescription();
+	} catch (JavaModelException jme) {
+		// ignore, cannot associate to any module
+	}
+	if (module != null)
+		return module.getElementName().toCharArray();
+	return null;
+}
+
 private void setEnvironment(LookupEnvironment lookupEnvironment, HierarchyBuilder builder) {
 	this.lookupEnvironment = lookupEnvironment;
 	this.builder = builder;
@@ -951,6 +978,7 @@ private boolean subTypeOfType(ReferenceBinding subType, ReferenceBinding typeBin
 	if (superInterfaces != null) {
 		for (int i = 0, length = superInterfaces.length; i < length; i++) {
 			ReferenceBinding superInterface = (ReferenceBinding) superInterfaces[i].erasure();
+			if (superInterface.isHierarchyInconsistent()) return false;
 			if (subTypeOfType(superInterface, typeBinding)) return true;
 		}
 	}

@@ -7,7 +7,7 @@
  * https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -527,7 +527,7 @@ protected void consumeEnterVariable() {
 
 	declaration.type = extendedTypeDimension != 0 ? augmentTypeWithAdditionalDimensions(type, extendedTypeDimension, annotationsOnExtendedDimensions, false) : type;
 	declaration.bits |= (type.bits & ASTNode.HasTypeAnnotations);
-	
+
 	this.variablesCounter[this.nestedType]++;
 	this.nestedMethod[this.nestedType]++;
 	pushOnAstStack(declaration);
@@ -753,15 +753,15 @@ protected void consumeFormalParameter(boolean isVarArgs) {
 				varArgsAnnotations = new Annotation[length],
 				0,
 				length);
-		} 
+		}
 	}
 	int firstDimensions = this.intStack[this.intPtr--];
 	TypeReference type = getTypeReference(firstDimensions);
 
 	if (isVarArgs || extendedDimensions != 0) {
 		if (isVarArgs) {
-			type = augmentTypeWithAdditionalDimensions(type, 1, varArgsAnnotations != null ? new Annotation[][] { varArgsAnnotations } : null, true);	
-		} 
+			type = augmentTypeWithAdditionalDimensions(type, 1, varArgsAnnotations != null ? new Annotation[][] { varArgsAnnotations } : null, true);
+		}
 		if (extendedDimensions != 0) { // combination illegal.
 			type = augmentTypeWithAdditionalDimensions(type, extendedDimensions, annotationsOnExtendedDimensions, false);
 		}
@@ -777,8 +777,8 @@ protected void consumeFormalParameter(boolean isVarArgs) {
 	Argument arg;
 	if (isReceiver) {
 		arg = new Receiver(
-				parameterName, 
-				namePositions, 
+				parameterName,
+				namePositions,
 				type,
 				qualifyingNameReference,
 				this.intStack[this.intPtr + 1] & ~ClassFileConstants.AccDeprecated);
@@ -803,6 +803,16 @@ protected void consumeFormalParameter(boolean isVarArgs) {
 	}
 	pushOnAstStack(arg);
 	this.intArrayPtr--;
+}
+@Override
+protected void consumeInstanceOfExpression() {
+	super.consumeInstanceOfExpression();
+	this.intPtr--; // skip declarationSourceStart of modifiers
+}
+@Override
+protected void consumeInstanceOfExpressionWithName() {
+	super.consumeInstanceOfExpressionWithName();
+	this.intPtr--; // skip declarationSourceStart of modifiers
 }
 /*
  *
@@ -1589,7 +1599,7 @@ private char[] returnTypeName(TypeReference type) {
 }
 @Override
 public String toString() {
-	StringBuffer buffer = new StringBuffer();
+	StringBuilder buffer = new StringBuilder();
 	buffer.append("intArrayPtr = " + this.intArrayPtr + "\n"); //$NON-NLS-1$ //$NON-NLS-2$
 	buffer.append(super.toString());
 	return buffer.toString();

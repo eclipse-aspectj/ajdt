@@ -2,35 +2,34 @@
  * Copyright (c) 2008 Contributors
  * All rights reserved.
  * This program and the accompanying materials are made available
- * under the terms of the Eclipse Public License v1.0
+ * under the terms of the Eclipse Public License v 2.0
  * which accompanies this distribution and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
  *
  * Contributors:
  *	 Andy Clement
  * ******************************************************************/
 package org.aspectj.weaver.bcel.asm;
 
-import java.lang.reflect.Method;
-
 /**
  * Determines if a version of asm is around that will enable us to add stack map attributes to classes that we produce.
- * 
+ *
  * @author Andy Clement
  */
 public class AsmDetector {
-
+	public static final String CLASS_READER = "aj.org.objectweb.asm.ClassReader";
+	public static final String CLASS_VISITOR = "aj.org.objectweb.asm.ClassVisitor";
 	public static boolean isAsmAround;
 
 	static {
 		try {
-			Class<?> reader = Class.forName("aj.org.objectweb.asm.ClassReader");
-			Class<?> visitor = Class.forName("aj.org.objectweb.asm.ClassVisitor");
-			Method m = reader.getMethod("accept", new Class[] { visitor, Integer.TYPE });
-			isAsmAround = m != null;
+			Class<?> reader = Class.forName(CLASS_READER);
+			Class<?> visitor = Class.forName(CLASS_VISITOR);
+			reader.getMethod("accept", visitor, Integer.TYPE);
+			isAsmAround = true;
 		} catch (Exception e) {
 			isAsmAround = false;
 		}
-		// System.out.println(isAsmAround?"ASM detected":"No ASM found");
+		//System.out.println(isAsmAround ? "ASM detected" : "No ASM found");
 	}
 }

@@ -38,13 +38,13 @@ public final class RewriteEventStore {
 	 * If enabled, then {@link ASTRewrite} and {@link ListRewrite}
 	 * throw an {@link IllegalArgumentException} if a rewrite operation tries to insert an
 	 * AST node in a place where nodes of this type are not allowed (node type not a subtype of
-	 * the structural property's type). 
+	 * the structural property's type).
 	 * </p>
 	 * <p>
 	 * Disabled by default, since this hasn't been enforced from the beginning, and there are clients
 	 * (e.g. in JDT UI refactorings) that rely on a bit of leeway here.
 	 * E.g. the qualifier of a QualifiedName cannot be a MethodInvocation expression or a SimpleType, but
-	 * that's sometimes the easiest solution for such a change, and ASTRewrite has no problems with it.  
+	 * that's sometimes the easiest solution for such a change, and ASTRewrite has no problems with it.
 	 * </p>
 	 */
 	public static boolean DEBUG = false;
@@ -113,7 +113,7 @@ public final class RewriteEventStore {
 
 		@Override
 		public String toString() {
-			StringBuffer buf= new StringBuffer();
+			StringBuilder buf= new StringBuilder();
 			buf.append(this.parent).append(" - "); //$NON-NLS-1$
 			buf.append(this.childProperty.getId()).append(": "); //$NON-NLS-1$
 			buf.append(this.event).append('\n');
@@ -153,7 +153,7 @@ public final class RewriteEventStore {
 
 		@Override
 		public String toString() {
-			StringBuffer buf= new StringBuffer();
+			StringBuilder buf= new StringBuilder();
 			if (this.isMove) {
 				buf.append("move source: "); //$NON-NLS-1$
 			} else {
@@ -225,7 +225,7 @@ public final class RewriteEventStore {
 
 		@Override
 		public String toString() {
-			StringBuffer buf= new StringBuffer();
+			StringBuilder buf= new StringBuilder();
 			if (this.first != this.last) {
 				buf.append("range ");  //$NON-NLS-1$
 			}
@@ -528,10 +528,10 @@ public final class RewriteEventStore {
 		}
 		return accessOriginalValue(parent, property);
 	}
-	
+
 	public List getChangedPropertieEvents(ASTNode parent) {
 		List changedPropertiesEvent = new ArrayList();
-		
+
 		List entriesList = (List) this.eventLookup.get(parent);
 		if (entriesList != null) {
 			for (int i= 0; i < entriesList.size(); i++) {
@@ -878,7 +878,7 @@ public final class RewriteEventStore {
 
 	@Override
 	public String toString() {
-		StringBuffer buf= new StringBuffer();
+		StringBuilder buf= new StringBuilder();
 		for (Iterator iter = this.eventLookup.values().iterator(); iter.hasNext();) {
 			List events = (List) iter.next();
 			for (int i= 0; i < events.size(); i++) {

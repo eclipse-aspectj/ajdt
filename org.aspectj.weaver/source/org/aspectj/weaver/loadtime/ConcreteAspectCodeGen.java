@@ -1,22 +1,23 @@
 /*******************************************************************************
  * Copyright (c) 2005 Contributors.
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://eclipse.org/legal/epl-v10.html 
- * 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
  * Contributors:
  *   Alexandre Vasseur         initial implementation
  *******************************************************************************/
 package org.aspectj.weaver.loadtime;
+
+import static org.aspectj.apache.bcel.generic.Type.NO_ARGS;
 
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -69,14 +70,13 @@ import org.aspectj.weaver.patterns.TypePattern;
  * The concrete aspect is generated annotation style aspect (so traditional Java constructs annotated with our AspectJ annotations).
  * As it is built during aop.xml definitions registration we perform the type munging for perclause, ie. aspectOf() artifact
  * directly, instead of waiting for it to go thru the weaver (that we are in the middle of configuring).
- * 
+ *
  * @author Alexandre Vasseur
  * @author Andy Clement
  */
 public class ConcreteAspectCodeGen {
 
 	private final static String[] EMPTY_STRINGS = new String[0];
-	private final static Type[] EMPTY_TYPES = new Type[0];
 
 	/**
 	 * Concrete aspect definition we build for
@@ -110,7 +110,7 @@ public class ConcreteAspectCodeGen {
 
 	/**
 	 * Create a new generator for a concrete aspect
-	 * 
+	 *
 	 * @param concreteAspect the aspect definition
 	 * @param world the related world (for type resolution, etc)
 	 */
@@ -121,7 +121,7 @@ public class ConcreteAspectCodeGen {
 
 	/**
 	 * Checks that concrete aspect is valid.
-	 * 
+	 *
 	 * @return true if ok, false otherwise
 	 */
 	public boolean validate() {
@@ -143,7 +143,7 @@ public class ConcreteAspectCodeGen {
 			isValid = true;
 			return true;
 		}
-		
+
 		if (concreteAspect.declareAnnotations.size()!=0) {
 			isValid = true;
 			return true;
@@ -164,7 +164,7 @@ public class ConcreteAspectCodeGen {
 
 		String parentAspectName = concreteAspect.extend;
 
-		if (parentAspectName.indexOf("<") != -1) {
+		if (parentAspectName.contains("<")) {
 			// yikes, generic parent
 			parent = world.resolve(UnresolvedType.forName(parentAspectName), true);
 			if (parent.isMissing()) {
@@ -173,8 +173,7 @@ public class ConcreteAspectCodeGen {
 			}
 			if (parent.isParameterizedType()) {
 				UnresolvedType[] typeParameters = parent.getTypeParameters();
-				for (int i = 0; i < typeParameters.length; i++) {
-					UnresolvedType typeParameter = typeParameters[i];
+				for (UnresolvedType typeParameter : typeParameters) {
 					if (typeParameter instanceof ResolvedType && ((ResolvedType) typeParameter).isMissing()) {
 						reportError("Unablet to resolve type parameter '" + typeParameter.getName() + "' from " + stringify());
 						return false;
@@ -219,7 +218,7 @@ public class ConcreteAspectCodeGen {
 		}
 
 		// must have all abstractions defined
-		List<String> elligibleAbstractions = new ArrayList<String>();
+		List<String> elligibleAbstractions = new ArrayList<>();
 
 		Collection<ResolvedMember> abstractMethods = getOutstandingAbstractMethods(parent);
 		for (ResolvedMember method : abstractMethods) {
@@ -255,7 +254,7 @@ public class ConcreteAspectCodeGen {
 				}
 			}
 		}
-		List<String> pointcutNames = new ArrayList<String>();
+		List<String> pointcutNames = new ArrayList<>();
 		for (Definition.Pointcut abstractPc : concreteAspect.pointcuts) {
 			pointcutNames.add(abstractPc.name);
 		}
@@ -284,7 +283,7 @@ public class ConcreteAspectCodeGen {
 	}
 
 	private Collection<ResolvedMember> getOutstandingAbstractMethods(ResolvedType type) {
-		Map<String, ResolvedMember> collector = new HashMap<String, ResolvedMember>();
+		Map<String, ResolvedMember> collector = new HashMap<>();
 		// let's get to the top of the hierarchy and then walk down ...
 		// recording abstract methods then removing
 		// them if they get defined further down the hierarchy
@@ -306,8 +305,7 @@ public class ConcreteAspectCodeGen {
 		}
 		ResolvedMember[] rms = type.getDeclaredMethods();
 		if (rms != null) {
-			for (int i = 0; i < rms.length; i++) {
-				ResolvedMember member = rms[i];
+			for (ResolvedMember member : rms) {
 				String key = member.getName() + member.getSignature();
 				if (member.isAbstract()) {
 					collector.put(key, member);
@@ -320,11 +318,11 @@ public class ConcreteAspectCodeGen {
 
 	/**
 	 * Rebuild the XML snip that defines this concrete aspect, for log error purpose
-	 * 
+	 *
 	 * @return string repr.
 	 */
 	private String stringify() {
-		StringBuffer sb = new StringBuffer("<concrete-aspect name='");
+		StringBuilder sb = new StringBuilder("<concrete-aspect name='");
 		sb.append(concreteAspect.name);
 		sb.append("' extends='");
 		sb.append(concreteAspect.extend);
@@ -340,8 +338,8 @@ public class ConcreteAspectCodeGen {
 		if (as == null || as.length == 0) {
 			return false;
 		}
-		for (int i = 0; i < as.length; i++) {
-			if (as[i].getTypeSignature().equals("Lorg/aspectj/lang/annotation/Pointcut;")) {
+		for (AnnotationAJ a : as) {
+			if (a.getTypeSignature().equals("Lorg/aspectj/lang/annotation/Pointcut;")) {
 				return true;
 			}
 		}
@@ -362,7 +360,7 @@ public class ConcreteAspectCodeGen {
 		if (bytes != null) {
 			return bytes;
 		}
-		PerClause.Kind perclauseKind = PerClause.SINGLETON;		
+		PerClause.Kind perclauseKind = PerClause.SINGLETON;
 		PerClause parentPerClause = (parent != null ? parent.getPerClause() : null);
 		if (parentPerClause != null) {
 			perclauseKind = parentPerClause.getKind();
@@ -413,7 +411,7 @@ public class ConcreteAspectCodeGen {
 			cg.addAnnotation(ag);
 		} else {
 			// List elems = new ArrayList();
-			List<NameValuePair> elems = new ArrayList<NameValuePair>();
+			List<NameValuePair> elems = new ArrayList<>();
 			elems.add(new NameValuePair("value",
 					new SimpleElementValue(ElementValue.STRING, cg.getConstantPool(), perclauseString), cg.getConstantPool()));
 			AnnotationGen ag = new AnnotationGen(new ObjectType("org/aspectj/lang/annotation/Aspect"), elems, true,
@@ -422,7 +420,7 @@ public class ConcreteAspectCodeGen {
 		}
 		if (concreteAspect.precedence != null) {
 			SimpleElementValue svg = new SimpleElementValue(ElementValue.STRING, cg.getConstantPool(), concreteAspect.precedence);
-			List<NameValuePair> elems = new ArrayList<NameValuePair>();
+			List<NameValuePair> elems = new ArrayList<>();
 			elems.add(new NameValuePair("value", svg, cg.getConstantPool()));
 			AnnotationGen agprec = new AnnotationGen(new ObjectType("org/aspectj/lang/annotation/DeclarePrecedence"), elems, true,
 					cg.getConstantPool());
@@ -430,20 +428,19 @@ public class ConcreteAspectCodeGen {
 		}
 
 		// default constructor
-		LazyMethodGen init = new LazyMethodGen(Modifier.PUBLIC, Type.VOID, "<init>", EMPTY_TYPES, EMPTY_STRINGS, cg);
+		LazyMethodGen init = new LazyMethodGen(Modifier.PUBLIC, Type.VOID, "<init>", NO_ARGS, EMPTY_STRINGS, cg);
 		InstructionList cbody = init.getBody();
 		cbody.append(InstructionConstants.ALOAD_0);
 
-		cbody.append(cg.getFactory().createInvoke(parentName, "<init>", Type.VOID, EMPTY_TYPES, Constants.INVOKESPECIAL));
+		cbody.append(cg.getFactory().createInvoke(parentName, "<init>", Type.VOID, NO_ARGS, Constants.INVOKESPECIAL));
 		cbody.append(InstructionConstants.RETURN);
 		cg.addMethodGen(init);
 
-		for (Iterator<Definition.Pointcut> it = concreteAspect.pointcuts.iterator(); it.hasNext();) {
-			Definition.Pointcut abstractPc = (Definition.Pointcut) it.next();
+		for (Definition.Pointcut abstractPc : concreteAspect.pointcuts) {
 			// TODO AV - respect visibility instead of opening up as public?
-			LazyMethodGen mg = new LazyMethodGen(Modifier.PUBLIC, Type.VOID, abstractPc.name, EMPTY_TYPES, EMPTY_STRINGS, cg);
+			LazyMethodGen mg = new LazyMethodGen(Modifier.PUBLIC, Type.VOID, abstractPc.name, NO_ARGS, EMPTY_STRINGS, cg);
 			SimpleElementValue svg = new SimpleElementValue(ElementValue.STRING, cg.getConstantPool(), abstractPc.expression);
-			List<NameValuePair> elems = new ArrayList<NameValuePair>();
+			List<NameValuePair> elems = new ArrayList<>();
 			elems.add(new NameValuePair("value", svg, cg.getConstantPool()));
 			AnnotationGen mag = new AnnotationGen(new ObjectType("org/aspectj/lang/annotation/Pointcut"), elems, true,
 					cg.getConstantPool());
@@ -465,7 +462,7 @@ public class ConcreteAspectCodeGen {
 
 				FieldGen field = new FieldGen(Modifier.FINAL, ObjectType.STRING, "rule" + (counter++), cg.getConstantPool());
 				SimpleElementValue svg = new SimpleElementValue(ElementValue.STRING, cg.getConstantPool(), deow.pointcut);
-				List<NameValuePair> elems = new ArrayList<NameValuePair>();
+				List<NameValuePair> elems = new ArrayList<>();
 				elems.add(new NameValuePair("value", svg, cg.getConstantPool()));
 				AnnotationGen mag = new AnnotationGen(new ObjectType("org/aspectj/lang/annotation/Declare"
 						+ (deow.isError ? "Error" : "Warning")), elems, true, cg.getConstantPool());
@@ -483,7 +480,7 @@ public class ConcreteAspectCodeGen {
 				adviceCounter++;
 			}
 		}
-		
+
 		if (concreteAspect.declareAnnotations.size()>0) {
 			int decCounter = 1;
 			for (Definition.DeclareAnnotation da: concreteAspect.declareAnnotations) {
@@ -511,30 +508,30 @@ public class ConcreteAspectCodeGen {
 	}
 
 	/**
-	 * The DeclareAnnotation object encapsulates an method/field/type descriptor and an annotation. This uses a DeclareAnnotation object 
-	 * captured from the XML (something like '<declare-annotation field="* field1(..)" annotation="@Annot(a='a',fred=false,'abc')"/>') 
+	 * The DeclareAnnotation object encapsulates an method/field/type descriptor and an annotation. This uses a DeclareAnnotation object
+	 * captured from the XML (something like '<declare-annotation field="* field1(..)" annotation="@Annot(a='a',fred=false,'abc')"/>')
 	 * and builds the same construct that would have existed if the code style variant was used.  This involves creating a member upon
 	 * which to hang the real annotation and then creating a classfile level attribute indicating a declare annotation is present
 	 * (that includes the signature pattern and a pointer to the real member holding the annotation).
-	 * 
+	 *
 	 */
 	private void generateDeclareAnnotation(Definition.DeclareAnnotation da, int decCounter, LazyClassGen cg) {
-		
+
 		// Here is an example member from a code style declare annotation:
 		//void ajc$declare_at_method_1();
 		//  RuntimeInvisibleAnnotations: length = 0x6
-		//   00 01 00 1B 00 00 
+		//   00 01 00 1B 00 00
 		//  RuntimeVisibleAnnotations: length = 0x15
 		//   00 01 00 1D 00 03 00 1E 73 00 1F 00 20 73 00 21
-		//   00 22 73 00 23 
+		//   00 22 73 00 23
 		//  org.aspectj.weaver.MethodDeclarationLineNumber: length = 0x8
-		//   00 00 00 02 00 00 00 16 
+		//   00 00 00 02 00 00 00 16
 		//  org.aspectj.weaver.AjSynthetic: length = 0x
-		//   
+		//
 		//  Code:
 		//   Stack=0, Locals=1, Args_size=1
 		//   0:	return
-		
+
 		// and at the class level a Declare attribute:
 		//		  org.aspectj.weaver.Declare: length = 0x51
 		//		   05 00 00 00 03 01 00 05 40 41 6E 6E 6F 01 00 17
@@ -542,16 +539,16 @@ public class ConcreteAspectCodeGen {
 		//		   65 74 68 6F 64 5F 31 01 01 00 00 00 00 05 05 00
 		//		   08 73 61 79 48 65 6C 6C 6F 00 01 04 00 00 00 00
 		//		   07 00 00 00 27 00 00 00 34 00 00 00 16 00 00 00
-		//		   3C 
-		
+		//		   3C
+
 		AnnotationAJ constructedAnnotation = buildDeclareAnnotation_actualAnnotation(cg, da);
 		if (constructedAnnotation==null) {
 			return; // error occurred (and was reported), do not continue
 		}
 
-		String nameComponent = da.declareAnnotationKind.name().toLowerCase();		
-		String declareName = new StringBuilder("ajc$declare_at_").append(nameComponent).append("_").append(decCounter).toString();			
-		LazyMethodGen declareMethod = new LazyMethodGen(Modifier.PUBLIC, Type.VOID, declareName, Type.NO_ARGS, EMPTY_STRINGS, cg);
+		String nameComponent = da.declareAnnotationKind.name().toLowerCase();
+		String declareName = new StringBuilder("ajc$declare_at_").append(nameComponent).append("_").append(decCounter).toString();
+		LazyMethodGen declareMethod = new LazyMethodGen(Modifier.PUBLIC, Type.VOID, declareName, NO_ARGS, EMPTY_STRINGS, cg);
 		InstructionList declareMethodBody = declareMethod.getBody();
 		declareMethodBody.append(InstructionFactory.RETURN);
 		declareMethod.addAnnotation(constructedAnnotation);
@@ -560,14 +557,14 @@ public class ConcreteAspectCodeGen {
 		ITokenSource tokenSource = BasicTokenSource.makeTokenSource(da.pattern,null);
 		PatternParser pp = new PatternParser(tokenSource);
 
-		if (da.declareAnnotationKind==DeclareAnnotationKind.Method || da.declareAnnotationKind==DeclareAnnotationKind.Field) {	
+		if (da.declareAnnotationKind==DeclareAnnotationKind.Method || da.declareAnnotationKind==DeclareAnnotationKind.Field) {
 			ISignaturePattern isp = (da.declareAnnotationKind==DeclareAnnotationKind.Method?pp.parseCompoundMethodOrConstructorSignaturePattern(true):pp.parseCompoundFieldSignaturePattern());
 			deca = new DeclareAnnotation(da.declareAnnotationKind==DeclareAnnotationKind.Method?DeclareAnnotation.AT_METHOD:DeclareAnnotation.AT_FIELD, isp);
-		} else if (da.declareAnnotationKind==DeclareAnnotationKind.Type) {			
+		} else if (da.declareAnnotationKind==DeclareAnnotationKind.Type) {
 			TypePattern tp = pp.parseTypePattern();
 			deca = new DeclareAnnotation(DeclareAnnotation.AT_TYPE,tp);
 		}
-		
+
 		deca.setAnnotationMethod(declareName);
 		deca.setAnnotationString(da.annotation);
 		AjAttribute attribute = new AjAttribute.DeclareAttribute(deca);
@@ -587,7 +584,7 @@ public class ConcreteAspectCodeGen {
 			return bcelAnnotation;
 		}
 	}
-	
+
 	// TODO support array values
 	// TODO support annotation values
 	/**
@@ -604,7 +601,7 @@ public class ConcreteAspectCodeGen {
 			// Discover the name and name/value pairs
 			String name = annotationString.substring(0,paren);
 			// break the rest into pieces based on the commas
-			List<String> values = new ArrayList<String>();
+			List<String> values = new ArrayList<>();
 			int pos = paren+1;
 			int depth = 0;
 			int len = annotationString.length();
@@ -646,113 +643,113 @@ public class ConcreteAspectCodeGen {
 					value = value.substring(equalsIndex+1).trim();
 				}
 				boolean keyIsOk = false;
-				for (int m=0;m<rms.length;m++) {
+				for (ResolvedMember rm : rms) {
 					NameValuePair nvp = null;
-					if (rms[m].getName().equals(key)) {
+					if (rm.getName().equals(key)) {
 						// found it!
-						keyIsOk=true;
-						UnresolvedType rt = rms[m].getReturnType();
+						keyIsOk = true;
+						UnresolvedType rt = rm.getReturnType();
 						if (rt.isPrimitiveType()) {
 							switch (rt.getSignature().charAt(0)) {
-							case 'J': // long
-								try {
-									long longValue = Long.parseLong(value);
-									nvp = new NameValuePair(key,new SimpleElementValue(ElementValue.PRIMITIVE_LONG,cp,longValue),cp);
-								} catch (NumberFormatException nfe) {
-									reportError("unable to interpret annotation value '"+value+"' as a long");
-									return null;
-								}
-								break;
-							case 'S': // short
-								try {
-									short shortValue = Short.parseShort(value);
-									nvp = new NameValuePair(key,new SimpleElementValue(ElementValue.PRIMITIVE_SHORT,cp,shortValue),cp);
-								} catch (NumberFormatException nfe) {
-									reportError("unable to interpret annotation value '"+value+"' as a short");
-									return null;
-								}
-								break;
-							case 'F': // float
-								try {
-									float floatValue = Float.parseFloat(value);
-									nvp = new NameValuePair(key,new SimpleElementValue(ElementValue.PRIMITIVE_FLOAT,cp,floatValue),cp);
-								} catch (NumberFormatException nfe) {
-									reportError("unable to interpret annotation value '"+value+"' as a float");
-									return null;
-								}
-								break;
-							case 'D': // double
-								try {
-									double doubleValue = Double.parseDouble(value);
-									nvp = new NameValuePair(key,new SimpleElementValue(ElementValue.PRIMITIVE_DOUBLE,cp,doubleValue),cp);
-								} catch (NumberFormatException nfe) {
-									reportError("unable to interpret annotation value '"+value+"' as a double");
-									return null;
-								}
-								break;
-							case 'I': // integer
-								try {
-									int intValue = Integer.parseInt(value);
-									nvp = new NameValuePair(key,new SimpleElementValue(ElementValue.PRIMITIVE_INT,cp,intValue),cp);
-								} catch (NumberFormatException nfe) {
-									reportError("unable to interpret annotation value '"+value+"' as an integer");
-									return null;
-								}
-								break;
-							case 'B': // byte
-								try {
-									byte byteValue = Byte.parseByte(value);
-									nvp = new NameValuePair(key,new SimpleElementValue(ElementValue.PRIMITIVE_BYTE,cp,byteValue),cp);
-								} catch (NumberFormatException nfe) {
-									reportError("unable to interpret annotation value '"+value+"' as a byte");
-									return null;
-								}
-								break;
-							case 'C': // char
-								if (value.length()<2) {
-									reportError("unable to interpret annotation value '"+value+"' as a char");
-									return null;
-								}
-								nvp = new NameValuePair(key,new SimpleElementValue(ElementValue.PRIMITIVE_CHAR,cp,value.charAt(1)),cp);
-								break;
-							case 'Z': // boolean
-								try {
-									boolean booleanValue = Boolean.parseBoolean(value);
-									nvp = new NameValuePair(key,new SimpleElementValue(ElementValue.PRIMITIVE_BOOLEAN,cp,booleanValue),cp);
-								} catch (NumberFormatException nfe) {
-									reportError("unable to interpret annotation value '"+value+"' as a boolean");
-									return null;
-								}
-								break;
+								case 'J': // long
+									try {
+										long longValue = Long.parseLong(value);
+										nvp = new NameValuePair(key, new SimpleElementValue(ElementValue.PRIMITIVE_LONG, cp, longValue), cp);
+									} catch (NumberFormatException nfe) {
+										reportError("unable to interpret annotation value '" + value + "' as a long");
+										return null;
+									}
+									break;
+								case 'S': // short
+									try {
+										short shortValue = Short.parseShort(value);
+										nvp = new NameValuePair(key, new SimpleElementValue(ElementValue.PRIMITIVE_SHORT, cp, shortValue), cp);
+									} catch (NumberFormatException nfe) {
+										reportError("unable to interpret annotation value '" + value + "' as a short");
+										return null;
+									}
+									break;
+								case 'F': // float
+									try {
+										float floatValue = Float.parseFloat(value);
+										nvp = new NameValuePair(key, new SimpleElementValue(ElementValue.PRIMITIVE_FLOAT, cp, floatValue), cp);
+									} catch (NumberFormatException nfe) {
+										reportError("unable to interpret annotation value '" + value + "' as a float");
+										return null;
+									}
+									break;
+								case 'D': // double
+									try {
+										double doubleValue = Double.parseDouble(value);
+										nvp = new NameValuePair(key, new SimpleElementValue(ElementValue.PRIMITIVE_DOUBLE, cp, doubleValue), cp);
+									} catch (NumberFormatException nfe) {
+										reportError("unable to interpret annotation value '" + value + "' as a double");
+										return null;
+									}
+									break;
+								case 'I': // integer
+									try {
+										int intValue = Integer.parseInt(value);
+										nvp = new NameValuePair(key, new SimpleElementValue(ElementValue.PRIMITIVE_INT, cp, intValue), cp);
+									} catch (NumberFormatException nfe) {
+										reportError("unable to interpret annotation value '" + value + "' as an integer");
+										return null;
+									}
+									break;
+								case 'B': // byte
+									try {
+										byte byteValue = Byte.parseByte(value);
+										nvp = new NameValuePair(key, new SimpleElementValue(ElementValue.PRIMITIVE_BYTE, cp, byteValue), cp);
+									} catch (NumberFormatException nfe) {
+										reportError("unable to interpret annotation value '" + value + "' as a byte");
+										return null;
+									}
+									break;
+								case 'C': // char
+									if (value.length() < 2) {
+										reportError("unable to interpret annotation value '" + value + "' as a char");
+										return null;
+									}
+									nvp = new NameValuePair(key, new SimpleElementValue(ElementValue.PRIMITIVE_CHAR, cp, value.charAt(1)), cp);
+									break;
+								case 'Z': // boolean
+									try {
+										boolean booleanValue = Boolean.parseBoolean(value);
+										nvp = new NameValuePair(key, new SimpleElementValue(ElementValue.PRIMITIVE_BOOLEAN, cp, booleanValue), cp);
+									} catch (NumberFormatException nfe) {
+										reportError("unable to interpret annotation value '" + value + "' as a boolean");
+										return null;
+									}
+									break;
 								default:
-									reportError("not yet supporting XML setting of annotation values of type "+rt.getName());
+									reportError("not yet supporting XML setting of annotation values of type " + rt.getName());
 									return null;
 							}
 						} else if (UnresolvedType.JL_STRING.equals(rt)) {
-							if (value.length()<2) {
-								reportError("Invalid string value specified in annotation string: "+annotationString);
+							if (value.length() < 2) {
+								reportError("Invalid string value specified in annotation string: " + annotationString);
 								return null;
 							}
-							value = value.substring(1,value.length()-1); // trim the quotes off
-							nvp = new NameValuePair(key,new SimpleElementValue(ElementValue.STRING,cp,value),cp);
+							value = value.substring(1, value.length() - 1); // trim the quotes off
+							nvp = new NameValuePair(key, new SimpleElementValue(ElementValue.STRING, cp, value), cp);
 						} else if (UnresolvedType.JL_CLASS.equals(rt)) {
 							// format of class string:
 							// Foo.class
 							// java.lang.Foo.class
-							if (value.length()<6) {
-								reportError("Not a well formed class value for an annotation '"+value+"'");
+							if (value.length() < 6) {
+								reportError("Not a well formed class value for an annotation '" + value + "'");
 								return null;
 							}
-							String clazz = value.substring(0,value.length()-6);
-							boolean qualified = clazz.indexOf(".")!=-1;
+							String clazz = value.substring(0, value.length() - 6);
+							boolean qualified = clazz.contains(".");
 							if (!qualified) {
 								// if not qualified, have to assume java.lang
-								clazz = "java.lang."+clazz;
+								clazz = "java.lang." + clazz;
 							}
-							nvp = new NameValuePair(key,new ClassElementValue(new ObjectType(clazz),cp),cp);
+							nvp = new NameValuePair(key, new ClassElementValue(new ObjectType(clazz), cp), cp);
 						}
 					}
-					if (nvp!=null) {
+					if (nvp != null) {
 						aaj.addElementNameValuePair(nvp);
 					}
 				}
@@ -764,7 +761,7 @@ public class ConcreteAspectCodeGen {
 			return aaj;
 		}
 	}
-	
+
 	private AnnotationGen buildBaseAnnotationType(ConstantPool cp,World world, String typename) {
 		String annoname = typename;
 		if (annoname.startsWith("@")) {
@@ -779,14 +776,14 @@ public class ConcreteAspectCodeGen {
 			reportError("declare is using an annotation type that does not have runtime retention: "+typename);
 			return null;
 		}
-		List<NameValuePair> elems = new ArrayList<NameValuePair>();
+		List<NameValuePair> elems = new ArrayList<>();
 		return new AnnotationGen(new ObjectType(annoname), elems, true, cp);
 	}
-	
+
 	/**
-	 * Construct the annotation that indicates this is a declare 
+	 * Construct the annotation that indicates this is a declare
 	 */
-	
+
 	/**
 	 * The PointcutAndAdvice object encapsulates an advice kind, a pointcut and names a Java method in a particular class. Generate
 	 * an annotation style advice that has that pointcut whose implementation delegates to the Java method.
@@ -823,8 +820,8 @@ public class ConcreteAspectCodeGen {
 		}
 
 		// Extract parameter types and names
-		List<Type> paramTypes = new ArrayList<Type>();
-		List<String> paramNames = new ArrayList<String>();
+		List<Type> paramTypes = new ArrayList<>();
+		List<String> paramNames = new ArrayList<>();
 		if (signature.charAt(1) != ')') {
 			// there are parameters to convert into a signature
 			StringBuilder convertedSignature = new StringBuilder("(");
@@ -913,16 +910,15 @@ public class ConcreteAspectCodeGen {
 		}
 
 		// Time to construct the method itself:
-		LazyMethodGen advice = new LazyMethodGen(Modifier.PUBLIC, returnType, adviceName, paramTypes.toArray(new Type[paramTypes
-				.size()]), EMPTY_STRINGS, cg);
+		LazyMethodGen advice = new LazyMethodGen(Modifier.PUBLIC, returnType, adviceName, paramTypes.toArray(NO_ARGS), EMPTY_STRINGS, cg);
 
 		InstructionList adviceBody = advice.getBody();
 
 		// Generate code to load the parameters
 		int pos = 1; // first slot after 'this'
-		for (int i = 0; i < paramTypes.size(); i++) {
-			adviceBody.append(InstructionFactory.createLoad(paramTypes.get(i), pos));
-			pos += paramTypes.get(i).getSize();
+		for (Type paramType : paramTypes) {
+			adviceBody.append(InstructionFactory.createLoad(paramType, pos));
+			pos += paramType.getSize();
 		}
 
 		// Generate the delegate call
@@ -971,7 +967,7 @@ public class ConcreteAspectCodeGen {
 	 */
 	private AnnotationAJ buildAdviceAnnotation(LazyClassGen cg, PointcutAndAdvice paa) {
 		SimpleElementValue svg = new SimpleElementValue(ElementValue.STRING, cg.getConstantPool(), paa.pointcut);
-		List<NameValuePair> elems = new ArrayList<NameValuePair>();
+		List<NameValuePair> elems = new ArrayList<>();
 		elems.add(new NameValuePair("value", svg, cg.getConstantPool()));
 		AnnotationGen mag = new AnnotationGen(new ObjectType("org/aspectj/lang/annotation/" + paa.adviceKind.toString()), elems,
 				true, cg.getConstantPool());
@@ -981,7 +977,7 @@ public class ConcreteAspectCodeGen {
 
 	/**
 	 * Error reporting
-	 * 
+	 *
 	 * @param message
 	 */
 	private void reportError(String message) {

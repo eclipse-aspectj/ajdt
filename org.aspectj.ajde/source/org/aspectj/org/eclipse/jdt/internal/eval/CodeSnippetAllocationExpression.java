@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -15,7 +15,7 @@
  *                          Bug 409245 - [1.8][compiler] Type annotations dropped when call is routed through a synthetic bridge method
  *                          Bug 409250 - [1.8][compiler] Various loose ends in 308 code generation
  *        Stephan Herrmann - Contribution for
- *							Bug 400874 - [1.8][compiler] Inference infrastructure should evolve to meet JLS8 18.x (Part G of JSR335 spec) 
+ *							Bug 400874 - [1.8][compiler] Inference infrastructure should evolve to meet JLS8 18.x (Part G of JSR335 spec)
  *							Bug 424415 - [1.8][compiler] Eventual resolution of ReferenceExpression is not seen to be happening.
  *							Bug 427438 - [1.8][compiler] NPE at org.aspectj.org.eclipse.jdt.internal.compiler.ast.ConditionalExpression.generateCode(ConditionalExpression.java:280)
  *******************************************************************************/
@@ -225,11 +225,11 @@ public TypeBinding resolveType(BlockScope scope) {
 		}
 		this.resolvedType = this.type.resolvedType = scope.environment().createParameterizedType(((ParameterizedTypeBinding) this.resolvedType).genericType(), inferredTypes, ((ParameterizedTypeBinding) this.resolvedType).enclosingType());
  	}
-	
+
 	ReferenceBinding allocatedType = (ReferenceBinding) this.resolvedType;
 	this.binding = findConstructorBinding(scope, this, allocatedType, this.argumentTypes);
 
-	if (!this.binding.isValidBinding()) {	
+	if (!this.binding.isValidBinding()) {
 		if (this.binding instanceof ProblemMethodBinding
 			&& ((ProblemMethodBinding) this.binding).problemId() == NotVisible) {
 			if (this.evaluationContext.declaringTypeName != null) {
@@ -279,7 +279,7 @@ public TypeBinding resolveType(BlockScope scope) {
 			return this.resolvedType;
 		}
 	}
-	if (isMethodUseDeprecated(this.binding, scope, true)) {
+	if (isMethodUseDeprecated(this.binding, scope, true, this)) {
 		scope.problemReporter().deprecatedMethod(this.binding, this);
 	}
 	if (this.arguments != null) {

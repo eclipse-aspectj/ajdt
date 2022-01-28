@@ -1,12 +1,12 @@
 /* *******************************************************************
  * Copyright (c) 2005-2012 Contributors.
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
  *   Adrian Colyer			Initial implementation
  *   Andy Clement			various fixes
  *   Trask Stanalker		#373195
@@ -19,10 +19,10 @@ import java.util.Map;
 import java.util.Stack;
 
 /**
- * This class is responsible for tracking progress through the various phases of compilation and weaving. 
- * When an exception occurs (or a message is issued, if desired), you can ask this class for a 
- * "stack trace" that gives information about what the compiler was doing at the time. 
- * The trace will say something like: 
+ * This class is responsible for tracking progress through the various phases of compilation and weaving.
+ * When an exception occurs (or a message is issued, if desired), you can ask this class for a
+ * "stack trace" that gives information about what the compiler was doing at the time.
+ * The trace will say something like:
  * "when matching pointcut xyz when matching shadow sss when weaving type ABC when weaving shadow mungers"
  */
 public class CompilationAndWeavingContext {
@@ -87,13 +87,13 @@ public class CompilationAndWeavingContext {
 			"type munging for @AspectJ aspectOf" };
 
 	// context stacks, one per thread
-	private static ThreadLocal<Stack<ContextStackEntry>> contextMap = new ThreadLocal<Stack<ContextStackEntry>>();
+	private static ThreadLocal<Stack<ContextStackEntry>> contextMap = new ThreadLocal<>();
 
 	// single thread mode stack
-	private static Stack<ContextStackEntry> contextStack = new Stack<ContextStackEntry>();
+	private static Stack<ContextStackEntry> contextStack = new Stack<>();
 
 	// formatters, by phase id
-	private static Map<Integer, ContextFormatter> formatterMap = new HashMap<Integer, ContextFormatter>();
+	private static Map<Integer, ContextFormatter> formatterMap = new HashMap<>();
 
 	private static ContextFormatter defaultFormatter = new DefaultFormatter();
 
@@ -123,22 +123,22 @@ public class CompilationAndWeavingContext {
 	}
 
 	public static void registerFormatter(int phaseId, ContextFormatter aFormatter) {
-		formatterMap.put(new Integer(phaseId), aFormatter);
+		formatterMap.put(phaseId, aFormatter);
 	}
 
 	/**
 	 * Returns a string description of what the compiler/weaver is currently doing
 	 */
 	public static String getCurrentContext() {
-		Stack<ContextStackEntry> contextStack = getContextStack();
-		Stack<String> explanationStack = new Stack<String>();
+		Iterable<ContextStackEntry> contextStack = getContextStack();
+		Stack<String> explanationStack = new Stack<>();
 		for (ContextStackEntry entry : contextStack) {
 			Object data = entry.getData();
 			if (data != null) {
 				explanationStack.push(getFormatter(entry).formatEntry(entry.phaseId, data));
 			}
 		}
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		while (!explanationStack.isEmpty()) {
 			sb.append("when ");
 			sb.append(explanationStack.pop().toString());
@@ -150,7 +150,7 @@ public class CompilationAndWeavingContext {
 	public static ContextToken enteringPhase(int phaseId, Object data) {
 		Stack<ContextStackEntry> contextStack = getContextStack();
 		ContextTokenImpl nextToken = nextToken();
-		contextStack.push(new ContextStackEntry(nextToken, phaseId, new WeakReference<Object>(data)));
+		contextStack.push(new ContextStackEntry(nextToken, phaseId, new WeakReference<>(data)));
 		return nextToken;
 	}
 
@@ -183,7 +183,7 @@ public class CompilationAndWeavingContext {
 		} else {
 			Stack<ContextStackEntry> contextStack = contextMap.get();
 			if (contextStack == null) {
-				contextStack = new Stack<ContextStackEntry>();
+				contextStack = new Stack<>();
 				contextMap.set(contextStack);
 			}
 			return contextStack;
@@ -195,7 +195,7 @@ public class CompilationAndWeavingContext {
 	}
 
 	private static ContextFormatter getFormatter(ContextStackEntry entry) {
-		Integer key = new Integer(entry.phaseId);
+		Integer key = entry.phaseId;
 		if (formatterMap.containsKey(key)) {
 			return formatterMap.get(key);
 		} else {
@@ -240,7 +240,7 @@ public class CompilationAndWeavingContext {
 	private static class DefaultFormatter implements ContextFormatter {
 
 		public String formatEntry(int phaseId, Object data) {
-			StringBuffer sb = new StringBuffer();
+			StringBuilder sb = new StringBuilder();
 			sb.append(PHASE_NAMES[phaseId]);
 			sb.append(" ");
 			if (data instanceof char[]) {

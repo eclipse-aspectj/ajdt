@@ -1,6 +1,6 @@
 // AspectJ
 /*******************************************************************************
- * Copyright (c) 2004, 2018 IBM Corporation and others.
+ * Copyright (c) 2004, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -28,8 +28,8 @@ import org.eclipse.core.runtime.SubMonitor;
 import org.aspectj.org.eclipse.jdt.core.IClassFile;
 import org.aspectj.org.eclipse.jdt.core.ICompilationUnit;
 import org.aspectj.org.eclipse.jdt.core.IJavaElement;
-import org.aspectj.org.eclipse.jdt.core.ITypeRoot;
 import org.aspectj.org.eclipse.jdt.core.IJavaProject;
+import org.aspectj.org.eclipse.jdt.core.ITypeRoot;
 import org.aspectj.org.eclipse.jdt.core.JavaCore;
 import org.aspectj.org.eclipse.jdt.core.JavaModelException;
 import org.aspectj.org.eclipse.jdt.core.WorkingCopyOwner;
@@ -38,14 +38,19 @@ import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ConstructorDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ExplicitConstructorCall;
-import org.aspectj.org.eclipse.jdt.internal.compiler.batch.Main;
 import org.aspectj.org.eclipse.jdt.internal.compiler.batch.FileSystem.Classpath;
+import org.aspectj.org.eclipse.jdt.internal.compiler.batch.Main;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryType;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.RecoveryScanner;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.Scanner;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.SuffixConstants;
-import org.aspectj.org.eclipse.jdt.internal.core.*;
+import org.aspectj.org.eclipse.jdt.internal.core.BasicCompilationUnit;
+import org.aspectj.org.eclipse.jdt.internal.core.BinaryType;
+import org.aspectj.org.eclipse.jdt.internal.core.ClassFileWorkingCopy;
+import org.aspectj.org.eclipse.jdt.internal.core.DefaultWorkingCopyOwner;
+import org.aspectj.org.eclipse.jdt.internal.core.PackageFragment;
+import org.aspectj.org.eclipse.jdt.internal.core.dom.util.DOMASTUtil;
 import org.aspectj.org.eclipse.jdt.internal.core.util.CodeSnippetParsingUtil;
 import org.aspectj.org.eclipse.jdt.internal.core.util.RecordedParsingInformation;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
@@ -64,6 +69,7 @@ import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
  * parser.setCompilerOptions(options);
  * CompilationUnit result = (CompilationUnit) parser.createAST(null);
  * </pre>
+ * <p>
  * Once a configured parser instance has been used to create an AST,
  * the settings are automatically reset to their defaults,
  * ready for the parser instance to be reused.
@@ -91,7 +97,6 @@ import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
  * <li>Whether to return a {@linkplain #setFocalPosition(int) abridged AST}
  * focused on the declaration containing a given source position.</li>
  * </ul>
- * </p>
  *
  * @since 3.0
  * @noinstantiate This class is not intended to be instantiated by clients.
@@ -122,17 +127,17 @@ public class ASTParser {
 	 * @since 3.10
 	 */
 	public interface IASTFactory {
-		public AST getAST(int level);
+		public AST getAST(int level,boolean previewEnabled);
 	}
 
 	/**
 	 * @since 3.10
 	 */
-	public static AST getAST(int level) {
+	public static AST getAST(int level, boolean previewEnabled) {
 		if (astFactory == null) {
-		  return AST.newAST(level);
+		  return AST.newAST(level, previewEnabled);
 		}
-		return astFactory.getAST(level);
+		return astFactory.getAST(level, previewEnabled);
 	}
 	// AspectJ Extension end
 	
@@ -186,7 +191,7 @@ public class ASTParser {
 	 * Compiler options. Defaults to JavaCore.getOptions().
 	 */
 	private Map<String, String> compilerOptions;
-	
+
     /**
 	 * The focal point for a partial AST request.
      * Only used when <code>partial</code> is <code>true</code>.
@@ -233,7 +238,7 @@ public class ASTParser {
 	 * <code>null</code> if none. Defaults to none.
      */
 	private String unitName = null;
-	
+
 	/**
 	 * Classpath entries to use to resolve bindings when no java project are available.
 	 */
@@ -243,12 +248,12 @@ public class ASTParser {
 	 * Sourcepath entries to use to resolve bindings when no java project are available.
 	 */
 	private String[] sourcepaths;
-	
+
 	/**
 	 * Encoding of the given sourcepaths entries.
 	 */
 	private String[] sourcepathsEncodings;
-	
+
 	/**
 	 * Bits used to set the different values from CompilationUnitResolver values.
 	 */
@@ -264,18 +269,7 @@ public class ASTParser {
 	 * declared on {@link AST}
 	 */
 	ASTParser(int level) {
-		switch(level) {
-			case AST.JLS2_INTERNAL:
-			case AST.JLS3_INTERNAL:
-			case AST.JLS4_INTERNAL:
-			case AST.JLS8_INTERNAL:
-			case AST.JLS9_INTERNAL:
-			case AST.JLS10_INTERNAL:
-			case AST.JLS11_INTERNAL:
-				break;
-			default:
-				throw new IllegalArgumentException();
-		}
+		DOMASTUtil.checkASTLevel(level);
 		this.apiLevel = level;
 		initializeDefaults();
 	}
@@ -358,19 +352,19 @@ public class ASTParser {
 			this.bits &= ~CompilationUnitResolver.BINDING_RECOVERY;
 		}
 	}
-	
+
 	/**
 	 * Sets the environment to be used when no {@link IJavaProject} is available.
-	 * 
-	 * <p>The user has to make sure that all the required types are included either in the classpath or source paths. 
-	 * All the paths containing binary types must be included in the <code>classpathEntries</code> whereas all paths containing  
+	 *
+	 * <p>The user has to make sure that all the required types are included either in the classpath or source paths.
+	 * All the paths containing binary types must be included in the <code>classpathEntries</code> whereas all paths containing
 	 * source types must be included in the <code>sourcepathEntries</code>.</p>
 	 * <p>All paths in the <code>classpathEntries</code> and <code>sourcepathEntries</code> are absolute paths.</p>
 	 * <p>If the source paths contain units using a specific encoding (other than the platform encoding), then the
 	 * given <code>encodings</code> must be set. When the <code>encodings</code> is set to non <code>null</code>, its length must
 	 * match the length of <code>sourcepathEntries</code> or an IllegalArgumentException will be thrown.</p>
 	 * <p>If <code>encodings</code> is not <code>null</code>, the given <code>sourcepathEntries</code> must not be <code>null</code>.</p>
-	 * 
+	 *
 	 * @param classpathEntries the given classpath entries to be used to resolve bindings
 	 * @param sourcepathEntries the given sourcepath entries to be used to resolve bindings
 	 * @param encodings the encodings of the corresponding sourcepath entries or <code>null</code> if the platform encoding
@@ -387,7 +381,7 @@ public class ASTParser {
 		this.sourcepathsEncodings = encodings;
 		if (encodings != null) {
 			if (sourcepathEntries == null || sourcepathEntries.length != encodings.length) {
-				throw new IllegalArgumentException(); 
+				throw new IllegalArgumentException();
 			}
 		}
 		if (includeRunningVMBootclasspath) {
@@ -472,7 +466,7 @@ public class ASTParser {
 	 * or {@link #setSource(IClassFile) setSource(IClassFile)}.
 	 * When source is supplied by {@link #setSource(char[]) setSource(char[])},
 	 * the location must be established explicitly by setting an environment using
-	 * {@link #setProject(IJavaProject)} or {@link #setEnvironment(String[], String[], String[], boolean)} 
+	 * {@link #setProject(IJavaProject)} or {@link #setEnvironment(String[], String[], String[], boolean)}
 	 * and a unit name {@link #setUnitName(String)}.
 	 * Note that the compiler options that affect doc comment checking may also
 	 * affect whether any bindings are resolved for nodes within doc comments.
@@ -493,7 +487,7 @@ public class ASTParser {
 	 * Requests an abridged abstract syntax tree.
 	 * By default, complete ASTs are returned.
 	 * <p>
-	 * When the given <code>position</code> is a valid position within the source code of 
+	 * When the given <code>position</code> is a valid position within the source code of
 	 * the compilation unit, the resulting AST does not have nodes for
 	 * the entire compilation unit. Rather, the AST is only fleshed out
 	 * for the node that include the given source position. This kind of limited
@@ -524,9 +518,9 @@ public class ASTParser {
 	 * compilation unit.
 	 * </p>
 	 *
-	 * <p>This focal position is not used when the AST is built using 
+	 * <p>This focal position is not used when the AST is built using
 	 * {@link #createASTs(ICompilationUnit[], String[], ASTRequestor, IProgressMonitor)}.</p>
-	 * 
+	 *
 	 * @param position a position into the corresponding body declaration
 	 */
 	public void setFocalPosition(int position) {
@@ -553,10 +547,12 @@ public class ASTParser {
 	 * <li>{@link #K_EXPRESSION K_EXPRESSION}: The result node is a subclass of
 	 * {@link Expression Expression}. Other aspects of the expression are unspecified.</li>
 	 * </ul>
+	 * <p>
 	 * The resulting AST node is rooted under (possibly contrived)
 	 * {@link CompilationUnit CompilationUnit} node, to allow the
 	 * client to retrieve the following pieces of information
 	 * available there:
+	 * </p>
 	 * <ul>
 	 * <li>{@linkplain CompilationUnit#getLineNumber(int) Line number map}. Line
 	 * numbers start at 1 and only cover the subrange scanned
@@ -568,6 +564,7 @@ public class ASTParser {
 	 * <li>{@linkplain CompilationUnit#getCommentList() Comment list}
 	 * for the subrange scanned.</li>
 	 * </ul>
+	 * <p>
 	 * The contrived nodes do not have source positions. Other aspects of the
 	 * {@link CompilationUnit CompilationUnit} node are unspecified, including
 	 * the exact arrangement of intervening nodes.
@@ -599,10 +596,10 @@ public class ASTParser {
 	 * Binding information is only computed when <code>kind</code> is
 	 * {@link #K_COMPILATION_UNIT}.
 	 * </p>
-	 * 
+	 *
 	 * <p>This kind is not used when the AST is built using
 	 * {@link #createASTs(ICompilationUnit[], String[], ASTRequestor, IProgressMonitor)}.</p>
-	 * 
+	 *
 	 * @param kind the kind of construct to parse: one of
 	 * {@link #K_COMPILATION_UNIT},
 	 * {@link #K_CLASS_BODY_DECLARATIONS},
@@ -622,7 +619,7 @@ public class ASTParser {
 	/**
 	 * Sets the source code to be parsed.
 	 *
-	 * <p>This source is not used when the AST is built using 
+	 * <p>This source is not used when the AST is built using
 	 * {@link #createASTs(ICompilationUnit[], String[], ASTRequestor, IProgressMonitor)}.</p>
 	 *
 	 * <p>If this method is used, the user needs to specify compiler options explicitly using
@@ -643,14 +640,14 @@ public class ASTParser {
 
 	/**
 	 * Sets the source code to be parsed.
-	 * 
+	 *
 	 * <p>This method automatically sets the project (and compiler
 	 * options) based on the given compilation unit, in a manner
 	 * equivalent to {@link #setProject(IJavaProject) setProject(source.getJavaProject())}.</p>
 	 *
-	 * <p>This source is not used when the AST is built using 
+	 * <p>This source is not used when the AST is built using
 	 * {@link #createASTs(ICompilationUnit[], String[], ASTRequestor, IProgressMonitor)}.</p>
-	 * 
+	 *
 	 * @param source the Java model compilation unit whose source code
 	 * is to be parsed, or <code>null</code> if none
 	 */
@@ -667,9 +664,9 @@ public class ASTParser {
 	 * <p>If the given class file has  no source attachment, the creation of the
 	 * ast will fail with an {@link IllegalStateException}.</p>
 	 *
-	 * <p>This source is not used when the AST is built using 
+	 * <p>This source is not used when the AST is built using
 	 * {@link #createASTs(ICompilationUnit[], String[], ASTRequestor, IProgressMonitor)}.</p>
-	 * 
+	 *
 	 * @param source the Java model class file whose corresponding source code
 	 * is to be parsed, or <code>null</code> if none
 	 */
@@ -686,7 +683,7 @@ public class ASTParser {
 	 * <p>If the source is a class file without source attachment, the creation of the
 	 * ast will fail with an {@link IllegalStateException}.</p>
 	 *
-	 * <p>This source is not used when the AST is built using 
+	 * <p>This source is not used when the AST is built using
 	 * {@link #createASTs(ICompilationUnit[], String[], ASTRequestor, IProgressMonitor)}.</p>
 	 *
 	 * @param source the Java model compilation unit or class file whose corresponding source code
@@ -705,12 +702,56 @@ public class ASTParser {
 		}
 	}
 
+
+	/**
+	 * Sets the source code to be parsed.
+	 *
+	 *
+	 * <p>This method automatically sets the project (and compiler
+	 * options) based on the given compilation unit of class file, in a manner
+	 * equivalent to {@link #setProject(IJavaProject) setProject(source.getJavaProject())}.</p>
+	 * <p>If the source is a class file without source attachment, the creation of the
+	 * ast will fail with an {@link IllegalStateException}.</p>
+	 *
+	 * <p>If this method is used, the user need not specify compiler options explicitly.
+	 * The @param astLevel will be used for setting the corresponding values for the compiler
+	 * options: {@link JavaCore#COMPILER_SOURCE}, {@link JavaCore#COMPILER_CODEGEN_TARGET_PLATFORM}
+	 * and {@link JavaCore#COMPILER_COMPLIANCE}.</p>
+	 *
+	 * <p>This source is not used when the AST is built using
+	 * {@link #createASTs(ICompilationUnit[], String[], ASTRequestor, IProgressMonitor)}.</p>
+	 *
+	 * <p>This astLevel will be used as the
+	 * {@link #createASTs(ICompilationUnit[], String[], ASTRequestor, IProgressMonitor)}.</p>
+	 *
+	 * @param source the Java model compilation unit or class file whose corresponding source code
+	 * is to be parsed, or <code>null</code> if none
+	 * @param astLevel the API level; one of the <code>JLS*</code> level constants
+	 * declared on {@link AST}
+	 * @since 3.27
+	 */
+	public void setSource(ITypeRoot source, int astLevel) {
+		this.typeRoot = source;
+		// clear the raw source
+		this.rawSource = null;
+		if (source != null) {
+			this.project = source.getJavaProject();
+			Map<String, String> options = this.project.getOptions(true);
+			options.remove(JavaCore.COMPILER_TASK_TAGS); // no need to parse task tags
+			this.compilerOptions = options;
+			String compliance = DOMASTUtil.getCompliance(astLevel);
+			this.compilerOptions.put(JavaCore.COMPILER_COMPLIANCE, compliance);
+			this.compilerOptions.put(JavaCore.COMPILER_SOURCE, compliance);
+			this.compilerOptions.put(JavaCore.COMPILER_CODEGEN_TARGET_PLATFORM, compliance);
+		}
+	}
+
 	/**
      * Sets the subrange of the source code to be parsed.
      * By default, the entire source string will be parsed
      * (<code>offset</code> 0 and <code>length</code> -1).
      *
-	 * <p>This range is not used when the AST is built using 
+	 * <p>This range is not used when the AST is built using
 	 * {@link #createASTs(ICompilationUnit[], String[], ASTRequestor, IProgressMonitor)}.</p>
      *
      * @param offset the index of the first character to parse
@@ -745,14 +786,14 @@ public class ASTParser {
 			this.bits &= ~CompilationUnitResolver.STATEMENT_RECOVERY;
 		}
 	}
-	
+
 	/**
-	 * Requests an abstract syntax tree without method bodies. 
-	 * 
+	 * Requests an abstract syntax tree without method bodies.
+	 *
 	 * <p>When ignore method bodies is enabled, all method bodies are discarded.
 	 * This has no impact on the binding resolution.</p>
 	 *
-	 * <p>This setting is not used when the kind used in {@link #setKind(int)} is either 
+	 * <p>This setting is not used when the kind used in {@link #setKind(int)} is either
 	 * {@link #K_EXPRESSION} or {@link #K_STATEMENTS}.</p>
 	 * @since 3.5.2
 	 */
@@ -782,7 +823,7 @@ public class ASTParser {
 	/**
 	 * Sets the name of the compilation unit that would hypothetically contains the
 	 * source string.
-	 * 
+	 *
 	 *  <p>This is used in conjunction with {@link #setSource(char[])}
 	 * and {@link #setProject(IJavaProject)} to locate the compilation unit relative to a Java project.
 	 * Defaults to none (<code>null</code>).</p>
@@ -802,7 +843,7 @@ public class ASTParser {
 	 * If the source declares a public class name "Bar" in a package "p1.p2" in a project "P" in a source folder "src",
 	 * the name of the compilation unit must be "/P/src/p1/p2/Bar.java".</p>
 	 *
-	 * <p>This unit name is not used when the AST is built using 
+	 * <p>This unit name is not used when the AST is built using
 	 * {@link #createASTs(ICompilationUnit[], String[], ASTRequestor, IProgressMonitor)}.</p>
 	 *
 	 * @param unitName the name of the compilation unit that would contain the source
@@ -814,7 +855,7 @@ public class ASTParser {
 
 	/**
 	 * Sets the Java project used when resolving bindings.
-	 * 
+	 *
 	 * <p>This method automatically sets the compiler
 	 * options based on the given project:</p>
 	 * <pre>
@@ -847,8 +888,8 @@ public class ASTParser {
 	 * A successful call to this method returns all settings to their
 	 * default values so the object is ready to be reused.
 	 * </p>
-	 * <p>For identifying a module-info.java file as a special file instead of an ordinary 
-	 * Java file (Since Java 9), a call to this should be preceded by a call to 
+	 * <p>For identifying a module-info.java file as a special file instead of an ordinary
+	 * Java file (Since Java 9), a call to this should be preceded by a call to
 	 * {@link #setUnitName(String)} that sets the unit name as module-info.java</p>
 	 *
 	 * @param monitor the progress monitor used to report progress and request cancellation,
@@ -893,6 +934,7 @@ public class ASTParser {
 	 * is called passing the compilation unit and the corresponding AST to <code>requestor</code>.
 	 * </li>
 	 * </ul>
+	 * <p>
 	 * Note only ASTs from the given compilation units are reported
 	 * to the requestor. If additional compilation units are required to
 	 * resolve the original ones, the corresponding ASTs are <b>not</b>
@@ -906,7 +948,6 @@ public class ASTParser {
 	 * <li>The {@linkplain #setSourceRange(int,int) source range} is <code>(0, -1)</code></li>
 	 * <li>The {@linkplain #setFocalPosition(int) focal position} is not set</li>
 	 * </ul>
-	 * </p>
 	 * <p>
 	 * The <code>bindingKeys</code> parameter specifies bindings keys
 	 * ({@link IBinding#getKey()}) that are to be looked up. These keys may
@@ -982,6 +1023,7 @@ public class ASTParser {
 	 * path that is passed into the given <code>sourceFilePaths</code> parameter.
 	 * </li>
 	 * </ul>
+	 * <p>
 	 * Note only ASTs from the given compilation units are reported
 	 * to the requestor. If additional compilation units are required to
 	 * resolve the original ones, the corresponding ASTs are <b>not</b>
@@ -990,12 +1032,12 @@ public class ASTParser {
 	 * <p>
 	 * Note also the following parser parameters are used, regardless of what
 	 * may have been specified:
+	 * </p>
 	 * <ul>
 	 * <li>The {@linkplain #setKind(int) parser kind} is <code>K_COMPILATION_UNIT</code></li>
 	 * <li>The {@linkplain #setSourceRange(int,int) source range} is <code>(0, -1)</code></li>
 	 * <li>The {@linkplain #setFocalPosition(int) focal position} is not set</li>
 	 * </ul>
-	 * </p>
 	 * <p>
 	 * The <code>bindingKeys</code> parameter specifies bindings keys
 	 * ({@link IBinding#getKey()}) that are to be looked up. These keys may
@@ -1057,7 +1099,7 @@ public class ASTParser {
 	}
 	/**
 	 * Creates bindings for a batch of Java elements.
-	 * 
+	 *
 	 * <p>These elements are either
 	 * enclosed in {@link ICompilationUnit ICompilationUnits} or in {@link IClassFile IClassFiles}.</p>
 	 * <p>
@@ -1083,7 +1125,6 @@ public class ASTParser {
 	 * <li>The {@linkplain #setSourceRange(int,int) source range} is <code>(0, -1)</code></li>
 	 * <li>The {@linkplain #setFocalPosition(int) focal position} is not set</li>
 	 * </ul>
-	 * </p>
 	 * <p>
 	 * A successful call to this method returns all settings to their
 	 * default values so the object is ready to be reused.
@@ -1222,7 +1263,7 @@ public class ASTParser {
 							throw new IllegalStateException(String.valueOf(stringWriter.getBuffer()));
 						}
 					} else if (this.rawSource != null) {
-						needToResolveBindings = 
+						needToResolveBindings =
 							((this.bits & CompilationUnitResolver.RESOLVE_BINDING) != 0)
 							&& this.unitName != null
 							&& (this.project != null
@@ -1332,6 +1373,7 @@ public class ASTParser {
 	 * <li>{@linkplain CompilationUnit#getCommentList() Comment list}
 	 * for the subrange scanned.</li>
 	 * </ul>
+	 * <p>
 	 * The contrived nodes do not have source positions. Other aspects of the
 	 * {@link CompilationUnit CompilationUnit} node are unspecified, including
 	 * the exact arrangment of intervening nodes.
@@ -1383,15 +1425,16 @@ public class ASTParser {
 
 		// AspectJ extension start - use the factory
 		// old code:
-		// AST ast = AST.newAST(this.apiLevel);
+		// AST ast = AST.newAST(this.apiLevel, JavaCore.ENABLED.equals(this.compilerOptions.get(JavaCore.COMPILER_PB_ENABLE_PREVIEW_FEATURES)));
 		// new code:
-		AST ast = ASTParser.getAST(this.apiLevel);
+		AST ast = ASTParser.getAST(this.apiLevel, JavaCore.ENABLED.equals(this.compilerOptions.get(JavaCore.COMPILER_PB_ENABLE_PREVIEW_FEATURES)));
 		// End AspectJ Extension 
 		ast.setDefaultNodeFlag(ASTNode.ORIGINAL);
 		ast.setBindingResolver(new BindingResolver());
 		if ((this.bits & CompilationUnitResolver.STATEMENT_RECOVERY) != 0) {
 			ast.setFlag(ICompilationUnit.ENABLE_STATEMENTS_RECOVERY);
 		}
+		ast.scanner.previewEnabled = JavaCore.ENABLED.equals(this.compilerOptions.get(JavaCore.COMPILER_PB_ENABLE_PREVIEW_FEATURES));
 		converter.setAST(ast);
 		CodeSnippetParsingUtil codeSnippetParsingUtil = new CodeSnippetParsingUtil((this.bits & CompilationUnitResolver.IGNORE_METHOD_BODIES) != 0);
 		CompilationUnit compilationUnit = ast.newCompilationUnit();
@@ -1413,7 +1456,7 @@ public class ASTParser {
 					converter.scanner = new RecoveryScanner(scanner, data.removeUnused());
 					converter.docParser.scanner = converter.scanner;
 					converter.scanner.setSource(scanner.source);
-					
+
 					compilationUnit.setStatementsRecoveryData(data);
 				}
 				RecordedParsingInformation recordedParsingInformation = codeSnippetParsingUtil.recordedParsingInformation;

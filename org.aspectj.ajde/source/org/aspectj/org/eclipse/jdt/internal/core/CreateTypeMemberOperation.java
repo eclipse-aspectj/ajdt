@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -23,12 +23,12 @@ import org.aspectj.org.eclipse.jdt.core.IJavaModelStatusConstants;
 import org.aspectj.org.eclipse.jdt.core.IJavaProject;
 import org.aspectj.org.eclipse.jdt.core.IType;
 import org.aspectj.org.eclipse.jdt.core.JavaModelException;
-import org.aspectj.org.eclipse.jdt.core.dom.AST;
 import org.aspectj.org.eclipse.jdt.core.dom.ASTNode;
 import org.aspectj.org.eclipse.jdt.core.dom.ASTParser;
 import org.aspectj.org.eclipse.jdt.core.dom.AnnotationTypeDeclaration;
 import org.aspectj.org.eclipse.jdt.core.dom.CompilationUnit;
 import org.aspectj.org.eclipse.jdt.core.dom.EnumDeclaration;
+import org.aspectj.org.eclipse.jdt.core.dom.RecordDeclaration;
 import org.aspectj.org.eclipse.jdt.core.dom.SimpleName;
 import org.aspectj.org.eclipse.jdt.core.dom.StructuralPropertyDescriptor;
 import org.aspectj.org.eclipse.jdt.core.dom.TypeDeclaration;
@@ -75,6 +75,8 @@ protected StructuralPropertyDescriptor getChildPropertyDescriptor(ASTNode parent
 			return EnumDeclaration.BODY_DECLARATIONS_PROPERTY;
 		case ASTNode.ANNOTATION_TYPE_DECLARATION:
 			return AnnotationTypeDeclaration.BODY_DECLARATIONS_PROPERTY;
+		case ASTNode.RECORD_DECLARATION:
+			return RecordDeclaration.BODY_DECLARATIONS_PROPERTY;
 		default:
 			return TypeDeclaration.BODY_DECLARATIONS_PROPERTY;
 	}
@@ -83,7 +85,7 @@ protected StructuralPropertyDescriptor getChildPropertyDescriptor(ASTNode parent
 protected ASTNode generateElementAST(ASTRewrite rewriter, ICompilationUnit cu) throws JavaModelException {
 	if (this.createdNode == null) {
 		this.source = removeIndentAndNewLines(this.source, cu);
-		ASTParser parser = ASTParser.newParser(AST.JLS11);
+		ASTParser parser = ASTParser.newParser(getLatestASTLevel());
 		parser.setSource(this.source.toCharArray());
 		parser.setProject(getCompilationUnit().getJavaProject());
 		parser.setKind(ASTParser.K_CLASS_BODY_DECLARATIONS);
@@ -113,7 +115,7 @@ protected ASTNode generateElementAST(ASTRewrite rewriter, ICompilationUnit cu) t
 			SimpleName oldName = rename(this.createdNode, newName);
 			int nameStart = oldName.getStartPosition();
 			int nameEnd = nameStart + oldName.getLength();
-			StringBuffer newSource = new StringBuffer();
+			StringBuilder newSource = new StringBuilder();
 			if (this.source.equals(createdNodeSource)) {
 				newSource.append(createdNodeSource.substring(0, nameStart));
 				newSource.append(this.alteredName);
@@ -164,13 +166,13 @@ protected abstract SimpleName rename(ASTNode node, SimpleName newName);
  */
 protected String generateSyntaxIncorrectAST() {
 	//create some dummy source to generate an ast node
-	StringBuffer buff = new StringBuffer();
+	StringBuilder buff = new StringBuilder();
 	IType type = getType();
 	String lineSeparator = org.aspectj.org.eclipse.jdt.internal.core.util.Util.getLineSeparator(this.source, type == null ? null : type.getJavaProject());
 	buff.append(lineSeparator + " public class A {" + lineSeparator); //$NON-NLS-1$
 	buff.append(this.source);
 	buff.append(lineSeparator).append('}');
-	ASTParser parser = ASTParser.newParser(AST.JLS11);
+	ASTParser parser = ASTParser.newParser(getLatestASTLevel());
 	parser.setSource(buff.toString().toCharArray());
 	CompilationUnit compilationUnit = (CompilationUnit) parser.createAST(null);
 	TypeDeclaration typeDeclaration = (TypeDeclaration) compilationUnit.types().iterator().next();

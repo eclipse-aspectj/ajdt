@@ -1,14 +1,14 @@
 /* *******************************************************************
- * Copyright (c) 1999-2001 Xerox Corporation, 
+ * Copyright (c) 1999-2001 Xerox Corporation,
  *               2002 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     PARC     initial implementation
  * ******************************************************************/
 
 package org.aspectj.ajdt.internal.core.builder;
@@ -42,8 +42,8 @@ public class EmacsStructureModelManager {
 		try {
 			// Set fileSet = StructureModelManager.INSTANCE.getStructureModel().getFileMap().entrySet();
 			Set fileSet = model.getHierarchy().getFileMapEntrySet();
-			for (Iterator it = fileSet.iterator(); it.hasNext();) {
-				IProgramElement peNode = (IProgramElement) ((Map.Entry) it.next()).getValue();
+			for (Object o : fileSet) {
+				IProgramElement peNode = (IProgramElement) ((Map.Entry) o).getValue();
 				dumpStructureToFile(peNode);
 			}
 		} catch (IOException ioe) {
@@ -95,9 +95,8 @@ public class EmacsStructureModelManager {
 
 		private void printDecls(IProgramElement node) {
 			print("(");
-			for (Iterator it = node.getChildren().iterator(); it.hasNext();) {
+			for (Object nodeObject : node.getChildren()) {
 				// this ignores relations on the compile unit
-				Object nodeObject = it.next();
 				// throw new RuntimeException("unimplemented");
 				// if (nodeObject instanceof IProgramElement) {
 				IProgramElement child = (IProgramElement) nodeObject;
@@ -176,7 +175,7 @@ public class EmacsStructureModelManager {
 				print("(");
 				print(") ");
 				print("(");
-				Iterator it3 = node.getChildren().iterator();
+				Iterator<IProgramElement> it3 = node.getChildren().iterator();
 				if (it3.hasNext()) {
 					while (it3.hasNext()) {
 						// this ignores relations on the compile unit

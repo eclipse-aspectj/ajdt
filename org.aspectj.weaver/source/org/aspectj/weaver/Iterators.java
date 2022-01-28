@@ -1,13 +1,13 @@
 /* *******************************************************************
  * Copyright (c) 2002 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     PARC     initial implementation
  * ******************************************************************/
 
 package org.aspectj.weaver;
@@ -46,7 +46,7 @@ public final class Iterators {
 	 */
 	public static <T> Filter<T> dupFilter() {
 		return new Filter<T>() {
-			final Set<T> seen = new HashSet<T>(); // should have weak ptrs?
+			final Set<T> seen = new HashSet<>(); // should have weak ptrs?
 
 			public Iterator<T> filter(final Iterator<T> in) {
 				return new Iterator<T>() {

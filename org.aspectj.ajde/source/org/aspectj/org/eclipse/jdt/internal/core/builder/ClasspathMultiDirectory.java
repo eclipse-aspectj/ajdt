@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -13,8 +13,11 @@
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.core.builder;
 
+import java.util.List;
+
 import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.CompilationResult;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
@@ -32,8 +35,9 @@ char[][] exclusionPatterns; // used by builders when walking source folders
 boolean hasIndependentOutputFolder; // if output folder is not equal to any of the source folders
 public boolean ignoreOptionalProblems;
 
-ClasspathMultiDirectory(IContainer sourceFolder, IContainer binaryFolder, char[][] inclusionPatterns, char[][] exclusionPatterns, boolean ignoreOptionalProblems) {
-	super(binaryFolder, true, null, null, false /* source never an automatic module*/);
+ClasspathMultiDirectory(IContainer sourceFolder, IContainer binaryFolder, char[][] inclusionPatterns, char[][] exclusionPatterns,
+		boolean ignoreOptionalProblems, IPath externalAnnotationPath, List<ClasspathLocation> allExternalAnnotationPaths) {
+	super(binaryFolder, true, null, externalAnnotationPath, allExternalAnnotationPaths, false /* source never an automatic module*/);
 
 	this.sourceFolder = sourceFolder;
 	this.inclusionPatterns = inclusionPatterns;
@@ -58,7 +62,7 @@ public boolean equals(Object o) {
 //	if (this.module != md.module)
 //		if (this.module == null || !this.module.equals(md.module))
 //			return false;
-	return this.ignoreOptionalProblems == md.ignoreOptionalProblems 
+	return this.ignoreOptionalProblems == md.ignoreOptionalProblems
 		&& this.sourceFolder.equals(md.sourceFolder) && this.binaryFolder.equals(md.binaryFolder)
 		&& CharOperation.equals(this.inclusionPatterns, md.inclusionPatterns)
 		&& CharOperation.equals(this.exclusionPatterns, md.exclusionPatterns);
@@ -82,12 +86,36 @@ String[] directoryList(String qualifiedPackageName) {
 			IResource[] members = ((IContainer) container).members();
 			dirList = new String[members.length];
 			int index = 0;
-			for (int i = 0, l = members.length; i < l; i++) {
-				IResource m = members[i];
-				String name = m.getName();
-				if (m.getType() == IResource.FILE && org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.isClassFileName(name)) {
-					// add exclusion pattern check here if we want to hide .class files
-					dirList[index++] = name;
+			boolean foundClass = false;
+			if (members.length > 0) {
+				for (int i = 0, l = members.length; i < l; i++) {
+					IResource m = members[i];
+					String name = m.getName();
+					boolean isClass = m.getType() == IResource.FILE && org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.isClassFileName(name);
+					if (m.getType() == IResource.FOLDER || isClass) {
+						// add exclusion pattern check here if we want to hide .class files
+						dirList[index++] = name;
+						foundClass |= isClass;
+					}
+				}
+			}
+			if(!foundClass) {
+				container = this.sourceFolder.findMember(qualifiedPackageName);
+				if (container instanceof IContainer) {
+					members = ((IContainer) container).members();
+					if (members.length > 0) {
+						dirList = new String[members.length];
+						index = 0;
+						for (int i = 0, l = members.length; i < l; i++) {
+							IResource m = members[i];
+							String name = m.getName();
+							if (m.getType() == IResource.FOLDER
+									|| (m.getType() == IResource.FILE && org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.isJavaFileName(name))) {
+								// FIXME: check if .java file has any declarations?
+								dirList[index++] = name;
+							}
+						}
+					}
 				}
 			}
 			if (index < dirList.length)

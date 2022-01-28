@@ -1,14 +1,14 @@
 /* *******************************************************************
- * Copyright (c) 1999-2001 Xerox Corporation, 
+ * Copyright (c) 1999-2001 Xerox Corporation,
  *               2002 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     Xerox/PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     Xerox/PARC     initial implementation
  *     Mik Kersten	  port to AspectJ 1.1+ code base
  * ******************************************************************/
 
@@ -24,8 +24,8 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -40,7 +40,7 @@ import org.aspectj.util.LangUtil;
 /**
  * This is an old implementation of ajdoc that does not use an OO style. However, it does the job, and should serve to evolve a
  * lightweight ajdoc implementation until we can make a properly extended javadoc implementation.
- * 
+ *
  * @author Mik Kersten
  */
 public class Main implements Config {
@@ -86,13 +86,13 @@ public class Main implements Config {
 	private static String outputWorkingDir = Config.WORKING_DIR;
 
 	public static void clearState() {
-		options = new Vector<String>();
-		ajcOptions = new Vector<String>();
-		filenames = new Vector<String>();
-		fileList = new Vector<String>();
-		packageList = new Vector<String>();
+		options = new Vector<>();
+		ajcOptions = new Vector<>();
+		filenames = new Vector<>();
+		fileList = new Vector<>();
+		packageList = new Vector<>();
 		docModifier = "package";
-		sourcepath = new Vector<String>();
+		sourcepath = new Vector<>();
 		verboseMode = false;
 		packageMode = false;
 		rootDir = null;
@@ -104,11 +104,6 @@ public class Main implements Config {
 
 	public static void main(String[] args) {
 		clearState();
-		if (!JavadocRunner.has14ToolsAvailable()) {
-			System.err.println("ajdoc requires a JDK 1.4 or later tools jar - exiting");
-			aborted = true;
-			return;
-		}
 
 		// STEP 1: parse the command line and do other global setup
 		sourcepath.addElement("."); // add the current directory to the classapth
@@ -161,6 +156,8 @@ public class Main implements Config {
 			System.out.println("> Finished.");
 		} catch (Throwable e) {
 			handleInternalError(e);
+			// TODO: Is this really necessary? Why not just re-throw the exception after logging the error message?
+			//       This interrupts tests, making them exit hard, eg. stopping a whole Maven build somewhere in the middle.
 			exit(-2);
 		}
 	}
@@ -170,15 +167,15 @@ public class Main implements Config {
 	 * package-summary properly.
 	 */
 	private static void packageHTML(AsmManager model, File[] inputFiles) throws IOException {
-		ArrayList<String> dirList = new ArrayList<String>();
-		for (int i = 0; i < inputFiles.length; i++) {
-			String packageName = StructureUtil.getPackageDeclarationFromFile(model, inputFiles[i]);
+		List<String> dirList = new ArrayList<>();
+		for (File inputFile : inputFiles) {
+			String packageName = StructureUtil.getPackageDeclarationFromFile(model, inputFile);
 			// Only copy the package.html file once.
 			if (dirList.contains(packageName))
 				continue;
 
 			// Check to see if there exist a package.html file for this package.
-			String dir = inputFiles[i].getAbsolutePath().substring(0, inputFiles[i].getAbsolutePath().lastIndexOf(File.separator));
+			String dir = inputFile.getAbsolutePath().substring(0, inputFile.getAbsolutePath().lastIndexOf(File.separator));
 			File input = new File(dir + Config.DIR_SEP_CHAR + "package.html");
 			File inDir = new File(dir + Config.DIR_SEP_CHAR + "doc-files");
 			// If it does not exist lets go to the next package.
@@ -226,8 +223,8 @@ public class Main implements Config {
 		for (; i < ajcOptions.size(); i++) {
 			argsToCompiler[i] = ajcOptions.elementAt(i);
 		}
-		for (int j = 0; j < inputFiles.length; j++) {
-			argsToCompiler[i] = inputFiles[j].getAbsolutePath();
+		for (File inputFile : inputFiles) {
+			argsToCompiler[i] = inputFile.getAbsolutePath();
 			// System.out.println(">> file to ajc: " + inputFiles[j].getAbsolutePath());
 			i++;
 		}
@@ -239,7 +236,7 @@ public class Main implements Config {
 		System.out.println("> Calling javadoc...");
 		String[] javadocargs = null;
 
-		List<String> files = new ArrayList<String>();
+		List<String> files = new ArrayList<>();
 		if (packageMode) {
 			int numExtraArgs = 2;
 			if (authorStandardDocletSwitch)
@@ -267,11 +264,9 @@ public class Main implements Config {
 			for (int k = 0; k < fileList.size(); k++) {
 				javadocargs[numExtraArgs + options.size() + packageList.size() + k] = fileList.elementAt(k);
 			}
-			if (LangUtil.is19VMOrGreater()) {
-				options = new Vector<String>();
-				for (String a: javadocargs) {
-					options.add(a);
-				}
+			if (LangUtil.is9VMOrGreater()) {
+				options = new Vector<>();
+				Collections.addAll(options, javadocargs);
 			}
 		} else {
 			javadocargs = new String[options.size() + signatureFiles.length];
@@ -281,11 +276,11 @@ public class Main implements Config {
 			for (int k = 0; k < signatureFiles.length; k++) {
 				javadocargs[options.size() + k] = StructureUtil.translateAjPathName(signatureFiles[k].getCanonicalPath());
 			}
-			for (int k = 0; k < signatureFiles.length; k++) {
-				files.add(StructureUtil.translateAjPathName(signatureFiles[k].getCanonicalPath()));
+			for (File signatureFile : signatureFiles) {
+				files.add(StructureUtil.translateAjPathName(signatureFile.getCanonicalPath()));
 			}
 		}
-		if (LangUtil.is19VMOrGreater()) {
+		if (LangUtil.is9VMOrGreater()) {
 			JavadocRunner.callJavadocViaToolProvider(options, files);
 		} else {
 			JavadocRunner.callJavadoc(javadocargs);
@@ -321,8 +316,8 @@ public class Main implements Config {
 					return f.getName().equals("package-summary.html");
 				}
 			});
-			for (int j = 0; j < files.length; j++) {
-				removeDeclIDsFromFile(files[j].getAbsolutePath(), false);
+			for (File file : files) {
+				removeDeclIDsFromFile(file.getAbsolutePath(), false);
 			}
 		}
 	}
@@ -339,7 +334,7 @@ public class Main implements Config {
 			if (indexFile.exists()) {
 				BufferedReader indexFileReader = new BufferedReader(new FileReader(indexFile));
 				// StringBuffer greatly reduces the time it takes to remove generated tags
-				StringBuffer indexFileBuffer = new StringBuffer((int) indexFile.length());
+				StringBuilder indexFileBuffer = new StringBuilder((int) indexFile.length());
 				String line = indexFileReader.readLine();
 				while (line != null) {
 					int indexStart = line.indexOf(Config.DECL_ID_STRING);
@@ -362,7 +357,7 @@ public class Main implements Config {
 	}
 
 	static Vector<String> getSourcePath() {
-		Vector<String> sourcePath = new Vector<String>();
+		Vector<String> sourcePath = new Vector<>();
 		boolean found = false;
 		for (int i = 0; i < options.size(); i++) {
 			String currOption = options.elementAt(i);
@@ -471,15 +466,15 @@ public class Main implements Config {
 				String line = "";
 				line = br.readLine();
 				StringTokenizer st = new StringTokenizer(line, " ");
-				List<String> argList = new ArrayList<String>();
+				List<String> argList = new ArrayList<>();
 				while (st.hasMoreElements()) {
 					argList.add(st.nextToken());
 				}
 				// System.err.println(argList);
 				args = new String[argList.size()];
 				int counter = 0;
-				for (Iterator<String> it = argList.iterator(); it.hasNext();) {
-					args[counter] = it.next();
+				for (String s : argList) {
+					args[counter] = s;
 					counter++;
 				}
 			} catch (FileNotFoundException e) {
@@ -490,7 +485,7 @@ public class Main implements Config {
 				ioe.printStackTrace();
 			}
 		}
-		List<String> vargs = new LinkedList<String>(Arrays.asList(args));
+		List<String> vargs = new LinkedList<>(Arrays.asList(args));
 		vargs.add("-Xset:minimalModel=false");
 		parseArgs(vargs, new File(".")); // !!!
 
@@ -530,8 +525,8 @@ public class Main implements Config {
 		if (vargs.size() == 0) {
 			displayHelpAndExit(null);
 		}
-		for (int i = 0; i < vargs.size(); i++) {
-			String arg = (String) vargs.get(i);
+		for (Object varg : vargs) {
+			String arg = (String) varg;
 			ignoreArg = false;
 			if (addNextAsDocDir) {
 				docDir = arg;
@@ -694,16 +689,16 @@ public class Main implements Config {
 									int index2 = name.length();
 									if ((index1 >= 0 && index2 >= 0)
 											&& (name.substring(index1, index2).equals(".java") || name.substring(index1, index2)
-													.equals(".aj"))) {
+											.equals(".aj"))) {
 										return true;
 									} else {
 										return false;
 									}
 								}
 							});
-							for (int j = 0; j < files.length; j++) {
+							for (String file : files) {
 								filenames.addElement(sourcepath.elementAt(c) + Config.DIR_SEP_CHAR + arg
-										+ Config.DIR_SEP_CHAR + files[j]);
+										+ Config.DIR_SEP_CHAR + file);
 							}
 						} else if (c == sourcepath.size()) { // last element on classpath
 							System.out.println("ajdoc: No package, class, or source file " + "found named " + arg + ".");
@@ -722,7 +717,7 @@ public class Main implements Config {
 	}
 
 	static void expandAtSignFile(String filename, File currentWorkingDir) {
-		List<String> result = new LinkedList<String>();
+		List<String> result = new LinkedList<>();
 
 		File atFile = qualifiedFile(filename, currentWorkingDir);
 		String atFileParent = atFile.getParent();
@@ -786,9 +781,9 @@ public class Main implements Config {
 	/* This section of code handles errors that occur during compilation */
 	static final String internalErrorMessage = "                                                                  \n"
 			+ "If this has not already been logged as a bug raised please raise  \n"
-			+ "a new AspectJ bug at https://bugs.eclipse.org/bugs including the  \n"
-			+ "text below. To make the bug a priority, please also include a test\n"
-			+ "program that can reproduce this problem.\n ";
+			+ "a new AspectJ bug at https://github.com/eclipse/org.aspectj/issues \n"
+			+ "including the text below. To make the bug a priority, please also \n"
+			+ "include a test program that can reproduce this problem.\n ";
 
 	static public void handleInternalError(Throwable uncaughtThrowable) {
 		System.err.println("An internal error occured in ajdoc");
@@ -815,7 +810,7 @@ public class Main implements Config {
 	}
 
 	/**
-	 * Sets the output working dir to be <fullyQualifiedOutputDir>\ajdocworkingdir Useful in testing to redirect the ajdocworkingdir
+	 * Sets the output working dir to be &lt;fullyQualifiedOutputDir&gt;\ajdocworkingdir. Useful in testing to redirect the ajdocworkingdir
 	 * to the sandbox
 	 */
 	public static void setOutputWorkingDir(String fullyQulifiedOutputDir) {
@@ -827,7 +822,7 @@ public class Main implements Config {
 	}
 
 	/**
-	 * Resets the output working dir to be the default which is <the current directory>\ajdocworkingdir
+	 * Resets the output working dir to be the default which is &lt;the current directory&gt;\ajdocworkingdir
 	 */
 	public static void resetOutputWorkingDir() {
 		outputWorkingDir = Config.WORKING_DIR;

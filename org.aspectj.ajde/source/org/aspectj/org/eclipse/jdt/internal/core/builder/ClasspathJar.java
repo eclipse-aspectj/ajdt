@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -18,6 +18,9 @@ package org.aspectj.org.eclipse.jdt.internal.core.builder;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.function.Predicate;
@@ -34,11 +37,11 @@ import org.aspectj.org.eclipse.jdt.core.JavaCore;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileReader;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFormatException;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ExternalAnnotationDecorator;
+import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ExternalAnnotationProvider;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.AccessRuleSet;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryType;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IModule;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.NameEnvironmentAnswer;
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BinaryTypeBinding.ExternalAnnotationStatus;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.SimpleLookupTable;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.SimpleSet;
@@ -47,6 +50,7 @@ import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
 
 @SuppressWarnings("rawtypes")
 public class ClasspathJar extends ClasspathLocation {
+final boolean isOnModulePath;
 
 static class PackageCacheEntry {
 	long lastModified;
@@ -145,16 +149,13 @@ IModule initializeModule() {
 String zipFilename; // keep for equals
 IFile resource;
 ZipFile zipFile;
-ZipFile annotationZipFile;
 long lastModified;
 boolean closeZipFileAtEnd;
 private SimpleSet knownPackageNames;
-AccessRuleSet accessRuleSet;
-String externalAnnotationPath;
 // Meant for ClasspathMultiReleaseJar, not used in here
 String compliance;
 
-ClasspathJar(IFile resource, AccessRuleSet accessRuleSet, IPath externalAnnotationPath, boolean isOnModulePath) {
+ClasspathJar(IFile resource, AccessRuleSet accessRuleSet, IPath externalAnnotationPath, Collection<ClasspathLocation> allLocationsForEEA, boolean isOnModulePath) {
 	this.resource = resource;
 	try {
 		java.net.URI location = resource.getLocationURI();
@@ -166,12 +167,14 @@ ClasspathJar(IFile resource, AccessRuleSet accessRuleSet, IPath externalAnnotati
 		}
 	} catch (CoreException e) {
 		// ignore
+		this.zipFilename = ""; //$NON-NLS-1$
 	}
 	this.zipFile = null;
 	this.knownPackageNames = null;
 	this.accessRuleSet = accessRuleSet;
 	if (externalAnnotationPath != null)
 		this.externalAnnotationPath = externalAnnotationPath.toString();
+	this.allLocationsForEEA = allLocationsForEEA;
 	this.isOnModulePath = isOnModulePath;
 }
 
@@ -248,7 +251,7 @@ public boolean equals(Object o) {
 	if (!Util.equalOrNull(this.compliance, jar.compliance)) {
 		return false;
 	}
-	return this.zipFilename.equals(jar.zipFilename) 
+	return this.zipFilename.equals(jar.zipFilename)
 			&& lastModified() == jar.lastModified()
 			&& this.isOnModulePath == jar.isOnModulePath
 			&& areAllModuleOptionsEqual(jar);
@@ -270,31 +273,9 @@ public NameEnvironmentAnswer findClass(String binaryFileName, String qualifiedPa
 					modName = classReader.moduleName;
 				}
 			String fileNameWithoutExtension = qualifiedBinaryFileName.substring(0, qualifiedBinaryFileName.length() - SuffixConstants.SUFFIX_CLASS.length);
-			if (this.externalAnnotationPath != null) {
-				try {
-					if (this.annotationZipFile == null) {
-						this.annotationZipFile = ExternalAnnotationDecorator
-								.getAnnotationZipFile(this.externalAnnotationPath, null);
-					}
-
-					reader = ExternalAnnotationDecorator.create(reader, this.externalAnnotationPath,
-							fileNameWithoutExtension, this.annotationZipFile);
-				} catch (IOException e) {
-					// don't let error on annotations fail class reading
-				}
-				if (reader.getExternalAnnotationStatus() == ExternalAnnotationStatus.NOT_EEA_CONFIGURED) {
-					// ensure a reader that answers NO_EEA_FILE
-					reader = new ExternalAnnotationDecorator(reader, null);
-				}
-			}
-			if (this.accessRuleSet == null)
-				return new NameEnvironmentAnswer(reader, null, modName);
-			return new NameEnvironmentAnswer(reader, 
-					this.accessRuleSet.getViolatedRestriction(fileNameWithoutExtension.toCharArray()), 
-					modName);
+			return createAnswer(fileNameWithoutExtension, reader, modName);
 		}
-	} catch (IOException e) { // treat as if class file is missing
-	} catch (ClassFormatException e) { // treat as if class file is missing
+	} catch (IOException | ClassFormatException e) { // treat as if class file is missing
 	}
 	return null;
 }
@@ -322,11 +303,25 @@ public boolean isPackage(String qualifiedPackageName, String moduleName) {
 }
 @Override
 public boolean hasCompilationUnit(String pkgName, String moduleName) {
-	for (Enumeration<? extends ZipEntry> e = this.zipFile.entries(); e.hasMoreElements(); ) {
-		String fileName = e.nextElement().getName();
-		if (fileName.startsWith(pkgName) && fileName.toLowerCase().endsWith(SuffixConstants.SUFFIX_STRING_class))
-			return true;
-	}	
+	if (scanContent()) {
+		if (!this.knownPackageNames.includes(pkgName)) {
+			// Don't waste time walking through the zip if we know that it doesn't
+			// contain a directory that matches pkgName
+			return false;
+		}
+
+		// Even if knownPackageNames contained the pkg we're looking for, we still need to verify
+		// that the package in this jar actually contains at least one .class file (since
+		// knownPackageNames includes empty packages)
+		for (Enumeration<? extends ZipEntry> e = this.zipFile.entries(); e.hasMoreElements(); ) {
+			String fileName = e.nextElement().getName();
+			if (fileName.startsWith(pkgName)
+					&& fileName.toLowerCase().endsWith(SuffixConstants.SUFFIX_STRING_class)
+					&& fileName.indexOf('/', pkgName.length()+1) == -1)
+				return true;
+		}
+	}
+
 	return false;
 }
 
@@ -381,19 +376,53 @@ public IModule getModule() {
 
 @Override
 public NameEnvironmentAnswer findClass(String typeName, String qualifiedPackageName, String moduleName, String qualifiedBinaryFileName) {
-	// 
+	//
 	return findClass(typeName, qualifiedPackageName, moduleName, qualifiedBinaryFileName, false, null);
 }
 public Manifest getManifest() {
 	if (!scanContent()) // ensure zipFile is initialized
 		return null;
 	ZipEntry entry = this.zipFile.getEntry(TypeConstants.META_INF_MANIFEST_MF);
-	try {
-		if (entry != null)
-			return new Manifest(this.zipFile.getInputStream(entry));
+	if (entry == null) {
+		return null;
+	}
+	try(InputStream is = this.zipFile.getInputStream(entry)) {
+		return new Manifest(is);
 	} catch (IOException e) {
 		// cannot use manifest
 	}
 	return null;
+}
+@Override
+public char[][] listPackages() {
+	if (!scanContent()) // ensure zipFile is initialized
+		return null;
+	char[][] result = new char[this.knownPackageNames.elementSize][];
+	int count = 0;
+	for (int i=0; i<this.knownPackageNames.values.length; i++) {
+		String string = (String) this.knownPackageNames.values[i];
+		if (string != null &&!string.isEmpty()) {
+			result[count++] = string.replace('/', '.').toCharArray();
+		}
+	}
+	if (count < result.length)
+		return Arrays.copyOf(result, count);
+	return result;
+}
+
+@Override
+protected IBinaryType decorateWithExternalAnnotations(IBinaryType reader, String fileNameWithoutExtension) {
+	if (scanContent()) { // ensure zipFile is initialized
+		String qualifiedBinaryFileName = fileNameWithoutExtension + ExternalAnnotationProvider.ANNOTATION_FILE_SUFFIX;
+		ZipEntry entry = this.zipFile.getEntry(qualifiedBinaryFileName);
+		if (entry != null) {
+			try(InputStream is = this.zipFile.getInputStream(entry)) {
+				return new ExternalAnnotationDecorator(reader, new ExternalAnnotationProvider(is, fileNameWithoutExtension));
+			} catch (IOException e) {
+				// ignore
+			}
+		}
+	}
+	return reader; // undecorated
 }
 }

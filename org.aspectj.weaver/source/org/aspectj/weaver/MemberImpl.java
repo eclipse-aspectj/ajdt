@@ -1,13 +1,13 @@
 /* *******************************************************************
  * Copyright (c) 2002 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     PARC     initial implementation
  * ******************************************************************/
 
 package org.aspectj.weaver;
@@ -98,7 +98,7 @@ public class MemberImpl implements Member {
 	// ---- utility methods
 
 	/**
-	 * Build a signature based on the return type and parameter types. For example: "(Ljava/util/Set<Ljava/lang/String;>;)V" or
+	 * Build a signature based on the return type and parameter types. For example: "(Ljava/util/Set&lt;Ljava/lang/String;&gt;;)V" or
 	 * "(Ljava/util/Set;)V". The latter form shows what happens when the generics are erased
 	 */
 	public static String typesToSignature(UnresolvedType returnType, UnresolvedType[] paramTypes, boolean eraseGenerics) {
@@ -121,14 +121,14 @@ public class MemberImpl implements Member {
 	}
 
 	/**
-	 * Returns "(<signaturesOfParamTypes>,...)" - unlike the other typesToSignature that also includes the return type, this one
+	 * Returns "(&lt;signaturesOfParamTypes&gt;,...)" - unlike the other typesToSignature that also includes the return type, this one
 	 * just deals with the parameter types.
 	 */
 	public static String typesToSignature(UnresolvedType[] paramTypes) {
-		StringBuffer buf = new StringBuffer();
+		StringBuilder buf = new StringBuilder();
 		buf.append("(");
-		for (int i = 0; i < paramTypes.length; i++) {
-			buf.append(paramTypes[i].getSignature());
+		for (UnresolvedType paramType : paramTypes) {
+			buf.append(paramType.getSignature());
 		}
 		buf.append(")");
 		return buf.toString();
@@ -138,24 +138,24 @@ public class MemberImpl implements Member {
 	 * returns an Object[] pair of UnresolvedType, UnresolvedType[] representing return type, argument types parsed from the JVM
 	 * bytecode signature of a method. Yes, this should actually return a nice statically-typed pair object, but we don't have one
 	 * of those.
-	 * 
+	 *
 	 * <blockquote>
-	 * 
+	 *
 	 * <pre>
 	 *   UnresolvedType.signatureToTypes(&quot;()[Z&quot;)[0].equals(Type.forSignature(&quot;[Z&quot;))
 	 *   UnresolvedType.signatureToTypes(&quot;(JJ)I&quot;)[1]
 	 *      .equals(UnresolvedType.forSignatures(new String[] {&quot;J&quot;, &quot;J&quot;}))
 	 * </pre>
-	 * 
+	 *
 	 * </blockquote>
-	 * 
+	 *
 	 * @param erasedSignature the JVM bytecode method signature string we want to break apart
 	 * @return a pair of UnresolvedType, UnresolvedType[] representing the return types and parameter types.
 	 */
 	private static Object[] signatureToTypes(String sig) {
 		boolean hasParameters = sig.charAt(1) != ')';
 		if (hasParameters) {
-			List<UnresolvedType> l = new ArrayList<UnresolvedType>();
+			List<UnresolvedType> l = new ArrayList<>();
 			int i = 1;
 			boolean hasAnyAnglies = sig.indexOf('<') != -1;
 			while (true) {
@@ -211,7 +211,7 @@ public class MemberImpl implements Member {
 					l.add(UnresolvedType.forSignature(sig.substring(start, i)));
 				}
 			}
-			UnresolvedType[] paramTypes = l.toArray(new UnresolvedType[l.size()]);
+			UnresolvedType[] paramTypes = l.toArray(UnresolvedType.NONE);
 			UnresolvedType returnType = UnresolvedType.forSignature(sig.substring(i + 1, sig.length()));
 			return new Object[] { returnType, paramTypes };
 		} else {
@@ -316,7 +316,7 @@ public class MemberImpl implements Member {
 
 	@Override
 	public String toString() {
-		StringBuffer buf = new StringBuffer();
+		StringBuilder buf = new StringBuilder();
 		buf.append(returnType.getName());
 		buf.append(' ');
 		if (declaringType == null) {
@@ -442,7 +442,7 @@ public class MemberImpl implements Member {
 
 	public Collection<ResolvedType> getDeclaringTypes(World world) {
 		ResolvedType myType = getDeclaringType().resolve(world);
-		Collection<ResolvedType> ret = new HashSet<ResolvedType>();
+		Collection<ResolvedType> ret = new HashSet<>();
 		if (kind == CONSTRUCTOR) {
 			// this is wrong if the member doesn't exist, but that doesn't
 			// matter

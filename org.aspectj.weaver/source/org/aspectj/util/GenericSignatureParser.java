@@ -1,11 +1,11 @@
 /* *******************************************************************
  * Copyright (c) 2005-2008 Contributors.
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://eclipse.org/legal/epl-v10.html 
- *  
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
  * ******************************************************************/
 package org.aspectj.util;
 
@@ -25,7 +25,7 @@ import org.aspectj.util.GenericSignature.TypeVariableSignature;
 
 /**
  * Parses the generic signature attribute as defined in the JVM spec.
- * 
+ *
  * @author Adrian Colyer
  * @author Andy Clement
  */
@@ -46,7 +46,7 @@ public class GenericSignatureParser {
 		GenericSignature.ClassSignature classSig = new GenericSignature.ClassSignature();
 		// FormalTypeParameters-opt
 		if (maybeEat("<")) {
-			List<FormalTypeParameter> formalTypeParametersList = new ArrayList<FormalTypeParameter>();
+			List<FormalTypeParameter> formalTypeParametersList = new ArrayList<>();
 			do {
 				formalTypeParametersList.add(parseFormalTypeParameter());
 			} while (!maybeEat(">"));
@@ -54,7 +54,7 @@ public class GenericSignatureParser {
 			formalTypeParametersList.toArray(classSig.formalTypeParameters);
 		}
 		classSig.superclassSignature = parseClassTypeSignature();
-		List<ClassTypeSignature> superIntSigs = new ArrayList<ClassTypeSignature>();
+		List<ClassTypeSignature> superIntSigs = new ArrayList<>();
 		while (tokenIndex < tokenStream.length) {
 			superIntSigs.add(parseClassTypeSignature());
 		}
@@ -71,11 +71,11 @@ public class GenericSignatureParser {
 		this.inputString = sig;
 		tokenStream = tokenize(sig);
 		tokenIndex = 0;
-		FormalTypeParameter[] formals = new FormalTypeParameter[0];
+		FormalTypeParameter[] formals = FormalTypeParameter.NONE;
 		TypeSignature returnType = null;
 		// FormalTypeParameters-opt
 		if (maybeEat("<")) {
-			List<FormalTypeParameter> formalTypeParametersList = new ArrayList<FormalTypeParameter>();
+			List<FormalTypeParameter> formalTypeParametersList = new ArrayList<>();
 			do {
 				formalTypeParametersList.add(parseFormalTypeParameter());
 			} while (!maybeEat(">"));
@@ -84,7 +84,7 @@ public class GenericSignatureParser {
 		}
 		// Parameters
 		eat("(");
-		List<TypeSignature> paramList = new ArrayList<TypeSignature>();
+		List<TypeSignature> paramList = new ArrayList<>();
 		while (!maybeEat(")")) {
 			FieldTypeSignature fsig = parseFieldTypeSignature(true);
 			if (fsig != null) {
@@ -100,7 +100,7 @@ public class GenericSignatureParser {
 		if (returnType == null)
 			returnType = new GenericSignature.BaseTypeSignature(eatIdentifier());
 		// throws
-		List<FieldTypeSignature> throwsList = new ArrayList<FieldTypeSignature>();
+		List<FieldTypeSignature> throwsList = new ArrayList<>();
 		while (maybeEat("^")) {
 			FieldTypeSignature fsig = parseFieldTypeSignature(false);
 			throwsList.add(fsig);
@@ -132,7 +132,7 @@ public class GenericSignatureParser {
 			ftp.classBound = new ClassTypeSignature("Ljava/lang/Object;", "Ljava/lang/Object");
 		}
 		// Optional InterfaceBounds
-		List<FieldTypeSignature> optionalBounds = new ArrayList<FieldTypeSignature>();
+		List<FieldTypeSignature> optionalBounds = new ArrayList<>();
 		while (maybeEat(":")) {
 			optionalBounds.add(parseFieldTypeSignature(false));
 		}
@@ -176,7 +176,7 @@ public class GenericSignatureParser {
 	private ClassTypeSignature parseClassTypeSignature() {
 		SimpleClassTypeSignature outerType = null;
 		SimpleClassTypeSignature[] nestedTypes = new SimpleClassTypeSignature[0];
-		StringBuffer ret = new StringBuffer();
+		StringBuilder ret = new StringBuilder();
 		String identifier = eatIdentifier();
 		ret.append(identifier);
 		while (maybeEat("/")) {
@@ -194,8 +194,8 @@ public class GenericSignatureParser {
 			} else if (tokenStream[tokenIndex].equals("<")) {
 				ret.append("<");
 				TypeArgument[] tArgs = maybeParseTypeArguments();
-				for (int i = 0; i < tArgs.length; i++) {
-					ret.append(tArgs[i].toString());
+				for (TypeArgument tArg : tArgs) {
+					ret.append(tArg.toString());
 				}
 				ret.append(">");
 				outerType = new SimpleClassTypeSignature(identifier, tArgs);
@@ -215,10 +215,10 @@ public class GenericSignatureParser {
 	 * Helper method to digest nested types, slightly more complex than necessary to cope with some android related
 	 * incorrect classes (see bug 406167)
 	 */
-	private SimpleClassTypeSignature[] parseNestedTypesHelper(StringBuffer ret) {
+	private SimpleClassTypeSignature[] parseNestedTypesHelper(StringBuilder ret) {
 		boolean brokenSignature = false;
 		SimpleClassTypeSignature[] nestedTypes;
-		List<SimpleClassTypeSignature> nestedTypeList = new ArrayList<SimpleClassTypeSignature>();
+		List<SimpleClassTypeSignature> nestedTypeList = new ArrayList<>();
 		while (maybeEat(".")) {
 			ret.append(".");
 			SimpleClassTypeSignature sig = parseSimpleClassTypeSignature();
@@ -270,7 +270,7 @@ public class GenericSignatureParser {
 
 	private TypeArgument[] maybeParseTypeArguments() {
 		if (maybeEat("<")) {
-			List<TypeArgument> typeArgs = new ArrayList<TypeArgument>();
+			List<TypeArgument> typeArgs = new ArrayList<>();
 			do {
 				TypeArgument arg = parseTypeArgument();
 				typeArgs.add(arg);
@@ -317,8 +317,8 @@ public class GenericSignatureParser {
 	public String[] tokenize(String signatureString) {
 		char[] chars = signatureString.toCharArray();
 		int index = 0;
-		List<String> tokens = new ArrayList<String>();
-		StringBuffer identifier = new StringBuffer();
+		List<String> tokens = new ArrayList<>();
+		StringBuilder identifier = new StringBuilder();
 		boolean inParens = false;
 		boolean inArray = false;
 		boolean couldSeePrimitive = false;
@@ -327,32 +327,32 @@ public class GenericSignatureParser {
 			case '<':
 				if (identifier.length() > 0)
 					tokens.add(identifier.toString());
-				identifier = new StringBuffer();
+				identifier = new StringBuilder();
 				tokens.add("<");
 				break;
 			case '>':
 				if (identifier.length() > 0)
 					tokens.add(identifier.toString());
-				identifier = new StringBuffer();
+				identifier = new StringBuilder();
 				tokens.add(">");
 				break;
 			case ':':
 				if (identifier.length() > 0)
 					tokens.add(identifier.toString());
-				identifier = new StringBuffer();
+				identifier = new StringBuilder();
 				tokens.add(":");
 				break;
 			case '/':
 				if (identifier.length() > 0)
 					tokens.add(identifier.toString());
-				identifier = new StringBuffer();
+				identifier = new StringBuilder();
 				tokens.add("/");
 				couldSeePrimitive = false;
 				break;
 			case ';':
 				if (identifier.length() > 0)
 					tokens.add(identifier.toString());
-				identifier = new StringBuffer();
+				identifier = new StringBuilder();
 				tokens.add(";");
 				couldSeePrimitive = true;
 				inArray = false;
@@ -360,7 +360,7 @@ public class GenericSignatureParser {
 			case '^':
 				if (identifier.length() > 0)
 					tokens.add(identifier.toString());
-				identifier = new StringBuffer();
+				identifier = new StringBuilder();
 				tokens.add("^");
 				break;
 			case '+':
@@ -375,7 +375,7 @@ public class GenericSignatureParser {
 			case '.':
 				if (identifier.length() > 0)
 					tokens.add(identifier.toString());
-				identifier = new StringBuffer();
+				identifier = new StringBuilder();
 				couldSeePrimitive = false;
 				tokens.add(".");
 				break;

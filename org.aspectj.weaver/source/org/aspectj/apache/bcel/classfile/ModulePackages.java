@@ -62,7 +62,7 @@ import org.aspectj.apache.bcel.Constants;
 /**
  * Indicates all the packages of a module that are exported or opened by the module attribute.
  * http://cr.openjdk.java.net/~mr/jigsaw/spec/java-se-9-jvms-diffs.pdf 4.7.26
- * 
+ *
  * @author Andy Clement
  */
 public final class ModulePackages extends Attribute {
@@ -97,8 +97,8 @@ public final class ModulePackages extends Attribute {
 	public final void dump(DataOutputStream stream) throws IOException {
 		super.dump(stream);
 		stream.writeShort(packageIndices.length);
-		for (int i = 0; i < packageIndices.length; i++) {
-			stream.writeShort(packageIndices[i]);
+		for (int packageIndex : packageIndices) {
+			stream.writeShort(packageIndex);
 		}
 	}
 
@@ -116,9 +116,9 @@ public final class ModulePackages extends Attribute {
 
 	@Override
 	public final String toString() {
-		StringBuffer buf = new StringBuffer();
-		for (int i = 0; i < packageIndices.length; i++) {
-			buf.append(cpool.getPackageName(packageIndices[i]) + "\n");
+		StringBuilder buf = new StringBuilder();
+		for (int packageIndex : packageIndices) {
+			buf.append(cpool.getPackageName(packageIndex) + "\n");
 		}
 		return buf.toString();
 	}

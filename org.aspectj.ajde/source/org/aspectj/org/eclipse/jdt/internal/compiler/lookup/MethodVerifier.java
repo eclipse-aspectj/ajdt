@@ -44,7 +44,7 @@ public abstract class MethodVerifier extends ImplicitNullAnnotationVerifier {
 	SourceTypeBinding type;
 	HashtableOfObject inheritedMethods;
 	HashtableOfObject currentMethods;
-	/** 
+	/**
 	 * Methods that are to be considered inherited even though they are overridden somewhere in the
 	 * hierarchy - notably for bridge method generation
 	 */
@@ -207,9 +207,9 @@ void checkAgainstInheritedMethods(MethodBinding currentMethod, MethodBinding[] m
 			MethodBinding inheritedMethod = overridden[i];
 			if (isParameterSubsignature(currentMethod, inheritedMethod) &&
 					!inheritedMethod.isStatic() && !inheritedMethod.isFinal())
-		checkForBridgeMethod(currentMethod, inheritedMethod, allInheritedMethods);
+				checkForBridgeMethod(currentMethod, inheritedMethod, allInheritedMethods);
+		}
 	}
-}
 }
 void addBridgeMethodCandidate(MethodBinding overriddenMethod) {
 	MethodBinding[] existing = (MethodBinding[])this.inheritedOverriddenMethods.get(overriddenMethod.selector);
@@ -419,7 +419,7 @@ void checkInheritedMethods(MethodBinding[] methods, int length, boolean[] isOver
 	3. if concrete method exists, check to see if its return type is compatible with all others
 	   if it is then check concrete method against abstract methods
 	   if its not, then find most specific abstract method & report abstract method must be implemented since concrete method is insufficient
-	   if no most specific return type abstract method exists, then report incompatible return type with all inherited methods 
+	   if no most specific return type abstract method exists, then report incompatible return type with all inherited methods
 	*/
 
 	MethodBinding concreteMethod = this.type.isInterface() || methods[0].isAbstract() ? null : methods[0];
@@ -644,14 +644,14 @@ void computeInheritedMethods(ReferenceBinding superclass, ReferenceBinding[] sup
 	}
 
 	if (superIfcList.size() == 0) return;
-	
+
 	if (superIfcList.size() == 1) {
 		superInterfaces = new ReferenceBinding[] { (ReferenceBinding) superIfcList.get(0) };
 	} else {
 		superInterfaces = (ReferenceBinding[]) superIfcList.toArray(new ReferenceBinding[superIfcList.size()]);
 		superInterfaces = Sorting.sortTypes(superInterfaces);
 	}
-	
+
 	SimpleSet skip = findSuperinterfaceCollisions(superclass, superInterfaces);
 	int len = superInterfaces.length;
 	for (int i = len-1; i >= 0; i--) {
@@ -1075,7 +1075,7 @@ void verify(SourceTypeBinding someType) {
 
 @Override
 public String toString() {
-	StringBuffer buffer = new StringBuffer(10);
+	StringBuilder buffer = new StringBuilder(10);
 	buffer.append("MethodVerifier for type: "); //$NON-NLS-1$
 	buffer.append(this.type.readableName());
 	buffer.append('\n');

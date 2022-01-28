@@ -1,14 +1,14 @@
 /* *******************************************************************
- * Copyright (c) 1999-2001 Xerox Corporation, 
+ * Copyright (c) 1999-2001 Xerox Corporation,
  *               2002 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     Xerox/PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     Xerox/PARC     initial implementation
  * ******************************************************************/
 
 package org.aspectj.bridge;
@@ -22,7 +22,7 @@ import java.util.List;
  * listener/interceptor. The interceptor handles all messages (even null) first, and can halt further processing/accumlation by
  * returning true. Clients can obtain messages accumulated using the get... methods. XXX this does not permit messages to be
  * removed.
- * 
+ *
  * @author PARC
  * @author Andy Clement
  */
@@ -31,7 +31,7 @@ public class MessageHandler implements IMessageHolder {
 	/** messages accumulated */
 	protected final ArrayList<IMessage> messages;
 	/** kinds of messages to be ignored */
-	protected final ArrayList<IMessage.Kind> ignoring;
+	protected final List<IMessage.Kind> ignoring;
 	/** result of handleMessage(..) for messages not accumulated (ignored) */
 	protected boolean handleMessageResult;
 	/** listener which can halt processing by returning true */
@@ -48,8 +48,8 @@ public class MessageHandler implements IMessageHolder {
 	 * @param accumulateOnly the result of handleMessage (i.e., if true, then only accumulate messages - stop processing
 	 */
 	public MessageHandler(boolean accumulateOnly) {
-		messages = new ArrayList<IMessage>();
-		ignoring = new ArrayList<IMessage.Kind>();
+		messages = new ArrayList<>();
+		ignoring = new ArrayList<>();
 		init(accumulateOnly);
 		ignore(IMessage.WEAVEINFO); // Off by default, need to explicitly be enabled (see -showWeaveInfo)
 	}
@@ -64,7 +64,7 @@ public class MessageHandler implements IMessageHolder {
 
 	/**
 	 * Initialize this, removing any messages accumulated, kinds being ignored, or interceptor.
-	 * 
+	 *
 	 * @param accumulateOnly boolean value returned from handleMessage after accumulating in list
 	 */
 	public void init(boolean accumulateOnly) {
@@ -97,7 +97,7 @@ public class MessageHandler implements IMessageHolder {
 	/**
 	 * This implementation accumulates message. If an interceptor is installed and returns true (message handled), then processing
 	 * halts and the message is not accumulated.
-	 * 
+	 *
 	 * @see org.aspectj.bridge.IMessageHandler#handleMessage(IMessage)
 	 * @return true on interception or the constructor value otherwise
 	 */
@@ -199,7 +199,7 @@ public class MessageHandler implements IMessageHolder {
 
 	/**
 	 * Get all messages or those of a specific kind. Pass null to get all kinds.
-	 * 
+	 *
 	 * @param kind the IMessage.Kind expected, or null for all messages
 	 * @return IMessage[] of messages of the right kind
 	 */
@@ -207,7 +207,7 @@ public class MessageHandler implements IMessageHolder {
 		if (null == kind) {
 			return messages.toArray(IMessage.RA_IMessage);
 		}
-		ArrayList<IMessage> result = new ArrayList<IMessage>();
+		ArrayList<IMessage> result = new ArrayList<>();
 		if (!orGreater) {
 			for (IMessage m : messages) {
 				if (kind == m.getKind()) {
@@ -243,7 +243,7 @@ public class MessageHandler implements IMessageHolder {
 
 	/**
 	 * Set the interceptor which gets any message before we process it.
-	 * 
+	 *
 	 * @param interceptor the IMessageHandler passed the message. Pass null to remove the old interceptor.
 	 */
 	public void setInterceptor(IMessageHandler interceptor) {

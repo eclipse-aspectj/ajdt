@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2004, 2018 IBM Corporation and others.
+ * Copyright (c) 2004, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -7,7 +7,7 @@
  * https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -81,7 +81,6 @@ public class CompletionProposal {
 	 * the modifiers flags of the constructor that is referenced
 	 * </li>
 	 * </ul>
-	 * </p>
 	 *
 	 * @see #getKind()
 	 */
@@ -111,7 +110,6 @@ public class CompletionProposal {
 	 * is declared)
 	 * </li>
 	 * </ul>
-	 * </p>
 	 *
 	 * @see #getKind()
 	 */
@@ -133,7 +131,6 @@ public class CompletionProposal {
 	 * the corresponding modifier flags if the keyword is a modifier
 	 * </li>
 	 * </ul>
-	 * </p>
 	 *
 	 * @see #getKind()
 	 */
@@ -152,7 +149,6 @@ public class CompletionProposal {
 	 * the simple name of the label that is referenced
 	 * </li>
 	 * </ul>
-	 * </p>
 	 *
 	 * @see #getKind()
 	 */
@@ -177,7 +173,6 @@ public class CompletionProposal {
 	 * the type signature of the local variable's type
 	 * </li>
 	 * </ul>
-	 * </p>
 	 *
 	 * @see #getKind()
 	 */
@@ -205,7 +200,6 @@ public class CompletionProposal {
 	 * the method signature of the method that is referenced
 	 * </li>
 	 * </ul>
-	 * </p>
 	 *
 	 * @see #getKind()
 	 */
@@ -245,7 +239,6 @@ public class CompletionProposal {
 	 * overridden or implemented
 	 * </li>
 	 * </ul>
-	 * </p>
 	 *
 	 * @see #getKind()
 	 */
@@ -264,7 +257,6 @@ public class CompletionProposal {
 	 * the dot-based package name of the package that is referenced
 	 * </li>
 	 * </ul>
-	 * </p>
 	 *
 	 * @see #getKind()
 	 */
@@ -293,7 +285,6 @@ public class CompletionProposal {
 	 * and AccAnnotation) of the type that is referenced
 	 * </li>
 	 * </ul>
-	 * </p>
 	 *
 	 * @see #getKind()
 	 */
@@ -317,7 +308,6 @@ public class CompletionProposal {
 	 * the modifiers flags of the variable being declared
 	 * </li>
 	 * </ul>
-	 * </p>
 	 * @see #getKind()
 	 */
 	public static final int VARIABLE_DECLARATION = 10;
@@ -347,7 +337,6 @@ public class CompletionProposal {
 	 * created
 	 * </li>
 	 * </ul>
-	 * </p>
 	 *
 	 * @see #getKind()
      * @since 3.1
@@ -362,6 +351,7 @@ public class CompletionProposal {
 	 * <p>
 	 * The following additional context information is available
 	 * for this kind of completion proposal at little extra cost:
+	 * </p>
 	 * <ul>
 	 * <li>{@link #getDeclarationSignature()} -
 	 * the type signature of the type that declares the method that is referenced
@@ -376,7 +366,6 @@ public class CompletionProposal {
 	 * the method signature of the method that is referenced
 	 * </li>
 	 * </ul>
-	 * </p>
 	 *
 	 * @see #getKind()
      * @since 3.1
@@ -407,7 +396,6 @@ public class CompletionProposal {
 	 * is declared)
 	 * </li>
 	 * </ul>
-	 * </p>
 	 *
 	 * @see #getKind()
 	 * @since 3.1
@@ -438,7 +426,6 @@ public class CompletionProposal {
 	 * is declared)
 	 * </li>
 	 * </ul>
-	 * </p>
 	 *
 	 * @see #getKind()
 	 * @since 3.2
@@ -467,7 +454,6 @@ public class CompletionProposal {
 	 * the method signature of the method that is referenced
 	 * </li>
 	 * </ul>
-	 * </p>
 	 *
 	 * @see #getKind()
 	 * @since 3.2
@@ -497,7 +483,6 @@ public class CompletionProposal {
 	 * and AccAnnotation) of the type that is referenced
 	 * </li>
 	 * </ul>
-	 * </p>
 	 *
 	 * @see #getKind()
 	 * @since 3.2
@@ -528,7 +513,6 @@ public class CompletionProposal {
 	 * is declared)
 	 * </li>
 	 * </ul>
-	 * </p>
 	 *
 	 * @see #getKind()
 	 * @since 3.2
@@ -563,7 +547,6 @@ public class CompletionProposal {
 	 * is declared)
 	 * </li>
 	 * </ul>
-	 * </p>
 	 *
 	 * @see #getKind()
 	 * @since 3.2
@@ -594,7 +577,6 @@ public class CompletionProposal {
 	 * is declared)
 	 * </li>
 	 * </ul>
-	 * </p>
 	 *
 	 * @see #getKind()
 	 * @since 3.2
@@ -625,7 +607,6 @@ public class CompletionProposal {
 	 * is declared)
 	 * </li>
 	 * </ul>
-	 * </p>
 	 *
 	 * @see #getKind()
 	 * @since 3.2
@@ -657,7 +638,6 @@ public class CompletionProposal {
 	 * of the proposed import
 	 * </li>
 	 * </ul>
-	 * </p>
 	 *
 	 * @see #getKind()
 	 *
@@ -688,7 +668,6 @@ public class CompletionProposal {
 	 * of the proposed import
 	 * </li>
 	 * </ul>
-	 * </p>
 	 *
 	 * @see #getKind()
 	 *
@@ -719,7 +698,6 @@ public class CompletionProposal {
 	 * of the proposed import
 	 * </li>
 	 * </ul>
-	 * </p>
 	 *
 	 * @see #getKind()
 	 *
@@ -752,7 +730,6 @@ public class CompletionProposal {
 	 * the method signature of the method that is referenced
 	 * </li>
 	 * </ul>
-	 * </p>
 	 *
 	 * @see #getKind()
 	 *
@@ -788,14 +765,13 @@ public class CompletionProposal {
 	 * </li>
 	 *
 	 * </ul>
-	 * </p>
 	 *
 	 * @see #getKind()
 	 *
 	 * @since 3.4
 	 */
 	public static final int FIELD_REF_WITH_CASTED_RECEIVER = 25;
-	
+
 	/**
 	 * Completion is a reference to a constructor.
 	 * This kind of completion might occur in a context like
@@ -818,7 +794,6 @@ public class CompletionProposal {
 	 * the method signature of the constructor that is referenced
 	 * </li>
 	 * </ul>
-	 * </p>
 	 * <p>
 	 * This kind of proposal could require a long computation, so they are computed only if completion operation is called with a {@link IProgressMonitor}
 	 * (e.g. {@link ICodeAssist#codeComplete(int, CompletionRequestor, IProgressMonitor)}).<br>
@@ -828,11 +803,11 @@ public class CompletionProposal {
 	 *
 	 * @see #getKind()
 	 * @see CompletionRequestor#setAllowsRequiredProposals(int, int, boolean)
-	 * 
+	 *
 	 * @since 3.5
 	 */
 	public static final int CONSTRUCTOR_INVOCATION = 26;
-	
+
 	/**
 	 * Completion is a reference of a constructor of an anonymous class.
 	 * This kind of completion might occur in a context like
@@ -859,7 +834,6 @@ public class CompletionProposal {
 	 * the modifiers flags of the constructor that is referenced
 	 * </li>
 	 * </ul>
-	 * </p>
 	 * <p>
 	 * This kind of proposal could require a long computation, so they are computed only if completion operation is called with a {@link IProgressMonitor}
 	 * (e.g. {@link ICodeAssist#codeComplete(int, CompletionRequestor, IProgressMonitor)})<br>
@@ -869,7 +843,7 @@ public class CompletionProposal {
 	 *
 	 * @see #getKind()
 	 * @see CompletionRequestor#setAllowsRequiredProposals(int, int, boolean)
-	 * 
+	 *
 	 * @since 3.5
 	 */
 	public static final int ANONYMOUS_CLASS_CONSTRUCTOR_INVOCATION = 27;
@@ -948,7 +922,6 @@ public class CompletionProposal {
 	 * </ul>
 	 * For other kinds of completion proposals, this method returns
 	 * <code>CompletionFlags.Default</code>.
-	 * </p>
 	 *
 	 * @return the completion flags, or
 	 * <code>CompletionFlags.Default</code> if none
@@ -1092,7 +1065,7 @@ public class CompletionProposal {
 	 * @param completion the completion string
 	 */
 	public void setCompletion(char[] completion) {
-		// default overridden by concrete implementation		
+		// default overridden by concrete implementation
 	}
 
 	/**
@@ -1207,9 +1180,9 @@ public class CompletionProposal {
 	 * 	<li><code>METHOD_DECLARATION</code> - type signature
 	 * of the type that declares the method that is being
 	 * implemented or overridden</li>
-	 * 	<li><code>MODULE_DECLARATION</code> - 
+	 * 	<li><code>MODULE_DECLARATION</code> -
 	 * possible name of the module that is being declared</li>
-	 * 	<li><code>MODULE_REF</code> - 
+	 * 	<li><code>MODULE_REF</code> -
 	 * name of the module that is referenced</li>
 	 * 	<li><code>PACKAGE_REF</code> - dot-based package
 	 * name of the package that is referenced</li>
@@ -1223,7 +1196,6 @@ public class CompletionProposal {
 	 * For kinds of completion proposals, this method returns
 	 * <code>null</code>. Clients must not modify the array
 	 * returned.
-	 * </p>
 	 *
 	 * @return a type signature or a package name or module name (9) (depending
 	 * on the kind of completion), or <code>null</code> if none
@@ -1250,7 +1222,6 @@ public class CompletionProposal {
 	 * For kinds of completion proposals, this method returns
 	 * <code>null</code>. Clients must not modify the array
 	 * returned.
-	 * </p>
 	 *
 	 * @return a key, or <code>null</code> if none
 	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTParser#createASTs(ICompilationUnit[], String[], org.aspectj.org.eclipse.jdt.core.dom.ASTRequestor, IProgressMonitor)
@@ -1322,7 +1293,6 @@ public class CompletionProposal {
 	 * For kinds of completion proposals, this method returns
 	 * <code>null</code>. Clients must not modify the array
 	 * returned.
-	 * </p>
 	 *
 	 * @return the keyword, field, method, local variable, or member
 	 * name, or <code>null</code> if none
@@ -1390,7 +1360,6 @@ public class CompletionProposal {
 	 * For kinds of completion proposals, this method returns
 	 * <code>null</code>. Clients must not modify the array
 	 * returned.
-	 * </p>
 	 *
 	 * @return the signature, or <code>null</code> if none
 	 * @see Signature
@@ -1415,7 +1384,6 @@ public class CompletionProposal {
 	 * For kinds of completion proposals, this method returns
 	 * <code>null</code>. Clients must not modify the array
 	 * returned.
-	 * </p>
 	 *
 	 * @return the key, or <code>null</code> if none
 	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTParser#createASTs(ICompilationUnit[], String[], org.aspectj.org.eclipse.jdt.core.dom.ASTRequestor, IProgressMonitor)
@@ -1516,7 +1484,6 @@ public class CompletionProposal {
 	 * </ul>
 	 * For other kinds of completion proposals, this method returns
 	 * <code>Flags.AccDefault</code>.
-	 * </p>
 	 *
 	 * @return the modifier flags, or
 	 * <code>Flags.AccDefault</code> if none
@@ -1565,7 +1532,6 @@ public class CompletionProposal {
 	 *    <li><code>TYPE_IMPORT</code></li>
 	 *    <li><code>METHOD_IMPORT</code></li>
 	 *   </ul>
-	 *  </li>
 	 * </li>
 	 * 	<li><code>TYPE_REF</code> - The allowed required proposals for this kind are:
 	 *   <ul>
@@ -1588,7 +1554,6 @@ public class CompletionProposal {
 	 *   </ul>
 	 *  </li>
 	 * </ul>
-	 * </p>
 	 * <p>
 	 * Other kinds of required proposals will be returned in the future, therefore clients of this
 	 * API must allow with {@link CompletionRequestor#setAllowsRequiredProposals(int, int, boolean)}
@@ -1679,7 +1644,6 @@ public class CompletionProposal {
 	 * {@link IAccessRule#K_ACCESSIBLE} or {@link IAccessRule#K_DISCOURAGED}
 	 * or {@link IAccessRule#K_NON_ACCESSIBLE}.
 	 * By default this method return {@link IAccessRule#K_ACCESSIBLE}.
-	 * </p>
 	 *
 	 * @see IAccessRule
 	 *
@@ -1704,7 +1668,6 @@ public class CompletionProposal {
 	 * </ul>
 	 * For kinds of completion proposals, this method returns
 	 * <code>false</code>.
-	 * </p>
 	 *
 	 * @return <code>true</code> if the proposal is a constructor.
 	 * @since 3.1
@@ -1728,7 +1691,6 @@ public class CompletionProposal {
 	 * For kinds of completion proposals, this method returns
 	 * <code>null</code>. Clients must not modify the array
 	 * returned.
-	 * </p>
 	 *
 	 * @return a type signature or a package name (depending
 	 * on the kind of completion), or <code>null</code> if none
@@ -1754,7 +1716,6 @@ public class CompletionProposal {
 	 *  <li><code>METHOD_REF_WITH_CASTED_RECEIVER</code></li>
 	 * </ul>
 	 * For kinds of completion proposals, this method returns <code>0</code>.
-	 * </p>
 	 *
 	 * @return character index of receiver start position (inclusive)
 	 *
@@ -1777,7 +1738,6 @@ public class CompletionProposal {
 	 *  <li><code>METHOD_REF_WITH_CASTED_RECEIVER</code></li>
 	 * </ul>
 	 * For kinds of completion proposals, this method returns <code>0</code>.
-	 * </p>
 	 *
 	 * @return character index of receiver end position (exclusive)
 	 *
@@ -1825,17 +1785,17 @@ public class CompletionProposal {
 		// default overridden by concrete implementation
 	}
 
-	/** 
+	/**
 	 * Returns whether it is safe to use the '<>' (diamond) operator in place of explicitly specifying
 	 * type arguments for this proposal.
-	 * 
+	 *
 	 * <p>
 	 * This is only relevant for source level 1.7 or greater.
 	 * </p>
-	 * 
+	 *
 	 * @param coreContext the completion context associated with the proposal
 	 * @since 3.7.1
-	 * @return <code>true</code> if it is safe to use the diamond operator for the constructor invocation, 
+	 * @return <code>true</code> if it is safe to use the diamond operator for the constructor invocation,
 	 * <code>false</code> otherwise. Also returns <code>false</code> for source levels below 1.7
 	 */
 	public boolean canUseDiamond(CompletionContext coreContext) {

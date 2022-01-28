@@ -1,112 +1,55 @@
 /* *******************************************************************
- * Copyright (c) 1999-2001 Xerox Corporation, 
+ * Copyright (c) 1999-2001 Xerox Corporation,
  *               2002 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     Xerox/PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     Xerox/PARC     initial implementation
  *     Mik Kersten	  port to AspectJ 1.1+ code base
  * ******************************************************************/
 
 package org.aspectj.tools.ajdoc;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.List;
-import java.util.Vector;
 
 import javax.tools.DocumentationTool;
 import javax.tools.DocumentationTool.DocumentationTask;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
+import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 
 /**
  * @author Mik Kersten
  */
 class JavadocRunner {
 
-	static boolean has14ToolsAvailable() {
+	static void callJavadoc(String[] javadocArgs) {
 		try {
-			Class jdMainClass = com.sun.tools.javadoc.Main.class;
-			Class[] paramTypes = new Class[] { String[].class };
-			jdMainClass.getMethod("execute", paramTypes);
-		} catch (NoClassDefFoundError e) {
-			return false;
-		} catch (UnsupportedClassVersionError e) {
-			return false;
-		} catch (NoSuchMethodException e) {
-			return false;
+			Class.forName("com.sun.tools.javadoc.Main")
+				.getMethod("execute", String[].class)
+				.invoke(null, new Object[] { javadocArgs });
 		}
-		return true;
+		catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+			throw new RuntimeException("Failed to invoke javadoc", e);
+		}
 	}
 
-	static void callJavadoc(String[] javadocargs) {
-		// final SecurityManager defaultSecurityManager = System.getSecurityManager();
-		//
-		// System.setSecurityManager( new SecurityManager() {
-		// public void checkExit(int status) {
-		// if (status == 0) {
-		// throw new SecurityException();
-		// }
-		// else {
-		// System.setSecurityManager(defaultSecurityManager);
-		// //System.out.println("Error: javadoc exited unexpectedly");
-		// System.exit(0);
-		// throw new SecurityException();
-		// }
-		// }
-		// public void checkPermission( java.security.Permission permission ) {
-		// if ( defaultSecurityManager != null )
-		// defaultSecurityManager.checkPermission( permission );
-		// }
-		// public void checkPermission( java.security.Permission permission,
-		// Object context ) {
-		// if ( defaultSecurityManager != null )
-		// defaultSecurityManager.checkPermission( permission, context );
-		// }
-		// } );
-		
-		try {
-			// for JDK 1.4 and above call the execute method...
-			Class jdMainClass = com.sun.tools.javadoc.Main.class;
-			Method executeMethod = null;
-			try {
-				Class[] paramTypes = new Class[] { String[].class };
-				executeMethod = jdMainClass.getMethod("execute", paramTypes);
-			} catch (NoSuchMethodException e) {
-				com.sun.tools.javadoc.Main.main(javadocargs);
-				// throw new UnsupportedOperationException("ajdoc requires a tools library from JDK 1.4 or later.");
-			}
-			try {
-				executeMethod.invoke(null, new Object[] { javadocargs });
-			} catch (IllegalArgumentException e1) {
-				throw new RuntimeException("Failed to invoke javadoc");
-			} catch (IllegalAccessException e1) {
-				throw new RuntimeException("Failed to invoke javadoc");
-			} catch (InvocationTargetException e1) {
-				throw new RuntimeException("Failed to invoke javadoc");
-			}
-			// main method is documented as calling System.exit() - which stops us dead in our tracks
-			// com.sun.tools.javadoc.Main.main( javadocargs );
-		} catch (SecurityException se) {
-			// Do nothing since we expect it to be thrown
-			// System.out.println( ">> se: " + se.getMessage() );
-		}
-		// Set the security manager back
-		// System.setSecurityManager(defaultSecurityManager);
-	}
-
-	public static void callJavadocViaToolProvider(Vector<String> options, List<String> files) {
-		DocumentationTool doctool = ToolProvider.getSystemDocumentationTool();
-		StandardJavaFileManager fm = doctool.getStandardFileManager(null, null, null);
-		Iterable<? extends JavaFileObject> jfos = fm.getJavaFileObjects(files.toArray(new String[0]));
-		DocumentationTask task = doctool.getTask(null/*standard System.err*/, null/*standard file manager*/,
-				null/*default diagnostic listener*/, null/*standard doclet*/, options, jfos);
+	public static void callJavadocViaToolProvider(Iterable<String> options, List<String> files) {
+		DocumentationTool docTool = ToolProvider.getSystemDocumentationTool();
+		StandardJavaFileManager fileManager = docTool.getStandardFileManager(null, null, null);
+		Iterable<? extends JavaFileObject> fileObjects = fileManager.getJavaFileObjects(files.toArray(new String[0]));
+		DocumentationTask task = docTool.getTask(
+			null, // default output writer (System.err)
+			null, // default file manager
+			null, // default diagnostic listener
+			null, // default doclet class
+			options,
+			fileObjects
+		);
 		task.call();
 	}
 }

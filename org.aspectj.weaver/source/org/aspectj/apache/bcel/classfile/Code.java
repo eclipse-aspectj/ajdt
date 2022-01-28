@@ -64,10 +64,10 @@ import org.aspectj.apache.bcel.Constants;
  * This class represents a chunk of Java byte code contained in a method. It is instantiated by the
  * <em>Attribute.readAttribute()</em> method. A <em>Code</em> attribute contains informations about operand stack, local variables,
  * byte code and the exceptions handled within this method.
- * 
+ *
  * This attribute has attributes itself, namely <em>LineNumberTable</em> which is used for debugging purposes and
  * <em>LocalVariableTable</em> which contains information about the local variables.
- * 
+ *
  * @version $Id: Code.java,v 1.9 2009/10/05 17:35:36 aclement Exp $
  * @author <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see Attribute
@@ -149,7 +149,7 @@ public final class Code extends Attribute {
 	/**
 	 * Called by objects that are traversing the nodes of the tree implicitely defined by the contents of a Java class. I.e., the
 	 * hierarchy of methods, fields, attributes, etc. spawns a tree of objects.
-	 * 
+	 *
 	 * @param v Visitor object
 	 */
 	@Override
@@ -159,7 +159,7 @@ public final class Code extends Attribute {
 
 	/**
 	 * Dump code attribute to file stream in binary format.
-	 * 
+	 *
 	 * @param file Output file stream
 	 * @throws IOException
 	 */
@@ -173,13 +173,13 @@ public final class Code extends Attribute {
 		file.write(code, 0, code.length);
 
 		file.writeShort(exceptionTable.length);
-		for (int i = 0; i < exceptionTable.length; i++) {
-			exceptionTable[i].dump(file);
+		for (CodeException e : exceptionTable) {
+			e.dump(file);
 		}
 
 		file.writeShort(attributes.length);
-		for (int i = 0; i < attributes.length; i++) {
-			attributes[i].dump(file);
+		for (Attribute attribute : attributes) {
+			attribute.dump(file);
 		}
 	}
 
@@ -195,9 +195,9 @@ public final class Code extends Attribute {
 	 * @return LineNumberTable of Code, if it has one
 	 */
 	public LineNumberTable getLineNumberTable() {
-		for (int i = 0; i < attributes.length; i++) {
-			if (attributes[i].tag == Constants.ATTR_LINE_NUMBER_TABLE) {
-				return (LineNumberTable) attributes[i];
+		for (Attribute attribute : attributes) {
+			if (attribute.tag == Constants.ATTR_LINE_NUMBER_TABLE) {
+				return (LineNumberTable) attribute;
 			}
 		}
 		return null;
@@ -207,9 +207,9 @@ public final class Code extends Attribute {
 	 * @return LocalVariableTable of Code, if it has one
 	 */
 	public LocalVariableTable getLocalVariableTable() {
-		for (int i = 0; i < attributes.length; i++) {
-			if (attributes[i].tag == Constants.ATTR_LOCAL_VARIABLE_TABLE) {
-				return (LocalVariableTable) attributes[i];
+		for (Attribute attribute : attributes) {
+			if (attribute.tag == Constants.ATTR_LOCAL_VARIABLE_TABLE) {
+				return (LocalVariableTable) attribute;
 			}
 		}
 		return null;
@@ -262,8 +262,8 @@ public final class Code extends Attribute {
 	private final int calculateLength() {
 		int len = 0;
 		if (attributes != null) {
-			for (int i = 0; i < attributes.length; i++) {
-				len += attributes[i].length + 6 /* attribute header size */;
+			for (Attribute attribute : attributes) {
+				len += attribute.length + 6 /* attribute header size */;
 			}
 		}
 		return len + getInternalLength();
@@ -309,24 +309,24 @@ public final class Code extends Attribute {
 	 * @return String representation of code chunk.
 	 */
 	public final String toString(boolean verbose) {
-		StringBuffer buf;
+		StringBuilder buf;
 
-		buf = new StringBuffer("Code(max_stack = " + maxStack + ", max_locals = " + maxLocals + ", code_length = " + code.length
+		buf = new StringBuilder("Code(max_stack = " + maxStack + ", max_locals = " + maxLocals + ", code_length = " + code.length
 				+ ")\n" + Utility.codeToString(code, cpool, 0, -1, verbose));
 
 		if (exceptionTable.length > 0) {
 			buf.append("\nException handler(s) = \n" + "From\tTo\tHandler\tType\n");
 
-			for (int i = 0; i < exceptionTable.length; i++) {
-				buf.append(exceptionTable[i].toString(cpool, verbose) + "\n");
+			for (CodeException e : exceptionTable) {
+				buf.append(e.toString(cpool, verbose) + "\n");
 			}
 		}
 
 		if (attributes.length > 0) {
 			buf.append("\nAttribute(s) = \n");
 
-			for (int i = 0; i < attributes.length; i++) {
-				buf.append(attributes[i].toString() + "\n");
+			for (Attribute attribute : attributes) {
+				buf.append(attribute.toString() + "\n");
 			}
 		}
 
@@ -348,7 +348,7 @@ public final class Code extends Attribute {
 	// Code c = (Code)clone();
 	// c.code = (byte[])code.clone();
 	// c.cpool = constant_pool;
-	//  
+	//
 	// c.exceptionTable = new CodeException[exceptionTable.length];
 	// for(int i=0; i < exceptionTable.length; i++)
 	// c.exceptionTable[i] = exceptionTable[i].copy();
@@ -365,15 +365,14 @@ public final class Code extends Attribute {
 	 * whether two pieces of code are equivalent.
 	 */
 	public String getCodeString() {
-		StringBuffer codeString = new StringBuffer();
+		StringBuilder codeString = new StringBuilder();
 		codeString.append("Code(max_stack = ").append(maxStack);
 		codeString.append(", max_locals = ").append(maxLocals);
 		codeString.append(", code_length = ").append(code.length).append(")\n");
 		codeString.append(Utility.codeToString(code, cpool, 0, -1, true));
 		if (exceptionTable.length > 0) {
 			codeString.append("\n").append("Exception entries =  ").append(exceptionTable.length).append("\n");
-			for (int i = 0; i < exceptionTable.length; i++) {
-				CodeException exc = exceptionTable[i];
+			for (CodeException exc : exceptionTable) {
 				int type = exc.getCatchType();
 				String name = "finally";
 				if (type != 0) {

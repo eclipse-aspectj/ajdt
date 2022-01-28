@@ -41,13 +41,15 @@ public abstract class SourceMethodElementInfo extends AnnotatableInfo implements
 	 * For example, Hashtable or java.util.Hashtable.
 	 */
 	protected char[][] exceptionTypes;
-	
+
 	protected ILocalVariable[] arguments;
 
 	/*
 	 * The type parameters of this source type. Empty if none.
 	 */
 	protected ITypeParameter[] typeParameters = TypeParameter.NO_TYPE_PARAMETERS;
+
+	protected boolean isCanonicalConstructor;
 
 @Override
 public char[][] getArgumentNames() {
@@ -86,6 +88,9 @@ public char[][] getTypeParameterNames() {
 }
 @Override
 public abstract boolean isConstructor();
+public boolean isCanonicalConstructor() {
+	return this.isCanonicalConstructor;
+}
 public abstract boolean isAnnotationMethod();
 protected void setArgumentNames(char[][] names) {
 	this.argumentNames = names;

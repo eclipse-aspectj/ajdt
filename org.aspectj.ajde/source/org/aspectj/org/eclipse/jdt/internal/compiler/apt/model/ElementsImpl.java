@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2006, 2017 BEA Systems, Inc. and others
+ * Copyright (c) 2006, 2018 BEA Systems, Inc. and others
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -7,7 +7,7 @@
  * https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- * 
+ *
  * Contributors:
  *    wharley@bea.com - initial API and implementation
  *    IBM Corporation - Fix for bug 341494
@@ -64,7 +64,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
 /**
  * Utilities for working with java8 and earlier language elements.
  * There is one of these for every ProcessingEnvironment.
- * 
+ *
  * @see ElementsImpl9
  */
 public class ElementsImpl implements Elements {
@@ -347,6 +347,7 @@ public class ElementsImpl implements Elements {
 			case CLASS :
 			case ENUM :
 			case INTERFACE :
+			case RECORD :
 				TypeElementImpl typeElementImpl = (TypeElementImpl) e;
 				ReferenceBinding referenceBinding = (ReferenceBinding)typeElementImpl._binding;
 				if (referenceBinding instanceof SourceTypeBinding) {
@@ -377,6 +378,7 @@ public class ElementsImpl implements Elements {
 					referenceContext = sourceMethod;
 				}
 				break;
+			case RECORD_COMPONENT :
 			case ENUM_CONSTANT :
 			case FIELD :
 				VariableElementImpl variableElementImpl = (VariableElementImpl) e;
@@ -502,7 +504,7 @@ public class ElementsImpl implements Elements {
 						}
 				}
 			}
-			
+
 			// append a newline at the end of each line except the last, even if we skipped the last entirely
 			int end = lines.length - 1;
 			if (line < end) {
@@ -516,7 +518,7 @@ public class ElementsImpl implements Elements {
 
 	/**
 	 * Returns the index of the last leading stars on this line, -1 if none.
-	 * 
+	 *
 	 * @param line the given line
 	 * @return the computed index
 	 */
@@ -582,6 +584,7 @@ public class ElementsImpl implements Elements {
 			case CLASS :
 			case ENUM :
 			case INTERFACE :
+			case RECORD :
 				TypeElementImpl typeElementImpl = (TypeElementImpl) type;
 				ReferenceBinding referenceBinding = (ReferenceBinding)typeElementImpl._binding;
 				return (PackageElement) _env.getFactory().newElement(referenceBinding.fPackage);
@@ -594,6 +597,7 @@ public class ElementsImpl implements Elements {
 				return (PackageElement) _env.getFactory().newElement(methodBinding.declaringClass.fPackage);
 			case ENUM_CONSTANT :
 			case FIELD :
+			case RECORD_COMPONENT :
 				VariableElementImpl variableElementImpl = (VariableElementImpl) type;
 				FieldBinding fieldBinding = (FieldBinding) variableElementImpl._binding;
 				return (PackageElement) _env.getFactory().newElement(fieldBinding.declaringClass.fPackage);
@@ -647,6 +651,9 @@ public class ElementsImpl implements Elements {
 			}
 		}
 		if (null == binding) {
+			return null;
+		}
+		if((binding.tagBits & TagBits.HasMissingType) != 0) {
 			return null;
 		}
 		return new TypeElementImpl(_env, binding, null);

@@ -1,13 +1,13 @@
 /* *******************************************************************
  * Copyright (c) 2002 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     PARC     initial implementation
  * ******************************************************************/
 
 package org.aspectj.weaver;
@@ -24,7 +24,7 @@ public class IntMap {
 	// XXX begin hack to avoid a signature refactoring in Pointcut
 	private ResolvedType concreteAspect;
 	private ShadowMunger enclosingAdvice;
-	private List<ResolvedPointcutDefinition> enclosingDefinition = new ArrayList<ResolvedPointcutDefinition>();
+	private List<ResolvedPointcutDefinition> enclosingDefinition = new ArrayList<>();
 
 	public void pushEnclosingDefinition(ResolvedPointcutDefinition def) {
 		enclosingDefinition.add(def);
@@ -130,7 +130,7 @@ public class IntMap {
 	// ---- from object
 
 	public String toString() {
-		StringBuffer buf = new StringBuffer("[");
+		StringBuilder buf = new StringBuilder("[");
 		boolean seenFirst = false;
 		for (int i = 0, len = map.length; i < len; i++) {
 			if (map[i] != MISSING) {

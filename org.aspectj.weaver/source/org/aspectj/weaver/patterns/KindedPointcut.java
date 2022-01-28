@@ -1,13 +1,13 @@
 /* *******************************************************************
  * Copyright (c) 2002 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     PARC     initial implementation
  * ******************************************************************/
 
 package org.aspectj.weaver.patterns;
@@ -174,11 +174,12 @@ public class KindedPointcut extends Pointcut {
 							}
 						}
 					}
-				} else  if (this.getSignature().getDeclaringType() instanceof WildTypePattern) {
-					final WildTypePattern pattern = (WildTypePattern) this.getSignature().getDeclaringType();
-					final ResolvedType type = info.getType();
-					return pattern.matches(type, TypePattern.STATIC);
-				}				
+					// Optimization from 532033: passes AspectJ tests but breaks Spring Framework
+//				} else  if (this.getSignature().getDeclaringType() instanceof WildTypePattern) {
+//					final WildTypePattern pattern = (WildTypePattern) this.getSignature().getDeclaringType();
+//					final ResolvedType type = info.getType();
+//					return pattern.matches(type, TypePattern.STATIC);
+				}
 			}
 		}
 
@@ -308,7 +309,7 @@ public class KindedPointcut extends Pointcut {
 
 	@Override
 	public String toString() {
-		StringBuffer buf = new StringBuffer();
+		StringBuilder buf = new StringBuilder();
 		buf.append(kind.getSimpleName());
 		buf.append("(");
 		buf.append(signature.toString());

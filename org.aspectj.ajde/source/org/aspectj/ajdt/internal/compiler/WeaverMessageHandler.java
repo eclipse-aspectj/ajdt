@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
- * are made available under the terms of the Eclipse Public License v1.0
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- * 
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -31,7 +31,7 @@ import org.aspectj.weaver.LintMessage;
 
 /**
  * @author colyer
- * 
+ *
  *         To change the template for this generated type comment go to Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and
  *         Comments
  */
@@ -113,7 +113,7 @@ public class WeaverMessageHandler implements IMessageHandler {
 				usedBinarySourceFileName);
 		problem.setSeeAlsoProblems(seeAlso);
 
-		StringBuffer details = new StringBuffer();
+		StringBuilder details = new StringBuilder();
 		// Stick more info in supplementary message info
 		if (message.getDetails() != null) {
 			details.append(message.getDetails());
@@ -139,7 +139,7 @@ public class WeaverMessageHandler implements IMessageHandler {
 
 	/**
 	 * No-op
-	 * 
+	 *
 	 * @see org.aspectj.bridge.IMessageHandler#isIgnoring(org.aspectj.bridge.IMessage.Kind)
 	 * @param kind
 	 */
@@ -149,7 +149,7 @@ public class WeaverMessageHandler implements IMessageHandler {
 
 	/**
 	 * No-op
-	 * 
+	 *
 	 * @see org.aspectj.bridge.IMessageHandler#ignore(org.aspectj.bridge.IMessage.Kind)
 	 * @param kind
 	 */
@@ -209,12 +209,12 @@ public class WeaverMessageHandler implements IMessageHandler {
 
 	private IProblem[] buildSeeAlsoProblems(IProblem originalProblem, List sourceLocations, CompilationResult problemSource,
 			boolean usedBinarySourceFileName) {
-		List<IProblem> ret = new ArrayList<IProblem>();
+		List<IProblem> ret = new ArrayList<>();
 
-		for (int i = 0; i < sourceLocations.size(); i++) {
-			ISourceLocation loc = (ISourceLocation) sourceLocations.get(i);
+		for (Object sourceLocation : sourceLocations) {
+			ISourceLocation loc = (ISourceLocation) sourceLocation;
 			if (loc != null) {
-				DefaultProblem dp = new DefaultProblem(loc.getSourceFile().getPath().toCharArray(), "see also", 0, new String[] {},
+				DefaultProblem dp = new DefaultProblem(loc.getSourceFile().getPath().toCharArray(), "see also", 0, new String[]{},
 						ProblemSeverities.Ignore, getStartPos(loc, null), getEndPos(loc, null), loc.getLine(), loc.getColumn());
 				ret.add(dp);
 			} else {

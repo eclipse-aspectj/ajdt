@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2004, 2005 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman - initial version
@@ -25,26 +25,26 @@ import org.eclipse.jdt.internal.core.LocalVariable;
 import org.eclipse.jdt.internal.core.util.Util;
 
 /**
- * 
+ *
  * @author mchapman
  */
 public class AJCodeElement extends LocalVariable implements IAJCodeElement {
 	private String name;
-	
+
 	private int startLine;
-	
+
 	public AJCodeElement(JavaElement parent, String name) {
 		super(parent,name,0,0,0,0,"I", new org.eclipse.jdt.internal.compiler.ast.Annotation[0], 0, false); //$NON-NLS-1$
 		this.name=name;
 	}
-	
+
     public AJCodeElement(JavaElement parent, String name, int occurrence) {
         this(parent,name);
         this.occurrenceCount = occurrence;
     }
 
 
-	
+
 	public ISourceRange getNameRange() {
 		if (nameStart==0) {
 			initializeLocations();
@@ -63,27 +63,27 @@ public class AJCodeElement extends LocalVariable implements IAJCodeElement {
 		AJCodeElement ajce = (AJCodeElement)o;
 		return super.equals(o) && (occurrenceCount == ajce.occurrenceCount);
 	}
-	
+
 	public void initializeLocations() {
 	    // try the easy way:
-        IProgramElement ipe = 
+        IProgramElement ipe =
             AJProjectModelFactory.getInstance().getModelForJavaElement(this).javaElementToProgramElement(this);
         ISourceLocation sloc = ipe.getSourceLocation();
         if (sloc != null) {
             startLine = sloc.getLine();
-            
+
             nameStart = sloc.getOffset();
             if (sloc instanceof EclipseSourceLocation) {
                 EclipseSourceLocation esloc = (EclipseSourceLocation) sloc;
                 nameEnd = esloc.getEndPos();
             }
         }
-        
+
         // sometimes the start and end values are not set...so do it the hard way
         // so calculate it from the line
         if (nameStart <= 0 || nameEnd <= 0) {
             try {
-                IOpenable openable = this.parent.getOpenableParent();
+                IOpenable openable = this.getParent().getOpenableParent();
                 IBuffer buffer;
                 if (openable instanceof AJCompilationUnit) {
                     AJCompilationUnit ajCompUnit = (AJCompilationUnit) openable;
@@ -94,7 +94,7 @@ public class AJCodeElement extends LocalVariable implements IAJCodeElement {
                     buffer = openable.getBuffer();
                 }
                 String source = buffer.getContents();
-    
+
                 int lines = 0;
     			for (int i = 0; i < source.length(); i++) {
     				if (source.charAt(i) == '\n') {
@@ -111,38 +111,38 @@ public class AJCodeElement extends LocalVariable implements IAJCodeElement {
     					}
     				}
     			}
-                
+
     			for (int i = nameStart+1; i < source.length(); i++) {
     			    if (source.charAt(i) == '\n' || source.charAt(i) ==';') {
     			        nameEnd = i-1;
     			        break;
     			    }
     			}
-    			
+
     			nameStart = Math.min(nameStart,nameEnd);
     		} catch (JavaModelException e) {
     		}
 	    }
 	}
-	
+
 	/**
 	 * @return Returns the line in the file of this AJCodeElement.
 	 */
 	public int getLine() {
 	    return startLine;
 	}
-	
+
 	/**
 	 * @return Returns the name for this AJCodeElement
 	 */
 	public String getName() {
 		return name;
 	}
-	
+
 	protected char getHandleMementoDelimiter() {
 		return AspectElement.JEM_CODEELEMENT;
 	}
-		
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.jdt.internal.core.JavaElement#getChildren()
 	 */
@@ -151,5 +151,5 @@ public class AJCodeElement extends LocalVariable implements IAJCodeElement {
 	public IJavaElement[] getChildren() {
 		return JavaElement.NO_ELEMENTS;
 	}
-	
+
 }

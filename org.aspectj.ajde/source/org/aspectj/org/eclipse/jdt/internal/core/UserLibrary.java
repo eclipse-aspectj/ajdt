@@ -152,9 +152,7 @@ public class UserLibrary {
 		try {
 			DocumentBuilder parser = DocumentBuilderFactory.newInstance().newDocumentBuilder();
 			cpElement = parser.parse(new InputSource(reader)).getDocumentElement();
-		} catch (SAXException e) {
-			throw new IOException(Messages.file_badFormat, e);
-		} catch (ParserConfigurationException e) {
+		} catch (SAXException | ParserConfigurationException e) {
 			throw new IOException(Messages.file_badFormat, e);
 		} finally {
 			reader.close();
@@ -164,7 +162,7 @@ public class UserLibrary {
 			throw new IOException(Messages.file_badFormat);
 		}
 		String version= cpElement.getAttribute(TAG_VERSION);
-		boolean isSystem= Boolean.valueOf(cpElement.getAttribute(TAG_SYSTEMLIBRARY)).booleanValue();
+		boolean isSystem= Boolean.parseBoolean(cpElement.getAttribute(TAG_SYSTEMLIBRARY));
 
 		NodeList list= cpElement.getChildNodes();
 		int length = list.getLength();
@@ -179,7 +177,7 @@ public class UserLibrary {
 					String pathString = element.getAttribute(TAG_PATH);
 					String sourceAttachString = element.hasAttribute(TAG_SOURCEATTACHMENT) ? element.getAttribute(TAG_SOURCEATTACHMENT) : null;
 					String sourceAttachRootString = element.hasAttribute(TAG_SOURCEATTACHMENTROOT) ? element.getAttribute(TAG_SOURCEATTACHMENTROOT) : null;
-					IPath entryPath = null; 
+					IPath entryPath = null;
 					IPath sourceAttachPath = null;
 					IPath sourceAttachRootPath = null;
 					if (version.equals(VERSION_ONE)) {
@@ -214,7 +212,7 @@ public class UserLibrary {
 	public String toString() {
 		if (this.entries == null)
 			return "null"; //$NON-NLS-1$
-		StringBuffer buffer = new StringBuffer();
+		StringBuilder buffer = new StringBuilder();
 		int length = this.entries.length;
 		for (int i=0; i<length; i++) {
 			buffer.append(this.entries[i].toString()+'\n');

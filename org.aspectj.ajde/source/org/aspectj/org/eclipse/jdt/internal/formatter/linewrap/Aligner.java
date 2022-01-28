@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2014, 2018 Mateusz Matela and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Mateusz Matela <mateusz.matela@gmail.com> - [formatter] Formatter does not format Java code correctly, especially when max line width is set - https://bugs.eclipse.org/303519
@@ -90,7 +93,7 @@ public class Aligner {
 	}
 
 	public void handleAlign(List<BodyDeclaration> bodyDeclarations) {
-		if (!this.options.align_type_members_on_columns)
+		if (!this.options.align_type_members_on_columns || areKeptOnOneLine(bodyDeclarations))
 			return;
 		List<List<FieldDeclaration>> fieldGroups = toAlignGroups(bodyDeclarations,
 				n -> optionalCast(n, FieldDeclaration.class));
@@ -107,10 +110,16 @@ public class Aligner {
 
 	public void handleAlign(Block block) {
 		List<Statement> statements = block.statements();
+		if (areKeptOnOneLine(statements))
+			return;
 		if (this.options.align_variable_declarations_on_columns)
 			alignDeclarations(statements);
 		if (this.options.align_assignment_statements_on_columns)
 			alignAssignmentStatements(statements);
+	}
+
+	private boolean areKeptOnOneLine(List<? extends ASTNode> nodes) {
+		return nodes.stream().allMatch(n -> this.tm.firstTokenIn(n, -1).getLineBreaksBefore() == 0);
 	}
 
 	private void alignDeclarations(List<Statement> statements) {
@@ -195,17 +204,21 @@ public class Aligner {
 	private boolean isNewGroup(ASTNode node, ASTNode previousNode) {
 		if (previousNode == null)
 			return true;
-		int lineBreaks = 0;
+		int totalLineBreaks = 0;
 		int from = this.tm.lastIndexIn(previousNode, -1);
 		int to = this.tm.firstIndexIn(node, -1);
 		Token previousToken = this.tm.get(from);
 		for (int i = from + 1; i <= to; i++) {
 			Token token = this.tm.get(i);
-			lineBreaks += Math.min(this.tm.countLineBreaksBetween(previousToken, token),
-					this.options.number_of_empty_lines_to_preserve + 1);
+			int lineBreaks = Math.max(previousToken.getLineBreaksAfter(), token.getLineBreaksBefore());
+			if (previousToken.isPreserveLineBreaksAfter() && token.isPreserveLineBreaksBefore()) {
+				lineBreaks = Math.max(lineBreaks, Math.min(this.tm.countLineBreaksBetween(previousToken, token),
+						this.options.number_of_empty_lines_to_preserve + 1));
+			}
+			totalLineBreaks += lineBreaks;
 			previousToken = token;
 		}
-		return lineBreaks > this.options.align_fields_grouping_blank_lines;
+		return totalLineBreaks > this.options.align_fields_grouping_blank_lines;
 	}
 
 	private <N extends ASTNode> void alignNodes(List<N> alignGroup, AlignIndexFinder<N> tokenFinder) {

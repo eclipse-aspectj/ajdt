@@ -1,12 +1,12 @@
 /* *******************************************************************
  * Copyright (c) 2004 IBM
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
  *     Andy Clement -     initial implementation {date}
  * ******************************************************************/
 
@@ -76,7 +76,7 @@ public class EnumElementValue extends ElementValue {
 	 */
 	@Override
 	public String stringifyValue() {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		ConstantUtf8 cu8 = (ConstantUtf8) cpool.getConstant(typeIdx, Constants.CONSTANT_Utf8);
 		sb.append(cu8.getValue());
 		cu8 = (ConstantUtf8) cpool.getConstant(valueIdx, Constants.CONSTANT_Utf8);

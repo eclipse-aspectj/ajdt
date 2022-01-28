@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -26,6 +26,7 @@ import org.aspectj.org.eclipse.jdt.core.JavaModelException;
  * A code snippet is pretty much any valid piece of Java code that could be
  * pasted into the body of a method and compiled. However, there are two
  * areas where the rules are slightly more liberal.
+ * </p>
  * <p>
  * First, a code snippet can return heterogeneous types. Inside the same code
  * snippet an <code>int</code> could be returned on one line, and a
@@ -42,7 +43,6 @@ import org.aspectj.org.eclipse.jdt.core.JavaModelException;
  * }
  * </code>
  * </pre>
- * </p>
  * <p>
  * Second, if the last statement is only an expression, the <code>return</code>
  * keyword is implied. For example, the following returns <code>false</code>:
@@ -52,7 +52,6 @@ import org.aspectj.org.eclipse.jdt.core.JavaModelException;
  * i == 2
  * </code>
  * </pre>
- * </p>
  * <p>
  * Global variables are an additional feature of evaluation contexts. Within an
  * evaluation context, global variables maintain their value across evaluations.
@@ -80,7 +79,6 @@ import org.aspectj.org.eclipse.jdt.core.JavaModelException;
  * context.evaluateCodeSnippet(codeSnippet, requestor, progressMonitor);
  * </code>
  * </pre>
- * </p>
  * <p>
  * <code>IJavaProject.newEvaluationContext</code> can be used to obtain an
  * instance.
@@ -180,19 +178,18 @@ public interface IEvaluationContext {
 		int position,
 		CompletionRequestor requestor)
 		throws JavaModelException;
-	
+
 	/**
 	 * Performs a code completion at the given position in the given code snippet,
 	 * reporting results to the given completion requestor.
 	 * <p>
 	 * Note that code completion does not involve evaluation.
 	 * <p>
-	 * <p>
 	 * If {@link IProgressMonitor} is not <code>null</code> then some proposals which
 	 * can be very long to compute are proposed. To avoid that the code assist operation
 	 * take too much time a {@link IProgressMonitor} which automatically cancel the code
 	 * assist operation when a specified amount of time is reached could be used.
-	 * 
+	 *
 	 * <pre>
 	 * new IProgressMonitor() {
 	 *     private final static int TIMEOUT = 500; //ms
@@ -227,7 +224,7 @@ public interface IEvaluationContext {
 		CompletionRequestor requestor,
 		IProgressMonitor monitor)
 		throws JavaModelException;
-	
+
 	/**
 	 * Performs a code completion at the given position in the given code snippet,
 	 * reporting results to the given completion requestor.
@@ -261,7 +258,7 @@ public interface IEvaluationContext {
 		CompletionRequestor requestor,
 		WorkingCopyOwner owner)
 		throws JavaModelException;
-	
+
 	/**
 	 * Performs a code completion at the given position in the given code snippet,
 	 * reporting results to the given completion requestor.
@@ -275,12 +272,11 @@ public interface IEvaluationContext {
 	 * <p>
 	 * Note that code completion does not involve evaluation.
 	 * <p>
-	 * <p>
 	 * If {@link IProgressMonitor} is not <code>null</code> then some proposals which
 	 * can be very long to compute are proposed. To avoid that the code assist operation
 	 * take too much time a {@link IProgressMonitor} which automatically cancel the code
 	 * assist operation when a specified amount of time is reached could be used.
-	 * 
+	 *
 	 * <pre>
 	 * new IProgressMonitor() {
 	 *     private final static int TIMEOUT = 500; //ms
@@ -317,7 +313,7 @@ public interface IEvaluationContext {
 		WorkingCopyOwner owner,
 		IProgressMonitor monitor)
 		throws JavaModelException;
-	
+
 	/**
 	 * Resolves and returns a collection of Java elements corresponding to the source
 	 * code at the given positions in the given code snippet.
@@ -395,7 +391,6 @@ public interface IEvaluationContext {
 	 *   <li>retrieve the values of the local variables,
 	 *   <li>retrieve the returned value of the code snippet
 	 * </ol>
-	 * </p>
 	 * <p>
 	 * This method is long-running; progress and cancellation are provided
 	 * by the given progress monitor.

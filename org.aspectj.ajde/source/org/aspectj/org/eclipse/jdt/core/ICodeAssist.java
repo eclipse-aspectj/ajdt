@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -87,7 +87,7 @@ public interface ICodeAssist {
  	 */
 	void codeComplete(int offset, CompletionRequestor requestor)
 		throws JavaModelException;
-	
+
 	/**
 	 * Performs code completion at the given offset position in this compilation unit,
 	 * reporting results to the given completion requestor. The <code>offset</code>
@@ -95,12 +95,11 @@ public interface ICodeAssist {
 	 * An <code>offset</code> of -1 indicates to code assist at the beginning of this
 	 * compilation unit.
 	 * <p>
-	 * <p>
 	 * If {@link IProgressMonitor} is not <code>null</code> then some proposals which
 	 * can be very long to compute are proposed. To avoid that the code assist operation
 	 * take too much time a {@link IProgressMonitor} which automatically cancel the code
 	 * assist operation when a specified amount of time is reached could be used.
-	 * 
+	 *
 	 * <pre>
 	 * new IProgressMonitor() {
 	 *     private final static int TIMEOUT = 500; //ms
@@ -189,7 +188,7 @@ public interface ICodeAssist {
 	 */
 	void codeComplete(int offset, CompletionRequestor requestor, WorkingCopyOwner owner)
 		throws JavaModelException;
-	
+
 	/**
 	 * Performs code completion at the given offset position in this compilation unit,
 	 * reporting results to the given completion requestor. The <code>offset</code>
@@ -208,7 +207,7 @@ public interface ICodeAssist {
 	 * can be very long to compute are proposed. To avoid that the code assist operation
 	 * take too much time a {@link IProgressMonitor} which automatically cancel the code
 	 * assist operation when a specified amount of time is reached could be used.
-	 * 
+	 *
 	 * <pre>
 	 * new IProgressMonitor() {
 	 *     private final static int TIMEOUT = 500; //ms

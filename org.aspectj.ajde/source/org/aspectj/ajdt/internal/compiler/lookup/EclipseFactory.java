@@ -1,14 +1,14 @@
 /* *******************************************************************
  * Copyright (c) 2002 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     PARC     initial implementation 
- *     Mik Kersten	2004-07-26 extended to allow overloading of 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     PARC     initial implementation
+ *     Mik Kersten	2004-07-26 extended to allow overloading of
  * 					hierarchy builder
  * ******************************************************************/
 
@@ -95,8 +95,8 @@ public class EclipseFactory {
 
 	// We can get clashes if we don't treat raw types differently - we end up looking
 	// up a raw and getting the generic type (pr115788)
-	private final Map<UnresolvedType, TypeBinding> typexToBinding = new HashMap<UnresolvedType, TypeBinding>();
-	private final Map<UnresolvedType, TypeBinding> rawTypeXToBinding = new HashMap<UnresolvedType, TypeBinding>();
+	private final Map<UnresolvedType, TypeBinding> typexToBinding = new HashMap<>();
+	private final Map<UnresolvedType, TypeBinding> rawTypeXToBinding = new HashMap<>();
 
 	// XXX currently unused
 	// private Map/*TypeBinding, ResolvedType*/ bindingToResolvedTypeX = new HashMap();
@@ -142,7 +142,7 @@ public class EclipseFactory {
 		if (binding == null) {
 			return ResolvedType.MISSING;
 		}
-		// ??? this seems terribly inefficient 
+		// ??? this seems terribly inefficient
 		// System.err.println("resolving: " + binding.getClass() + ", name = " + getName(binding));
 		ResolvedType ret = getWorld().resolve(fromBinding(binding));
 		// System.err.println("      got: " + ret);
@@ -195,7 +195,7 @@ public class EclipseFactory {
 
 	/**
 	 * Some generics notes:
-	 * 
+	 *
 	 * Andy 6-May-05 We were having trouble with parameterized types in a couple of places - due to TypeVariableBindings. When we
 	 * see a TypeVariableBinding now we default to either the firstBound if it is specified or java.lang.Object. Not sure when/if
 	 * this gets us unstuck? It does mean we forget that it is a type variable when going back the other way from the UnresolvedType
@@ -280,7 +280,7 @@ public class EclipseFactory {
 //					baseTypeSignature = ttt.getSignature();
 //					baseTypeSignature= baseTypeSignature.substring(0,baseTypeSignature.length()-1);
 //					baseTypeSignature = baseTypeSignature + "."+new String(ptb.sourceName)+";";
-//				} else {			
+//				} else {
 					baseTypeSignature = baseType.getErasureSignature();
 //				}
 			} else {
@@ -291,7 +291,7 @@ public class EclipseFactory {
 			// act of resolution here may cause recursion problems since the parameters may
 			// be type variables that we haven't fixed up yet.
 			if (arguments == null) {
-				arguments = new UnresolvedType[0];
+				arguments = UnresolvedType.NONE;
 				// for pr384398
 				if (!hasAnyArguments(ptb)) {
 					return UnresolvedType.forRawTypeName(getName(binding));
@@ -361,7 +361,7 @@ public class EclipseFactory {
 	/**
 	 * Some type variables refer to themselves recursively, this enables us to avoid recursion problems.
 	 */
-	private static Map<TypeVariableBinding,UnresolvedType> typeVariableBindingsInProgress = new HashMap<TypeVariableBinding,UnresolvedType>();
+	private static Map<TypeVariableBinding,UnresolvedType> typeVariableBindingsInProgress = new HashMap<>();
 
 	/**
 	 * Convert from the eclipse form of type variable (TypeVariableBinding) to the AspectJ form (TypeVariable).
@@ -462,7 +462,7 @@ public class EclipseFactory {
 
 	public void finishTypeMungers() {
 		// make sure that type mungers are
-		List<ConcreteTypeMunger> ret = new ArrayList<ConcreteTypeMunger>();
+		List<ConcreteTypeMunger> ret = new ArrayList<>();
 		List<ConcreteTypeMunger> baseTypeMungers = getWorld().getCrosscuttingMembersSet().getTypeMungers();
 
 		// XXX by Andy: why do we mix up the mungers here? it means later we know about two sets
@@ -533,7 +533,7 @@ public class EclipseFactory {
 	 * Before converting the parts of a methodbinding (params, return type) we store the type variables in this structure, then
 	 * should any component of the method binding refer to them, we grab them from the map.
 	 */
-	private final Map<String,UnresolvedType> typeVariablesForThisMember = new HashMap<String, UnresolvedType>();
+	private final Map<String,UnresolvedType> typeVariablesForThisMember = new HashMap<>();
 
 	/**
 	 * This is a map from typevariablebindings (eclipsey things) to the names the user originally specified in their ITD. For
@@ -654,8 +654,8 @@ public class EclipseFactory {
 		}
 		UnresolvedType[] typeArguments = typeX.getTypeParameters();
 		if (typeArguments != null) {
-			for (int i = 0; i < typeArguments.length; i++) {
-				if (typeArguments[i].isTypeVariableReference()) {
+			for (UnresolvedType typeArgument : typeArguments) {
+				if (typeArgument.isTypeVariableReference()) {
 					return true;
 				}
 			}
@@ -936,14 +936,14 @@ public class EclipseFactory {
 
 		// If there are aliases, place them in the map
 		if (aliases != null && aliases.size() != 0
-				
+
 				// Not sure what this check is trying to check for?
 				// In latest JDT (2-Feb-2018) there seem to be some code (in LookupEnvironment ~860 and
 				// TypeSystem ~340) related to avoiding raw'ifying the enclosing type if the type to
 				// be rawed is static.  These changes cause these checks to fail and the sophisticated
 				// test variant V fails.  It checks declaring type typevariables and then
 				// uses aliasTargetType ... I'm switching it to check aliasTargetType
-				
+
 //				&& declaringType.typeVariables() != null
 //				&& declaringType.typeVariables().length != 0
 				&& aliasTargetType != null
@@ -1003,7 +1003,7 @@ public class EclipseFactory {
 	// map back to the same type binding - this is important later when Eclipse code is processing
 	// a methodbinding trying to come up with possible bindings for the type variables.
 	// key is currently the name of the type variable...is that ok?
-	private final Map<String,TypeVariableBinding> typeVariableToTypeBinding = new HashMap<String,TypeVariableBinding>();
+	private final Map<String,TypeVariableBinding> typeVariableToTypeBinding = new HashMap<>();
 
 	// /**
 	// * Converts from an TypeVariableReference to a TypeVariableBinding. A TypeVariableReference
@@ -1100,10 +1100,16 @@ public class EclipseFactory {
 		typexToBinding.put(fromBinding(binding), binding);
 	}
 
-	public void addTypeBindingAndStoreInWorld(TypeBinding binding) {
+	public void addTypeBindingAndStoreInWorld(SourceTypeBinding binding) {
 		UnresolvedType ut = fromBinding(binding);
 		typexToBinding.put(ut, binding);
-		world.lookupOrCreateName(ut);
+		ReferenceType rt = world.lookupOrCreateName(ut);
+		// Ensure a delegate is set (#558995)
+		// TODO the delegate is perhaps not 100% ideal as the decl is the aspect?
+		TypeDeclaration decl = binding.scope.referenceContext;
+		CompilationUnitDeclaration referenceCompilationUnit = binding.scope.referenceCompilationUnit();
+		EclipseSourceType t = new EclipseSourceType(rt, this, binding, decl, referenceCompilationUnit);
+		rt.setDelegate(t);
 	}
 
 	public Shadow makeShadow(ASTNode location, ReferenceContext context) {
@@ -1171,8 +1177,8 @@ public class EclipseFactory {
 		}
 
 		ReferenceBinding[] memberTypes = binding.memberTypes;
-		for (int i = 0, length = memberTypes.length; i < length; i++) {
-			addSourceTypeBinding((SourceTypeBinding) memberTypes[i], unit);
+		for (ReferenceBinding memberType : memberTypes) {
+			addSourceTypeBinding((SourceTypeBinding) memberType, unit);
 		}
 	}
 

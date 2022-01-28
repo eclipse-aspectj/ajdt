@@ -1,6 +1,6 @@
 // AspectJ
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.InvalidPathException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -31,6 +32,8 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.zip.ZipFile;
+
+import javax.lang.model.SourceVersion;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.CompilationResult;
@@ -157,7 +160,7 @@ public class FileSystem implements IModuleAwareNameEnvironment, SuffixConstants 
 			return normalizedClasspath;
 		}
 	}
-	
+
 	protected Classpath[] classpaths;
 	// Used only in single-module mode when the module descriptor is
 	// provided via command line.
@@ -166,26 +169,54 @@ public class FileSystem implements IModuleAwareNameEnvironment, SuffixConstants 
 	Set<String> knownFileNames;
 	protected boolean annotationsFromClasspath; // should annotation files be read from the classpath (vs. explicit separate path)?
 	private static HashMap<File, Classpath> JRT_CLASSPATH_CACHE = null;
-	
 	protected Map<String,Classpath> moduleLocations = new HashMap<>();
 
 	/** Tasks resulting from --add-reads or --add-exports command line options. */
 	Map<String,UpdatesByKind> moduleUpdates = new HashMap<>();
+	static boolean isJRE12Plus = false;
+
+	private boolean hasLimitModules = false;
+
+	static {
+		try {
+			isJRE12Plus = SourceVersion.valueOf("RELEASE_12") != null; //$NON-NLS-1$
+		} catch(IllegalArgumentException iae) {
+			// fall back to default
+		}
+	}
 
 /*
 	classPathNames is a collection is Strings representing the full path of each class path
 	initialFileNames is a collection is Strings, the trailing '.java' will be removed if its not already.
 */
+public FileSystem(String[] classpathNames, String[] initialFileNames, String encoding) {
+	this(classpathNames, initialFileNames, encoding, null, -1, null);
+}
+public FileSystem(String[] classpathNames, String[] initialFileNames, String encoding, String release) {
+	this(classpathNames, initialFileNames, encoding, null, -1, release);
+}
+protected FileSystem(String[] classpathNames, String[] initialFileNames, String encoding, Collection<String> limitModules) {
+	this(classpathNames, initialFileNames, encoding, limitModules, -1, null);
+}
+
+// AspectJ Extension - extra 'mode' flag
 public FileSystem(String[] classpathNames, String[] initialFileNames, String encoding, int mode, String release) {
 	this(classpathNames, initialFileNames, encoding, null, mode, release);
 }
-public FileSystem(String[] classpathNames, String[] initialFileNames, String encoding, Collection<String> limitModules, int mode, String release) { // New AspectJ Extension - extra int flag for mode, was 'public FileSystem(String[] classpathNames, String[] initialFileNames, String encoding) {'
+// End AspectJ Extension
+// AspectJ Extension - extra 'mode' flag + 'release' string, was
+// protected FileSystem(String[] classpathNames, String[] initialFileNames, String encoding, Collection<String> limitModules) {
+public FileSystem(String[] classpathNames, String[] initialFileNames, String encoding, Collection<String> limitModules, int mode, String release) {
 	final int classpathSize = classpathNames.length;
 	this.classpaths = new Classpath[classpathSize];
 	int counter = 0;
+	this.hasLimitModules = limitModules != null && !limitModules.isEmpty();
 	for (int i = 0; i < classpathSize; i++) {
-		Classpath classpath = getClasspath(classpathNames[i], encoding, null, null, mode, release); // New AspectJ Extension - pass extra mode
-		if (classpath==null) continue; // AspectJ Extension
+		// AspectJ - was: Classpath classpath = getClasspath(classpathNames[i], encoding, null, null, null);
+		Classpath classpath = mode == -1
+			? getClasspath(classpathNames[i], encoding, null, null, release) // AspectJ Extension - be backwards compatible
+			: getClasspath(classpathNames[i], encoding, null, null, mode, release); // AspectJ Extension - pass extra 'mode, release' parameters
+		if (classpath == null) continue; // AspectJ Extension
 		try {
 			classpath.initialize();
 			for (String moduleName : classpath.getModuleNames(limitModules))
@@ -200,15 +231,18 @@ public FileSystem(String[] classpathNames, String[] initialFileNames, String enc
 	}
 	initializeKnownFileNames(initialFileNames);
 }
-// AspectJ raised to public from protected
+// AspectJ Extension - raised to public from protected
 public FileSystem(Classpath[] paths, String[] initialFileNames, boolean annotationsFromClasspath, Set<String> limitedModules) {
 	final int length = paths.length;
 	int counter = 0;
 	this.classpaths = new FileSystem.Classpath[length];
+	this.hasLimitModules = limitedModules != null && !limitedModules.isEmpty();
 	for (int i = 0; i < length; i++) {
 		final Classpath classpath = paths[i];
 		try {
 			classpath.initialize();
+			for (String moduleName : classpath.getModuleNames(limitedModules))
+				this.moduleLocations.put(moduleName, classpath);
 			this.classpaths[counter++] = classpath;
 		} catch(IOException | InvalidPathException exception) {
 			// JRE 9 could throw an IAE if the linked JAR paths have invalid chars, such as ":"
@@ -225,7 +259,7 @@ public FileSystem(Classpath[] paths, String[] initialFileNames, boolean annotati
 }
 private void initializeModuleLocations(Set<String> limitedModules) {
 	// First create the mapping of all module/Classpath
-	// since the second iteration of getModuleNames() can't be relied on for 
+	// since the second iteration of getModuleNames() can't be relied on for
 	// to get the right origin of module
 	if (limitedModules == null) {
 		for (Classpath c : this.classpaths) {
@@ -273,35 +307,39 @@ public static Classpath getClasspath(String classpathName, String encoding, Acce
 // End AspectJ
 
 public static Classpath getOlderSystemRelease(String jdkHome, String release, AccessRuleSet accessRuleSet) {
-	return new ClasspathJep247(new File(convertPathSeparators(jdkHome)), release, accessRuleSet);
+	return isJRE12Plus ?
+			new ClasspathJep247Jdk12(new File(convertPathSeparators(jdkHome)), release, accessRuleSet) :
+			new ClasspathJep247(new File(convertPathSeparators(jdkHome)), release, accessRuleSet);
 }
-// Reworking of constructor, the original one that takes a boolean now delegates to the new one.
-// Original ctor declaration was:
-// public static Classpath getClasspath(String classpathName, String encoding,
-// 		boolean isSourceOnly, AccessRuleSet accessRuleSet,
-// 		String destinationPath) {
 public static Classpath getClasspath(String classpathName, String encoding,
 		boolean isSourceOnly, AccessRuleSet accessRuleSet,
 		String destinationPath, Map<String, String> options, String release) {
-	return getClasspath(classpathName,encoding,isSourceOnly ? ClasspathLocation.SOURCE :ClasspathLocation.SOURCE|ClasspathLocation.BINARY,accessRuleSet,destinationPath,options,release);
+	// AspectJ - delegate to method with extended signature
+	return getClasspath(
+		classpathName,
+		encoding,
+		// This is how originally the method delegated to calculated the classpath location mode.
+		isSourceOnly ? ClasspathLocation.SOURCE : ClasspathLocation.SOURCE | ClasspathLocation.BINARY,
+		accessRuleSet,
+		destinationPath,
+		options,
+		release
+	);
+	// End AspectJ
 }
-
+// AspectJ Extension - overload method with parameter 'int mode' instead of 'boolean isSourceOnly'
 public static Classpath getClasspath(String classpathName, String encoding,
 		int mode, AccessRuleSet accessRuleSet,
 		String destinationPath, Map<String,String> options, String release) {
+	boolean isSourceOnly = (mode == ClasspathLocation.SOURCE);
 	// End AspectJ Extension
 	Classpath result = null;
 	File file = new File(convertPathSeparators(classpathName));
 	if (file.isDirectory()) {
 		if (file.exists()) {
 			result = new ClasspathDirectory(file, encoding,
-// New AspectJ Extension
-// old code:
-//					isSourceOnly ? ClasspathLocation.SOURCE :
-//						ClasspathLocation.SOURCE | ClasspathLocation.BINARY,
-// new code:
-					mode,
-// End AspectJ Extension
+					isSourceOnly ? ClasspathLocation.SOURCE :
+						mode, // AspectJ - original code is: ClasspathLocation.SOURCE | ClasspathLocation.BINARY,
 					accessRuleSet,
 					destinationPath == null || destinationPath == Main.NONE ?
 						destinationPath : // keep == comparison valid
@@ -310,29 +348,7 @@ public static Classpath getClasspath(String classpathName, String encoding,
 	} else {
 		int format = Util.archiveFormat(classpathName);
 		if (format == Util.ZIP_FILE) {
-		// MERGECONFLICT: didn't have this call in our older version:
-//		if (Util.isPotentialZipArchive(classpathName)) {
-			String lowercaseClasspathName = classpathName.toLowerCase();
-			/// AspectJ Extension - check if the file is a zip rather than just using suffix (pr186673)
-			// old code:
-			// if (lowercaseClasspathName.endsWith(SUFFIX_STRING_jar)
-			//  || lowercaseClasspathName.endsWith(SUFFIX_STRING_zip)) {
-			// new code:
-//			boolean isZip = false;
-//			try {
-//				ZipFile zf = new ZipFile(file);
-//				zf.close();
-//				isZip = true;
-//			} catch (Exception e) {
-//				// this means it is not a valid Zip 
-//			}
-//			if (isZip) {
-			// New AspectJ Extension - use mode instead of flag
-			// old code:
-			//if (isSourceOnly) {
-			// new code:
-			if ((mode & ClasspathLocation.BINARY)==0) {
-			// End AspectJ Extension
+			if (isSourceOnly) {
 				// source only mode
 				result = new ClasspathSourceJar(file, true, accessRuleSet,
 					encoding,
@@ -357,7 +373,7 @@ public static Classpath getClasspath(String classpathName, String encoding,
 						JRT_CLASSPATH_CACHE.put(file, result);
 					}
 				} else {
-					result = 
+					result =
 							(release == null) ?
 									new ClasspathJar(file, true, accessRuleSet, null) :
 										new ClasspathMultiReleaseJar(file, true, accessRuleSet, destinationPath, release);
@@ -393,10 +409,10 @@ private void initializeKnownFileNames(String[] initialFileNames) {
 		CharOperation.replace(fileName, '\\', '/');
 		boolean globalPathMatches = false;
 		// the most nested path should be the selected one
-		for (int j = 0, max = this.classpaths.length; j < max; j++) {
-			char[] matchCandidate = this.classpaths[j].normalizedPath();
+		for (Classpath classpath : this.classpaths) {
+			char[] matchCandidate = classpath.normalizedPath();
 			boolean currentPathMatch = false;
-			if (this.classpaths[j] instanceof ClasspathDirectory
+			if (classpath instanceof ClasspathDirectory
 					&& CharOperation.prefixEquals(matchCandidate, fileName)) {
 				currentPathMatch = true;
 				if (matchingPathName == null) {
@@ -461,7 +477,7 @@ private NameEnvironmentAnswer findClass(String qualifiedTypeName, char[] typeNam
 						zip = ExternalAnnotationDecorator.getAnnotationZipFile(classpathEntry.getPath(), null);
 						shouldClose = true;
 					}
-					answer.setBinaryType(ExternalAnnotationDecorator.create(answer.getBinaryType(), classpathEntry.getPath(), 
+					answer.setBinaryType(ExternalAnnotationDecorator.create(answer.getBinaryType(), classpathEntry.getPath(),
 							qualifiedTypeName, zip));
 					return answer;
 				} catch (IOException e) {
@@ -607,8 +623,8 @@ public NameEnvironmentAnswer findType(char[] typeName, char[][] packageName, cha
 }
 
 @Override
-public char[][] getModulesDeclaringPackage(char[][] parentPackageName, char[] packageName, char[] moduleName) {
-	String qualifiedPackageName = new String(CharOperation.concatWith(parentPackageName, packageName, '/'));
+public char[][] getModulesDeclaringPackage(char[][] packageName, char[] moduleName) {
+	String qualifiedPackageName = new String(CharOperation.concatWith(packageName, '/'));
 	String moduleNameString = String.valueOf(moduleName);
 
 	LookupStrategy strategy = LookupStrategy.get(moduleName);
@@ -625,6 +641,7 @@ public char[][] getModulesDeclaringPackage(char[][] parentPackageName, char[] pa
 	}
 	// search the entire environment and answer which modules declare that package:
 	char[][] allNames = null;
+	boolean hasUnobserable = false;
 	for (Classpath cp : this.classpaths) {
 		if (strategy.matches(cp, Classpath::hasModule)) {
 			if (strategy == LookupStrategy.Unnamed) {
@@ -634,6 +651,10 @@ public char[][] getModulesDeclaringPackage(char[][] parentPackageName, char[] pa
 			} else {
 				char[][] declaringModules = cp.getModulesDeclaringPackage(qualifiedPackageName, null);
 				if (declaringModules != null) {
+					if (cp instanceof ClasspathJrt && this.hasLimitModules) {
+						declaringModules = filterModules(declaringModules);
+						hasUnobserable |= declaringModules == null;
+					}
 					if (allNames == null)
 						allNames = declaringModules;
 					else
@@ -642,7 +663,15 @@ public char[][] getModulesDeclaringPackage(char[][] parentPackageName, char[] pa
 			}
 		}
 	}
+	if (allNames == null && hasUnobserable)
+		return new char[][] { ModuleBinding.UNOBSERVABLE };
 	return allNames;
+}
+private char[][] filterModules(char[][] declaringModules) {
+	char[][] filtered = Arrays.stream(declaringModules).filter(m -> this.moduleLocations.containsKey(new String(m))).toArray(char[][]::new);
+	if (filtered.length == 0)
+		return null;
+	return filtered;
 }
 private Parser getParser() {
 	Map<String,String> opts = new HashMap<String, String>();
@@ -658,7 +687,7 @@ public boolean hasCompilationUnit(char[][] qualifiedPackageName, char[] moduleNa
 	LookupStrategy strategy = LookupStrategy.get(moduleName);
 	Parser parser = checkCUs ? getParser() : null;
 	Function<CompilationUnit, String> pkgNameExtractor = (sourceUnit) -> {
-		String pkgName = null;	
+		String pkgName = null;
 		CompilationResult compilationResult = new CompilationResult(sourceUnit, 0, 0, 1);
 		char[][] name = parser.parsePackageDeclaration(sourceUnit.getContents(), compilationResult);
 		if (name != null) {
@@ -723,6 +752,19 @@ public char[][] getAllAutomaticModules() {
 		}
 	}
 	return set.toArray(new char[set.size()][]);
+}
+
+@Override
+public char[][] listPackages(char[] moduleName) {
+	switch (LookupStrategy.get(moduleName)) {
+		case Named:
+			Classpath classpath = this.moduleLocations.get(new String(moduleName));
+			if (classpath != null)
+				return classpath.listPackages();
+			return CharOperation.NO_CHAR_CHAR;
+		default:
+			throw new UnsupportedOperationException("can list packages only of a named module"); //$NON-NLS-1$
+	}
 }
 
 void addModuleUpdate(String moduleName, Consumer<IUpdatableModule> update, UpdateKind kind) {

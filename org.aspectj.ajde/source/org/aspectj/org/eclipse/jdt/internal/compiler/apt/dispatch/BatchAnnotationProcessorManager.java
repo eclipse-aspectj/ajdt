@@ -1,3 +1,4 @@
+// AspectJ
 /*******************************************************************************
  * Copyright (c) 2005, 2017 IBM Corporation and others.
  *
@@ -17,6 +18,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ServiceConfigurationError;
@@ -38,34 +40,34 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.problem.AbortCompilation;
  */
 public class BatchAnnotationProcessorManager extends BaseAnnotationProcessorManager
 {
-	
+
 	/**
 	 * Processors that have been set by calling CompilationTask.setProcessors().
 	 */
 	private List<Processor> _setProcessors = null;
 	private Iterator<Processor> _setProcessorIter = null;
-	
+
 	/**
 	 * Processors named with the -processor option on the command line.
 	 */
 	private List<String> _commandLineProcessors;
 	private Iterator<String> _commandLineProcessorIter = null;
-	
+
 	private ServiceLoader<Processor> _serviceLoader = null;
 	private Iterator<Processor> _serviceLoaderIter;
-	
+
 	private ClassLoader _procLoader;
-	
+
 	// Set this to true in order to trace processor discovery when -XprintProcessorInfo is specified
 	private final static boolean VERBOSE_PROCESSOR_DISCOVERY = true;
 	private boolean _printProcessorDiscovery = false;
-	
+
 	/**
 	 * Zero-arg constructor so this object can be easily created via reflection.
 	 * A BatchAnnotationProcessorManager cannot be used until its
 	 * {@link #configure(Object, String[])} method has been called.
 	 */
-	public BatchAnnotationProcessorManager() 
+	public BatchAnnotationProcessorManager()
 	{
 	}
 
@@ -77,6 +79,7 @@ public class BatchAnnotationProcessorManager extends BaseAnnotationProcessorMana
 		}
 		BatchProcessingEnvImpl processingEnv = new BatchProcessingEnvImpl(this, (Main) batchCompiler, commandLineArguments);
 		_processingEnv = processingEnv;
+		@SuppressWarnings("resource") // fileManager is not opened here
 		JavaFileManager fileManager = processingEnv.getFileManager();
 		if (fileManager instanceof StandardJavaFileManager) {
 			Iterable<? extends File> location = null;
@@ -95,7 +98,7 @@ public class BatchAnnotationProcessorManager extends BaseAnnotationProcessorMana
 		parseCommandLine(commandLineArguments);
 		_round = 0;
 	}
-	
+
 	/**
 	 * If a -processor option was specified in command line arguments,
 	 * parse it into a list of qualified classnames.
@@ -115,9 +118,7 @@ public class BatchAnnotationProcessorManager extends BaseAnnotationProcessorMana
 			else if ("-processor".equals(option)) { //$NON-NLS-1$
 				commandLineProcessors = new ArrayList<>();
 				String procs = commandLineArguments[++i];
-				for (String proc : procs.split(",")) { //$NON-NLS-1$
-					commandLineProcessors.add(proc);
-				}
+				commandLineProcessors.addAll(Arrays.asList(procs.split(","))); //$NON-NLS-1$
 				break;
 			}
 		}
@@ -143,15 +144,15 @@ public class BatchAnnotationProcessorManager extends BaseAnnotationProcessorMana
 			}
 			return null;
 		}
-		
+
 		if (null != _commandLineProcessors) {
-			// If there was a -processor option, iterate over processor names, 
+			// If there was a -processor option, iterate over processor names,
 			// creating and initializing processors, until no more names are found, then stop.
 			if (_commandLineProcessorIter.hasNext()) {
 				String proc = _commandLineProcessorIter.next();
 				try {
 					Class<?> clazz = _procLoader.loadClass(proc);
-					Object o = clazz.newInstance();
+					Object o = clazz.getDeclaredConstructor().newInstance();
 					Processor p = (Processor) o;
 					p.init(_processingEnv);
 					ProcessorInfo pi = new ProcessorInfo(p);
@@ -167,8 +168,8 @@ public class BatchAnnotationProcessorManager extends BaseAnnotationProcessorMana
 			}
 			return null;
 		}
-		
-		// if no processors were explicitly specified with setProcessors() 
+
+		// if no processors were explicitly specified with setProcessors()
 		// or the command line, search the processor path with ServiceLoader.
 		if (null == _serviceLoader ) {
 			_serviceLoader = ServiceLoader.load(Processor.class, _procLoader);
@@ -198,10 +199,10 @@ public class BatchAnnotationProcessorManager extends BaseAnnotationProcessorMana
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Used only for debugging purposes.  Generates output like "file:jar:D:/temp/jarfiles/myJar.jar!/".
-	 * Surely this code already exists in several hundred other places?  
+	 * Surely this code already exists in several hundred other places?
 	 * @return the location whence a processor class was loaded.
 	 */
 	private String getProcessorLocation(Processor p) {
@@ -222,7 +223,7 @@ public class BatchAnnotationProcessorManager extends BaseAnnotationProcessorMana
 			path = path + innerName;
 		}
 		path = path + ".class"; //$NON-NLS-1$
-		
+
 		// Find the URL for the class resource and strip off the resource name itself
 		String location = _procLoader.getResource(path).toString();
 		if (location.endsWith(path)) {
@@ -236,7 +237,7 @@ public class BatchAnnotationProcessorManager extends BaseAnnotationProcessorMana
 		// TODO: if (verbose) report the processor
 		throw new AbortCompilation(null, e);
 	}
-	
+
 	@Override
 	public void setProcessors(Object[] processors) {
 		if (!_isFirstRound) {
@@ -251,10 +252,23 @@ public class BatchAnnotationProcessorManager extends BaseAnnotationProcessorMana
 		}
 		_setProcessorIter = _setProcessors.iterator();
 
-		// processors set this way take precedence over anything on the command line 
+		// processors set this way take precedence over anything on the command line
 		_commandLineProcessors = null;
 		_commandLineProcessorIter = null;
 	}
+
+	@Override
+	protected void cleanUp() {
+		// the classloader needs to be kept open between rounds, close it at the end:
+		if (this._procLoader instanceof URLClassLoader) {
+			try {
+				((URLClassLoader) this._procLoader).close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
 	@Override
 	public void reset() {
 		super.reset();

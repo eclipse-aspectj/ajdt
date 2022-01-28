@@ -1,5 +1,10 @@
 package org.aspectj.apache.bcel.classfile;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.Serializable;
+
 /* ====================================================================
  * The Apache Software License, Version 1.1
  *
@@ -55,7 +60,6 @@ package org.aspectj.apache.bcel.classfile;
  */
 
 import  org.aspectj.apache.bcel.Constants;
-import  java.io.*;
 
 /**
  * This class represents an entry in the exception table of the <em>Code</em>
@@ -97,7 +101,7 @@ public final class CodeException implements Cloneable, Constants, Node, Serializ
 
   public void accept(ClassVisitor v) {
     v.visitCodeException(this);
-  }    
+  }
 
   public final void dump(DataOutputStream file) throws IOException {
     file.writeShort(start_pc);
@@ -109,17 +113,17 @@ public final class CodeException implements Cloneable, Constants, Node, Serializ
   /**
    * @return 0, if the handler catches any exception, otherwise it points to
    * the exception class which is to be caught.
-   */  
-  public final int getCatchType() { return catch_type; }    
+   */
+  public final int getCatchType() { return catch_type; }
 
   /**
    * @return Exclusive end index of the region where the handler is active.
-   */  
+   */
   public final int getEndPC() { return end_pc; }
 
   /**
    * @return Starting address of exception handler, relative to the code.
-   */  
+   */
   public final int getHandlerPC() { return handler_pc; }
 
   /**
@@ -153,20 +157,20 @@ public final class CodeException implements Cloneable, Constants, Node, Serializ
    */
   public final void setStartPC(int start_pc) {
     this.start_pc = start_pc;
-  }    
+  }
 
   /**
    * @return String representation.
-   */ 
+   */
   public final String toString() {
-    return "CodeException(start_pc = " + start_pc + 
+    return "CodeException(start_pc = " + start_pc +
       ", end_pc = " + end_pc +
       ", handler_pc = " + handler_pc + ", catch_type = " + catch_type + ")";
-  }    
+  }
 
   /**
    * @return String representation.
-   */ 
+   */
   public final String toString(ConstantPool cp, boolean verbose) {
     String str;
 

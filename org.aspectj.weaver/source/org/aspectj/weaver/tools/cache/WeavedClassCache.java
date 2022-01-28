@@ -2,9 +2,9 @@
  * Copyright (c) 2012 Contributors.
  * All rights reserved.
  * This program and the accompanying materials are made available
- * under the terms of the Eclipse Public License v1.0
+ * under the terms of the Eclipse Public License v 2.0
  * which accompanies this distribution and is available at
- * http://eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
  *
  * Contributors:
  *   John Kew (vmware)         	initial implementation
@@ -13,58 +13,63 @@
 
 package org.aspectj.weaver.tools.cache;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import org.aspectj.bridge.IMessage;
 import org.aspectj.bridge.IMessageHandler;
 import org.aspectj.bridge.Message;
 import org.aspectj.bridge.MessageUtil;
 import org.aspectj.weaver.tools.GeneratedClassHandler;
 
-import java.util.LinkedList;
-import java.util.List;
-
 /**
  * Manages a cache of weaved and generated classes similar to Eclipse Equinox,
  * except designed to operate across multiple restarts of the JVM and with one
  * cache per classloader; allowing URLClassLoaders with the same set of URI
  * paths to share the same cache (with the default configuration).
- * <p/>
+ * <p>
  * To enable the default configuration two system properties must be set:
+ * </p>
  * <pre>
  *    "-Daj.weaving.cache.enabled=true"
  *    "-Daj.weaving.cache.dir=/some/directory"
  * </pre>
- * <p/>
+ * <p>
  * The class cache is often something that application developers or
  * containers would like to manage, so there are a few interfaces for overriding the
  * default behavior and performing other management functions.
+ * </p>
  * <p/>
- * {@link CacheBacking} <br/>
+ * {@link CacheBacking} <br>
  * Provides an interface for implementing a custom backing store
  * for the cache; The default implementation in {@link DefaultFileCacheBacking}
  * provides a naive file-backed cache. An alternate implementation may ignore
  * caching until signaled explicitly by the application, or only cache files
  * for a specific duration. This class delegates the locking and synchronization
  * requirements to the CacheBacking implementation.
- * <p/>
- * {@link CacheKeyResolver} <br/>
+ * </p>
+ * <p>
+ * {@link CacheKeyResolver} <br>
  * Provides methods for creating keys from classes to be cached and for
  * creating the "scope" of the cache itself for a given classloader and aspect
  * list. The default implementation is provided by {@link DefaultCacheKeyResolver}
  * but an alternate implementation may want to associate a cache with a particular
  * application running underneath a container.
- * <p/>
+ * </p>
+ * <p>
  * This naive cache does not normally invalidate *any* classes; the interfaces above
  * must be used to implement more intelligent behavior. Cache invalidation
  * problems may occur in at least three scenarios:
- * <pre>
- *    1. New aspects are added dynamically somewhere in the classloader hierarchy; affecting
- *       other classes elsewhere.
- *    2. Use of declare parent in aspects to change the type hierarchy; if the cache
+ * </p>
+ * <ol>
+ *    <li>New aspects are added dynamically somewhere in the classloader hierarchy; affecting
+ *       other classes elsewhere.</li>
+ *    <li>Use of declare parent in aspects to change the type hierarchy; if the cache
  *       has not invalidated the right classes in the type hierarchy aspectj may not
- *       be reconstruct the class incorrectly.
- *    3. Similarly to (2), the addition of fields or methods on classes which have
- *       already been weaved and cached could have inter-type conflicts.
- * </pre>
+ *       be reconstruct the class incorrectly.</li>
+ *    <li>Similarly to (2), the addition of fields or methods on classes which have
+ *       already been weaved and cached could have inter-type conflicts.</li>
+ * </ol>
  */
 public class WeavedClassCache {
 	public static final String WEAVED_CLASS_CACHE_ENABLED = "aj.weaving.cache.enabled";
@@ -78,7 +83,7 @@ public class WeavedClassCache {
 	private final CacheKeyResolver resolver;
 	private final String name;
 
-	private static final List<WeavedClassCache> cacheRegistry = new LinkedList<WeavedClassCache>();
+	private static final List<WeavedClassCache> cacheRegistry = new LinkedList<>();
 
 	protected WeavedClassCache(GeneratedClassHandler existingClassHandler,
 							   IMessageHandler messageHandler,
@@ -259,7 +264,7 @@ public class WeavedClassCache {
 	 */
 	public static List<WeavedClassCache> getCaches() {
 		synchronized (cacheRegistry) {
-			return new LinkedList<WeavedClassCache>(cacheRegistry);
+			return new LinkedList<>(cacheRegistry);
 		}
 	}
 

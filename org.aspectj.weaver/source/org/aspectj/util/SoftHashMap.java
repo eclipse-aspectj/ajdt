@@ -1,23 +1,27 @@
 /* *******************************************************************
  * Copyright (c) 2017 Contributors
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
  * ******************************************************************/package org.aspectj.util;
 
-import java.lang.ref.*;
-import java.util.*;
+import java.lang.ref.ReferenceQueue;
+import java.lang.ref.SoftReference;
+import java.util.AbstractMap;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 public class SoftHashMap<K,V> extends AbstractMap<K,V> {
 	private Map<K, SpecialValue> map;
 	private ReferenceQueue<? super V> rq = new ReferenceQueue();
 
 	public SoftHashMap() {
-		this.map = new HashMap<K,SpecialValue>();
+		this.map = new HashMap<>();
 	}
-	
+
 	class SpecialValue extends SoftReference<V> {
 		private final K key;
 
@@ -61,7 +65,7 @@ public class SoftHashMap<K,V> extends AbstractMap<K,V> {
 	@Override
 	public java.util.Set<Map.Entry<K,V>> entrySet() {
 		if (map.isEmpty()) { return Collections.<K,V>emptyMap().entrySet(); }
-		Map<K,V> currentContents = new HashMap<K,V>();
+		Map<K,V> currentContents = new HashMap<>();
 		for (Map.Entry<K,SpecialValue> entry: map.entrySet()) {
 			V currentValueForEntry = entry.getValue().get();
 			if (currentValueForEntry != null) {

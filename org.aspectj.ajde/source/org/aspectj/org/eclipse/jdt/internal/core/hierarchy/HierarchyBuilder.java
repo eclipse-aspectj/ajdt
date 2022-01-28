@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -173,6 +173,7 @@ public abstract class HierarchyBuilder {
 		switch (TypeDeclaration.kind(type.getModifiers())) {
 			case TypeDeclaration.CLASS_DECL :
 			case TypeDeclaration.ENUM_DECL :
+			case TypeDeclaration.RECORD_DECL :
 				if (superclassHandle == null) {
 					this.hierarchy.addRootClass(typeHandle);
 				} else {
@@ -246,6 +247,9 @@ public abstract class HierarchyBuilder {
 			case TypeDeclaration.ENUM_DECL :
 				flag = NameLookup.ACCEPT_ENUMS;
 				break;
+			case TypeDeclaration.RECORD_DECL :
+				flag = NameLookup.ACCEPT_RECORDS;
+				break;
 			default:
 				//case IGenericType.ANNOTATION :
 				flag = NameLookup.ACCEPT_ANNOTATIONS;
@@ -276,9 +280,9 @@ public abstract class HierarchyBuilder {
 /**
  * Create an ICompilationUnit info from the given compilation unit on disk.
  */
-	protected ICompilationUnit createCompilationUnitFromPath(Openable handle, IFile file) {
+	protected ICompilationUnit createCompilationUnitFromPath(Openable handle, IFile file, char[] moduleName) {
 		final char[] elementName = handle.getElementName().toCharArray();
-		return new ResourceCompilationUnit(file, null) {
+		return new ResourceCompilationUnit(file, moduleName) {
 			@Override
 			public char[] getFileName() {
 				return elementName;
@@ -293,17 +297,7 @@ protected IBinaryType createInfoFromClassFile(Openable handle, IResource file) {
 	IBinaryType info = null;
 	try {
 		info = Util.newClassFileReader(file);
-	} catch (org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFormatException e) {
-		if (TypeHierarchy.DEBUG) {
-			e.printStackTrace();
-		}
-		return null;
-	} catch (java.io.IOException e) {
-		if (TypeHierarchy.DEBUG) {
-			e.printStackTrace();
-		}
-		return null;
-	} catch (CoreException e) {
+	} catch (org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFormatException | java.io.IOException | CoreException e) {
 		if (TypeHierarchy.DEBUG) {
 			e.printStackTrace();
 		}

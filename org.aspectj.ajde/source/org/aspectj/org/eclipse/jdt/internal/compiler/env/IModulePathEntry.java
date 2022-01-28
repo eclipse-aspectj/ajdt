@@ -25,18 +25,18 @@ public interface IModulePathEntry {
 	/**
 	 * Get the module that this entry contributes. May be null, for instance when this entry does not
 	 * represent a single module
-	 * 
+	 *
 	 * @return The module that this entry contributes or null
 	 */
 	default IModule getModule() {
 		return null;
 	}
-	
+
 	/**
 	 * Get the module named name from this entry. May be null
-	 * 
+	 *
 	 * @param name - The name of the module to look up
-	 * 
+	 *
 	 * @return The module named name or null
 	 */
 	default IModule getModule(char[] name) {
@@ -48,9 +48,9 @@ public interface IModulePathEntry {
 
 	/**
 	 * Indicates whether this entry knows the module named name and can answer queries regarding the module
-	 * 
+	 *
 	 * @param name The name of the module
-	 * 
+	 *
 	 * @return True if this entry knows the module, false otherwise
 	 */
 	default boolean servesModule(char[] name) {
@@ -75,8 +75,16 @@ public interface IModulePathEntry {
 	boolean hasCompilationUnit(String qualifiedPackageName, String moduleName);
 
 	/**
+	 * Lists all packages in this modulepath entry.
+	 * @return array of flat, dot-separated package names
+	 */
+	default char[][] listPackages() {
+		return CharOperation.NO_CHAR_CHAR;
+	}
+
+	/**
 	 * Specifies whether this entry represents an automatic module.
-	 * 
+	 *
 	 * @return true if this is an automatic module, false otherwise
 	 */
 	public default boolean isAutomaticModule() {

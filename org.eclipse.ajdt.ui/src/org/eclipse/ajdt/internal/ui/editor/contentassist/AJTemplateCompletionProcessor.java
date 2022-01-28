@@ -20,7 +20,7 @@ package org.eclipse.ajdt.internal.ui.editor.contentassist;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.internal.corext.template.java.JavaContext;
+import org.eclipse.jdt.internal.corext.template.java.IJavaContext;
 import org.eclipse.jdt.internal.corext.template.java.JavaContextType;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.text.java.AbstractTemplateCompletionProposalComputer;
@@ -49,7 +49,7 @@ public class AJTemplateCompletionProcessor extends AbstractTemplateCompletionPro
         if (contextType == null) {
             contextType = new JavaContextType() {
                 @Override
-                protected void initializeContext(JavaContext context) {
+                protected void initializeContext(IJavaContext context) {
                     context.addCompatibleContextType(ASPECTJ);
                 }
             };

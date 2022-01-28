@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others.
+ * Copyright (c) 2000, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -94,6 +94,14 @@ protected int matchContainer() {
 	}
 	return CLASS_CONTAINER;
 }
+private int matchLocal(LocalVariableBinding field, boolean matchName) {
+	//for component of a record
+	if (field == null) return INACCURATE_MATCH;
+	if (matchName && !matchesName(this.pattern.name, field.readableName())) return IMPOSSIBLE_MATCH;
+	FieldPattern fieldPattern = (FieldPattern)this.pattern;
+	int declaringLevel = resolveLevelForType(fieldPattern.declaringSimpleName, fieldPattern.declaringQualification,field.getEnclosingMethod().declaringClass);
+	return declaringLevel;
+}
 protected int matchField(FieldBinding field, boolean matchName) {
 	if (field == null) return INACCURATE_MATCH;
 
@@ -170,8 +178,10 @@ protected void matchReportReference(ASTNode reference, IJavaElement element, IJa
 				int otherMax = qNameRef.otherBindings == null ? 0 : qNameRef.otherBindings.length;
 				for (int i = 0; i < otherMax; i++)
 					reportDeclaration(qNameRef.otherBindings[i], locator, declPattern.knownFields);
-			} else if (reference instanceof SingleNameReference) {
-				reportDeclaration((FieldBinding)((SingleNameReference) reference).binding, locator, declPattern.knownFields);
+			} else if (reference instanceof SingleNameReference ) {
+				if(((SingleNameReference) reference).binding instanceof FieldBinding) {
+					reportDeclaration((FieldBinding)((SingleNameReference) reference).binding, locator, declPattern.knownFields);
+				}
 			}
 		}
 	} else if (reference instanceof ImportReference) {
@@ -324,6 +334,12 @@ public int resolveLevel(ASTNode possiblelMatchingNode) {
 @Override
 public int resolveLevel(Binding binding) {
 	if (binding == null) return INACCURATE_MATCH;
+	if( binding instanceof LocalVariableBinding) {
+		// for matching the component in constructor of a record
+		if ( ((LocalVariableBinding)binding).declaringScope.referenceContext() instanceof CompactConstructorDeclaration) {
+			return matchLocal((LocalVariableBinding) binding, true);
+		}
+	}
 	if (!(binding instanceof FieldBinding)) return IMPOSSIBLE_MATCH;
 
 	return matchField((FieldBinding) binding, true);

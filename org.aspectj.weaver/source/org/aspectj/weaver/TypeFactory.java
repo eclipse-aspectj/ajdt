@@ -1,10 +1,10 @@
 /* *******************************************************************
  * Copyright (c) 2005-2010 Contributors.
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://eclipse.org/legal/epl-v10.html 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
  * ******************************************************************/
 package org.aspectj.weaver;
 
@@ -19,8 +19,8 @@ public class TypeFactory {
 
 	/**
 	 * Create a parameterized version of a generic type.
-	 * 
-	 * @param aGenericType
+	 *
+	 * @param aBaseType
 	 * @param someTypeParameters note, in the case of an inner type of a parameterized type, this parameter may legitimately be null
 	 * @param inAWorld
 	 * @return
@@ -39,11 +39,11 @@ public class TypeFactory {
 			} // else if someTypeParameters is null, then the base type is allowed to be non-generic, it's an inner
 		}
 		ResolvedType[] resolvedParameters = inAWorld.resolve(someTypeParameters);
-		
+
 		ReferenceType existingType = ((ReferenceType)baseType).findDerivativeType(resolvedParameters);
-		
+
 		ReferenceType pType = null;
-		
+
 		if (existingType!=null) {
 			pType = existingType;
 		} else {
@@ -113,7 +113,7 @@ public class TypeFactory {
 				return new UnresolvedType(signature, signatureErasure, UnresolvedType.NONE);
 			} else {
 				int endOfParams = locateMatchingEndAngleBracket(signature, startOfParams);
-				StringBuffer erasureSig = new StringBuffer(signature);
+				StringBuilder erasureSig = new StringBuilder(signature);
 				erasureSig.setCharAt(0, 'L');
 				while (startOfParams != -1) {
 					erasureSig.delete(startOfParams, endOfParams + 1);
@@ -210,7 +210,7 @@ public class TypeFactory {
 				return new UnresolvedType(signature);
 			} else {
 				int endOfParams = locateMatchingEndAngleBracket(signature, leftAngleBracket);
-				StringBuffer erasureSig = new StringBuffer(signature);
+				StringBuilder erasureSig = new StringBuilder(signature);
 				erasureSig.setCharAt(0, 'L');
 				while (leftAngleBracket != -1) {
 					erasureSig.delete(leftAngleBracket, endOfParams + 1);
@@ -275,7 +275,7 @@ public class TypeFactory {
 		return idx;
 	}
 
-	private static int locateFirstBracket(StringBuffer signature) {
+	private static int locateFirstBracket(StringBuilder signature) {
 		int idx = 0;
 		int max = signature.length();
 		while (idx < max) {
@@ -289,7 +289,7 @@ public class TypeFactory {
 
 	private static UnresolvedType[] createTypeParams(String typeParameterSpecification) {
 		String remainingToProcess = typeParameterSpecification;
-		List<UnresolvedType> types = new ArrayList<UnresolvedType>();
+		List<UnresolvedType> types = new ArrayList<>();
 		while (remainingToProcess.length() != 0) {
 			int endOfSig = 0;
 			int anglies = 0;
@@ -313,7 +313,7 @@ public class TypeFactory {
 						} else {
 							char nextChar = remainingToProcess.charAt(nextCharPos);
 							if (!(nextChar=='+' || nextChar=='-')) {
-								// dont need to set endOfSig as the loop will increment 
+								// dont need to set endOfSig as the loop will increment
 								// it to the right place before it exits
 								sigFound=true;
 							}
@@ -358,16 +358,16 @@ public class TypeFactory {
 
 	/**
 	 * Create a signature then delegate to the other factory method. Same input/output: baseTypeSignature="LSomeType;" arguments[0]=
-	 * something with sig "Pcom/Foo<Ljava/lang/String;>;" signature created = "PSomeType<Pcom/Foo<Ljava/lang/String;>;>;"
+	 * something with sig "Pcom/Foo&lt;Ljava/lang/String;&gt;;" signature created = "PSomeType&lt;Pcom/Foo&lt;Ljava/lang/String;&gt;;&gt;;"
 	 */
 	public static UnresolvedType createUnresolvedParameterizedType(String baseTypeSignature, UnresolvedType[] arguments) {
-		StringBuffer parameterizedSig = new StringBuffer();
+		StringBuilder parameterizedSig = new StringBuilder();
 		parameterizedSig.append(ResolvedType.PARAMETERIZED_TYPE_IDENTIFIER);
 		parameterizedSig.append(baseTypeSignature.substring(1, baseTypeSignature.length() - 1));
 		if (arguments.length > 0) {
 			parameterizedSig.append("<");
-			for (int i = 0; i < arguments.length; i++) {
-				parameterizedSig.append(arguments[i].getSignature());
+			for (UnresolvedType argument : arguments) {
+				parameterizedSig.append(argument.getSignature());
 			}
 			parameterizedSig.append(">");
 		}

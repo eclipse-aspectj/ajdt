@@ -1,13 +1,13 @@
 /* *******************************************************************
  * Copyright (c) 2005-2008 Contributors
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     Andy Clement     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     Andy Clement     initial implementation
  * ******************************************************************/
 
 package org.aspectj.weaver.bcel;
@@ -210,14 +210,14 @@ public class AnnotationAccessVar extends BcelVar {
 	}
 
 	private void buildArray(InstructionList il, InstructionFactory fact, Type arrayElementType, Type[] arrayEntries, int dim) {
-		il.append(fact.createConstant(Integer.valueOf(arrayEntries == null ? 0 : arrayEntries.length)));
+		il.append(fact.createConstant(arrayEntries == null ? 0 : arrayEntries.length));
 		il.append(fact.createNewArray(arrayElementType, (short) dim));
 		if (arrayEntries == null) {
 			return;
 		}
 		for (int i = 0; i < arrayEntries.length; i++) {
 			il.append(InstructionFactory.createDup(1));
-			il.append(fact.createConstant(Integer.valueOf(i)));
+			il.append(fact.createConstant(i));
 			switch (arrayEntries[i].getType()) {
 			case Constants.T_ARRAY:
 				il.append(fact.createConstant(new ObjectType(arrayEntries[i].getSignature()))); // FIXME should be getName() and not
@@ -260,9 +260,9 @@ public class AnnotationAccessVar extends BcelVar {
 
 	/**
 	 * Return an object that can access a particular value of this annotation.
-	 * 
+	 *
 	 * @param valueType The type from the annotation that is of interest
-	 * @param the formal name expressed in the pointcut, can be used to disambiguate
+	 * @param formalName the formal name expressed in the pointcut, can be used to disambiguate
 	 * @return a variable that represents access to that annotation value
 	 */
 	@Override

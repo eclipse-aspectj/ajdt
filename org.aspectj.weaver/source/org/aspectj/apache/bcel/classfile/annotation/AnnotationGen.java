@@ -1,14 +1,14 @@
 /* *******************************************************************
  * Copyright (c) 2004, 2013 IBM Corporation
- * 
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *    Andy Clement     initial implementation 
+ *
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *    Andy Clement     initial implementation
  * ******************************************************************/
 package org.aspectj.apache.bcel.classfile.annotation;
 
@@ -44,7 +44,7 @@ public class AnnotationGen {
 	}
 
 	private List<NameValuePair> copyValues(List<NameValuePair> in, ConstantPool cpool, boolean copyPoolEntries) {
-		List<NameValuePair> out = new ArrayList<NameValuePair>();
+		List<NameValuePair> out = new ArrayList<>();
 		for (NameValuePair nvp : in) {
 			out.add(new NameValuePair(nvp, cpool, copyPoolEntries));
 		}
@@ -82,15 +82,14 @@ public class AnnotationGen {
 	public void dump(DataOutputStream dos) throws IOException {
 		dos.writeShort(typeIndex); // u2 index of type name in cpool
 		dos.writeShort(pairs.size()); // u2 element_value pair count
-		for (int i = 0; i < pairs.size(); i++) {
-			NameValuePair envp = pairs.get(i);
+		for (NameValuePair envp : pairs) {
 			envp.dump(dos);
 		}
 	}
 
 	public void addElementNameValuePair(NameValuePair evp) {
 		if (pairs == Collections.EMPTY_LIST) {
-			pairs = new ArrayList<NameValuePair>();
+			pairs = new ArrayList<>();
 		}
 		pairs.add(evp);
 	}
@@ -114,7 +113,7 @@ public class AnnotationGen {
 
 	@Override
 	public String toString() {
-		StringBuffer s = new StringBuffer();
+		StringBuilder s = new StringBuilder();
 		s.append("AnnotationGen:[" + getTypeName() + " #" + pairs.size() + " {");
 		for (int i = 0; i < pairs.size(); i++) {
 			s.append(pairs.get(i));
@@ -126,7 +125,7 @@ public class AnnotationGen {
 	}
 
 	public String toShortString() {
-		StringBuffer s = new StringBuffer();
+		StringBuilder s = new StringBuilder();
 		s.append("@").append(getTypeName());
 		if (pairs.size()!=0) {
 			s.append("(");

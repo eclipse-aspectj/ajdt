@@ -1,13 +1,13 @@
 /* *******************************************************************
  * Copyright (c) 2002 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     PARC     initial implementation
  * ******************************************************************/
 
 package org.aspectj.weaver.patterns;
@@ -24,11 +24,11 @@ import org.aspectj.weaver.VersionedDataInputStream;
 import org.aspectj.weaver.World;
 
 /**
- * left && right
- * 
+ * left &amp;&amp; right
+ *
  * <p>
  * any binding to formals is explicitly forbidden for any composite by the language
- * 
+ *
  * @author Erik Hilsdale
  * @author Jim Hugunin
  */
@@ -118,7 +118,7 @@ public class AndTypePattern extends TypePattern {
 		right = right.resolveBindings(scope, bindings, false, false);
 		return this;
 	}
- 
+
 	@Override
 	public TypePattern parameterizeWith(Map<String,UnresolvedType> typeVariableMap, World w) {
 		TypePattern newLeft = left.parameterizeWith(typeVariableMap, w);
@@ -130,7 +130,7 @@ public class AndTypePattern extends TypePattern {
 
 	@Override
 	public String toString() {
-		StringBuffer buff = new StringBuffer();
+		StringBuilder buff = new StringBuilder();
 		if (annotationPattern != AnnotationTypePattern.ANY) {
 			buff.append('(');
 			buff.append(annotationPattern.toString());
@@ -171,7 +171,7 @@ public class AndTypePattern extends TypePattern {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see java.lang.Object#hashCode()
 	 */
 	@Override

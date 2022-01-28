@@ -1,12 +1,12 @@
 /* *******************************************************************
  * Copyright (c) 2005 Contributors.
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
  *   Adrian Colyer			Initial implementation
  * ******************************************************************/
 package org.aspectj.weaver.reflect;
@@ -17,7 +17,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
-import java.util.Iterator;
 import java.util.Set;
 
 import org.aspectj.lang.annotation.Aspect;
@@ -39,7 +38,7 @@ import org.aspectj.weaver.tools.PointcutParameter;
 /**
  * Provides Java 5 behaviour in reflection based delegates (overriding 1.4 behaviour from superclass where
  * appropriate)
- * 
+ *
  * @author Adrian Colyer
  * @author Andy Clement
  */
@@ -95,7 +94,7 @@ public class Java15ReflectionBasedReferenceTypeDelegate extends ReflectionBasedR
 		}
 		return annotations;
 	}
-	
+
 	@Override
 	public boolean hasAnnotations() {
 		if (annotations == null) {
@@ -108,8 +107,8 @@ public class Java15ReflectionBasedReferenceTypeDelegate extends ReflectionBasedR
 	public boolean hasAnnotation(UnresolvedType ofType) {
 		ResolvedType[] myAnns = getAnnotationTypes();
 		ResolvedType toLookFor = ofType.resolve(getWorld());
-		for (int i = 0; i < myAnns.length; i++) {
-			if (myAnns[i] == toLookFor) {
+		for (ResolvedType myAnn : myAnns) {
+			if (myAnn == toLookFor) {
 				return true;
 			}
 		}
@@ -236,7 +235,7 @@ public class Java15ReflectionBasedReferenceTypeDelegate extends ReflectionBasedR
 		return ret;
 	}
 
-	private ResolvedMember createGenericConstructorMember(Constructor forConstructor) {
+	private ResolvedMember createGenericConstructorMember(Constructor<?> forConstructor) {
 		ReflectionBasedResolvedMemberImpl ret = new ReflectionBasedResolvedMemberImpl(org.aspectj.weaver.Member.METHOD,
 				getGenericResolvedType(), forConstructor.getModifiers(),
 				// to return what BCEL returns the return type is void
@@ -251,7 +250,7 @@ public class Java15ReflectionBasedReferenceTypeDelegate extends ReflectionBasedR
 	private ResolvedMember createGenericFieldMember(Field forField) {
 		ReflectionBasedResolvedMemberImpl ret = new ReflectionBasedResolvedMemberImpl(org.aspectj.weaver.Member.FIELD,
 				getGenericResolvedType(), forField.getModifiers(), typeConverter.fromType(forField.getType()), forField.getName(),
-				new UnresolvedType[0], forField);
+				UnresolvedType.NONE, forField);
 		ret.setAnnotationFinder(this.annotationFinder);
 		ret.setGenericSignatureInformationProvider(new Java15GenericSignatureInformationProvider(this.getWorld()));
 		return ret;
@@ -269,9 +268,9 @@ public class Java15ReflectionBasedReferenceTypeDelegate extends ReflectionBasedR
 			} else {
 				parser = new InternalUseOnlyPointcutParser(classLoaderReference.getClassLoader());
 			}
-			Set additionalPointcutHandlers = world.getRegisteredPointcutHandlers();
-			for (Iterator handlerIterator = additionalPointcutHandlers.iterator(); handlerIterator.hasNext();) {
-				PointcutDesignatorHandler handler = (PointcutDesignatorHandler) handlerIterator.next();
+			Set<PointcutDesignatorHandler> additionalPointcutHandlers = world.getRegisteredPointcutHandlers();
+			for (Object additionalPointcutHandler : additionalPointcutHandlers) {
+				PointcutDesignatorHandler handler = (PointcutDesignatorHandler) additionalPointcutHandler;
 				parser.registerPointcutDesignatorHandler(handler);
 			}
 
@@ -374,7 +373,7 @@ public class Java15ReflectionBasedReferenceTypeDelegate extends ReflectionBasedR
 	public boolean isAnonymous() {
 		return this.myClass.isAnonymousClass();
 	}
-	
+
 	@Override
 	public boolean isNested() {
 		return this.myClass.isMemberClass();
@@ -383,7 +382,7 @@ public class Java15ReflectionBasedReferenceTypeDelegate extends ReflectionBasedR
 	@Override
 	public ResolvedType getOuterClass() {
 		 return ReflectionBasedReferenceTypeDelegateFactory.resolveTypeInWorld(
-				 	myClass.getEnclosingClass(),world); 
+				 	myClass.getEnclosingClass(),world);
 	}
 
 }

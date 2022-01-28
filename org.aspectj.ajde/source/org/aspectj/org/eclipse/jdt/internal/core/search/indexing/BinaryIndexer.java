@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -160,6 +160,13 @@ public class BinaryIndexer extends AbstractIndexer implements SuffixConstants {
 				addTypeReference(compoundName[compoundName.length-1]);
 			}
 			addFieldReference(TypeConstants.UPPER_MODULE);
+		}
+		if ((bits & TagBits.AnnotationForRecordComponent) != 0) {
+			if (compoundName == null) {
+				compoundName = TypeConstants.JAVA_LANG_ANNOTATION_ELEMENTTYPE;
+				addTypeReference(compoundName[compoundName.length-1]);
+			}
+			addFieldReference(TypeConstants.UPPER_RECORD_COMPONENT);
 		}
 	}
 	private void addBinaryRetentionAnnotation(long bits) {
@@ -650,7 +657,7 @@ public class BinaryIndexer extends AbstractIndexer implements SuffixConstants {
 			if (contents == null) return;
 			final String path = this.document.getPath();
 			ClassFileReader reader = new ClassFileReader(contents, path == null ? null : path.toCharArray());
-			
+
 			IModule module = reader.getModuleDeclaration();
 			if (module != null) {
 				indexModule(module);
@@ -721,6 +728,10 @@ public class BinaryIndexer extends AbstractIndexer implements SuffixConstants {
 				case TypeDeclaration.ANNOTATION_TYPE_DECL :
 					addAnnotationTypeDeclaration(modifiers, packageName, name, enclosingTypeNames, false);
 					break;
+				case TypeDeclaration.RECORD_DECL :
+					superclass = replace('/', '.', reader.getSuperclassName());
+					addClassDeclaration(modifiers, packageName, name, enclosingTypeNames, superclass, superinterfaces, typeParameterSignatures, false);
+					break;
 			}
 
 			// Look for references in class annotations
@@ -735,7 +746,7 @@ public class BinaryIndexer extends AbstractIndexer implements SuffixConstants {
 			if (tagBits != 0) {
 				addBinaryStandardAnnotations(tagBits);
 			}
-			
+
 			int extraFlags = ExtraFlags.getExtraFlags(reader);
 
 			// first reference all methods declarations and field declarations
@@ -762,7 +773,7 @@ public class BinaryIndexer extends AbstractIndexer implements SuffixConstants {
 						addConstructorDeclaration(
 								name,
 								parameterTypes == null ? 0 : parameterTypes.length,
-								signature,	
+								signature,
 								parameterTypes,
 								method.getArgumentNames(),
 								method.getModifiers(),
@@ -784,7 +795,7 @@ public class BinaryIndexer extends AbstractIndexer implements SuffixConstants {
 										null,
 										selector,
 										parameterTypes == null ? 0 : parameterTypes.length,
-												signature,	
+												signature,
 												parameterTypes,
 												method.getArgumentNames(),
 												returnType,
@@ -836,14 +847,7 @@ public class BinaryIndexer extends AbstractIndexer implements SuffixConstants {
 			}
 			// record all references found inside the .class file
 			extractReferenceFromConstantPool(contents, reader);
-		} catch (ClassFormatException e) {
-			// ignore
-			this.document.removeAllIndexEntries();
-			Util.log(new Status(IStatus.WARNING,
-					JavaCore.PLUGIN_ID,
-					"The Java indexing could not index " + this.document.getPath() + ". This .class file doesn't follow the class file format specification. Please report this issue against the .class file vendor", //$NON-NLS-1$ //$NON-NLS-2$
-					e));
-		} catch (RuntimeException e) {
+		} catch (ClassFormatException | RuntimeException e) {
 			// https://bugs.eclipse.org/bugs/show_bug.cgi?id=182154
 			// logging the entry that could not be indexed and continue with the next one
 			// we remove all entries relative to the boggus document
@@ -854,7 +858,7 @@ public class BinaryIndexer extends AbstractIndexer implements SuffixConstants {
 					e));
 		}
 	}
-	
+
 	private void indexModule(IModule module) {
 		addModuleDeclaration(module.name());
 		IModuleReference[] requiredModules = module.requires();
@@ -904,7 +908,7 @@ public class BinaryIndexer extends AbstractIndexer implements SuffixConstants {
 			return;
 		addTypeReference(ref);
 	}
-	
+
 	private char[] removeFirstSyntheticParameter(char[] descriptor) {
 		if (descriptor == null) return null;
 		if (descriptor.length < 3) return descriptor;

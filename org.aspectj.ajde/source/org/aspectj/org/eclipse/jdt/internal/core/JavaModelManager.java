@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -141,12 +141,6 @@ import org.aspectj.org.eclipse.jdt.internal.core.builder.JavaBuilder;
 import org.aspectj.org.eclipse.jdt.internal.core.dom.SourceRangeVerifier;
 import org.aspectj.org.eclipse.jdt.internal.core.dom.rewrite.RewriteEventStore;
 import org.aspectj.org.eclipse.jdt.internal.core.hierarchy.TypeHierarchy;
-import org.aspectj.org.eclipse.jdt.internal.core.nd.IReader;
-import org.aspectj.org.eclipse.jdt.internal.core.nd.Nd;
-import org.aspectj.org.eclipse.jdt.internal.core.nd.db.Database;
-import org.aspectj.org.eclipse.jdt.internal.core.nd.indexer.Indexer;
-import org.aspectj.org.eclipse.jdt.internal.core.nd.java.JavaIndex;
-import org.aspectj.org.eclipse.jdt.internal.core.nd.java.NdResourceFile;
 import org.aspectj.org.eclipse.jdt.internal.core.search.AbstractSearchScope;
 import org.aspectj.org.eclipse.jdt.internal.core.search.BasicSearchEngine;
 import org.aspectj.org.eclipse.jdt.internal.core.search.IRestrictedAccessTypeRequestor;
@@ -187,7 +181,7 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 	private static final String ASSUMED_EXTERNAL_FILES_CACHE = "assumedExternalFilesCache";  //$NON-NLS-1$
 
 	public static enum ArchiveValidity {
-		BAD_FORMAT, UNABLE_TO_READ, FILE_NOT_FOUND, VALID;
+		INVALID, VALID;
 
 		public boolean isValid() {
 			return this == VALID;
@@ -229,13 +223,16 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 		}
 
 		public void setCache(IPath path, ZipFile zipFile) {
-			ZipFile old = this.map.put(path, zipFile);
-			if(old != null) {
-				if (JavaModelManager.ZIP_ACCESS_VERBOSE) {
-					Thread currentThread = Thread.currentThread();
-					System.out.println("(" + currentThread + ") [ZipCache[" + this.owner //$NON-NLS-1$//$NON-NLS-2$
-							+ "].setCache()] leaked ZipFile on " + old.getName() + " for path: " + path); //$NON-NLS-1$ //$NON-NLS-2$
+			try (ZipFile old = this.map.put(path, zipFile)) {
+				if (old != null) {
+					if (JavaModelManager.ZIP_ACCESS_VERBOSE) {
+						Thread currentThread = Thread.currentThread();
+						System.out.println("(" + currentThread + ") [ZipCache[" + this.owner //$NON-NLS-1$//$NON-NLS-2$
+								+ "].setCache()] leaked ZipFile on " + old.getName() + " for path: " + path); //$NON-NLS-1$ //$NON-NLS-2$
+					}
 				}
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
 		}
 	}
@@ -390,16 +387,6 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 	private static final String SEARCH_DEBUG = JavaCore.PLUGIN_ID + "/debug/search" ; //$NON-NLS-1$
 	private static final String SOURCE_MAPPER_DEBUG_VERBOSE = JavaCore.PLUGIN_ID + "/debug/sourcemapper" ; //$NON-NLS-1$
 	private static final String FORMATTER_DEBUG = JavaCore.PLUGIN_ID + "/debug/formatter" ; //$NON-NLS-1$
-	private static final String INDEX_DEBUG_LARGE_CHUNKS = JavaCore.PLUGIN_ID + "/debug/index/freespacetest" ; //$NON-NLS-1$
-	private static final String INDEX_DEBUG_PAGE_CACHE = JavaCore.PLUGIN_ID + "/debug/index/pagecache" ; //$NON-NLS-1$
-	private static final String INDEX_INDEXER_DEBUG = JavaCore.PLUGIN_ID + "/debug/index/indexer" ; //$NON-NLS-1$
-	private static final String INDEX_INDEXER_INSERTIONS = JavaCore.PLUGIN_ID + "/debug/index/insertions" ; //$NON-NLS-1$
-	private static final String INDEX_INDEXER_SCHEDULING = JavaCore.PLUGIN_ID + "/debug/index/scheduling" ; //$NON-NLS-1$
-	private static final String INDEX_INDEXER_SELFTEST = JavaCore.PLUGIN_ID + "/debug/index/selftest" ; //$NON-NLS-1$
-	private static final String INDEX_LOCKS_DEBUG = JavaCore.PLUGIN_ID + "/debug/index/locks" ; //$NON-NLS-1$
-	private static final String INDEX_INDEXER_SPACE = JavaCore.PLUGIN_ID + "/debug/index/space" ; //$NON-NLS-1$
-	private static final String INDEX_INDEXER_TIMING = JavaCore.PLUGIN_ID + "/debug/index/timing" ; //$NON-NLS-1$
-	private static final String INDEX_INDEXER_LOG_SIZE_MEGS = JavaCore.PLUGIN_ID + "/debug/index/logsizemegs"; //$NON-NLS-1$
 
 	public static final String COMPLETION_PERF = JavaCore.PLUGIN_ID + "/perf/completion" ; //$NON-NLS-1$
 	public static final String SELECTION_PERF = JavaCore.PLUGIN_ID + "/perf/selection" ; //$NON-NLS-1$
@@ -432,7 +419,7 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 
 	public static class CompilationParticipants {
 
-		private final static int MAX_SOURCE_LEVEL = 11 ; // 1.1 to 1.8 and 9, 10
+		static final int MAX_SOURCE_LEVEL = JavaCore.getAllVersions().size() - 1; // All except VERSION_CLDC_1_1
 
 		/*
 		 * The registered compilation participants (a table from int (source level) to Object[])
@@ -570,9 +557,9 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 			if (majVersion > ClassFileConstants.MAJOR_VERSION_1_2) {
 				return (majVersion - ClassFileConstants.MAJOR_VERSION_1_1);
 			}
-					// all other cases including ClassFileConstants.MAJOR_VERSION_1_1
-					return 0;
-			}
+			// all other cases including ClassFileConstants.MAJOR_VERSION_1_1
+			return 0;
+		}
 
 		private int sortParticipants(ArrayList<IConfigurationElement> group, IConfigurationElement[] configElements, int index) {
 			int size = group.size();
@@ -844,7 +831,7 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 				new org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.Displayable(){
 					@Override
 					public String displayString(Object o) {
-						StringBuffer buffer = new StringBuffer("		"); //$NON-NLS-1$
+						StringBuilder buffer = new StringBuilder("		"); //$NON-NLS-1$
 						if (o == null) {
 							buffer.append("<null>"); //$NON-NLS-1$
 							return buffer.toString();
@@ -871,7 +858,7 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 				new org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.Displayable(){
 					@Override
 					public String displayString(Object o) {
-						StringBuffer buffer = new StringBuffer("		"); //$NON-NLS-1$
+						StringBuilder buffer = new StringBuilder("		"); //$NON-NLS-1$
 						if (o == null) {
 							buffer.append("<null>"); //$NON-NLS-1$
 							return buffer.toString();
@@ -901,7 +888,7 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 				new org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.Displayable(){
 					@Override
 					public String displayString(Object o) {
-						StringBuffer buffer = new StringBuffer("		"); //$NON-NLS-1$
+						StringBuilder buffer = new StringBuilder("		"); //$NON-NLS-1$
 						if (o == null) {
 							buffer.append("<null>"); //$NON-NLS-1$
 							return buffer.toString();
@@ -1342,7 +1329,7 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 		}
 
 		public synchronized ClasspathChange resetResolvedClasspath() {
-			// clear non-chaining jars cache and invalid jars cache
+			// clear non-chaining jars cache and external jars cache
 			JavaModelManager.getJavaModelManager().resetClasspathListCache();
 
 			// null out resolved information
@@ -1467,7 +1454,7 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 
 		@Override
 		public String toString() {
-			StringBuffer buffer = new StringBuffer();
+			StringBuilder buffer = new StringBuilder();
 			buffer.append("Info for "); //$NON-NLS-1$
 			buffer.append(this.project.getFullPath());
 			buffer.append("\nRaw classpath:\n"); //$NON-NLS-1$
@@ -1574,7 +1561,7 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 		}
 		@Override
 		public String toString() {
-			StringBuffer buffer = new StringBuffer();
+			StringBuilder buffer = new StringBuilder();
 			buffer.append("Info for "); //$NON-NLS-1$
 			buffer.append(((JavaElement)this.workingCopy).toStringWithAncestors());
 			buffer.append("\nUse count = "); //$NON-NLS-1$
@@ -1634,11 +1621,10 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 	}
 
 	/*
-	 * A map of IPaths for jars that are known to be invalid (such as not being in a valid/known format), to an eviction timestamp.
-	 * Synchronize on invalidArchivesMutex before accessing.
+	 * A map of IPaths for jars with known validity (such as being in a valid/known format or not), to an eviction timestamp.
+	 * Synchronize on invalidArchives before accessing.
 	 */
 	private final Map<IPath, InvalidArchiveInfo> invalidArchives = new HashMap<>();
-	private final Object invalidArchivesMutex = new Object();
 
 	/*
 	 * A set of IPaths for files that are known to be external to the workspace.
@@ -1702,6 +1688,7 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 					propertyName.equals(JavaCore.CORE_INCOMPLETE_CLASSPATH) ||
 					propertyName.equals(JavaCore.CORE_CIRCULAR_CLASSPATH) ||
 					propertyName.equals(JavaCore.CORE_INCOMPATIBLE_JDK_LEVEL) ||
+					propertyName.equals(JavaCore.CORE_MAIN_ONLY_PROJECT_HAS_TEST_ONLY_DEPENDENCY) ||
 					propertyName.equals(JavaCore.COMPILER_CODEGEN_TARGET_PLATFORM) ||
 					propertyName.equals(JavaCore.CORE_OUTPUT_LOCATION_OVERLAPPING_ANOTHER_SOURCE)) {
 					JavaModelManager manager = JavaModelManager.getJavaModelManager();
@@ -1809,9 +1796,9 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 
 	public void addInvalidArchive(IPath path, ArchiveValidity reason) {
 		if (DEBUG_INVALID_ARCHIVES) {
-			System.out.println("Invalid JAR cache: adding " + path + ", reason: " + reason);  //$NON-NLS-1$//$NON-NLS-2$
+			System.out.println("JAR cache: adding " + reason + " " + path);  //$NON-NLS-1$//$NON-NLS-2$
 		}
-		synchronized (this.invalidArchivesMutex) {
+		synchronized (this.invalidArchives) {
 			this.invalidArchives.put(path, new InvalidArchiveInfo(System.currentTimeMillis() + INVALID_ARCHIVE_TTL_MILLISECONDS, reason));
 		}
 	}
@@ -1899,16 +1886,6 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 				JavaModelManager.ZIP_ACCESS_VERBOSE = debug && options.getBooleanOption(ZIP_ACCESS_DEBUG, false);
 				SourceMapper.VERBOSE = debug && options.getBooleanOption(SOURCE_MAPPER_DEBUG_VERBOSE, false);
 				DefaultCodeFormatter.DEBUG = debug && options.getBooleanOption(FORMATTER_DEBUG, false);
-				Database.DEBUG_FREE_SPACE = debug && options.getBooleanOption(INDEX_DEBUG_LARGE_CHUNKS, false);
-				Database.DEBUG_PAGE_CACHE = debug && options.getBooleanOption(INDEX_DEBUG_PAGE_CACHE, false);
-				Indexer.DEBUG = debug && options.getBooleanOption(INDEX_INDEXER_DEBUG, false);
-				Indexer.DEBUG_INSERTIONS = debug  && options.getBooleanOption(INDEX_INDEXER_INSERTIONS, false);
-				Indexer.DEBUG_ALLOCATIONS = debug && options.getBooleanOption(INDEX_INDEXER_SPACE, false);
-				Indexer.DEBUG_TIMING = debug && options.getBooleanOption(INDEX_INDEXER_TIMING, false);
-				Indexer.DEBUG_SCHEDULING = debug && options.getBooleanOption(INDEX_INDEXER_SCHEDULING, false);
-				Indexer.DEBUG_SELFTEST = debug && options.getBooleanOption(INDEX_INDEXER_SELFTEST, false);
-				Indexer.DEBUG_LOG_SIZE_MB = debug ? options.getIntegerOption(INDEX_INDEXER_LOG_SIZE_MEGS, 0) : 0;
-				Nd.sDEBUG_LOCKS = debug && options.getBooleanOption(INDEX_LOCKS_DEBUG, false);
 
 				// configure performance options
 				if(PerformanceStats.ENABLED) {
@@ -2285,7 +2262,7 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 					monitor.subTask(Messages.bind(Messages.build_readStateProgress, project.getName()));
 				info.savedState = readState(project);
 			} catch (CoreException e) {
-				e.printStackTrace();
+				Util.log(e, "Exception while reading last build state for: " + project); //$NON-NLS-1$
 			}
 		}
 		return info.savedState;
@@ -2458,12 +2435,14 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 		defaultOptionsMap.put(JavaCore.CORE_JAVA_BUILD_INVALID_CLASSPATH, JavaCore.ABORT);
 		defaultOptionsMap.put(JavaCore.CORE_JAVA_BUILD_DUPLICATE_RESOURCE, JavaCore.WARNING);
 		defaultOptionsMap.put(JavaCore.CORE_JAVA_BUILD_CLEAN_OUTPUT_FOLDER, JavaCore.CLEAN);
+		defaultOptionsMap.put(JavaCore.CORE_JAVA_BUILD_EXTERNAL_ANNOTATIONS_FROM_ALL_LOCATIONS, JavaCore.DISABLED);
 
 		// JavaCore settings
 		defaultOptionsMap.put(JavaCore.CORE_JAVA_BUILD_ORDER, JavaCore.IGNORE);
 		defaultOptionsMap.put(JavaCore.CORE_INCOMPLETE_CLASSPATH, JavaCore.ERROR);
 		defaultOptionsMap.put(JavaCore.CORE_CIRCULAR_CLASSPATH, JavaCore.ERROR);
 		defaultOptionsMap.put(JavaCore.CORE_INCOMPATIBLE_JDK_LEVEL, JavaCore.IGNORE);
+		defaultOptionsMap.put(JavaCore.CORE_MAIN_ONLY_PROJECT_HAS_TEST_ONLY_DEPENDENCY, JavaCore.ERROR);
 		defaultOptionsMap.put(JavaCore.CORE_OUTPUT_LOCATION_OVERLAPPING_ANOTHER_SOURCE, JavaCore.ERROR);
 		defaultOptionsMap.put(JavaCore.CORE_ENABLE_CLASSPATH_EXCLUSION_PATTERNS, JavaCore.ENABLED);
 		defaultOptionsMap.put(JavaCore.CORE_ENABLE_CLASSPATH_MULTIPLE_OUTPUT_LOCATIONS, JavaCore.ENABLED);
@@ -2488,7 +2467,7 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 		defaultOptionsMap.put(JavaCore.CODEASSIST_FORBIDDEN_REFERENCE_CHECK, JavaCore.ENABLED);
 		defaultOptionsMap.put(JavaCore.CODEASSIST_DISCOURAGED_REFERENCE_CHECK, JavaCore.DISABLED);
 		defaultOptionsMap.put(JavaCore.CODEASSIST_CAMEL_CASE_MATCH, JavaCore.ENABLED);
-		defaultOptionsMap.put(JavaCore.CODEASSIST_SUBSTRING_MATCH, JavaCore.ENABLED);
+		defaultOptionsMap.put(JavaCore.CODEASSIST_SUBWORD_MATCH, JavaCore.ENABLED);
 		defaultOptionsMap.put(JavaCore.CODEASSIST_SUGGEST_STATIC_IMPORTS, JavaCore.ENABLED);
 
 		// Time out for parameter names
@@ -2571,7 +2550,7 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 	}
 
 	private void verbose_reentering_project_container_access(	IPath containerPath, IJavaProject project, IClasspathContainer previousContainer) {
-		StringBuffer buffer = new StringBuffer();
+		StringBuilder buffer = new StringBuilder();
 		buffer.append("CPContainer INIT - reentering access to project container during its initialization, will see previous value\n"); //$NON-NLS-1$
 		buffer.append("	project: " + project.getElementName() + '\n'); //$NON-NLS-1$
 		buffer.append("	container path: " + containerPath + '\n'); //$NON-NLS-1$
@@ -2861,25 +2840,9 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 		if (isJrt(path)) {
 			return;
 		}
-		throwExceptionIfArchiveInvalid(path);
-		// Check if we can determine the archive's validity by examining the index
-		if (JavaIndex.isEnabled()) {
-			JavaIndex index = JavaIndex.getIndex();
-			String location = JavaModelManager.getLocalFile(path).getAbsolutePath();
-			try (IReader reader = index.getNd().acquireReadLock()) {
-				NdResourceFile resourceFile = index.getResourceFile(location.toCharArray());
-				if (index.isUpToDate(resourceFile)) {
-					// We have this file in the index and the index is up-to-date, so we can determine the file's
-					// validity without touching the filesystem.
-					if (resourceFile.isCorruptedZipFile()) {
-						throw new CoreException(new Status(IStatus.ERROR, JavaCore.PLUGIN_ID, -1,
-								Messages.status_IOException, new ZipException()));
-					}
-					return;
-				}
-			}
+		if (isArchiveStateKnownToBeValid(path)) {
+			return; // known to be valid
 		}
-
 		ZipFile file = getZipFile(path);
 		closeZipFile(file);
 	}
@@ -2913,7 +2876,7 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 
 	public ZipFile getZipFile(IPath path, boolean checkInvalidArchiveCache) throws CoreException {
 		if (checkInvalidArchiveCache) {
-			throwExceptionIfArchiveInvalid(path);
+			isArchiveStateKnownToBeValid(path);
 		}
 		ZipCache zipCache;
 		ZipFile zipFile;
@@ -2934,17 +2897,11 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 			if (zipCache != null) {
 				zipCache.setCache(path, zipFile);
 			}
+			addInvalidArchive(path, ArchiveValidity.VALID); // remember its valid
 			return zipFile;
 		} catch (IOException e) {
-			ArchiveValidity reason;
-
-			if (e instanceof ZipException) {
-				reason = ArchiveValidity.BAD_FORMAT;
-			} else if (e instanceof FileNotFoundException) {
-				reason = ArchiveValidity.FILE_NOT_FOUND;
-			} else {
-				reason = ArchiveValidity.UNABLE_TO_READ;
-			}
+			// file may exist but for some reason is inaccessible
+			ArchiveValidity reason=ArchiveValidity.INVALID;
 			addInvalidArchive(path, reason);
 			throw new CoreException(new Status(IStatus.ERROR, JavaCore.PLUGIN_ID, -1, Messages.status_IOException, e));
 		}
@@ -2970,18 +2927,12 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 		return localFile;
 	}
 
-	private void throwExceptionIfArchiveInvalid(IPath path) throws CoreException {
+	private boolean isArchiveStateKnownToBeValid(IPath path) throws CoreException {
 		ArchiveValidity validity = getArchiveValidity(path);
-		IOException reason;
-		switch (validity) {
-			case BAD_FORMAT: reason = new ZipException(); break;
-			case FILE_NOT_FOUND: reason = new FileNotFoundException(); break;
-			case UNABLE_TO_READ: reason = new IOException(); break;
-			default: reason = null;
+		if (validity == null || validity == ArchiveValidity.INVALID) {
+			return false; // chance the file has become accessible/readable now.
 		}
-		if (reason != null) {
-			throw new CoreException(new Status(IStatus.ERROR, JavaCore.PLUGIN_ID, -1, Messages.status_IOException, reason));
-		}
+		return true;
 	}
 
 	/*
@@ -3216,11 +3167,7 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 				} else {
 					throw new JavaModelException(e);
 				}
-			} catch (RuntimeException e) {
-				if (JavaModelManager.CP_RESOLVE_VERBOSE || CP_RESOLVE_VERBOSE_FAILURE)
-					e.printStackTrace();
-				throw e;
-			} catch (Error e) {
+			} catch (RuntimeException | Error e) {
 				if (JavaModelManager.CP_RESOLVE_VERBOSE || CP_RESOLVE_VERBOSE_FAILURE)
 					e.printStackTrace();
 				throw e;
@@ -3260,7 +3207,7 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 	}
 
 	private void verbose_container_value_after_initialization(IJavaProject project, IPath containerPath, IClasspathContainer container) {
-		StringBuffer buffer = new StringBuffer();
+		StringBuilder buffer = new StringBuilder();
 		buffer.append("CPContainer INIT - after resolution\n"); //$NON-NLS-1$
 		buffer.append("	project: " + project.getElementName() + '\n'); //$NON-NLS-1$
 		buffer.append("	container path: " + containerPath + '\n'); //$NON-NLS-1$
@@ -3441,18 +3388,23 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 
 	public ArchiveValidity getArchiveValidity(IPath path) {
 		InvalidArchiveInfo invalidArchiveInfo;
-		synchronized (this.invalidArchivesMutex) {
+		synchronized (this.invalidArchives) {
 			invalidArchiveInfo = this.invalidArchives.get(path);
 		}
-		if (invalidArchiveInfo == null)
-			return ArchiveValidity.VALID;
+		if (invalidArchiveInfo == null) {
+			if (DEBUG_INVALID_ARCHIVES) {
+				System.out.println("JAR cache: UNKNOWN validity for " + path);  //$NON-NLS-1$
+			}
+			return null;
+		}
 		long now = System.currentTimeMillis();
 
 		// If the TTL for this cache entry has expired, directly check whether the archive is still invalid.
 		// If it transitioned to being valid, remove it from the cache and force an update to project caches.
 		if (now > invalidArchiveInfo.evictionTimestamp) {
 			try {
-				getZipFile(path, false);
+				ZipFile zipFile = getZipFile(path, false);
+				closeZipFile(zipFile);
 				removeFromInvalidArchiveCache(path);
 			} catch (CoreException e) {
 				// Archive is still invalid, fall through to reporting it is invalid.
@@ -3460,14 +3412,24 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 			// Retry the test from the start, now that we have an up-to-date result
 			return getArchiveValidity(path);
 		}
+		if (DEBUG_INVALID_ARCHIVES) {
+			System.out.println("JAR cache: " + invalidArchiveInfo.reason + " " + path);  //$NON-NLS-1$ //$NON-NLS-2$
+		}
 		return invalidArchiveInfo.reason;
 	}
 
 	public void removeFromInvalidArchiveCache(IPath path) {
-		synchronized(this.invalidArchivesMutex) {
+		synchronized(this.invalidArchives) {
+			InvalidArchiveInfo entry = this.invalidArchives.get(path);
+			if (entry != null && entry.reason == ArchiveValidity.VALID) {
+				if (DEBUG_INVALID_ARCHIVES) {
+					System.out.println("JAR cache: keep VALID " + path);  //$NON-NLS-1$
+				}
+				return; // do not remove the VALID information
+			}
 			if (this.invalidArchives.remove(path) != null) {
 				if (DEBUG_INVALID_ARCHIVES) {
-					System.out.println("Invalid JAR cache: removed " + path);  //$NON-NLS-1$
+					System.out.println("JAR cache: removed INVALID " + path);  //$NON-NLS-1$
 				}
 				try {
 					// Bug 455042: Force an update of the JavaProjectElementInfo project caches.
@@ -3615,9 +3577,7 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 				try {
 					DocumentBuilder parser = DocumentBuilderFactory.newInstance().newDocumentBuilder();
 					cpElement = parser.parse(new InputSource(reader)).getDocumentElement();
-				} catch(SAXException e) {
-					return;
-				} catch(ParserConfigurationException e){
+				} catch(SAXException | ParserConfigurationException e){
 					return;
 				} finally {
 					reader.close();
@@ -4336,16 +4296,6 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 	public void resetClasspathListCache() {
 		if (this.nonChainingJars != null)
 			this.nonChainingJars.clear();
-		if (DEBUG_INVALID_ARCHIVES) {
-			synchronized(this.invalidArchivesMutex) {
-				if (!this.invalidArchives.isEmpty()) {
-					System.out.println("Invalid JAR cache: clearing cache"); //$NON-NLS-1$
-				}
-			}
-		}
-		synchronized(this.invalidArchivesMutex) {
-			this.invalidArchives.clear();
-		}
 		if (this.externalFiles != null)
 			this.externalFiles.clear();
 		if (this.assumedExternalFiles != null)
@@ -4399,16 +4349,7 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 			} finally {
 				out.close();
 			}
-		} catch (RuntimeException e) {
-			try {
-				file.delete();
-			} catch(SecurityException se) {
-				// could not delete file: cannot do much more
-			}
-			throw new CoreException(
-				new Status(IStatus.ERROR, JavaCore.PLUGIN_ID, Platform.PLUGIN_ERROR,
-					Messages.bind(Messages.build_cannotSaveState, info.project.getName()), e));
-		} catch (IOException e) {
+		} catch (RuntimeException | IOException e) {
 			try {
 				file.delete();
 			} catch(SecurityException se) {
@@ -4767,7 +4708,7 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 	 */
 	public void secondaryTypeAdding(String path, char[] typeName, char[] packageName) {
 		if (VERBOSE) {
-			StringBuffer buffer = new StringBuffer("JavaModelManager.addSecondaryType("); //$NON-NLS-1$
+			StringBuilder buffer = new StringBuilder("JavaModelManager.addSecondaryType("); //$NON-NLS-1$
 			buffer.append(path);
 			buffer.append(',');
 			buffer.append('[');
@@ -4789,12 +4730,12 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 					Map<IFile, Map<String, Map<String, IType>>> indexedSecondaryTypes;
 					if (projectInfo.secondaryTypes == null) {
 						projectInfo.secondaryTypes = new Hashtable<>(3);
-						indexedSecondaryTypes = new HashMap<>(3);
+						indexedSecondaryTypes = Collections.synchronizedMap(new HashMap<>(3));
 						projectInfo.indexingSecondaryCache = indexedSecondaryTypes;
 					} else {
 						indexedSecondaryTypes = projectInfo.indexingSecondaryCache;
 						if (indexedSecondaryTypes == null) {
-							indexedSecondaryTypes = new HashMap<>(3);
+							indexedSecondaryTypes = Collections.synchronizedMap(new HashMap<>(3));
 							projectInfo.indexingSecondaryCache = indexedSecondaryTypes;
 						}
 					}
@@ -4859,7 +4800,7 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 	 */
 	public Map<String, Map<String, IType>> secondaryTypes(IJavaProject project, boolean waitForIndexes, IProgressMonitor monitor) throws JavaModelException {
 		if (VERBOSE) {
-			StringBuffer buffer = new StringBuffer("JavaModelManager.secondaryTypes("); //$NON-NLS-1$
+			StringBuilder buffer = new StringBuilder("JavaModelManager.secondaryTypes("); //$NON-NLS-1$
 			buffer.append(project.getElementName());
 			buffer.append(',');
 			buffer.append(waitForIndexes);
@@ -4949,9 +4890,13 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 		if (indexedSecondaryTypes == null) {
 			return secondaryTypes;
 		}
+		Map<IFile, Map<String, Map<String, IType>>> indexedSecondaryTypesCopy;
+		synchronized (indexedSecondaryTypes) {
+			indexedSecondaryTypesCopy = new HashMap<>(indexedSecondaryTypes);
+		}
 
 		// Merge indexing cache in secondary types one
-		Iterator<Entry<IFile, Map<String, Map<String, IType>>>> entries = indexedSecondaryTypes.entrySet().iterator();
+		Iterator<Entry<IFile, Map<String, Map<String, IType>>>> entries = indexedSecondaryTypesCopy.entrySet().iterator();
 		while (entries.hasNext()) {
 			Entry<IFile, Map<String, Map<String, IType>>> entry = entries.next();
 			IFile file = entry.getKey();
@@ -4997,7 +4942,7 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 	 */
 	private static Map<String, Map<String, IType>> secondaryTypesSearching(IJavaProject project, boolean waitForIndexes, IProgressMonitor monitor, final PerProjectInfo projectInfo) throws JavaModelException {
 		if (VERBOSE || BasicSearchEngine.VERBOSE) {
-			StringBuffer buffer = new StringBuffer("JavaModelManager.secondaryTypesSearch("); //$NON-NLS-1$
+			StringBuilder buffer = new StringBuilder("JavaModelManager.secondaryTypesSearch("); //$NON-NLS-1$
 			buffer.append(project.getElementName());
 			buffer.append(',');
 			buffer.append(waitForIndexes);
@@ -5079,7 +5024,7 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 	 */
 	public void secondaryTypesRemoving(IFile file, boolean cleanIndexCache) {
 		if (VERBOSE) {
-			StringBuffer buffer = new StringBuffer("JavaModelManager.removeFromSecondaryTypesCache("); //$NON-NLS-1$
+			StringBuilder buffer = new StringBuilder("JavaModelManager.removeFromSecondaryTypesCache("); //$NON-NLS-1$
 			buffer.append(file.getName());
 			buffer.append(')');
 			Util.verbose(buffer.toString());
@@ -5100,28 +5045,12 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 					if (indexingCache == null) {
 						// Need to signify that secondary types indexing will happen before any request happens
 						// see bug https://bugs.eclipse.org/bugs/show_bug.cgi?id=152841
-						projectInfo.indexingSecondaryCache = new HashMap<>();
+						projectInfo.indexingSecondaryCache = Collections.synchronizedMap(new HashMap<>());
 					}
 					return;
 				}
 				if (indexingCache != null) {
-					Set<IFile> keys = indexingCache.keySet();
-					int filesSize = keys.size(), filesCount = 0;
-					IFile[] removed = null;
-					Iterator<IFile> cachedFiles = keys.iterator();
-					while (cachedFiles.hasNext()) {
-						IFile cachedFile = cachedFiles.next();
-						if (file.equals(cachedFile)) {
-							if (removed == null) removed = new IFile[filesSize];
-							filesSize--;
-							removed[filesCount++] = cachedFile;
-						}
-					}
-					if (removed != null) {
-						for (int i=0; i<filesCount; i++) {
-							indexingCache.remove(removed[i]);
-						}
-					}
+					indexingCache.remove(file);
 				}
 			}
 		}
@@ -5133,7 +5062,7 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 	 */
 	private void secondaryTypesRemoving(Map<String, Map<String, IType>> secondaryTypesMap, IFile file) {
 		if (VERBOSE) {
-			StringBuffer buffer = new StringBuffer("JavaModelManager.removeSecondaryTypesFromMap("); //$NON-NLS-1$
+			StringBuilder buffer = new StringBuilder("JavaModelManager.removeSecondaryTypesFromMap("); //$NON-NLS-1$
 			Iterator<Entry<String, Map<String, IType>>> entries = secondaryTypesMap.entrySet().iterator();
 			while (entries.hasNext()) {
 				Entry<String, Map<String, IType>> entry = entries.next();
@@ -5413,7 +5342,8 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 					| IResourceChangeEvent.PRE_CLOSE
 					| IResourceChangeEvent.PRE_REFRESH);
 
-			Indexer.getInstance().addListener(this.deltaState);
+			// New index is disabled, see bug 544898
+			// Indexer.getInstance().addListener(this.deltaState);
 
 			// listen to resource changes affecting external annotations
 			ExternalAnnotationTracker.start(workspace);

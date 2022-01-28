@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -19,13 +19,11 @@ import java.util.List;
 /**
  * Abstract base class of all AST node types that declare a single
  * variable.
- * <p>
  * <pre>
  * VariableDeclaration:
  *    SingleVariableDeclaration
  *    VariableDeclarationFragment
  * </pre>
- * </p>
  *
  * @see SingleVariableDeclaration
  * @see VariableDeclarationFragment
@@ -54,7 +52,7 @@ public abstract class VariableDeclaration extends ASTNode {
 	 * (element type: {@link Dimension}).
 	 * Null before JLS8. Added in JLS8; defaults to an empty list
 	 * (see constructor).
-	 * 
+	 *
 	 * @since 3.10
 	 */
 	ASTNode.NodeList extraDimensions = null;
@@ -85,7 +83,7 @@ public abstract class VariableDeclaration extends ASTNode {
 	static final SimplePropertyDescriptor internalExtraDimensionsPropertyFactory(Class nodeClass) {
 		return 	new SimplePropertyDescriptor(nodeClass, "extraDimensions", int.class, MANDATORY); //$NON-NLS-1$
 	}
-	
+
 	/**
 	 * Creates and returns a structural property descriptor for the
 	 * "extraDimensions2" property declared on the given concrete node type (element type: {@link Dimension}).
@@ -95,7 +93,7 @@ public abstract class VariableDeclaration extends ASTNode {
 	static final ChildListPropertyDescriptor internalExtraDimensions2PropertyFactory(Class nodeClass) {
 		return 	new ChildListPropertyDescriptor(nodeClass, "extraDimensions2", Dimension.class, CYCLE_RISK); //$NON-NLS-1$
 	}
-	
+
 	/**
 	 * Creates and returns a structural property descriptor for the
 	 * "initializer" property declared on the given concrete node type (child type: {@link Expression}).
@@ -126,7 +124,7 @@ public abstract class VariableDeclaration extends ASTNode {
 		return internalNameProperty();
 	}
 
-	
+
 	/**
 	 * Returns the structural property descriptor for the "extraDimensions" property
 	 * of this node (type: {@link Integer}) (below JLS8 only).
@@ -157,7 +155,7 @@ public abstract class VariableDeclaration extends ASTNode {
 	 * @since 3.10
 	 */
 	abstract ChildListPropertyDescriptor internalExtraDimensions2Property();
-	
+
 	/**
 	 * Returns the structural property descriptor for the "extraDimensions" property
 	 * of this node (element type: {@link Dimension}) (added in JLS8 API).
@@ -168,7 +166,7 @@ public abstract class VariableDeclaration extends ASTNode {
 	public final ChildListPropertyDescriptor getExtraDimensions2Property() {
 		return internalExtraDimensions2Property();
 	}
-	
+
 	/**
 	 * Returns structural property descriptor for the "initializer" property
 	 * of this node (child type: {@link Expression}).
@@ -290,7 +288,7 @@ public abstract class VariableDeclaration extends ASTNode {
 	 * @exception IllegalArgumentException if the number of dimensions is
 	 *    negative
 	 * @exception UnsupportedOperationException if this operation is used in
-	 * a JLS8 or later AST 
+	 * a JLS8 or later AST
 	 * @deprecated In the JLS8 API, this method is replaced by
 	 * {@link #extraDimensions()} which contains a list of {@link Dimension} nodes.
 	 * @since 2.1

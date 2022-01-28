@@ -1,12 +1,12 @@
 /* *******************************************************************
  * Copyright (c) 2005 Contributors.
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
  *   Adrian Colyer			Initial implementation
  * ******************************************************************/
 package org.aspectj.weaver.patterns;
@@ -35,9 +35,9 @@ public class TypeVariablePatternList extends PatternNode {
 	}
 
 	public TypeVariablePattern lookupTypeVariable(String name) {
-		for (int i = 0; i < patterns.length; i++) {
-			if (patterns[i].getName().equals(name)) {
-				return patterns[i];
+		for (TypeVariablePattern pattern : patterns) {
+			if (pattern.getName().equals(name)) {
+				return pattern;
 			}
 		}
 		return null;
@@ -49,8 +49,8 @@ public class TypeVariablePatternList extends PatternNode {
 
 	public void write(CompressingDataOutputStream s) throws IOException {
 		s.writeInt(patterns.length);
-		for (int i = 0; i < patterns.length; i++) {
-			patterns[i].write(s);
+		for (TypeVariablePattern pattern : patterns) {
+			pattern.write(s);
 		}
 		writeLocation(s);
 	}
@@ -75,8 +75,8 @@ public class TypeVariablePatternList extends PatternNode {
 
 	public Object traverse(PatternNodeVisitor visitor, Object data) {
 		Object ret = accept(visitor, data);
-		for (int i = 0; i < patterns.length; i++) {
-			patterns[i].traverse(visitor, ret);
+		for (TypeVariablePattern pattern : patterns) {
+			pattern.traverse(visitor, ret);
 		}
 		return ret;
 	}

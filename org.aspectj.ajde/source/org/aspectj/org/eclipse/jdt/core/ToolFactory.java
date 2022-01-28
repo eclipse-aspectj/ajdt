@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -311,10 +311,8 @@ public class ToolFactory {
 	 */
 	public static IClassFileReader createDefaultClassFileReader(InputStream stream, int decodingFlag) {
 		try {
-			return new ClassFileReader(Util.getInputStreamAsByteArray(stream, -1), decodingFlag);
-		} catch(ClassFormatException e) {
-			return null;
-		} catch(IOException e) {
+			return new ClassFileReader(Util.getInputStreamAsByteArray(stream), decodingFlag);
+		} catch(ClassFormatException | IOException e) {
 			return null;
 		}
 	}
@@ -336,9 +334,7 @@ public class ToolFactory {
 	public static IClassFileReader createDefaultClassFileReader(String fileName, int decodingFlag){
 		try {
 			return new ClassFileReader(Util.getFileByteContent(new File(fileName)), decodingFlag);
-		} catch(ClassFormatException e) {
-			return null;
-		} catch(IOException e) {
+		} catch(ClassFormatException | IOException e) {
 			return null;
 		}
 	}
@@ -374,9 +370,7 @@ public class ToolFactory {
 			}
 			byte classFileBytes[] = Util.getZipEntryByteContent(zipEntry, zipFile);
 			return new ClassFileReader(classFileBytes, decodingFlag);
-		} catch(ClassFormatException e) {
-			return null;
-		} catch(IOException e) {
+		} catch(ClassFormatException | IOException e) {
 			return null;
 		} finally {
 			if (zipFile != null) {
@@ -411,8 +405,8 @@ public class ToolFactory {
 	 * used to tokenize some source in a Java aware way.
 	 * Here is a typical scanning loop:
 	 *
-	 * <code>
 	 * <pre>
+	 * <code>
 	 *   IScanner scanner = ToolFactory.createScanner(false, false, false, false);
 	 *   scanner.setSource("int i = 0;".toCharArray());
 	 *   while (true) {
@@ -420,8 +414,8 @@ public class ToolFactory {
 	 *     if (token == ITerminalSymbols.TokenNameEOF) break;
 	 *     System.out.println(token + " : " + new String(scanner.getCurrentTokenSource()));
 	 *   }
-	 * </pre>
 	 * </code>
+	 * </pre>
 	 *
 	 * <p>By default the compliance used to create the scanner is the workspace's compliance when running inside the IDE
 	 * or 1.4 if running from outside of a headless eclipse.
@@ -465,8 +459,8 @@ public class ToolFactory {
 	 * used to tokenize some source in a Java aware way.
 	 * Here is a typical scanning loop:
 	 *
-	 * <code>
 	 * <pre>
+	 * <code>
 	 *   IScanner scanner = ToolFactory.createScanner(false, false, false, false);
 	 *   scanner.setSource("int i = 0;".toCharArray());
 	 *   while (true) {
@@ -474,8 +468,8 @@ public class ToolFactory {
 	 *     if (token == ITerminalSymbols.TokenNameEOF) break;
 	 *     System.out.println(token + " : " + new String(scanner.getCurrentTokenSource()));
 	 *   }
-	 * </pre>
 	 * </code>
+	 * </pre>
 	 *
 	 * <p>By default the compliance used to create the scanner is the workspace's compliance when running inside the IDE
 	 * or 1.4 if running from outside of a headless eclipse.
@@ -522,8 +516,8 @@ public class ToolFactory {
 	 * used to tokenize some source in a Java aware way.
 	 * Here is a typical scanning loop:
 	 *
-	 * <code>
 	 * <pre>
+	 * <code>
 	 *   IScanner scanner = ToolFactory.createScanner(false, false, false, false);
 	 *   scanner.setSource("int i = 0;".toCharArray());
 	 *   while (true) {
@@ -531,8 +525,8 @@ public class ToolFactory {
 	 *     if (token == ITerminalSymbols.TokenNameEOF) break;
 	 *     System.out.println(token + " : " + new String(scanner.getCurrentTokenSource()));
 	 *   }
-	 * </pre>
 	 * </code>
+	 * </pre>
 	 *
 	 * @param tokenizeComments if set to <code>false</code>, comments will be silently consumed
 	 * @param tokenizeWhiteSpace if set to <code>false</code>, white spaces will be silently consumed,
@@ -553,12 +547,51 @@ public class ToolFactory {
 	 */
 	@SuppressWarnings("javadoc") // references deprecated TokenNameIdentifier
 	public static IScanner createScanner(boolean tokenizeComments, boolean tokenizeWhiteSpace, boolean recordLineSeparator, String sourceLevel, String complianceLevel) {
+		return createScanner(tokenizeComments, tokenizeWhiteSpace, recordLineSeparator, sourceLevel, complianceLevel, true);
+	}
+	/**
+	 * Create a scanner, indicating the level of detail requested for tokenizing. The scanner can then be
+	 * used to tokenize some source in a Java aware way.
+	 * Here is a typical scanning loop:
+	 *
+	 * <pre>
+	 * <code>
+	 *   IScanner scanner = ToolFactory.createScanner(false, false, false, false);
+	 *   scanner.setSource("int i = 0;".toCharArray());
+	 *   while (true) {
+	 *     int token = scanner.getNextToken();
+	 *     if (token == ITerminalSymbols.TokenNameEOF) break;
+	 *     System.out.println(token + " : " + new String(scanner.getCurrentTokenSource()));
+	 *   }
+	 * </code>
+	 * </pre>
+	 *
+	 * @param tokenizeComments if set to <code>false</code>, comments will be silently consumed
+	 * @param tokenizeWhiteSpace if set to <code>false</code>, white spaces will be silently consumed,
+	 * @param recordLineSeparator if set to <code>true</code>, the scanner will record positions of encountered line
+	 * separator ends. In case of multi-character line separators, the last character position is considered. These positions
+	 * can then be extracted using {@link IScanner#getLineEnds()}. Only non-unicode escape sequences are
+	 * considered as valid line separators.
+	 * @param sourceLevel if set to <code>&quot;1.3&quot;</code> or <code>null</code>, occurrences of 'assert' will be reported as identifiers
+	 * ({@link ITerminalSymbols#TokenNameIdentifier}), whereas if set to <code>&quot;1.4&quot;</code>, it
+	 * would report assert keywords ({@link ITerminalSymbols#TokenNameassert}). Java 1.4 has introduced
+	 * a new 'assert' keyword.
+	 * @param complianceLevel This is used to support the Unicode 4.0 character sets. if set to 1.5 or above,
+	 * the Unicode 4.0 is supported, otherwise Unicode 3.0 is supported.
+	 * @param enablePreview specify whether the scanner should look for preview language features for the specified compliance level
+	 * @return a scanner
+	 * @see org.aspectj.org.eclipse.jdt.core.compiler.IScanner
+	 *
+	 * @since 3.20
+	 */
+	@SuppressWarnings("javadoc") // references deprecated TokenNameIdentifier
+	public static IScanner createScanner(boolean tokenizeComments, boolean tokenizeWhiteSpace, boolean recordLineSeparator, String sourceLevel, String complianceLevel, boolean enablePreview) {
 		PublicScanner scanner = null;
 		long sourceLevelValue = CompilerOptions.versionToJdkLevel(sourceLevel);
 		if (sourceLevelValue == 0) sourceLevelValue = ClassFileConstants.JDK1_3; // fault-tolerance
 		long complianceLevelValue = CompilerOptions.versionToJdkLevel(complianceLevel);
 		if (complianceLevelValue == 0) complianceLevelValue = ClassFileConstants.JDK1_4; // fault-tolerance
-		scanner = new PublicScanner(tokenizeComments, tokenizeWhiteSpace, false/*nls*/,sourceLevelValue /*sourceLevel*/, complianceLevelValue, null/*taskTags*/, null/*taskPriorities*/, true/*taskCaseSensitive*/);
+		scanner = new PublicScanner(tokenizeComments, tokenizeWhiteSpace, false/*nls*/,sourceLevelValue /*sourceLevel*/, complianceLevelValue, null/*taskTags*/, null/*taskPriorities*/, true/*taskCaseSensitive*/, enablePreview);
 		scanner.recordLineSeparator = recordLineSeparator;
 		return scanner;
 	}

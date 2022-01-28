@@ -1,10 +1,10 @@
 /* *******************************************************************
  * Copyright (c) 2005-2012 Contributors.
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://eclipse.org/legal/epl-v10.html
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
  * ******************************************************************/
 package org.aspectj.weaver;
 
@@ -13,7 +13,7 @@ import java.util.Map;
 /**
  * ReferenceType pointing to a type variable. The delegate for this reference type is the upperbound on the type variable (so
  * Object if not otherwise specified).
- * 
+ *
  * @author Adrian Colyer
  * @author Andy Clement
  */
@@ -25,7 +25,7 @@ public class TypeVariableReferenceType extends ReferenceType implements TypeVari
 		super(typeVariable.getGenericSignature(), typeVariable.getErasureSignature(), world);
 		this.typeVariable = typeVariable;
 	}
-	
+
 	@Override
 	public boolean equals(Object other) {
 		if (other instanceof TypeVariableReferenceType) {
@@ -33,7 +33,7 @@ public class TypeVariableReferenceType extends ReferenceType implements TypeVari
 		}
 		return false;
 	}
-	
+
 	@Override
 	public int hashCode() {
 		return typeVariable.hashCode();
@@ -100,11 +100,11 @@ public class TypeVariableReferenceType extends ReferenceType implements TypeVari
 		typeVariable.resolve(world);
 		ResolvedType annotationType = ResolvedType.ANNOTATION.resolve(world);
 		UnresolvedType[] ifBounds = typeVariable.getSuperInterfaces();// AdditionalBounds();
-		for (int i = 0; i < ifBounds.length; i++) {
-			if (((ReferenceType) ifBounds[i]).isAnnotation()) {
+		for (UnresolvedType ifBound : ifBounds) {
+			if (((ReferenceType) ifBound).isAnnotation()) {
 				return true;
 			}
-			if (ifBounds[i].equals(annotationType)) {
+			if (ifBound.equals(annotationType)) {
 				return true; // annotation itself does not have the annotation flag set in Java!
 			}
 		}
@@ -117,7 +117,7 @@ public class TypeVariableReferenceType extends ReferenceType implements TypeVari
 	 */
 	@Override
 	public String getSignature() {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		sb.append("T");
 		sb.append(typeVariable.getName());
 		sb.append(";");

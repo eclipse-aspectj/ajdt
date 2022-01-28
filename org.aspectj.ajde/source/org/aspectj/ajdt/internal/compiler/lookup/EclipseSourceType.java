@@ -2,9 +2,9 @@
  * Copyright (c) 2002,2010 Contributors
  * All rights reserved.
  * This program and the accompanying materials are made available
- * under the terms of the Eclipse Public License v1.0
+ * under the terms of the Eclipse Public License v 2.0
  * which accompanies this distribution and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
  *
  * Contributors:
  *     PARC                 initial implementation
@@ -90,7 +90,7 @@ import org.aspectj.weaver.patterns.Pointcut;
 
 /**
  * Supports viewing eclipse TypeDeclarations/SourceTypeBindings as a ResolvedType
- * 
+ *
  * @author Jim Hugunin
  * @author Andy Clement
  */
@@ -101,8 +101,8 @@ public class EclipseSourceType extends AbstractReferenceTypeDelegate {
 	protected ResolvedMember[] declaredMethods = null;
 	protected ResolvedMember[] declaredFields = null;
 
-	public List<Declare> declares = new ArrayList<Declare>();
-	public List<EclipseTypeMunger> typeMungers = new ArrayList<EclipseTypeMunger>();
+	public List<Declare> declares = new ArrayList<>();
+	public List<EclipseTypeMunger> typeMungers = new ArrayList<>();
 
 	private final EclipseFactory factory;
 
@@ -176,8 +176,8 @@ public class EclipseSourceType extends AbstractReferenceTypeDelegate {
 			return false;
 		}
 		ResolvedType[] annotations = getAnnotationTypes();
-		for (int i = 0; i < annotations.length; i++) {
-			if ("org.aspectj.lang.annotation.Aspect".equals(annotations[i].getName())) {
+		for (ResolvedType annotation : annotations) {
+			if ("org.aspectj.lang.annotation.Aspect".equals(annotation.getName())) {
 				return true;
 			}
 		}
@@ -190,19 +190,19 @@ public class EclipseSourceType extends AbstractReferenceTypeDelegate {
 		if (ans == null) {
 			return "";
 		}
-		for (int i = 0; i < ans.length; i++) {
-			if (ans[i].resolvedType == null) {
+		for (Annotation an : ans) {
+			if (an.resolvedType == null) {
 				continue; // XXX happens if we do this very early from
 			}
 			// buildInterTypeandPerClause
 			// may prevent us from resolving references made in @Pointcuts to
 			// an @Pointcut in a code-style aspect
-			char[] sig = ans[i].resolvedType.signature();
+			char[] sig = an.resolvedType.signature();
 			if (CharOperation.equals(pointcutSig, sig)) {
-				if (ans[i].memberValuePairs().length == 0) {
+				if (an.memberValuePairs().length == 0) {
 					return ""; // empty pointcut expression
 				}
-				Expression expr = ans[i].memberValuePairs()[0].value;
+				Expression expr = an.memberValuePairs()[0].value;
 				if (expr instanceof StringLiteral) {
 					StringLiteral sLit = ((StringLiteral) expr);
 					return new String(sLit.source());
@@ -223,14 +223,14 @@ public class EclipseSourceType extends AbstractReferenceTypeDelegate {
 		if (annotations == null) {
 			return false;
 		}
-		for (int i = 0; i < annotations.length; i++) {
-			if (annotations[i].resolvedType == null) {
+		for (Annotation annotation : annotations) {
+			if (annotation.resolvedType == null) {
 				continue; // XXX happens if we do this very early from
 			}
 			// buildInterTypeandPerClause
 			// may prevent us from resolving references made in @Pointcuts to
 			// an @Pointcut in a code-style aspect
-			char[] sig = annotations[i].resolvedType.signature();
+			char[] sig = annotation.resolvedType.signature();
 			if (CharOperation.equals(pointcutSig, sig)) {
 				return true;
 			}
@@ -258,16 +258,15 @@ public class EclipseSourceType extends AbstractReferenceTypeDelegate {
 	}
 
 	protected void fillDeclaredMembers() {
-		List<ResolvedMember> declaredPointcuts = new ArrayList<ResolvedMember>();
-		List<ResolvedMember> declaredMethods = new ArrayList<ResolvedMember>();
-		List<ResolvedMember> declaredFields = new ArrayList<ResolvedMember>();
+		List<ResolvedMember> declaredPointcuts = new ArrayList<>();
+		List<ResolvedMember> declaredMethods = new ArrayList<>();
+		List<ResolvedMember> declaredFields = new ArrayList<>();
 
 		MethodBinding[] ms = binding.methods(); // the important side-effect of this call is to make
 		// sure bindings are completed
 		AbstractMethodDeclaration[] methods = declaration.methods;
 		if (methods != null) {
-			for (int i = 0, len = methods.length; i < len; i++) {
-				AbstractMethodDeclaration amd = methods[i];
+			for (AbstractMethodDeclaration amd : methods) {
 				if (amd == null || amd.ignoreFurtherInvestigation) {
 					continue;
 				}
@@ -323,19 +322,18 @@ public class EclipseSourceType extends AbstractReferenceTypeDelegate {
 				}
 			}
 		}
-		
+
 		if (isEnum()) {
 			// The bindings for the eclipse binding will include values/valueof
-			for (int m=0,len=ms.length;m<len;m++) {
-				MethodBinding mb = ms[m];
+			for (MethodBinding mb : ms) {
 				if ((mb instanceof SyntheticMethodBinding) && mb.isStatic()) { // cannot use .isSynthetic() because it isn't truly synthetic
-					if (CharOperation.equals(mb.selector,valuesCharArray) && mb.parameters.length==0 && mb.returnType.isArrayType() && ((ArrayBinding)mb.returnType).leafComponentType()==binding) {
+					if (CharOperation.equals(mb.selector, valuesCharArray) && mb.parameters.length == 0 && mb.returnType.isArrayType() && ((ArrayBinding) mb.returnType).leafComponentType() == binding) {
 						// static <EnumType>[] values()
 						ResolvedMember valuesMember = factory.makeResolvedMember(mb);
 						valuesMember.setSourceContext(new EclipseSourceContext(unit.compilationResult, 0));
 						valuesMember.setPosition(0, 0);
 						declaredMethods.add(valuesMember);
-					} else if (CharOperation.equals(mb.selector,valueOfCharArray) && mb.parameters.length==1 && CharOperation.equals(mb.parameters[0].signature(),jlString) && mb.returnType==binding) {
+					} else if (CharOperation.equals(mb.selector, valueOfCharArray) && mb.parameters.length == 1 && CharOperation.equals(mb.parameters[0].signature(), jlString) && mb.returnType == binding) {
 						// static <EnumType> valueOf(String)
 						ResolvedMember valueOfMember = factory.makeResolvedMember(mb);
 						valueOfMember.setSourceContext(new EclipseSourceContext(unit.compilationResult, 0));
@@ -347,20 +345,19 @@ public class EclipseSourceType extends AbstractReferenceTypeDelegate {
 		}
 
 		FieldBinding[] fields = binding.fields();
-		for (int i = 0, len = fields.length; i < len; i++) {
-			FieldBinding f = fields[i];
+		for (FieldBinding f : fields) {
 			declaredFields.add(factory.makeResolvedMember(f));
 		}
 
-		this.declaredPointcuts = declaredPointcuts.toArray(new ResolvedPointcutDefinition[declaredPointcuts.size()]);
-		this.declaredMethods = declaredMethods.toArray(new ResolvedMember[declaredMethods.size()]);
-		this.declaredFields = declaredFields.toArray(new ResolvedMember[declaredFields.size()]);
+		this.declaredPointcuts = declaredPointcuts.toArray(ResolvedPointcutDefinition.NO_POINTCUTS);
+		this.declaredMethods = declaredMethods.toArray(ResolvedMember.NONE);
+		this.declaredFields = declaredFields.toArray(ResolvedMember.NONE);
 	}
-	
+
 	private final static char[] valuesCharArray = "values".toCharArray();
 	private final static char[] valueOfCharArray = "valueOf".toCharArray();
 	private final static char[] jlString = "Ljava/lang/String;".toCharArray();
-	
+
 
 	private ResolvedPointcutDefinition makeResolvedPointcutDefinition(AbstractMethodDeclaration md) {
 		if (md.binding == null) {
@@ -398,10 +395,10 @@ public class EclipseSourceType extends AbstractReferenceTypeDelegate {
 
 	private FormalBinding[] buildFormalAdviceBindingsFrom(AbstractMethodDeclaration mDecl) {
 		if (mDecl.arguments == null) {
-			return new FormalBinding[0];
+			return FormalBinding.NONE;
 		}
 		if (mDecl.binding == null) {
-			return new FormalBinding[0];
+			return FormalBinding.NONE;
 		}
 		EclipseFactory factory = EclipseFactory.fromScopeLookupEnvironment(mDecl.scope);
 		String extraArgName = "";// maybeGetExtraArgName();
@@ -613,7 +610,7 @@ public class EclipseSourceType extends AbstractReferenceTypeDelegate {
 		// }
 		// return targetKind;
 		if (isAnnotation()) {
-			List<AnnotationTargetKind> targetKinds = new ArrayList<AnnotationTargetKind>();
+			List<AnnotationTargetKind> targetKinds = new ArrayList<>();
 
 			if ((binding.getAnnotationTagBits() & TagBits.AnnotationForAnnotationType) != 0) {
 				targetKinds.add(AnnotationTargetKind.ANNOTATION_TYPE);
@@ -677,8 +674,8 @@ public class EclipseSourceType extends AbstractReferenceTypeDelegate {
 	@Override
 	public boolean hasAnnotation(UnresolvedType ofType) {
 		ensureAnnotationTypesResolved();
-		for (int a = 0, max = annotationTypes.length; a < max; a++) {
-			if (ofType.equals(annotationTypes[a])) {
+		for (ResolvedType annotationType : annotationTypes) {
+			if (ofType.equals(annotationType)) {
 				return true;
 			}
 		}
@@ -687,12 +684,12 @@ public class EclipseSourceType extends AbstractReferenceTypeDelegate {
 
 	/**
 	 * WARNING: This method does not have a complete implementation.
-	 * 
+	 *
 	 * The aim is that it converts Eclipse annotation objects to the AspectJ form of annotations (the type AnnotationAJ). The
 	 * AnnotationX objects returned are wrappers over either a Bcel annotation type or the AspectJ AnnotationAJ type. The minimal
 	 * implementation provided here is for processing the RetentionPolicy and Target annotation types - these are the only ones
 	 * which the weaver will attempt to process from an EclipseSourceType.
-	 * 
+	 *
 	 * More notes: The pipeline has required us to implement this. With the pipeline we can be weaving a type and asking questions
 	 * of annotations before they have been turned into Bcel objects - ie. when they are still in EclipseSourceType form. Without
 	 * the pipeline we would have converted everything to Bcel objects before proceeding with weaving. Because the pipeline won't
@@ -721,7 +718,7 @@ public class EclipseSourceType extends AbstractReferenceTypeDelegate {
 		}
 		return annotations;
 	}
-	
+
 	@Override
 	public boolean hasAnnotations() {
 		return (declaration.annotations != null && declaration.annotations.length != 0);
@@ -729,7 +726,7 @@ public class EclipseSourceType extends AbstractReferenceTypeDelegate {
 
 	/**
 	 * Convert one eclipse annotation into an AnnotationX object containing an AnnotationAJ object.
-	 * 
+	 *
 	 * This code and the helper methods used by it will go *BANG* if they encounter anything not currently supported - this is safer
 	 * than limping along with a malformed annotation. When the *BANG* is encountered the bug reporter should indicate the kind of
 	 * annotation they were working with and this code can be enhanced to support it.
@@ -753,7 +750,7 @@ public class EclipseSourceType extends AbstractReferenceTypeDelegate {
 
 	/**
 	 * Use the information in the supplied eclipse based annotation to fill in the standard annotation.
-	 * 
+	 *
 	 * @param annotation eclipse based annotation representation
 	 * @param annotationAJ AspectJ based annotation representation
 	 */
@@ -763,8 +760,7 @@ public class EclipseSourceType extends AbstractReferenceTypeDelegate {
 			MemberValuePair[] memberValuePairs = normalAnnotation.memberValuePairs;
 			if (memberValuePairs != null) {
 				int memberValuePairsLength = memberValuePairs.length;
-				for (int i = 0; i < memberValuePairsLength; i++) {
-					MemberValuePair memberValuePair = memberValuePairs[i];
+				for (MemberValuePair memberValuePair : memberValuePairs) {
 					MethodBinding methodBinding = memberValuePair.binding;
 					if (methodBinding == null) {
 						// is this just a marker annotation?
@@ -947,8 +943,7 @@ public class EclipseSourceType extends AbstractReferenceTypeDelegate {
 							ajAnnotationType.isAnnotationWithRuntimeRetention());
 					MemberValuePair[] pairs = normalAnnotation.memberValuePairs;
 					if (pairs != null) {
-						for (int p = 0; p < pairs.length; p++) {
-							MemberValuePair pair = pairs[p];
+						for (MemberValuePair pair : pairs) {
 							Expression valueEx = pair.value;
 							AnnotationValue pairValue = null;
 							if (valueEx instanceof Literal) {
@@ -1068,8 +1063,7 @@ public class EclipseSourceType extends AbstractReferenceTypeDelegate {
 			// Can happen if an aspect is extending a regular class
 			return null;
 		}
-		for (int i = 0; i < annotations.length; i++) {
-			Annotation annotation = annotations[i];
+		for (Annotation annotation : annotations) {
 			if (annotation != null && annotation.resolvedType != null
 					&& CharOperation.equals(aspectSig, annotation.resolvedType.signature())) {
 				// found @Aspect(...)
@@ -1092,7 +1086,7 @@ public class EclipseSourceType extends AbstractReferenceTypeDelegate {
 					// safe
 					// ?
 					return determinePerClause(typeDeclaration, clause);
-				} else if (annotation instanceof NormalAnnotation) { 
+				} else if (annotation instanceof NormalAnnotation) {
 					// this kind if it was added by the visitor!
 					// it is an @Aspect(...something...)
 					NormalAnnotation theAnnotation = (NormalAnnotation) annotation;
@@ -1153,13 +1147,12 @@ public class EclipseSourceType extends AbstractReferenceTypeDelegate {
 			} else {
 				kind = null;
 			}
-		} else if (binding instanceof SourceTypeBinding) {
+		} else if (binding instanceof SourceTypeBinding && ((SourceTypeBinding)binding).scope != null) {
 			SourceTypeBinding sourceSc = (SourceTypeBinding) binding;
 			if (sourceSc.scope.referenceContext instanceof AspectDeclaration) {
 				// code style
 				kind = ((AspectDeclaration) sourceSc.scope.referenceContext).perClause.getKind();
-			} else { // if (sourceSc.scope.referenceContext instanceof
-				// TypeDeclaration) {
+			} else { // if (sourceSc.scope.referenceContext instanceof TypeDeclaration) {
 				// if @Aspect: perFromSuper, else if @Aspect(..) get from anno
 				// value, else null
 				kind = getPerClauseForTypeDeclaration((sourceSc.scope.referenceContext));
@@ -1204,7 +1197,7 @@ public class EclipseSourceType extends AbstractReferenceTypeDelegate {
 	@Override
 	public TypeVariable[] getTypeVariables() {
 		if (declaration.typeParameters == null) {
-			return new TypeVariable[0];
+			return TypeVariable.NONE;
 		}
 		TypeVariable[] typeVariables = new TypeVariable[declaration.typeParameters.length];
 		for (int i = 0; i < typeVariables.length; i++) {

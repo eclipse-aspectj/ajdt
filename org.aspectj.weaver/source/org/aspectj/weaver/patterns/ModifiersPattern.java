@@ -1,13 +1,13 @@
 /* *******************************************************************
  * Copyright (c) 2002 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     PARC     initial implementation
  * ******************************************************************/
 
 package org.aspectj.weaver.patterns;
@@ -29,14 +29,15 @@ public class ModifiersPattern extends PatternNode {
 	private static Map<String, Integer> modifierFlags = null;
 
 	static {
-		modifierFlags = new HashMap<String, Integer>();
+		modifierFlags = new HashMap<>();
 		int flag = 1;
 		while (flag <= Modifier.STRICT) {
 			String flagName = Modifier.toString(flag);
-			modifierFlags.put(flagName, new Integer(flag));
+			modifierFlags.put(flagName, flag);
 			flag = flag << 1;
 		}
-		modifierFlags.put("synthetic", new Integer(0x1000 /* Modifier.SYNTHETIC */));
+		/* Modifier.SYNTHETIC */
+		modifierFlags.put("synthetic", 0x1000);
 	}
 
 	public ModifiersPattern(int requiredModifiers, int forbiddenModifiers) {
@@ -96,7 +97,7 @@ public class ModifiersPattern extends PatternNode {
 		if (flag == null) {
 			return -1;
 		}
-		return flag.intValue();
+		return flag;
 	}
 
 	public Object accept(PatternNodeVisitor visitor, Object data) {

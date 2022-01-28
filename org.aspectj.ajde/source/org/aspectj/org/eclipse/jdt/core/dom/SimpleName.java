@@ -162,7 +162,7 @@ public class SimpleName extends Name {
 				if (Long.compare(this.ast.scanner.complianceLevel, ClassFileConstants.JDK10) < 0) {
 					setVar(false);
 				} else {
-				setVar(value);
+					setVar(value);
 				}
 				return false;
 			}

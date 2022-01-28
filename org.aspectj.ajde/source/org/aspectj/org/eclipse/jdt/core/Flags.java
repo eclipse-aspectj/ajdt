@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -174,15 +174,45 @@ public final class Flags {
 	 * @since 3.10
 	 */
 	public static final int AccAnnotationDefault = ClassFileConstants.AccAnnotationDefault;
-	
+
 	/**
 	 * Module declaration property flag.
 	 * Used to flag a compilation unit or a class file that contains a module declaration.
-	 * 
+	 *
 	 * @since 3.14
 	 */
 	public static final int AccModule = ClassFileConstants.AccModule;
-	
+
+	/**
+	 * Record property flag.
+	 * <p>
+	 * Note that this flag's value is internal and is not defined in the
+	 * Virtual Machine specification.
+	 * </p>
+	 * @since 3.26
+	 */
+	public static final int  AccRecord = ExtraCompilerModifiers.AccRecord;
+	/**
+	 * Sealed property flag.
+	 * <p>
+	 * Note that this flag's value is internal and is not defined in the
+	 * Virtual Machine specification.
+	 * </p>
+	 * @since 3.24
+	 * @noreference This field is not intended to be referenced by clients as it is a part of Java preview feature.
+	 */
+	public static final int  AccSealed = ExtraCompilerModifiers.AccSealed;
+	/**
+	 * Non-sealed property flag.
+	 * <p>
+	 * Note that this flag's value is internal and is not defined in the
+	 * Virtual Machine specification.
+	 * </p>
+	 * @since 3.24
+	 * @noreference This field is not intended to be referenced by clients as it is a part of Java preview feature.
+	 */
+	public static final int  AccNonSealed = ExtraCompilerModifiers.AccNonSealed;
+
 	/**
 	 * Not instantiable.
 	 */
@@ -380,6 +410,43 @@ public final class Flags {
 	}
 
 	/**
+	  * Returns whether the given integer has the <code>AccRecord</code>
+	 * bit set.
+	 *
+	 * @param flags the flags
+	 * @return <code>true</code> if the <code>AccRecord</code> flag is included
+	 * @see #AccRecord
+	 * @since 3.26
+	 */
+	public static boolean isRecord(int flags) {
+		return (flags & AccRecord) != 0;
+	}
+	/**
+	  * Returns whether the given integer has the <code>AccSealed</code>
+	 * bit set.
+	 *
+	 * @param flags the flags
+	 * @return <code>true</code> if the <code>AccSealed</code> flag is included
+	 * @see #AccSealed
+	 * @noreference This method is not intended to be referenced by clients as it is a part of Java preview feature.
+	 */
+	public static boolean isSealed(int flags) {
+		return (flags & AccSealed) != 0;
+	}
+	/**
+	  * Returns whether the given integer has the <code>AccNonSealed</code>
+	 * bit set.
+	 *
+	 * @param flags the flags
+	 * @return <code>true</code> if the <code>AccNonSealed</code> flag is included
+	 * @see #AccNonSealed
+	 * @noreference This method is not intended to be referenced by clients as it is a part of Java preview feature.
+	 */
+	public static boolean isNonSealed(int flags) {
+		return (flags & AccNonSealed) != 0;
+	}
+
+	/**
 	 * Returns whether the given integer has the <code>AccAnnotation</code>
 	 * bit set.
 	 *
@@ -416,7 +483,7 @@ public final class Flags {
 	public static boolean isAnnnotationDefault(int flags) {
 		return (flags & AccAnnotationDefault) != 0;
 	}
-	
+
 	/**
 	 * Returns whether the given integer has the <code>AccModule</code>
 	 * bit set.
@@ -424,7 +491,7 @@ public final class Flags {
 	 * @return <code>true</code> if the <code>AccModule</code> flag is included
 	 * @see #AccModule
 	 * @since 3.14
-	 */	
+	 */
 	public static boolean isModule(int flags) {
 		return (flags & AccModule) != 0;
 	}
@@ -449,20 +516,18 @@ public final class Flags {
 	 * int flags = method.getFlags() & ~Flags.AccVarargs;
 	 * return Flags.toString(flags);
 	 * </pre>
-	 * </p>
 	 * <p>
 	 * Examples results:
 	 * <pre>
 	 *	  <code>"public static final"</code>
 	 *	  <code>"private native"</code>
 	 * </pre>
-	 * </p>
 	 *
 	 * @param flags the flags
 	 * @return the standard string representation of the given flags
 	 */
 	public static String toString(int flags) {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 
 		if (isPublic(flags))
 			sb.append("public "); //$NON-NLS-1$
@@ -488,6 +553,10 @@ public final class Flags {
 			sb.append("transient "); //$NON-NLS-1$
 		if (isVolatile(flags))
 			sb.append("volatile "); //$NON-NLS-1$
+		if (isSealed(flags))
+			sb.append("sealed "); //$NON-NLS-1$
+		if (isNonSealed(flags))
+			sb.append("non-sealed "); //$NON-NLS-1$
 		int len = sb.length();
 		if (len == 0)
 			return ""; //$NON-NLS-1$

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2018 IBM Corporation.
+ * Copyright (c) 2016, 2020 IBM Corporation.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -30,7 +30,6 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclarat
 import org.aspectj.org.eclipse.jdt.internal.compiler.batch.FileSystem.Classpath;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileReader;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFormatException;
-import org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IModule;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.PackageExportImpl;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IModule.IPackageExport;
@@ -54,14 +53,14 @@ public class ModuleFinder {
 		}
 		return modulePath;
 	}
-	protected static void scanForModules(String destinationPath, Parser parser, Map<String, String> options, boolean isModulepath, 
+	protected static void scanForModules(String destinationPath, Parser parser, Map<String, String> options, boolean isModulepath,
 			boolean thisAnAutomodule, List<FileSystem.Classpath> collector, final File file, String release) {
 		FileSystem.Classpath entry = FileSystem.getClasspath(
 				file.getAbsolutePath(),
 				null,
 				!isModulepath,
 				null,
-				destinationPath == null ? null : (destinationPath + File.separator + file.getName()), 
+				destinationPath == null ? null : (destinationPath + File.separator + file.getName()),
 				options,
 				release);
 		if (entry != null) {
@@ -115,7 +114,11 @@ public class ModuleFinder {
 			}
 		}
 		if (considerAutoModules && module == null && !(modulePath instanceof ClasspathJrt)) {
-			module = IModule.createAutomatic(getFileName(file), file.isFile(), getManifest(file));
+			if (!file.isDirectory()) {
+				String fileName = getFileName(file);
+				if (!fileName.isEmpty())
+					module = IModule.createAutomatic(fileName, file.isFile(), getManifest(file));
+			}
 		}
 		if (module != null)
 			modulePath.acceptModule(module);
@@ -141,10 +144,10 @@ public class ModuleFinder {
 	 * Extracts the single reads clause from the given
 	 * command line option (--add-reads). The result is a String[] with two
 	 * element, first being the source module and second being the target module.
-	 * The expected format is: 
+	 * The expected format is:
 	 *  --add-reads <source-module>=<target-module>
 	 * @param option
-	 * @return a String[] with source and target module of the "reads" clause. 
+	 * @return a String[] with source and target module of the "reads" clause.
 	 */
 	protected static String[] extractAddonRead(String option) {
 		StringTokenizer tokenizer = new StringTokenizer(option, "="); //$NON-NLS-1$
@@ -280,10 +283,11 @@ public class ModuleFinder {
 		return null;
 	}
 	private static IModule extractModuleFromSource(File file, Parser parser, Classpath pathEntry) {
-		ICompilationUnit cu = new CompilationUnit(null, file.getAbsolutePath(), null, pathEntry.getDestinationPath());
+		CompilationUnit cu = new CompilationUnit(null, file.getAbsolutePath(), null, pathEntry.getDestinationPath());
 		CompilationResult compilationResult = new CompilationResult(cu, 0, 1, 10);
 		CompilationUnitDeclaration unit = parser.parse(cu, compilationResult);
 		if (unit.isModuleInfo() && unit.moduleDeclaration != null) {
+			cu.module = unit.moduleDeclaration.moduleName;
 			return new BasicModule(unit.moduleDeclaration, pathEntry);
 		}
 		return null;

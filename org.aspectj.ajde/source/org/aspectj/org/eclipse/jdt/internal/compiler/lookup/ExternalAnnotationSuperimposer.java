@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Argument;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ExternalAnnotationProvider;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryAnnotation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.ITypeAnnotationWalker;
@@ -55,7 +56,7 @@ class ExternalAnnotationSuperimposer extends TypeBindingVisitor {
 		} catch (FileNotFoundException e) {
 			// file not found is expected
 		} catch (IOException e) {
-			typeBinding.scope.problemReporter().abortDueToInternalError(Messages.bind(Messages.abort_externaAnnotationFile, 
+			typeBinding.scope.problemReporter().abortDueToInternalError(Messages.bind(Messages.abort_externaAnnotationFile,
 						new String[] {String.valueOf(typeBinding.readableName()), externalAnnotationPath, e.getMessage()}));
 		} finally {
 			if (zipFile != null)
@@ -80,6 +81,17 @@ class ExternalAnnotationSuperimposer extends TypeBindingVisitor {
 		binding.externalAnnotationProvider = provider; // for superimposing method signatures
 	}
 
+	public static void annotateComponentBinding(RecordComponentBinding componentBinding, ExternalAnnotationProvider provider, LookupEnvironment environment) {
+		char[] componentSignature = componentBinding.genericSignature();
+		if (componentSignature == null && componentBinding.type != null)
+			componentSignature = componentBinding.type.signature();
+		// TODO: check - do we need a provider.forRecordComponent; won't the field be sufficient - SH?
+		ITypeAnnotationWalker walker = provider.forField(componentBinding.name, componentSignature, environment);
+		ExternalAnnotationSuperimposer visitor = new ExternalAnnotationSuperimposer(environment);
+		if (visitor.go(walker))
+			componentBinding.type = visitor.superimpose(componentBinding.type, TypeBinding.class);
+	}
+
 	public static void annotateFieldBinding(FieldBinding field, ExternalAnnotationProvider provider, LookupEnvironment environment) {
 		char[] fieldSignature = field.genericSignature();
 		if (fieldSignature == null && field.type != null)
@@ -90,7 +102,7 @@ class ExternalAnnotationSuperimposer extends TypeBindingVisitor {
 			field.type = visitor.superimpose(field.type, TypeBinding.class);
 	}
 
-	public static void annotateMethodBinding(MethodBinding method, ExternalAnnotationProvider provider, LookupEnvironment environment) {
+	public static void annotateMethodBinding(MethodBinding method, Argument[] arguments, ExternalAnnotationProvider provider, LookupEnvironment environment) {
 		char[] methodSignature = method.genericSignature();
 		if (methodSignature == null)
 			methodSignature = method.signature();
@@ -108,8 +120,11 @@ class ExternalAnnotationSuperimposer extends TypeBindingVisitor {
 			}
 			TypeBinding[] parameters = method.parameters;
 			for (short i = 0; i < parameters.length; i++) {
-				if (visitor.go(walker.toMethodParameter(i)))
+				if (visitor.go(walker.toMethodParameter(i))) {
 					parameters[i] = visitor.superimpose(parameters[i], TypeBinding.class);
+					if (arguments != null && i < arguments.length)
+						arguments[i].binding.type = parameters[i];
+				}
 			}
 		}
 	}
@@ -118,7 +133,7 @@ class ExternalAnnotationSuperimposer extends TypeBindingVisitor {
 	private TypeBinding typeReplacement;
 	private LookupEnvironment environment;
 	private boolean isReplacing;
-	
+
 	ExternalAnnotationSuperimposer(LookupEnvironment environment) {
 		this.environment = environment;
 	}
@@ -157,13 +172,13 @@ class ExternalAnnotationSuperimposer extends TypeBindingVisitor {
 			return cl.cast(this.typeReplacement);
 		return type;
 	}
-	
+
 	private TypeBinding goAndSuperimpose(ITypeAnnotationWalker walker, TypeBinding type) {
 		// no reset here
 		if (walker == ITypeAnnotationWalker.EMPTY_ANNOTATION_WALKER)
 			return type;
 		this.currentWalker = walker;
-		
+
 		TypeBindingVisitor.visit(this, type);
 
 		if (this.typeReplacement == null)
@@ -173,7 +188,7 @@ class ExternalAnnotationSuperimposer extends TypeBindingVisitor {
 		this.typeReplacement = null;
 		return answer;
 	}
-	
+
 	@Override
 	public boolean visit(ArrayBinding arrayBinding) {
 		ExternalAnnotationSuperimposer memento = snapshot();
@@ -229,7 +244,7 @@ class ExternalAnnotationSuperimposer extends TypeBindingVisitor {
 			return false;
 		} finally {
 			restore(memento);
-		}		
+		}
 	}
 	@Override
 	public boolean visit(RawTypeBinding rawTypeBinding) {
@@ -254,7 +269,7 @@ class ExternalAnnotationSuperimposer extends TypeBindingVisitor {
 			if (bound != null) {
 				bound = goAndSuperimpose(memento.currentWalker.toWildcardBound(), bound);
 			}
-			IBinaryAnnotation[] binaryAnnotations = memento.currentWalker.getAnnotationsAtCursor(-1, false); 
+			IBinaryAnnotation[] binaryAnnotations = memento.currentWalker.getAnnotationsAtCursor(-1, false);
 			if (this.isReplacing || binaryAnnotations != ITypeAnnotationWalker.NO_ANNOTATIONS) {
 				TypeBinding[] otherBounds = wildcardBinding.otherBounds;
 				if (binaryAnnotations != ITypeAnnotationWalker.NO_ANNOTATIONS) {

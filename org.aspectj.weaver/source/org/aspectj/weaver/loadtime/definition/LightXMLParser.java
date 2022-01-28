@@ -2,9 +2,9 @@
  * Copyright (c) 2011 Contributors.
  * All rights reserved.
  * This program and the accompanying materials are made available
- * under the terms of the Eclipse Public License v1.0
+ * under the terms of the Eclipse Public License v 2.0
  * which accompanies this distribution and is available at
- * http://eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
  *
  * Contributors:
  *   Abraham Nevado - Lucierna	initial implementation
@@ -20,12 +20,12 @@ public class LightXMLParser {
 
 	private final static char NULL_CHAR = '\0';
 	private Map<String, Object> attributes;
-	private ArrayList children;
+	private ArrayList<LightXMLParser> children;
 	private String name;
 	private char pushedBackChar;
 	private Reader reader;
 
-	private static Map<String, char[]> entities = new HashMap<String, char[]>();
+	private static Map<String, char[]> entities = new HashMap<>();
 
 	static {
 		entities.put("amp", new char[] { '&' });
@@ -37,8 +37,8 @@ public class LightXMLParser {
 
 	public LightXMLParser() {
 		this.name = null;
-		this.attributes = new HashMap<String, Object>();
-		this.children = new ArrayList();
+		this.attributes = new HashMap<>();
+		this.children = new ArrayList<>();
 	}
 
 	public ArrayList getChildrens() {
@@ -51,9 +51,9 @@ public class LightXMLParser {
 
 	public void parseFromReader(Reader reader) throws Exception {
 		this.pushedBackChar = NULL_CHAR;
-		this.attributes = new HashMap<String, Object>();
+		this.attributes = new HashMap<>();
 		this.name = null;
-		this.children = new ArrayList();
+		this.children = new ArrayList<>();
 		this.reader = reader;
 
 		while (true) {
@@ -411,7 +411,7 @@ public class LightXMLParser {
 
 	private void mapEntity(StringBuffer buf) throws Exception {
 		char c = this.NULL_CHAR;
-		StringBuffer keyBuf = new StringBuffer();
+		StringBuilder keyBuf = new StringBuilder();
 		while (true) {
 			c = this.getNextChar();
 			if (c == ';') {

@@ -2,9 +2,9 @@
  * Copyright (c) 2012 Contributors.
  * All rights reserved.
  * This program and the accompanying materials are made available
- * under the terms of the Eclipse Public License v1.0
+ * under the terms of the Eclipse Public License v 2.0
  * which accompanies this distribution and is available at
- * http://eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
  *
  * Contributors:
  *   Lyor Goldstein (vmware)	add support for weaved class being re-defined
@@ -34,23 +34,23 @@ import org.aspectj.weaver.tools.TraceFactory;
  * The class maintains an in-memory cache, and uses a queue of {@link AsyncCommand}s
  * to signal to a background thread various actions required to &quot;synchronize&quot;
  * the in-memory cache with the persisted copy. Whenever there is a cache miss
- * from the {@link #get(CachedClassReference)} call, the weaver issues a
- * {@link #put(CachedClassEntry)} call. This call has 2 side-effects:</BR>
+ * from the {@link #get(CachedClassReference, byte[])} call, the weaver issues a
+ * {@link #put(CachedClassEntry, byte[])} call. This call has 2 side-effects:
  * <UL>
  * 		<LI>
- * 		The in-memory cache is updated so that subsequent calls to {@link #get(CachedClassReference)}
+ * 		The in-memory cache is updated so that subsequent calls to {@link #get(CachedClassReference, byte[])}
  * 		will not return the mapped value.
  * 		</LI>
- * 
+ *
  *  	<LI>
- *  	An &quot;update index&quot {@link AsyncCommand} is posted to the background
+ *  	An &quot;update index&quot; {@link AsyncCommand} is posted to the background
  *  	thread so that the newly mapped value will be persisted (eventually)
- *  	</LI> 
+ *  	</LI>
  * </UL>
  * The actual persistence is implemented by the <U>concrete</U> classes
  */
 public abstract class AsynchronousFileCacheBacking extends AbstractIndexedFileCacheBacking {
-    private static final BlockingQueue<AsyncCommand>   commandsQ=new LinkedBlockingQueue<AsyncCommand>();
+    private static final BlockingQueue<AsyncCommand>   commandsQ= new LinkedBlockingQueue<>();
     private static final ExecutorService    execService=Executors.newSingleThreadExecutor();
     private static Future<?> commandsRunner;
 
@@ -161,7 +161,7 @@ public abstract class AsynchronousFileCacheBacking extends AbstractIndexedFileCa
                 logger.error("remove(" + getCacheDirectory() + ") Failed to post remove command for " + key);
             }
         }
-        
+
         if (entry != null) {
             if (!key.equals(entry.key)) {
                 if ((logger != null) && logger.isTraceEnabled()) {
@@ -180,7 +180,7 @@ public abstract class AsynchronousFileCacheBacking extends AbstractIndexedFileCa
             if (index.isEmpty()) {
                 return Collections.emptyList();
             } else {
-                return new ArrayList<IndexEntry>(index.values());
+                return new ArrayList<>(index.values());
             }
         }
     }
@@ -331,7 +331,7 @@ public abstract class AsynchronousFileCacheBacking extends AbstractIndexedFileCa
         return commandsQ.offer(cmd);
     }
 
-    public static interface AsynchronousFileCacheBackingCreator<T extends AsynchronousFileCacheBacking> {
+    public interface AsynchronousFileCacheBackingCreator<T extends AsynchronousFileCacheBacking> {
         T create (File cacheDir);
     }
     /**
@@ -339,7 +339,7 @@ public abstract class AsynchronousFileCacheBacking extends AbstractIndexedFileCa
      * {@link AsynchronousFileCacheBacking} instance to be executed
      * on it <U>asynchronously</U>
      */
-    public static interface AsyncCommand {
+    public interface AsyncCommand {
         /**
          * @return The {@link AsynchronousFileCacheBacking} on which
          * this command is supposed to be executed
@@ -359,7 +359,7 @@ public abstract class AsynchronousFileCacheBacking extends AbstractIndexedFileCa
         public final AsynchronousFileCacheBacking getCache () {
             return cache;
         }
-        
+
         @Override
         public String toString() {
             return getClass().getSimpleName() + "[" + getCache() + "]";
@@ -385,7 +385,7 @@ public abstract class AsynchronousFileCacheBacking extends AbstractIndexedFileCa
         private final String    key;
         protected KeyedCommand (AsynchronousFileCacheBacking cache, String keyValue) {
             super(cache);
-            
+
             if (LangUtil.isEmpty(keyValue)) {
                 throw new IllegalStateException("No key value");
             }
@@ -408,7 +408,7 @@ public abstract class AsynchronousFileCacheBacking extends AbstractIndexedFileCa
             super(cache, keyValue);
         }
     }
-    
+
     public static class InsertCommand extends KeyedCommand {
         private final byte[]    bytes;
 

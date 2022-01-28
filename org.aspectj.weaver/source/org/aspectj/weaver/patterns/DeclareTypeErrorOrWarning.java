@@ -1,13 +1,13 @@
 /* *******************************************************************
  * Copyright (c) 2010 Contributors
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     Andy Clement     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     Andy Clement     initial implementation
  * ******************************************************************/
 
 package org.aspectj.weaver.patterns;
@@ -22,7 +22,7 @@ import org.aspectj.weaver.World;
 
 /**
  * For a declare error/warning that specified a type pattern rather than a pointcut.
- * 
+ *
  * @author Andy Clement
  * @since 1.6.9
  */
@@ -38,10 +38,10 @@ public class DeclareTypeErrorOrWarning extends Declare {
 	}
 
 	/**
-	 * returns "declare warning: <typepattern>: <message>" or "declare error: <typepattern>: <message>"
+	 * returns "declare warning: &lt;typepattern&gt;: &lt;message&gt;" or "declare error: &lt;typepattern&gt;: &lt;message&gt;"
 	 */
 	public String toString() {
-		StringBuffer buf = new StringBuffer();
+		StringBuilder buf = new StringBuilder();
 		buf.append("declare ");
 		if (isError) {
 			buf.append("error: ");
@@ -123,7 +123,7 @@ public class DeclareTypeErrorOrWarning extends Declare {
 	 * returns "declare type warning" or "declare type error"
 	 */
 	public String getName() {
-		StringBuffer buf = new StringBuffer();
+		StringBuilder buf = new StringBuilder();
 		buf.append("declare type ");
 		if (isError) {
 			buf.append("error");

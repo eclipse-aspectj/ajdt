@@ -1,13 +1,13 @@
 /* *******************************************************************
  * Copyright (c) 2002 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     PARC     initial implementation
  * ******************************************************************/
 
 package org.aspectj.ajdt.internal.compiler.lookup;
@@ -37,7 +37,7 @@ import org.aspectj.weaver.patterns.WildTypePattern;
 /**
  * Adaptor from org.eclipse.jdt.internal.compiler.lookup.Scope to
  * org.aspectj.weaver.IScope
- * 
+ *
  * @author Jim Hugunin
  */
 public class EclipseScope implements IScope {
@@ -92,10 +92,10 @@ public class EclipseScope implements IScope {
 
 		/*
 		 * computeImports();
-		 * 
+		 *
 		 * // System.out.println("lookup: " + name + " in " + //
 		 * Arrays.asList(importedPrefixes));
-		 * 
+		 *
 		 * ResolvedType ret = null; String dotName = "." + name; for (int i=0;
 		 * i<importedNames.length; i++) { String importedName =
 		 * importedNames[i]; //??? can this be right if
@@ -106,15 +106,15 @@ public class EclipseScope implements IScope {
 		 * message(IMessage.ERROR, location, "ambiguous type reference, both " +
 		 * ret.getName() + " and " + importedName); return ResolvedType.MISSING;
 		 * } else { ret = found; } } }
-		 * 
+		 *
 		 * if (ret != null) return ret;
-		 * 
+		 *
 		 * //XXX need to handle ambiguous references here for (int i=0;
 		 * i<importedPrefixes.length; i++) { String importedPrefix =
 		 * importedPrefixes[i]; ResolvedType tryType =
 		 * resolveVisible(importedPrefix + name); if (tryType !=
 		 * ResolvedType.MISSING) { return tryType; } }
-		 * 
+		 *
 		 * return resolveVisible(name);
 		 */
 	}
@@ -136,8 +136,8 @@ public class EclipseScope implements IScope {
 	// } else {
 	// binding = scope.getType(namePieces);
 	// }
-	//		
-	//		
+	//
+	//
 	// if (!binding.isValidBinding()) {
 	// //XXX do we do this always or sometimes
 	// System.err.println("error: " + binding);
@@ -149,7 +149,7 @@ public class EclipseScope implements IScope {
 	// // if (AstNode.isTypeUseDeprecated(binding, scope))
 	// // scope.problemReporter().deprecatedType(binding,
 	// EclipseWorld.astForLocation(location));
-	//		
+	//
 	// return EclipseWorld.fromBinding(binding);
 	// }
 
@@ -157,8 +157,8 @@ public class EclipseScope implements IScope {
 		if (importedNames != null)
 			return;
 
-		List<String> importedNamesList = new ArrayList<String>();
-		List<String> importedPrefixesList = new ArrayList<String>();
+		List<String> importedNamesList = new ArrayList<>();
+		List<String> importedPrefixesList = new ArrayList<>();
 
 		Scope currentScope = scope;
 		// add any enclosing types to this list
@@ -181,8 +181,7 @@ public class EclipseScope implements IScope {
 		}
 
 		ImportBinding[] imports = cuScope.imports;
-		for (int i = 0; i < imports.length; i++) {
-			ImportBinding importBinding = imports[i];
+		for (ImportBinding importBinding : imports) {
 			String importName = new String(CharOperation.concatWith(importBinding.compoundName, '.'));
 
 			// XXX wrong behavior for java.util.Map.*
@@ -194,13 +193,13 @@ public class EclipseScope implements IScope {
 		}
 
 		TypeBinding[] topTypes = cuScope.topLevelTypes;
-		for (int i = 0; i < topTypes.length; i++) {
-			importedNamesList.add(world.fromBinding(topTypes[i]).getName());
+		for (TypeBinding topType : topTypes) {
+			importedNamesList.add(world.fromBinding(topType).getName());
 		}
 
-		importedNames = importedNamesList.toArray(new String[importedNamesList.size()]);
+		importedNames = importedNamesList.toArray(new String[0]);
 
-		importedPrefixes = importedPrefixesList.toArray(new String[importedPrefixesList.size()]);
+		importedPrefixes = importedPrefixesList.toArray(new String[0]);
 	}
 
 	private void addClassAndParentsToPrefixes(ReferenceBinding binding, List<String> importedPrefixesList) {
@@ -211,8 +210,8 @@ public class EclipseScope implements IScope {
 		addClassAndParentsToPrefixes(binding.superclass(), importedPrefixesList);
 		ReferenceBinding[] superinterfaces = binding.superInterfaces();
 		if (superinterfaces != null) {
-			for (int i = 0; i < superinterfaces.length; i++) {
-				addClassAndParentsToPrefixes(superinterfaces[i], importedPrefixesList);
+			for (ReferenceBinding superinterface : superinterfaces) {
+				addClassAndParentsToPrefixes(superinterface, importedPrefixesList);
 			}
 		}
 	}
@@ -233,9 +232,9 @@ public class EclipseScope implements IScope {
 	// XXX add good errors when would bind to extra parameters
 	@Override
 	public FormalBinding lookupFormal(String name) {
-		for (int i = 0, len = bindings.length; i < len; i++) {
-			if (bindings[i].getName().equals(name))
-				return bindings[i];
+		for (FormalBinding binding : bindings) {
+			if (binding.getName().equals(name))
+				return binding;
 		}
 		return null;
 	}
@@ -298,7 +297,7 @@ public class EclipseScope implements IScope {
 	 * resolved against import statements. They won't be if javac is used (and
 	 * the resulting .class file will contain 'bad pointcuts') so this method
 	 * enables it to also be policed when compiling with ajc.
-	 * 
+	 *
 	 * @param validPackage unqualified references can be resolved if the type is
 	 *            in the same package as the type containing the pointcut
 	 *            declaration.

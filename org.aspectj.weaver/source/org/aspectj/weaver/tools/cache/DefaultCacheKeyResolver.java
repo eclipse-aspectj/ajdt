@@ -2,9 +2,9 @@
  * Copyright (c) 2012 Contributors.
  * All rights reserved.
  * This program and the accompanying materials are made available
- * under the terms of the Eclipse Public License v1.0
+ * under the terms of the Eclipse Public License v 2.0
  * which accompanies this distribution and is available at
- * http://eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
  *
  * Contributors:
  *   John Kew (vmware)         initial implementation
@@ -15,7 +15,6 @@ package org.aspectj.weaver.tools.cache;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.zip.CRC32;
@@ -23,15 +22,18 @@ import java.util.zip.CRC32;
 /**
  * Naive default class and classloader hashing implementation useful
  * for some multi-classloader environments.
- * <p/>
- * This implementation creates classloader scopes of the form:<br/>
+ * <p>
+ * This implementation creates classloader scopes of the form:<br>
  * "ExampleClassLoaderName.[crc hash]"
- * <p/>
- * And weaved class keys of the form:<br/>
+ * </p>
+ * <p>
+ * And weaved class keys of the form:<br>
  * "com.foo.BarClassName.[bytes len][crc].weaved"
- * <p/>
- * And generated class keys of the form:<br/>
+ * </p>
+ * <p>
+ * And generated class keys of the form:<br>
  * "com.foo.BarClassName$AjClosure.generated
+ * </p>
  */
 public class DefaultCacheKeyResolver implements CacheKeyResolver {
 	public static final String GENERATED_SUFFIX = ".generated";
@@ -49,21 +51,20 @@ public class DefaultCacheKeyResolver implements CacheKeyResolver {
 	public String createClassLoaderScope(ClassLoader cl, List<String> aspects) {
 		String name = cl != null ? cl.getClass().getSimpleName() : "unknown";
 
-		List<String> hashableStrings = new LinkedList<String>();
+		List<String> hashableStrings = new LinkedList<>();
 		StringBuilder hashable = new StringBuilder(256);
 
 		// Add the list of loader urls to the hash list
 		if (cl != null && cl instanceof URLClassLoader) {
 			URL[] urls = ((URLClassLoader) cl).getURLs();
-			for (int i = 0; i < urls.length; i++) {
-				hashableStrings.add(urls[i].toString());
+			for (URL url : urls) {
+				hashableStrings.add(url.toString());
 			}
 		}
 
 		hashableStrings.addAll(aspects);
 		Collections.sort(hashableStrings);
-		for (Iterator<String> it = hashableStrings.iterator(); it.hasNext(); ) {
-			String url = it.next();
+		for (String url : hashableStrings) {
 			hashable.append(url);
 		}
 		String hash = null;

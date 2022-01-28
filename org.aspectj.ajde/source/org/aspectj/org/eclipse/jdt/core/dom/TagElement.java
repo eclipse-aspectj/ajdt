@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2004, 2013 IBM Corporation and others.
+ * Copyright (c) 2004, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -114,6 +114,18 @@ public final class TagElement extends ASTNode implements IDocElement {
 	public static final String TAG_EXCEPTION = "@exception"; //$NON-NLS-1$
 
 	/**
+	 * Standard doc tag name (value {@value}).
+	 * @since 3.18
+	 */
+	public static final String TAG_HIDDEN = "@hidden"; //$NON-NLS-1$
+
+	/**
+	 * Standard doc tag name (value {@value}).
+	 * @since 3.18
+	 */
+	public static final String TAG_INDEX = "@index"; //$NON-NLS-1$
+
+	/**
 	 * Standard inline doc tag name (value {@value}).
 	 */
 	public static final String TAG_INHERITDOC = "@inheritDoc"; //$NON-NLS-1$
@@ -141,6 +153,12 @@ public final class TagElement extends ASTNode implements IDocElement {
 	 * Standard doc tag name (value {@value}).
 	 */
 	public static final String TAG_PARAM = "@param"; //$NON-NLS-1$
+
+	/**
+	 * Standard doc tag name (value {@value}).
+	 * @since 3.18
+	 */
+	public static final String TAG_PROVIDES = "@provides"; //$NON-NLS-1$
 
 	/**
 	 * Standard doc tag name (value {@value}).
@@ -174,8 +192,20 @@ public final class TagElement extends ASTNode implements IDocElement {
 
 	/**
 	 * Standard doc tag name (value {@value}).
+	 * @since 3.18
+	 */
+	public static final String TAG_SUMMARY = "@summary"; //$NON-NLS-1$
+
+	/**
+	 * Standard doc tag name (value {@value}).
 	 */
 	public static final String TAG_THROWS = "@throws"; //$NON-NLS-1$
+
+	/**
+	 * Standard doc tag name (value {@value}).
+	 * @since 3.18
+	 */
+	public static final String TAG_USES = "@uses"; //$NON-NLS-1$
 
 	/**
 	 * Standard inline doc tag name (value {@value}).
@@ -186,6 +216,24 @@ public final class TagElement extends ASTNode implements IDocElement {
 	 * Standard doc tag name (value {@value}).
 	 */
 	public static final String TAG_VERSION = "@version"; //$NON-NLS-1$
+
+	/**
+	 * Javadoc tag name (value {@value}).
+	 * @since 3.18
+	 */
+	public static final String TAG_API_NOTE = "@apiNote"; //$NON-NLS-1$
+
+	/**
+	 * Javadoc tag name (value {@value}).
+	 * @since 3.18
+	 */
+	public static final String TAG_IMPL_SPEC = "@implSpec"; //$NON-NLS-1$
+
+	/**
+	 * Javadoc tag name (value {@value}).
+	 * @since 3.18
+	 */
+	public static final String TAG_IMPL_NOTE = "@implNote"; //$NON-NLS-1$
 
 	/**
 	 * The tag name, or null if none; defaults to null.
@@ -333,7 +381,6 @@ public final class TagElement extends ASTNode implements IDocElement {
 	 * The use of Name, MethodRef, and MemberRef nodes within
 	 * tag elements allows these fragments to be queried for
 	 * binding information.
-	 * </p>
 	 * <p>
 	 * Adding and removing nodes from this list affects this node
 	 * dynamically. The nodes in this list may be of various

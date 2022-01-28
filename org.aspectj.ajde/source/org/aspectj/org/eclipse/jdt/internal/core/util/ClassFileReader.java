@@ -30,6 +30,8 @@ import org.aspectj.org.eclipse.jdt.core.util.IInnerClassesAttribute;
 import org.aspectj.org.eclipse.jdt.core.util.IMethodInfo;
 import org.aspectj.org.eclipse.jdt.core.util.IModifierConstants;
 import org.aspectj.org.eclipse.jdt.core.util.INestMembersAttribute;
+import org.aspectj.org.eclipse.jdt.core.util.IPermittedSubclassesAttribute;
+import org.aspectj.org.eclipse.jdt.core.util.IRecordAttribute;
 import org.aspectj.org.eclipse.jdt.core.util.ISourceAttribute;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
 
@@ -48,6 +50,7 @@ public class ClassFileReader extends ClassFileStruct implements IClassFileReader
 	private int fieldsCount;
 	private IInnerClassesAttribute innerClassesAttribute;
 	private INestMembersAttribute nestMembersAttribute;
+	private IPermittedSubclassesAttribute permittedSubclassesAttribute;
 	private int[] interfaceIndexes;
 	private char[][] interfaceNames;
 	private int interfacesCount;
@@ -59,6 +62,7 @@ public class ClassFileReader extends ClassFileStruct implements IClassFileReader
 	private ISourceAttribute sourceFileAttribute;
 	private char[] superclassName;
 	private int superclassNameIndex;
+	private IRecordAttribute recordAttribute;
 
 	/**
 	 * Constructor for ClassFileReader.
@@ -309,6 +313,12 @@ public class ClassFileReader extends ClassFileStruct implements IClassFileReader
 						} else if (equals(attributeName, IAttributeNamesConstants.NEST_MEMBERS)) {
 							this.nestMembersAttribute = new NestMembersAttribute(classFileBytes, this.constantPool, readOffset);
 							this.attributes[attributesIndex++] = this.nestMembersAttribute;
+						} else if (equals(attributeName, IAttributeNamesConstants.RECORD)) {
+							this.recordAttribute = new RecordAttribute(classFileBytes, this.constantPool, readOffset);
+							this.attributes[attributesIndex++] = this.recordAttribute;
+						} else if (equals(attributeName, IAttributeNamesConstants.PERMITTED_SUBCLASSES)) {
+							this.permittedSubclassesAttribute = new PermittedSubclassesAttribute(classFileBytes, this.constantPool, readOffset);
+							this.attributes[attributesIndex++] = this.permittedSubclassesAttribute;
 						} else {
 							this.attributes[attributesIndex++] = new ClassFileAttribute(classFileBytes, this.constantPool, readOffset);
 						}
@@ -390,6 +400,9 @@ public class ClassFileReader extends ClassFileStruct implements IClassFileReader
 	public IFieldInfo[] getFieldInfos() {
 		return this.fields;
 	}
+	/*
+	 * @see IClassFileReader#getFieldInfos()
+	 */
 
 	/**
 	 * @see IClassFileReader#getFieldsCount()
@@ -410,6 +423,11 @@ public class ClassFileReader extends ClassFileStruct implements IClassFileReader
 	@Override
 	public INestMembersAttribute getNestMembersAttribute() {
 		return this.nestMembersAttribute;
+	}
+
+	@Override
+	public IPermittedSubclassesAttribute getPermittedSubclassesAttribute() {
+		return this.permittedSubclassesAttribute;
 	}
 
 	/**
@@ -508,5 +526,9 @@ public class ClassFileReader extends ClassFileStruct implements IClassFileReader
 	}
 	private boolean isModule() {
 		return (getAccessFlags() & IModifierConstants.ACC_MODULE) != 0;
+	}
+	@Override
+	public IRecordAttribute getRecordAttribute() {
+		return this.recordAttribute;
 	}
 }

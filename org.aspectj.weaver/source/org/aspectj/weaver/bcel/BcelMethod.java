@@ -1,13 +1,13 @@
 /* *******************************************************************
  * Copyright (c) 2002 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     PARC     initial implementation
  * ******************************************************************/
 
 package org.aspectj.weaver.bcel;
@@ -48,7 +48,7 @@ import org.aspectj.weaver.UnresolvedType;
 import org.aspectj.weaver.World;
 import org.aspectj.weaver.bcel.BcelGenericSignatureToTypeXConverter.GenericSignatureFormatException;
 
-//public final 
+//public final
 class BcelMethod extends ResolvedMemberImpl {
 
   private final static String ASPECTJ_ANNOTATION_PACKAGE = "org.aspectj.lang.annotation";
@@ -141,8 +141,7 @@ class BcelMethod extends ResolvedMemberImpl {
 			AnnotationAJ[] annos = getAnnotations();
 			if (annos != null && annos.length != 0) {
 				AnnotationAJ[] axs = getAnnotations();
-				for (int i = 0; i < axs.length; i++) {
-					AnnotationAJ annotationX = axs[i];
+				for (AnnotationAJ annotationX : axs) {
 					String typename = annotationX.getTypeName();
 					if (typename.charAt(0) == PACKAGE_INITIAL_CHAR) {
 						if (typename.equals("org.aspectj.lang.annotation.Pointcut")
@@ -156,7 +155,7 @@ class BcelMethod extends ResolvedMemberImpl {
 									if (nvPair.getNameString().equals("argNames")) {
 										String argNames = nvPair.getValue().stringifyValue();
 										StringTokenizer argNameTokenizer = new StringTokenizer(argNames, " ,");
-										List<String> argsList = new ArrayList<String>();
+										List<String> argsList = new ArrayList<>();
 										while (argNameTokenizer.hasMoreTokens()) {
 											argsList.add(argNameTokenizer.nextToken());
 										}
@@ -164,7 +163,7 @@ class BcelMethod extends ResolvedMemberImpl {
 										while (argsList.size() < requiredCount) {
 											argsList.add("arg" + argsList.size());
 										}
-										setParameterNames(argsList.toArray(new String[] {}));
+										setParameterNames(argsList.toArray(new String[]{}));
 										return;
 									}
 								}
@@ -246,8 +245,7 @@ class BcelMethod extends ResolvedMemberImpl {
 	@Override
 	public String getAnnotationDefaultValue() {
 		Attribute[] attrs = method.getAttributes();
-		for (int i = 0; i < attrs.length; i++) {
-			Attribute attribute = attrs[i];
+		for (Attribute attribute : attrs) {
 			if (attribute.getName().equals("AnnotationDefault")) {
 				AnnotationDefault def = (AnnotationDefault) attribute;
 				return def.getElementValue().stringifyValue();
@@ -259,11 +257,11 @@ class BcelMethod extends ResolvedMemberImpl {
 	// for testing - use with the method above
 	public String[] getAttributeNames(boolean onlyIncludeAjOnes) {
 		Attribute[] as = method.getAttributes();
-		List<String> names = new ArrayList<String>();
+		List<String> names = new ArrayList<>();
 		// String[] strs = new String[as.length];
-		for (int j = 0; j < as.length; j++) {
-			if (!onlyIncludeAjOnes || as[j].getName().startsWith(AjAttribute.AttributePrefix)) {
-				names.add(as[j].getName());
+		for (Attribute a : as) {
+			if (!onlyIncludeAjOnes || a.getName().startsWith(AjAttribute.AttributePrefix)) {
+				names.add(a.getName());
 			}
 		}
 		return names.toArray(new String[] {});
@@ -361,9 +359,9 @@ class BcelMethod extends ResolvedMemberImpl {
 		if ((bitflags & HAS_ANNOTATIONS) == 0) {
 			return null;
 		}
-		for (int i = 0; i < annotations.length; i++) {
-			if (annotations[i].getTypeName().equals(ofType.getName())) {
-				return annotations[i];
+		for (AnnotationAJ annotation : annotations) {
+			if (annotation.getTypeName().equals(ofType.getName())) {
+				return annotation;
 			}
 		}
 		return null;
@@ -425,15 +423,13 @@ class BcelMethod extends ResolvedMemberImpl {
 		bitflags |= HAS_ANNOTATIONS;
 	}
 
-	public static final AnnotationAJ[] NO_PARAMETER_ANNOTATIONS = new AnnotationAJ[] {};
-
 	public void addParameterAnnotation(int param, AnnotationAJ anno) {
 		ensureParameterAnnotationsRetrieved();
 		if (parameterAnnotations == NO_PARAMETER_ANNOTATIONXS) {
 			// First time we've added any, so lets set up the array
 			parameterAnnotations = new AnnotationAJ[getArity()][];
 			for (int i = 0; i < getArity(); i++) {
-				parameterAnnotations[i] = NO_PARAMETER_ANNOTATIONS;
+				parameterAnnotations[i] = AnnotationAJ.EMPTY_ARRAY;
 			}
 		}
 		int existingCount = parameterAnnotations[param].length;
@@ -660,8 +656,8 @@ class BcelMethod extends ResolvedMemberImpl {
 			// synthetic is an attribute
 			String[] synthetics = getAttributeNames(false);
 			if (synthetics != null) {
-				for (int i = 0; i < synthetics.length; i++) {
-					if (synthetics[i].equals("Synthetic")) {
+				for (String synthetic : synthetics) {
+					if (synthetic.equals("Synthetic")) {
 						bitflags |= IS_SYNTHETIC;
 						break;
 					}
@@ -696,7 +692,7 @@ class BcelMethod extends ResolvedMemberImpl {
 	/**
 	 * Return true if the method represents the default constructor. Hard to determine this from bytecode, but the existence of the
 	 * MethodDeclarationLineNumber attribute should tell us.
-	 * 
+	 *
 	 * @return true if this BcelMethod represents the default constructor
 	 */
 	@Override

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -7,7 +7,6 @@
  * https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann - Contribution for
@@ -46,6 +45,48 @@ public interface IMethodBinding extends IBinding {
 	 *    and <code>false</code> if this is the binding for a method
 	 */
 	public boolean isConstructor();
+
+	/**
+	 * Returns whether this binding is for a compact constructor or not.
+	 *
+	 * <p>
+	 * This method returns <code>true</code> for:
+	 * </p>
+	 * <ul>
+	 * <li>compact constructors where the binding
+	 * information was obtained from a Java source file containing a compact constructor
+	 * declaration</li>
+	 * </ul>
+	 *
+	 * <p>
+	 * This method returns <code>false</code> for:
+	 * </p>
+	 * <ul>
+	 * <li>methods</li>
+	 * <li>constructors</li>
+	 * <li>constructors where the binding information was obtained from a Java class file (it
+	 * is not possible to determine from a class file whether a constructor is a
+	 * compact constructor or not</li>
+	 * </ul>
+	 *
+	 * @return <code>true</code> if this is the binding for a compact constructor
+	 * in a source file and and <code>false</code> otherwise
+	 * @since 3.26
+	 */
+	public boolean isCompactConstructor();
+
+	/**
+	 * Returns whether this binding is for a canonical constructor or not.
+	 *
+	 * <p>
+	 * This method returns <code>true</code> for canonical constructors
+	 * </p>
+	 *
+	 * @return <code>true</code> if this is the binding for a canonical constructor
+	 * and <code>false</code> otherwise
+	 * @since 3.26
+	 */
+	public boolean isCanonicalConstructor();
 
 	/**
 	 * Returns whether this binding is known to be a compiler-generated
@@ -97,7 +138,7 @@ public interface IMethodBinding extends IBinding {
 	 * <li>If the lambda expression is declared in the body of a method,
 	 *   answers the binding of that declaring method.
 	 * </li>
-	 * <li>Otherwise, if the lambda expression is declared in the 
+	 * <li>Otherwise, if the lambda expression is declared in the
 	 *   initializer of a field, answers the binding of that declaring field.
 	 * </li>
 	 * <li>Otherwise, if the lambda expression is declared in a static initializer or an
@@ -146,8 +187,8 @@ public interface IMethodBinding extends IBinding {
 	 * <p>
 	 * <b>Note:</b> This method only returns declaration annotations.
 	 * <em>Type annotations</em> in the sense of JLS8 9.7.4 are <em>not</em> returned.
-	 * Type annotations can be retrieved from a parameter type 
-	 * via {@link ITypeBinding#getTypeAnnotations()}. 
+	 * Type annotations can be retrieved from a parameter type
+	 * via {@link ITypeBinding#getTypeAnnotations()}.
 	 * </p>
 	 *
 	 * @param paramIndex the index of the parameter of interest
@@ -183,22 +224,22 @@ public interface IMethodBinding extends IBinding {
 	public ITypeBinding[] getParameterTypes();
 
 	/**
-	 * Returns the type of this method's receiver or <code>null</code> 
+	 * Returns the type of this method's receiver or <code>null</code>
 	 * if there is no receiver declared explicitly.
-	 * 
-	 * @return the type of this method's receiver or <code>null</code> 
+	 *
+	 * @return the type of this method's receiver or <code>null</code>
 	 * if there is no receiver declared explicitly.
-	 * 
+	 *
 	 * @since 3.10
 	 */
 	public ITypeBinding getDeclaredReceiverType();
-	
+
 	/**
 	 * Returns the binding for the return type of this method. Returns the
 	 * special primitive <code>void</code> return type for constructors.
 	 * <p>
-	 * For methods, the type binding that is returned contains type annotations 
-	 * if any. For e.g. the following code would get the type annotations on a 
+	 * For methods, the type binding that is returned contains type annotations
+	 * if any. For e.g. the following code would get the type annotations on a
 	 * method: <br><br>
 	 *  <code> IAnnotationBinding[] annots = getReturnType().getTypeAnnotations() </code>
 	 * </p>
@@ -383,4 +424,31 @@ public interface IMethodBinding extends IBinding {
 	 * @since 3.1
 	 */
 	public boolean overrides(IMethodBinding method);
+
+
+	/**
+	 * Returns a list of variable bindings representing the synthetic outer
+	 * local variables. Returns an empty array for non-lambda expressions or if
+	 * this method does not have any synthetic parameters.
+	 *
+	 * @return a (possibly empty) list of variable bindings for the synthetic
+	 * outer locals of this method if this is a lambda expression, else an empty array.
+	 * @since 3.18
+	 */
+	public IVariableBinding[] getSyntheticOuterLocals();
+
+	/**
+	 * Returns if this is a compiler generated  equals(), hashCode(), toString() or any accessor
+	 * method of a Record or not.
+	 * Methods equals(), hashCode() and toString() and accessor methods of a Record do not have
+	 * AccSynthetic flag set for them even if they are compiler generated methods. To differentiate
+	 * between these above compiler generated methods and user created methods equals(), hashCode()
+	 * and toString() or accessor methods in a Record, this function can be used.
+	 *
+	 * @return <code>true</code> for compiler generated  equals(), hashCode() and toString() or any
+	 * accessor method of a Record, else it returns <code>false</code>.
+	 * @since 3.26
+	 */
+	public boolean isSyntheticRecordMethod();
+
 }

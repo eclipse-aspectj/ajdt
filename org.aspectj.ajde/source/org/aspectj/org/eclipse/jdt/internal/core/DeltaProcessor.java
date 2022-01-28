@@ -34,7 +34,6 @@ import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.*;
-import org.eclipse.core.runtime.jobs.MultiRule;
 import org.aspectj.org.eclipse.jdt.core.*;
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.SourceElementParser;
@@ -84,7 +83,7 @@ public class DeltaProcessor {
 		@Override
 		public String toString() {
 			if (this.paths == null) return "<none>"; //$NON-NLS-1$
-			StringBuffer buffer = new StringBuffer();
+			StringBuilder buffer = new StringBuilder();
 			for (int i = 0; i < this.outputCount; i++) {
 				buffer.append("path="); //$NON-NLS-1$
 				buffer.append(this.paths[i].toString());
@@ -121,31 +120,34 @@ public class DeltaProcessor {
 		final public JavaProject project;
 		final IPath rootPath;
 		final int entryKind;
+		final IClasspathAttribute[] extraAttributes;
 		IPackageFragmentRoot root;
 		IPackageFragmentRoot cache;
 
-		RootInfo(JavaProject project, IPath rootPath, char[][] inclusionPatterns, char[][] exclusionPatterns, int entryKind) {
+		RootInfo(JavaProject project, IPath rootPath, char[][] inclusionPatterns, char[][] exclusionPatterns, IClasspathEntry entry) {
 			this.project = project;
 			this.rootPath = rootPath;
 			this.inclusionPatterns = inclusionPatterns;
 			this.exclusionPatterns = exclusionPatterns;
-			this.entryKind = entryKind;
+			this.entryKind = entry.getEntryKind();
+			this.extraAttributes = entry.getExtraAttributes();
 			this.cache = getPackageFragmentRoot();
 		}
 		public IPackageFragmentRoot getPackageFragmentRoot() {
 			IPackageFragmentRoot tRoot = null;
 			Object target = JavaModel.getTarget(this.rootPath, false/*don't check existence*/);
 			if (target instanceof IResource) {
-				tRoot = this.project.getPackageFragmentRoot((IResource)target, this.rootPath);
+				tRoot = this.project.getPackageFragmentRoot((IResource)target, this.rootPath, this.extraAttributes);
 			} else {
-				tRoot = this.project.getPackageFragmentRoot(this.rootPath.toOSString());
+				IPath canonicalizedPath = JavaProject.createPackageFragementKey(new Path(this.rootPath.toOSString()));
+				tRoot = this.project.getPackageFragmentRoot0(canonicalizedPath, this.extraAttributes);
 			}
 			return tRoot;
 		}
 		public IPackageFragmentRoot getPackageFragmentRoot(IResource resource) {
 			if (this.root == null) {
 				if (resource != null) {
-					this.root = this.project.getPackageFragmentRoot(resource);
+					this.root = this.project.getPackageFragmentRoot(resource, null/*no entry path*/, this.extraAttributes);
 				} else {
 					this.root = getPackageFragmentRoot();
 				}
@@ -159,7 +161,7 @@ public class DeltaProcessor {
 		}
 		@Override
 		public String toString() {
-			StringBuffer buffer = new StringBuffer("project="); //$NON-NLS-1$
+			StringBuilder buffer = new StringBuilder("project="); //$NON-NLS-1$
 			if (this.project == null) {
 				buffer.append("null"); //$NON-NLS-1$
 			} else {
@@ -775,7 +777,7 @@ public class DeltaProcessor {
 						PackageFragmentRoot root = this.currentElement.getPackageFragmentRoot();
 						if (root == null) {
 							element =  JavaCore.create(resource);
-						} else if (((JavaProject)root.getJavaProject()).contains(resource)) {
+						} else if (root.getJavaProject().contains(resource)) {
 							// create package handle
 							IPath pkgPath = path.removeFirstSegments(root.getPath().segmentCount());
 							String[] pkgName = pkgPath.segments();
@@ -902,7 +904,7 @@ public class DeltaProcessor {
 							}
 						};
 						try {
-							ResourcesPlugin.getWorkspace().run(runnable, new MultiRule(projectsToTouch), IWorkspace.AVOID_UPDATE, monitor);
+							ResourcesPlugin.getWorkspace().run(runnable, monitor);
 						} catch (CoreException e) {
 							throw new JavaModelException(e);
 						}
@@ -1190,7 +1192,7 @@ public class DeltaProcessor {
 				addToParentInfo(element);
 				this.manager.getPerProjectInfo(project, true /*create info if needed*/).rememberExternalLibTimestamps();
 				if ((delta.getFlags() & IResourceDelta.MOVED_FROM) != 0) {
-					Openable movedFromElement = (Openable)element.getJavaModel().getJavaProject(delta.getMovedFromPath().lastSegment());
+					Openable movedFromElement = element.getJavaModel().getJavaProject(delta.getMovedFromPath().lastSegment());
 					currentDelta().movedTo(element, movedFromElement);
 				} else {
 					// Force the project to be closed as it might have been opened
@@ -1277,7 +1279,7 @@ public class DeltaProcessor {
 			switch (elementType) {
 				case IJavaElement.PACKAGE_FRAGMENT_ROOT :
 					// when a root is added, and is on the classpath, the project must be updated
-					JavaProject project = (JavaProject) element.getJavaProject();
+					JavaProject project = element.getJavaProject();
 
 					// remember that the project's cache must be reset
 					this.projectCachesToReset.add(project);
@@ -1285,8 +1287,15 @@ public class DeltaProcessor {
 					break;
 				case IJavaElement.PACKAGE_FRAGMENT :
 					// reset project's package fragment cache
-					project = (JavaProject) element.getJavaProject();
+					project = element.getJavaProject();
 					this.projectCachesToReset.add(project);
+
+					break;
+
+				case IJavaElement.COMPILATION_UNIT :
+					if (element.getElementName().equals(new String(TypeConstants.MODULE_INFO_FILE_NAME))) {
+						this.projectCachesToReset.add(element.getJavaProject()); // change unnamed -> named
+					}
 
 					break;
 			}
@@ -1373,7 +1382,7 @@ public class DeltaProcessor {
 
 				break;
 			case IJavaElement.PACKAGE_FRAGMENT_ROOT :
-				JavaProject project = (JavaProject) element.getJavaProject();
+				JavaProject project = element.getJavaProject();
 
 				// remember that the project's cache must be reset
 				this.projectCachesToReset.add(project);
@@ -1381,8 +1390,15 @@ public class DeltaProcessor {
 				break;
 			case IJavaElement.PACKAGE_FRAGMENT :
 				// reset package fragment cache
-				project = (JavaProject) element.getJavaProject();
+				project = element.getJavaProject();
 				this.projectCachesToReset.add(project);
+
+				break;
+
+			case IJavaElement.COMPILATION_UNIT :
+				if (element.getElementName().equals(new String(TypeConstants.MODULE_INFO_FILE_NAME))) {
+					this.projectCachesToReset.add(element.getJavaProject()); // change named -> unnamed
+				}
 
 				break;
 		}

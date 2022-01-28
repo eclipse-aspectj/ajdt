@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2004, 2010 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Luzius Meisser - initial implementation
  *     Sian January - added eager parsing support
@@ -82,25 +82,25 @@ import org.eclipse.jdt.internal.core.util.MementoTokenizer;
 
 /**
  * An ICompilationUnit for .aj files.
- * 
+ *
  * In order to obtain better interoperability with jdt, AJCompilationUnits pretend
  * to have java syntax compatible contents. To get the real contents,
  * requestOriginalContentMode()
  * must be called before getting the Buffer. Please make sure to call
  * discardOriginalContentMode()
  * afterwards to get back into non-original mode.
- * 
+ *
  * @author Luzius Meisser
  */
 public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
-	
+
 	int originalContentMode = 0;
 	private IFile ajFile;
 	protected JavaCompatibleBuffer javaCompBuffer;
-	
+
 
 	private Object contentModeLock = new Object();
-	
+
 	public boolean isInOriginalContentMode() throws JavaModelException {
 	    synchronized (contentModeLock) {
             Object info = getElementInfo();
@@ -110,10 +110,10 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
         }
 	    return false;
 	}
-	
+
 	/**
 	 * ensure that the next time the buffer is asked for,
-	 * the actual AJ contents are returned (not the 
+	 * the actual AJ contents are returned (not the
 	 * converted contents)
 	 */
 	public void requestOriginalContentMode() throws JavaModelException {
@@ -124,7 +124,7 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
             }
         }
 	}
-	
+
 	/**
 	 * discard this request for original contents
 	 */
@@ -157,7 +157,7 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 			this.ajFile = (IFile)f.findMember(elementName);
 		}
 	}
-	
+
 	public char[] getMainTypeName(){
 		if (AspectJPlugin.USING_CU_PROVIDER) {
 			return super.getMainTypeName();
@@ -167,7 +167,7 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 		elementName = elementName.substring(0, elementName.length() - ".aj".length()); //$NON-NLS-1$
 		return elementName.toCharArray();
 	}
-	
+
 	/* Eclipse 3.1M3: prior to this we overrode isValidCompilationUnit, but now we need to
 	 * override validateCompilationUnit, otherwise the check for valid name will fail on
 	 * .aj files
@@ -175,14 +175,14 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 //	protected IStatus validateCompilationUnit(IResource resource) {
 //		IPackageFragmentRoot root = getPackageFragmentRoot();
 //		try {
-//			if (!(resource.getProject().exists()) || root.getKind() != IPackageFragmentRoot.K_SOURCE) 
+//			if (!(resource.getProject().exists()) || root.getKind() != IPackageFragmentRoot.K_SOURCE)
 //				return new JavaModelStatus(IJavaModelStatusConstants.INVALID_ELEMENT_TYPES, root);
 //		} catch (JavaModelException e) {
 //			return e.getJavaModelStatus();
 //		}
 //		return JavaModelStatus.OK_STATUS;
 //	}
-	
+
 	/* Eclipse 3.2M6: bypass buffer cache to ensure fake buffer is used
 	 */
 	/**
@@ -197,16 +197,16 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 			return CharOperation.NO_CHAR;
 		}
 	}
-	
+
 	public IResource getResource(){
 		if (AspectJPlugin.USING_CU_PROVIDER) {
 			return super.getResource();
 		}
 		return ajFile;
 	}
-	
+
 	/*
-	 * needs to return real path for organize imports 
+	 * needs to return real path for organize imports
 	 */
 	public IPath getPath() {
 		if (AspectJPlugin.USING_CU_PROVIDER || ajFile == null) {
@@ -214,14 +214,14 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 		}
 		return ajFile.getFullPath();
 	}
-	
+
 	public IResource getUnderlyingResource() throws JavaModelException {
 		if (AspectJPlugin.USING_CU_PROVIDER) {
 			return super.getUnderlyingResource();
 		}
 		return ajFile;
 	}
-	
+
 	protected void generateInfos(Object info, HashMap newElements, IProgressMonitor monitor) throws JavaModelException {
 		if (!(info instanceof AJCompilationUnitInfo)){
 			info = new AJCompilationUnitInfo();
@@ -231,7 +231,7 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 		    super.generateInfos(info, newElements, monitor);
 		}
 	}
-	
+
 
 	/**
 	 * return the type as an aspect if it exists
@@ -243,7 +243,7 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 	    }
         return super.getType(typeName);
     }
-	
+
 	/**
 	 * return null if doesn't exist or an error
 	 * return type otherwise Might be an aspect
@@ -263,9 +263,9 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
         }
         return null;
 	}
-	    
-	
-	
+
+
+
 	/**
 	 * return as aspect if it is an aspect, or class/interface if it is that
 	 * performs a deep search
@@ -278,20 +278,20 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 	    }
 	    return maybeAspect;
     }
-    
-	
-	
+
+
+
 	/**
 	 * builds the structure of this Compilation unit.  We need to use an aspect-aware parser for this (in the org.aspectj.org.eclipse... world, which
 	 * makes things a little messy
 	 */
 	protected boolean buildStructure(OpenableElementInfo info, final IProgressMonitor pm, Map newElements, IResource underlyingResource) throws JavaModelException {
-	    AJCompilationUnitInfo unitInfo = (AJCompilationUnitInfo) info; 
+	    AJCompilationUnitInfo unitInfo = (AJCompilationUnitInfo) info;
 
        if(ajFile == null) {
            return false;
        }
-	    
+
 	    // ensure buffer is opened
 	    IBuffer buffer = getBufferManager().getBuffer(this);
 	    if (buffer == null) {
@@ -313,24 +313,24 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
         reconcileFlags = astHolder.getReconcileFlags();
 //        problems = astHolder.getProblems();
 
-        boolean computeProblems = perWorkingCopyInfo != null && perWorkingCopyInfo.isActive() && project != null && 
+        boolean computeProblems = perWorkingCopyInfo != null && perWorkingCopyInfo.isActive() && project != null &&
                 AspectJPlugin.isAJProject(project.getProject());
-        org.aspectj.org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory problemFactory = 
+        org.aspectj.org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory problemFactory =
             new org.aspectj.org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory();
         Map options = project == null ? JavaCore.getOptions() : project.getOptions(true);
         if (!computeProblems) {
             // disable task tags checking to speed up parsing
             options.put(JavaCore.COMPILER_TASK_TAGS, ""); //$NON-NLS-1$
         }
-        
+
         // ensure parser sees the real contents (not the fake java buffer)
         this.requestOriginalContentMode();
-        
+
         // use an aspectj aware source parser
         AJSourceElementParser ajdtParser = new AJSourceElementParser(
-                requestor, 
+                requestor,
                 problemFactory,
-                new org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions(options), 
+                new org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions(options),
                 true/*report local declarations*/,
                 !createAST /*optimize string literals only if not creating a DOM AST*/);
 
@@ -343,7 +343,7 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
             ajdtParser.javadocParser.checkDocComment = false;
         }
         requestor.setParser(ajdtParser);
-        
+
         // update timestamp (might be IResource.NULL_STAMP if original does not exist)
         if (underlyingResource == null) {
             underlyingResource = getResource();
@@ -351,13 +351,13 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
         // underlying resource is null in the case of a working copy on a class file in a jar
         if (underlyingResource != null)
             unitInfo.setTimestamp(((IFile)underlyingResource).getModificationStamp());
-        
+
         // compute other problems if needed
         CompilationUnitDeclaration compilationUnitDeclaration = null;
         final AJCompilationUnit source = ajCloneCachingContents();
         requestor.setSource(source.getContents());
         try {
-            if (false) {  
+            if (false) {
                 // for now, don't go here
                 // the problem is that we can't find problems and build structure at the same time
                 // they require difference kinds of parsers.
@@ -404,9 +404,9 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 						return false;
 					}
 				}, true /*full parse to find local elements*/);
-            	compilationUnitDeclaration = new AJCompilationUnitDeclarationWrapper(ajDeclaration, source);	
+            	compilationUnitDeclaration = new AJCompilationUnitDeclarationWrapper(ajDeclaration, source);
             }
-            
+
             if (createAST) {
                 // XXX hmmmm...may not work
                 int astLevel = unitInfo.getASTLevel();
@@ -431,10 +431,10 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 		return new AJCompilationUnitInfo();
 	}
 
-	
+
 	public org.eclipse.jdt.core.dom.CompilationUnit makeConsistent(int astLevel, boolean resolveBindings, int reconcileFlags, HashMap problems, IProgressMonitor monitor) throws JavaModelException {
 		if (isConsistent()) return null;
-		
+
 		// create a new info and make it the current info
 		// (this will remove the info and its children just before storing the new infos)
 		if (astLevel != NO_AST || problems != null) {
@@ -450,7 +450,7 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 		} else {
 			openWhenClosed(createElementInfo(), true, monitor);
 			return null;
-		}		
+		}
 	}
 
 	/**
@@ -458,11 +458,11 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 	 */
 	public ICompilationUnit getWorkingCopy(WorkingCopyOwner workingCopyOwner, IProblemRequestor problemRequestor, IProgressMonitor monitor) throws JavaModelException {
 		if (!isPrimary()) return this;
-		
+
 		JavaModelManager manager = JavaModelManager.getJavaModelManager();
-		
+
 		CompilationUnit workingCopy = new AJCompilationUnit((PackageFragment)getParent(), getElementName(), workingCopyOwner);
-		JavaModelManager.PerWorkingCopyInfo perWorkingCopyInfo = 
+		JavaModelManager.PerWorkingCopyInfo perWorkingCopyInfo =
 			manager.getPerWorkingCopyInfo(workingCopy, false/*don't create*/, true/*record usage*/, null/*not used since don't create*/);
 		if (perWorkingCopyInfo != null) {
 			return perWorkingCopyInfo.getWorkingCopy(); // return existing handle instead of the one created above
@@ -484,7 +484,7 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
             }
         } catch (JavaModelException e) {
         }
-		
+
 		if (javaCompBuffer == null){
 			IBuffer myBuffer = BufferManager.createBuffer(this);
 			javaCompBuffer = new JavaCompatibleBuffer(buf, myBuffer);
@@ -494,8 +494,8 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 		}
 
 		return javaCompBuffer;
-	}	
-	
+	}
+
 	// copied from super, but changed to use an AJReconcileWorkingCopyOperation
 	public org.eclipse.jdt.core.dom.CompilationUnit reconcile(
 			int astLevel,
@@ -505,7 +505,7 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 			throws JavaModelException {
 		if (!isWorkingCopy()) return null; // Reconciling is not supported on non working copies
 		if (workingCopyOwner == null) workingCopyOwner = AJWorkingCopyOwner.INSTANCE;
-		
+
 		PerformanceStats stats = null;
 		if(ReconcileWorkingCopyOperation.PERF) {
 		    stats = PerformanceStats.getStats(JavaModelManager.RECONCILE_PERF, this);
@@ -514,7 +514,7 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 
 		AJReconcileWorkingCopyOperation op = new AJReconcileWorkingCopyOperation(this, astLevel, reconcileFlags, workingCopyOwner);
 	    try {
-	        // Eclipse 3.5.1 and 3.5.2 have different signatures for this method 
+	        // Eclipse 3.5.1 and 3.5.2 have different signatures for this method
 	        cacheZipFiles(); // cache zip files for performance (see https://bugs.eclipse.org/bugs/show_bug.cgi?id=134172)
 	        op.runOperation(monitor);
 	    } finally {
@@ -551,7 +551,7 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
             throw new JavaModelException(e, IJavaModelStatusConstants.CORE_EXCEPTION);
         } catch (InvocationTargetException e) {
             throw new JavaModelException(e, IJavaModelStatusConstants.CORE_EXCEPTION);
-        }        
+        }
     }
 
     private void cacheZipFiles() throws JavaModelException {
@@ -587,7 +587,7 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 		IJavaElement[] res = super.codeSelect(offset, length, workingCopyOwner);
 		return res;
 	}
-	
+
 	protected void closeBuffer() {
 		if (javaCompBuffer != null){
 			javaCompBuffer.close();
@@ -595,7 +595,7 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 		}
 		super.closeBuffer();
 	}
-	
+
 	private static final String moveCuUpdateCreator = "org.eclipse.jdt.internal.corext.refactoring.reorg.MoveCuUpdateCreator"; //$NON-NLS-1$
 	private static final int lenOfMoveCuUpdateCreator = moveCuUpdateCreator.length();
 
@@ -610,18 +610,18 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 	    }
 		return super.getAllTypes();
 	}
-	
+
 	/**
 	 * Returns all aspect types in this compilation unit in the same order
 	 * that {@link #getAllTypes()} works.
-	 * 
+	 *
 	 * This returns types defined with the <em>aspect</em> keyword and
-	 * classes annotated with @{@link Aspect}.  This means that not all 
-	 * Aspects returned will have a type {@link AspectElement}.  The types 
+	 * classes annotated with @{@link Aspect}.  This means that not all
+	 * Aspects returned will have a type {@link AspectElement}.  The types
 	 * marked with   @{@link Aspect} will be of type {@link SourceType}.
 	 */
 	public IType[] getAllAspects() throws JavaModelException {
-	    IType[] allTypes = getAllTypes(); 
+	    IType[] allTypes = getAllTypes();
 	    List aspects = new ArrayList(allTypes.length);
 	    AJProjectModelFacade model = null;
 	    for (int i = 0; i < allTypes.length; i++) {
@@ -637,7 +637,7 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 //	                // no need to check fully qualified name
 //	                // just assume that any annotation with a name of Aspect
 //	                // is the one we want
-//                    if (annName != null && 
+//                    if (annName != null &&
 //                            (annName.equals("Aspect") || annName.endsWith(".Aspect"))) {
 //                        aspects.add(allTypes[i]);
 //                        break;
@@ -657,9 +657,9 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 
 	/**
 	 * Hook for code completion support for AspectJ content.
-	 * 
+	 *
      * A description of how code completion works in AJDT can be found in bug 74419.
-     * 
+     *
 	 * @see org.eclipse.jdt.internal.core.Openable#codeComplete(org.eclipse.jdt.internal.compiler.env.ICompilationUnit, org.eclipse.jdt.internal.compiler.env.ICompilationUnit, int, org.eclipse.jdt.core.CompletionRequestor, org.eclipse.jdt.core.WorkingCopyOwner)
 	 */
 	protected void codeComplete(
@@ -671,14 +671,14 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 			/* AJDT 1.7 */
             IProgressMonitor monitor) throws JavaModelException {
 	    // Bug 76146
-	    // if we are not editing in an AspectJ editor 
-	    // (i.e., we are editing in a Java editor), 
+	    // if we are not editing in an AspectJ editor
+	    // (i.e., we are editing in a Java editor),
 	    // then we do not have access to a proper parser
 	    // and we cannot perform code completion requests.
 	    if (!isEditingInAspectJEditor()) return;
-    
+
 	    int transformedPos;
-		
+
 		if(javaCompBuffer == null) {
 			convertBuffer(super.getBuffer());
 		}
@@ -688,7 +688,7 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 		    return;
 		}
 		ConversionOptions optionsBefore = javaCompBuffer.getConversionOptions();
-		
+
 		//check if inside intertype method declaration
 		IntertypeElement itd = itdMethodOrNull(position);
         if (itd != null){
@@ -697,15 +697,15 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
             // and once in the context of the aspect.
             char[] targetType = itd.getTargetType();
             boolean doExtraITDFiltering = !positionIsAtDottedExpression(itd, position);
-            
+
             // simulate context switch to target class
 			javaCompBuffer.setConversionOptions(ConversionOptions.getCodeCompletionOptionWithContextSwitch(position, targetType));
 			transformedPos = javaCompBuffer.translatePositionToFake(position);
-			
+
 			CompletionRequestor wrappedRequestor = new ProposalRequestorWrapper(requestor, this, javaCompBuffer, "");
 			/* AJDT 1.7 */
 			internalCodeComplete(cu, unitToSkip, transformedPos, wrappedRequestor, owner, this, monitor);
-			
+
             // now set up for the regular code completion
             javaCompBuffer.setConversionOptions(ConversionOptions.CODE_COMPLETION);
 
@@ -716,25 +716,25 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 		    requestor = new ProposalRequestorWrapper(requestor, this, javaCompBuffer, "");
 		}
         transformedPos = javaCompBuffer.translatePositionToFake(position);
-		
+
 		/* AJDT 1.7 */
 		internalCodeComplete(cu, unitToSkip, transformedPos, requestor, owner, this, monitor);
 		javaCompBuffer.setConversionOptions(optionsBefore);
-		
+
 	}
-	
+
 	// bug 279974: determine if the position is inside a dotted expression
 	// and the expression is not 'this'
 	// eg- this.foo.b<here> ==> true
 	//     fo<here>         ==> false
 	//     this.f<here>     ==> false
-	protected boolean positionIsAtDottedExpression(IntertypeElement itd, int pos) 
+	protected boolean positionIsAtDottedExpression(IntertypeElement itd, int pos)
 	            throws JavaModelException {
 	    String source = itd.getSource();
 	    int posInSource = pos - itd.getSourceRange().getOffset();
         return positionIsAtDottedExpression(source, posInSource);
     }
-	
+
 	// make static for easier testing
 	static protected boolean positionIsAtDottedExpression(String source, int posInSource) {
 	    if (posInSource <= 0) {
@@ -749,7 +749,7 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 	    char[] sourceArr = source.toCharArray();
 	    int currPos = posInSource-1;
 	    char currChar = sourceArr[currPos];
-	    
+
 	    boolean dotFound = false;
 	    boolean nonWordFound = false;
 	    while (currPos > 0) {
@@ -767,11 +767,11 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 	        currPos--;
 	        currChar = sourceArr[currPos];
 	    }
-	    
+
 	    if (nonWordFound || currPos < 0) {
 	        return false;
 	    }
-	    
+
 	    // second stage:
 	    // follow whitespace backwards until:
 	    // '.'           ---> no filtering
@@ -796,8 +796,8 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 	            return false;
 	        }
 	    }
-	    
-	    
+
+
 	    // third stage:
 	    // check to see if previous word is "this"
 	    // if so, then do filtering, it is not considered a dotted expression
@@ -810,21 +810,21 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
                 }
                 currPos--;
 	        }
-            
-             return currPos < 3 || 
+
+             return currPos < 3 ||
                      !(sourceArr[currPos-3] == 't' &&
                        sourceArr[currPos-2] == 'h' &&
                        sourceArr[currPos-1] == 'i' &&
                        sourceArr[currPos-0] == 's');
-	    } 
-	    
+	    }
+
 	    return false;
 	}
 
     /**
 	 * this method is a copy of {@link Openable#codeComplete(org.eclipse.jdt.internal.compiler.env.ICompilationUnit, org.eclipse.jdt.internal.compiler.env.ICompilationUnit, int, CompletionRequestor, WorkingCopyOwner, ITypeRoot)}
 	 * The only change is that we need to create an {@link ITDAwareNameEnvironment}, not  standard {@link SearchableEnvironment}.
-     * 
+     *
 	 * @param cu
 	 * @param unitToSkip
 	 * @param position
@@ -877,15 +877,15 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 	    }
 
 	}
-	
-	
+
+
     /**
      * As per Bug 76146
      * check to see if editing in Java Editor or AspectJ editor
      */
     private boolean isEditingInAspectJEditor() {
         // This is a bit kludgy.
-        // when perWorkingCopyInfo is null 
+        // when perWorkingCopyInfo is null
         // then we are editing in Java editor
         return getPerWorkingCopyInfo() != null;
     }
@@ -901,7 +901,7 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
             IntertypeElement itd = (IntertypeElement) elt;
             if (itd.getAJKind() == IProgramElement.Kind.INTER_TYPE_METHOD ||
                 itd.getAJKind() == IProgramElement.Kind.INTER_TYPE_CONSTRUCTOR) {
-                
+
                 return itd;
             }
         }
@@ -935,8 +935,8 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 	    }
 		return null;
 	}
-	
-	
+
+
 	public IJavaElement getHandleFromMemento(MementoTokenizer memento, WorkingCopyOwner owner) {
 	    // if not an AJMementoTokenizer, the tokenizer may have read too far
 	    // create an AJMementoTokenizer and ensure to backtrack to the end of the compilation unit name
@@ -946,9 +946,9 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 	    return super.getHandleFromMemento(memento, owner);
 	}
 
-	
+
 	/*
-	 * @see JavaElement 
+	 * @see JavaElement
 	 */
 	public IJavaElement getHandleFromMemento(String token, MementoTokenizer memento, WorkingCopyOwner workingCopyOwner) {
 		JavaElement type = this;
@@ -959,7 +959,7 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 		        (token.charAt(0) == JavaElement.JEM_PACKAGEDECLARATION)) {
 		    return super.getHandleFromMemento(token, memento, workingCopyOwner);
 		}
-		
+
         // need to handle types ourselves, because they may contain inner aspects
 		// (or inner classes containing inner aspects etc)
 		while ((token.charAt(0) == AspectElement.JEM_ASPECT_TYPE) ||
@@ -1013,10 +1013,10 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 			JavaElement pointcut = new PointcutElement(type, name, parameters);
 			return pointcut.getHandleFromMemento(memento, workingCopyOwner);
 		}
-		
+
 		return type.getHandleFromMemento(token, memento, workingCopyOwner);
 	}
-	
+
 	/**
 	 * @see JavaElement#getHandleMementoDelimiter()
 	 */
@@ -1026,12 +1026,12 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 		}
 		return AspectElement.JEM_ASPECT_CU;
 	}
-	
+
 	public String getHandleIdentifier() {
 		if (AspectJPlugin.USING_CU_PROVIDER) {
 			return super.getHandleIdentifier();
 		}
-		
+
 		// this horrid code only exists so that when we are not using the weaving service,
 		// we don't get exceptions on refactoring
 		String callerName = (new RuntimeException()).getStackTrace()[1].getClassName();
@@ -1041,10 +1041,10 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 			AJCompilationUnitManager.INSTANCE.removeFileFromModel((IFile) getResource());
 			// need to return a handle identifier that JDT can use (bug 74426)
 			String handleIdentifier = JavaCore.create(ajFile).getHandleIdentifier();
-			ajFile = null;			
+			ajFile = null;
 			return handleIdentifier;
 		}
-		
+
 		// are we being called in the context of a move/DnD operation?
 		final String moveClass = "org.eclipse.jdt.internal.corext.refactoring.changes.CompilationUnitReorgChange"; //$NON-NLS-1$
 		if (callerName.equals(moveClass)) {
@@ -1056,14 +1056,14 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 		}
 		return super.getHandleIdentifier();
 	}
-	
-	
+
+
 	/*
 	 * Clone this handle so that it caches its contents in memory.
 	 * DO NOT PASS TO CLIENTS
 	 */
 	public AJCompilationUnit ajCloneCachingContents() {
-	    return new AJCompilationUnit((PackageFragment) this.parent, this.name, this.owner) {
+	    return new AJCompilationUnit((PackageFragment) this.getParent(), this.name, this.owner) {
 	        private char[] cachedContents;
 	        public char[] getContents() {
 	            if (this.cachedContents == null)
@@ -1076,7 +1076,7 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 	    };
 	}
 	public AJCompilationUnit ajCloneCachingContents(final char[] contents) {
-	    return new AJCompilationUnit((PackageFragment) this.parent, this.name, this.owner) {
+	    return new AJCompilationUnit((PackageFragment) this.getParent(), this.name, this.owner) {
 	        public char[] getContents() {
 	            return contents;
 	        }

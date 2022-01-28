@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -42,13 +42,13 @@ import org.aspectj.org.eclipse.jdt.internal.core.search.indexing.IndexManager;
  * <li>{@link #scheduleDocumentIndexing(SearchDocument, IPath)}</li>
  * <li>{@link #indexDocument(SearchDocument, IPath)}</li>
  * </ul>
+ * <p>
  * During the search phase, a subclass will be called with the following requests in order:
  * <ul>
  * <li>{@link #selectIndexes(SearchPattern, IJavaSearchScope)}</li>
  * <li>one or more {@link #getDocument(String)}</li>
  * <li>{@link #locateMatches(SearchDocument[], SearchPattern, IJavaSearchScope, SearchRequestor, IProgressMonitor)}</li>
  * </ul>
- * </p>
  *
  * @since 3.0
  */
@@ -158,7 +158,7 @@ public abstract class SearchParticipant {
 	 *
 	 * @param document the document to index
 	 * @param indexLocation the location in the file system to the index
-	 * 
+	 *
 	 * @since 3.10
 	 */
 	public void indexResolvedDocument(SearchDocument document, IPath indexLocation) {
@@ -212,7 +212,7 @@ public abstract class SearchParticipant {
 	}
 
 	/**
-	 * Resolves the given document. A search participant asked to resolve a document should parse it and 
+	 * Resolves the given document. A search participant asked to resolve a document should parse it and
 	 * resolve the types and preserve enough state to be able to tend to a indexResolvedDocument call
 	 * subsequently. This API is invoked without holding any index related locks or monitors.
 	 * <p>
@@ -227,7 +227,7 @@ public abstract class SearchParticipant {
 	public void resolveDocument(SearchDocument document) {
 		// do nothing, subtypes should do the "appropriate thing"
 	}
-	
+
 	/**
 	 * Schedules the indexing of the given document.
 	 * Once the document is ready to be indexed,

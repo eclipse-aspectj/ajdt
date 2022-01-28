@@ -1,13 +1,13 @@
 /* *******************************************************************
  * Copyright (c) 2002,2005 Contributors.
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     PARC     initial implementation
  *     Andy Clement - upgrade to support fields targetting generic types
  * ******************************************************************/
 
@@ -39,8 +39,8 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeVariableBinding;
  * The member finder looks after intertype declared members on a type, there is one member finder per type that was hit by an ITD.
  */
 public class InterTypeMemberFinder implements IMemberFinder {
-	private List<FieldBinding> interTypeFields = new ArrayList<FieldBinding>();
-	private List<MethodBinding> interTypeMethods = new ArrayList<MethodBinding>();
+	private List<FieldBinding> interTypeFields = new ArrayList<>();
+	private List<MethodBinding> interTypeMethods = new ArrayList<>();
 
 	public SourceTypeBinding sourceTypeBinding;
 
@@ -53,8 +53,7 @@ public class InterTypeMemberFinder implements IMemberFinder {
 		}
 		int fieldLength = fieldName.length;
 
-		for (int i = 0, len = interTypeFields.size(); i < len; i++) {
-			FieldBinding field = interTypeFields.get(i);
+		for (FieldBinding field : interTypeFields) {
 			if (field.name.length == fieldLength && CharOperation.prefixEquals(field.name, fieldName)) {
 				retField = resolveConflicts(sourceTypeBinding, retField, field, site, scope);
 			}
@@ -255,16 +254,15 @@ public class InterTypeMemberFinder implements IMemberFinder {
 		MethodBinding[] orig = sourceTypeBinding.methodsBase();
 		// if (interTypeMethods.isEmpty()) return orig;
 
-		List<MethodBinding> ret = new ArrayList<MethodBinding>(Arrays.asList(orig));
-		for (int i = 0, len = interTypeMethods.size(); i < len; i++) {
-			MethodBinding method = interTypeMethods.get(i);
+		List<MethodBinding> ret = new ArrayList<>(Arrays.asList(orig));
+		for (MethodBinding method : interTypeMethods) {
 			ret.add(method);
 		}
 
 		ReferenceBinding[] interfaces = sourceTypeBinding.superInterfaces();
-		for (int i = 0; i < interfaces.length; i++) {
-			if (interfaces[i] instanceof SourceTypeBinding) {
-				SourceTypeBinding intSTB = (SourceTypeBinding) interfaces[i];
+		for (ReferenceBinding anInterface : interfaces) {
+			if (anInterface instanceof SourceTypeBinding) {
+				SourceTypeBinding intSTB = (SourceTypeBinding) anInterface;
 				addPublicITDSFrom(intSTB, ret);
 			}
 		}
@@ -272,7 +270,7 @@ public class InterTypeMemberFinder implements IMemberFinder {
 		if (ret.isEmpty()) {
 			return Binding.NO_METHODS;
 		}
-		return ret.toArray(new MethodBinding[ret.size()]);
+		return ret.toArray(new MethodBinding[0]);
 	}
 
 	private void addPublicITDSFrom(SourceTypeBinding anInterface, List<MethodBinding> accumulator) {
@@ -301,12 +299,10 @@ public class InterTypeMemberFinder implements IMemberFinder {
 			return orig;
 		}
 
-		Set<MethodBinding> ret = new HashSet<MethodBinding>(Arrays.asList(orig));
+		Set<MethodBinding> ret = new HashSet<>(Arrays.asList(orig));
 		// System.err.println("declared method: " + ret + " inters = " + interTypeMethods);
 
-		for (int i = 0, len = interTypeMethods.size(); i < len; i++) {
-			MethodBinding method = interTypeMethods.get(i);
-
+		for (MethodBinding method : interTypeMethods) {
 			if (CharOperation.equals(selector, method.selector)) {
 				ret.add(method);
 			}
@@ -332,7 +328,7 @@ public class InterTypeMemberFinder implements IMemberFinder {
 
 		// System.err.println("got methods: " + ret + " on " + sourceTypeBinding);
 
-		return ret.toArray(new MethodBinding[ret.size()]);
+		return ret.toArray(new MethodBinding[0]);
 	}
 
 	@Override
@@ -341,8 +337,7 @@ public class InterTypeMemberFinder implements IMemberFinder {
 		MethodBinding ret = sourceTypeBinding.getExactMethodBase(selector, argumentTypes, refScope);
 
 		// An intertype declaration may override an inherited member (Bug#50776)
-		for (int i = 0, len = interTypeMethods.size(); i < len; i++) {
-			MethodBinding im = interTypeMethods.get(i);
+		for (MethodBinding im : interTypeMethods) {
 			if (matches(im, selector, argumentTypes)) {
 				return im;
 			}

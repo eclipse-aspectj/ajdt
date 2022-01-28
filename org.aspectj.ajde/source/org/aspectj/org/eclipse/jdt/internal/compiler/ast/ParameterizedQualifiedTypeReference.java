@@ -7,7 +7,7 @@
  * https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann - Contributions for
@@ -143,7 +143,7 @@ public class ParameterizedQualifiedTypeReference extends ArrayQualifiedTypeRefer
 			if (arguments == null) {
 				qParamName[i] = this.tokens[i];
 			} else {
-				StringBuffer buffer = new StringBuffer(5);
+				StringBuilder buffer = new StringBuilder(5);
 				buffer.append(this.tokens[i]);
 				buffer.append('<');
 				for (int j = 0, argLength =arguments.length; j < argLength; j++) {
@@ -173,7 +173,7 @@ public class ParameterizedQualifiedTypeReference extends ArrayQualifiedTypeRefer
 	public TypeReference[][] getTypeArguments() {
 		return this.typeArguments;
 	}
-	
+
     @Override
 	protected TypeBinding getTypeBinding(Scope scope) {
         return null; // not supported here - combined with resolveType(...)

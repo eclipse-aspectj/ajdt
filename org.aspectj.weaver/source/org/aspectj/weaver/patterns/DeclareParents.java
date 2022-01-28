@@ -1,10 +1,10 @@
 /* *******************************************************************
  * Copyright (c) 2002-2019 Contributors
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
  * ******************************************************************/
 package org.aspectj.weaver.patterns;
 
@@ -76,7 +76,7 @@ public class DeclareParents extends Declare {
 
 	@Override
 	public String toString() {
-		StringBuffer buf = new StringBuffer();
+		StringBuilder buf = new StringBuilder();
 		buf.append("declare parents: ");
 		buf.append(child);
 		buf.append(isExtends ? " extends " : " implements "); // extends and implements are treated equivalently
@@ -290,9 +290,9 @@ public class DeclareParents extends Declare {
 	 * that clashes with the new parent that the user wants to apply to the type. If it finds an existing parameterization that
 	 * matches the new one, it silently completes, if it finds one that clashes (e.g. a type already has A<String> when the user
 	 * wants to add A<Number>) then it will produce an error.
-	 * 
+	 *
 	 * It uses recursion and exits recursion on hitting 'jlObject'
-	 * 
+	 *
 	 * Related bugzilla entries: pr110788
 	 */
 	private boolean verifyNoInheritedAlternateParameterization(ResolvedType typeToVerify, ResolvedType newParent, World world) {
@@ -342,7 +342,7 @@ public class DeclareParents extends Declare {
 			return Collections.emptyList();
 		}
 
-		List<ResolvedType> ret = new ArrayList<ResolvedType>();
+		List<ResolvedType> ret = new ArrayList<>();
 		for (int i = 0; i < parents.size(); i++) {
 			ResolvedType t = maybeGetNewParent(onType, parents.get(i), onType.getWorld(), reportErrors);
 			if (t != null) {

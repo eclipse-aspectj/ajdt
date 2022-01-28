@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -11,6 +11,7 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Alex Blewitt - alex_blewitt@yahoo.com https://bugs.eclipse.org/bugs/show_bug.cgi?id=171066
+ *     Microsoft Corporation - read formatting options from the compilation unit
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.core;
 
@@ -142,7 +143,7 @@ public class SortElementsOperation extends JavaModelOperation {
 			}
 
 			Document document= new Document(content);
-			return rewrite.rewriteAST(document, cu.getJavaProject().getOptions(true));
+			return rewrite.rewriteAST(document, cu.getOptions(true));
 		} finally {
 			done();
 		}
@@ -200,7 +201,7 @@ public class SortElementsOperation extends JavaModelOperation {
 				for (Iterator iter = types.iterator(); iter.hasNext();) {
 					AbstractTypeDeclaration typeDeclaration = (AbstractTypeDeclaration) iter.next();
 					typeDeclaration.setProperty(CompilationUnitSorter.RELATIVE_ORDER, Integer.valueOf(typeDeclaration.getStartPosition()));
-					contains_malformed_nodes |= Boolean.valueOf(isMalformed(typeDeclaration));
+					contains_malformed_nodes |= isMalformed(typeDeclaration);
 				}
 				compilationUnit.setProperty(CONTAINS_MALFORMED_NODES, contains_malformed_nodes);
 				return true;
@@ -212,7 +213,7 @@ public class SortElementsOperation extends JavaModelOperation {
 				for (Iterator iter = bodyDeclarations.iterator(); iter.hasNext();) {
 					BodyDeclaration bodyDeclaration = (BodyDeclaration) iter.next();
 					bodyDeclaration.setProperty(CompilationUnitSorter.RELATIVE_ORDER, Integer.valueOf(bodyDeclaration.getStartPosition()));
-					contains_malformed_nodes |= Boolean.valueOf(isMalformed(bodyDeclaration));
+					contains_malformed_nodes |= isMalformed(bodyDeclaration);
 				}
 				annotationTypeDeclaration.setProperty(CONTAINS_MALFORMED_NODES, contains_malformed_nodes);
 				return true;
@@ -225,7 +226,7 @@ public class SortElementsOperation extends JavaModelOperation {
 				for (Iterator iter = bodyDeclarations.iterator(); iter.hasNext();) {
 					BodyDeclaration bodyDeclaration = (BodyDeclaration) iter.next();
 					bodyDeclaration.setProperty(CompilationUnitSorter.RELATIVE_ORDER, Integer.valueOf(bodyDeclaration.getStartPosition()));
-					contains_malformed_nodes |= Boolean.valueOf(isMalformed(bodyDeclaration));
+					contains_malformed_nodes |= isMalformed(bodyDeclaration);
 				}
 				anonymousClassDeclaration.setProperty(CONTAINS_MALFORMED_NODES, contains_malformed_nodes);
 				return true;
@@ -238,7 +239,7 @@ public class SortElementsOperation extends JavaModelOperation {
 				for (Iterator iter = bodyDeclarations.iterator(); iter.hasNext();) {
 					BodyDeclaration bodyDeclaration = (BodyDeclaration) iter.next();
 					bodyDeclaration.setProperty(CompilationUnitSorter.RELATIVE_ORDER, Integer.valueOf(bodyDeclaration.getStartPosition()));
-					contains_malformed_nodes |= Boolean.valueOf(isMalformed(bodyDeclaration));
+					contains_malformed_nodes |= isMalformed(bodyDeclaration);
 				}
 				typeDeclaration.setProperty(CONTAINS_MALFORMED_NODES, contains_malformed_nodes);
 				return true;
@@ -251,13 +252,13 @@ public class SortElementsOperation extends JavaModelOperation {
 				for (Iterator iter = bodyDeclarations.iterator(); iter.hasNext();) {
 					BodyDeclaration bodyDeclaration = (BodyDeclaration) iter.next();
 					bodyDeclaration.setProperty(CompilationUnitSorter.RELATIVE_ORDER, Integer.valueOf(bodyDeclaration.getStartPosition()));
-					contains_malformed_nodes |= Boolean.valueOf(isMalformed(bodyDeclaration));
+					contains_malformed_nodes |= isMalformed(bodyDeclaration);
 				}
 				List enumConstants = enumDeclaration.enumConstants();
 				for (Iterator iter = enumConstants.iterator(); iter.hasNext();) {
 					EnumConstantDeclaration enumConstantDeclaration = (EnumConstantDeclaration) iter.next();
 					enumConstantDeclaration.setProperty(CompilationUnitSorter.RELATIVE_ORDER, Integer.valueOf(enumConstantDeclaration.getStartPosition()));
-					contains_malformed_nodes |= Boolean.valueOf(isMalformed(enumConstantDeclaration));
+					contains_malformed_nodes |= isMalformed(enumConstantDeclaration);
 				}
 				enumDeclaration.setProperty(CONTAINS_MALFORMED_NODES, contains_malformed_nodes);
 				return true;

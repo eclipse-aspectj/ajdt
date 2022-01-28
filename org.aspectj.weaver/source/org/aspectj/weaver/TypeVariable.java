@@ -1,10 +1,10 @@
 /* *******************************************************************
  * Copyright (c) 2005-2010 Contributors.
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://eclipse.org/legal/epl-v10.html 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
  * ******************************************************************/
 package org.aspectj.weaver;
 
@@ -12,7 +12,7 @@ import java.io.IOException;
 
 /**
  * Represents a type variable with possible bounds.
- * 
+ *
  * @author Adrian Colyer
  * @author Andy Clement
  */
@@ -113,9 +113,9 @@ public class TypeVariable {
 				UnresolvedType declaring = (UnresolvedType) declaringElement;
 				ReferenceType rd = (ReferenceType) declaring.resolve(world);
 				TypeVariable[] tVars = rd.getTypeVariables();
-				for (int i = 0; i < tVars.length; i++) {
-					if (tVars[i].getName().equals(getName())) {
-						resolvedTVar = tVars[i];
+				for (TypeVariable tVar : tVars) {
+					if (tVar.getName().equals(getName())) {
+						resolvedTVar = tVar;
 						break;
 					}
 				}
@@ -123,9 +123,9 @@ public class TypeVariable {
 				// look for type variable on method...
 				ResolvedMember declaring = (ResolvedMember) declaringElement;
 				TypeVariable[] tvrts = declaring.getTypeVariables();
-				for (int i = 0; i < tvrts.length; i++) {
-					if (tvrts[i].getName().equals(getName())) {
-						resolvedTVar = tvrts[i];
+				for (TypeVariable tvrt : tvrts) {
+					if (tvrt.getName().equals(getName())) {
+						resolvedTVar = tvrt;
 						// if (tvrts[i].isTypeVariableReference()) {
 						// TypeVariableReferenceType tvrt = (TypeVariableReferenceType) tvrts[i].resolve(inSomeWorld);
 						// TypeVariable tv = tvrt.getTypeVariable();
@@ -187,8 +187,8 @@ public class TypeVariable {
 			return false;
 		}
 		// candidate is a subtype of all superInterfaces
-		for (int i = 0; i < superInterfaces.length; i++) {
-			if (!isASubtypeOf(superInterfaces[i], candidate)) {
+		for (UnresolvedType superInterface : superInterfaces) {
+			if (!isASubtypeOf(superInterface, candidate)) {
 				return false;
 			}
 		}
@@ -224,16 +224,16 @@ public class TypeVariable {
 	}
 
 	public String getDisplayName() {
-		StringBuffer ret = new StringBuffer();
+		StringBuilder ret = new StringBuilder();
 		ret.append(name);
 		if (!getFirstBound().getName().equals("java.lang.Object")) {
 			ret.append(" extends ");
 			ret.append(getFirstBound().getName());
 			if (superInterfaces != null) {
-				for (int i = 0; i < superInterfaces.length; i++) {
-					if (!getFirstBound().equals(superInterfaces[i])) {
+				for (UnresolvedType superInterface : superInterfaces) {
+					if (!getFirstBound().equals(superInterface)) {
 						ret.append(" & ");
-						ret.append(superInterfaces[i].getName());
+						ret.append(superInterface.getName());
 					}
 				}
 			}
@@ -251,16 +251,16 @@ public class TypeVariable {
 	 * are parameterized types
 	 */
 	public String getSignature() {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		sb.append(name);
 		sb.append(":");
 		if (superInterfaces.length == 0 || !superclass.getSignature().equals(UnresolvedType.OBJECT.getSignature())) {
 			sb.append(superclass.getSignature());
 		}
 		if (superInterfaces.length != 0) {
-			for (int i = 0; i < superInterfaces.length; i++) {
+			for (UnresolvedType superInterface : superInterfaces) {
 				sb.append(":");
-				UnresolvedType iBound = superInterfaces[i];
+				UnresolvedType iBound = superInterface;
 				sb.append(iBound.getSignature());
 			}
 		}
@@ -271,16 +271,16 @@ public class TypeVariable {
 	 * @return signature for inclusion in an attribute, there must be no 'P' in it signatures
 	 */
 	public String getSignatureForAttribute() {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		sb.append(name);
 		sb.append(":");
 		if (superInterfaces.length == 0 || !superclass.getSignature().equals(UnresolvedType.OBJECT.getSignature())) {
 			sb.append(((ReferenceType)superclass).getSignatureForAttribute());
 		}
 		if (superInterfaces.length != 0) {
-			for (int i = 0; i < superInterfaces.length; i++) {
+			for (UnresolvedType superInterface : superInterfaces) {
 				sb.append(":");
-				ResolvedType iBound = (ResolvedType) superInterfaces[i];
+				ResolvedType iBound = (ResolvedType) superInterface;
 				sb.append(iBound.getSignatureForAttribute());
 			}
 		}
@@ -325,8 +325,7 @@ public class TypeVariable {
 			s.writeInt(0);
 		} else {
 			s.writeInt(superInterfaces.length);
-			for (int i = 0; i < superInterfaces.length; i++) {
-				UnresolvedType ibound = superInterfaces[i];
+			for (UnresolvedType ibound : superInterfaces) {
 				ibound.write(s);
 			}
 		}

@@ -1,3 +1,4 @@
+// ASPECTJ
 /*******************************************************************************
  * Copyright (c) 2000, 2018 IBM Corporation and others.
  *
@@ -34,8 +35,8 @@ public class DefaultProblem extends CategorizedProblem {
 	// End AspectJ Extension
 
 	// cannot directly point to IJavaModelMarker constants from within batch compiler
-	private static final String MARKER_TYPE_PROBLEM = "org.aspectj.org.eclipse.jdt.core.problem"; //$NON-NLS-1$
-	private static final String MARKER_TYPE_TASK = "org.aspectj.org.eclipse.jdt.core.task"; //$NON-NLS-1$
+	private static final String MARKER_TYPE_PROBLEM = "org.eclipse.jdt.core.problem"; //$NON-NLS-1$
+	private static final String MARKER_TYPE_TASK = "org.eclipse.jdt.core.task"; //$NON-NLS-1$
 
 	public static final Object[] EMPTY_VALUES = {};
 
@@ -77,7 +78,7 @@ public String errorReportSource(char[] unitSource) {
 		|| unitSource.length == 0)
 		return Messages.problem_noSourceInformation;
 
-	StringBuffer errorBuffer = new StringBuffer();
+	StringBuilder errorBuffer = new StringBuilder();
 	errorBuffer.append(' ').append(Messages.bind(Messages.problem_atLine, String.valueOf(this.line)));
 	errorBuffer.append(Util.LINE_SEPARATOR);
 	errorBuffer.append('\t');
@@ -182,6 +183,8 @@ public String getInternalCategoryMessage() {
 			return "restriction"; //$NON-NLS-1$
 		case CAT_MODULE:
 			return "module"; //$NON-NLS-1$
+		case CAT_PREVIEW_RELATED:
+			return "preview related"; //$NON-NLS-1$
 	}
 	return null;
 }

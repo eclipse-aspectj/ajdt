@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -74,12 +74,12 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 	// to each of the traversed try statements, so that execution will terminate properly.
 
 	// lookup the label, this should answer the returnContext
-	
+
 	if (this.expression instanceof FunctionalExpression) {
 		if (this.expression.resolvedType == null || !this.expression.resolvedType.isValidBinding()) {
 			/* Don't descend without proper target types. For lambda shape analysis, what is pertinent is value vs void return and the fact that
 			   this constitutes an abrupt exit. The former is already gathered, the latter is handled here.
-			*/ 
+			*/
 			flowContext.recordAbruptExit();
 			return FlowInfo.DEAD_END;
 		}
@@ -90,7 +90,7 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 		flowInfo = this.expression.analyseCode(currentScope, flowContext, flowInfo);
 		this.expression.checkNPEbyUnboxing(currentScope, flowContext, flowInfo);
 		if (flowInfo.reachMode() == FlowInfo.REACHABLE && currentScope.compilerOptions().isAnnotationBasedNullAnalysisEnabled)
-			checkAgainstNullAnnotation(currentScope, flowContext, flowInfo);
+			checkAgainstNullAnnotation(currentScope, flowContext, flowInfo, this.expression);
 		if (currentScope.compilerOptions().analyseResourceLeaks) {
 			FakedTrackingVariable trackingVariable = FakedTrackingVariable.getCloseTrackingVariable(this.expression, flowInfo, flowContext);
 			if (trackingVariable != null) {
@@ -99,6 +99,8 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 				// by returning the method passes the responsibility to the caller:
 				flowInfo = FakedTrackingVariable.markPassedToOutside(currentScope, this.expression, flowInfo, flowContext, true);
 			}
+			// don't wait till after this statement, because then flowInfo would be DEAD_END & thus cannot serve nullStatus any more:
+			FakedTrackingVariable.cleanUpUnassigned(currentScope, this.expression, flowInfo);
 		}
 	}
 	this.initStateIndex =
@@ -182,27 +184,10 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 public boolean doesNotCompleteNormally() {
 	return true;
 }
-void checkAgainstNullAnnotation(BlockScope scope, FlowContext flowContext, FlowInfo flowInfo) {
-	int nullStatus = this.expression.nullStatus(flowInfo, flowContext);
-	long tagBits;
-	MethodBinding methodBinding = null;
-	boolean useTypeAnnotations = scope.environment().usesNullTypeAnnotations();
-	try {
-		methodBinding = scope.methodScope().referenceMethodBinding();
-		tagBits = (useTypeAnnotations) ? methodBinding.returnType.tagBits : methodBinding.tagBits;
-	} catch (NullPointerException npe) {
-		// chain of references in try-block has several potential nulls;
-		// any null means we cannot perform the following check
-		return;			
-	}
-	if (useTypeAnnotations) {
-		checkAgainstNullTypeAnnotation(scope, methodBinding.returnType, this.expression, flowContext, flowInfo);
-	} else if (nullStatus != FlowInfo.NON_NULL) {
-		// if we can't prove non-null check against declared null-ness of the enclosing method:
-		if ((tagBits & TagBits.AnnotationNonNull) != 0) {
-			flowContext.recordNullityMismatch(scope, this.expression, this.expression.resolvedType, methodBinding.returnType, flowInfo, nullStatus, null);
-		}
-	}
+
+@Override
+public boolean canCompleteNormally() {
+	return false;
 }
 
 /**
@@ -224,7 +209,7 @@ public void generateCode(BlockScope currentScope, CodeStream codeStream) {
 	if (needValueStore()) {
 		alreadyGeneratedExpression = true;
 		this.expression.generateCode(currentScope, codeStream, needValue()); // no value needed if non-returning subroutine
-		generateStoreSaveValueIfNecessary(codeStream);
+		generateStoreSaveValueIfNecessary(currentScope, codeStream);
 	}
 
 	// generation of code responsible for invoking the finally blocks in sequence
@@ -246,7 +231,7 @@ public void generateCode(BlockScope currentScope, CodeStream codeStream) {
 	if (this.expression != null && !alreadyGeneratedExpression) {
 		this.expression.generateCode(currentScope, codeStream, true);
 		// hook necessary for Code Snippet
-		generateStoreSaveValueIfNecessary(codeStream);
+		generateStoreSaveValueIfNecessary(currentScope, codeStream);
 	}
 	// output the suitable return bytecode or wrap the value inside a descriptor for doits
 	generateReturnBytecode(codeStream);
@@ -269,7 +254,7 @@ public void generateReturnBytecode(CodeStream codeStream) {
 	codeStream.generateReturnBytecode(this.expression);
 }
 
-public void generateStoreSaveValueIfNecessary(CodeStream codeStream){
+public void generateStoreSaveValueIfNecessary(Scope scope, CodeStream codeStream){
 	if (this.saveValueVariable != null) {
 		codeStream.store(this.saveValueVariable, false);
 		// the variable is visible as soon as the local is stored
@@ -304,7 +289,7 @@ public StringBuffer printStatement(int tab, StringBuffer output){
 @Override
 public void resolve(BlockScope scope) {
 	MethodScope methodScope = scope.methodScope();
-	MethodBinding methodBinding;
+	MethodBinding methodBinding = null;
 	LambdaExpression lambda = methodScope.referenceContext instanceof LambdaExpression ? (LambdaExpression) methodScope.referenceContext : null;
 	TypeBinding methodType =
 		lambda != null ? lambda.expectedResultType() :
@@ -314,7 +299,10 @@ public void resolve(BlockScope scope) {
 				: methodBinding.returnType)
 			: TypeBinding.VOID;
 	TypeBinding expressionType;
-	
+
+	if (methodBinding != null && methodBinding.isCompactConstructor())
+		scope.problemReporter().recordCompactConstructorHasReturnStatement(this);
+
 	if (this.expression != null) {
 		this.expression.setExpressionContext(ASSIGNMENT_CONTEXT);
 		this.expression.setExpectedType(methodType);
@@ -322,7 +310,7 @@ public void resolve(BlockScope scope) {
 			this.expression.bits |= ASTNode.DisableUnnecessaryCastCheck;
 		}
 	}
-	
+
 	if (methodType == TypeBinding.VOID) {
 		// the expression should be null, exceptions exist for lambda expressions.
 		if (this.expression == null) {
@@ -345,11 +333,11 @@ public void resolve(BlockScope scope) {
 		if (methodType != null) scope.problemReporter().shouldReturn(methodType, this);
 		return;
 	}
-	
+
 	expressionType = this.expression.resolveType(scope);
 	if (lambda != null)
 		lambda.returnsExpression(this.expression, expressionType);
-	
+
 	if (expressionType == null) return;
 	if (expressionType == TypeBinding.VOID) {
 		scope.problemReporter().attemptToReturnVoidValue(this);
@@ -358,6 +346,11 @@ public void resolve(BlockScope scope) {
 	if (methodType == null)
 		return;
 
+	if (methodType.isProperType(true) && lambda != null) {
+		// ensure that type conversions don't leak a preliminary local type:
+		if (lambda.updateLocalTypes())
+			methodType = lambda.expectedResultType();
+	}
 	if (TypeBinding.notEquals(methodType, expressionType)) // must call before computeConversion() and typeMismatchError()
 		scope.compilationUnitScope().recordTypeConversion(methodType, expressionType);
 	if (this.expression.isConstantValueOfTypeAssignableToType(expressionType, methodType)

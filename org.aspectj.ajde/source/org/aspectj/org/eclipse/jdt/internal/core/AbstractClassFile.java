@@ -34,7 +34,6 @@ import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Path;
 import org.aspectj.org.eclipse.jdt.core.*;
 import org.aspectj.org.eclipse.jdt.core.compiler.IProblem;
-import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFormatException;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.SuffixConstants;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
 
@@ -42,7 +41,7 @@ import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
  * Common parts of ClassFile (containing a BinaryType) and ModularClassFile (containing a BinaryModule).
  * Prior to Java 9, most of this content was directly in ClassFile.
  */
-public abstract class AbstractClassFile extends Openable implements IClassFile, SuffixConstants {
+public abstract class AbstractClassFile extends Openable implements IClassFile, SuffixConstants  {
 
 	protected String name;
 
@@ -62,10 +61,10 @@ public abstract class AbstractClassFile extends Openable implements IClassFile, 
 		if (perWorkingCopyInfo == null) {
 			// close cu and its children
 			close();
-	
+
 			BecomeWorkingCopyOperation operation = new BecomeWorkingCopyOperation(workingCopy, problemRequestor);
 			operation.runOperation(monitor);
-	
+
 			return workingCopy;
 		}
 		return perWorkingCopyInfo.workingCopy;
@@ -109,7 +108,7 @@ public abstract class AbstractClassFile extends Openable implements IClassFile, 
 	}
 	@Override
 	public abstract void codeComplete(int offset, CompletionRequestor requestor, WorkingCopyOwner owner, IProgressMonitor monitor) throws JavaModelException;
-	
+
 	/**
 	 * @see ICodeAssist#codeSelect(int, int)
 	 */
@@ -119,7 +118,7 @@ public abstract class AbstractClassFile extends Openable implements IClassFile, 
 	}
 	@Override
 	public abstract IJavaElement[] codeSelect(int offset, int length, WorkingCopyOwner owner) throws JavaModelException;
-	
+
 	/**
 	 * Returns a new element info for this element.
 	 */
@@ -131,9 +130,9 @@ public abstract class AbstractClassFile extends Openable implements IClassFile, 
 	public boolean equals(Object o) {
 		if (!(o instanceof AbstractClassFile)) return false;
 		AbstractClassFile other = (AbstractClassFile) o;
-		return this.name.equals(other.name) && this.parent.equals(other.parent);
+		return this.name.equals(other.name) && this.getParent().equals(other.getParent());
 	}
-	
+
 	/**
 	 * Finds the deepest <code>IJavaElement</code> in the hierarchy of
 	 * <code>elt</elt>'s children (including <code>elt</code> itself)
@@ -160,10 +159,39 @@ public abstract class AbstractClassFile extends Openable implements IClassFile, 
 		}
 		return elt;
 	}
-	
+
+	/**
+	 * Provide a way for clients (like debugger) to determine if two non-equal {@link AbstractClassFile} objects point
+	 * to the same physical storage. The return value is constructed form the container path (if there is any) and the
+	 * path of the class file itself (that could be either absolute or relative if it is inside container).
+	 *
+	 * @return some kind of unique class file identifier based on path information only. The return value may look like
+	 *         a path in a file system, but is not guaranteed to be a valid path that could be resolved via NIO API.
+	 */
+	public String getPathIdentifier() {
+		JavaElement pkg = getParent();
+		if (pkg instanceof JarPackageFragment) {
+			JarPackageFragmentRoot root = (JarPackageFragmentRoot) pkg.getParent();
+			String entryName = Util.concatWith(((PackageFragment) pkg).names, getElementName(), '/');
+			entryName = root.getClassFilePath(entryName);
+			String rootPath = root.getPath().toOSString();
+			if (org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.isJrt(rootPath)) {
+				// container + module + class
+				return rootPath + '/' + root.getElementName() + '/' +entryName;
+			} else {
+				// container + class
+				return rootPath + '/' + entryName;
+			}
+		} else {
+			IFile file = (IFile) resource();
+			IPath location = file.getLocation();
+			return location == null? file.getFullPath().toPortableString() : location.toOSString();
+		}
+	}
+
 	@Override
 	public byte[] getBytes() throws JavaModelException {
-		JavaElement pkg = (JavaElement) getParent();
+		JavaElement pkg = getParent();
 		if (pkg instanceof JarPackageFragment) {
 			JarPackageFragmentRoot root = (JarPackageFragmentRoot) pkg.getParent();
 			try {
@@ -190,14 +218,10 @@ public abstract class AbstractClassFile extends Openable implements IClassFile, 
 		byte[] contents = null;
 		String rootPath = root.getPath().toOSString();
 		if (org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.isJrt(rootPath)) {
-				try {
-					contents = org.aspectj.org.eclipse.jdt.internal.compiler.util.JRTUtil.getClassfileContent(
-							new File(rootPath),
-							className,
-							root.getElementName());
-				} catch (ClassFormatException e) {
-					e.printStackTrace();
-				}
+			contents = org.aspectj.org.eclipse.jdt.internal.compiler.util.JRTUtil.getClassfileContent(
+					new File(rootPath),
+					className,
+					root.getElementName());
 		} else {
 			ZipFile zip = root.getJar();
 			try {
@@ -213,7 +237,7 @@ public abstract class AbstractClassFile extends Openable implements IClassFile, 
 			throw new OperationCanceledException();
 		return contents;
 	}
-	
+
 	@Override
 	public IBuffer getBuffer() throws JavaModelException {
 		IStatus status = validateClassFile();
@@ -235,7 +259,7 @@ public abstract class AbstractClassFile extends Openable implements IClassFile, 
 	public ITypeRoot getTypeRoot() {
 		return this;
 	}
-	
+
 	/**
 	 * A class file has a corresponding resource unless it is contained
 	 * in a jar.
@@ -260,7 +284,7 @@ public abstract class AbstractClassFile extends Openable implements IClassFile, 
 		} else {
 			int index = this.name.indexOf('$');
 			int prefixLength = index < 0 ? this.name.length() : index;
-	
+
 			IType type = null;
 			int start = -1;
 			int end = Integer.MAX_VALUE;
@@ -269,14 +293,14 @@ public abstract class AbstractClassFile extends Openable implements IClassFile, 
 				if (children[i] instanceof IOrdinaryClassFile) {
 					IOrdinaryClassFile classFile = (IOrdinaryClassFile) children[i];
 					String childName = classFile.getElementName();
-		
+
 					int childIndex = childName.indexOf('$');
 					int childPrefixLength = childIndex < 0 ? childName.indexOf('.') : childIndex;
 					if (prefixLength == childPrefixLength && this.name.regionMatches(0, childName, 0, prefixLength)) {
-		
+
 						// ensure this class file's buffer is open so that source ranges are computed
 						classFile.getBuffer();
-		
+
 						SourceRange range = mapper.getSourceRange(classFile.getType());
 						if (range == SourceMapper.UNKNOWN_RANGE) continue;
 						int newStart = range.getOffset();
@@ -320,13 +344,13 @@ public abstract class AbstractClassFile extends Openable implements IClassFile, 
 			return getParent().getPath().append(getElementName());
 		}
 	}
-	
+
 	/*
 	 * @see IJavaElement
 	 */
 	@Override
 	public IResource resource(PackageFragmentRoot root) {
-		return ((IContainer) ((Openable) this.parent).resource(root)).getFile(new Path(getElementName()));
+		return ((IContainer) ((Openable) this.getParent()).resource(root)).getFile(new Path(getElementName()));
 	}
 	/**
 	 * @see ISourceReference
@@ -371,7 +395,7 @@ public abstract class AbstractClassFile extends Openable implements IClassFile, 
 	}
 	@Override
 	public int hashCode() {
-		return Util.combineHashCodes(this.name.hashCode(), this.parent.hashCode());
+		return Util.combineHashCodes(this.name.hashCode(), this.getParent().hashCode());
 	}
 	/**
 	 * Returns true - class files are always read only.
@@ -391,7 +415,7 @@ public abstract class AbstractClassFile extends Openable implements IClassFile, 
 		IJavaProject project = getJavaProject();
 		return JavaConventions.validateClassFileName(getElementName(), project.getOption(JavaCore.COMPILER_SOURCE, true), project.getOption(JavaCore.COMPILER_COMPLIANCE, true));
 	}
-	
+
 
 	/**
 	 * @see ICodeAssist#codeComplete(int, ICodeCompletionRequestor)
@@ -467,7 +491,7 @@ public abstract class AbstractClassFile extends Openable implements IClassFile, 
 				}
 			});
 	}
-	
+
 	@Override
 	protected IStatus validateExistence(IResource underlyingResource) {
 		// check whether the class file can be opened
@@ -484,7 +508,7 @@ public abstract class AbstractClassFile extends Openable implements IClassFile, 
 		}
 		return JavaModelStatus.VERIFIED_OK;
 	}
-	
+
 	@Override
 	public ISourceRange getNameRange() {
 		return null;

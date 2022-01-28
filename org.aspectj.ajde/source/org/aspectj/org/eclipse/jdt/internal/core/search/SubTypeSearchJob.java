@@ -13,39 +13,53 @@
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.core.search;
 
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Optional;
+import java.util.Set;
+
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.aspectj.org.eclipse.jdt.core.search.*;
-import org.aspectj.org.eclipse.jdt.internal.compiler.util.SimpleSet;
+import org.aspectj.org.eclipse.jdt.core.search.IJavaSearchScope;
+import org.aspectj.org.eclipse.jdt.core.search.SearchParticipant;
+import org.aspectj.org.eclipse.jdt.core.search.SearchPattern;
+import org.aspectj.org.eclipse.jdt.internal.core.JavaModelManager;
 import org.aspectj.org.eclipse.jdt.internal.core.index.Index;
+import org.aspectj.org.eclipse.jdt.internal.core.index.MetaIndex;
 
 public class SubTypeSearchJob extends PatternSearchJob {
 
-SimpleSet indexes = new SimpleSet(5);
+Set<Index> indexes = Collections.synchronizedSet(new LinkedHashSet<>(5));
 
 public SubTypeSearchJob(SearchPattern pattern, SearchParticipant participant, IJavaSearchScope scope, IndexQueryRequestor requestor) {
 	super(pattern, participant, scope, requestor);
 }
 public void finished() {
-	Object[] values = this.indexes.values;
-	for (int i = 0, l = values.length; i < l; i++)
-		if (values[i] != null)
-			((Index) values[i]).stopQuery();
+	this.indexes.forEach(Index::stopQuery);
 }
 @Override
 public Index[] getIndexes(IProgressMonitor progressMonitor) {
-	if (this.indexes.elementSize == 0) {
+	// qualifier index will narrow down indexes each iteration. Therefore alway request from super.
+	Optional<Index> qualifierIndex = JavaModelManager.getIndexManager().getMetaIndex().map(MetaIndex::getIndex);
+	if(qualifierIndex.isPresent()) {
+		if(this.indexes.add(qualifierIndex.get())) {
+			qualifierIndex.get().startQuery();
+		}
+		return super.getIndexes(progressMonitor);
+	}
+
+	// fallback if qualifier index is not present.
+	if (this.indexes.isEmpty()) {
 		return super.getIndexes(progressMonitor);
 	}
 	this.areIndexesReady = true; // use stored indexes until the job's end
-	Index[] values = new Index[this.indexes.elementSize];
-	this.indexes.asArray(values);
-	return values;
+	return this.indexes.toArray(new Index[0]);
 }
 @Override
-public boolean search(Index index, IProgressMonitor progressMonitor) {
+public boolean search(Index index, IndexQueryRequestor queryRequestor, IProgressMonitor progressMonitor) {
 	if (index == null) return COMPLETE;
-	if (this.indexes.addIfNotIncluded(index) == index)
+	if (this.indexes.add(index)) {
 		index.startQuery();
-	return super.search(index, progressMonitor);
+	}
+	return super.search(index, queryRequestor, progressMonitor);
 }
 }

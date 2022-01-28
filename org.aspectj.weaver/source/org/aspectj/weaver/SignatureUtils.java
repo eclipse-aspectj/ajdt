@@ -1,13 +1,13 @@
 /* *******************************************************************
  * Copyright (c) 2008 Contributors
- * 
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
+ *
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
  *   Andy Clement - refactored out of MemberImpl
  * ******************************************************************/
 package org.aspectj.weaver;
@@ -90,7 +90,7 @@ public class SignatureUtils {
 	// ---
 
 	private static String getHandlerSignatureString(Member m, World world) {
-		StringBuffer buf = new StringBuffer();
+		StringBuilder buf = new StringBuilder();
 		buf.append(makeString(0));
 		buf.append('-');
 		// buf.append(getName());
@@ -109,7 +109,7 @@ public class SignatureUtils {
 	}
 
 	private static String getStaticInitializationSignatureString(Member m, World world) {
-		StringBuffer buf = new StringBuffer();
+		StringBuilder buf = new StringBuilder();
 		buf.append(makeString(m.getModifiers(world)));
 		buf.append('-');
 		// buf.append(getName());
@@ -120,7 +120,7 @@ public class SignatureUtils {
 	}
 
 	protected static String getAdviceSignatureString(Member m, World world) {
-		StringBuffer buf = new StringBuffer();
+		StringBuilder buf = new StringBuilder();
 		buf.append(makeString(m.getModifiers(world)));
 		buf.append('-');
 		buf.append(m.getName());
@@ -139,7 +139,7 @@ public class SignatureUtils {
 	}
 
 	protected static String getMethodSignatureString(Member m, World world) {
-		StringBuffer buf = new StringBuffer();
+		StringBuilder buf = new StringBuilder();
 		buf.append(makeString(m.getModifiers(world)));
 		buf.append('-');
 		buf.append(m.getName());
@@ -158,7 +158,7 @@ public class SignatureUtils {
 	}
 
 	protected static String getMonitorSignatureString(Member m, World world) {
-		StringBuffer buf = new StringBuffer();
+		StringBuilder buf = new StringBuilder();
 		buf.append(makeString(Modifier.STATIC)); // modifiers
 		buf.append('-');
 		buf.append(m.getName()); // name
@@ -173,7 +173,7 @@ public class SignatureUtils {
 	}
 
 	protected static String getConstructorSignatureString(Member m, World world) {
-		StringBuffer buf = new StringBuffer();
+		StringBuilder buf = new StringBuilder();
 		buf.append(makeString(m.getModifiers(world)));
 		buf.append('-');
 		buf.append('-');
@@ -189,7 +189,7 @@ public class SignatureUtils {
 	}
 
 	protected static String getFieldSignatureString(Member m, World world) {
-		StringBuffer buf = new StringBuffer();
+		StringBuilder buf = new StringBuilder();
 		buf.append(makeString(m.getModifiers(world)));
 		buf.append('-');
 		buf.append(m.getName());
@@ -218,9 +218,9 @@ public class SignatureUtils {
 	protected static String makeString(UnresolvedType[] types) {
 		if (types == null)
 			return "";
-		StringBuffer buf = new StringBuffer();
-		for (int i = 0, len = types.length; i < len; i++) {
-			buf.append(makeString(types[i]));
+		StringBuilder buf = new StringBuilder();
+		for (UnresolvedType type : types) {
+			buf.append(makeString(type));
 			buf.append(':');
 		}
 		return buf.toString();
@@ -229,9 +229,9 @@ public class SignatureUtils {
 	protected static String makeString(String[] names) {
 		if (names == null)
 			return "";
-		StringBuffer buf = new StringBuffer();
-		for (int i = 0, len = names.length; i < len; i++) {
-			buf.append(names[i]);
+		StringBuilder buf = new StringBuilder();
+		for (String name : names) {
+			buf.append(name);
 			buf.append(':');
 		}
 		return buf.toString();

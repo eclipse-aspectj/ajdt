@@ -7,7 +7,7 @@
  * https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -29,7 +29,7 @@ public class InitializationFlowContext extends ExceptionHandlingFlowContext {
 	public ASTNode[] exceptionThrowers = new ASTNode[5];
 	public FlowInfo[] exceptionThrowerFlowInfos = new FlowInfo[5];
 	public FlowInfo	initsBeforeContext;
-	
+
 	public InitializationFlowContext(FlowContext parent, ASTNode associatedNode, FlowInfo initsBeforeContext, FlowContext initializationParent, BlockScope scope) {
 		super(
 			parent,
@@ -58,11 +58,11 @@ public class InitializationFlowContext extends ExceptionHandlingFlowContext {
 	public FlowContext getInitializationContext() {
 		return this;
 	}
-	
+
 	@Override
 	public String individualToString() {
 
-		StringBuffer buffer = new StringBuffer("Initialization flow context"); //$NON-NLS-1$
+		StringBuilder buffer = new StringBuilder("Initialization flow context"); //$NON-NLS-1$
 		for (int i = 0; i < this.exceptionCount; i++) {
 			buffer.append('[').append(this.thrownExceptions[i].readableName());
 			buffer.append('-').append(this.exceptionThrowerFlowInfos[i].toString()).append(']');

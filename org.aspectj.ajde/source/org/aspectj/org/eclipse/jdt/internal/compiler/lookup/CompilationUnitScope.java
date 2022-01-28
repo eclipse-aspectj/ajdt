@@ -1,6 +1,6 @@
 // ASPECTJ
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -15,17 +15,23 @@
  *     Stephan Herrmann - Contribution for
  *								Bug 429958 - [1.8][null] evaluate new DefaultLocation attribute of @NonNullByDefault
  *								Bug 434570 - Generic type mismatch for parametrized class annotation attribute with inner class
+ *     Sebastian Zarnekow - Contribution for
+ *								Bug 544921 - [performance] Poor performance with large source files
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.AccessRestriction;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.IUpdatableModule;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.*;
@@ -35,39 +41,34 @@ public class CompilationUnitScope extends Scope {
 	public LookupEnvironment environment;
 	public CompilationUnitDeclaration referenceContext;
 	public char[][] currentPackageName;
-	public PackageBinding fPackage;
+	public PlainPackageBinding fPackage;
 	public ImportBinding[] imports;
 	public int importPtr;
 	public HashtableOfObject typeOrPackageCache; // used in Scope.getTypeOrPackage()
 
 	public SourceTypeBinding[] topLevelTypes;
 
-	private CompoundNameVector qualifiedReferences;
-	private SimpleNameVector simpleNameReferences;
-	private SimpleNameVector rootReferences;
-	private ObjectVector referencedTypes;
+	private SortedCompoundNameVector qualifiedReferences;
+	private SortedSimpleNameVector simpleNameReferences;
+	private SortedSimpleNameVector rootReferences;
+	private LinkedHashSet<ReferenceBindingSetWrapper> referencedTypes;
+	private Set<ReferenceBindingSetWrapper> referencedSuperTypesSet;
 	private ObjectVector referencedSuperTypes;
 
 	HashtableOfType constantPoolNameUsage;
 	private int captureID = 1;
-	
+
 	private ImportBinding[] tempImports;	// to keep a record of resolved imports while traversing all in faultInImports()
-	
-		/**
-		 * Flag that should be set during annotation traversal or similar runs
-		 * to prevent caching of failures regarding imports of yet to be generated classes.
-		 */
-		public boolean suppressImportErrors;
-		
-		/**
-		 * Skips import caching if unresolved imports were
-		 * found last time.
-		 */
-		private boolean skipCachingImports;
-	
+
+	/**
+	 * Skips import caching if unresolved imports were
+	 * found last time.
+	 */
+	private boolean skipCachingImports;
+
 	boolean connectingHierarchy;
 	private ArrayList<Invocation> inferredInvocations;
-	/** Cache of interned inference variables. Access only via {@link InferenceVariable#get(TypeBinding, int, InvocationSite, Scope, ReferenceBinding)}. */
+	/** Cache of interned inference variables. Access only via {@link InferenceVariable#get(TypeBinding, int, InvocationSite, Scope, ReferenceBinding, boolean)}. */
 	Map<InferenceVariable.InferenceVarKey, InferenceVariable> uniqueInferenceVariables = new HashMap<>();
 
 public CompilationUnitScope(CompilationUnitDeclaration unit, LookupEnvironment environment) {
@@ -82,16 +83,18 @@ public CompilationUnitScope(CompilationUnitDeclaration unit, CompilerOptions com
 	this.currentPackageName = unit.currentPackage == null ? CharOperation.NO_CHAR_CHAR : unit.currentPackage.tokens;
 
 	if (compilerOptions.produceReferenceInfo) {
-		this.qualifiedReferences = new CompoundNameVector();
-		this.simpleNameReferences = new SimpleNameVector();
-		this.rootReferences = new SimpleNameVector();
-		this.referencedTypes = new ObjectVector();
+		this.qualifiedReferences = new SortedCompoundNameVector();
+		this.simpleNameReferences = new SortedSimpleNameVector();
+		this.rootReferences = new SortedSimpleNameVector();
+		this.referencedTypes = new LinkedHashSet<>();
+		this.referencedSuperTypesSet = new HashSet<>();
 		this.referencedSuperTypes = new ObjectVector();
 	} else {
 		this.qualifiedReferences = null; // used to test if dependencies should be recorded
 		this.simpleNameReferences = null;
 		this.rootReferences = null;
 		this.referencedTypes = null;
+		this.referencedSuperTypesSet = null;
 		this.referencedSuperTypes = null;
 	}
 	// client still needs to assign #environment
@@ -126,11 +129,11 @@ void buildTypeBindings(AccessRestriction accessRestriction) {
 				moduleDecl.createScope(this);
 				moduleDecl.checkAndSetModifiers();
 			}
-		} else if (this.environment.module != this.environment.UnNamedModule) {
-			problemReporter().unnamedPackageInNamedModule(this.environment.module);
+		} else if (module() != this.environment.UnNamedModule) {
+			problemReporter().unnamedPackageInNamedModule(module());
 		}
 	} else {
-		if ((this.fPackage = this.environment.createPackage(this.currentPackageName)) == null) {
+		if ((this.fPackage = this.environment.createPlainPackage(this.currentPackageName)) == null) {
 			if (this.referenceContext.currentPackage != null) {
 				problemReporter().packageCollidesWithType(this.referenceContext); // only report when the unit has a package statement
 			}
@@ -161,11 +164,8 @@ void buildTypeBindings(AccessRestriction accessRestriction) {
 		TypeDeclaration typeDecl = types[i];
 		if (this.environment.root.isProcessingAnnotations && this.environment.isMissingType(typeDecl.name))
 			throw new SourceTypeCollisionException(); // resolved a type ref before APT generated the type
-		ReferenceBinding typeBinding = this.fPackage.getType0(typeDecl.name);
-		if (Binding.isValid(typeBinding) && this.fPackage instanceof SplitPackageBinding && !this.environment.module.canAccess(typeBinding.fPackage))
-			typeBinding = null;
 		recordSimpleReference(typeDecl.name); // needed to detect collision cases
-		if (Binding.isValid(typeBinding) && !(typeBinding instanceof UnresolvedReferenceBinding)) {
+		if (this.fPackage.hasType0Any(typeDecl.name)) {
 			// if its an unresolved binding - its fixed up whenever its needed, see UnresolvedReferenceBinding.resolve()
 			if (this.environment.root.isProcessingAnnotations)
 				throw new SourceTypeCollisionException(); // resolved a type ref before APT generated the type
@@ -196,6 +196,12 @@ void buildTypeBindings(AccessRestriction accessRestriction) {
 	// shrink topLevelTypes... only happens if an error was reported
 	if (count != this.topLevelTypes.length)
 		System.arraycopy(this.topLevelTypes, 0, this.topLevelTypes = new SourceTypeBinding[count], 0, count);
+
+	if (this.referenceContext.moduleDeclaration != null) {
+		this.module().completeIfNeeded(IUpdatableModule.UpdateKind.MODULE);
+		this.referenceContext.moduleDeclaration.resolvePackageDirectives(this);
+		this.module().completeIfNeeded(IUpdatableModule.UpdateKind.PACKAGE);
+	}
 }
 public void checkAndSetImports() { // AspectJ Extension - raised to public
 	// TODO(SHMOD): verify: this block moved here from buildTypeBindings.
@@ -214,8 +220,8 @@ public void checkAndSetImports() { // AspectJ Extension - raised to public
 
 	if (this.referenceContext.moduleDeclaration != null) {
 		this.referenceContext.moduleDeclaration.resolveModuleDirectives(this);
-		this.referenceContext.moduleDeclaration.resolvePackageDirectives(this);
 	}
+
 	if (this.referenceContext.imports == null) {
 		this.imports = getDefaultImports();
 		return;
@@ -375,19 +381,25 @@ public char[] computeConstantPoolName(LocalTypeBinding localType) {
 	return candidateName;
 }
 
-public void connectTypeHierarchy() { // AspectJ Extension - raised to public	
+public void connectTypeHierarchy() { // AspectJ Extension - raised to public
 	this.connectingHierarchy = true;
 	try {
-		for (int i = 0, length = this.topLevelTypes.length; i < length; i++)
-			this.topLevelTypes[i].scope.connectTypeHierarchy();
+	for (int i = 0, length = this.topLevelTypes.length; i < length; i++)
+		this.topLevelTypes[i].scope.connectTypeHierarchy();
 	} finally {
 		this.connectingHierarchy = false;
 	}
+	// Wait for all hierarchy information to be built before
+	// checking on permitted types
+	for (int i = 0, length = this.topLevelTypes.length; i < length; i++)
+		this.topLevelTypes[i].scope.connectImplicitPermittedTypes();
 }
 void faultInImports() {
+	if (this.tempImports != null)
+		return; // faultInImports already in progress
 	boolean unresolvedFound = false;
 	// should report unresolved only if we are not suppressing caching of failed resolutions
-	boolean reportUnresolved = !this.suppressImportErrors;
+	boolean reportUnresolved = !this.environment.suppressImportErrors;
 
 	if (this.typeOrPackageCache != null && !this.skipCachingImports)
 		return; // can be called when a field constant is resolved before static imports
@@ -420,19 +432,22 @@ void faultInImports() {
 	this.tempImports = new ImportBinding[numberOfImports];
 	this.tempImports[0] = getDefaultImports()[0];
 	this.importPtr = 1;
-	
+
+	CompilerOptions compilerOptions = compilerOptions();
+	boolean inJdtDebugCompileMode = compilerOptions.enableJdtDebugCompileMode;
+
 	// keep static imports with normal imports until there is a reason to split them up
 	// on demand imports continue to be packages & types. need to check on demand type imports for fields/methods
 	// single imports change from being just types to types or fields
 	nextImport : for (int i = 0; i < numberOfStatements; i++) {
 		ImportReference importReference = this.referenceContext.imports[i];
-		char[][] compoundName = importReference.tokens;
+		char[][] compoundName = importReference.getImportName();
 
 		// skip duplicates or imports of the current package
 		for (int j = 0; j < this.importPtr; j++) {
 			ImportBinding resolved = this.tempImports[j];
 			if (resolved.onDemand == ((importReference.bits & ASTNode.OnDemand) != 0) && resolved.isStatic() == importReference.isStatic()) {
-				if (CharOperation.equals(compoundName, resolved.compoundName)) {
+				if (CharOperation.equals(compoundName, resolved.compoundName) && CharOperation.equals(importReference.getSimpleName(), resolved.getSimpleName())) {
 					problemReporter().unusedImport(importReference); // since skipped, must be reported now
 					continue nextImport;
 				}
@@ -445,10 +460,10 @@ void faultInImports() {
 				continue nextImport;
 			}
 			if (importBinding instanceof PackageBinding) {
-				PackageBinding uniquePackage = ((PackageBinding)importBinding).getVisibleFor(module());
-				if (uniquePackage instanceof SplitPackageBinding) {
+				PackageBinding uniquePackage = ((PackageBinding)importBinding).getVisibleFor(module(), false);
+				if (uniquePackage instanceof SplitPackageBinding && !inJdtDebugCompileMode) {
 					SplitPackageBinding splitPackage = (SplitPackageBinding) uniquePackage;
-					problemReporter().conflictingPackagesFromModules(splitPackage, importReference.sourceStart, importReference.sourceEnd);
+					problemReporter().conflictingPackagesFromModules(splitPackage, module(), importReference.sourceStart, importReference.sourceEnd);
 					continue nextImport;
 				}
 			}
@@ -459,6 +474,12 @@ void faultInImports() {
 			recordImportBinding(new ImportBinding(compoundName, true, importBinding, importReference));
 		} else {
 			Binding importBinding = findSingleImport(compoundName, Binding.TYPE | Binding.FIELD | Binding.METHOD, importReference.isStatic());
+			if (importBinding instanceof SplitPackageBinding && !inJdtDebugCompileMode) {
+				SplitPackageBinding splitPackage = (SplitPackageBinding) importBinding;
+				int sourceEnd = (int)(importReference.sourcePositions[splitPackage.compoundName.length-1] & 0xFFFF);
+				problemReporter().conflictingPackagesFromModules((SplitPackageBinding) importBinding, module(), importReference.sourceStart, sourceEnd);
+				continue nextImport;
+			}
 			if (!importBinding.isValidBinding()) {
 				if (importBinding.problemId() == ProblemReasons.Ambiguous) {
 					// keep it unless a duplicate can be found below
@@ -479,20 +500,20 @@ void faultInImports() {
 					if (!importedPackage.isValidBinding()) {
 						problemReporter().importProblem(importReference, importedPackage);
 						continue nextImport;
-			}
+					}
 					// re-get to find a possible split package:
 					importedPackage = (PackageBinding) findImport(importedPackage.compoundName, false, true);
 					if (importedPackage != null)
-						importedPackage = importedPackage.getVisibleFor(module());
-					if (importedPackage instanceof SplitPackageBinding) {
+						importedPackage = importedPackage.getVisibleFor(module(), true);
+					if (importedPackage instanceof SplitPackageBinding && !inJdtDebugCompileMode) {
 						SplitPackageBinding splitPackage = (SplitPackageBinding) importedPackage;
 						int sourceEnd = (int) importReference.sourcePositions[splitPackage.compoundName.length-1];
-						problemReporter().conflictingPackagesFromModules(splitPackage, importReference.sourceStart, sourceEnd);
+						problemReporter().conflictingPackagesFromModules(splitPackage, module(), importReference.sourceStart, sourceEnd);
 						continue nextImport;
 					}
 				}
 			}
-			// all the code here which checks for valid bindings have been moved to the method 
+			// all the code here which checks for valid bindings have been moved to the method
 			// checkAndRecordImportBinding() since bug 361327
 			if(checkAndRecordImportBinding(importBinding, typesBySimpleNames, importReference, compoundName) == -1)
 				continue nextImport;
@@ -502,7 +523,7 @@ void faultInImports() {
 				// So if a type is found, no fields and methods are available anyway
 				// similarly when method is found, type may be available but no field available for sure
 				if (importBinding.kind() == Binding.FIELD) {
-					checkMoreStaticBindings(compoundName, typesBySimpleNames, Binding.TYPE | Binding.METHOD, importReference);		
+					checkMoreStaticBindings(compoundName, typesBySimpleNames, Binding.TYPE | Binding.METHOD, importReference);
 				} else if (importBinding.kind() == Binding.METHOD) {
 					checkMoreStaticBindings(compoundName, typesBySimpleNames, Binding.TYPE, importReference);
 				}
@@ -514,14 +535,15 @@ void faultInImports() {
 	if (this.tempImports.length > this.importPtr)
 		System.arraycopy(this.tempImports, 0, this.tempImports = new ImportBinding[this.importPtr], 0, this.importPtr);
 	this.imports = this.tempImports;
+	this.tempImports = null;
 	int length = this.imports.length;
 	this.typeOrPackageCache = new HashtableOfObject(length);
 	for (int i = 0; i < length; i++) {
 		ImportBinding binding = this.imports[i];
 		if (!binding.onDemand && binding.resolvedImport instanceof ReferenceBinding || binding instanceof ImportConflictBinding)
-			this.typeOrPackageCache.put(binding.compoundName[binding.compoundName.length - 1], binding);
+			this.typeOrPackageCache.put(binding.getSimpleName(), binding);
 	}
-	this.skipCachingImports = this.suppressImportErrors && unresolvedFound;
+	this.skipCachingImports = this.environment.suppressImportErrors && unresolvedFound;
 }
 public void faultInTypes() {
 	faultInImports();
@@ -550,28 +572,41 @@ private Binding findImport(char[][] compoundName, int length) {
 	foundNothingOrType: if (binding != null) {
 		PackageBinding packageBinding = (PackageBinding) binding;
 		while (i < length) {
-			binding = packageBinding.getTypeOrPackage(compoundName[i++], module);
+			binding = packageBinding.getTypeOrPackage(compoundName[i++], module, i<length);
 			if (binding instanceof ReferenceBinding && binding.problemId() == ProblemReasons.NotAccessible) {
 				return this.environment.convertToRawType((TypeBinding) binding, false /*do not force conversion of enclosing types*/);
 			}
-			if (binding == null || !binding.isValidBinding()) {
+			if (binding == null) {
+				break foundNothingOrType;
+			} else if (!binding.isValidBinding()) {
+				if (binding.problemId() == ProblemReasons.Ambiguous && packageBinding instanceof SplitPackageBinding)
+					return packageBinding; // pass the split package to the caller so they can report conflictingPackagesFromModules()
 				binding = null;
 				break foundNothingOrType;
 			}
-			if (!(binding instanceof PackageBinding))
+			if (!(binding instanceof PackageBinding)) {
+				PackageBinding visibleFor = packageBinding.getVisibleFor(module, false); // filter out empty parent-packages
+				if (visibleFor instanceof SplitPackageBinding)
+					return visibleFor;
 				break foundNothingOrType;
+			}
 
 			packageBinding = (PackageBinding) binding;
 		}
 		if (packageBinding.isValidBinding() && !module.canAccess(packageBinding))
-			return new ProblemPackageBinding(compoundName, ProblemReasons.NotAccessible);
+			return new ProblemPackageBinding(compoundName, ProblemReasons.NotAccessible, this.environment);
 		return packageBinding;
 	}
 
 	ReferenceBinding type;
 	if (binding == null) {
+		if (!module.isUnnamed()) {
+			Binding inaccessible = this.environment.getInaccessibleBinding(compoundName, module);
+			if (inaccessible != null)
+				return inaccessible;
+		}
 		if (compilerOptions().complianceLevel >= ClassFileConstants.JDK1_4)
-			return new ProblemReferenceBinding(CharOperation.subarray(compoundName, 0, i), null, ProblemReasons.NotFound);
+			return problemType(compoundName, i, null);
 		type = findType(compoundName[0], this.environment.defaultPackage, this.environment.defaultPackage);
 		if (type == null || !type.isValidBinding())
 			return new ProblemReferenceBinding(CharOperation.subarray(compoundName, 0, i), null, ProblemReasons.NotFound);
@@ -617,7 +652,7 @@ private Binding findSingleStaticImport(char[][] compoundName, int mask) {
 
 	char[] name = compoundName[compoundName.length - 1];
 	if (binding instanceof PackageBinding) {
-		Binding temp = ((PackageBinding) binding).getTypeOrPackage(name, module());
+		Binding temp = ((PackageBinding) binding).getTypeOrPackage(name, module(), false);
 		if (temp != null && temp instanceof ReferenceBinding) // must resolve to a member type or field, not a top level type
 			return new ProblemReferenceBinding(compoundName, (ReferenceBinding) temp, ProblemReasons.InvalidTypeForStaticImport);
 		return binding; // cannot be a package, error is caught in sender
@@ -673,14 +708,14 @@ ImportBinding[] getDefaultImports() {
 
 	Binding importBinding = this.environment.getTopLevelPackage(TypeConstants.JAVA);
 	if (importBinding != null)
-		importBinding = ((PackageBinding) importBinding).getTypeOrPackage(TypeConstants.JAVA_LANG[1], module());
+		importBinding = ((PackageBinding) importBinding).getTypeOrPackage(TypeConstants.JAVA_LANG[1], module(), false);
 
 	if (importBinding == null || !importBinding.isValidBinding()) {
 		// create a proxy for the missing BinaryType
 		problemReporter().isClassPathCorrect(
 				TypeConstants.JAVA_LANG_OBJECT,
 			this.referenceContext,
-			this.environment.missingClassFileLocation);
+			this.environment.missingClassFileLocation, false);
 		BinaryTypeBinding missingObject = this.environment.createMissingType(null, TypeConstants.JAVA_LANG_OBJECT);
 		importBinding = missingObject.fPackage;
 	}
@@ -696,6 +731,18 @@ public final Binding getImport(char[][] compoundName, boolean onDemand, boolean 
 
 public int nextCaptureID() {
 	return this.captureID++;
+}
+
+@Override
+public ModuleBinding module() {
+	if (!this.referenceContext.isModuleInfo() &&
+			this.referenceContext.types == null &&
+			this.referenceContext.currentPackage == null &&
+			this.referenceContext.imports == null) {
+		this.environment = this.environment.UnNamedModule.environment;
+		return this.environment.UnNamedModule;
+	}
+	return super.module();
 }
 
 /* Answer the problem reporter to use for raising new problems.
@@ -753,8 +800,7 @@ void recordQualifiedReference(char[][] qualifiedName) {
 	int length = qualifiedName.length;
 	if (length > 1) {
 		recordRootReference(qualifiedName[0]);
-		while (!this.qualifiedReferences.contains(qualifiedName)) {
-			this.qualifiedReferences.add(qualifiedName);
+		while (this.qualifiedReferences.add(qualifiedName)) {
 			if (length == 2) {
 				recordSimpleReference(qualifiedName[0]);
 				recordSimpleReference(qualifiedName[1]);
@@ -783,20 +829,18 @@ void recordReference(ReferenceBinding type, char[] simpleName) {
 void recordRootReference(char[] simpleName) {
 	if (this.rootReferences == null) return; // not recording dependencies
 
-	if (!this.rootReferences.contains(simpleName))
-		this.rootReferences.add(simpleName);
+	this.rootReferences.add(simpleName);
 }
 void recordSimpleReference(char[] simpleName) {
 	if (this.simpleNameReferences == null) return; // not recording dependencies
 
-	if (!this.simpleNameReferences.contains(simpleName))
-		this.simpleNameReferences.add(simpleName);
+	this.simpleNameReferences.add(simpleName);
 }
 void recordSuperTypeReference(TypeBinding type) {
 	if (this.referencedSuperTypes == null) return; // not recording dependencies
 
 	ReferenceBinding actualType = typeToRecord(type);
-	if (actualType != null && !this.referencedSuperTypes.containsIdentical(actualType))
+	if (actualType != null && this.referencedSuperTypesSet.add(new ReferenceBindingSetWrapper(actualType)))
 		this.referencedSuperTypes.add(actualType);
 }
 public void recordTypeConversion(TypeBinding superType, TypeBinding subType) {
@@ -806,8 +850,8 @@ public void recordTypeReference(TypeBinding type) { // AspectJ Extension - raise
 	if (this.referencedTypes == null) return; // not recording dependencies
 
 	ReferenceBinding actualType = typeToRecord(type);
-	if (actualType != null && !this.referencedTypes.containsIdentical(actualType))
-		this.referencedTypes.add(actualType);
+	if (actualType != null)
+		this.referencedTypes.add(new ReferenceBindingSetWrapper(actualType));
 }
 void recordTypeReferences(TypeBinding[] types) {
 	if (this.referencedTypes == null) return; // not recording dependencies
@@ -817,8 +861,8 @@ void recordTypeReferences(TypeBinding[] types) {
 		// No need to record supertypes of method arguments & thrown exceptions, just the compoundName
 		// If a field/method is retrieved from such a type then a separate call does the job
 		ReferenceBinding actualType = typeToRecord(types[i]);
-		if (actualType != null && !this.referencedTypes.containsIdentical(actualType))
-			this.referencedTypes.add(actualType);
+		if (actualType != null)
+			this.referencedTypes.add(new ReferenceBindingSetWrapper(actualType));
 	}
 }
 Binding resolveSingleImport(ImportBinding importBinding, int mask) {
@@ -844,8 +888,7 @@ public void storeDependencyInfo() {
 	// cannot do early since the hierarchy may not be fully resolved
 	for (int i = 0; i < this.referencedSuperTypes.size; i++) { // grows as more types are added
 		ReferenceBinding type = (ReferenceBinding) this.referencedSuperTypes.elementAt(i);
-		if (!this.referencedTypes.containsIdentical(type))
-			this.referencedTypes.add(type);
+		this.referencedTypes.add(new ReferenceBindingSetWrapper(type));
 
 		if (!type.isLocalType()) {
 			ReferenceBinding enclosing = type.enclosingType();
@@ -861,8 +904,8 @@ public void storeDependencyInfo() {
 				recordSuperTypeReference(interfaces[j]);
 	}
 
-	for (int i = 0, l = this.referencedTypes.size; i < l; i++) {
-		ReferenceBinding type = (ReferenceBinding) this.referencedTypes.elementAt(i);
+	for (ReferenceBindingSetWrapper wrapper : this.referencedTypes) {
+		ReferenceBinding type = wrapper.referenceBinding;
 		if (!type.isLocalType())
 			recordQualifiedReference(type.isMemberType()
 				? CharOperation.splitOn('.', type.readableName())
@@ -924,7 +967,7 @@ private void recordImportBinding(ImportBinding bindingToAdd) {
 	this.tempImports[this.importPtr++] = bindingToAdd;
 }
 /**
- * Checks additional bindings (methods or types) imported from a single static import. 
+ * Checks additional bindings (methods or types) imported from a single static import.
  * Method is tried first, followed by type. If found, records them.
  * If in the process, import is flagged as duplicate, -1 is returned.
  * @param compoundName
@@ -933,8 +976,8 @@ private void recordImportBinding(ImportBinding bindingToAdd) {
  * @param importReference
  */
 private void checkMoreStaticBindings(
-		char[][] compoundName, 
-		HashtableOfType typesBySimpleNames, 
+		char[][] compoundName,
+		HashtableOfType typesBySimpleNames,
 		int mask,
 		ImportReference importReference) {
 	Binding importBinding = findSingleStaticImport(compoundName, mask);
@@ -967,8 +1010,8 @@ private void checkMoreStaticBindings(
  * @return -1 when this import is flagged as duplicate, importPtr otherwise.
  */
 private int checkAndRecordImportBinding(
-		Binding importBinding, 
-		HashtableOfType typesBySimpleNames, 
+		Binding importBinding,
+		HashtableOfType typesBySimpleNames,
 		ImportReference importReference,
 		char[][] compoundName) {
 	ReferenceBinding conflictingType = null;
@@ -978,7 +1021,7 @@ private int checkAndRecordImportBinding(
 			conflictingType = null;
 	}
 	// collisions between an imported static field & a type should be checked according to spec... but currently not by javac
-	final char[] name = compoundName[compoundName.length - 1];
+	final char[] name = importReference.getSimpleName();
 	if (importBinding instanceof ReferenceBinding || conflictingType != null) {
 		ReferenceBinding referenceBinding = conflictingType == null ? (ReferenceBinding) importBinding : conflictingType;
 		ReferenceBinding typeToCheck = referenceBinding.problemId() == ProblemReasons.Ambiguous
@@ -1024,7 +1067,7 @@ private int checkAndRecordImportBinding(
 				for (int j = 0; j < this.importPtr; j++) {
 					ImportBinding resolved = this.tempImports[j];
 					if (resolved.isStatic() && resolved.resolvedImport instanceof ReferenceBinding && importBinding != resolved.resolvedImport) {
-						if (CharOperation.equals(name, resolved.compoundName[resolved.compoundName.length - 1])) {
+						if (CharOperation.equals(compoundName[compoundName.length - 1], resolved.compoundName[resolved.compoundName.length - 1])) {
 							ReferenceBinding type = (ReferenceBinding) resolved.resolvedImport;
 							resolved.resolvedImport = new ProblemReferenceBinding(new char[][] { name }, type, ProblemReasons.Ambiguous);
 							return -1;

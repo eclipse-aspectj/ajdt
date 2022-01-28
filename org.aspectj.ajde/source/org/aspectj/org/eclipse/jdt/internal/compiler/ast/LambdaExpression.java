@@ -1,6 +1,6 @@
 // AspectJ
 /*******************************************************************************
- * Copyright (c) 2012, 2018 IBM Corporation and others.
+ * Copyright (c) 2012, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -85,6 +85,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodScope;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ParameterizedGenericMethodBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ParameterizedTypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.PolyTypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ProblemMethodBinding;
@@ -124,6 +125,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 	private boolean requiresGenericSignature;
 	boolean returnsVoid;
 	public LambdaExpression original = this;
+	private boolean committed = false;
 	public SyntheticArgumentBinding[] outerLocalVariables = NO_SYNTHETIC_ARGUMENTS;
 	private int outerLocalVariablesSlotSize = 0;
 	private boolean assistNode = false;
@@ -137,8 +139,9 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 	protected Expression [] resultExpressions = NO_EXPRESSIONS;
 	public InferenceContext18 inferenceContext; // when performing tentative resolve keep a back reference to the driving context
 	private Map<Integer/*sourceStart*/, LocalTypeBinding> localTypes; // support look-up of a local type from this lambda copy
+	public boolean argumentsTypeVar = false;
 
-	
+
 	public LambdaExpression(CompilationResult compilationResult, boolean assistNode, boolean requiresGenericSignature) {
 		super(compilationResult);
 		this.assistNode = assistNode;
@@ -155,7 +158,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 		this.arguments = arguments != null ? arguments : ASTNode.NO_ARGUMENTS;
 		this.argumentTypes = new TypeBinding[arguments != null ? arguments.length : 0];
 	}
-	
+
 	public Argument [] arguments() {
 		return this.arguments;
 	}
@@ -167,7 +170,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 	public void setBody(Statement body) {
 		this.body = body == null ? NO_BODY : body;
 	}
-	
+
 	public Statement body() {
 		return this.body;
 	}
@@ -179,15 +182,15 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 	public void setArrowPosition(int arrowPosition) {
 		this.arrowPosition = arrowPosition;
 	}
-	
+
 	public int arrowPosition() {
 		return this.arrowPosition;
 	}
-	
+
 	protected FunctionalExpression original() {
 		return this.original;
 	}
-	
+
 	@Override
 	public void generateCode(BlockScope currentScope, CodeStream codeStream, boolean valueRequired) {
 		if (this.shouldCaptureInstance) {
@@ -199,7 +202,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 		boolean firstSpill = !(this.binding instanceof SyntheticMethodBinding);
 		this.binding = sourceType.addSyntheticMethod(this);
 		int pc = codeStream.position;
-		StringBuffer signature = new StringBuffer();
+		StringBuilder signature = new StringBuilder();
 		signature.append('(');
 		if (this.shouldCaptureInstance) {
 			codeStream.aload_0();
@@ -222,10 +225,11 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 			signature.append(this.expectedType.signature());
 		}
 		int invokeDynamicNumber = codeStream.classFile.recordBootstrapMethod(this);
-		codeStream.invokeDynamic(invokeDynamicNumber, (this.shouldCaptureInstance ? 1 : 0) + this.outerLocalVariablesSlotSize, 1, this.descriptor.selector, signature.toString().toCharArray());
+		codeStream.invokeDynamic(invokeDynamicNumber, (this.shouldCaptureInstance ? 1 : 0) + this.outerLocalVariablesSlotSize, 1, this.descriptor.selector, signature.toString().toCharArray(),
+				this.resolvedType.id, this.resolvedType);
 		if (!valueRequired)
 			codeStream.pop();
-		codeStream.recordPositionsFrom(pc, this.sourceStart);		
+		codeStream.recordPositionsFrom(pc, this.sourceStart);
 	}
 
 	@Override
@@ -237,8 +241,8 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 		}
 		return super.kosherDescriptor(currentScope, sam, shouldChatter);
 	}
-	
-	/* This code is arranged so that we can continue with as much analysis as possible while avoiding 
+
+	/* This code is arranged so that we can continue with as much analysis as possible while avoiding
 	 * mine fields that would result in a slew of spurious messages. This method is a merger of:
 	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodScope.createMethod(AbstractMethodDeclaration)
 	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding.resolveTypesFor(MethodBinding)
@@ -246,37 +250,36 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 	 */
 	@Override
 	public TypeBinding resolveType(BlockScope blockScope, boolean skipKosherCheck) {
-		
+
 		boolean argumentsTypeElided = argumentsTypeElided();
-		boolean argumentsTypeVar = argumentsTypeVar(blockScope);
 		int argumentsLength = this.arguments == null ? 0 : this.arguments.length;
-		
+
 		if (this.constant != Constant.NotAConstant) {
 			this.constant = Constant.NotAConstant;
 			this.enclosingScope = blockScope;
 			if (this.original == this)
 				this.ordinal = recordFunctionalType(blockScope);
-			
-			if (!argumentsTypeElided && !argumentsTypeVar) {
+
+			if (!argumentsTypeElided) {
 				for (int i = 0; i < argumentsLength; i++)
 					this.argumentTypes[i] = this.arguments[i].type.resolveType(blockScope, true /* check bounds*/);
 			}
 			if (this.expectedType == null && this.expressionContext == INVOCATION_CONTEXT) {
 				return new PolyTypeBinding(this);
-			} 
+			}
 		}
-		
+
 		MethodScope methodScope = blockScope.methodScope();
 		this.scope = new MethodScope(blockScope, this, methodScope.isStatic, methodScope.lastVisibleFieldID);
 		this.scope.isConstructorCall = methodScope.isConstructorCall;
 
 		super.resolveType(blockScope, skipKosherCheck); // compute & capture interface function descriptor.
-		
+
 		final boolean haveDescriptor = this.descriptor != null;
-		
+
 		if (!skipKosherCheck && (!haveDescriptor || this.descriptor.typeVariables != Binding.NO_TYPE_VARIABLES)) // already complained in kosher*
 			return this.resolvedType = null;
-		
+
 		// AspectJ extension - start
 		int modifiers = 0;
 		if (methodScope.parent != null && methodScope.parent.isInterTypeScope()) {
@@ -289,18 +292,18 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 		// this.binding = new MethodBinding(ClassFileConstants.AccPrivate | ClassFileConstants.AccSynthetic | ExtraCompilerModifiers.AccUnresolved,
 		// AspectJ extension - end
 							CharOperation.concat(TypeConstants.ANONYMOUS_METHOD, Integer.toString(this.ordinal).toCharArray()), // will be fixed up later.
-							haveDescriptor ? this.descriptor.returnType : TypeBinding.VOID, 
-							Binding.NO_PARAMETERS, // for now. 
-							haveDescriptor ? this.descriptor.thrownExceptions : Binding.NO_EXCEPTIONS, 
+							haveDescriptor ? this.descriptor.returnType : TypeBinding.VOID,
+							Binding.NO_PARAMETERS, // for now.
+							haveDescriptor ? this.descriptor.thrownExceptions : Binding.NO_EXCEPTIONS,
 							blockScope.enclosingSourceType());
 		this.binding.typeVariables = Binding.NO_TYPE_VARIABLES;
-		
+
 		boolean argumentsHaveErrors = false;
 		if (haveDescriptor) {
 			int parametersLength = this.descriptor.parameters.length;
 			if (parametersLength != argumentsLength) {
             	this.scope.problemReporter().lambdaSignatureMismatched(this);
-            	if (argumentsTypeElided || argumentsTypeVar || this.original != this) // no interest in continuing to error check copy.
+            	if (argumentsTypeElided || this.original != this) // no interest in continuing to error check copy.
             		return this.resolvedType = null; // FUBAR, bail out ...
             	else {
             		this.resolvedType = null; // continue to type check.
@@ -308,7 +311,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
             	}
             }
 		}
-		
+
 		TypeBinding[] newParameters = new TypeBinding[argumentsLength];
 
 		AnnotationBinding [][] parameterAnnotations = null;
@@ -322,10 +325,10 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 					argumentsHaveErrors = true;
 				}
 			}
-			
+
 			TypeBinding argumentType;
 			final TypeBinding expectedParameterType = haveDescriptor && i < this.descriptor.parameters.length ? this.descriptor.parameters[i] : null;
-			argumentType = (argumentsTypeElided || argumentsTypeVar) ? expectedParameterType : this.argumentTypes[i];
+			argumentType = argumentsTypeElided ? expectedParameterType : this.argumentTypes[i];
 			if (argumentType == null) {
 				argumentsHaveErrors = true;
 			} else if (argumentType == TypeBinding.VOID) {
@@ -340,23 +343,23 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 				}
 			}
 		}
-		if (!argumentsTypeElided && !argumentsTypeVar && !argumentsHaveErrors) {
+		if (!argumentsTypeElided && !argumentsHaveErrors) {
 			ReferenceBinding groundType = null;
 			ReferenceBinding expectedSAMType = null;
 			if (this.expectedType instanceof IntersectionTypeBinding18)
-				expectedSAMType = (ReferenceBinding) ((IntersectionTypeBinding18) this.expectedType).getSAMType(blockScope); 
+				expectedSAMType = (ReferenceBinding) ((IntersectionTypeBinding18) this.expectedType).getSAMType(blockScope);
 			else if (this.expectedType instanceof ReferenceBinding)
 				expectedSAMType = (ReferenceBinding) this.expectedType;
 			if (expectedSAMType != null)
 				groundType = findGroundTargetType(blockScope, this.expectedType, expectedSAMType, argumentsTypeElided);
-			
+
 			if (groundType != null) {
 				this.descriptor = groundType.getSingleAbstractMethod(blockScope, true);
 				if (!this.descriptor.isValidBinding()) {
 					reportSamProblem(blockScope, this.descriptor);
 				} else {
 					if (groundType != expectedSAMType) { //$IDENTITY-COMPARISON$
-						if (!groundType.isCompatibleWith(expectedSAMType, this.scope)) { // the ground has shifted, are we still on firm grounds ? 
+						if (!groundType.isCompatibleWith(expectedSAMType, this.scope)) { // the ground has shifted, are we still on firm grounds ?
 							blockScope.problemReporter().typeMismatchError(groundType, this.expectedType, this, null); // report deliberately against block scope so as not to blame the lambda.
 							return null;
 						}
@@ -376,7 +379,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 			Argument argument = this.arguments[i];
 			TypeBinding argumentType;
 			final TypeBinding expectedParameterType = haveDescriptor && i < this.descriptor.parameters.length ? this.descriptor.parameters[i] : null;
-			argumentType = (argumentsTypeElided || argumentsTypeVar) ? expectedParameterType : this.argumentTypes[i];
+			argumentType = argumentsTypeElided ? expectedParameterType : this.argumentTypes[i];
 			expectedParameterTypes[i] = expectedParameterType;
 			if (argumentType != null && argumentType != TypeBinding.VOID) {
 				if (haveDescriptor && expectedParameterType != null && argumentType.isValidBinding() && TypeBinding.notEquals(argumentType, expectedParameterType)) {
@@ -392,7 +395,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 					if (leafType instanceof ReferenceBinding && (((ReferenceBinding) leafType).modifiers & ExtraCompilerModifiers.AccGenericSignature) != 0)
 						this.binding.modifiers |= ExtraCompilerModifiers.AccGenericSignature;
 				}
-				newParameters[i] = argument.bind(this.scope, argumentType, false);				
+				newParameters[i] = argument.bind(this.scope, argumentType, false);
 				if (argument.annotations != null) {
 					this.binding.tagBits |= TagBits.HasParameterAnnotations;
 					if (parameterAnnotations == null) {
@@ -407,7 +410,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 				}
 			}
 		}
-		if (argumentsTypeVar) {
+		if (this.argumentsTypeVar) {
 			for (int i = 0; i < argumentsLength; ++i) {
 				this.arguments[i].type.resolvedType = expectedParameterTypes[i];
 			}
@@ -418,8 +421,8 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 			if (parameterAnnotations != null)
 				this.binding.setParameterAnnotations(parameterAnnotations);
 		}
-	
-		if (!argumentsTypeElided && !argumentsTypeVar && !argumentsHaveErrors && this.binding.isVarargs()) {
+
+		if (!argumentsTypeElided && !argumentsHaveErrors && this.binding.isVarargs()) {
 			if (!this.binding.parameters[this.binding.parameters.length - 1].isReifiable()) {
 				this.scope.problemReporter().possibleHeapPollutionFromVararg(this.arguments[this.arguments.length - 1]);
 			}
@@ -435,7 +438,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 			if (genericSignatureNeeded)
 				this.binding.modifiers |= (exception.modifiers & ExtraCompilerModifiers.AccGenericSignature);
 		}
-		
+
 		TypeBinding returnType = this.binding.returnType;
 		if (returnType != null) {
 			if ((returnType.tagBits & TagBits.HasMissingType) != 0) {
@@ -449,7 +452,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 		} // TODO (stephan): else? (can that happen?)
 
 		if (haveDescriptor && !argumentsHaveErrors && blockScope.compilerOptions().isAnnotationBasedNullAnalysisEnabled) {
-			if (!argumentsTypeElided && !argumentsTypeVar) {
+			if (!argumentsTypeElided) {
 				AbstractMethodDeclaration.createArgumentBindings(this.arguments, this.binding, this.scope); // includes validation
 				// no application of null-ness default, hence also no warning regarding redundant null annotation
 				mergeParameterNullAnnotations(blockScope);
@@ -458,8 +461,8 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 		}
 
 		this.binding.modifiers &= ~ExtraCompilerModifiers.AccUnresolved;
-		
-		if (this.body instanceof Expression) {
+
+		if (this.body instanceof Expression && ((Expression) this.body).isTrulyExpression()) {
 			Expression expression = (Expression) this.body;
 			new ReturnStatement(expression, expression.sourceStart, expression.sourceEnd, true).resolve(this.scope); // :-) ;-)
 			if (expression.resolvedType == TypeBinding.VOID && !expression.statementExpression())
@@ -481,6 +484,9 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 		}
 		// beyond this point ensure that all local type bindings are their final binding:
 		updateLocalTypes();
+		if (this.original == this) {
+			this.committed = true; // the original has been resolved
+		}
 		return (argumentsHaveErrors|parametersHaveErrors) ? null : this.resolvedType;
 	}
 
@@ -492,6 +498,8 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 		if (expected.isParameterizedType() && argument.isParameterizedType()) {
 			TypeBinding[] expectedArgs = ((ParameterizedTypeBinding)expected).typeArguments();
 			TypeBinding[] args = ((ParameterizedTypeBinding)argument).typeArguments();
+			if (args.length != expectedArgs.length)
+				return false;
 			for (int j = 0; j < args.length; j++) {
 				if (TypeBinding.notEquals(expectedArgs[j], args[j])) {
 					if (expectedArgs[j].isWildcard() && args[j].isUnboundWildcard()) {
@@ -509,10 +517,10 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 		return onlyWildcardMismatch;
 	}
 	private ReferenceBinding findGroundTargetType(BlockScope blockScope, TypeBinding targetType, TypeBinding expectedSAMType, boolean argumentTypesElided) {
-		
+
 		if (expectedSAMType instanceof IntersectionTypeBinding18)
-			expectedSAMType = ((IntersectionTypeBinding18) expectedSAMType).getSAMType(blockScope); 
-		
+			expectedSAMType = ((IntersectionTypeBinding18) expectedSAMType).getSAMType(blockScope);
+
 		if (expectedSAMType instanceof ReferenceBinding && expectedSAMType.isValidBinding()) {
 			ParameterizedTypeBinding withWildCards = InferenceContext18.parameterizedWithWildcard(expectedSAMType);
 			if (withWildCards != null) {
@@ -544,28 +552,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 
 	@Override
 	public boolean argumentsTypeElided() {
-		return this.arguments.length > 0 && this.arguments[0].hasElidedType();
-	}
-
-	private boolean argumentsTypeVar(BlockScope blockScope) {
-		if (blockScope.compilerOptions().complianceLevel < ClassFileConstants.getComplianceLevelForJavaVersion(ClassFileConstants.MAJOR_VERSION_11)) return false;
-		boolean retval = false, isVar = false, mixReported = false;
-		Argument[] args =  this.arguments;
-		for (int i = 0, l = args.length; i < l; ++i) {
-			Argument arg = args[i];
-			TypeReference type = arg.type;
-			if (type == null) continue;
-			boolean prev = isVar;
-			retval |= isVar = type.isTypeNameVar(blockScope);
-			if (i > 0 && prev != isVar && !mixReported) { // report only once per list
-				blockScope.problemReporter().varCannotBeMixedWithNonVarParams(isVar ? arg : args[i - 1]);
-				mixReported = true;
-			}
-			if (isVar && (type.dimensions() > 0 || type.extraDimensions() > 0)) {
-				blockScope.problemReporter().varLocalCannotBeArray(arg);
-			}
-		}
-		return retval;
+		return (this.arguments.length > 0 && this.arguments[0].hasElidedType()) || this.argumentsTypeVar;
 	}
 
 	private void analyzeExceptions() {
@@ -574,8 +561,8 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 		boolean oldAnalyseResources = compilerOptions.analyseResourceLeaks;
 		compilerOptions.analyseResourceLeaks = false;
 		try {
-			this.body.analyseCode(this.scope, 
-									 ehfc = new ExceptionInferenceFlowContext(null, this, Binding.NO_EXCEPTIONS, null, this.scope, FlowInfo.DEAD_END), 
+			this.body.analyseCode(this.scope,
+									 ehfc = new ExceptionInferenceFlowContext(null, this, Binding.NO_EXCEPTIONS, null, this.scope, FlowInfo.DEAD_END),
 									 UnconditionalFlowInfo.fakeInitializedFlowInfo(this.scope.outerMostMethodScope().analysisIndex, this.scope.referenceType().maxFieldCount));
 			this.thrownExceptions = ehfc.extendedExceptions == null ? Collections.emptySet() : new HashSet<TypeBinding>(ehfc.extendedExceptions);
 		} catch (Exception e) {
@@ -586,10 +573,10 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 	}
 	@Override
 	public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, final FlowInfo flowInfo) {
-		
-		if (this.ignoreFurtherInvestigation) 
+
+		if (this.ignoreFurtherInvestigation)
 			return flowInfo;
-		
+
 		FlowInfo lambdaInfo = flowInfo.copy(); // what happens in vegas, stays in vegas ...
 		ExceptionHandlingFlowContext methodContext =
 				new ExceptionHandlingFlowContext(
@@ -609,9 +596,9 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 				this.bits |= (this.arguments[i].bits & ASTNode.HasTypeAnnotations);
 			}
 		}
-		
+
 		lambdaInfo = this.body.analyseCode(this.scope, methodContext, lambdaInfo);
-		
+
 		// check for missing returning path for block body's ...
 		if (this.body instanceof Block) {
 			TypeBinding returnTypeBinding = expectedResultType();
@@ -625,7 +612,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 				}
 			}
 		} else { // Expression
-			if (currentScope.compilerOptions().isAnnotationBasedNullAnalysisEnabled 
+			if (currentScope.compilerOptions().isAnnotationBasedNullAnalysisEnabled
 					&& lambdaInfo.reachMode() == FlowInfo.REACHABLE)
 			{
 				Expression expression = (Expression)this.body;
@@ -675,7 +662,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 						inheritedAnnotationName = env.getNullableAnnotationName();
 					currentScope.problemReporter().illegalRedefinitionToNonNullParameter(this.arguments[i], this.descriptor.declaringClass, inheritedAnnotationName);
 				}
-			}			
+			}
 		}
 	}
 
@@ -721,14 +708,13 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 
 		if (targetType == null) // assumed to signal another primary error
 			return true;
-		
 		if (argumentsTypeElided())
 			return false;
-		
+
 		if (!super.isPertinentToApplicability(targetType, method))
 			return false;
-		
-		if (this.body instanceof Expression) {
+
+		if (this.body instanceof Expression && ((Expression) this.body).isTrulyExpression()) {
 			if (!((Expression) this.body).isPertinentToApplicability(targetType, method))
 				return false;
 		} else {
@@ -747,10 +733,10 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 				}
 			}
 		}
-		
+
 		return true;
 	}
-	
+
 	public boolean isVoidCompatible() {
 		return this.voidCompatible;
 	}
@@ -758,7 +744,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 	public boolean isValueCompatible() {
 		return this.valueCompatible;
 	}
-	
+
 	@Override
 	public StringBuffer printExpression(int tab, StringBuffer output) {
 		return printExpression(tab, output, false);
@@ -793,7 +779,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 	public TypeBinding expectedResultType() {
 		return this.descriptor != null && this.descriptor.isValidBinding() ? this.descriptor.returnType : null;
 	}
-	
+
 	@Override
 	public void traverse(ASTVisitor visitor, BlockScope blockScope) {
 
@@ -810,11 +796,11 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 			}
 			visitor.endVisit(this, blockScope);
 	}
-	
+
 	public MethodScope getScope() {
 		return this.scope;
 	}
-	
+
 	private boolean enclosingScopesHaveErrors() {
 		Scope skope = this.enclosingScope;
 		while (skope != null) {
@@ -825,7 +811,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 		}
 		return false;
 	}
-		
+
 	private void analyzeShape() { // Simple minded analysis for code assist & potential compatibility.
 		class ShapeComputer extends ASTVisitor {
 			@Override
@@ -854,7 +840,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 		    	return false;
 		    }
 		}
-		if (this.body instanceof Expression) {
+		if (this.body instanceof Expression && ((Expression) this.body).isTrulyExpression()) {
 			// When completion is still in progress, it is not possible to ask if the expression constitutes a statement expression. See https://bugs.eclipse.org/bugs/show_bug.cgi?id=435219
 			this.voidCompatible = this.assistNode ? true : ((Expression) this.body).statementExpression();
 			this.valueCompatible = true; // expression could be of type void - we can't determine that as we are working with unresolved expressions, for potential compatibility it is OK.
@@ -869,11 +855,11 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 				this.valueCompatible = this.body.doesNotCompleteNormally();
 		}
 	}
-	
+
 	@Override
 	public boolean isPotentiallyCompatibleWith(TypeBinding targetType, Scope skope) {
 		/* We get here only when the lambda is NOT pertinent to applicability and that too only for type elided lambdas. */
-		
+
 		/* 15.12.2.1: A lambda expression (§15.27) is potentially compatible with a functional interface type (§9.8) if all of the following are true:
 		       – The arity of the target type's function type is the same as the arity of the lambda expression.
 		       – If the target type's function type has a void return, then the lambda body is either a statement expression (§14.8) or a void-compatible block (§15.27.2).
@@ -881,14 +867,14 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 		*/
 		if (!super.isPertinentToApplicability(targetType, null))
 			return true;
-		
+
 		final MethodBinding sam = targetType.getSingleAbstractMethod(skope, true);
 		if (sam == null || !sam.isValidBinding())
 			return false;
-		
+
 		if (sam.parameters.length != this.arguments.length)
 			return false;
-		
+
 		analyzeShape();
 		if (sam.returnType.id == TypeIds.T_void) {
 			if (!this.voidCompatible)
@@ -899,44 +885,61 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 		}
 		return true;
 	}
-	
+
+	private enum CompatibilityResult { COMPATIBLE, INCOMPATIBLE, REPORTED }
+
+	public boolean reportShapeError(TypeBinding targetType, Scope skope) {
+		return internalIsCompatibleWith(targetType, skope, true) == CompatibilityResult.REPORTED;
+	}
+
 	@Override
 	public boolean isCompatibleWith(TypeBinding targetType, final Scope skope) {
-		
+		return internalIsCompatibleWith(targetType, skope, false) == CompatibilityResult.COMPATIBLE;
+	}
+	CompatibilityResult internalIsCompatibleWith(TypeBinding targetType, Scope skope, boolean reportShapeProblem) {
+
 		if (!super.isPertinentToApplicability(targetType, null))
-			return true;
-		
+			return CompatibilityResult.COMPATIBLE;
+
 		LambdaExpression copy = null;
 		try {
-			copy = cachedResolvedCopy(targetType, argumentsTypeElided(), false, null); // if argument types are elided, we don't care for result expressions against *this* target, any valid target is OK.
+			copy = cachedResolvedCopy(targetType, argumentsTypeElided(), false, null, skope); // if argument types are elided, we don't care for result expressions against *this* target, any valid target is OK.
 		} catch (CopyFailureException cfe) {
 			if (this.assistNode)
-				return true; // can't type check result expressions, just say yes.
-			return !isPertinentToApplicability(targetType, null); // don't expect to hit this ever.
+				return CompatibilityResult.COMPATIBLE; // can't type check result expressions, just say yes.
+			return isPertinentToApplicability(targetType, null) ? CompatibilityResult.INCOMPATIBLE : CompatibilityResult.COMPATIBLE; // don't expect to hit this ever.
 		}
 		if (copy == null)
-			return false;
-		
+			return CompatibilityResult.INCOMPATIBLE;
+
 		// copy here is potentially compatible with the target type and has its shape fully computed: i.e value/void compatibility is determined and result expressions have been gathered.
 		targetType = findGroundTargetType(this.enclosingScope, targetType, targetType, argumentsTypeElided());
 		MethodBinding sam = targetType.getSingleAbstractMethod(this.enclosingScope, true);
 		if (sam == null || sam.problemId() == ProblemReasons.NoSuchSingleAbstractMethod) {
-			return false;
+			return CompatibilityResult.INCOMPATIBLE;
 		}
 		if (sam.returnType.id == TypeIds.T_void) {
-			if (!copy.voidCompatible)
-				return false;
+			if (!copy.voidCompatible) {
+				return CompatibilityResult.INCOMPATIBLE;
+			}
 		} else {
-			if (!copy.valueCompatible)
-				return false;
+			if (!copy.valueCompatible) {
+				if (reportShapeProblem) {
+					skope.problemReporter().missingValueFromLambda(this, sam.returnType);
+					return CompatibilityResult.REPORTED;
+				}
+				return CompatibilityResult.INCOMPATIBLE;
+			}
 		}
+		if (reportShapeProblem)
+			return CompatibilityResult.COMPATIBLE; // enough seen
 
 		if (!isPertinentToApplicability(targetType, null))
-			return true;
+			return CompatibilityResult.COMPATIBLE;
 
 		// catch up on one check deferred via skipKosherCheck=true (only if pertinent for applicability)
 		if (!kosherDescriptor(this.enclosingScope, sam, false))
-			return false;
+			return CompatibilityResult.INCOMPATIBLE;
 
 		Expression [] returnExpressions = copy.resultExpressions;
 		for (int i = 0, length = returnExpressions.length; i < length; i++) {
@@ -944,29 +947,41 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 					&& this.enclosingScope.parameterCompatibilityLevel(returnExpressions[i].resolvedType, sam.returnType) == Scope.NOT_COMPATIBLE) {
 				if (!returnExpressions[i].isConstantValueOfTypeAssignableToType(returnExpressions[i].resolvedType, sam.returnType))
 					if (sam.returnType.id != TypeIds.T_void || this.body instanceof Block)
-						return false;
+						return CompatibilityResult.INCOMPATIBLE;
 			}
 		}
-		return true;
+		return CompatibilityResult.COMPATIBLE;
 	}
-	
-	class CopyFailureException extends RuntimeException {
+
+	static class CopyFailureException extends RuntimeException {
 		private static final long serialVersionUID = 1L;
 	}
 
-	private LambdaExpression cachedResolvedCopy(TypeBinding targetType, boolean anyTargetOk, boolean requireExceptionAnalysis, InferenceContext18 context) {
+	private LambdaExpression cachedResolvedCopy(TypeBinding targetType, boolean anyTargetOk, boolean requireExceptionAnalysis, InferenceContext18 context, Scope outerScope) {
+		if (this.committed && outerScope instanceof BlockScope) {
+			this.enclosingScope = (BlockScope) outerScope;
+			// trust the result of any previous shape analysis:
+			if (this.copiesPerTargetType != null && !this.copiesPerTargetType.isEmpty()) {
+				LambdaExpression firstCopy = this.copiesPerTargetType.values().iterator().next();
+				if (firstCopy != null) {
+					this.valueCompatible = firstCopy.valueCompatible;
+					this.voidCompatible = firstCopy.voidCompatible;
+				}
+			}
+			return this;
+		}
 
 		targetType = findGroundTargetType(this.enclosingScope, targetType, targetType, argumentsTypeElided());
 		if (targetType == null)
 			return null;
-		
+
 		MethodBinding sam = targetType.getSingleAbstractMethod(this.enclosingScope, true);
 		if (sam == null || !sam.isValidBinding())
 			return null;
-		
+
 		if (sam.parameters.length != this.arguments.length)
 			return null;
-		
+
 		LambdaExpression copy = null;
 		if (this.copiesPerTargetType != null) {
 			copy = this.copiesPerTargetType.get(targetType);
@@ -989,6 +1004,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 				if (type == null || !type.isValidBinding())
 					return null;
 
+				targetType = copy.expectedType; // possibly updated local types
 				if (this.copiesPerTargetType == null)
 					this.copiesPerTargetType = new HashMap<TypeBinding, LambdaExpression>();
 				this.copiesPerTargetType.put(targetType, copy);
@@ -1003,19 +1019,19 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 			this.enclosingScope.problemReporter().switchErrorHandlingPolicy(oldPolicy);
 		}
 	}
-	
+
 	/**
 	 * Get a resolved copy of this lambda for use by type inference, as to avoid spilling any premature
 	 * type results into the original lambda.
-	 * 
-	 * @param targetType the target functional type against which inference is attempted, must be a non-null valid functional type 
+	 *
+	 * @param targetType the target functional type against which inference is attempted, must be a non-null valid functional type
 	 * @return a resolved copy of 'this' or null if significant errors where encountered
 	 */
 	@Override
 	public LambdaExpression resolveExpressionExpecting(TypeBinding targetType, Scope skope, InferenceContext18 context) {
 		LambdaExpression copy = null;
 		try {
-			copy = cachedResolvedCopy(targetType, false, true, context);
+			copy = cachedResolvedCopy(targetType, false, true, context, null /* to be safe we signal: not yet committed */);
 		} catch (CopyFailureException cfe) {
 			return null;
 		}
@@ -1024,12 +1040,12 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 
 	@Override
 	public boolean sIsMoreSpecific(TypeBinding s, TypeBinding t, Scope skope) {
-		
-		// 15.12.2.5 
-		
+
+		// 15.12.2.5
+
 		if (super.sIsMoreSpecific(s, t, skope))
 			return true;
-		
+
 		if (argumentsTypeElided() || t.findSuperTypeOriginatingFrom(s) != null)
 			return false;
 		TypeBinding sPrime = s; // uncaptured
@@ -1055,20 +1071,20 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 		}
 		TypeBinding r1 = adapted.returnType; // return type of S adapted to type parameters of T
 		TypeBinding r2 = tSam.returnType;
-		
+
 		if (r2.id == TypeIds.T_void)
 			return true;
-		
+
 		if (r1.id == TypeIds.T_void)
 			return false;
-		
+
 		// r1 <: r2
 		if (r1.isCompatibleWith(r2, skope))
 			return true;
-		
+
 		LambdaExpression copy;
 		try {
-			copy = cachedResolvedCopy(s, true /* any resolved copy is good */, false, null); // we expect a cached copy - otherwise control won't reach here.
+			copy = cachedResolvedCopy(s, true /* any resolved copy is good */, false, null, null /*not yet committed*/); // we expect a cached copy - otherwise control won't reach here.
 		} catch (CopyFailureException cfe) {
 			if (this.assistNode)
 				return false;
@@ -1103,7 +1119,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 				}
 				if (i == returnExpressionsLength)
 					return true;
-			}	
+			}
 		}
 		return false;
 	}
@@ -1112,7 +1128,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 		final Parser parser = new Parser(this.enclosingScope.problemReporter(), false);
 		final ICompilationUnit compilationUnit = this.compilationResult.getCompilationUnit();
 		char[] source = compilationUnit != null ? compilationUnit.getContents() : this.text;
-		LambdaExpression copy =  (LambdaExpression) parser.parseLambdaExpression(source, compilationUnit != null ? this.sourceStart : 0, this.sourceEnd - this.sourceStart + 1, 
+		LambdaExpression copy =  (LambdaExpression) parser.parseLambdaExpression(source, compilationUnit != null ? this.sourceStart : 0, this.sourceEnd - this.sourceStart + 1,
 										this.enclosingScope.referenceCompilationUnit(), false /* record line separators */);
 
 		if (copy != null) { // ==> syntax errors == null
@@ -1126,7 +1142,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 	public void returnsExpression(Expression expression, TypeBinding resultType) {
 		if (this.original == this) // Not in overload resolution context. result expressions not relevant.
 			return;
-		if (this.body instanceof Expression) {
+		if (this.body instanceof Expression && ((Expression) this.body).isTrulyExpression()) {
 			this.valueCompatible = resultType != null && resultType.id == TypeIds.T_void ? false : true;
 			this.voidCompatible = this.assistNode ? true : ((Expression) this.body).statementExpression(); // while code is still being written and completed, we can't ask if it is a statement
 			this.resultExpressions = new Expression[] { expression };
@@ -1147,7 +1163,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 			this.voidCompatible = !this.returnsValue;
 		}
 	}
-	
+
 	@Override
 	public CompilationResult compilationResult() {
 		return this.compilationResult;
@@ -1155,7 +1171,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 
 	@Override
 	public void abort(int abortLevel, CategorizedProblem problem) {
-	
+
 		switch (abortLevel) {
 			case AbortCompilation :
 				throw new AbortCompilation(this.compilationResult, problem);
@@ -1198,7 +1214,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 			}
 		}
 	}
-	
+
 	@Override
 	public void tagAsHavingIgnoredMandatoryErrors(int problemId) {
 		switch (problemId) {
@@ -1207,7 +1223,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 			case IProblem.UnhandledExceptionInDefaultConstructor:
 			case IProblem.UnhandledException:
 				return;
-			/* The following structural problems can occur only because of target type imposition. Filter, so we can distinguish inherent errors 
+			/* The following structural problems can occur only because of target type imposition. Filter, so we can distinguish inherent errors
 			   in explicit lambdas. This is to help decide whether to proceed with data/control flow analysis to discover shape. In case of inherent
 			   errors, we will not call analyze code as it is not prepared to analyze broken programs.
 			*/
@@ -1223,7 +1239,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 			case IProblem.illFormedParameterizationOfFunctionalInterface:
 			case IProblem.NoGenericLambda:
 				return;
-			default: 
+			default:
 				this.hasIgnoredMandatoryErrors = true;
 				MethodScope enclosingLambdaScope = this.scope == null ? null : this.scope.enclosingLambdaScope();
 				while (enclosingLambdaScope != null) {
@@ -1234,7 +1250,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 				return;
 		}
 	}
-	
+
 	public Set<TypeBinding> getThrownExceptions() {
 		if (this.thrownExceptions == null)
 			return Collections.emptySet();
@@ -1269,7 +1285,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 			}
 		} while (restart);
 	}
-	
+
 	public void generateCode(ClassFile classFile) {
 		classFile.generateMethodInfoHeader(this.binding);
 		int methodAttributeOffset = classFile.contentsOffset;
@@ -1314,7 +1330,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 		codeStream.exitUserScope(this.scope);
 		codeStream.recordPositionsFrom(0, this.sourceEnd); // WAS declarationSourceEnd.
 		try {
-			classFile.completeCodeAttribute(codeAttributeOffset);
+			classFile.completeCodeAttribute(codeAttributeOffset, this.scope);
 		} catch(NegativeArraySizeException e) {
 			throw new AbortMethod(this.scope.referenceCompilationUnit().compilationResult, null);
 		}
@@ -1322,12 +1338,12 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 
 		classFile.completeMethodInfo(this.binding, methodAttributeOffset, attributeNumber);
 	}
-	
+
 	public void addSyntheticArgument(LocalVariableBinding actualOuterLocalVariable) {
-		
-		if (this.original != this || this.binding == null) 
+
+		if (this.original != this || this.binding == null)
 			return; // Do not bother tracking outer locals for clones created during overload resolution.
-		
+
 		SyntheticArgumentBinding syntheticLocal = null;
 		int newSlot = this.outerLocalVariables.length;
 		for (int i = 0; i < newSlot; i++) {
@@ -1354,7 +1370,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 			default :
 				this.outerLocalVariablesSlotSize++;
 				break;
-		}		
+		}
 	}
 
 	public SyntheticArgumentBinding getSyntheticArgument(LocalVariableBinding actualOuterLocalVariable) {
@@ -1364,7 +1380,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 		return null;
 	}
 
-	// Return the actual method binding devoid of synthetics. 
+	// Return the actual method binding devoid of synthetics.
 	@Override
 	public MethodBinding getMethodBinding() {
 		if (this.actualMethodBinding == null) {
@@ -1416,10 +1432,10 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 	}
 
 	public ReferenceBinding getTypeBinding() {
-	
+
 		if (this.classType != null || this.resolvedType == null)
 			return null;
-		
+
 		class LambdaTypeBinding extends ReferenceBinding {
 			@Override
 			public MethodBinding[] methods() {
@@ -1443,7 +1459,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 			}
 			@Override
 			public String toString() {
-				StringBuffer output = new StringBuffer("()->{} implements "); //$NON-NLS-1$
+				StringBuilder output = new StringBuilder("()->{} implements "); //$NON-NLS-1$
 				output.append(LambdaExpression.this.descriptor.declaringClass.sourceName());
 				output.append('.');
 				output.append(LambdaExpression.this.descriptor.toString());
@@ -1470,26 +1486,26 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 	 * previous binding should never escape the context of resolving this lambda.
 	 * </p>
 	 */
-	class LocalTypeSubstitutor extends Substitutor {
+	static class LocalTypeSubstitutor extends Substitutor {
 		Map<Integer,LocalTypeBinding> localTypes2;
-		
-		public LocalTypeSubstitutor(Map<Integer, LocalTypeBinding> localTypes) {
+
+		public LocalTypeSubstitutor(Map<Integer, LocalTypeBinding> localTypes, MethodBinding methodBinding) {
 			this.localTypes2 = localTypes;
+			if (methodBinding != null && methodBinding.isStatic())
+				this.staticContext = methodBinding.declaringClass;
 		}
 
 		@Override
 		public TypeBinding substitute(Substitution substitution, TypeBinding originalType) {
 			if (originalType.isLocalType()) {
-				LocalTypeBinding orgLocal = (LocalTypeBinding) originalType;
+				LocalTypeBinding orgLocal = (LocalTypeBinding) originalType.original();
 				MethodScope lambdaScope2 = orgLocal.scope.enclosingLambdaScope();
 				if (lambdaScope2 != null) {
-					if (((LambdaExpression) lambdaScope2.referenceContext).sourceStart == LambdaExpression.this.sourceStart) {
-						// local type within this lambda needs replacement: 
-						TypeBinding substType = this.localTypes2.get(orgLocal.sourceStart);
-						if (substType != null) {
-							orgLocal.transferConstantPoolNameTo(substType);
-							return substType;
-						}
+					// local type within a lambda may need replacement:
+					TypeBinding substType = this.localTypes2.get(orgLocal.sourceStart);
+					if (substType != null && substType != orgLocal) { //$IDENTITY-COMPARISON$
+						orgLocal.transferConstantPoolNameTo(substType);
+						return substType;
 					}
 				}
 				return originalType;
@@ -1498,31 +1514,39 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 		}
 	}
 
-	private void updateLocalTypes() {
+	boolean updateLocalTypes() {
 		if (this.descriptor == null || this.localTypes == null)
-			return;
-		LocalTypeSubstitutor substor = new LocalTypeSubstitutor(this.localTypes);
+			return false;
+		LocalTypeSubstitutor substor = new LocalTypeSubstitutor(this.localTypes, null/*lambda method is never static*/);
 		NullSubstitution subst = new NullSubstitution(this.scope.environment());
 		updateLocalTypesInMethod(this.binding, substor, subst);
 		updateLocalTypesInMethod(this.descriptor, substor, subst);
 		this.resolvedType = substor.substitute(subst, this.resolvedType);
 		this.expectedType = substor.substitute(subst, this.expectedType);
+		return true;
 	}
 
 	/**
 	 * Perform substitution with a {@link LocalTypeSubstitutor} on all types mentioned in the given method binding.
 	 */
-	void updateLocalTypesInMethod(MethodBinding method) {
+	boolean updateLocalTypesInMethod(MethodBinding method) {
 		if (this.localTypes == null)
-			return;
-		updateLocalTypesInMethod(method, new LocalTypeSubstitutor(this.localTypes), new NullSubstitution(this.scope.environment()));
+			return false;
+		updateLocalTypesInMethod(method, new LocalTypeSubstitutor(this.localTypes, method), new NullSubstitution(this.scope.environment()));
+		return true;
 	}
 
-	private void updateLocalTypesInMethod(MethodBinding method, Substitutor substor, Substitution subst) {
+	public static void updateLocalTypesInMethod(MethodBinding method, Substitutor substor, Substitution subst) {
 		method.declaringClass = (ReferenceBinding) substor.substitute(subst, method.declaringClass);
 		method.returnType = substor.substitute(subst, method.returnType);
 		for (int i = 0; i < method.parameters.length; i++) {
 			method.parameters[i] = substor.substitute(subst, method.parameters[i]);
+		}
+		if (method instanceof ParameterizedGenericMethodBinding) {
+			ParameterizedGenericMethodBinding pgmb = (ParameterizedGenericMethodBinding) method;
+			for (int i = 0; i < pgmb.typeArguments.length; i++) {
+				pgmb.typeArguments[i] = substor.substitute(subst, pgmb.typeArguments[i]);
+			}
 		}
 	}
 }

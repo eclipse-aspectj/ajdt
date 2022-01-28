@@ -2,9 +2,9 @@
  * Copyright (c) 2006 Contributors
  * All rights reserved.
  * This program and the accompanying materials are made available
- * under the terms of the Eclipse Public License v1.0
+ * under the terms of the Eclipse Public License v 2.0
  * which accompanies this distribution and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
  *
  * Contributors:
  *     Andy Clement                 initial implementation
@@ -46,7 +46,7 @@ import org.aspectj.weaver.bcel.BcelObjectType;
 /**
  * In the pipeline world, we can be weaving before all types have come through from compilation. In some cases this means the weaver
  * will want to ask questions of eclipse types and this subtype of ResolvedMemberImpl is here to answer some of those questions - it
- * is backed by the real eclipse MethodBinding object and can translate from Eclipse -> Weaver information.
+ * is backed by the real eclipse MethodBinding object and can translate from Eclipse &rarr; Weaver information.
  */
 public class EclipseResolvedMember extends ResolvedMemberImpl {
 
@@ -80,8 +80,7 @@ public class EclipseResolvedMember extends ResolvedMemberImpl {
 		if (annotationTypes == null) {
 			return false;
 		}
-		for (int i = 0; i < annotationTypes.length; i++) {
-			ResolvedType type = annotationTypes[i];
+		for (ResolvedType type : annotationTypes) {
 			if (type.equals(ofType)) {
 				return true;
 			}
@@ -126,8 +125,7 @@ public class EclipseResolvedMember extends ResolvedMemberImpl {
 			if (annos == null) {
 				return null;
 			}
-			for (int i = 0; i < annos.length; i++) {
-				Annotation anno = annos[i];
+			for (Annotation anno : annos) {
 				UnresolvedType ut = UnresolvedType.forSignature(new String(anno.resolvedType.signature()));
 				if (w.resolve(ut).equals(ofType)) {
 					// Found the one
@@ -173,7 +171,7 @@ public class EclipseResolvedMember extends ResolvedMemberImpl {
 					QualifiedNameReference qnr = (QualifiedNameReference) e;
 					if (qnr.binding instanceof FieldBinding) {
 						FieldBinding fb = (FieldBinding) qnr.binding;
-						StringBuffer sb = new StringBuffer();
+						StringBuilder sb = new StringBuilder();
 						sb.append(fb.declaringClass.signature());
 						sb.append(fb.name);
 						return sb.toString();
@@ -315,7 +313,7 @@ public class EclipseResolvedMember extends ResolvedMemberImpl {
 	/**
 	 * Discover the (eclipse form) annotations on this resolved member. This is done by going to the type declaration, looking up
 	 * the member (field/method) then grabbing the annotations.
-	 * 
+	 *
 	 * @return an array of (eclipse form) annotations on this member
 	 */
 	private Annotation[] getEclipseAnnotations() {
@@ -335,10 +333,9 @@ public class EclipseResolvedMember extends ResolvedMemberImpl {
 					// Grab the set of bindings with matching selector
 					MethodBinding[] mb = ((MethodBinding) realBinding).declaringClass.getMethods(methodBinding.selector);
 					if (mb != null) {
-						for (int m = 0, max = mb.length; m < max; m++) {
-							MethodBinding candidate = mb[m];
+						for (MethodBinding candidate : mb) {
 							if (candidate instanceof InterTypeMethodBinding) {
-								if (InterTypeMemberFinder.matches(mb[m], methodBinding)) {
+								if (InterTypeMemberFinder.matches(candidate, methodBinding)) {
 									InterTypeMethodBinding intertypeMethodBinding = (InterTypeMethodBinding) candidate;
 									Annotation[] annos = intertypeMethodBinding.sourceMethod.annotations;
 									return annos;
@@ -433,7 +430,7 @@ public class EclipseResolvedMember extends ResolvedMemberImpl {
 	/**
 	 * Return true if this is the default constructor. The default constructor is the one generated if there isn't one in the
 	 * source. Eclipse helpfully uses a bit to indicate the default constructor.
-	 * 
+	 *
 	 * @return true if this is the default constructor.
 	 */
 	public boolean isDefaultConstructor() {

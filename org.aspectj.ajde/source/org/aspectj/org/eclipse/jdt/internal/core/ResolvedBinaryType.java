@@ -41,7 +41,7 @@ public class ResolvedBinaryType extends BinaryType {
 	public String getKey() {
 		return this.uniqueKey;
 	}
-	
+
 	@Override
 	public String getKey(boolean forceOpen) throws JavaModelException {
 		return this.uniqueKey;
@@ -67,7 +67,7 @@ public class ResolvedBinaryType extends BinaryType {
 
 	@Override
 	public JavaElement unresolved() {
-		SourceRefElement handle = new BinaryType(this.parent, this.name);
+		SourceRefElement handle = new BinaryType(this.getParent(), this.name);
 		handle.occurrenceCount = this.occurrenceCount;
 		return handle;
 	}

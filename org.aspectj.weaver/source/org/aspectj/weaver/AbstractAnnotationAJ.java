@@ -1,11 +1,11 @@
 /* *******************************************************************
  * Copyright (c) 2008 Contributors
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
  * ******************************************************************/
 package org.aspectj.weaver;
 
@@ -95,7 +95,7 @@ public abstract class AbstractAnnotationAJ implements AnnotationAJ {
 	 * {@inheritDoc}
 	 */
 	public final String getValidTargets() {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		sb.append("{");
 		for (Iterator<String> iter = supportedTargets.iterator(); iter.hasNext();) {
 			String evalue = iter.next();
@@ -121,10 +121,9 @@ public abstract class AbstractAnnotationAJ implements AnnotationAJ {
 	 */
 	private final AnnotationAJ retrieveAnnotationOnAnnotation(UnresolvedType requiredAnnotationSignature) {
 		AnnotationAJ[] annos = type.getAnnotations();
-		for (int i = 0; i < annos.length; i++) {
-			AnnotationAJ a = annos[i];
+		for (AnnotationAJ a : annos) {
 			if (a.getTypeSignature().equals(requiredAnnotationSignature.getSignature())) {
-				return annos[i];
+				return a;
 			}
 		}
 		return null;

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -120,7 +120,7 @@ public interface IBinding {
 	 * <p>
 	 * <b>Note:</b> This method only returns declaration annotations.
 	 * <em>Type annotations</em> in the sense of JLS8 9.7.4 are <em>not</em> returned.
-	 * Type annotations can be retrieved via {@link ITypeBinding#getTypeAnnotations()}. 
+	 * Type annotations can be retrieved via {@link ITypeBinding#getTypeAnnotations()}.
 	 * </p>
 	 *
 	 * @return the list of resolved declaration annotations, or the empty list if there are no
@@ -230,6 +230,7 @@ public interface IBinding {
 	 * <li>synthetic bindings</li>
 	 * <li>problem package bindings (since Java 9)</li>
 	 * </ul>
+	 * <p>
 	 * For all other kind of type, method, variable, annotation and package bindings,
 	 * this method returns non-<code>null</code>.
 	 * </p>
@@ -295,7 +296,6 @@ public interface IBinding {
 	 * <li>annotations - the key of the annotated element and the key of
 	 * the annotation type</li>
 	 * </ul>
-	 * </p>
 	 * <p>
 	 * The key for a type binding does <em>not</em> contain {@link ITypeBinding#getTypeAnnotations() type annotations},
 	 * so type bindings with different type annotations may have the same key (iff they denote the same un-annotated type).
@@ -341,7 +341,7 @@ public interface IBinding {
 	 * different clusters of bindings, the binding objects may or may
 	 * not be different objects; in these cases, the binding keys
 	 * are used where available.
-	 * 
+	 *
 	 * <p>
 	 * Note that type bindings that only differ in their {@link ITypeBinding#getTypeAnnotations() type annotations}
 	 * have the same {@link IBinding#getKey() key}, and hence this method returns

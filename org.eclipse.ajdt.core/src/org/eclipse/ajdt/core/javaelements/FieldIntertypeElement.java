@@ -113,4 +113,9 @@ public class FieldIntertypeElement extends IntertypeElement implements IField {
     public boolean isEnumConstant() throws JavaModelException {
         return false;
     }
+
+    public boolean isRecordComponent() throws JavaModelException {
+      // TODO Auto-generated method stub
+      return false;
+    }
 }

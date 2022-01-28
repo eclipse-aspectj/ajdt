@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -172,8 +172,8 @@ public void generateAssignment(BlockScope currentScope, CodeStream codeStream, A
 				break;
 			default :
 				codeStream.dup_x2();
-			break;	
-		}		
+			break;
+		}
 	}
 	codeStream.generateEmulatedWriteAccessForField(lastFieldBinding);
 	if (valueRequired) {
@@ -233,7 +233,7 @@ public void generateCompoundAssignment(BlockScope currentScope, CodeStream codeS
 				break;
 			default :
 				codeStream.dup_x2();
-			break;	
+			break;
 		}
 	}
 	// current stack is:
@@ -257,8 +257,8 @@ public void generatePostIncrement(BlockScope currentScope, CodeStream codeStream
 				break;
 			default :
 				codeStream.dup();
-			break;	
-		}		
+			break;
+		}
 	}
 	codeStream.generateEmulationForField(lastFieldBinding);
 	if ((TypeBinding.equalsEquals(lastFieldBinding.type, TypeBinding.LONG)) || (TypeBinding.equalsEquals(lastFieldBinding.type, TypeBinding.DOUBLE))) {
@@ -301,7 +301,7 @@ public FieldBinding generateReadSequence(BlockScope currentScope, CodeStream cod
 	TypeBinding lastGenericCast;
 	TypeBinding lastReceiverType;
 	boolean complyTo14 = currentScope.compilerOptions().complianceLevel >= ClassFileConstants.JDK1_4;
-	
+
 	switch (this.bits & RestrictiveFlagMASK) {
 		case Binding.FIELD :
 			lastFieldBinding = ((FieldBinding) this.binding).original();
@@ -349,9 +349,8 @@ public FieldBinding generateReadSequence(BlockScope currentScope, CodeStream cod
 				codeStream.generateConstant(localConstant, 0);
 				// no implicit conversion
 			} else {
-				// outer local?
-				if ((this.bits & IsCapturedOuterLocal) != 0) {
-					checkEffectiveFinality(localBinding, currentScope);
+				// checkEffectiveFinality() returns if it's outer local
+				if (checkEffectiveFinality(localBinding, currentScope)) {
 					// outer local can be reached either through a synthetic arg or a synthetic field
 					VariableBinding[] path = currentScope.getEmulationPath(localBinding);
 					codeStream.generateOuterAccess(path, this, localBinding, currentScope);
@@ -361,7 +360,7 @@ public FieldBinding generateReadSequence(BlockScope currentScope, CodeStream cod
 			}
 			break;
 		default : // should not occur
-			return null;			
+			return null;
 	}
 	// all intermediate field accesses are read accesses
 	// only the last field binding is a write access
@@ -444,10 +443,10 @@ public FieldBinding generateReadSequence(BlockScope currentScope, CodeStream cod
 				if (lastFieldBinding.isStatic()) {
 					codeStream.aconst_null();
 				}
-			}			
+			}
 		}
 	}
-	return lastFieldBinding;	
+	return lastFieldBinding;
 }
 
 

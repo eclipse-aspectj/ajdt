@@ -1,14 +1,14 @@
 /* *******************************************************************
- * Copyright (c) 1999-2001 Xerox Corporation, 
+ * Copyright (c) 1999-2001 Xerox Corporation,
  *               2002 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     Xerox/PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     Xerox/PARC     initial implementation
  * ******************************************************************/
 
 package org.aspectj.runtime.reflect;
@@ -21,10 +21,10 @@ import org.aspectj.lang.reflect.MethodSignature;
 
 class MethodSignatureImpl extends CodeSignatureImpl implements MethodSignature {
 	private Method method;
-	Class returnType;
+	Class<?> returnType;
 
-	MethodSignatureImpl(int modifiers, String name, Class declaringType, Class[] parameterTypes, String[] parameterNames,
-			Class[] exceptionTypes, Class returnType) {
+	MethodSignatureImpl(int modifiers, String name, Class<?> declaringType, Class[] parameterTypes, String[] parameterNames,
+			Class[] exceptionTypes, Class<?> returnType) {
 		super(modifiers, name, declaringType, parameterTypes, parameterNames, exceptionTypes);
 		this.returnType = returnType;
 	}
@@ -57,17 +57,17 @@ class MethodSignatureImpl extends CodeSignatureImpl implements MethodSignature {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.aspectj.lang.reflect.MemberSignature#getAccessibleObject()
 	 */
 	public Method getMethod() {
 		if (method == null) {
-			Class dtype = getDeclaringType();
+			Class<?> dtype = getDeclaringType();
 			try {
 				method = dtype.getDeclaredMethod(getName(), getParameterTypes());
 			} catch (NoSuchMethodException nsmEx) {
 				// pr154427 - search
-				Set searched = new HashSet();
+				Set<Class<?>> searched = new HashSet<>();
 				searched.add(dtype); // avoids another getDeclaredMethod() on dtype
 				method = search(dtype, getName(), getParameterTypes(), searched);
 			}
@@ -77,14 +77,14 @@ class MethodSignatureImpl extends CodeSignatureImpl implements MethodSignature {
 
 	/**
 	 * Hunt for a method up the hierarchy for a specified type.
-	 * 
+	 *
 	 * @param type the type on which to look for the method
 	 * @param name the name of the method
 	 * @param params the parameters of the method
 	 * @param searched a set of types already searched to avoid looking at anything twice
 	 * @return the method if found, or null if not found
 	 */
-	private Method search(Class type, String name, Class[] params, Set searched) {
+	private Method search(Class<?> type, String name, Class[] params, Set<Class<?>> searched) {
 		if (type == null) {
 			return null;
 		}
@@ -102,8 +102,8 @@ class MethodSignatureImpl extends CodeSignatureImpl implements MethodSignature {
 		}
 		Class[] superinterfaces = type.getInterfaces();
 		if (superinterfaces != null) {
-			for (int i = 0; i < superinterfaces.length; i++) {
-				m = search(superinterfaces[i], name, params, searched);
+			for (Class<?> superinterface : superinterfaces) {
+				m = search(superinterface, name, params, searched);
 				if (m != null) {
 					return m;
 				}

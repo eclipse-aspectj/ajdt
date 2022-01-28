@@ -1,12 +1,12 @@
 /* *******************************************************************
  * Copyright (c) 2005 Contributors.
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
  *   Adrian Colyer			Initial implementation
  * ******************************************************************/
 package org.aspectj.weaver.reflect;
@@ -74,7 +74,7 @@ public class ReflectionBasedReferenceTypeDelegate implements ReferenceTypeDelega
 	public Class<?> getClazz() {
 		return this.myClass;
 	}
-	
+
 	protected Class getBaseClass() {
 		return this.myClass;
 	}
@@ -95,7 +95,7 @@ public class ReflectionBasedReferenceTypeDelegate implements ReferenceTypeDelega
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.aspectj.weaver.ReferenceTypeDelegate#isAnnotationStyleAspect()
 	 */
 	public boolean isAnnotationStyleAspect() {
@@ -115,7 +115,7 @@ public class ReflectionBasedReferenceTypeDelegate implements ReferenceTypeDelega
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.aspectj.weaver.ReferenceTypeDelegate#isAnnotationWithRuntimeRetention ()
 	 */
 	public boolean isAnnotationWithRuntimeRetention() {
@@ -147,7 +147,7 @@ public class ReflectionBasedReferenceTypeDelegate implements ReferenceTypeDelega
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.aspectj.weaver.ReferenceTypeDelegate#isGeneric()
 	 */
 	public boolean isGeneric() {
@@ -173,7 +173,7 @@ public class ReflectionBasedReferenceTypeDelegate implements ReferenceTypeDelega
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.aspectj.weaver.ReferenceTypeDelegate#isExposedToWeaver()
 	 */
 	public boolean isExposedToWeaver() {
@@ -183,7 +183,7 @@ public class ReflectionBasedReferenceTypeDelegate implements ReferenceTypeDelega
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.aspectj.weaver.ReferenceTypeDelegate#hasAnnotation(org.aspectj.weaver .UnresolvedType)
 	 */
 	public boolean hasAnnotation(UnresolvedType ofType) {
@@ -193,31 +193,31 @@ public class ReflectionBasedReferenceTypeDelegate implements ReferenceTypeDelega
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.aspectj.weaver.ReferenceTypeDelegate#getAnnotations()
 	 */
 	public AnnotationAJ[] getAnnotations() {
 		// no annotations in Java 1.4
 		return AnnotationAJ.EMPTY_ARRAY;
 	}
-	
+
 	public boolean hasAnnotations() {
 		return false;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.aspectj.weaver.ReferenceTypeDelegate#getAnnotationTypes()
 	 */
 	public ResolvedType[] getAnnotationTypes() {
 		// no annotations in Java 1.4
-		return new ResolvedType[0];
+		return ResolvedType.EMPTY_RESOLVED_TYPE_ARRAY;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.aspectj.weaver.ReferenceTypeDelegate#getDeclaredFields()
 	 */
 	public ResolvedMember[] getDeclaredFields() {
@@ -234,7 +234,7 @@ public class ReflectionBasedReferenceTypeDelegate implements ReferenceTypeDelega
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.aspectj.weaver.ReferenceTypeDelegate#getDeclaredInterfaces()
 	 */
 	public ResolvedType[] getDeclaredInterfaces() {
@@ -255,7 +255,7 @@ public class ReflectionBasedReferenceTypeDelegate implements ReferenceTypeDelega
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.aspectj.weaver.ReferenceTypeDelegate#getDeclaredMethods()
 	 */
 	public ResolvedMember[] getDeclaredMethods() {
@@ -277,26 +277,26 @@ public class ReflectionBasedReferenceTypeDelegate implements ReferenceTypeDelega
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.aspectj.weaver.ReferenceTypeDelegate#getDeclaredPointcuts()
 	 */
 	public ResolvedMember[] getDeclaredPointcuts() {
-		return new ResolvedMember[0];
+		return ResolvedMember.NONE;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.aspectj.weaver.ReferenceTypeDelegate#getTypeVariables()
 	 */
 	public TypeVariable[] getTypeVariables() {
 		// no type variables in Java 1.4
-		return new TypeVariable[0];
+		return TypeVariable.NONE;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.aspectj.weaver.ReferenceTypeDelegate#getPerClause()
 	 */
 	public PerClause getPerClause() {
@@ -314,7 +314,7 @@ public class ReflectionBasedReferenceTypeDelegate implements ReferenceTypeDelega
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.aspectj.weaver.ReferenceTypeDelegate#getPrivilegedAccesses()
 	 */
 	public Collection getPrivilegedAccesses() {
@@ -324,7 +324,7 @@ public class ReflectionBasedReferenceTypeDelegate implements ReferenceTypeDelega
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.aspectj.weaver.ReferenceTypeDelegate#getModifiers()
 	 */
 	public int getModifiers() {
@@ -333,7 +333,7 @@ public class ReflectionBasedReferenceTypeDelegate implements ReferenceTypeDelega
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.aspectj.weaver.ReferenceTypeDelegate#getSuperclass()
 	 */
 	public ResolvedType getSuperclass() {
@@ -348,7 +348,7 @@ public class ReflectionBasedReferenceTypeDelegate implements ReferenceTypeDelega
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.aspectj.weaver.ReferenceTypeDelegate#getWeaverState()
 	 */
 	public WeaverStateInfo getWeaverState() {

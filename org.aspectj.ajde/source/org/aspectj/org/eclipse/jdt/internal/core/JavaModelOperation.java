@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -22,6 +22,7 @@ import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.*;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.aspectj.org.eclipse.jdt.core.*;
+import org.aspectj.org.eclipse.jdt.core.dom.AST;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Messages;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
@@ -153,6 +154,9 @@ public abstract class JavaModelOperation implements IWorkspaceRunnable, IProgres
 		this.elementsToProcess = new IJavaElement[]{element};
 	}
 
+	protected int getLatestASTLevel() {
+		return AST.getJLSLatest();
+	}
 	/*
 	 * Registers the given action at the end of the list of actions to run.
 	 */
@@ -756,7 +760,7 @@ public abstract class JavaModelOperation implements IWorkspaceRunnable, IProgres
 						IJavaElement element = this.resultElements[i];
 						Openable openable = (Openable) element.getOpenable();
 						if (!(openable instanceof CompilationUnit) || !((CompilationUnit) openable).isWorkingCopy()) { // a working copy must remain a child of its parent even after a move
-							((JavaElement) openable.getParent()).close();
+							openable.getParent().close();
 						}
 						switch (element.getElementType()) {
 							case IJavaElement.PACKAGE_FRAGMENT_ROOT:

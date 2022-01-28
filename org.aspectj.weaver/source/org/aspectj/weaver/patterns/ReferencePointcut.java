@@ -1,13 +1,13 @@
 /* *******************************************************************
  * Copyright (c) 2002 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     PARC     initial implementation
  * ******************************************************************/
 
 package org.aspectj.weaver.patterns;
@@ -82,7 +82,7 @@ public class ReferencePointcut extends Pointcut {
 	}
 
 	public String toString() {
-		StringBuffer buf = new StringBuffer();
+		StringBuilder buf = new StringBuilder();
 		if (onType != null) {
 			buf.append(onType);
 			buf.append(".");
@@ -197,7 +197,7 @@ public class ReferencePointcut extends Pointcut {
 			if (onType.isParameterizedType()) {
 				// build a type map mapping type variable names in the generic type to
 				// the type parameters presented
-				typeVariableMap = new HashMap<String, UnresolvedType>();
+				typeVariableMap = new HashMap<>();
 				ResolvedType underlyingGenericType = ((ResolvedType) onType).getGenericType();
 				TypeVariable[] tVars = underlyingGenericType.getTypeVariables();
 				ResolvedType[] typeParams = ((ResolvedType) onType).getResolvedTypeParameters();
@@ -344,7 +344,7 @@ public class ReferencePointcut extends Pointcut {
 			if (searchStart.isParameterizedType()) {
 				// build a type map mapping type variable names in the generic type to
 				// the type parameters presented
-				typeVariableMap = new HashMap<String, UnresolvedType>();
+				typeVariableMap = new HashMap<>();
 				ResolvedType underlyingGenericType = searchStart.getGenericType();
 				TypeVariable[] tVars = underlyingGenericType.getTypeVariables();
 				ResolvedType[] typeParams = searchStart.getResolvedTypeParameters();

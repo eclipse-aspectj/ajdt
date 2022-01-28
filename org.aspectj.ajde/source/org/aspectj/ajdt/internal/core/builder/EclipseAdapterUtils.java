@@ -1,14 +1,14 @@
 /* *******************************************************************
- * Copyright (c) 1999-2001 Xerox Corporation, 
+ * Copyright (c) 1999-2001 Xerox Corporation,
  *               2002 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     PARC     initial implementation
  * ******************************************************************/
 
 package org.aspectj.ajdt.internal.core.builder;
@@ -108,8 +108,8 @@ public class EclipseAdapterUtils {
 
 	/**
 	 * Extract source location file, start and end lines, and context. Column is not extracted correctly.
-	 * @param progressListener 
-	 * 
+	 * @param progressListener
+	 *
 	 * @return ISourceLocation with correct file and lines but not column.
 	 */
 	public static ISourceLocation makeSourceLocation(ICompilationUnit unit, IProblem problem, IProgressListener progressListener) {
@@ -127,9 +127,9 @@ public class EclipseAdapterUtils {
 
 	/**
 	 * Extract message text and source location, including context.
-	 * 
+	 *
 	 * @param world
-	 * @param progressListener 
+	 * @param progressListener
 	 */
 	public static IMessage makeMessage(ICompilationUnit unit, IProblem problem, World world, IProgressListener progressListener) {
 		ISourceLocation sourceLocation = makeSourceLocation(unit, problem, progressListener);
@@ -137,15 +137,15 @@ public class EclipseAdapterUtils {
 		// If the user has turned off classfile line number gen, then we may not be able to tell them
 		// about all secondary locations (pr209372)
 		int validPlaces = 0;
-		for (int ii = 0; ii < seeAlso.length; ii++) {
-			if (seeAlso[ii].getSourceLineNumber() >= 0)
+		for (IProblem value : seeAlso) {
+			if (value.getSourceLineNumber() >= 0)
 				validPlaces++;
 		}
 		ISourceLocation[] seeAlsoLocations = new ISourceLocation[validPlaces];
 		int pos = 0;
-		for (int i = 0; i < seeAlso.length; i++) {
-			if (seeAlso[i].getSourceLineNumber() >= 0) {
-				seeAlsoLocations[pos++] = new SourceLocation(new File(new String(seeAlso[i].getOriginatingFileName())), seeAlso[i]
+		for (IProblem iProblem : seeAlso) {
+			if (iProblem.getSourceLineNumber() >= 0) {
+				seeAlsoLocations[pos++] = new SourceLocation(new File(new String(iProblem.getOriginatingFileName())), iProblem
 						.getSourceLineNumber());
 			}
 		}
@@ -161,7 +161,7 @@ public class EclipseAdapterUtils {
 			declared = true;
 			extraDetails = extraDetails.substring(0, extraDetails.length() - "[deow=true]".length());
 		}
-		if (extraDetails != null && extraDetails.indexOf("[Xlint:") != -1) {
+		if (extraDetails != null && extraDetails.contains("[Xlint:")) {
 			isLintMessage = true;
 			lintkey = extraDetails.substring(extraDetails.indexOf("[Xlint:"));
 			lintkey = lintkey.substring("[Xlint:".length());

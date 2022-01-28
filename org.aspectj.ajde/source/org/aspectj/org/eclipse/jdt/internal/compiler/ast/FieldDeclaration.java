@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -39,7 +39,6 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemSeverities;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
 
-@SuppressWarnings("rawtypes")
 public class FieldDeclaration extends AbstractVariableDeclaration {
 
 	public FieldBinding binding;
@@ -55,6 +54,7 @@ public class FieldDeclaration extends AbstractVariableDeclaration {
 
 	public int endPart1Position;
 	public int endPart2Position;
+	public boolean isARecordComponent; // used in record components
 
 public FieldDeclaration() {
 	// for subtypes or conversion
@@ -72,7 +72,8 @@ public FieldDeclaration(	char[] name, int sourceStart, int sourceEnd) {
 public FlowInfo analyseCode(MethodScope initializationScope, FlowContext flowContext, FlowInfo flowInfo) {
 	if (this.binding != null && !this.binding.isUsed() && this.binding.isOrEnclosedByPrivateType()) {
 		if (!initializationScope.referenceCompilationUnit().compilationResult.hasSyntaxError) {
-			initializationScope.problemReporter().unusedPrivateField(this);
+			if (!this.isARecordComponent) // record component used by implicit methods
+				initializationScope.problemReporter().unusedPrivateField(this);
 		}
 	}
 	// cannot define static non-constant field inside nested class
@@ -82,9 +83,11 @@ public FlowInfo analyseCode(MethodScope initializationScope, FlowContext flowCon
 			&& this.binding.constant(initializationScope) == Constant.NotAConstant
 			&& this.binding.declaringClass.isNestedType()
 			&& !this.binding.declaringClass.isStatic()) {
-		initializationScope.problemReporter().unexpectedStaticModifierForField(
-			(SourceTypeBinding) this.binding.declaringClass,
-			this);
+		if (initializationScope.compilerOptions().sourceLevel < ClassFileConstants.JDK16) {
+			initializationScope.problemReporter().unexpectedStaticModifierForField(
+					(SourceTypeBinding) this.binding.declaringClass,
+					this);
+		}
 	}
 
 	if (this.initialization != null) {
@@ -137,9 +140,22 @@ public void generateCode(BlockScope currentScope, CodeStream codeStream) {
 			codeStream.fieldAccess(Opcodes.OPC_putfield, this.binding, null /* default declaringClass */);
 		}
 	}
+	// The fields escape CodeStream#exitUserScope(), and as a result end PC wouldn't be set.
+	// Set this explicitly (unlike a local declaration)
+//	if (this.initialization != null && this.initialization.containsPatternVariable()) {
+//		this.initialization.traverse(new ASTVisitor() {
+//			@Override
+//			public boolean visit(
+//		    		InstanceOfExpression instanceOfExpression,
+//		    		BlockScope scope) {
+//				instanceOfExpression.elementVariable.binding.recordInitializationEndPC(codeStream.position);
+//				return true;
+//			}
+//		}, currentScope);
+//	}
 	codeStream.recordPositionsFrom(pc, this.sourceStart);
 }
-public void getAllAnnotationContexts(int targetType, List allAnnotationContexts) {
+public void getAllAnnotationContexts(int targetType, List<AnnotationContext> allAnnotationContexts) {
 	AnnotationCollector collector = new AnnotationCollector(this.type, targetType, allAnnotationContexts);
 	for (int i = 0, max = this.annotations.length; i < max; i++) {
 		Annotation annotation = this.annotations[i];
@@ -164,6 +180,12 @@ public boolean isFinal() {
 	if (this.binding != null)
 		return this.binding.isFinal();
 	return (this.modifiers & ClassFileConstants.AccFinal) != 0;
+}
+@Override
+public StringBuffer print(int indent, StringBuffer output) {
+	if (this.isARecordComponent)
+		output.append("/* Implicit */"); //$NON-NLS-1$
+	return super.print(indent, output);
 }
 
 @Override
@@ -245,7 +267,7 @@ public void resolve(MethodScope initializationScope) {
 				}
 			}
 		}
-		
+
 		// check @Deprecated annotation presence
 		if ((this.binding.getAnnotationTagBits() & TagBits.AnnotationDeprecated) == 0
 				&& (this.binding.modifiers & ClassFileConstants.AccDeprecated) != 0
@@ -290,8 +312,8 @@ public void resolve(MethodScope initializationScope) {
 						CastExpression.checkNeedForAssignedCast(initializationScope, fieldType, (CastExpression) this.initialization);
 					}
 				} else {
-					if ((fieldType.tagBits & TagBits.HasMissingType) == 0) {
-						// if problem already got signaled on type, do not report secondary problem
+					if (((fieldType.tagBits | initializationType.tagBits) & TagBits.HasMissingType) == 0) {
+						// if problem already got signaled on either type, do not report secondary problem
 						initializationScope.problemReporter().typeMismatchError(initializationType, fieldType, this.initialization, null);
 					}
 				}

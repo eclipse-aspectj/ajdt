@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014, 2015 Mateusz Matela and others.
+ * Copyright (c) 2014, 2021 Mateusz Matela and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -97,6 +97,7 @@ public class Token {
 	public final int tokenType;
 	private boolean spaceBefore, spaceAfter;
 	private int lineBreaksBefore, lineBreaksAfter;
+	private boolean preserveLineBreaksBefore = true, preserveLineBreaksAfter = true;
 	private boolean wrapped;
 	private int indent;
 	private int emptyLineIndentAdjustment;
@@ -129,6 +130,8 @@ public class Token {
 		this.spaceAfter = tokenToCopy.spaceAfter;
 		this.lineBreaksBefore = tokenToCopy.lineBreaksBefore;
 		this.lineBreaksAfter = tokenToCopy.lineBreaksAfter;
+		this.preserveLineBreaksBefore = tokenToCopy.preserveLineBreaksBefore;
+		this.preserveLineBreaksAfter = tokenToCopy.preserveLineBreaksAfter;
 		this.indent = tokenToCopy.indent;
 		this.nextLineOnWrap = tokenToCopy.nextLineOnWrap;
 		this.wrapPolicy = tokenToCopy.wrapPolicy;
@@ -140,16 +143,19 @@ public class Token {
 		int start = scanner.getCurrentTokenStartPosition();
 		int end = scanner.getCurrentTokenEndPosition();
 		if (currentToken == TokenNameCOMMENT_LINE) {
-			// don't include line separator
-			while(end >= start) {
+			// don't include line separator, but set break-after
+			while (end > start) {
 				char c = scanner.source[end];
 				if (c != '\r' && c != '\n')
 					break;
 				end--;
 			}
+			Token token = new Token(start, end, currentToken);
+			token.breakAfter();
+			return token;
+		} else {
+			return new Token(start, end, currentToken);
 		}
-		Token token = new Token(start, end, currentToken);
-		return token;
 	}
 
 	/** Adds space before this token */
@@ -215,6 +221,22 @@ public class Token {
 
 	public void clearLineBreaksAfter() {
 		this.lineBreaksAfter = 0;
+	}
+
+	public void setPreserveLineBreaksBefore(boolean preserveLineBreaksBefore) {
+		this.preserveLineBreaksBefore = preserveLineBreaksBefore;
+	}
+
+	public boolean isPreserveLineBreaksBefore() {
+		return this.preserveLineBreaksBefore;
+	}
+
+	public void setPreserveLineBreaksAfter(boolean preserveLineBreaksAfter) {
+		this.preserveLineBreaksAfter = preserveLineBreaksAfter;
+	}
+
+	public boolean isPreserveLineBreaksAfter() {
+		return this.preserveLineBreaksAfter;
 	}
 
 	/** Increases this token's indentation by one position */

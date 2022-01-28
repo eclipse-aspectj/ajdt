@@ -17,7 +17,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
 
-import org.aspectj.org.eclipse.jdt.core.formatter.DefaultCodeFormatterConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.ScannerHelper;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
 import org.eclipse.jface.text.BadLocationException;
@@ -283,7 +282,7 @@ public final class IndentManipulation {
 				return code;
 			}
 
-			StringBuffer buf= new StringBuffer();
+			StringBuilder buf= new StringBuilder();
 
 			for (int i= 0; i < nLines; i++) {
 				IRegion region= tracker.getLineInformation(i);

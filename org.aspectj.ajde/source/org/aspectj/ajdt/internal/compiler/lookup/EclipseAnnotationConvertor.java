@@ -2,9 +2,9 @@
  * Copyright (c) 2006 Contributors
  * All rights reserved.
  * This program and the accompanying materials are made available
- * under the terms of the Eclipse Public License v1.0
+ * under the terms of the Eclipse Public License v 2.0
  * which accompanies this distribution and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
  *
  * Contributors:
  *     Andy Clement                 initial implementation
@@ -45,7 +45,7 @@ import org.aspectj.weaver.World;
 public class EclipseAnnotationConvertor {
 	/**
 	 * Convert one eclipse annotation into an AnnotationX object containing an AnnotationAJ object.
-	 * 
+	 *
 	 * This code and the helper methods used by it will go *BANG* if they encounter anything not currently supported - this is safer
 	 * than limping along with a malformed annotation. When the *BANG* is encountered the bug reporter should indicate the kind of
 	 * annotation they were working with and this code can be enhanced to support it.
@@ -73,8 +73,7 @@ public class EclipseAnnotationConvertor {
 			MemberValuePair[] memberValuePairs = normalAnnotation.memberValuePairs;
 			if (memberValuePairs != null) {
 				int memberValuePairsLength = memberValuePairs.length;
-				for (int i = 0; i < memberValuePairsLength; i++) {
-					MemberValuePair memberValuePair = memberValuePairs[i];
+				for (MemberValuePair memberValuePair : memberValuePairs) {
 					MethodBinding methodBinding = memberValuePair.binding;
 					if (methodBinding == null) {
 						// is this just a marker annotation?
@@ -118,7 +117,7 @@ public class EclipseAnnotationConvertor {
 		if (defaultValueBinding == null) {
 			throw new MissingImplementationException(
 					"Please raise an AspectJ bug.  AspectJ does not know how to convert this annotation value [" + defaultValue
-							+ "]");
+					+ "]");
 		} else {
 			if (memberValuePairReturnType.isArrayType() && !defaultValueBinding.isArrayType()) {
 				if (constant != null && constant != Constant.NotAConstant) {
@@ -156,10 +155,10 @@ public class EclipseAnnotationConvertor {
 			Constant c = defaultValue.constant;
 			if (c instanceof IntConstant) {
 				IntConstant iConstant = (IntConstant) c;
-				return new SimpleAnnotationValue(ElementValue.PRIMITIVE_INT, new Integer(iConstant.intValue()));
+				return new SimpleAnnotationValue(ElementValue.PRIMITIVE_INT, iConstant.intValue());
 			} else if (c instanceof BooleanConstant) {
 				BooleanConstant iConstant = (BooleanConstant) c;
-				return new SimpleAnnotationValue(ElementValue.PRIMITIVE_BOOLEAN, new Boolean(iConstant.booleanValue()));
+				return new SimpleAnnotationValue(ElementValue.PRIMITIVE_BOOLEAN, iConstant.booleanValue());
 			} else if (c instanceof StringConstant) {
 				StringConstant sConstant = (StringConstant) c;
 				return new SimpleAnnotationValue(ElementValue.STRING, sConstant.stringValue());
@@ -191,11 +190,11 @@ public class EclipseAnnotationConvertor {
 				}
 				throw new MissingImplementationException(
 						"Please raise an AspectJ bug.  AspectJ does not know how to convert this annotation value [" + defaultValue
-								+ "]");
+						+ "]");
 			} else if (defaultValueBinding.isAnnotationType()) {
 				throw new MissingImplementationException(
 						"Please raise an AspectJ bug.  AspectJ does not know how to convert this annotation value [" + defaultValue
-								+ "]");
+						+ "]");
 				// contents[contentsOffset++] = (byte) '@';
 				// generateAnnotation((Annotation) defaultValue,
 				// attributeOffset);
@@ -223,16 +222,16 @@ public class EclipseAnnotationConvertor {
 				if (defaultValue instanceof ClassLiteralAccess) {
 					ClassLiteralAccess cla = (ClassLiteralAccess)defaultValue;
 					ClassAnnotationValue cav = new ClassAnnotationValue(new String(cla.targetType.signature()));
-					return cav;					
+					return cav;
 				}
 				throw new MissingImplementationException(
 						"Please raise an AspectJ bug.  AspectJ does not know how to convert this annotation value [" + defaultValue
-								+ "]");
+						+ "]");
 			}
 		} else {
 			throw new MissingImplementationException(
 					"Please raise an AspectJ bug.  AspectJ does not know how to convert this annotation value [" + defaultValue
-							+ "]");
+					+ "]");
 			// contentsOffset = attributeOffset;
 		}
 	}

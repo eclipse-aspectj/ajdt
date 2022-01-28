@@ -1,11 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2005 Contributors.
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://eclipse.org/legal/epl-v10.html 
- * 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
  * Contributors:
  *   Alexandre Vasseur         initial implementation
  *******************************************************************************/
@@ -42,12 +42,14 @@ import org.aspectj.weaver.UnresolvedType;
 /**
  * Looks for all access to method or field that are not public within the body of the around advices and replace the invocations to
  * a wrapper call so that the around advice can further be inlined.
- * <p/>
+ * <p>
  * This munger is used for @AJ aspects for which inlining wrapper is not done at compile time.
- * <p/>
+ * </p>
+ * <p>
  * Specific state and logic is kept in the munger ala ITD so that call/get/set pointcuts can still be matched on the wrapped member
  * thanks to the EffectiveSignature attribute.
- * 
+ * </p>
+ *
  * @author Alexandre Vasseur
  * @author Andy Clement
  */
@@ -72,8 +74,8 @@ public class BcelAccessForInlineMunger extends BcelTypeMunger {
 	@Override
 	public boolean munge(BcelClassWeaver weaver) {
 		aspectGen = weaver.getLazyClassGen();
-		inlineAccessors = new HashMap<String, ResolvedMember>(0);
-		inlineAccessorMethodGens = new HashSet<LazyMethodGen>();
+		inlineAccessors = new HashMap<>(0);
+		inlineAccessorMethodGens = new HashSet<>();
 
 		// look for all @Around advices
 		for (LazyMethodGen methodGen : aspectGen.getMethodGens()) {
@@ -150,12 +152,19 @@ public class BcelAccessForInlineMunger extends BcelTypeMunger {
 				for (ResolvedMember resolvedMember : methods) {
 					if (invoke.getName(cpg).equals(resolvedMember.getName())
 							&& invoke.getSignature(cpg).equals(resolvedMember.getSignature()) && !resolvedMember.isPublic()) {
-						if ("<init>".equals(invoke.getName(cpg))) {
-							// skipping open up for private constructor
-							// can occur when aspect new a private inner type
-							// too complex to handle new + dup + .. + invokespecial here.
-							aroundAdvice.setCanInline(false);
-							realizedCannotInline = true;
+						if ("<init>".equals(invoke.getName(cpg))
+								) {
+							// If ctor invocation, we care about whether it is targeting exactly the same type
+							// (ignore non public ctors in supertype of the target) (J13 - AbstractStringBuilder has something
+							// that trips this up in one testcase)
+							if (invoke.getClassName(cpg).equals(resolvedMember.getDeclaringType().getPackageName()+
+									"."+resolvedMember.getDeclaringType().getClassName())) {
+								// skipping open up for private constructor
+								// can occur when aspect new a private inner type
+								// too complex to handle new + dup + .. + invokespecial here.
+								aroundAdvice.setCanInline(false);
+								realizedCannotInline = true;
+							}
 						} else {
 							// specific handling for super.foo() calls, where foo is non public
 							ResolvedType memberType = aspectGen.getWorld().resolve(resolvedMember.getDeclaringType());
@@ -231,7 +240,7 @@ public class BcelAccessForInlineMunger extends BcelTypeMunger {
 			InstructionFactory factory = aspectGen.getFactory();
 			LazyMethodGen method = makeMethodGen(aspectGen, inlineAccessor);
 			method.makeSynthetic();
-			List<AjAttribute> methodAttributes = new ArrayList<AjAttribute>();
+			List<AjAttribute> methodAttributes = new ArrayList<>();
 			methodAttributes.add(new AjAttribute.AjSynthetic());
 			methodAttributes.add(new AjAttribute.EffectiveSignatureAttribute(resolvedMember, Shadow.MethodCall, false));
 			method.addAttribute(Utility.bcelAttribute(methodAttributes.get(0), aspectGen.getConstantPool()));
@@ -275,7 +284,7 @@ public class BcelAccessForInlineMunger extends BcelTypeMunger {
 			LazyMethodGen method = makeMethodGen(aspectGen, inlineAccessor);
 			// flag it synthetic, AjSynthetic
 			method.makeSynthetic();
-			List<AjAttribute> methodAttributes = new ArrayList<AjAttribute>();
+			List<AjAttribute> methodAttributes = new ArrayList<>();
 			methodAttributes.add(new AjAttribute.AjSynthetic());
 			methodAttributes.add(new AjAttribute.EffectiveSignatureAttribute(resolvedMember, Shadow.MethodCall, false));
 			method.addAttribute(Utility.bcelAttribute(methodAttributes.get(0), aspectGen.getConstantPool()));
@@ -319,7 +328,7 @@ public class BcelAccessForInlineMunger extends BcelTypeMunger {
 			LazyMethodGen method = makeMethodGen(aspectGen, inlineAccessor);
 			// flag it synthetic, AjSynthetic
 			method.makeSynthetic();
-			List<AjAttribute> methodAttributes = new ArrayList<AjAttribute>();
+			List<AjAttribute> methodAttributes = new ArrayList<>();
 			methodAttributes.add(new AjAttribute.AjSynthetic());
 			methodAttributes.add(new AjAttribute.EffectiveSignatureAttribute(resolvedMember, Shadow.FieldGet, false));
 			// flag the effective signature, so that we can deobfuscate the signature to apply method call pointcut
@@ -360,7 +369,7 @@ public class BcelAccessForInlineMunger extends BcelTypeMunger {
 			LazyMethodGen method = makeMethodGen(aspectGen, inlineAccessor);
 			// flag it synthetic, AjSynthetic
 			method.makeSynthetic();
-			List<AjAttribute> methodAttributes = new ArrayList<AjAttribute>();
+			List<AjAttribute> methodAttributes = new ArrayList<>();
 			methodAttributes.add(new AjAttribute.AjSynthetic());
 			methodAttributes.add(new AjAttribute.EffectiveSignatureAttribute(resolvedMember, Shadow.FieldSet, false));
 			method.addAttribute(Utility.bcelAttribute(methodAttributes.get(0), aspectGen.getConstantPool()));

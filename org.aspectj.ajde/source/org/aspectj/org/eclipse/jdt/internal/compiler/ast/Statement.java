@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -41,6 +41,8 @@
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
+import java.util.function.BooleanSupplier;
+
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.NullAnnotationMatching.CheckMode;
@@ -48,7 +50,6 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.flow.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
-import org.aspectj.org.eclipse.jdt.internal.compiler.impl.Constant;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.*;
 
 public abstract class Statement extends ASTNode {
@@ -73,7 +74,7 @@ public abstract class Statement extends ASTNode {
 //				case OperatorIds.AND_AND :
 //				case OperatorIds.OR_OR :
 //					break;
-//				default: 
+//				default:
 //					// if (DEBUG_LEVEL > 0) print(); - tolerated
 //					if ((binary.left instanceof Reference) && binary.right.constant != Constant.NotAConstant)
 //						return true;
@@ -85,29 +86,47 @@ public abstract class Statement extends ASTNode {
 		return false;
 	}
 public abstract FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, FlowInfo flowInfo);
-
 /** Lambda shape analysis: *Assuming* this is reachable, analyze if this completes normally i.e control flow can reach the textually next statement.
    For blocks, we don't perform intra-reachability analysis. We assume the lambda body is free of intrinsic control flow errors (if such errors
-   exist they will not be flagged by this analysis, but are guaranteed to surface later on.) 
-   
-   @see Block#doesNotCompleteNormally
+   exist they will not be flagged by this analysis, but are guaranteed to surface later on.)
+
+   @see Block#doesNotCompleteNormally()
 */
 public boolean doesNotCompleteNormally() {
 	return false;
 }
 
 /** Lambda shape analysis: *Assuming* this is reachable, analyze if this completes by continuing i.e control flow cannot reach the textually next statement.
-    This is necessitated by the fact that continue claims to not complete normally. So this is necessary to discriminate between do { continue; } while (false); 
+    This is necessitated by the fact that continue claims to not complete normally. So this is necessary to discriminate between do { continue; } while (false);
     which completes normally and do { throw new Exception(); } while (false); which does not complete normally.
 */
 public boolean completesByContinue() {
 	return false;
 }
 
+/**
+ * Switch Expression analysis: *Assuming* this is reachable, analyze if this completes normally
+ *  i.e control flow can reach the textually next statement, as per JLS 14 Sec 14.22
+ *  For blocks, we don't perform intra-reachability analysis.
+ *  Note: delinking this from a similar (opposite) {@link #doesNotCompleteNormally()} since that was
+ *  coded for a specific purpose of Lambda Shape Analysis.
+ */
+public boolean canCompleteNormally() {
+	return true;
+}
+/**
+ * The equivalent function of completesByContinue - implements both the rules concerning continue with
+ * and without a label.
+ */
+public boolean continueCompletes() {
+	return false;
+}
 	public static final int NOT_COMPLAINED = 0;
 	public static final int COMPLAINED_FAKE_REACHABLE = 1;
 	public static final int COMPLAINED_UNREACHABLE = 2;
-	
+	LocalVariableBinding[] patternVarsWhenTrue;
+	LocalVariableBinding[] patternVarsWhenFalse;
+
 
 /** Analysing arguments of MessageSend, ExplicitConstructorCall, AllocationExpression. */
 protected void analyseArguments(BlockScope currentScope, FlowContext flowContext, FlowInfo flowInfo, MethodBinding methodBinding, Expression[] arguments)
@@ -165,7 +184,7 @@ protected void analyseArguments(BlockScope currentScope, FlowContext flowContext
 						flowContext.recordNullityMismatch(currentScope, argument, argument.resolvedType, expectedType, flowInfo, nullStatus, null);
 				}
 			}
-		} 
+		}
 	}
 }
 void analyseOneArgument18(BlockScope currentScope, FlowContext flowContext, FlowInfo flowInfo,
@@ -176,22 +195,31 @@ void analyseOneArgument18(BlockScope currentScope, FlowContext flowContext, Flow
 		ce.internalAnalyseOneArgument18(currentScope, flowContext, expectedType, ce.valueIfTrue, flowInfo, ce.ifTrueNullStatus, expectedNonNullness, originalExpected);
 		ce.internalAnalyseOneArgument18(currentScope, flowContext, expectedType, ce.valueIfFalse, flowInfo, ce.ifFalseNullStatus, expectedNonNullness, originalExpected);
 		return;
+	} else 	if (argument instanceof SwitchExpression && argument.isPolyExpression()) {
+		SwitchExpression se = (SwitchExpression) argument;
+		for (int i = 0; i < se.resultExpressions.size(); i++) {
+			se.internalAnalyseOneArgument18(currentScope, flowContext, expectedType,
+					se.resultExpressions.get(i), flowInfo,
+					se.resultExpressionNullStatus.get(i), expectedNonNullness, originalExpected);
+		}
+		return;
 	}
+
 	int nullStatus = argument.nullStatus(flowInfo, flowContext);
 	internalAnalyseOneArgument18(currentScope, flowContext, expectedType, argument, flowInfo,
 									nullStatus, expectedNonNullness, originalExpected);
 }
 void internalAnalyseOneArgument18(BlockScope currentScope, FlowContext flowContext, TypeBinding expectedType,
-		Expression argument, FlowInfo flowInfo, int nullStatus, Boolean expectedNonNullness, TypeBinding originalExpected) 
+		Expression argument, FlowInfo flowInfo, int nullStatus, Boolean expectedNonNullness, TypeBinding originalExpected)
 {
 	// here we consume special case information generated in the ctor of ParameterizedGenericMethodBinding (see there):
-	int statusFromAnnotatedNull = expectedNonNullness == Boolean.TRUE ? nullStatus : 0;  
-	
+	int statusFromAnnotatedNull = expectedNonNullness == Boolean.TRUE ? nullStatus : 0;
+
 	NullAnnotationMatching annotationStatus = NullAnnotationMatching.analyse(expectedType, argument.resolvedType, nullStatus);
-	
+
 	if (!annotationStatus.isAnyMismatch() && statusFromAnnotatedNull != 0)
 		expectedType = originalExpected; // to avoid reports mentioning '@NonNull null'!
-	
+
 	if (statusFromAnnotatedNull == FlowInfo.NULL) {
 		// immediate reporting:
 		currentScope.problemReporter().nullityMismatchingTypeAnnotation(argument, argument.resolvedType, expectedType, annotationStatus);
@@ -204,6 +232,28 @@ void internalAnalyseOneArgument18(BlockScope currentScope, FlowContext flowConte
 		flowContext.recordNullityMismatch(currentScope, argument, argument.resolvedType, expectedType, flowInfo, nullStatus, annotationStatus);
 	}
 }
+/* package */ void checkAgainstNullAnnotation(BlockScope scope, FlowContext flowContext, FlowInfo flowInfo, Expression expr) {
+	int nullStatus = expr.nullStatus(flowInfo, flowContext);
+	long tagBits;
+	MethodBinding methodBinding = null;
+	boolean useTypeAnnotations = scope.environment().usesNullTypeAnnotations();
+	try {
+		methodBinding = scope.methodScope().referenceMethodBinding();
+		tagBits = (useTypeAnnotations) ? methodBinding.returnType.tagBits : methodBinding.tagBits;
+	} catch (NullPointerException npe) {
+		// chain of references in try-block has several potential nulls;
+		// any null means we cannot perform the following check
+		return;
+	}
+	if (useTypeAnnotations) {
+		checkAgainstNullTypeAnnotation(scope, methodBinding.returnType, expr, flowContext, flowInfo);
+	} else if (nullStatus != FlowInfo.NON_NULL) {
+		// if we can't prove non-null check against declared null-ness of the enclosing method:
+		if ((tagBits & TagBits.AnnotationNonNull) != 0) {
+			flowContext.recordNullityMismatch(scope, expr, expr.resolvedType, methodBinding.returnType, flowInfo, nullStatus, null);
+		}
+	}
+}
 
 protected void checkAgainstNullTypeAnnotation(BlockScope scope, TypeBinding requiredType, Expression expression, FlowContext flowContext, FlowInfo flowInfo) {
 	if (expression instanceof ConditionalExpression && expression.isPolyExpression()) {
@@ -211,6 +261,14 @@ protected void checkAgainstNullTypeAnnotation(BlockScope scope, TypeBinding requ
 		ConditionalExpression ce = (ConditionalExpression) expression;
 		internalCheckAgainstNullTypeAnnotation(scope, requiredType, ce.valueIfTrue, ce.ifTrueNullStatus, flowContext, flowInfo);
 		internalCheckAgainstNullTypeAnnotation(scope, requiredType, ce.valueIfFalse, ce.ifFalseNullStatus, flowContext, flowInfo);
+		return;
+	} else 	if (expression instanceof SwitchExpression && expression.isPolyExpression()) {
+		SwitchExpression se = (SwitchExpression) expression;
+		for (int i = 0; i < se.resultExpressions.size(); i++) {
+			internalCheckAgainstNullTypeAnnotation(scope, requiredType,
+					se.resultExpressions.get(i),
+					se.resultExpressionNullStatus.get(i), flowContext, flowInfo);
+		}
 		return;
 	}
 	int nullStatus = expression.nullStatus(flowInfo, flowContext);
@@ -241,7 +299,7 @@ public void branchChainTo(BranchLabel label) {
 // Inspect AST nodes looking for a break statement, descending into nested control structures only when necessary (looking for a break with a specific label.)
 public boolean breaksOut(final char[] label) {
 	return new ASTVisitor() {
-		
+
 		boolean breaksOut;
 		@Override
 		public boolean visit(TypeDeclaration type, BlockScope skope) { return label != null; }
@@ -259,14 +317,17 @@ public boolean breaksOut(final char[] label) {
 		public boolean visit(ForStatement forStatement, BlockScope skope) { return label != null; }
 		@Override
 		public boolean visit(SwitchStatement switchStatement, BlockScope skope) { return label != null; }
-		
+
 		@Override
 		public boolean visit(BreakStatement breakStatement, BlockScope skope) {
 			if (label == null || CharOperation.equals(label,  breakStatement.label))
 				this.breaksOut = true;
 	    	return false;
 	    }
-		
+		@Override
+		public boolean visit(YieldStatement yieldStatement, BlockScope skope) {
+	    	return false;
+	    }
 		public boolean breaksOut() {
 			Statement.this.traverse(this, null);
 			return this.breaksOut;
@@ -302,7 +363,8 @@ public int complainIfUnreachable(FlowInfo flowInfo, BlockScope scope, int previo
 			this.bits &= ~ASTNode.IsReachable;
 		if (flowInfo == FlowInfo.DEAD_END) {
 			if (previousComplaintLevel < COMPLAINED_UNREACHABLE) {
-				scope.problemReporter().unreachableCode(this);
+				if (!this.doNotReportUnreachable())
+					scope.problemReporter().unreachableCode(this);
 				if (endOfBlock)
 					scope.checkUnclosedCloseables(flowInfo, null, null, null);
 			}
@@ -319,6 +381,9 @@ public int complainIfUnreachable(FlowInfo flowInfo, BlockScope scope, int previo
 	return previousComplaintLevel;
 }
 
+protected boolean doNotReportUnreachable() {
+	return false;
+}
 /**
  * Generate invocation arguments, considering varargs methods
  */
@@ -420,16 +485,75 @@ public StringBuffer print(int indent, StringBuffer output) {
 public abstract StringBuffer printStatement(int indent, StringBuffer output);
 
 public abstract void resolve(BlockScope scope);
-
-/**
- * Returns case constant associated to this statement (NotAConstant if none)
- */
-public Constant resolveCase(BlockScope scope, TypeBinding testType, SwitchStatement switchStatement) {
-	// statement within a switch that are not case are treated as normal statement....
-	resolve(scope);
-	return Constant.NotAConstant;
+public LocalVariableBinding[] getPatternVariablesWhenTrue() {
+	return this.patternVarsWhenTrue;
 }
-/** 
+public LocalVariableBinding[] getPatternVariablesWhenFalse() {
+	return this.patternVarsWhenFalse;
+}
+public void addPatternVariablesWhenTrue(LocalVariableBinding[] vars) {
+	this.patternVarsWhenTrue = addPatternVariables(this.patternVarsWhenTrue, vars);
+}
+public void addPatternVariablesWhenFalse(LocalVariableBinding[] vars) {
+	this.patternVarsWhenFalse = addPatternVariables(this.patternVarsWhenFalse, vars);
+}
+private LocalVariableBinding[] addPatternVariables(LocalVariableBinding[] current, LocalVariableBinding[] add) {
+	if (add == null || add.length == 0)
+		return current;
+	if (current == null) {
+		current = add;
+	} else {
+		for (LocalVariableBinding local : add) {
+			current = addPatternVariables(current, local);
+		}
+	}
+	return current;
+}
+private LocalVariableBinding[] addPatternVariables(LocalVariableBinding[] current, LocalVariableBinding add) {
+	int oldSize = current.length;
+	// it's odd that we only look at the last element, but in most cases
+	// we will only have one in the array. In the unlikely case of having two
+	// distinct pattern variables, the cost is nothing but setting the same
+	// bit twice on the same object.
+	if (oldSize > 0 && current[oldSize - 1] == add) {
+		return current;
+	}
+	int newLength = current.length + 1;
+	System.arraycopy(current, 0, (current = new LocalVariableBinding[newLength]), 0, oldSize);
+	current[oldSize] = add;
+	return current;
+}
+public void promotePatternVariablesIfApplicable(LocalVariableBinding[] patternVariablesInScope, BooleanSupplier condition) {
+	if (patternVariablesInScope != null && condition.getAsBoolean()) {
+		for (LocalVariableBinding binding : patternVariablesInScope) {
+			binding.modifiers &= ~ExtraCompilerModifiers.AccPatternVariable;
+		}
+	}
+}
+public void resolveWithPatternVariablesInScope(LocalVariableBinding[] patternVariablesInScope, BlockScope scope) {
+	if (patternVariablesInScope != null) {
+		for (LocalVariableBinding binding : patternVariablesInScope) {
+			binding.modifiers &= ~ExtraCompilerModifiers.AccPatternVariable;
+		}
+		this.resolve(scope);
+		for (LocalVariableBinding binding : patternVariablesInScope) {
+			binding.modifiers |= ExtraCompilerModifiers.AccPatternVariable;
+		}
+	} else {
+		resolve(scope);
+	}
+}
+/**
+ * Returns the resolved expression if any associated to this statement - used
+ * parameter statement has to be either a SwitchStatement or a SwitchExpression
+ */
+public TypeBinding resolveExpressionType(BlockScope scope) {
+	return null;
+}
+public boolean containsPatternVariable() {
+	return false;
+}
+/**
  * Implementation of {@link org.aspectj.org.eclipse.jdt.internal.compiler.lookup.InvocationSite#invocationTargetType}
  * suitable at this level. Subclasses should override as necessary.
  * @see org.aspectj.org.eclipse.jdt.internal.compiler.lookup.InvocationSite#invocationTargetType()
@@ -446,13 +570,12 @@ public ExpressionContext getExpressionContext() {
 	return ExpressionContext.VANILLA_CONTEXT;
 }
 /**
- * For all constructor invocations: find the constructor binding; 
+ * For all constructor invocations: find the constructor binding;
  * if site.innersNeedUpdate() perform some post processing for those and produce
  * any updates as side-effects into 'argumentTypes'.
  */
 protected MethodBinding findConstructorBinding(BlockScope scope, Invocation site, ReferenceBinding receiverType, TypeBinding[] argumentTypes) {
 	MethodBinding ctorBinding = scope.getConstructor(receiverType, argumentTypes, site);
-	resolvePolyExpressionArguments(site, ctorBinding, argumentTypes, scope);
-	return ctorBinding;
+	return resolvePolyExpressionArguments(site, ctorBinding, argumentTypes, scope);
 }
 }

@@ -109,7 +109,7 @@ public class MemberValuePair extends ASTNode {
 
 		final TypeBinding leafType = requiredType.leafComponentType();
 		// the next check may need deferring:
-		final boolean[] shouldExit = new boolean[1];
+		final boolean[] shouldExit = { false };
 		Runnable check = new Runnable() {
 			@Override
 			public void run() {
@@ -119,7 +119,7 @@ public class MemberValuePair extends ASTNode {
 							&& requiredType.dimensions() == 1
 							&& (MemberValuePair.this.value.isConstantValueOfTypeAssignableToType(valueType, leafType)
 									|| valueType.isCompatibleWith(leafType)))) {
-						
+
 						if (leafType.isAnnotationType() && !valueType.isAnnotationType()) {
 							scope.problemReporter().annotationValueMustBeAnnotation(MemberValuePair.this.binding.declaringClass,
 									MemberValuePair.this.name, MemberValuePair.this.value, leafType);

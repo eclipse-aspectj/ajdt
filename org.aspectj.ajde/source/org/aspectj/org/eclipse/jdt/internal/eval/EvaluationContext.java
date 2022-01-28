@@ -105,7 +105,7 @@ public GlobalVariable[] allVariables() {
  *
  *  @param owner
  *  	the owner of working copies that take precedence over their original compilation units
- *  
+ *
  *  @param monitor
  *  	the progress monitor used to report progress
  */
@@ -446,7 +446,7 @@ writer.write(org.aspectj.org.eclipse.jdt.internal.eval.EvaluationContext.getCode
 writer.close();
 org.aspectj.org.eclipse.jdt.internal.compiler.batch.Main.compile(
 	"d:/temp/CodeSnippet.java -d d:/temp -classpath d:/jdk1.2.2/jre/lib/rt.jar -verbose");
-java.io.FileInputStream reader =  new java.io.FileInputStream("d:/temp/org.aspectj.org.eclipse.jdt/internal/eval/target/CodeSnippet.class");
+java.io.FileInputStream reader =  new java.io.FileInputStream("d:/temp/org/eclipse/jdt/internal/eval/target/CodeSnippet.class");
 byte[] bytes = org.aspectj.org.eclipse.jdt.internal.core.Util.readContentsAsBytes(reader);
 reader.close();
 StringBuffer buffer = new StringBuffer();
@@ -477,7 +477,7 @@ byte[] getCodeSnippetBytes() {
  */
 public static String getCodeSnippetSource() {
 	return
-		"package org.aspectj.org.eclipse.jdt.internal.eval.target;\n" + //$NON-NLS-1$
+		"package org.eclipse.jdt.internal.eval.target;\n" + //$NON-NLS-1$
 		"\n" + //$NON-NLS-1$
 		"/*\n" + //$NON-NLS-1$
 		" * (c) Copyright IBM Corp. 2000, 2001.\n" + //$NON-NLS-1$
@@ -539,7 +539,7 @@ public char[] getPackageName() {
 	return this.packageName;
 }
 /**
- * Return the binary for the root code snippet class (i.e. org.aspectj.org.eclipse.jdt.internal.eval.target.CodeSnippet).
+ * Return the binary for the root code snippet class (i.e. org.eclipse.jdt.internal.eval.target.CodeSnippet).
  */
 IBinaryType getRootCodeSnippetBinary() {
 	if (this.codeSnippetBinary == null) {

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2018 IBM Corporation and others.
+ * Copyright (c) 2016, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -15,16 +15,9 @@ package org.aspectj.org.eclipse.jdt.internal.core.builder;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
-import java.nio.file.DirectoryStream;
-import java.nio.file.FileSystemNotFoundException;
-import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -32,14 +25,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
-import java.util.zip.ZipFile;
 
 import org.eclipse.core.runtime.IPath;
-import org.aspectj.org.eclipse.jdt.core.JavaCore;
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileReader;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFormatException;
-import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ExternalAnnotationDecorator;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.AccessRuleSet;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryType;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IModule;
@@ -50,38 +40,37 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.util.JRTUtil;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.SimpleSet;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.SuffixConstants;
 import org.aspectj.org.eclipse.jdt.internal.core.JavaProject;
-import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
 
 public class ClasspathJrt extends ClasspathLocation implements IMultiModuleEntry {
 
 //private HashMap<String, SimpleSet> packagesInModule = null;
-private static HashMap<String, HashMap<String, SimpleSet>> PackageCache = new HashMap<>();
-private static HashMap<String, Set<IModule>> ModulesCache = new HashMap<>();
-String externalAnnotationPath;
-private ZipFile annotationZipFile;
+protected static HashMap<String, HashMap<String, SimpleSet>> PackageCache = new HashMap<>();
+protected static HashMap<String, HashMap<String, IModule>> ModulesCache = new HashMap<>();
 String zipFilename; // keep for equals
-AccessRuleSet accessRuleSet;
-String release = null;
-String releaseInHex = null;
-private Path releasePath = null;
-private String[] subReleases = null;
-private java.nio.file.FileSystem fs = null;
-
+File jrtFile;
 static final Set<String> NO_LIMIT_MODULES = new HashSet<>();
 
-public ClasspathJrt(String zipFilename, AccessRuleSet accessRuleSet, IPath externalAnnotationPath, String release) {
-	this.zipFilename = zipFilename;
+/*
+ * Only for use from ClasspathJrtWithReleaseOption
+ */
+protected ClasspathJrt() {
+}
+public ClasspathJrt(String zipFilename, AccessRuleSet accessRuleSet, IPath externalAnnotationPath, Collection<ClasspathLocation> allLocationsForEEA) {
+	setZipFile(zipFilename);
 	this.accessRuleSet = accessRuleSet;
 	if (externalAnnotationPath != null)
 		this.externalAnnotationPath = externalAnnotationPath.toString();
-	if (release != null && release.length() == 0) {
-		this.release = null;
-	} else {
-		this.release = release;
-	}
-	initialize();
+	this.allLocationsForEEA = allLocationsForEEA;
 	loadModules(this);
 }
+
+void setZipFile(String zipFilename) {
+	this.zipFilename = zipFilename;
+	if(zipFilename != null) {
+		this.jrtFile = new File(zipFilename);
+	}
+}
+
 /**
  * Calculate and cache the package list available in the zipFile.
  * @param jrt The ClasspathJar to use
@@ -89,14 +78,14 @@ public ClasspathJrt(String zipFilename, AccessRuleSet accessRuleSet, IPath exter
  */
 static HashMap<String, SimpleSet> findPackagesInModules(final ClasspathJrt jrt) {
 	String zipFileName = jrt.zipFilename;
-	HashMap<String, SimpleSet> cache = PackageCache.get(zipFileName);
+	HashMap<String, SimpleSet> cache = PackageCache.get(jrt.getKey());
 	if (cache != null) {
 		return cache;
 	}
 	final HashMap<String, SimpleSet> packagesInModule = new HashMap<>();
 	PackageCache.put(zipFileName, packagesInModule);
 	try {
-		final File imageFile = new File(zipFileName);
+		final File imageFile = jrt.jrtFile;
 		org.aspectj.org.eclipse.jdt.internal.compiler.util.JRTUtil.walkModuleImage(imageFile,
 				new org.aspectj.org.eclipse.jdt.internal.compiler.util.JRTUtil.JrtFileVisitor<Path>() {
 			SimpleSet packageSet = null;
@@ -112,15 +101,13 @@ static HashMap<String, SimpleSet> findPackagesInModules(final ClasspathJrt jrt) 
 			}
 
 			@Override
-			public FileVisitResult visitModule(Path mod) throws IOException {
-				String name = mod.toString();
-				try {
-					jrt.acceptModule(JRTUtil.getClassfileContent(imageFile, IModule.MODULE_INFO_CLASS, name));
-				} catch (ClassFormatException e) {
-					e.printStackTrace();
-				}
+			public FileVisitResult visitModule(Path path, String name) throws IOException {
+				jrt.acceptModule(JRTUtil.getClassfileContent(imageFile, IModule.MODULE_INFO_CLASS, name), name);
 				this.packageSet = new SimpleSet(41);
 				this.packageSet.add(""); //$NON-NLS-1$
+				if (name.endsWith("/")) { //$NON-NLS-1$
+					name = name.substring(0, name.length() - 1);
+				}
 				packagesInModule.put(name, this.packageSet);
 				return FileVisitResult.CONTINUE;
 			}
@@ -132,12 +119,11 @@ static HashMap<String, SimpleSet> findPackagesInModules(final ClasspathJrt jrt) 
 }
 
 public static void loadModules(final ClasspathJrt jrt) {
-	String zipFileName = jrt.zipFilename;
-	Set<IModule> cache = ModulesCache.get(zipFileName);
+	HashMap<String, IModule> cache = ModulesCache.get(jrt.getKey());
 
 	if (cache == null) {
 		try {
-			final File imageFile = new File(zipFileName);
+			final File imageFile = jrt.jrtFile;
 			org.aspectj.org.eclipse.jdt.internal.compiler.util.JRTUtil.walkModuleImage(imageFile,
 					new org.aspectj.org.eclipse.jdt.internal.compiler.util.JRTUtil.JrtFileVisitor<Path>() {
 				SimpleSet packageSet = null;
@@ -156,12 +142,8 @@ public static void loadModules(final ClasspathJrt jrt) {
 				}
 
 				@Override
-				public FileVisitResult visitModule(Path mod) throws IOException {
-					try {
-						jrt.acceptModule(JRTUtil.getClassfileContent(imageFile, IModule.MODULE_INFO_CLASS, mod.toString()));
-					} catch (ClassFormatException e) {
-						e.printStackTrace();
-					}
+				public FileVisitResult visitModule(Path path, String name) throws IOException {
+					jrt.acceptModule(JRTUtil.getClassfileContent(imageFile, IModule.MODULE_INFO_CLASS, name), name);
 					return FileVisitResult.SKIP_SUBTREE;
 				}
 			}, JRTUtil.NOTIFY_MODULES);
@@ -174,69 +156,10 @@ public static void loadModules(final ClasspathJrt jrt) {
 //		}
 	}
 }
-public void initialize() {
-	if (this.release == null) {
-		return;
-	}
-	this.release = getReleaseOptionFromCompliance(this.release);
-	this.releaseInHex = Integer.toHexString(Integer.parseInt(this.release)).toUpperCase();
-	Path lib = Paths.get(this.zipFilename).getParent();
-	Path filePath = Paths.get(lib.toString(),  "ct.sym"); //$NON-NLS-1$
-	URI t = filePath.toUri();
-	if (!Files.exists(filePath)) {
-		return;
-	}
-	URI uri = URI.create("jar:file:" + t.getRawPath()); //$NON-NLS-1$
-	try {
-		this.fs = FileSystems.getFileSystem(uri);
-	} catch(FileSystemNotFoundException fne) {
-		// Ignore and move on
-	}
-	if (this.fs == null) {
-		HashMap<String, ?> env = new HashMap<>();
-		try {
-			this.fs = FileSystems.newFileSystem(uri, env);
-		} catch (IOException e) {
-			this.release = null;
-			return;
-		}
-	}
-	this.releasePath = this.fs.getPath("/"); //$NON-NLS-1$
-	if (!Files.exists(this.fs.getPath(this.releaseInHex))
-			|| Files.exists(this.fs.getPath(this.releaseInHex, "system-modules"))) { //$NON-NLS-1$
-		this.release = null;
-	}
-	if (this.release != null) {
-		List<String> sub = new ArrayList<>();
-		try (DirectoryStream<java.nio.file.Path> stream = Files.newDirectoryStream(this.releasePath)) {
-			for (final java.nio.file.Path subdir: stream) {
-				String rel = subdir.getFileName().toString();
-				if (rel.contains(this.releaseInHex)) {
-					sub.add(rel);
-				} else {
-					continue;
-				}
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-			// Rethrow
-		}
-		this.subReleases = sub.toArray(new String[sub.size()]);
-	}
+protected String getKey() {
+	return this.zipFilename;
 }
-private String getReleaseOptionFromCompliance(String comp) {
-	if (JavaCore.compareJavaVersions(comp, JavaCore.VERSION_1_5) <= 0) {
-		// For a JDK 9 and above, the minimum release we support is "6"
-		return "6"; //$NON-NLS-1$
-	}
-	int index = comp.indexOf("1."); //$NON-NLS-1$
-	if (index != -1) {
-		return comp.substring(index + 2, comp.length());
-	} else {
-		return comp;
-	}
-}
-void acceptModule(byte[] content) {
+void acceptModule(byte[] content, String name) {
 	if (content == null)
 		return;
 	ClassFileReader reader = null;
@@ -246,13 +169,14 @@ void acceptModule(byte[] content) {
 		e.printStackTrace();
 	}
 	if (reader != null) {
+		String key = getKey();
 		IModule moduleDecl = reader.getModuleDeclaration();
 		if (moduleDecl != null) {
-			Set<IModule> cache = ModulesCache.get(this.zipFilename);
+			HashMap<String, IModule> cache = ModulesCache.get(key);
 			if (cache == null) {
-				ModulesCache.put(this.zipFilename, cache = new HashSet<IModule>());
+				ModulesCache.put(key, cache = new HashMap<String, IModule>());
 			}
-			cache.add(moduleDecl);
+			cache.put(name, moduleDecl);
 		}
 	}
 }
@@ -265,7 +189,6 @@ public void cleanup() {
 		}
 		this.annotationZipFile = null;
 	}
-	this.fs = null;
 }
 
 @Override
@@ -273,9 +196,6 @@ public boolean equals(Object o) {
 	if (this == o) return true;
 	if (!(o instanceof ClasspathJrt)) return false;
 	ClasspathJrt jar = (ClasspathJrt) o;
-	if (!Util.equalOrNull(this.release, jar.release)) {
-		return false;
-	}
 	if (this.accessRuleSet != jar.accessRuleSet)
 		if (this.accessRuleSet == null || !this.accessRuleSet.equals(jar.accessRuleSet))
 			return false;
@@ -288,47 +208,14 @@ public NameEnvironmentAnswer findClass(String binaryFileName, String qualifiedPa
 	if (!isPackage(qualifiedPackageName, moduleName)) return null; // most common case
 
 	try {
-		IBinaryType reader = null;
-		byte[] content = null;
 		String fileNameWithoutExtension = qualifiedBinaryFileName.substring(0, qualifiedBinaryFileName.length() - SuffixConstants.SUFFIX_CLASS.length);
-		if (this.subReleases != null && this.subReleases.length > 0) {
-			qualifiedBinaryFileName = qualifiedBinaryFileName.replace(".class", ".sig"); //$NON-NLS-1$ //$NON-NLS-2$
-			for (String rel : this.subReleases) {
-				Path p = this.fs.getPath(rel, qualifiedBinaryFileName);
-				if (Files.exists(p)) {
-					content = JRTUtil.safeReadBytes(p);
-					if (content != null) {
-						reader = new ClassFileReader(content, qualifiedBinaryFileName.toCharArray());
-						break;
-					}
-				}
-			}
-		} else {
-			reader = ClassFileReader.readFromModule(new File(this.zipFilename), moduleName, qualifiedBinaryFileName, moduleNameFilter);
-		}
-		if (reader != null) {
-			if (this.externalAnnotationPath != null) {
-				try {
-					if (this.annotationZipFile == null) {
-						this.annotationZipFile = ExternalAnnotationDecorator.getAnnotationZipFile(this.externalAnnotationPath, null);
-					}
-					reader = ExternalAnnotationDecorator.create(reader, this.externalAnnotationPath, fileNameWithoutExtension, this.annotationZipFile);
-				} catch (IOException e) {
-					// don't let error on annotations fail class reading
-				}
-			}
-			if (this.accessRuleSet == null)
-				return new NameEnvironmentAnswer(reader, null, reader.getModule());
-			return new NameEnvironmentAnswer(reader,
-					this.accessRuleSet.getViolatedRestriction(fileNameWithoutExtension.toCharArray()),
-					reader.getModule());
-		}
-	} catch (ClassFormatException e) { // treat as if class file is missing
-	} catch (IOException e) { // treat as if class file is missing
+		IBinaryType reader = ClassFileReader.readFromModule(this.jrtFile, moduleName, qualifiedBinaryFileName, moduleNameFilter);
+		if (reader != null)
+			return createAnswer(fileNameWithoutExtension, reader, reader.getModule());
+	} catch (ClassFormatException | IOException e) { // treat as if class file is missing
 	}
 	return null;
 }
-
 @Override
 public IPath getProjectRelativePath() {
 	return null;
@@ -340,16 +227,16 @@ public int hashCode() {
 }
 @Override
 public char[][] getModulesDeclaringPackage(String qualifiedPackageName, String moduleName) {
-	List<String> moduleNames = JRTUtil.getModulesDeclaringPackage(new File(this.zipFilename), qualifiedPackageName, moduleName);
+	List<String> moduleNames = JRTUtil.getModulesDeclaringPackage(this.jrtFile, qualifiedPackageName, moduleName);
 	return CharOperation.toCharArrays(moduleNames);
 }
 @Override
 public boolean hasCompilationUnit(String qualifiedPackageName, String moduleName) {
-	return JRTUtil.hasCompilationUnit(new File(this.zipFilename), qualifiedPackageName, moduleName);
+	return JRTUtil.hasCompilationUnit(this.jrtFile, qualifiedPackageName, moduleName);
 }
 @Override
 public boolean isPackage(String qualifiedPackageName, String moduleName) {
-	return JRTUtil.getModulesDeclaringPackage(new File(this.zipFilename), qualifiedPackageName, moduleName) != null;
+	return JRTUtil.getModulesDeclaringPackage(this.jrtFile, qualifiedPackageName, moduleName) != null;
 }
 
 @Override
@@ -374,12 +261,12 @@ public boolean hasModule() {
 }
 @Override
 public IModule getModule(char[] moduleName) {
-	Set<IModule> modules = ModulesCache.get(this.zipFilename);
+	return getModule(String.valueOf(moduleName));
+}
+public IModule getModule(String moduleName) {
+	HashMap<String, IModule> modules = ModulesCache.get(getKey());
 	if (modules != null) {
-		for (IModule mod : modules) {
-			if (CharOperation.equals(mod.name(), moduleName))
-					return mod;
-		}
+		return modules.get(moduleName);
 	}
 	return null;
 }
@@ -391,7 +278,7 @@ public Collection<String> getModuleNames(Collection<String> limitModules) {
 	return Collections.emptyList();
 }
 
-private Collection<String> selectModules(Set<String> keySet, Collection<String> limitModules) {
+protected Collection<String> selectModules(Set<String> keySet, Collection<String> limitModules) {
 	Collection<String> rootModules;
 	if (limitModules == NO_LIMIT_MODULES) {
 		rootModules = new HashSet<>(keySet);
@@ -400,7 +287,7 @@ private Collection<String> selectModules(Set<String> keySet, Collection<String> 
 		result.retainAll(limitModules);
 		rootModules = result;
 	} else {
-		rootModules = JavaProject.internalDefaultRootModules(keySet, s -> s, m -> getModule(m.toCharArray()));
+		rootModules = JavaProject.internalDefaultRootModules(keySet, s -> s, m -> getModule(m));
 	}
 	Set<String> allModules = new HashSet<>(rootModules);
 	for (String mod : rootModules)
@@ -408,14 +295,17 @@ private Collection<String> selectModules(Set<String> keySet, Collection<String> 
 	return allModules;
 }
 
-private void addRequired(String mod, Set<String> allModules) {
-	IModule iMod = getModule(mod.toCharArray());
+protected void addRequired(String mod, Set<String> allModules) {
+	IModule iMod = getModule(mod);
+	if(iMod == null) {
+		return;
+	}
 	for (IModuleReference requiredRef : iMod.requires()) {
-		IModule reqMod = getModule(requiredRef.name());
+		String moduleName = String.valueOf(requiredRef.name());
+		IModule reqMod = getModule(moduleName);
 		if (reqMod != null) {
-			String reqModName = String.valueOf(reqMod.name());
-			if (allModules.add(reqModName))
-				addRequired(reqModName, allModules);
+			if (allModules.add(moduleName))
+				addRequired(moduleName, allModules);
 		}
 	}
 }

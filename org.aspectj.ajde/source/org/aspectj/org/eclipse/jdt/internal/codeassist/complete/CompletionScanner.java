@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2012 IBM Corporation and others.
+ * Copyright (c) 2000, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -7,7 +7,6 @@
  * https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- *
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -28,6 +27,7 @@ import org.aspectj.org.eclipse.jdt.core.compiler.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.Scanner;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.ScannerHelper;
+import org.aspectj.org.eclipse.jdt.internal.compiler.parser.TerminalTokens;
 
 public class CompletionScanner extends Scanner {
 
@@ -46,6 +46,11 @@ public class CompletionScanner extends Scanner {
 	public static final char[] EmptyCompletionIdentifier = {};
 
 public CompletionScanner(long sourceLevel) {
+	this(
+		sourceLevel,
+		false /* previewEnabled */);
+}
+public CompletionScanner(long sourceLevel, boolean previewEnabled) {
 	super(
 		false /*comment*/,
 		false /*whitespace*/,
@@ -53,7 +58,8 @@ public CompletionScanner(long sourceLevel) {
 		sourceLevel,
 		null /*taskTags*/,
 		null/*taskPriorities*/,
-		true/*taskCaseSensitive*/);
+		true/*taskCaseSensitive*/,
+		previewEnabled);
 }
 @Override
 protected boolean isAtAssistIdentifier() {
@@ -437,6 +443,10 @@ protected int getNextToken0() throws InvalidInputException {
 					}
 					throw new InvalidInputException(INVALID_CHARACTER_CONSTANT);
 				case '"' :
+					boolean isTextBlock = scanForTextBlockBeginning();
+					if (isTextBlock) {
+						return scanForTextBlock();
+					}
 					try {
 						// consume next character
 						this.unicodeAsBackSlash = false;
@@ -753,7 +763,7 @@ protected int getNextToken0() throws InvalidInputException {
 												pushLineSeparator();
 											}
 										}
-									}									
+									}
 									switch (this.currentCharacter) {
 										case '*':
 											star = true;
@@ -890,6 +900,119 @@ protected int getNextNotFakedToken() throws InvalidInputException {
 	}
 	return token;
 }
+@Override
+protected int scanForTextBlock() throws InvalidInputException {
+	int lastQuotePos = 0;
+	try {
+		this.rawStart = this.currentPosition - this.startPosition;
+		while (this.currentPosition <= this.eofPosition) {
+			// The following few lines is the only difference between this method
+			// and the scanForTextBlock() in Scanner()
+			//======
+			int start = this.currentPosition;
+			if(this.startPosition <= this.cursorLocation
+					&& this.cursorLocation <= this.currentPosition-1) {
+				this.currentPosition = start;
+				// complete inside a string literal
+				return TokenNameStringLiteral;
+			}
+			//=====
+			start = this.currentPosition;
+			if (this.currentCharacter == '"') {
+				lastQuotePos = this.currentPosition;
+				// look for text block delimiter
+				if (scanForTextBlockClose()) {
+					this.currentPosition += 2;
+					return TerminalTokens.TokenNameStringLiteral;
+				}
+				if (this.withoutUnicodePtr != 0) {
+					unicodeStore();
+				}
+			} else {
+				if ((this.currentCharacter == '\r') || (this.currentCharacter == '\n')) {
+					if (this.recordLineSeparator) {
+						pushLineSeparator();
+					}
+				}
+			}
+			outer: if (this.currentCharacter == '\\') {
+				switch(this.source[this.currentPosition]) {
+					case 'n' :
+					case 'r' :
+					case 'f' :
+						break outer;
+					case '\n' :
+					case '\r' :
+						this.currentCharacter = '\\';
+						this.currentPosition++;
+						break;
+					case '\\' :
+						this.currentPosition++;
+						break;
+					default :
+						if (this.unicodeAsBackSlash) {
+							this.withoutUnicodePtr--;
+							// consume next character
+							if (this.currentPosition >= this.eofPosition) {
+								break;
+							}
+							this.unicodeAsBackSlash = false;
+							if (((this.currentCharacter = this.source[this.currentPosition++]) == '\\')
+									&& (this.source[this.currentPosition] == 'u')) {
+								getNextUnicodeChar();
+								this.withoutUnicodePtr--;
+							}
+						} else {
+							if (this.withoutUnicodePtr == 0) {
+								unicodeInitializeBuffer(this.currentPosition - this.startPosition);
+							}
+							this.withoutUnicodePtr --;
+							this.currentCharacter = this.source[this.currentPosition++];
+						}
+						int oldPos = this.currentPosition - 1;
+						scanEscapeCharacter();
+						if (ScannerHelper.isWhitespace(this.currentCharacter)) {
+							if (this.withoutUnicodePtr == 0) {
+								unicodeInitializeBuffer(this.currentPosition - this.startPosition);
+							}
+							unicodeStore('\\');
+							this.currentPosition = oldPos;
+							this.currentCharacter = this.source[this.currentPosition];
+							break outer;
+						}
+				}
+				if (this.withoutUnicodePtr != 0) {
+					unicodeStore();
+				}
+			}
+			// consume next character
+			this.unicodeAsBackSlash = false;
+			if (((this.currentCharacter = this.source[this.currentPosition++]) == '\\')
+					&& (this.source[this.currentPosition] == 'u')) {
+				getNextUnicodeChar();
+			} else {
+				if (this.currentCharacter == '"'/* || skipWhitespace*/)
+					continue;
+				if (this.withoutUnicodePtr != 0) {
+					unicodeStore();
+				}
+			}
+		}
+		if (lastQuotePos > 0)
+			this.currentPosition = lastQuotePos;
+		this.currentPosition = (lastQuotePos > 0) ? lastQuotePos : this.startPosition + this.rawStart;
+		throw new InvalidInputException(UNTERMINATED_TEXT_BLOCK);
+	} catch (IndexOutOfBoundsException e) {
+		this.currentPosition = (lastQuotePos > 0) ? lastQuotePos : this.startPosition + this.rawStart;
+		if(this.startPosition <= this.cursorLocation
+				&& this.cursorLocation < this.currentPosition) {
+				// complete inside a string literal
+			return TokenNameStringLiteral;
+		}
+		throw new InvalidInputException(UNTERMINATED_TEXT_BLOCK);
+	}
+}
+
 @Override
 public final void getNextUnicodeChar() throws InvalidInputException {
 	int temp = this.currentPosition; // the \ is already read

@@ -1,20 +1,19 @@
 /* *******************************************************************
  * Copyright (c) 2002 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     PARC     initial implementation
  * ******************************************************************/
 
 package org.aspectj.ajdt.internal.compiler.lookup;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 import org.aspectj.ajdt.internal.compiler.ast.AspectDeclaration;
@@ -144,8 +143,8 @@ public class PrivilegedHandler implements IPrivilegedHandler {
 		int len = m.size();
 		ResolvedMember[] ret = new ResolvedMember[len];
 		int index = 0;
-		for (Iterator i = m.iterator(); i.hasNext();) {
-			ret[index++] = (ResolvedMember) i.next();
+		for (Object o : m) {
+			ret[index++] = (ResolvedMember) o;
 		}
 		return ret;
 	}

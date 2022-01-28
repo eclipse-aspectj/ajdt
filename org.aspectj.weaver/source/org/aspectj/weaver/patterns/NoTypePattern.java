@@ -1,13 +1,13 @@
 /* *******************************************************************
  * Copyright (c) 2002, 2010 Contributors
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     PARC     initial implementation
  * ******************************************************************/
 package org.aspectj.weaver.patterns;
 
@@ -28,7 +28,7 @@ public class NoTypePattern extends TypePattern {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.aspectj.weaver.patterns.TypePattern#couldEverMatchSameTypesAs(org.aspectj.weaver.patterns.TypePattern)
 	 */
 	@Override
@@ -37,7 +37,7 @@ public class NoTypePattern extends TypePattern {
 	}
 
 	/**
-	 * @see org.aspectj.weaver.patterns.TypePattern#matchesExactly(IType)
+	 * @see org.aspectj.weaver.patterns.TypePattern#matchesExactly(ResolvedType)
 	 */
 	@Override
 	protected boolean matchesExactly(ResolvedType type) {
@@ -50,7 +50,7 @@ public class NoTypePattern extends TypePattern {
 	}
 
 	/**
-	 * @see org.aspectj.weaver.patterns.TypePattern#matchesInstanceof(IType)
+	 * @see org.aspectj.weaver.patterns.TypePattern#matchesInstanceof(ResolvedType)
 	 */
 	@Override
 	public FuzzyBoolean matchesInstanceof(ResolvedType type) {
@@ -69,7 +69,7 @@ public class NoTypePattern extends TypePattern {
 	// return FuzzyBoolean.YES;
 	// }
 	/**
-	 * @see org.aspectj.weaver.patterns.TypePattern#matchesSubtypes(IType)
+	 * @see org.aspectj.weaver.patterns.TypePattern#matchesSubtypes(ResolvedType)
 	 */
 	@Override
 	protected boolean matchesSubtypes(ResolvedType type) {
@@ -88,7 +88,7 @@ public class NoTypePattern extends TypePattern {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
@@ -98,7 +98,7 @@ public class NoTypePattern extends TypePattern {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see java.lang.Object#hashCode()
 	 */
 	@Override

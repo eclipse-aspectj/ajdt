@@ -41,7 +41,7 @@ import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
 public class LocalVariable extends SourceRefElement implements ILocalVariable {
 
 	public static final ILocalVariable[] NO_LOCAL_VARIABLES = new ILocalVariable[0];
-	
+
 	String name;
 	public int declarationSourceStart, declarationSourceEnd;
 	public int nameStart, nameEnd;
@@ -86,7 +86,7 @@ public class LocalVariable extends SourceRefElement implements ILocalVariable {
 			int flags,
 			boolean isParameter,
 		org.aspectj.org.eclipse.jdt.internal.compiler.ast.Annotation[][] astAnnotationsOnDimensions) {
-		
+
 		this(parent, name, declarationSourceStart, declarationSourceEnd, nameStart,
 				nameEnd, typeSignature, astAnnotations, flags, isParameter);
 
@@ -124,7 +124,7 @@ public class LocalVariable extends SourceRefElement implements ILocalVariable {
 
 	@Override
 	public boolean exists() {
-		return this.parent.exists(); // see https://bugs.eclipse.org/bugs/show_bug.cgi?id=46192
+		return this.getParent().exists(); // see https://bugs.eclipse.org/bugs/show_bug.cgi?id=46192
 	}
 
 	@Override
@@ -182,7 +182,7 @@ public class LocalVariable extends SourceRefElement implements ILocalVariable {
 			}
 			@Override
 			public boolean exists() {
-				return this.parent.exists();
+				return this.getParent().exists();
 			}
 		}
 		String annotationName = new String(CharOperation.concatWith(annotation.type.getTypeName(), '.'));
@@ -281,10 +281,10 @@ public class LocalVariable extends SourceRefElement implements ILocalVariable {
 	protected void getHandleMemento(StringBuffer buff) {
 		getHandleMemento(buff, true);
 	}
-	
+
 	protected void getHandleMemento(StringBuffer buff, boolean memoizeParent) {
-		if (memoizeParent) 
-			((JavaElement)getParent()).getHandleMemento(buff);
+		if (memoizeParent)
+			getParent().getHandleMemento(buff);
 		buff.append(getHandleMementoDelimiter());
 		buff.append(this.name);
 		buff.append(JEM_COUNT);
@@ -316,14 +316,14 @@ public class LocalVariable extends SourceRefElement implements ILocalVariable {
 	public IResource getCorrespondingResource() {
 		return null;
 	}
-	
+
 	/**
 	 * {@inheritDoc}
 	 * @since 3.7
 	 */
 	@Override
 	public IMember getDeclaringMember() {
-		return (IMember) this.parent;
+		return (IMember) this.getParent();
 	}
 
 	@Override
@@ -365,13 +365,13 @@ public class LocalVariable extends SourceRefElement implements ILocalVariable {
 	 * @see IMember#getClassFile()
 	 */
 	@Override
-	public IClassFile getClassFile() {
-		IJavaElement element = getParent();
-		while (element instanceof IMember) {
+	public ClassFile getClassFile() {
+		JavaElement element = getParent();
+		while (element instanceof Member) {
 			element= element.getParent();
 		}
-		if (element instanceof IClassFile) {
-			return (IClassFile) element;
+		if (element instanceof ClassFile) {
+			return (ClassFile) element;
 		}
 		return null;
 	}
@@ -402,12 +402,12 @@ public class LocalVariable extends SourceRefElement implements ILocalVariable {
 
 	@Override
 	public IPath getPath() {
-		return this.parent.getPath();
+		return this.getParent().getPath();
 	}
 
 	@Override
 	public IResource resource() {
-		return this.parent.resource();
+		return this.getParent().resource();
 	}
 
 	/**
@@ -415,7 +415,7 @@ public class LocalVariable extends SourceRefElement implements ILocalVariable {
 	 */
 	@Override
 	public String getSource() throws JavaModelException {
-		IOpenable openable = this.parent.getOpenableParent();
+		IOpenable openable = this.getParent().getOpenableParent();
 		IBuffer buffer = openable.getBuffer();
 		if (buffer == null) {
 			return null;
@@ -470,14 +470,14 @@ public class LocalVariable extends SourceRefElement implements ILocalVariable {
 
 	@Override
 	public IResource getUnderlyingResource() throws JavaModelException {
-		return this.parent.getUnderlyingResource();
+		return this.getParent().getUnderlyingResource();
 	}
 
 	@Override
 	public int hashCode() {
-		return Util.combineHashCodes(this.parent.hashCode(), this.nameStart);
+		return Util.combineHashCodes(this.getParent().hashCode(), this.nameStart);
 	}
-	
+
 	/**
 	 * {@inheritDoc}
 	 * @since 3.7
@@ -496,16 +496,16 @@ public class LocalVariable extends SourceRefElement implements ILocalVariable {
 	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Binding#computeUniqueKey()
 	 */
 	public String getKey(boolean forceOpen) throws JavaModelException {
-		if (this.parent.getElementType() == IJavaElement.METHOD) {
+		if (this.getParent().getElementType() == IJavaElement.METHOD) {
 			StringBuilder buf = new StringBuilder();
-			if (this.parent instanceof BinaryMethod)
-				buf.append(((BinaryMethod) this.parent).getKey(forceOpen));
+			if (this.getParent() instanceof BinaryMethod)
+				buf.append(((BinaryMethod) this.getParent()).getKey(forceOpen));
 			else
-				buf.append(((IMethod)this.parent).getKey());
+				buf.append(((IMethod)this.getParent()).getKey());
 			buf.append('#');
 			buf.append(this.name);
 			if (this.isParameter) {
-				ILocalVariable[] parameters = ((IMethod) this.parent).getParameters();
+				ILocalVariable[] parameters = ((IMethod) this.getParent()).getParameters();
 				for (int i = 0; i < parameters.length; i++) {
 					if (this.equals(parameters[i])) {
 						buf.append("#0#").append(i); // always first occurrence, followed by parameter rank //$NON-NLS-1$

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -34,7 +34,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.problem.DefaultProblem;
  * problems are listed as constants on {@link IProblem}. </li>
  * <li> its marker type : a string identifying the problem creator. It corresponds to the marker type
  * chosen if this problem was to be persisted. Standard Java problems are associated to marker
- * type "org.aspectj.org.eclipse.jdt.core.problem"). </li>
+ * type "org.eclipse.jdt.core.problem"). </li>
  * <li> its category ID : a number identifying the category this problem belongs to. All possible IDs for
  * standard Java problem categories are listed in this class. </li>
  * </ul>
@@ -103,13 +103,20 @@ public abstract class CategorizedProblem implements IProblem {
 	 * @since 3.14
 	 */
 	public static final int CAT_MODULE = 160;
+	/**
+	 * @since 3.18
+	 */
+	public static final int CAT_COMPLIANCE = 170;
+	/** Category for problems related to preview features
+	 * @since 3.20*/
+	public static final int CAT_PREVIEW_RELATED = 180;
 
 /**
  * Returns an integer identifying the category of this problem. Categories, like problem IDs are
  * defined in the context of some marker type. Custom implementations of {@link CategorizedProblem}
  * may choose arbitrary values for problem/category IDs, as long as they are associated with a different
  * marker type.
- * Standard Java problem markers (i.e. marker type is "org.aspectj.org.eclipse.jdt.core.problem") carry an
+ * Standard Java problem markers (i.e. marker type is "org.eclipse.jdt.core.problem") carry an
  * attribute "categoryId" persisting the originating problem category ID as defined by this method).
  * @return id - an integer identifying the category of this problem
  */
@@ -117,7 +124,7 @@ public abstract int getCategoryID();
 
 /**
  * Returns the marker type associated to this problem, if it gets persisted into a marker by the JavaBuilder
- * Standard Java problems are associated to marker type "org.aspectj.org.eclipse.jdt.core.problem").
+ * Standard Java problems are associated to marker type "org.eclipse.jdt.core.problem").
  * Note: problem markers are expected to extend "org.eclipse.core.resources.problemmarker" marker type.
  * @return the type of the marker which would be associated to the problem
  */
@@ -153,7 +160,7 @@ public String[] getExtraMarkerAttributeNames() {
  * Returns the respective values for the extra marker attributes associated to this problem when persisted into
  * a marker by the JavaBuilder. Each value must correspond to a matching attribute name, as defined by
  * {@link #getExtraMarkerAttributeNames()}.
- * The values must be eligible for marker creation, as defined by <code> IMarker#setAttributes(String[], Object[])}.
+ * The values must be eligible for marker creation, as defined by <code> IMarker#setAttributes(String[], Object[])}</code>.
  * @return the values of the corresponding extra marker attributes
  */
 public Object[] getExtraMarkerAttributeValues() {

@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
- * are made available under the terms of the Eclipse Public License v1.0
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- * 
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -12,7 +12,6 @@ package org.aspectj.weaver.tools;
 
 import java.io.File;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Properties;
 import java.util.Set;
 
@@ -53,14 +52,14 @@ public class StandardPointcutParser {
 
 	private World world;
 	private final Set<PointcutPrimitive> supportedPrimitives;
-	private final Set<PointcutDesignatorHandler> pointcutDesignators = new HashSet<PointcutDesignatorHandler>();
+	private final Set<PointcutDesignatorHandler> pointcutDesignators = new HashSet<>();
 
 	/**
 	 * @return a Set containing every PointcutPrimitive except if, cflow, and cflowbelow (useful for passing to PointcutParser
 	 *         constructor).
 	 */
 	public static Set<PointcutPrimitive> getAllSupportedPointcutPrimitives() {
-		Set<PointcutPrimitive> primitives = new HashSet<PointcutPrimitive>();
+		Set<PointcutPrimitive> primitives = new HashSet<>();
 		primitives.add(PointcutPrimitive.ADVICE_EXECUTION);
 		primitives.add(PointcutPrimitive.ARGS);
 		primitives.add(PointcutPrimitive.CALL);
@@ -113,7 +112,7 @@ public class StandardPointcutParser {
 	 * <p>
 	 * When resolving types in pointcut expressions, the given classloader is used to find types.
 	 * </p>
-	 * 
+	 *
 	 * @param supportedPointcutKinds a set of PointcutPrimitives this parser should support
 	 * @throws UnsupportedOperationException if the set contains if, cflow, or cflow below
 	 */
@@ -143,14 +142,14 @@ public class StandardPointcutParser {
 	 * <li>Pointcut expressions must be self-contained :- they cannot contain references to other named pointcuts
 	 * <li>The pointcut expression must be anonymous with no formals allowed.
 	 * </ul>
-	 * 
+	 *
 	 * @param supportedPointcutKinds a set of PointcutPrimitives this parser should support
 	 * @throws UnsupportedOperationException if the set contains if, cflow, or cflow below
 	 */
-	private StandardPointcutParser(Set/* <PointcutPrimitives> */supportedPointcutKinds, World world) {
+	private StandardPointcutParser(Set<PointcutPrimitive> supportedPointcutKinds, World world) {
 		supportedPrimitives = supportedPointcutKinds;
-		for (Iterator iter = supportedPointcutKinds.iterator(); iter.hasNext();) {
-			PointcutPrimitive element = (PointcutPrimitive) iter.next();
+		for (Object supportedPointcutKind : supportedPointcutKinds) {
+			PointcutPrimitive element = (PointcutPrimitive) supportedPointcutKind;
 			if ((element == PointcutPrimitive.IF) || (element == PointcutPrimitive.CFLOW)
 					|| (element == PointcutPrimitive.CFLOW_BELOW)) {
 				throw new UnsupportedOperationException("Cannot handle if, cflow, and cflowbelow primitives");
@@ -174,7 +173,7 @@ public class StandardPointcutParser {
 
 	/**
 	 * Set the lint properties for this parser from the given properties set.
-	 * 
+	 *
 	 * @param properties
 	 */
 	public void setLintProperties(Properties properties) {
@@ -184,7 +183,7 @@ public class StandardPointcutParser {
 	/**
 	 * Register a new pointcut designator handler with this parser. This provides an extension mechansim for the integration of
 	 * domain-specific pointcut designators with the AspectJ pointcut language.
-	 * 
+	 *
 	 * @param designatorHandler
 	 */
 	public void registerPointcutDesignatorHandler(PointcutDesignatorHandler designatorHandler) {
@@ -196,7 +195,7 @@ public class StandardPointcutParser {
 
 	/**
 	 * Create a pointcut parameter of the given name and type.
-	 * 
+	 *
 	 * @param name
 	 * @param type
 	 * @return
@@ -208,7 +207,7 @@ public class StandardPointcutParser {
 	/**
 	 * Parse the given pointcut expression. A global scope is assumed for resolving any type references, and the pointcut must
 	 * contain no formals (variables to be bound).
-	 * 
+	 *
 	 * @throws UnsupportedPointcutPrimitiveException if the parser encounters a primitive pointcut expression of a kind not
 	 *         supported by this PointcutParser.
 	 * @throws IllegalArgumentException if the expression is not a well-formed pointcut expression
@@ -222,7 +221,7 @@ public class StandardPointcutParser {
 	 * Parse the given pointcut expression. The pointcut is resolved as if it had been declared inside the inScope class (this
 	 * allows the pointcut to contain unqualified references to other pointcuts declared in the same type for example). The pointcut
 	 * may contain zero or more formal parameters to be bound at matched join points.
-	 * 
+	 *
 	 * @throws UnsupportedPointcutPrimitiveException if the parser encounters a primitive pointcut expression of a kind not
 	 *         supported by this PointcutParser.
 	 * @throws IllegalArgumentException if the expression is not a well-formed pointcut expression
@@ -274,7 +273,7 @@ public class StandardPointcutParser {
 
 	/**
 	 * Parse the given aspectj type pattern, and return a matcher that can be used to match types using it.
-	 * 
+	 *
 	 * @param typePattern an aspectj type pattern
 	 * @return a type pattern matcher that matches using the given pattern
 	 * @throws IllegalArgumentException if the type pattern cannot be successfully parsed.
@@ -307,7 +306,7 @@ public class StandardPointcutParser {
 		return current;
 	}
 
-	private IScope buildResolutionScope(Class inScope, PointcutParameter[] formalParameters) {
+	private IScope buildResolutionScope(Class<?> inScope, PointcutParameter[] formalParameters) {
 		if (formalParameters == null) {
 			formalParameters = new PointcutParameter[0];
 		}
@@ -343,7 +342,7 @@ public class StandardPointcutParser {
 		}
 	}
 
-	private UnresolvedType toUnresolvedType(Class clazz) {
+	private UnresolvedType toUnresolvedType(Class<?> clazz) {
 		if (clazz.isArray()) {
 			return UnresolvedType.forSignature(clazz.getName().replace('.', '/'));
 		} else {
@@ -486,7 +485,7 @@ public class StandardPointcutParser {
 	}
 
 	private String buildUserMessageFromParserException(String pc, ParserException ex) {
-		StringBuffer msg = new StringBuffer();
+		StringBuilder msg = new StringBuilder();
 		msg.append("Pointcut is not well-formed: expecting '");
 		msg.append(ex.getMessage());
 		msg.append("'");

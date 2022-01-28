@@ -15,7 +15,9 @@ package org.aspectj.org.eclipse.jdt.internal.compiler.env;
 
 import java.util.function.Predicate;
 
+import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ModuleBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.util.SimpleSetOfCharArray;
 
 /**
  * A module aware name environment
@@ -70,7 +72,7 @@ public interface IModuleAwareNameEnvironment extends INameEnvironment {
 		public <T> boolean matches(T elem, Predicate<T> isNamed) {
 			return matchesWithName(elem, isNamed, t -> true);
 		}
-		
+
 		/** Get the lookup strategy corresponding to the given module name. */
 		public static LookupStrategy get(char[] moduleName) {
 			if (moduleName == ModuleBinding.ANY)
@@ -89,7 +91,7 @@ public interface IModuleAwareNameEnvironment extends INameEnvironment {
 			}
 		}
 	}
-	
+
 	@Override
 	default NameEnvironmentAnswer findType(char[][] compoundTypeName) {
 		return findType(compoundTypeName, ModuleBinding.ANY);
@@ -100,14 +102,26 @@ public interface IModuleAwareNameEnvironment extends INameEnvironment {
 	}
 	@Override
 	default boolean isPackage(char[][] parentPackageName, char[] packageName) {
-		return getModulesDeclaringPackage(parentPackageName, packageName, ModuleBinding.ANY) != null;
+		return getModulesDeclaringPackage(CharOperation.arrayConcat(parentPackageName, packageName), ModuleBinding.ANY) != null;
 	}
 
 	NameEnvironmentAnswer findType(char[][] compoundName, char[] moduleName);
 	/** Answer a type identified by the given names. moduleName may be one of the special names from ModuleBinding (ANY, ANY_NAMED, UNNAMED). */
 	NameEnvironmentAnswer findType(char[] typeName, char[][] packageName, char[] moduleName);
-	char[][] getModulesDeclaringPackage(char[][] parentPackageName, char[] name, char[] moduleName);
-	
+	char[][] getModulesDeclaringPackage(char[][] packageName, char[] moduleName);
+	default char[][] getUniqueModulesDeclaringPackage(char[][] packageName, char[] moduleName) {
+		char[][] allNames = getModulesDeclaringPackage(packageName, moduleName);
+		if (allNames != null && allNames.length > 1) {
+			SimpleSetOfCharArray set = new SimpleSetOfCharArray(allNames.length);
+			for (char[] oneName : allNames)
+				set.add(oneName);
+			allNames = new char[set.elementSize][];
+			set.asArray(allNames);
+		}
+		return allNames;
+	}
+
+
 	/**
 	 * Answer whether the given package (within the given module) contains any compilation unit.
 	 * @param qualifiedPackageName
@@ -115,7 +129,7 @@ public interface IModuleAwareNameEnvironment extends INameEnvironment {
 	 * @return true iff the package contains at least one compilation unit.
 	 */
 	boolean hasCompilationUnit(char[][] qualifiedPackageName, char[] moduleName, boolean checkCUs);
-	
+
 	/** Get the module with the given name, which must denote a named module. */
 	IModule getModule(char[] moduleName);
 	char[][] getAllAutomaticModules();
@@ -126,4 +140,12 @@ public interface IModuleAwareNameEnvironment extends INameEnvironment {
 	 * @param kind selects what kind of updates should be performed
 	 */
 	default void applyModuleUpdates(IUpdatableModule module, IUpdatableModule.UpdateKind kind) { /* default: do nothing */ }
+
+	/**
+	 * Lists all packages in the module identified by the given, real module name
+	 * (i.e., this method is implemented only for {@link LookupStrategy#Named}).
+	 * @param moduleName
+	 * @return array of flat, dot-separated package names
+	 */
+	char[][] listPackages(char[] moduleName);
 }

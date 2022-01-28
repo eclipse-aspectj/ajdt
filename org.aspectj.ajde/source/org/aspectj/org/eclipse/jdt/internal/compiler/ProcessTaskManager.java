@@ -29,7 +29,7 @@ public class ProcessTaskManager implements Runnable {
 	volatile int currentIndex, availableIndex, size, sleepCount;
 	CompilationUnitDeclaration[] units;
 
-	public static final int PROCESSED_QUEUE_SIZE = 12;
+	public static final int PROCESSED_QUEUE_SIZE = 100;
 
 public ProcessTaskManager(Compiler compiler, int startingIndex) {
 	this.compiler = compiler;
@@ -150,13 +150,7 @@ public void run() {
 			}
 
 			addNextUnit(this.unitToProcess);
-		} catch (Error e) {
-			synchronized (this) {
-				this.processingThread = null;
-				this.caughtException = e;
-			}
-			return;
-		} catch (RuntimeException e) {
+		} catch (Error | RuntimeException e) {
 			synchronized (this) {
 				this.processingThread = null;
 				this.caughtException = e;

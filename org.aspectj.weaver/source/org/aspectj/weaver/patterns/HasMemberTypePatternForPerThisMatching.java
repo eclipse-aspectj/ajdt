@@ -1,12 +1,12 @@
 /* *******************************************************************
  * Copyright (c) 2011 Contributors.
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
  *   Andy Clement			Initial implementation
  * ******************************************************************/
 package org.aspectj.weaver.patterns;
@@ -19,11 +19,11 @@ import org.aspectj.weaver.ConcreteTypeMunger;
 import org.aspectj.weaver.ResolvedType;
 
 /**
- * pr354470. This is a special subtype of HasMemberTypePattern. In order to optimize this situation: <br>
- * <code><pre>
+ * pr354470. This is a special subtype of HasMemberTypePattern. In order to optimize this situation:
+ * <pre><code>
  * aspect X perthis(transactional()) {<br>
  * pointcut transactional: execution(@Foo * *(..));<br>
- * </pre></code>
+ * </code></pre>
  * <p>
  * When this occurs we obviously only want an aspect instance when there is a method annotated with @Foo. For a regular execution
  * pointcut we couldn't really do this due to the multiple joinpoint signatures for each joinpoint (and so lots of types get the
@@ -36,7 +36,8 @@ import org.aspectj.weaver.ResolvedType;
  * subclass is created to say 'if the supertype thinks it is a match, great, but if it doesnt then if there are ITDs on the target,
  * they might match so just say 'true''. Note that returning true is just confirming whether the 'mightHaveAspect' interface (and
  * friends) are getting added.
- * 
+ * </p>
+ *
  * @author Andy Clement
  */
 public class HasMemberTypePatternForPerThisMatching extends HasMemberTypePattern {

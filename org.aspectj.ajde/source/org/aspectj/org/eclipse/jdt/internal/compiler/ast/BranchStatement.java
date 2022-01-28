@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -32,6 +32,12 @@ public BranchStatement(char[] label, int sourceStart,int sourceEnd) {
 	this.sourceEnd = sourceEnd;
 }
 
+protected void setSubroutineSwitchExpression(SubRoutineStatement sub) {
+	// Do nothing
+}
+protected void restartExceptionLabels(CodeStream codeStream) {
+	// do nothing
+}
 /**
  * Branch code generation
  *
@@ -49,7 +55,10 @@ public void generateCode(BlockScope currentScope, CodeStream codeStream) {
 	if (this.subroutines != null){
 		for (int i = 0, max = this.subroutines.length; i < max; i++){
 			SubRoutineStatement sub = this.subroutines[i];
+			SwitchExpression se = sub.getSwitchExpression();
+			setSubroutineSwitchExpression(sub);
 			boolean didEscape = sub.generateSubRoutineInvocation(currentScope, codeStream, this.targetLabel, this.initStateIndex, null);
+			sub.setSwitchExpression(se);
 			if (didEscape) {
 					codeStream.recordPositionsFrom(pc, this.sourceStart);
 					SubRoutineStatement.reenterAllExceptionHandlers(this.subroutines, i, codeStream);
@@ -57,10 +66,12 @@ public void generateCode(BlockScope currentScope, CodeStream codeStream) {
 						codeStream.removeNotDefinitelyAssignedVariables(currentScope, this.initStateIndex);
 						codeStream.addDefinitelyAssignedVariables(currentScope, this.initStateIndex);
 					}
+					restartExceptionLabels(codeStream);
 					return;
 			}
 		}
 	}
+//	checkAndLoadSyntheticVars(codeStream);
 	codeStream.goto_(this.targetLabel);
 	codeStream.recordPositionsFrom(pc, this.sourceStart);
 	SubRoutineStatement.reenterAllExceptionHandlers(this.subroutines, -1, codeStream);

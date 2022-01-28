@@ -67,12 +67,12 @@ import org.aspectj.apache.bcel.classfile.JavaClass;
  * file systems using the paths specified in the given class path. By default, this is the value returned by
  * ClassPath.getClassPath(). <br>
  * It is designed to be used as a singleton, however it can also be used with custom classpaths.
- * 
+ *
  * /** Abstract definition of a class repository. Instances may be used to load classes from different sources and may be used in
  * the Repository.setRepository method.
- * 
+ *
  * @see org.aspectj.apache.bcel.Repository
- * 
+ *
  * @version $Id: SyntheticRepository.java,v 1.8 2009/09/09 19:56:20 aclement Exp $
  * @author <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @author David Dixon-Peugh
@@ -80,12 +80,12 @@ import org.aspectj.apache.bcel.classfile.JavaClass;
 public class SyntheticRepository implements Repository {
 	private static final String DEFAULT_PATH = ClassPath.getClassPath();
 
-	private static HashMap<ClassPath, SyntheticRepository> _instances = new HashMap<ClassPath, SyntheticRepository>(); // CLASSPATH
+	private static HashMap<ClassPath, SyntheticRepository> _instances = new HashMap<>(); // CLASSPATH
 																														// X
 																														// REPOSITORY
 
 	private ClassPath _path = null;
-	private WeakHashMap<String, JavaClass> _loadedClasses = new WeakHashMap<String, JavaClass>(); // CLASSNAME X JAVACLASS
+	private WeakHashMap<String, JavaClass> _loadedClasses = new WeakHashMap<>(); // CLASSNAME X JAVACLASS
 
 	private SyntheticRepository(ClassPath path) {
 		_path = path;
@@ -147,7 +147,7 @@ public class SyntheticRepository implements Repository {
 
 	/**
 	 * Try to find class source via getResourceAsStream().
-	 * 
+	 *
 	 * @see Class
 	 * @return JavaClass object for given runtime class
 	 */

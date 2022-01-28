@@ -1,15 +1,15 @@
 /* *******************************************************************
- * Copyright (c) 2001-2001 Xerox Corporation, 
+ * Copyright (c) 2001-2001 Xerox Corporation,
  *               2002 Palo Alto Research Center, Incorporated (PARC)
  *               2003-2004 Contributors.
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     Xerox/PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     Xerox/PARC     initial implementation
  *     Wes Isberg     2003-2004 changes
  * ******************************************************************/
 
@@ -22,7 +22,6 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
 
@@ -40,7 +39,6 @@ import org.apache.tools.ant.taskdefs.MatchingTask;
 import org.apache.tools.ant.taskdefs.Mkdir;
 import org.apache.tools.ant.taskdefs.PumpStreamHandler;
 import org.apache.tools.ant.taskdefs.Zip;
-import org.apache.tools.ant.taskdefs.compilers.DefaultCompilerAdapter;
 import org.apache.tools.ant.types.Commandline;
 import org.apache.tools.ant.types.CommandlineJava;
 import org.apache.tools.ant.types.FileSet;
@@ -66,7 +64,7 @@ import org.aspectj.util.LangUtil;
  * for each iterative compile, but when forking things are only copied at the completion of a successful compile.
  * <p>
  * See the development environment guide for usage documentation.
- * 
+ *
  * @since AspectJ 1.1, Ant 1.5
  */
 public class AjcTask extends MatchingTask {
@@ -76,9 +74,9 @@ public class AjcTask extends MatchingTask {
 	 * <code>readArguments(String[])</code>; (2) testing is supported by (a) permitting the same specification to be re-run with
 	 * added flags (settings once made cannot be removed); and (b) permitting recycling the task with <code>reset()</code>
 	 * (untested).
-	 * 
+	 *
 	 * The parts that do more than convert ant specs are (a) code for forking; (b) code for copying resources.
-	 * 
+	 *
 	 * If you maintain/upgrade this task, keep in mind: (1) changes to the semantics of ajc (new options, new values permitted,
 	 * etc.) will have to be reflected here. (2) the clients: the iajc ant script, Javac compiler adapter, maven clients of iajc,
 	 * and testing code.
@@ -89,23 +87,23 @@ public class AjcTask extends MatchingTask {
 	 * This method extracts javac arguments to ajc, and add arguments to make ajc behave more like javac in copying resources.
 	 * <p>
 	 * Pass ajc-specific options using compilerarg sub-element:
-	 * 
+	 *
 	 * <pre>
 	 * &lt;javac srcdir=&quot;src&quot;&gt;
 	 *     &lt;compilerarg compiler=&quot;...&quot; line=&quot;-argfile src/args.lst&quot;/&gt;
 	 * &lt;javac&gt;
 	 * </pre>
-	 * 
+	 *
 	 * Some javac arguments are not supported in this component (yet):
-	 * 
+	 *
 	 * <pre>
 	 * String memoryInitialSize;
 	 * boolean includeAntRuntime = true;
 	 * boolean includeJavaRuntime = false;
 	 * </pre>
-	 * 
+	 *
 	 * Other javac arguments are not supported in ajc 1.1:
-	 * 
+	 *
 	 * <pre>
 	 * boolean optimize;
 	 * String forkedExecutable;
@@ -114,10 +112,8 @@ public class AjcTask extends MatchingTask {
 	 * String debugLevel;
 	 * Path compileSourcepath;
 	 * </pre>
-	 * 
+	 *
 	 * @param javac the Javac command to implement (not null)
-	 * @param ajc the AjcTask to adapt (not null)
-	 * @param destDir the File class destination directory (may be null)
 	 * @return null if no error, or String error otherwise
 	 */
 	public String setupAjc(Javac javac) {
@@ -166,7 +162,7 @@ public class AjcTask extends MatchingTask {
 	 * Find aspectjtools.jar on the task or system classpath. Accept <code>aspectj{-}tools{...}.jar</code> mainly to support build
 	 * systems using maven-style re-naming (e.g., <code>aspectj-tools-1.1.0.jar</code>. Note that we search the task classpath
 	 * first, though an entry on the system classpath would be loaded first, because it seems more correct as the more specific one.
-	 * 
+	 *
 	 * @return readable File for aspectjtools.jar, or null if not found.
 	 */
 	public static File findAspectjtoolsJar() {
@@ -208,7 +204,7 @@ public class AjcTask extends MatchingTask {
 		int loc = path.lastIndexOf(prefix);
 		if ((-1 != loc) && ((loc + minLength) <= path.length())) {
 			String rest = path.substring(loc + prefixLength);
-			if (-1 != rest.indexOf(File.pathSeparator)) {
+			if (rest.contains(File.pathSeparator)) {
 				return null;
 			}
 			if (rest.startsWith(infix) || rest.startsWith(altInfix)) {
@@ -247,16 +243,16 @@ public class AjcTask extends MatchingTask {
 
 	/**
 	 * -Xlint variants (error, warning, ignore)
-	 * 
+	 *
 	 * @see org.aspectj.weaver.Lint
 	 */
 	private static final List VALID_XLINT;
 
 	public static final String COMMAND_EDITOR_NAME = AjcTask.class.getName() + ".COMMAND_EDITOR";
 
-	static final String[] TARGET_INPUTS = new String[] { "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "1.9", "9", "10", "11" };
-	static final String[] SOURCE_INPUTS = new String[] { "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "1.9", "9", "10", "11"};
-	static final String[] COMPLIANCE_INPUTS = new String[] { "-1.3", "-1.4", "-1.5", "-1.6", "-1.7", "-1.8", "-1.9", "-9", "-10", "-11" };
+	static final String[] TARGET_INPUTS = new String[] { "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "1.9", "9", "10", "11", "12", "13", "14", "15", "16", "17" };
+	static final String[] SOURCE_INPUTS = new String[] { "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "1.9", "9", "10", "11", "12", "13", "14", "15", "16", "17" };
+	static final String[] COMPLIANCE_INPUTS = new String[] { "-1.3", "-1.4", "-1.5", "-1.6", "-1.7", "-1.8", "-1.9", "-9", "-10", "-11", "-12", "-13", "-14", "-15", "-16", "-17" };
 
 	private static final ICommandEditor COMMAND_EDITOR;
 
@@ -266,7 +262,7 @@ public class AjcTask extends MatchingTask {
 				"notReweavable", "noInline", "terminateAfterCompilation", "hasMember", "ajruntimetarget:1.2",
 				"ajruntimetarget:1.5", "addSerialVersionUID"
 
-		// , "targetNearSource", "OcodeSize",
+				// , "targetNearSource", "OcodeSize",
 		};
 		VALID_XOPTIONS = Collections.unmodifiableList(Arrays.asList(xs));
 
@@ -291,7 +287,7 @@ public class AjcTask extends MatchingTask {
 			if (null != editorClassName) {
 				ClassLoader cl = AjcTask.class.getClassLoader();
 				Class editorClass = cl.loadClass(editorClassName);
-				editor = (ICommandEditor) editorClass.newInstance();
+				editor = (ICommandEditor) editorClass.getDeclaredConstructor().newInstance();
 			}
 		} catch (Throwable t) {
 			System.err.println("Warning: unable to load command editor");
@@ -328,7 +324,7 @@ public class AjcTask extends MatchingTask {
 	private String xdoneSignal;
 
 	private List<CompilerArg> compilerArgs;
-	
+
 	// ----- added by adapter - integrate better?
 	private List /* File */adapterFiles;
 	private String[] adapterArguments;
@@ -443,7 +439,7 @@ public class AjcTask extends MatchingTask {
 	}
 
 	protected String validCommaList(String list, List valid, String label, int max) {
-		StringBuffer result = new StringBuffer();
+		StringBuilder result = new StringBuilder();
 		StringTokenizer st = new StringTokenizer(list, ",");
 		int num = 0;
 		while (st.hasMoreTokens()) {
@@ -465,47 +461,47 @@ public class AjcTask extends MatchingTask {
 		return (0 == result.length() ? null : result.toString());
 	}
 
-  /**
-   * Controls whether annotation processing and/or compilation is done.
-   * -proc:none means that compilation takes place without annotation processing.
-   * -proc:only means that only annotation processing is done, without any subsequent compilation.
-   */
-  public void setProc(String proc) {
-    if (proc.equals("none")) {
-      cmd.addFlag("-proc:none", true);
-    } else if (proc.equals("only")) {
-      cmd.addFlag("-proc:only", true);
-    }
-  }
+	/**
+	 * Controls whether annotation processing and/or compilation is done.
+	 * -proc:none means that compilation takes place without annotation processing.
+	 * -proc:only means that only annotation processing is done, without any subsequent compilation.
+	 */
+	public void setProc(String proc) {
+		if (proc.equals("none")) {
+			cmd.addFlag("-proc:none", true);
+		} else if (proc.equals("only")) {
+			cmd.addFlag("-proc:only", true);
+		}
+	}
 
-  /**
-   * -processor class1[,class2,class3...]
-   *  Names of the annotation processors to run. This bypasses the default discovery process.
-   */
-  public void setProcessor(String processors) {
-    cmd.addFlagged("-processor", processors);
-  }
-  
-  /**
-   * -processorpath path
-   * Specify where to find annotation processors; if this option is not used, the class path will be searched for processors.
-   */
-  public void setProcessorpath(String processorpath) {
-    cmd.addFlagged("-processorpath", processorpath);
-  }
+	/**
+	 * -processor class1[,class2,class3...]
+	 *  Names of the annotation processors to run. This bypasses the default discovery process.
+	 */
+	public void setProcessor(String processors) {
+		cmd.addFlagged("-processor", processors);
+	}
 
-  /**
-   * -s dir
-   * Specify the directory where to place generated source files. The directory must already exist; javac will not create it.
-   * If a class is part of a package, the compiler puts the source file in a subdirectory reflecting the package name,
-   * creating directories as needed.
-   *
-   * For example, if you specify -s C:\mysrc and the class is called com.mypackage.MyClass,
-   * then the source file will be placed in C:\mysrc\com\mypackage\MyClass.java.
-   */
-  public void setS(String s) {
-    cmd.addFlagged("-s", s);
-  }
+	/**
+	 * -processorpath path
+	 * Specify where to find annotation processors; if this option is not used, the class path will be searched for processors.
+	 */
+	public void setProcessorpath(String processorpath) {
+		cmd.addFlagged("-processorpath", processorpath);
+	}
+
+	/**
+	 * -s dir
+	 * Specify the directory where to place generated source files. The directory must already exist; javac will not create it.
+	 * If a class is part of a package, the compiler puts the source file in a subdirectory reflecting the package name,
+	 * creating directories as needed.
+	 *
+	 * For example, if you specify -s C:\mysrc and the class is called com.mypackage.MyClass,
+	 * then the source file will be placed in C:\mysrc\com\mypackage\MyClass.java.
+	 */
+	public void setS(String s) {
+		cmd.addFlagged("-s", s);
+	}
 
 	public void setIncremental(boolean incremental) {
 		cmd.addFlag("-incremental", incremental);
@@ -603,7 +599,7 @@ public class AjcTask extends MatchingTask {
 	}
 
 	/**
-	 * -Xlint - set default level of -Xlint messages to warning (same as </code>-Xlint:warning</code>)
+	 * -Xlint - set default level of -Xlint messages to warning (same as <code>-Xlint:warning</code>)
 	 */
 	public void setXlintwarnings(boolean xlintwarnings) {
 		cmd.addFlag("-Xlint", xlintwarnings);
@@ -611,7 +607,7 @@ public class AjcTask extends MatchingTask {
 
 	/**
 	 * -Xlint:{error|warning|info} - set default level for -Xlint messages
-	 * 
+	 *
 	 * @param xlint the String with one of error, warning, ignored
 	 */
 	public void setXlint(String xlint) {
@@ -622,7 +618,7 @@ public class AjcTask extends MatchingTask {
 	/**
 	 * -Xlintfile {lint.properties} - enable or disable specific forms of -Xlint messages based on a lint properties file (default
 	 * is <code>org/aspectj/weaver/XLintDefault.properties</code>)
-	 * 
+	 *
 	 * @param xlintFile the File with lint properties
 	 */
 	public void setXlintfile(File xlintFile) {
@@ -698,19 +694,19 @@ public class AjcTask extends MatchingTask {
 	public Commandline.Argument createJvmarg() {
 		return this.javaCmd.createVmArgument();
 	}
-	
+
 	public static class CompilerArg {
 
 		private String value;
-		
+
 		public String getValue() {
 			return value;
 		}
-		
+
 		public void setValue(String value) {
 			this.value = value;
 		}
-		
+
 		@Override
 		public String toString() {
 			return value;
@@ -718,12 +714,12 @@ public class AjcTask extends MatchingTask {
 	}
 
 	public CompilerArg createCompilerarg() {
-		 CompilerArg compilerArg = new CompilerArg();
-		 if (compilerArgs == null) {
-			 compilerArgs = new ArrayList<CompilerArg>();
-		 }
-		 compilerArgs.add(compilerArg);
-		 return compilerArg;
+		CompilerArg compilerArg = new CompilerArg();
+		if (compilerArgs == null) {
+			compilerArgs = new ArrayList<>();
+		}
+		compilerArgs.add(compilerArg);
+		return compilerArg;
 	}
 
 	// ----------------
@@ -772,7 +768,7 @@ public class AjcTask extends MatchingTask {
 
 	/**
 	 * Language compliance level. If not set explicitly, eclipse default holds.
-	 * 
+	 *
 	 * @param input a String in COMPLIANCE_INPUTS
 	 */
 	public void setCompliance(String input) {
@@ -784,7 +780,7 @@ public class AjcTask extends MatchingTask {
 
 	/**
 	 * Source compliance level. If not set explicitly, eclipse default holds.
-	 * 
+	 *
 	 * @param input a String in SOURCE_INPUTS
 	 */
 	public void setSource(String input) {
@@ -793,14 +789,14 @@ public class AjcTask extends MatchingTask {
 			ignore(ignore);
 		}
 	}
-	
+
 	public void setParameters(boolean b) {
 		cmd.addFlag("-parameters",b);
 	}
 
 	/**
 	 * Flag to copy all non-.class contents of injars to outjar after compile completes. Requires both injars and outjar.
-	 * 
+	 *
 	 * @param doCopy
 	 */
 	public void setCopyInjars(boolean doCopy) {
@@ -812,7 +808,7 @@ public class AjcTask extends MatchingTask {
 	/**
 	 * Option to copy all files from all source root directories except those specified here. If this is specified and sourceroots
 	 * are specified, then this will copy all files except those specified in the filter pattern. Requires sourceroots.
-	 * 
+	 *
 	 * @param filter a String acceptable as an excludes filter for an Ant Zip fileset.
 	 */
 	public void setSourceRootCopyFilter(String filter) {
@@ -823,12 +819,12 @@ public class AjcTask extends MatchingTask {
 	 * Option to copy all files from all inpath directories except the files specified here. If this is specified and inpath
 	 * directories are specified, then this will copy all files except those specified in the filter pattern. Requires inpath. If
 	 * the input does not contain "**\/*.class", then this prepends it, to avoid overwriting woven classes with unwoven input.
-	 * 
+	 *
 	 * @param filter a String acceptable as an excludes filter for an Ant Zip fileset.
 	 */
 	public void setInpathDirCopyFilter(String filter) {
 		if (null != filter) {
-			if (-1 == filter.indexOf("**/*.class")) {
+			if (!filter.contains("**/*.class")) {
 				filter = "**/*.class," + filter;
 			}
 		}
@@ -861,7 +857,7 @@ public class AjcTask extends MatchingTask {
 
 	/**
 	 * Setup custom message handling.
-	 * 
+	 *
 	 * @param className the String fully-qualified-name of a class reachable from this object's class loader, implementing
 	 *        IMessageHolder, and having a public no-argument constructor.
 	 * @throws BuildException if unable to create instance of className
@@ -869,7 +865,7 @@ public class AjcTask extends MatchingTask {
 	public void setMessageHolderClass(String className) {
 		try {
 			Class mclass = Class.forName(className);
-			IMessageHolder holder = (IMessageHolder) mclass.newInstance();
+			IMessageHolder holder = (IMessageHolder) mclass.getDeclaredConstructor().newInstance();
 			setMessageHolder(holder);
 		} catch (Throwable t) {
 			String m = "unable to instantiate message holder: " + className;
@@ -885,7 +881,7 @@ public class AjcTask extends MatchingTask {
 	/**
 	 * Setup command-line filter. To do this staticly, define the environment variable
 	 * <code>org.aspectj.tools.ant.taskdefs.AjcTask.COMMAND_EDITOR</code> with the <code>className</code> parameter.
-	 * 
+	 *
 	 * @param className the String fully-qualified-name of a class reachable from this object's class loader, implementing
 	 *        ICommandEditor, and having a public no-argument constructor.
 	 * @throws BuildException if unable to create instance of className
@@ -893,7 +889,7 @@ public class AjcTask extends MatchingTask {
 	public void setCommandEditorClass(String className) { // skip Ant interface?
 		try {
 			Class mclass = Class.forName(className);
-			setCommandEditor((ICommandEditor) mclass.newInstance());
+			setCommandEditor((ICommandEditor) mclass.getDeclaredConstructor().newInstance());
 		} catch (Throwable t) {
 			String m = "unable to instantiate command editor: " + className;
 			throw new BuildException(m, t);
@@ -904,7 +900,7 @@ public class AjcTask extends MatchingTask {
 
 	/**
 	 * Add path elements to source path and return result. Elements are added even if they do not exist.
-	 * 
+	 *
 	 * @param source the Path to add to - may be null
 	 * @param toAdd the Path to add - may be null
 	 * @return the (never-null) Path that results
@@ -1104,7 +1100,7 @@ public class AjcTask extends MatchingTask {
 
 	/**
 	 * Compile using ajc per settings.
-	 * 
+	 *
 	 * @exception BuildException if the compilation has problems or if there were compiler errors and failonerror is true.
 	 */
 	@Override
@@ -1144,7 +1140,7 @@ public class AjcTask extends MatchingTask {
 
 	/**
 	 * Halt processing. This tells main in the same vm to quit. It fails when running in forked mode.
-	 * 
+	 *
 	 * @return true if not in forked mode and main has quit or been told to quit
 	 */
 	public boolean quit() {
@@ -1160,11 +1156,10 @@ public class AjcTask extends MatchingTask {
 
 	// package-private for testing
 	String[] makeCommand() {
-		ArrayList result = new ArrayList();
 		if (0 < ignored.size()) {
-			for (Iterator iter = ignored.iterator(); iter.hasNext();) {
-				logVerbose("ignored: " + iter.next());
-			}
+            for (Object o : ignored) {
+                logVerbose("ignored: " + o);
+            }
 		}
 		// when copying resources, use temp jar for class output
 		// then copy temp jar contents and resources to output jar
@@ -1183,7 +1178,7 @@ public class AjcTask extends MatchingTask {
 			outjarFixedup = true;
 		}
 
-		result.addAll(cmd.extractArguments());
+		ArrayList result = new ArrayList(cmd.extractArguments());
 		addListArgs(result);
 
 		String[] command = (String[]) result.toArray(new String[0]);
@@ -1197,7 +1192,7 @@ public class AjcTask extends MatchingTask {
 
 	/**
 	 * Create any pseudo-options required to implement some of the macro options
-	 * 
+	 *
 	 * @throws BuildException if options conflict
 	 */
 	protected void setupOptions() {
@@ -1255,10 +1250,10 @@ public class AjcTask extends MatchingTask {
 	}
 
 	/**
-	 * @throw BuildException if options conflict
+	 * @throws BuildException if options conflict
 	 */
 	protected void verifyOptions() {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		if (fork && isInIncrementalMode() && !isInIncrementalFileMode()) {
 			sb.append("can fork incremental only using tag file.\n");
 		}
@@ -1281,9 +1276,9 @@ public class AjcTask extends MatchingTask {
 	/**
 	 * Run the compile in the same VM by loading the compiler (Main), setting up any message holders, doing the compile, and
 	 * converting abort/failure and error messages to BuildException, as appropriate.
-	 * 
+	 *
 	 * @throws BuildException if abort or failure messages or if errors and failonerror.
-	 * 
+	 *
 	 */
 	protected void executeInSameVM(String[] args) {
 		if (null != maxMem) {
@@ -1338,17 +1333,17 @@ public class AjcTask extends MatchingTask {
 		{
 			IMessage[] fails = holder.getMessages(IMessage.FAIL, true);
 			if (!LangUtil.isEmpty(fails)) {
-				StringBuffer sb = new StringBuffer();
+				StringBuilder sb = new StringBuilder();
 				String prefix = "fail due to ";
 				int numThrown = 0;
-				for (int i = 0; i < fails.length; i++) {
-					String message = fails[i].getMessage();
+				for (IMessage fail : fails) {
+					String message = fail.getMessage();
 					if (LangUtil.isEmpty(message)) {
 						message = "<no message>";
-					} else if (-1 != message.indexOf(USAGE_SUBSTRING)) {
+					} else if (message.contains(USAGE_SUBSTRING)) {
 						continue;
 					}
-					Throwable t = fails[i].getThrown();
+					Throwable t = fail.getThrown();
 					if (null != t) {
 						numThrown++;
 						sb.append(prefix);
@@ -1376,10 +1371,9 @@ public class AjcTask extends MatchingTask {
 	 * <li>No resource-copying between interative runs</li>
 	 * <li>failonerror fails when process interface fails to return negative values</li>
 	 * </ul>
-	 * 
+	 *
 	 * @param args String[] of the complete compiler command to execute
-	 * 
-	 * @see DefaultCompilerAdapter#executeExternalCompile(String[], int)
+	 *
 	 * @throws BuildException if ajc aborts (negative value) or if failonerror and there were compile errors.
 	 */
 	protected void executeInOtherVM(String[] args) {
@@ -1467,28 +1461,28 @@ public class AjcTask extends MatchingTask {
 					Project.MSG_WARN);
 
 			// replace above two lines with what follows as an aid to debugging when running the unit tests....
-//			LogStreamHandler handler = new LogStreamHandler(this, Project.MSG_INFO, Project.MSG_WARN) {
-//
-//				ByteArrayOutputStream baos = new ByteArrayOutputStream();
-//
-//				/*
-//				 * @see
-//				 * org.apache.tools.ant.taskdefs.PumpStreamHandler#createProcessOutputPump(java.
-//				 * io.InputStream, java.io.OutputStream)
-//				 */
-//				protected void createProcessErrorPump(InputStream is, OutputStream os) {
-//					super.createProcessErrorPump(is, baos);
-//				}
-//
-//				/*
-//				 * @see org.apache.tools.ant.taskdefs.LogStreamHandler#stop()
-//				 */
-//				public void stop() {
-//					byte[] written = baos.toByteArray();
-//					System.err.print(new String(written));
-//					super.stop();
-//				}
-//			};
+			//			LogStreamHandler handler = new LogStreamHandler(this, Project.MSG_INFO, Project.MSG_WARN) {
+			//
+			//				ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			//
+			//				/*
+			//				 * @see
+			//				 * org.apache.tools.ant.taskdefs.PumpStreamHandler#createProcessOutputPump(java.
+			//				 * io.InputStream, java.io.OutputStream)
+			//				 */
+			//				protected void createProcessErrorPump(InputStream is, OutputStream os) {
+			//					super.createProcessErrorPump(is, baos);
+			//				}
+			//
+			//				/*
+			//				 * @see org.apache.tools.ant.taskdefs.LogStreamHandler#stop()
+			//				 */
+			//				public void stop() {
+			//					byte[] written = baos.toByteArray();
+			//					System.err.print(new String(written));
+			//					super.stop();
+			//				}
+			//			};
 
 			Execute exe = new Execute(handler);
 			exe.setAntRun(project);
@@ -1512,7 +1506,6 @@ public class AjcTask extends MatchingTask {
 	}
 
 	// ------------------------------ setup and reporting
-	/** @return null if path null or empty, String rendition otherwise */
 	protected static void addFlaggedPath(String flag, Path path, List<String> list) {
 		if (!LangUtil.isEmpty(flag) && ((null != path) && (0 < path.size()))) {
 			list.add(flag);
@@ -1531,7 +1524,7 @@ public class AjcTask extends MatchingTask {
 		addFlaggedPath("-injars", injars, list);
 		addFlaggedPath("-inpath", inpath, list);
 		addFlaggedPath("-sourceroots", sourceRoots, list);
-		
+
 		if (this.compilerArgs != null) {
 			for (CompilerArg compilerArg:compilerArgs) {
 				list.add(compilerArg.toString());
@@ -1540,9 +1533,9 @@ public class AjcTask extends MatchingTask {
 
 		if (argfiles != null) {
 			String[] files = argfiles.list();
-			for (int i = 0; i < files.length; i++) {
-				File argfile = project.resolveFile(files[i]);
-				if (check(argfile, files[i], false, location)) {
+			for (String file : files) {
+				File argfile = project.resolveFile(file);
+				if (check(argfile, file, false, location)) {
 					list.add("-argfile");
 					list.add(argfile.getAbsolutePath());
 				}
@@ -1550,9 +1543,9 @@ public class AjcTask extends MatchingTask {
 		}
 		if (inxmlfiles != null) {
 			String[] files = inxmlfiles.list();
-			for (int i = 0; i < files.length; i++) {
-				File inxmlfile = project.resolveFile(files[i]);
-				if (check(inxmlfile, files[i], false, location)) {
+			for (String file : files) {
+				File inxmlfile = project.resolveFile(file);
+				if (check(inxmlfile, file, false, location)) {
 					list.add("-xmlConfigured");
 					list.add(inxmlfile.getAbsolutePath());
 				}
@@ -1561,13 +1554,13 @@ public class AjcTask extends MatchingTask {
 		if (srcdir != null) {
 			// todo: ignore any srcdir if any argfiles and no explicit includes
 			String[] dirs = srcdir.list();
-			for (int i = 0; i < dirs.length; i++) {
-				File dir = project.resolveFile(dirs[i]);
-				check(dir, dirs[i], true, location);
+			for (String dir2 : dirs) {
+				File dir = project.resolveFile(dir2);
+				check(dir, dir2, true, location);
 				// relies on compiler to prune non-source files
 				String[] files = getDirectoryScanner(dir).getIncludedFiles();
-				for (int j = 0; j < files.length; j++) {
-					File file = new File(dir, files[j]);
+				for (String file2 : files) {
+					File file = new File(dir, file2);
 					if (FileUtil.hasSourceSuffix(file)) {
 						if (!list.contains(file.getAbsolutePath())) {
 							list.add(file.getAbsolutePath());
@@ -1577,20 +1570,21 @@ public class AjcTask extends MatchingTask {
 			}
 		}
 		if (0 < adapterFiles.size()) {
-			for (Iterator iter = adapterFiles.iterator(); iter.hasNext();) {
-				File file = (File) iter.next();
-				if (file.canRead() && FileUtil.hasSourceSuffix(file)) {
-					list.add(file.getAbsolutePath());
-				} else {
-					this.logger.warning("skipping file: " + file);
-				}
-			}
+            for (Object adapterFile : adapterFiles) {
+                File file = (File) adapterFile;
+                if (file.canRead() && FileUtil.hasSourceSuffix(file)) {
+                    list.add(file.getAbsolutePath());
+                }
+                else {
+                    this.logger.warning("skipping file: " + file);
+                }
+            }
 		}
 	}
 
 	/**
 	 * Throw BuildException unless file is valid.
-	 * 
+	 *
 	 * @param file the File to check
 	 * @param name the symbolic name to print on error
 	 * @param isDir if true, verify file is a directory
@@ -1655,12 +1649,12 @@ public class AjcTask extends MatchingTask {
 				patternSet.setProject(project);
 				patternSet.setIncludes("**/*");
 				patternSet.setExcludes("**/*.class");
-				for (int i = 0; i < paths.length; i++) {
+				for (String path : paths) {
 					Expand unzip = new Expand();
 					unzip.setProject(project);
 					unzip.setTaskName(taskName);
 					unzip.setDest(destDir);
-					unzip.setSrc(new File(paths[i]));
+					unzip.setSrc(new File(path));
 					unzip.addPatternset(patternSet);
 					unzip.execute();
 				}
@@ -1672,9 +1666,9 @@ public class AjcTask extends MatchingTask {
 				Copy copy = new Copy();
 				copy.setProject(project);
 				copy.setTodir(destDir);
-				for (int i = 0; i < paths.length; i++) {
+				for (String path : paths) {
 					FileSet fileSet = new FileSet();
-					fileSet.setDir(new File(paths[i]));
+					fileSet.setDir(new File(path));
 					fileSet.setIncludes("**/*");
 					fileSet.setExcludes(sourceRootCopyFilter);
 					copy.addFileset(fileSet);
@@ -1689,8 +1683,8 @@ public class AjcTask extends MatchingTask {
 				copy.setProject(project);
 				copy.setTodir(destDir);
 				boolean gotDir = false;
-				for (int i = 0; i < paths.length; i++) {
-					File inpathDir = new File(paths[i]);
+				for (String path : paths) {
+					File inpathDir = new File(path);
 					if (inpathDir.isDirectory() && inpathDir.canRead()) {
 						if (!gotDir) {
 							gotDir = true;
@@ -1731,8 +1725,8 @@ public class AjcTask extends MatchingTask {
 		if (copyInjars) {
 			String[] paths = injars.list();
 			if (!LangUtil.isEmpty(paths)) {
-				for (int i = 0; i < paths.length; i++) {
-					File jarFile = new File(paths[i]);
+				for (String path : paths) {
+					File jarFile = new File(path);
 					zipfileset = new ZipFileSet();
 					zipfileset.setProject(project);
 					zipfileset.setSrc(jarFile);
@@ -1745,8 +1739,8 @@ public class AjcTask extends MatchingTask {
 		if ((null != sourceRootCopyFilter) && (null != sourceRoots)) {
 			String[] paths = sourceRoots.list();
 			if (!LangUtil.isEmpty(paths)) {
-				for (int i = 0; i < paths.length; i++) {
-					File srcRoot = new File(paths[i]);
+				for (String path : paths) {
+					File srcRoot = new File(path);
 					FileSet fileset = new FileSet();
 					fileset.setProject(project);
 					fileset.setDir(srcRoot);
@@ -1759,8 +1753,8 @@ public class AjcTask extends MatchingTask {
 		if ((null != inpathDirCopyFilter) && (null != inpath)) {
 			String[] paths = inpath.list();
 			if (!LangUtil.isEmpty(paths)) {
-				for (int i = 0; i < paths.length; i++) {
-					File inpathDir = new File(paths[i]);
+				for (String path : paths) {
+					File inpathDir = new File(path);
 					if (inpathDir.isDirectory() && inpathDir.canRead()) {
 						FileSet fileset = new FileSet();
 						fileset.setProject(project);
@@ -1781,8 +1775,8 @@ public class AjcTask extends MatchingTask {
 	 * Add specified source files.
 	 */
 	void addFiles(File[] paths) {
-		for (int i = 0; i < paths.length; i++) {
-			addFile(paths[i]);
+		for (File path : paths) {
+			addFile(path);
 		}
 	}
 
@@ -1797,7 +1791,7 @@ public class AjcTask extends MatchingTask {
 
 	/**
 	 * Read arguments in as if from a command line, mainly to support compiler adapter compilerarg subelement.
-	 * 
+	 *
 	 * @param args the String[] of arguments to read
 	 */
 	public void readArguments(String[] args) { // XXX slow, stupid, unmaintainable
@@ -2010,8 +2004,8 @@ public class AjcTask extends MatchingTask {
 			if (isEmpty(input)) {
 				return null;
 			}
-			for (int i = 0; i < validOptions.length; i++) {
-				if (input.equals(validOptions[i])) {
+			for (String validOption : validOptions) {
+				if (input.equals(validOption)) {
 					if (isEmpty(prefix)) {
 						addFlag(input, true);
 					} else {
@@ -2038,7 +2032,7 @@ public class AjcTask extends MatchingTask {
 		// }
 
 		List extractArguments() {
-			ArrayList result = new ArrayList();
+			List result = new ArrayList();
 			String[] cmds = command.getArguments();
 			if (!LangUtil.isEmpty(cmds)) {
 				result.addAll(Arrays.asList(cmds));
@@ -2049,7 +2043,7 @@ public class AjcTask extends MatchingTask {
 		/**
 		 * Adjust args for size if necessary by creating an argument file, which should be deleted by the client after the compiler
 		 * run has completed.
-		 * 
+		 *
 		 * @param max the int maximum length of the command line (in char)
 		 * @return the temp File for the arguments (if generated), for deletion when done.
 		 * @throws IllegalArgumentException if max is negative
@@ -2074,8 +2068,8 @@ public class AjcTask extends MatchingTask {
 				File userDir = new File(userDirName);
 				tmpFile = File.createTempFile("argfile", "", userDir);
 				out = new PrintWriter(new FileWriter(tmpFile));
-				for (int i = 0; i < args.length; i++) {
-					out.println(args[i]);
+				for (String arg : args) {
+					out.println(arg);
 				}
 				out.flush();
 				return new String[] { "-argfile", tmpFile.getAbsolutePath() };
@@ -2106,7 +2100,7 @@ public class AjcTask extends MatchingTask {
 
 		/*
 		 * (non-Javadoc)
-		 * 
+		 *
 		 * @see org.aspectj.bridge.IMessageHandler#handleMessage(org.aspectj.bridge.IMessage)
 		 */
 		@Override
@@ -2141,7 +2135,7 @@ public class AjcTask extends MatchingTask {
 
 		/*
 		 * (non-Javadoc)
-		 * 
+		 *
 		 * @see org.aspectj.bridge.IMessageHandler#isIgnoring(org.aspectj.bridge.IMessage.Kind)
 		 */
 		@Override
@@ -2151,7 +2145,7 @@ public class AjcTask extends MatchingTask {
 
 		/*
 		 * (non-Javadoc)
-		 * 
+		 *
 		 * @see org.aspectj.bridge.IMessageHandler#dontIgnore(org.aspectj.bridge.IMessage.Kind)
 		 */
 		@Override
@@ -2160,7 +2154,7 @@ public class AjcTask extends MatchingTask {
 
 		/*
 		 * (non-Javadoc)
-		 * 
+		 *
 		 * @see org.aspectj.bridge.IMessageHandler#ignore(org.aspectj.bridge.IMessage.Kind)
 		 */
 		@Override

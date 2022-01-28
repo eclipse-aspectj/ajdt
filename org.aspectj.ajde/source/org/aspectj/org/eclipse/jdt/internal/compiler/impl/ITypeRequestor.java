@@ -23,7 +23,6 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.env.ISourceType;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BinaryModuleBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.PackageBinding;
-import org.aspectj.org.eclipse.jdt.internal.compiler.problem.AbortCompilation;
 
 public interface ITypeRequestor {
 
@@ -57,13 +56,9 @@ public interface ITypeRequestor {
 	 */
 	default void accept(IModule module, LookupEnvironment environment) {
 		if (module instanceof ISourceModule) {
-			try {
-				ICompilationUnit compilationUnit = ((ISourceModule) module).getCompilationUnit();
-				if (compilationUnit != null) {
-					accept(compilationUnit, null);
-				}
-			} catch (AbortCompilation abort) {
-				// silent
+			ICompilationUnit compilationUnit = ((ISourceModule) module).getCompilationUnit();
+			if (compilationUnit != null) {
+				accept(compilationUnit, null);
 			}
 		} else {
 			// handles IBinaryModule and IModule.AutoModule:

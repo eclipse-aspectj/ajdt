@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -33,24 +33,30 @@ public class UnaryExpression extends OperatorExpression {
 		this.bits |= operator << OperatorSHIFT; // encode operator
 	}
 
-@Override
-public FlowInfo analyseCode(
-		BlockScope currentScope,
-		FlowContext flowContext,
-		FlowInfo flowInfo) {
-	if (((this.bits & OperatorMASK) >> OperatorSHIFT) == NOT) {
-		flowContext.tagBits ^= FlowContext.INSIDE_NEGATION;
-		flowInfo = this.expression.
-			analyseCode(currentScope, flowContext, flowInfo).
-			asNegatedCondition();
-		flowContext.tagBits ^= FlowContext.INSIDE_NEGATION;
-	} else {
-		flowInfo = this.expression.
-			analyseCode(currentScope, flowContext, flowInfo);
+	@Override
+	public FlowInfo analyseCode(
+			BlockScope currentScope,
+			FlowContext flowContext,
+			FlowInfo flowInfo) {
+		if (((this.bits & OperatorMASK) >> OperatorSHIFT) == NOT) {
+			flowContext.tagBits ^= FlowContext.INSIDE_NEGATION;
+			flowInfo = this.expression.
+				analyseCode(currentScope, flowContext, flowInfo).
+				asNegatedCondition();
+			flowContext.tagBits ^= FlowContext.INSIDE_NEGATION;
+		} else {
+			flowInfo = this.expression.
+				analyseCode(currentScope, flowContext, flowInfo);
+		}
+		this.expression.checkNPE(currentScope, flowContext, flowInfo);
+		return flowInfo;
 	}
-	this.expression.checkNPE(currentScope, flowContext, flowInfo);
-	return flowInfo;
-}
+
+	@Override
+	protected void updateFlowOnBooleanResult(FlowInfo flowInfo, boolean result) {
+		if (((this.bits & OperatorMASK) >> OperatorSHIFT) == NOT)
+			this.expression.updateFlowOnBooleanResult(flowInfo, !result);
+	}
 
 	@Override
 	public Constant optimizedBooleanConstant() {
@@ -218,7 +224,24 @@ public FlowInfo analyseCode(
 		output.append(operatorToString()).append(' ');
 		return this.expression.printExpression(0, output);
 	}
+	@Override
+	public void collectPatternVariablesToScope(LocalVariableBinding[] variables, BlockScope scope) {
+		this.expression.collectPatternVariablesToScope(variables, scope);
+		if (((this.bits & OperatorMASK) >> OperatorSHIFT) == NOT) {
+			variables = this.expression.getPatternVariablesWhenTrue();
+			if (variables != null)
+				this.addPatternVariablesWhenFalse(variables);
 
+			variables = this.expression.getPatternVariablesWhenFalse();
+			if (variables != null)
+				this.addPatternVariablesWhenTrue(variables);
+		} else {
+			variables = this.expression.getPatternVariablesWhenTrue();
+			this.addPatternVariablesWhenTrue(variables);
+			variables = this.expression.getPatternVariablesWhenFalse();
+			this.addPatternVariablesWhenFalse(variables);
+		}
+	}
 	@Override
 	public TypeBinding resolveType(BlockScope scope) {
 		boolean expressionIsCast;
@@ -309,6 +332,14 @@ public FlowInfo analyseCode(
 			CastExpression.checkNeedForArgumentCast(scope, tableId, operatorSignature, this.expression, expressionTypeID);
 		}
 		return this.resolvedType;
+	}
+	@Override
+	public boolean containsPatternVariable() {
+		return this.expression.containsPatternVariable();
+	}
+	@Override
+	public LocalDeclaration getPatternVariableIntroduced() {
+		return this.expression.getPatternVariableIntroduced();
 	}
 
 	@Override

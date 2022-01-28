@@ -22,7 +22,7 @@ import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
  * Implementation of 18.1.1 in JLS8
  */
 public class InferenceVariable extends TypeVariableBinding {
-	
+
 	/** Structured key for interning. */
 	static class InferenceVarKey {
 		/*@NonNull*/ TypeBinding typeParameter;
@@ -58,14 +58,14 @@ public class InferenceVariable extends TypeVariableBinding {
 			if (TypeBinding.notEquals(this.typeParameter, other.typeParameter))
 				return false;
 			return true;
-		}	
+		}
 	}
 
 	/**
 	 * Create or retrieve the inference variable representing the given typeParameter.
 	 * Inference variables are interned to avoid duplication due to lambda copying.
 	 */
-	public static InferenceVariable get(TypeBinding typeParameter, int rank, InvocationSite site, Scope scope, ReferenceBinding object) {
+	public static InferenceVariable get(TypeBinding typeParameter, int rank, InvocationSite site, Scope scope, ReferenceBinding object, boolean initial) {
 		Map<InferenceVarKey, InferenceVariable> uniqueInferenceVariables = scope.compilationUnitScope().uniqueInferenceVariables;
 		InferenceVariable var = null;
 		InferenceVarKey key = null;
@@ -75,7 +75,7 @@ public class InferenceVariable extends TypeVariableBinding {
 		}
 		if (var == null) {
 			int newVarId = uniqueInferenceVariables.size();
-			var = new InferenceVariable(typeParameter, rank, newVarId, site, scope.environment(), object);
+			var = new InferenceVariable(typeParameter, rank, newVarId, site, scope.environment(), object, initial);
 			if (key != null)
 				uniqueInferenceVariables.put(key, var);
 		}
@@ -88,10 +88,13 @@ public class InferenceVariable extends TypeVariableBinding {
 	long nullHints; // one of TagBits.{AnnotationNonNull,AnnotationNullable} may steer inference into inferring nullness as well; set both bits to request avoidance.
 	private InferenceVariable prototype;
 	int varId; // this is used for constructing a source name like T#0.
-	
-	private InferenceVariable(TypeBinding typeParameter, int parameterRank, int iVarId, InvocationSite site, LookupEnvironment environment, ReferenceBinding object) {
+	public boolean isFromInitialSubstitution; 	// further ivars created during 18.5.2 (for capture bounds) set this to false
+												// to mark that they don't participate in any theta substitution
+
+	private InferenceVariable(TypeBinding typeParameter, int parameterRank, int iVarId, InvocationSite site, LookupEnvironment environment, ReferenceBinding object, boolean initial) {
 		this(typeParameter, parameterRank, site, makeName(typeParameter, iVarId), environment, object);
 		this.varId = iVarId;
+		this.isFromInitialSubstitution = initial;
 	}
 	private static char[] makeName(TypeBinding typeParameter, int iVarId) {
 		if (typeParameter.getClass() == TypeVariableBinding.class) {
@@ -126,6 +129,7 @@ public class InferenceVariable extends TypeVariableBinding {
 		clone.tagBits = this.tagBits;
 		clone.nullHints = this.nullHints;
 		clone.varId = this.varId;
+		clone.isFromInitialSubstitution = this.isFromInitialSubstitution;
 		clone.prototype = this;
 		return clone;
 	}
@@ -194,17 +198,17 @@ public class InferenceVariable extends TypeVariableBinding {
 	public boolean hasTypeBit(int bit) {
 		throw new UnsupportedOperationException();
 	}
-	
+
 	@Override
 	public String debugName() {
 		return String.valueOf(this.sourceName);
 	}
-	
+
 	@Override
 	public String toString() {
 		return debugName();
 	}
-	
+
 	@Override
 	public int hashCode() {
 		int code = this.typeParameter.hashCode() + 17 * this.rank;

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Google, Inc. and others.
+ * Copyright (c) 2016, 2020 Google, Inc. and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -7,7 +7,7 @@
  * https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- * 
+ *
  * Contributors:
  *     Stefan Xenos <sxenos@gmail.com> (Google) - initial API and implementation
  *******************************************************************************/
@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -26,6 +27,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryMethod;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryNestedType;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryType;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryTypeAnnotation;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.IRecordComponent;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.ITypeAnnotationWalker;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BinaryTypeBinding.ExternalAnnotationStatus;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment;
@@ -95,6 +97,11 @@ public class ExternalAnnotationDecorator implements IBinaryType {
 	}
 
 	@Override
+	public IRecordComponent[] getRecordComponents() {
+		return this.inputType.getRecordComponents();
+	}
+
+	@Override
 	public char[] getGenericSignature() {
 		return this.inputType.getGenericSignature();
 	}
@@ -147,6 +154,10 @@ public class ExternalAnnotationDecorator implements IBinaryType {
 	@Override
 	public boolean isLocal() {
 		return this.inputType.isLocal();
+	}
+	@Override
+	public boolean isRecord() {
+		return this.inputType.isRecord();
 	}
 
 	@Override
@@ -225,7 +236,9 @@ public class ExternalAnnotationDecorator implements IBinaryType {
 		} else {
 			ZipEntry entry = zipFile.getEntry(qualifiedBinaryFileName);
 			if (entry != null) {
-				return new ExternalAnnotationProvider(zipFile.getInputStream(entry), qualifiedBinaryTypeName);
+				try(InputStream is = zipFile.getInputStream(entry)) {
+					return new ExternalAnnotationProvider(is, qualifiedBinaryTypeName);
+				}
 			}
 		}
 		return null;
@@ -236,7 +249,7 @@ public class ExternalAnnotationDecorator implements IBinaryType {
 	 * annotations is associated. This provider is constructed using the given basePath, which is either a directory
 	 * holding .eea text files, or a zip file of entries of the same format. If no such provider could be constructed,
 	 * then the original binary type is returned unchanged.
-	 * 
+	 *
 	 * @param toDecorate
 	 *            the binary type to wrap, if needed
 	 * @param basePath
@@ -295,4 +308,5 @@ public class ExternalAnnotationDecorator implements IBinaryType {
 		}
 		return ExternalAnnotationStatus.TYPE_IS_ANNOTATED;
 	}
+
 }

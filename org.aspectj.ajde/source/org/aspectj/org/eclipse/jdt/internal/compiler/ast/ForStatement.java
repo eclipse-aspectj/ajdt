@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -10,7 +10,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Stephan Herrmann - Contributions for 
+ *     Stephan Herrmann - Contributions for
  *     							bug 319201 - [null] no warning when unboxing SingleNameReference causes NPE
  *     							bug 349326 - [1.7] new warning for missing try-with-resources
  *								bug 345305 - [compiler][null] Compiler misidentifies a case of "variable can only be null"
@@ -21,10 +21,16 @@ package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
 import org.aspectj.org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
-import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.*;
-import org.aspectj.org.eclipse.jdt.internal.compiler.flow.*;
+import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.BranchLabel;
+import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.CodeStream;
+import org.aspectj.org.eclipse.jdt.internal.compiler.flow.FlowContext;
+import org.aspectj.org.eclipse.jdt.internal.compiler.flow.FlowInfo;
+import org.aspectj.org.eclipse.jdt.internal.compiler.flow.LoopingFlowContext;
+import org.aspectj.org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.Constant;
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.*;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BlockScope;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 
 public class ForStatement extends Statement {
 
@@ -89,7 +95,7 @@ public class ForStatement extends Statement {
 		cst = this.condition == null ? null : this.condition.optimizedBooleanConstant();
 		boolean isConditionOptimizedTrue = cst == null ||  (cst != Constant.NotAConstant && cst.booleanValue() == true);
 		boolean isConditionOptimizedFalse = cst != null && (cst != Constant.NotAConstant && cst.booleanValue() == false);
-		
+
 		// process the condition
 		LoopingFlowContext condLoopContext = null;
 		FlowInfo condInfo = flowInfo.nullInfoLessUnconditionalCopy();
@@ -148,6 +154,8 @@ public class ForStatement extends Statement {
 					}
 				}
 			if (this.action.complainIfUnreachable(actionInfo, this.scope, initialComplaintLevel, true) < Statement.COMPLAINED_UNREACHABLE) {
+				if (this.condition != null)
+					this.condition.updateFlowOnBooleanResult(actionInfo, true);
 				actionInfo = this.action.analyseCode(this.scope, loopingContext, actionInfo).unconditionalInits();
 			}
 
@@ -237,9 +245,11 @@ public class ForStatement extends Statement {
 			}
 		}
 		this.mergedInitStateIndex = currentScope.methodScope().recordInitializationStates(mergedInfo);
+		this.scope.checkUnclosedCloseables(mergedInfo, loopingContext, null, null);
+		if (this.condition != null)
+			this.condition.updateFlowOnBooleanResult(mergedInfo, false);
 		return mergedInfo;
 	}
-
 	/**
 	 * For statement code generation
 	 *
@@ -259,6 +269,9 @@ public class ForStatement extends Statement {
 			for (int i = 0, max = this.initializations.length; i < max; i++) {
 				this.initializations[i].generateCode(this.scope, codeStream);
 			}
+		}
+		if (containsPatternVariable()) {
+			this.condition.addPatternVariables(currentScope, codeStream);
 		}
 		Constant cst = this.condition == null ? null : this.condition.optimizedBooleanConstant();
 		boolean isConditionOptimizedFalse = cst != null && (cst != Constant.NotAConstant && cst.booleanValue() == false);
@@ -327,6 +340,7 @@ public class ForStatement extends Statement {
 				}
 			}
 			// May loose some local variable initializations : affecting the local variable attributes
+			// This is causing PatternMatching14Test.test039() to fail
 			if (this.preCondInitStateIndex != -1) {
 				codeStream.removeNotDefinitelyAssignedVariables(currentScope, this.preCondInitStateIndex);
 			}
@@ -394,7 +408,14 @@ public class ForStatement extends Statement {
 
 	@Override
 	public void resolve(BlockScope upperScope) {
+		LocalVariableBinding[] patternVariablesInTrueScope = null;
+		LocalVariableBinding[] patternVariablesInFalseScope = null;
 
+		if (containsPatternVariable()) {
+			this.condition.collectPatternVariablesToScope(null, upperScope);
+			patternVariablesInTrueScope = this.condition.getPatternVariablesWhenTrue();
+			patternVariablesInFalseScope = this.condition.getPatternVariablesWhenFalse();
+		}
 		// use the scope that will hold the init declarations
 		this.scope = (this.bits & ASTNode.NeededScope) != 0 ? new BlockScope(upperScope) : upperScope;
 		if (this.initializations != null)
@@ -405,10 +426,20 @@ public class ForStatement extends Statement {
 			this.condition.computeConversion(this.scope, type, type);
 		}
 		if (this.increments != null)
-			for (int i = 0, length = this.increments.length; i < length; i++)
-				this.increments[i].resolve(this.scope);
-		if (this.action != null)
-			this.action.resolve(this.scope);
+			for (int i = 0, length = this.increments.length; i < length; i++) {
+				this.increments[i].resolveWithPatternVariablesInScope(patternVariablesInTrueScope, this.scope);
+			}
+
+		if (this.action != null) {
+			this.action.resolveWithPatternVariablesInScope(patternVariablesInTrueScope, this.scope);
+			this.action.promotePatternVariablesIfApplicable(patternVariablesInFalseScope,
+					() -> !this.action.breaksOut(null));
+		}
+	}
+
+	@Override
+	public boolean containsPatternVariable() {
+		return this.condition != null && this.condition.containsPatternVariable();
 	}
 
 	@Override
@@ -444,12 +475,31 @@ public class ForStatement extends Statement {
 		boolean isConditionTrue = cst == null || cst != Constant.NotAConstant && cst.booleanValue() == true;
 		cst = this.condition == null ? null : this.condition.optimizedBooleanConstant();
 		boolean isConditionOptimizedTrue = cst == null ? true : cst != Constant.NotAConstant && cst.booleanValue() == true;
-		
+
 		return (isConditionTrue || isConditionOptimizedTrue) && (this.action == null || !this.action.breaksOut(null));
 	}
-	
+
 	@Override
 	public boolean completesByContinue() {
 		return this.action.continuesAtOuterLabel();
 	}
+	@Override
+	public boolean canCompleteNormally() {
+		Constant cst = this.condition == null ? null : this.condition.constant;
+		boolean isConditionTrue = cst == null || cst != Constant.NotAConstant && cst.booleanValue() == true;
+		cst = this.condition == null ? null : this.condition.optimizedBooleanConstant();
+		boolean isConditionOptimizedTrue = cst == null ? true : cst != Constant.NotAConstant && cst.booleanValue() == true;
+
+		if (!(isConditionTrue || isConditionOptimizedTrue))
+			return true;
+		if (this.action != null && this.action.breaksOut(null))
+			return true;
+		return false;
+	}
+
+	@Override
+	public boolean continueCompletes() {
+		return this.action.continuesAtOuterLabel();
+	}
+
 }

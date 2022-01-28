@@ -1,19 +1,19 @@
 /* *******************************************************************
  * Copyright (c) 2005 Contributors.
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://eclipse.org/legal/epl-v10.html 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution, and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
  *  
  * Contributors: 
  *   Adrian Colyer			Initial implementation
  * ******************************************************************/
 package org.aspectj.ajdt.internal.compiler.lookup;
 
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.FieldBinding;
-//import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ParameterizedFieldBinding;
+import org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
+import org.eclipse.jdt.internal.compiler.lookup.FieldBinding;
+//import org.eclipse.jdt.internal.compiler.lookup.ParameterizedFieldBinding;
 
 /**
  * Many routines in the JDT compiler use fieldBinding.declaringClass to get

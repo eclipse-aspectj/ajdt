@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2004, 2014 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Luzius Meisser - initial implementation
  *     Andrew Eisenberg - changes for AJDT 2.0
@@ -36,10 +36,10 @@ import org.eclipse.jdt.internal.core.NamedMember;
 import org.eclipse.jdt.internal.core.SourceAnnotationMethodInfo;
 import org.eclipse.jdt.internal.core.SourceMethodInfo;
 import org.eclipse.jdt.internal.core.util.Util;
- 
+
 /**
  * Most code copied from org.eclipse.jdt.internal.core.SourceMethod
- * 
+ *
  * @author Luzius Meisser
  */
 public class AspectJMemberElement extends NamedMember implements IMethod, IAspectJElement{
@@ -51,9 +51,9 @@ public class AspectJMemberElement extends NamedMember implements IMethod, IAspec
 			fParameterTypes= fgEmptyList;
 		} else {
 			fParameterTypes= parameterTypes;
-		} 
+		}
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.jdt.core.IJavaElement#getElementType()
 	 */
@@ -172,13 +172,19 @@ public String[] getTypeParameterSignatures() throws JavaModelException {
 /*
  * @see JavaElement#getPrimaryElement(boolean)
  */
-public IJavaElement getPrimaryElement(boolean checkOwner) {
+public JavaElement getPrimaryElement(boolean checkOwner) {
 	if (checkOwner) {
 		CompilationUnit cu = (CompilationUnit)getAncestor(COMPILATION_UNIT);
 		if (cu.isPrimary()) return this;
 	}
-	IJavaElement primaryParent = this.parent.getPrimaryElement(false);
-	return ((IType)primaryParent).getMethod(this.name, fParameterTypes);
+	return this.getParent().getPrimaryElement(false);
+  // FIXME:
+  //   Parent method now returns JavaElement, no longer IJavaElement. Therefore, we cannot simply return an IMethod
+  //   due to type incompatibility. I have no idea why it was (is?) necessary to call 'getMethod' on the primary parent,
+  //   but clearly now we are returning something different. Maybe this breaks something, but for now at least it
+  //   compiles.
+//	IJavaElement primaryParent = this.getParent().getPrimaryElement(false);
+//	return ((IType)primaryParent).getMethod(this.name, fParameterTypes);
 }
 /**
  * @see IMethod
@@ -236,7 +242,7 @@ public boolean isResolved() {
  * @see IMethod#isSimilar(IMethod)
  */
 public boolean isSimilar(IMethod method) {
-	return 
+	return
 		AspectJMemberElement.areSimilarMethods(
 			this.getElementName(), this.getParameterTypes(),
 			method.getElementName(), method.getParameterTypes(),
@@ -357,7 +363,7 @@ public String retrieveSignatureFromSource() throws JavaModelException {
             }
             // compress the sig into 1 line
             return sig.replaceAll("\\s+", " ");
-        } 
+        }
     }
     return this.getSource();
 }
@@ -370,7 +376,7 @@ public String retrieveSignatureFromSource() throws JavaModelException {
     public void setStartLocation(int startLocation) {
         this.startLocation = startLocation;
     }
-    
+
     /**
      * @see ISourceReference
      */
@@ -387,7 +393,7 @@ public String retrieveSignatureFromSource() throws JavaModelException {
 
     public ISourceRange getNameRange() throws JavaModelException {
         if (isInSource()) {
-            return super.getNameRange(); 
+            return super.getNameRange();
         } else {
             AspectJMemberElementInfo info = (AspectJMemberElementInfo) getElementInfo();
             int start = startLocation;
@@ -396,12 +402,12 @@ public String retrieveSignatureFromSource() throws JavaModelException {
     }
 
     /*
-     * FIXADE Empty implementation now.  Determine if we need to do something real here 
+     * FIXADE Empty implementation now.  Determine if we need to do something real here
      */
     public ILocalVariable[] getParameters() throws JavaModelException {
         return new ILocalVariable[0];
     }
-    
+
     public boolean isLambdaMethod() {
          return false;
     }

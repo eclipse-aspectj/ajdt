@@ -59,7 +59,7 @@ class CodeSnippetToCuMapper implements EvaluationConstants {
 	// Mapping of external local variables
 	char[][] localVarNames;
 	char[][] localVarTypeNames;
-	
+
 	long complianceVersion;
 
 /**
@@ -89,7 +89,7 @@ class CodeSnippetToCuMapper implements EvaluationConstants {
 	buildCUSource(lineSeparator);
 }
 private void buildCUSource(String lineSeparator) {
-	StringBuffer buffer = new StringBuffer();
+	StringBuilder buffer = new StringBuilder();
 
 	// package declaration
 	if (this.snippetPackageName != null && this.snippetPackageName.length != 0) {

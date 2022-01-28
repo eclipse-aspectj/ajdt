@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -72,7 +72,7 @@ public class CaptureBinding extends TypeVariableBinding {
 			}
 		}
 	}
-	
+
 	// for subclass CaptureBinding18
 	protected CaptureBinding(ReferenceBinding sourceType, char[] sourceName, int start, int end, int captureID, LookupEnvironment environment) {
 		super(sourceName, null, 0, environment);
@@ -94,7 +94,7 @@ public class CaptureBinding extends TypeVariableBinding {
 		this.tagBits |= (prototype.tagBits & TagBits.HasCapturedWildcard);
 		this.cud = prototype.cud;
 	}
-	
+
 	// Captures may get cloned and annotated during type inference.
 	@Override
 	public TypeBinding clone(TypeBinding enclosingType) {
@@ -108,7 +108,7 @@ public class CaptureBinding extends TypeVariableBinding {
 	 */
 	@Override
 	public char[] computeUniqueKey(boolean isLeaf) {
-		StringBuffer buffer = new StringBuffer();
+		StringBuilder buffer = new StringBuilder();
 		if (isLeaf) {
 			buffer.append(this.sourceType.computeUniqueKey(false/*not a leaf*/));
 			buffer.append('&');
@@ -127,7 +127,7 @@ public class CaptureBinding extends TypeVariableBinding {
 	public String debugName() {
 
 		if (this.wildcard != null) {
-			StringBuffer buffer = new StringBuffer(10);
+			StringBuilder buffer = new StringBuilder(10);
 			AnnotationBinding [] annotations = getTypeAnnotations();
 			for (int i = 0, length = annotations == null ? 0 : annotations.length; i < length; i++) {
 				buffer.append(annotations[i]);
@@ -384,7 +384,7 @@ public class CaptureBinding extends TypeVariableBinding {
 	@Override
 	public char[] readableName() {
 		if (this.wildcard != null) {
-			StringBuffer buffer = new StringBuffer(10);
+			StringBuilder buffer = new StringBuilder(10);
 			buffer
 				.append(TypeConstants.WILDCARD_CAPTURE_NAME_PREFIX)
 				.append(this.captureID)
@@ -397,11 +397,11 @@ public class CaptureBinding extends TypeVariableBinding {
 		}
 		return super.readableName();
 	}
-	
+
 	@Override
 	public char[] signableName() {
 		if (this.wildcard != null) {
-			StringBuffer buffer = new StringBuffer(10);
+			StringBuilder buffer = new StringBuilder(10);
 			buffer
 				.append(TypeConstants.WILDCARD_CAPTURE_SIGNABLE_NAME_SUFFIX)
 				.append(this.wildcard.readableName());
@@ -416,7 +416,7 @@ public class CaptureBinding extends TypeVariableBinding {
 	@Override
 	public char[] shortReadableName() {
 		if (this.wildcard != null) {
-			StringBuffer buffer = new StringBuffer(10);
+			StringBuilder buffer = new StringBuilder(10);
 			buffer
 				.append(TypeConstants.WILDCARD_CAPTURE_NAME_PREFIX)
 				.append(this.captureID)
@@ -429,7 +429,7 @@ public class CaptureBinding extends TypeVariableBinding {
 		}
 		return super.shortReadableName();
 	}
-	
+
 	@Override
 	public char[] nullAnnotatedReadableName(CompilerOptions options, boolean shortNames) {
 	    StringBuffer nameBuffer = new StringBuffer(10);
@@ -467,13 +467,13 @@ public class CaptureBinding extends TypeVariableBinding {
 			return this;
 		if (this.wildcard != null && this.wildcard.hasNullTypeAnnotations()) {
 			WildcardBinding newWildcard = (WildcardBinding) this.wildcard.withoutToplevelNullAnnotation();
-			if (newWildcard != this.wildcard) { //$IDENTITY-COMPARISON$	
-				
+			if (newWildcard != this.wildcard) { //$IDENTITY-COMPARISON$
+
 				CaptureBinding newCapture = (CaptureBinding) this.environment.getUnannotatedType(this).clone(null);
 				if (newWildcard.hasTypeAnnotations())
 					newCapture.tagBits |= TagBits.HasTypeAnnotations;
 				newCapture.wildcard = newWildcard;
-				
+
 				// manually transfer the following two, because we are not in a context where we can call initializeBounds():
 				newCapture.superclass = this.superclass;
 				newCapture.superInterfaces = this.superInterfaces;
@@ -514,7 +514,7 @@ public class CaptureBinding extends TypeVariableBinding {
 			this.pendingSubstitute = null;
 		}
 	}
-	
+
 	@Override
 	public void setTypeAnnotations(AnnotationBinding[] annotations, boolean evalNullAnnotations) {
 		super.setTypeAnnotations(annotations, evalNullAnnotations);
@@ -526,7 +526,7 @@ public class CaptureBinding extends TypeVariableBinding {
 
 	@Override
 	public TypeBinding uncapture(Scope scope) {
-		return this.wildcard;
+		return this.wildcard.uncapture(scope);
 	}
 
 	@Override
@@ -569,7 +569,7 @@ public class CaptureBinding extends TypeVariableBinding {
 	@Override
 	public String toString() {
 		if (this.wildcard != null) {
-			StringBuffer buffer = new StringBuffer(10);
+			StringBuilder buffer = new StringBuilder(10);
 			AnnotationBinding [] annotations = getTypeAnnotations();
 			for (int i = 0, length = annotations == null ? 0 : annotations.length; i < length; i++) {
 				buffer.append(annotations[i]);
@@ -584,4 +584,20 @@ public class CaptureBinding extends TypeVariableBinding {
 		}
 		return super.toString();
 	}
+
+
+	@Override
+	public char[] signature() /* Ljava/lang/Object; */ {
+		if (this.signature != null)
+			return this.signature;
+
+		if (this.firstBound instanceof ArrayBinding) {
+			this.signature = constantPoolName();
+		} else {
+			this.signature = CharOperation.concat('L', constantPoolName(), ';');
+		}
+		return this.signature;
+
+	}
+
 }

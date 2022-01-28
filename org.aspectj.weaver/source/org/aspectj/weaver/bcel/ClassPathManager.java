@@ -1,12 +1,12 @@
 /* *******************************************************************
  * Copyright (c) 2002, 2017 Contributors
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
  * Palo Alto Research Center, Incorporated (PARC).
  * ******************************************************************/
 package org.aspectj.weaver.bcel;
@@ -17,7 +17,10 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
@@ -53,9 +56,9 @@ public class ClassPathManager {
 	private static Trace trace = TraceFactory.getTraceFactory().getTrace(ClassPathManager.class);
 
 	private static int maxOpenArchives = -1;
-	
+
 	private static URI JRT_URI = URI.create("jrt:/"); //$NON-NLS-1$
-	
+
 	private static final int MAXOPEN_DEFAULT = 1000;
 
 	private List<Entry> entries;
@@ -64,7 +67,7 @@ public class ClassPathManager {
 	// The max number is configured through the property:
 	// org.aspectj.weaver.openarchives
 	// and it defaults to 1000
-	private List<ZipFile> openArchives = new ArrayList<ZipFile>();
+	private List<ZipFile> openArchives = new ArrayList<>();
 
 	static {
 		String openzipsString = getSystemPropertyWithoutSecurityException("org.aspectj.weaver.openarchives",
@@ -79,7 +82,7 @@ public class ClassPathManager {
 		if (trace.isTraceEnabled()) {
 			trace.enter("<init>", this, new Object[] { classpath==null?"null":classpath.toString(), handler });
 		}
-		entries = new ArrayList<Entry>();
+		entries = new ArrayList<>();
 		for (String classpathEntry: classpath) {
 			addPath(classpathEntry,handler);
 		}
@@ -93,10 +96,9 @@ public class ClassPathManager {
 
 	public void addPath(String name, IMessageHandler handler) {
 		File f = new File(name);
-		String lc = name.toLowerCase();
 		if (!f.isDirectory()) {
 			if (!f.isFile()) {
-				if (!lc.endsWith(".jar") || lc.endsWith(".zip")) {
+				if (!name.toLowerCase().endsWith(".jar") || name.toLowerCase().endsWith(".zip")) {
 					// heuristic-only: ending with .jar or .zip means probably a zip file
 					MessageUtil.info(handler, WeaverMessages.format(WeaverMessages.ZIPFILE_ENTRY_MISSING, name));
 				} else {
@@ -105,10 +107,8 @@ public class ClassPathManager {
 				return;
 			}
 			try {
-				if (lc.endsWith(LangUtil.JRT_FS)) { // Java9
-					if (LangUtil.is19VMOrGreater()) {
-						entries.add(new JImageEntry());
-					}
+				if (name.toLowerCase().endsWith(LangUtil.JRT_FS)) { // Java9+
+					entries.add(new JImageEntry(name));
 				} else {
 					entries.add(new ZipFileEntry(f));
 				}
@@ -156,15 +156,15 @@ public class ClassPathManager {
 
 	@Override
 	public String toString() {
-		StringBuffer buf = new StringBuffer();
+		StringBuilder buf = new StringBuilder();
 		boolean start = true;
-		for (Iterator<Entry> i = entries.iterator(); i.hasNext();) {
+		for (Entry entry : entries) {
 			if (start) {
 				start = false;
 			} else {
 				buf.append(File.pathSeparator);
 			}
-			buf.append(i.next());
+			buf.append(entry);
 		}
 		return buf.toString();
 	}
@@ -178,18 +178,18 @@ public class ClassPathManager {
 	abstract static class Entry {
 		public abstract ClassFile find(String name) throws IOException;
 	}
-	
+
 	static class ByteBasedClassFile extends ClassFile {
 
 		private byte[] bytes;
 		private ByteArrayInputStream bais;
 		private String path;
-		
+
 		public ByteBasedClassFile(byte[] bytes, String path) {
-			this.bytes = bytes;			
+			this.bytes = bytes;
 			this.path = path;
 		}
-		
+
 		@Override
 		public InputStream getInputStream() throws IOException {
 			this.bais = new ByteArrayInputStream(bytes);
@@ -211,7 +211,7 @@ public class ClassPathManager {
 				this.bais = null;
 			}
 		}
-		
+
 	}
 
 	static class FileClassFile extends ClassFile {
@@ -306,7 +306,7 @@ public class ClassPathManager {
 		}
 
 	}
-	
+
 	/**
 	 * Maintains a shared package cache for java runtime image. This maps packages (for example:
 	 * java/lang) to a starting root position in the filesystem (for example: /modules/java.base/java/lang).
@@ -316,26 +316,61 @@ public class ClassPathManager {
 	 * helps reduce memory usage but still gives reasonably fast lookup performance.
 	 */
 	static class JImageEntry extends Entry {
-		
-		private static FileSystem fs = null;
-		
-		private final static Map<String, Path> fileCache = new SoftHashMap<String, Path>();
 
-		private final static Map<String, Path> packageCache = new HashMap<String, Path>();
-		
-		private static boolean packageCacheInitialized = false;
+		// Map from a JRT-FS file to the cache state for that file
+		private static Map<String, JImageState> states = new HashMap<>();
 
-		public JImageEntry() {
-			if (fs == null) {
-				try {
-					fs = FileSystems.getFileSystem(JRT_URI);
-				} catch (Throwable t) {
-					throw new IllegalStateException("Unexpectedly unable to initialize a JRT filesystem", t);
+		private JImageState state;
+
+		// TODO memory management here - is it held onto too long when LTW?
+		static class JImageState {
+			private final String jrtFsPath;
+			private final FileSystem fs;
+			Map<String,Path> fileCache = new SoftHashMap<>();
+			boolean packageCacheInitialized = false;
+			Map<String,Path> packageCache = new HashMap<>();
+
+			public JImageState(String jrtFsPath, FileSystem fs) {
+				this.jrtFsPath = jrtFsPath;
+				this.fs = fs;
+			}
+		}
+
+		public JImageEntry(String jrtFsPath) {
+			state = states.get(jrtFsPath);
+			if (state == null) {
+				synchronized (states) {
+					if (state == null) {
+						URL jrtPath = null;
+						try {
+							jrtPath = new File(jrtFsPath).toPath().toUri().toURL();
+						} catch (MalformedURLException e) {
+							System.out.println("Unexpected problem processing "+jrtFsPath+" bad classpath entry? skipping:"+e.getMessage());
+							return;
+						}
+						String jdkHome = new File(jrtFsPath).getParentFile().getParent();
+						FileSystem fs = null;
+						try {
+							if (LangUtil.is9VMOrGreater()) {
+								Map<String, String> env = new HashMap<>();
+								env.put("java.home",  jdkHome);
+								fs = FileSystems.newFileSystem(JRT_URI, env);
+							} else {
+								URLClassLoader loader = new URLClassLoader(new URL[] { jrtPath });
+								Map<String, ?> env = new HashMap<>();
+								fs = FileSystems.newFileSystem(JRT_URI, env, loader);
+							}
+							state = new JImageState(jrtFsPath, fs);
+							states.put(jrtFsPath, state);
+							buildPackageMap();
+						} catch (Throwable t) {
+							throw new IllegalStateException("Unexpectedly unable to initialize a JRT filesystem", t);
+						}
+					}
 				}
 			}
-			buildPackageMap();
 		}
-		
+
 		class PackageCacheBuilderVisitor extends SimpleFileVisitor<Path> {
 			@Override
 			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
@@ -344,20 +379,20 @@ public class ClassPathManager {
 					if (fnc > 3) { // There is a package name - e.g. /modules/java.base/java/lang/Object.class
 						Path packagePath = file.subpath(2, fnc-1); // e.g. java/lang
 						String packagePathString = packagePath.toString();
-						packageCache.put(packagePathString, file.subpath(0, fnc-1)); // java/lang -> /modules/java.base/java/lang
+						state.packageCache.put(packagePathString, file.subpath(0, fnc-1)); // java/lang -> /modules/java.base/java/lang
 					}
 				}
 				return FileVisitResult.CONTINUE;
 			}
 		}
-		
+
 		/**
 		 * Create a map from package names to the specific directory of the package members in the filesystem.
 		 */
 		private synchronized void buildPackageMap() {
-			if (!packageCacheInitialized) {
-				packageCacheInitialized = true;
-				Iterable<java.nio.file.Path> roots = fs.getRootDirectories();
+			if (!state.packageCacheInitialized) {
+				state.packageCacheInitialized = true;
+				Iterable<java.nio.file.Path> roots = state.fs.getRootDirectories();
 				PackageCacheBuilderVisitor visitor = new PackageCacheBuilderVisitor();
 				try {
 					for (java.nio.file.Path path : roots) {
@@ -368,15 +403,15 @@ public class ClassPathManager {
 				}
 			}
 		}
-		
+
 		class TypeIdentifier extends SimpleFileVisitor<Path> {
-			
+
 			// What are we looking for?
 			private String name;
-			
+
 			// If set, where did we find it?
 			public Path found;
-			
+
 			// Basic metric count of how many files we checked before finding it
 			public int filesSearchedCount;
 
@@ -392,7 +427,7 @@ public class ClassPathManager {
 					Path filePath = file.subpath(2, fnc);
 					String filePathString = filePath.toString();
 					if (filePathString.equals(name)) {
-						fileCache.put(filePathString, file);
+						state.fileCache.put(filePathString, file);
 						found = file;
 						return FileVisitResult.TERMINATE;
 					}
@@ -400,7 +435,7 @@ public class ClassPathManager {
 				return FileVisitResult.CONTINUE;
 			}
 		}
-		
+
 		private Path searchForFileAndCache(final Path startPath, final String name) {
 			TypeIdentifier locator = new TypeIdentifier(name);
 			try {
@@ -414,7 +449,7 @@ public class ClassPathManager {
 		@Override
 		public ClassFile find(String name) throws IOException {
 			String fileName = name.replace('.', '/') + ".class";
-			Path file = fileCache.get(fileName);
+			Path file = state.fileCache.get(fileName);
 			if (file == null) {
 				// Check the packages map to see if we know about this package
 				int idx = fileName.lastIndexOf('/');
@@ -426,7 +461,7 @@ public class ClassPathManager {
 				String packageName = null;
 				if (idx !=-1 ) {
 					packageName = fileName.substring(0, idx);
-					packageStart = packageCache.get(packageName);
+					packageStart = state.packageCache.get(packageName);
 					if (packageStart != null) {
 						file = searchForFileAndCache(packageStart, fileName);
 					}
@@ -440,12 +475,12 @@ public class ClassPathManager {
 			return cf;
 		}
 
-		static Map<String, Path> getPackageCache() {
-			return packageCache;
+		Map<String, Path> getPackageCache() {
+			return state.packageCache;
 		}
-		
-		static Map<String, Path> getFileCache() {
-			return fileCache;
+
+		Map<String, Path> getFileCache() {
+			return state.fileCache;
 		}
 
 	}
@@ -479,7 +514,7 @@ public class ClassPathManager {
 
 		public List<ZipEntryClassFile> getAllClassFiles() throws IOException {
 			ensureOpen();
-			List<ZipEntryClassFile> ret = new ArrayList<ZipEntryClassFile>();
+			List<ZipEntryClassFile> ret = new ArrayList<>();
 			for (Enumeration<? extends ZipEntry> e = zipFile.entries(); e.hasMoreElements();) {
 				ZipEntry entry = e.nextElement();
 				String name = entry.getName();
@@ -571,7 +606,7 @@ public class ClassPathManager {
 			return aDefaultValue;
 		}
 	}
-	
+
 	// Mainly exposed for testing
 	public List<Entry> getEntries() {
 		return entries;

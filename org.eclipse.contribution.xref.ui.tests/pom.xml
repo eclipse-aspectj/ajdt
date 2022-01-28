@@ -24,8 +24,8 @@
 					<useUIHarness>true</useUIHarness>
 					<forkedProcessTimeoutInSeconds>7200</forkedProcessTimeoutInSeconds>
 					<showEclipseLog>true</showEclipseLog>
-					<argLine>-Xmx1024m -XX:MaxPermSize=256m ${tycho.surefire.extra.vmargs}</argLine>
-					
+					<argLine>-Xmx1024m ${tycho.surefire.extra.vmargs}</argLine>
+
 					<testClass>org.eclipse.contribution.xref.ui.tests.AllTests</testClass>
 
 					<testFailureIgnore>true</testFailureIgnore>-
@@ -35,7 +35,9 @@
 			<plugin>
 				<groupId>org.eclipse.tycho</groupId>
 				<artifactId>target-platform-configuration</artifactId>
+				<version>${tycho-version}</version>
 				<configuration>
+					<executionEnvironment>JavaSE-11</executionEnvironment>
 					<dependency-resolution>
 						<extraRequirements>
 							<requirement>

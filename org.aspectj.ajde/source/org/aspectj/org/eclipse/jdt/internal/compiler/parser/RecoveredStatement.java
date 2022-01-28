@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -29,7 +29,7 @@ public class RecoveredStatement extends RecoveredElement {
 
 	public Statement statement;
 	RecoveredBlock nestedBlock;
-	
+
 public RecoveredStatement(Statement statement, RecoveredElement parent, int bracketBalance){
 	super(parent, bracketBalance);
 	this.statement = statement;
@@ -84,7 +84,7 @@ public RecoveredElement updateOnClosingBrace(int braceStart, int braceEnd){
 public RecoveredElement add(Block nestedBlockDeclaration, int bracketBalanceValue) {
 	if (this.statement instanceof ForeachStatement) {
 		ForeachStatement foreach = (ForeachStatement) this.statement;
-		
+
 		// see RecoveredBlock.add(Block, int):
 		resetPendingModifiers();
 
@@ -103,11 +103,23 @@ public RecoveredElement add(Block nestedBlockDeclaration, int bracketBalanceValu
 			addBlockStatement(element);
 		}
 		this.nestedBlock = element;
-		
+
 		if (nestedBlockDeclaration.sourceEnd == 0) return element;
 		return this;
 	} else {
 		return super.add(nestedBlockDeclaration, bracketBalanceValue);
 	}
+}
+@Override
+public RecoveredElement add(Statement stmt, int bracketBalanceValue) {
+	if (this.statement instanceof ForeachStatement) {
+		ForeachStatement foreach = (ForeachStatement) this.statement;
+		if (foreach.action == null) {
+			// add the action to a block-less foreach, so that the action can see the for variable
+			foreach.action = stmt;
+			return this;
+		}
+	}
+	return super.add(stmt, bracketBalanceValue);
 }
 }

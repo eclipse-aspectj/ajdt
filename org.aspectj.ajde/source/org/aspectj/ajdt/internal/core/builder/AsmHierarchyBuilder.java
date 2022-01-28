@@ -2,9 +2,9 @@
  * Copyright (c) 2002 Palo Alto Research Center, Incorporated (PARC).
  * All rights reserved.
  * This program and the accompanying materials are made available
- * under the terms of the Eclipse Public License v1.0
+ * under the terms of the Eclipse Public License v 2.0
  * which accompanies this distribution and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
  *
  * Contributors:
  *     PARC     initial implementation
@@ -18,7 +18,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Stack;
@@ -85,7 +84,7 @@ import org.aspectj.weaver.patterns.TypePatternList;
  * model will not be built properly and tools such as IDE structure views and ajdoc will fail.
  * <p>
  * <b>Note:</b> this class is not considered public API and the overridable methods are subject to change.
- * 
+ *
  * @author Mik Kersten
  */
 public class AsmHierarchyBuilder extends ASTVisitor {
@@ -114,7 +113,7 @@ public class AsmHierarchyBuilder extends ASTVisitor {
 	int[] lineseps;
 
 	/**
-	 * 
+	 *
 	 * @param cuDeclaration
 	 * @param buildConfig
 	 * @param structureModel
@@ -208,8 +207,7 @@ public class AsmHierarchyBuilder extends ASTVisitor {
 		// Check if already there
 		IProgramElement sourceFolderNode = null;
 		List<IProgramElement> kids = root.getChildren();
-		for (Iterator<IProgramElement> iterator = kids.iterator(); iterator.hasNext();) {
-			IProgramElement child = (IProgramElement) iterator.next();
+		for (IProgramElement child : kids) {
 			if (child.getKind() == IProgramElement.Kind.SOURCE_FOLDER && child.getName().equals(sourceFolder)) {
 				sourceFolderNode = child;
 				break;
@@ -251,7 +249,7 @@ public class AsmHierarchyBuilder extends ASTVisitor {
 			if (unitPackage == null) {
 				pkgName = "";
 			} else {
-				StringBuffer nameBuffer = new StringBuffer();
+				StringBuilder nameBuffer = new StringBuilder();
 				final char[][] importName = unitPackage.getImportName();
 				final int last = importName.length - 1;
 				for (int i = 0; i < importName.length; i++) {
@@ -265,8 +263,7 @@ public class AsmHierarchyBuilder extends ASTVisitor {
 
 			IProgramElement pkgNode = null;
 			if (structureModel != null && structureModel.getHierarchy().getRoot() != null && rootForSource.getChildren() != null) {
-				for (Iterator<IProgramElement> it = rootForSource.getChildren().iterator(); it.hasNext();) {
-					IProgramElement currNode = (IProgramElement) it.next();
+				for (IProgramElement currNode : rootForSource.getChildren()) {
 					if (pkgName.equals(currNode.getName())) {
 						pkgNode = currNode;
 						break;
@@ -360,7 +357,7 @@ public class AsmHierarchyBuilder extends ASTVisitor {
 			String packageString = packageDecl.toString();
 			ProgramElement packageDeclaration = new ProgramElement(activeStructureModel, packageString,
 					IProgramElement.Kind.PACKAGE_DECLARATION, makeLocation(packageDecl), 0, null, null);
-			StringBuffer packageSourceDeclaration = new StringBuffer();
+			StringBuilder packageSourceDeclaration = new StringBuilder();
 			packageSourceDeclaration.append("package ");
 			packageSourceDeclaration.append(packageString);
 			packageSourceDeclaration.append(";");
@@ -543,7 +540,7 @@ public class AsmHierarchyBuilder extends ASTVisitor {
 			Declare decl = dDeclaration.declareDecl;
 			if (decl instanceof DeclareParents) {
 				TypePatternList tpl = ((DeclareParents) decl).getParents();
-				List<String> parents = new ArrayList<String>();
+				List<String> parents = new ArrayList<>();
 				for (int i = 0; i < tpl.size(); i++) {
 					parents.add(tpl.get(i).getExactType().getName().replaceAll("\\$", "."));
 				}
@@ -641,9 +638,9 @@ public class AsmHierarchyBuilder extends ASTVisitor {
 		}
 		ResolvedMember[] members = onType.resolve(world).getDeclaredPointcuts();
 		if (members != null) {
-			for (int i = 0; i < members.length; i++) {
-				if (members[i].getName().equals(rp.name)) {
-					return members[i];
+			for (ResolvedMember member : members) {
+				if (member.getName().equals(rp.name)) {
+					return member;
 				}
 			}
 		}
@@ -842,7 +839,7 @@ public class AsmHierarchyBuilder extends ASTVisitor {
 				if (fieldDeclaration.binding.type==null) {
 					System.err.println("DebugFor402832: null fieldDeclaration.binding.type for "+fieldDeclaration);
 					type="fieldDeclaration_binding_type_is_null";
-					isOk=false;				
+					isOk=false;
 				} else {
 					type=fieldDeclaration.binding.type.debugName();
 				}
@@ -917,7 +914,7 @@ public class AsmHierarchyBuilder extends ASTVisitor {
 				if (star != 0 && (comment[star - 1] == '/') && (comment[star + 1] == '*')
 						&& (star - 2 < 0 || comment[star - 2] != '/')) {
 					boolean completed = false;
-					StringBuffer sb = new StringBuffer();
+					StringBuilder sb = new StringBuilder();
 					for (int i = 0; i < comment.length && !completed; i++) {
 						char curr = comment[i];
 						if (curr == '/' && sb.length() > 2 && sb.charAt(sb.length() - 1) == '*') {
@@ -939,7 +936,7 @@ public class AsmHierarchyBuilder extends ASTVisitor {
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	protected String genSourceSignature(FieldDeclaration fieldDeclaration) {
 		StringBuffer output = new StringBuffer();
@@ -988,7 +985,7 @@ public class AsmHierarchyBuilder extends ASTVisitor {
 			stack.push(null); // a little weird but does the job
 			return true;
 		}
-		StringBuffer argumentsSignature = new StringBuffer();
+		StringBuilder argumentsSignature = new StringBuilder();
 		argumentsSignature.append("(");
 		if (constructorDeclaration.arguments != null) {
 			for (int i = 0; i < constructorDeclaration.arguments.length; i++) {

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -25,9 +25,9 @@ import org.eclipse.core.runtime.IProgressMonitor;
  * types are subkinds of classes and interfaces, respectively.
  * <p>
  * Note that the element name of an anonymous source type and lambda expressions
- * is always empty. Types representing lambda expressions are pseudo-elements 
- * and not included in the children of their parent. Lambda expressions are created 
- * as the result of a <code>ICodeAssist.codeSelect(...)</code>. For more information 
+ * is always empty. Types representing lambda expressions are pseudo-elements
+ * and not included in the children of their parent. Lambda expressions are created
+ * as the result of a <code>ICodeAssist.codeSelect(...)</code>. For more information
  * on such pseudo-elements, see <code>ILocalVariable</code>.
  * </p><p>
  * If a binary type cannot be parsed, its structure remains unknown.
@@ -166,7 +166,7 @@ public interface IType extends IMember, IAnnotatable {
 		boolean isStatic,
 		CompletionRequestor requestor)
 		throws JavaModelException;
-	
+
 	/**
 	 * Do code completion inside a code snippet in the context of the current type.
 	 *
@@ -178,7 +178,7 @@ public interface IType extends IMember, IAnnotatable {
 	 * can be very long to compute are proposed. To avoid that the code assist operation
 	 * take too much time a {@link IProgressMonitor} which automatically cancel the code
 	 * assist operation when a specified amount of time is reached could be used.
-	 * 
+	 *
 	 * <pre>
 	 * new IProgressMonitor() {
 	 *     private final static int TIMEOUT = 500; //ms
@@ -269,7 +269,7 @@ public interface IType extends IMember, IAnnotatable {
 		CompletionRequestor requestor,
 		WorkingCopyOwner owner)
 		throws JavaModelException;
-	
+
 	/**
 	 * Do code completion inside a code snippet in the context of the current type.
 	 * It considers types in the working copies with the given owner first. In other words,
@@ -288,7 +288,7 @@ public interface IType extends IMember, IAnnotatable {
 	 * can be very long to compute are proposed. To avoid that the code assist operation
 	 * take too much time a {@link IProgressMonitor} which automatically cancel the code
 	 * assist operation when a specified amount of time is reached could be used.
-	 * 
+	 *
 	 * <pre>
 	 * new IProgressMonitor() {
 	 *     private final static int TIMEOUT = 500; //ms
@@ -348,10 +348,11 @@ public interface IType extends IMember, IAnnotatable {
 	 *
 	 * <p>It is possible that a field with the same name already exists in this type.
 	 * The value of the <code>force</code> parameter affects the resolution of
-	 * such a conflict:<ul>
+	 * such a conflict:
+	 * <ul>
 	 * <li> <code>true</code> - in this case the field is created with the new contents</li>
 	 * <li> <code>false</code> - in this case a <code>JavaModelException</code> is thrown</li>
-	 * </ul></p>
+	 * </ul>
 	 *
 	 * @param contents the given contents
 	 * @param sibling the given sibling
@@ -406,10 +407,11 @@ public interface IType extends IMember, IAnnotatable {
 	 *
 	 * <p>It is possible that a method with the same signature already exists in this type.
 	 * The value of the <code>force</code> parameter affects the resolution of
-	 * such a conflict:<ul>
+	 * such a conflict:
+	 * <ul>
 	 * <li> <code>true</code> - in this case the method is created with the new contents</li>
 	 * <li> <code>false</code> - in this case a <code>JavaModelException</code> is thrown</li>
-	 * </ul></p>
+	 * </ul>
 	 *
 	 * @param contents the given contents
 	 * @param sibling the given sibling
@@ -440,10 +442,11 @@ public interface IType extends IMember, IAnnotatable {
 	 *
 	 * <p>It is possible that a type with the same name already exists in this type.
 	 * The value of the <code>force</code> parameter affects the resolution of
-	 * such a conflict:<ul>
+	 * such a conflict:
+	 * <ul>
 	 * <li> <code>true</code> - in this case the type is created with the new contents</li>
 	 * <li> <code>false</code> - in this case a <code>JavaModelException</code> is thrown</li>
-	 * </ul></p>
+	 * </ul>
 	 *
 	 * @param contents the given contents
 	 * @param sibling the given sibling
@@ -487,7 +490,7 @@ public interface IType extends IMember, IAnnotatable {
 	 * <p>
 	 * The results are listed in the order in which they appear in the source or class file.
 	 * </p>
-	 * 
+	 *
 	 * @return the children for the given category.
 	 * @exception JavaModelException if this element does not exist or if an
 	 *      exception occurs while accessing its corresponding resource.
@@ -498,7 +501,7 @@ public interface IType extends IMember, IAnnotatable {
 	/**
 	 * Returns the simple name of this type, unqualified by package or enclosing type.
 	 * This is a handle-only method.
-	 * 
+	 *
 	 * Note that the element name of an anonymous source type and lambda expressions
 	 * is always empty.
 	 *
@@ -518,8 +521,9 @@ public interface IType extends IMember, IAnnotatable {
 	IField getField(String name);
 
 	/**
-	 * Returns the fields declared by this type in the order in which they appear 
+	 * Returns the fields declared by this type in the order in which they appear
 	 * in the source or class file. For binary types, this includes synthetic fields.
+	 * This does not include the implicit fields representing record components.
 	 *
 	 * @exception JavaModelException if this element does not exist or if an
 	 *		exception occurs while accessing its corresponding resource.
@@ -598,9 +602,9 @@ public interface IType extends IMember, IAnnotatable {
 	IInitializer getInitializer(int occurrenceCount);
 
 	/**
-	 * Returns the initializers declared by this type. For binary types this is an 
-	 * empty collection. For source types, the results are listed in the order in 
-	 * which they appear in the source. 
+	 * Returns the initializers declared by this type. For binary types this is an
+	 * empty collection. For source types, the results are listed in the order in
+	 * which they appear in the source.
 	 *
 	 * @exception JavaModelException if this element does not exist or if an
 	 *		exception occurs while accessing its corresponding resource.
@@ -633,7 +637,7 @@ public interface IType extends IMember, IAnnotatable {
 	 * The type signatures may be either unresolved (for source types)
 	 * or resolved (for binary types), and either basic (for basic types)
 	 * or rich (for parameterized types). See {@link Signature} for details.
-	 * Note that the parameter type signatures for binary methods are expected 
+	 * Note that the parameter type signatures for binary methods are expected
 	 * to be dot-based.
 	 * </p>
 	 *
@@ -648,7 +652,7 @@ public interface IType extends IMember, IAnnotatable {
 	 * For binary types, this may include the special <code>&lt;clinit&gt;</code> method
 	 * and synthetic methods.
 	 * <p>
-	 * The results are listed in the order in which they appear in the source or class file. 
+	 * The results are listed in the order in which they appear in the source or class file.
 	 * </p>
 	 *
 	 * @exception JavaModelException if this element does not exist or if an
@@ -753,6 +757,22 @@ public interface IType extends IMember, IAnnotatable {
 	 * an empty collection if none
 	 */
 	String[] getSuperInterfaceNames() throws JavaModelException;
+
+	/**
+	 * Returns the names of types that this sealed type permits to be its sub types.
+	 * For a non sealed type, an empty array is returned.
+	 * If type declares an explicit permits clause, then the permitted sub-types
+	 * are returned in the declared order. If a sealed type does not explicitly
+	 * declare permitted sub types, then the implicit permitted types, that is,
+	 * the types in the same compilation unit that are sub types of this sealed type
+	 * are returned in the order they appear within the compilation unit.
+	 *
+	 * @exception JavaModelException if this element does not exist or if an
+	 *		exception occurs while accessing its corresponding resource.
+	 * @return names of types that this type permits to be its sub types
+	 * @noreference This method is not intended to be referenced by clients as it is a part of Java preview feature.
+	 */
+	String[] getPermittedSubtypeNames() throws JavaModelException;
 
 	/**
 	 * Returns the formal type parameter signatures for this type.
@@ -898,6 +918,52 @@ public interface IType extends IMember, IAnnotatable {
 	boolean isEnum() throws JavaModelException;
 
 	/**
+	 * Returns whether this type represents a record class.
+	 * <p>
+	 * Note that a record class can neither be an enumeration, an interface, nor an annotation type.
+	 * </p>
+	 *
+	 * @exception JavaModelException if this element does not exist or if an
+	 *		exception occurs while accessing its corresponding resource.
+	 * @return true if this type represents a record class,
+	 * false otherwise
+	 * @since 3.26
+	 */
+	boolean isRecord() throws JavaModelException;
+	/**
+	 * Returns whether this type is a sealed type.
+	 *
+	 * @exception JavaModelException if this element does not exist or if an
+	 *		exception occurs while accessing its corresponding resource.
+	 * @return true if this type this type is a sealed type, false otherwise
+	 * @noreference This method is not intended to be referenced by clients as it is a part of Java preview feature.
+	 */
+	boolean isSealed() throws JavaModelException;
+
+	/**
+	 * Returns the record components declared by this record class, or an empty
+	 * array if this is not a record.
+	 *
+	 * @exception JavaModelException if this element does not exist or if an
+	 *		exception occurs while accessing its corresponding resource.
+	 * @return record components declared by this record class
+	 * @since 3.26
+	 */
+	default IField[] getRecordComponents() throws JavaModelException {
+		return new IField[0];
+	}
+	/**
+	 * Returns the record component with the specified name
+	 * in this type (for example, <code>"bar"</code>).
+	 * This is a handle-only method. The record component may or may not exist.
+	 *
+	 * @param name the given name
+	 * @return the record component with the specified name in this record
+	 * @since 3.26
+	 */
+	IField getRecordComponent(String name);
+
+	/**
 	 * Returns whether this type represents an interface.
 	 * <p>
 	 * Note that an interface can also be an annotation type, but it can neither be a class nor an enumeration class.
@@ -924,10 +990,10 @@ public interface IType extends IMember, IAnnotatable {
 	boolean isAnnotation() throws JavaModelException;
 
 	/**
-	 * Returns whether this type represents a local type. For an anonymous type, 
+	 * Returns whether this type represents a local type. For an anonymous type,
 	 * this method returns true.
 	 * <p>
-	 * Note: This deviates from JLS3 14.3, which states that anonymous types are 
+	 * Note: This deviates from JLS3 14.3, which states that anonymous types are
 	 * not local types since they do not have a name.
 	 * </p>
 	 *
@@ -1223,7 +1289,7 @@ public interface IType extends IMember, IAnnotatable {
 	 * @since 3.0
 	 */
 	String[][] resolveType(String typeName, WorkingCopyOwner owner) throws JavaModelException;
-	
+
 	/**
 	 * Returns whether this type represents a lambda expression.
 	 *

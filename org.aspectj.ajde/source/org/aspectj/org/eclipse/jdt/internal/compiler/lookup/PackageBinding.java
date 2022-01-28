@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -25,7 +25,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.env.IModuleAwareNameEnviron
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.HashtableOfPackage;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.HashtableOfType;
 
-public class PackageBinding extends Binding implements TypeConstants {
+public abstract class PackageBinding extends Binding implements TypeConstants {
 	public long tagBits = 0; // See values in the interface TagBits below
 
 	public char[][] compoundName;
@@ -35,23 +35,23 @@ public class PackageBinding extends Binding implements TypeConstants {
 	/** Types in this map are either uniquely visible in the current module or ProblemReferenceBindings. */
 	public HashtableOfType knownTypes;
 	/** All visible member packages, i.e. observable packages associated with modules read by the current module. */
-	HashtableOfPackage knownPackages;
+	HashtableOfPackage<PackageBinding> knownPackages;
 
 	// code representing the default that has been defined for this package (using @NonNullByDefault)
-	// one of Binding.{NO_NULL_DEFAULT,NULL_UNSPECIFIED_BY_DEFAULT,NONNULL_BY_DEFAULT}
-	private int defaultNullness = NO_NULL_DEFAULT;
+	// once initialized it will be one of Binding.{NO_NULL_DEFAULT,NULL_UNSPECIFIED_BY_DEFAULT,NONNULL_BY_DEFAULT}
+	private int defaultNullness = -1;
 
 	public ModuleBinding enclosingModule;
 
 	/** Is this package exported from its module? NB: to query this property use {@link #isExported()} to ensure initialization. */
 	Boolean isExported;
 
-protected PackageBinding() {
+protected PackageBinding(char[][] compoundName, LookupEnvironment environment) {
 	// for creating problem package
+	this.compoundName = compoundName;
+	this.environment = environment;
 }
-public PackageBinding(char[] topLevelPackageName, LookupEnvironment environment, ModuleBinding enclosingModule) {
-	this(new char[][] {topLevelPackageName}, null, environment, enclosingModule);
-}
+
 /* Create a normal package.
 */
 public PackageBinding(char[][] compoundName, PackageBinding parent, LookupEnvironment environment, ModuleBinding enclosingModule) {
@@ -59,37 +59,37 @@ public PackageBinding(char[][] compoundName, PackageBinding parent, LookupEnviro
 	this.parent = parent;
 	this.environment = environment;
 	this.knownTypes = null; // initialized if used... class counts can be very large 300-600
-	this.knownPackages = new HashtableOfPackage(3); // sub-package counts are typically 0-3
-	
+	this.knownPackages = new HashtableOfPackage<PackageBinding>(3); // sub-package counts are typically 0-3
+
 	if (compoundName != CharOperation.NO_CHAR_CHAR)
 		checkIfNullAnnotationPackage();
-	
+
 	if (enclosingModule != null)
 		this.enclosingModule = enclosingModule;
 	else if (parent != null)
 		this.enclosingModule = parent.enclosingModule; // stop-gap for any remaining calls that don't provide an enclosingModule (they should)
-	
+
 	if (this.enclosingModule == null)
 		throw new IllegalStateException("Package should have an enclosing module"); //$NON-NLS-1$
 }
 
-public PackageBinding(LookupEnvironment environment) {
-	this(CharOperation.NO_CHAR_CHAR, null, environment, environment.module);
-}
 protected void addNotFoundPackage(char[] simpleName) {
-	this.knownPackages.put(simpleName, LookupEnvironment.TheNotFoundPackage);
+	if (!this.environment.suppressImportErrors)
+		this.knownPackages.put(simpleName, LookupEnvironment.TheNotFoundPackage);
 }
 private void addNotFoundType(char[] simpleName) {
+	if (this.environment.suppressImportErrors)
+		return;
 	if (this.knownTypes == null)
 		this.knownTypes = new HashtableOfType(25);
 	this.knownTypes.put(simpleName, LookupEnvironment.TheNotFoundType);
 }
 /**
  * Remembers a sub-package.
- * For a split parent package this will include enriching with siblings, if checkForSplitSiblings is true
+ * For a split parent package this will include potentially enriching with siblings,
  * in which case the enriched (split) binding will be returned.
  */
-PackageBinding addPackage(PackageBinding element, ModuleBinding module, boolean checkForSplitSiblings) {
+PackageBinding addPackage(PackageBinding element, ModuleBinding module) {
 	if ((element.tagBits & TagBits.HasMissingType) == 0) clearMissingTagBit();
 	this.knownPackages.put(element.compoundName[element.compoundName.length - 1], element);
 	return element;
@@ -132,7 +132,7 @@ void clearMissingTagBit() {
 }
 /*
  * slash separated name
- * org.aspectj.org.eclipse.jdt.core --> org.aspectj.org.eclipse.jdt/core
+ * org.aspectj.org.eclipse.jdt.core --> org/aspectj/org/eclipse/jdt/core
  */
 @Override
 public char[] computeUniqueKey(boolean isLeaf) {
@@ -140,7 +140,7 @@ public char[] computeUniqueKey(boolean isLeaf) {
 }
 protected PackageBinding findPackage(char[] name, ModuleBinding module) {
 	// delegate to the module to consider the module graph:
-	return module.getPackage(this.compoundName, name);
+	return module.getVisiblePackage(CharOperation.arrayConcat(this.compoundName, name));
 }
 /* Answer the subpackage named name; ask the oracle for the package if its not in the cache.
 * Answer null if it could not be resolved.
@@ -223,6 +223,17 @@ ReferenceBinding getType0(char[] name) {
 		return null;
 	return this.knownTypes.get(name);
 }
+
+/**
+ * Test if this package (or any of its incarnations in case of a SplitPackageBinding) has recorded
+ * an actual, resolved type of the given name (based on answers from getType0()).
+ * Useful for clash detection.
+ */
+boolean hasType0Any(char[] name) {
+	ReferenceBinding type0 = getType0(name);
+	return type0 != null && type0.isValidBinding() && !(type0 instanceof UnresolvedReferenceBinding);
+}
+
 /* Answer the package or type named name; ask the oracle if it is not in the cache.
 * Answer null if it could not be resolved.
 *
@@ -233,7 +244,7 @@ ReferenceBinding getType0(char[] name) {
 * THIS SHOULD ONLY BE USED BY SOURCE TYPES/SCOPES.
 */
 
-public Binding getTypeOrPackage(char[] name, ModuleBinding mod) {
+public Binding getTypeOrPackage(char[] name, ModuleBinding mod, boolean splitPackageAllowed) {
 	ReferenceBinding problemBinding = null;
 	ReferenceBinding referenceBinding = getType0(name);
 	lookForType0:
@@ -255,6 +266,9 @@ public Binding getTypeOrPackage(char[] name, ModuleBinding mod) {
 
 	PackageBinding packageBinding = getPackage0(name);
 	if (packageBinding != null && packageBinding != LookupEnvironment.TheNotFoundPackage) {
+		if (!splitPackageAllowed) {
+			return packageBinding.getVisibleFor(mod, false);
+		}
 		return packageBinding;
 	}
 	lookForType:
@@ -278,6 +292,9 @@ public Binding getTypeOrPackage(char[] name, ModuleBinding mod) {
 
 	if (packageBinding == null) { // have not looked for it before
 		if ((packageBinding = findPackage(name, mod)) != null) {
+			if (!splitPackageAllowed) {
+				return packageBinding.getVisibleFor(mod, false);
+			}
 			return packageBinding;
 		}
 		if (referenceBinding != null && referenceBinding != LookupEnvironment.TheNotFoundType) {
@@ -303,7 +320,23 @@ public final boolean isViewedAsDeprecated() {
 	}
 	return (this.tagBits & TagBits.AnnotationDeprecated) != 0;
 }
+private void initDefaultNullness() {
+	if (this.defaultNullness == -1) {
+		ReferenceBinding packageInfo = getType(TypeConstants.PACKAGE_INFO_NAME, this.enclosingModule);
+		if (packageInfo != null) {
+			packageInfo.getAnnotationTagBits();
+			if (packageInfo instanceof SourceTypeBinding) {
+				this.defaultNullness = ((SourceTypeBinding) packageInfo).defaultNullness;
+			} else {
+				this.defaultNullness = ((BinaryTypeBinding) packageInfo).defaultNullness;
+			}
+		} else {
+			this.defaultNullness = NO_NULL_DEFAULT;
+		}
+	}
+}
 public int getDefaultNullness() {
+	initDefaultNullness();
 	if (this.defaultNullness == NO_NULL_DEFAULT)
 		return this.enclosingModule.getDefaultNullness();
 	return this.defaultNullness;
@@ -316,6 +349,7 @@ public void setDefaultNullness(int nullness) {
  * where 'defaultNullness' matches the given predicate.
  */
 public Binding findDefaultNullnessTarget(Predicate<Integer> predicate) {
+	initDefaultNullness();
 	if (predicate.test(this.defaultNullness))
 		return this;
 	if (this.defaultNullness == NO_NULL_DEFAULT)
@@ -424,25 +458,33 @@ public boolean isExported() {
 }
 /**
  * If this package is uniquely visible to 'module' return a plain PackageBinding.
- * In case of a conflict between a local package and foreign package
- * the plain local package is returned, because this conflict will more
- * appropriately be reported against the package declaration, not its references.
+ * In case of a conflict between a local package and foreign package flag <b>preferLocal</b>
+ * will select the behavior:
+ * <ul>
+ * <li>if {@code true} the plain local package is returned, because this conflict will more
+ * appropriately be reported against the package declaration, not its references.</li>
+ * <li>if {@code false} a conflict local vs. foreign will be treated just like any other conflict,
+ * see next.</li>
+ * </ul>
  * In case of multiple accessible foreign packages a SplitPackageBinding is returned
  * to indicate a conflict.
  */
-public PackageBinding getVisibleFor(ModuleBinding module) {
+public PackageBinding getVisibleFor(ModuleBinding module, boolean preferLocal) {
 	return this;
 }
+
+public abstract PlainPackageBinding getIncarnation(ModuleBinding moduleBinding);
+
 public boolean hasCompilationUnit(boolean checkCUs) {
 	if (this.knownTypes != null) {
 		for (ReferenceBinding knownType : this.knownTypes.valueTable) {
-			if (knownType != null && knownType != LookupEnvironment.TheNotFoundType)
+			if (knownType != null && knownType != LookupEnvironment.TheNotFoundType && !knownType.isUnresolvedType())
 				return true;
 		}
 	}
 	if (this.environment.useModuleSystem) {
 		IModuleAwareNameEnvironment moduleEnv = (IModuleAwareNameEnvironment) this.environment.nameEnvironment;
-		return moduleEnv.hasCompilationUnit(this.compoundName, this.enclosingModule.nameForLookup(), checkCUs);
+		return moduleEnv.hasCompilationUnit(this.compoundName, this.enclosingModule.nameForCUCheck(), checkCUs);
 	}
 	return false;
 }

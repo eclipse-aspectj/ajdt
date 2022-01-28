@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -328,7 +328,7 @@ public interface IJavaSearchConstants {
 	 *</pre>
 	 * Searching references to the type <code>Test</code> using this flag in the
 	 * above snippet will match only the reference in italic.
-	 * </p><p>
+	 * <p>
 	 * Note that array creations are not returned when using this flag.
 	 * </p>
 	 * @since 3.4
@@ -427,7 +427,6 @@ public interface IJavaSearchConstants {
 	 * 	<li>for the {@link #METHOD} nature, only {@link MethodReferenceMatch}
 	 * 		matches will be returned.</li>
 	 * </ul>
-	 *</p>
 	 * @since 3.4
 	 * @category limitTo
 	 */
@@ -444,7 +443,6 @@ public interface IJavaSearchConstants {
 	 * 	<li>for the {@link #METHOD} nature, only {@link MethodReferenceMatch}
 	 * 		matches will be returned.</li>
 	 * </ul>
-	 *</p>
 	 * @since 3.4
 	 * @category limitTo
 	 */
@@ -462,7 +460,6 @@ public interface IJavaSearchConstants {
 	 * 	<li>for the {@link #METHOD} nature, only {@link MethodReferenceMatch}
 	 * 		matches will be returned.</li>
 	 * </ul>
-	 *</p>
 	 * @since 3.4
 	 * @category limitTo
 	 */
@@ -479,7 +476,6 @@ public interface IJavaSearchConstants {
 	 * 	<li>for the {@link #METHOD} nature, only {@link MethodReferenceMatch}
 	 * 		matches will be returned.</li>
 	 * </ul>
-	 *</p>
 	 * @since 3.4
 	 * @category limitTo
 	 */
@@ -495,6 +491,18 @@ public interface IJavaSearchConstants {
 	 * @category limitTo
 	 */
 	int METHOD_REFERENCE_EXPRESSION = 0x10000000;
+
+	/**
+	 * Return only type references used as a permit type (Java 15)
+	 * <p>
+	 * When this flag is set, only {@link TypeReferenceMatch} matches will be
+	 * returned.
+	 *</p>
+	 * @since 3.24
+	 * @noreference permit type reference
+	 * @category limitTo
+	 */
+	int PERMITTYPE_TYPE_REFERENCE = 0x20000000;
 
 	/* Syntactic match modes */
 

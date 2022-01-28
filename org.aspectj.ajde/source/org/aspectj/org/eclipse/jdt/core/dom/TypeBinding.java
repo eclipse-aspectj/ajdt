@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -27,6 +27,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ArrayBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BaseTypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Binding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.CaptureBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.CaptureBinding18;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.FieldBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.IntersectionTypeBinding18;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
@@ -199,7 +200,7 @@ class TypeBinding implements ITypeBinding {
 		}
 		return null;
 	}
-	
+
 	@Override
 	public ITypeBinding getGenericTypeOfWildcardType() {
 		switch (this.binding.kind()) {
@@ -212,7 +213,7 @@ class TypeBinding implements ITypeBinding {
 		}
 		return null;
 	}
-	
+
 	@Override
 	public int getRank() {
 		switch (this.binding.kind()) {
@@ -224,7 +225,7 @@ class TypeBinding implements ITypeBinding {
 				return -1;
 		}
 	}
-	
+
 	@Override
 	public ITypeBinding getComponentType() {
 		if (!isArray()) {
@@ -473,12 +474,12 @@ class TypeBinding implements ITypeBinding {
 			return this.resolver.getTypeBinding(((ParameterizedTypeBinding)this.binding).genericType());
 		return this.resolver.getTypeBinding(this.binding.unannotated());
 	}
-	
+
 	@Override
 	public ITypeBinding getErasure() {
 		return this.resolver.getTypeBinding(this.binding.erasure());
 	}
-	
+
 	@Override
 	public IMethodBinding getFunctionalInterfaceMethod() {
 		Scope scope = this.resolver.scope();
@@ -538,13 +539,11 @@ class TypeBinding implements ITypeBinding {
 
 	private ITypeBinding[] getIntersectingTypes() {
 		ITypeBinding[] intersectionBindings = TypeBinding.NO_TYPE_BINDINGS;
-		if (this.binding instanceof IntersectionTypeBinding18) {
-			ReferenceBinding[] intersectingTypes = this.binding.getIntersectingTypes();
-			int l = intersectingTypes.length;
-			intersectionBindings = new ITypeBinding[l];
-			for (int i = 0; i < l; ++i) {
-				intersectionBindings[i] = this.resolver.getTypeBinding(intersectingTypes[i]);
-			}
+		ReferenceBinding[] intersectingTypes = this.binding.getIntersectingTypes();
+		int l = intersectingTypes.length;
+		intersectionBindings = new ITypeBinding[l];
+		for (int i = 0; i < l; ++i) {
+			intersectionBindings[i] = this.resolver.getTypeBinding(intersectingTypes[i]);
 		}
 		return intersectionBindings;
 	}
@@ -910,6 +909,15 @@ class TypeBinding implements ITypeBinding {
 		} else if (this.binding instanceof WildcardBinding) {
 			WildcardBinding wildcardBinding = (WildcardBinding) this.binding;
 			typeVariableBinding = wildcardBinding.typeVariable();
+			if (typeVariableBinding == null) {
+				org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding allBounds = wildcardBinding.allBounds();
+				if (allBounds instanceof IntersectionTypeBinding18) { // doubles up as null check
+					ITypeBinding typeBinding = this.resolver.getTypeBinding(allBounds);
+					if (typeBinding instanceof TypeBinding) { // doubles up as null check
+						return ((TypeBinding) typeBinding).getIntersectingTypes();
+					}
+				}
+			}
 		} else if (this.binding instanceof IntersectionTypeBinding18) {
 			return this.bounds = getIntersectingTypes();
 		}
@@ -1047,7 +1055,7 @@ class TypeBinding implements ITypeBinding {
 
 	@Override
 	public boolean isCapture() {
-		return this.binding.isCapture();
+		return this.binding.isCapture() && !(this.binding instanceof CaptureBinding18);
 	}
 
 	@Override
@@ -1059,7 +1067,7 @@ class TypeBinding implements ITypeBinding {
 			org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding expressionType = ((TypeBinding) type).binding;
 			// simulate capture in case checked binding did not properly get extracted from a reference
 			expressionType = expressionType.capture(scope, 0, 0);
-			return TypeBinding.EXPRESSION.checkCastTypesCompatibility(scope, this.binding, expressionType, null);
+			return TypeBinding.EXPRESSION.checkCastTypesCompatibility(scope, this.binding, expressionType, null, true);
 		} catch (AbortCompilation e) {
 			// don't surface internal exception to clients
 			// see https://bugs.eclipse.org/bugs/show_bug.cgi?id=143013
@@ -1090,6 +1098,11 @@ class TypeBinding implements ITypeBinding {
 	@Override
 	public boolean isEnum() {
 		return this.binding.isEnum();
+	}
+
+	@Override
+	public boolean isRecord() {
+		return this.binding.isRecord();
 	}
 
 	@Override
@@ -1272,13 +1285,22 @@ class TypeBinding implements ITypeBinding {
 				return ((WildcardBinding) this.binding).boundKind == Wildcard.EXTENDS;
 			case Binding.INTERSECTION_TYPE :
 				return true;
+			case Binding.TYPE_PARAMETER:
+				if (this.binding instanceof CaptureBinding18) {
+					CaptureBinding18 captureBinding18 = (CaptureBinding18) this.binding;
+					org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding upperBound = captureBinding18.upperBound();
+					if (upperBound != null && upperBound.id != TypeIds.T_JavaLangObject) {
+						return true;
+					}
+				}
+				return false;
 		}
 		return false;
 	}
 
 	@Override
 	public boolean isWildcardType() {
-		return this.binding.isWildcard();
+		return this.binding.isWildcard() || this.binding instanceof CaptureBinding18;
 	}
 
 	/*

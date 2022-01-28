@@ -338,7 +338,7 @@ private void add(String projectPath, String relativePath, String containerPath, 
  *
  * 1. /P/src/pkg/X.java
  * 2. /P/src/pkg
- * 3. /P/lib.jar|org.aspectj.org.eclipse.jdt/core/IJavaElement.class
+ * 3. /P/lib.jar|org/aspectj/org/eclipse/jdt/core/IJavaElement.class
  * 4. /home/mylib.jar|x/y/z/X.class
  * 5. c:\temp\mylib.jar|x/y/Y.class
  *
@@ -638,7 +638,7 @@ private void rehash() {
 
 @Override
 public String toString() {
-	StringBuffer result = new StringBuffer("JavaSearchScope on "); //$NON-NLS-1$
+	StringBuilder result = new StringBuilder("JavaSearchScope on "); //$NON-NLS-1$
 	if (this.elements != null) {
 		result.append("["); //$NON-NLS-1$
 		for (int i = 0, length = this.elements.size(); i < length; i++) {
@@ -680,5 +680,10 @@ public String toString() {
 		}
 	}
 	return result.toString();
+}
+
+@Override
+public boolean isParallelSearchSupported() {
+	return true;
 }
 }

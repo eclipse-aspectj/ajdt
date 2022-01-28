@@ -14,6 +14,7 @@
 
 package org.aspectj.org.eclipse.jdt.internal.compiler.parser;
 
+import java.util.Arrays;
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.core.compiler.InvalidInputException;
 
@@ -39,10 +40,11 @@ public class RecoveryScanner extends Scanner {
 				scanner.complianceLevel,
 				scanner.taskTags,
 				scanner.taskPriorities,
-				scanner.isTaskCaseSensitive);
+				scanner.isTaskCaseSensitive,
+				scanner.previewEnabled);
 		setData(data);
 	}
-	
+
 	public RecoveryScanner(
 			boolean tokenizeWhiteSpace,
 			boolean checkNonExternalizedStringLiterals,
@@ -51,6 +53,7 @@ public class RecoveryScanner extends Scanner {
 			char[][] taskTags,
 			char[][] taskPriorities,
 			boolean isTaskCaseSensitive,
+			boolean isPreviewEnabled,
 			RecoveryScannerData data) {
 		super(false,
 				tokenizeWhiteSpace,
@@ -59,7 +62,8 @@ public class RecoveryScanner extends Scanner {
 				complianceLevel,
 				taskTags,
 				taskPriorities,
-				isTaskCaseSensitive);
+				isTaskCaseSensitive,
+				isPreviewEnabled);
 		setData(data);
 	}
 
@@ -74,10 +78,13 @@ public class RecoveryScanner extends Scanner {
 			tokens[i] = tokens[length - i - 1];
 			tokens[length - i - 1] = tmp;
 		}
-		return tokens;
+		return filterTokens(tokens);
 	}
 	public void insertTokens(int[] tokens, int completedToken, int position) {
 		if(!this.record) return;
+		tokens = filterTokens(tokens);
+		if (tokens.length == 0)
+			return;
 
 		if(completedToken > -1 && Parser.statements_recovery_filter[completedToken] != 0) return;
 
@@ -96,10 +103,11 @@ public class RecoveryScanner extends Scanner {
 		this.data.insertedTokensPosition[this.data.insertedTokensPtr] = position;
 		this.data.insertedTokenUsed[this.data.insertedTokensPtr] = false;
 	}
-	
+
 	public void insertTokenAhead(int token, int index) {
 		if(!this.record) return;
-
+		if (token == TerminalTokens.TokenNameRestrictedIdentifierrecord)
+			return;
 		int length = this.data.insertedTokens[index].length;
 		int [] tokens = new int [length + 1];
 		System.arraycopy(this.data.insertedTokens[index], 0, tokens, 1, length);
@@ -111,8 +119,18 @@ public class RecoveryScanner extends Scanner {
 		replaceTokens(new int []{token}, start, end);
 	}
 
+	int[] filterTokens(int[] tokens) {
+//		if (this.sourceLevel >= ClassFileConstants.JDK14)
+//			return tokens;
+		return Arrays.stream(tokens)
+				.filter(x -> x != TerminalTokens.TokenNameRestrictedIdentifierrecord)
+				.toArray();
+	}
 	public void replaceTokens(int[] tokens, int start, int end) {
 		if(!this.record) return;
+		tokens = filterTokens(tokens);
+		if (tokens.length == 0)
+			return;
 		this.data.replacedTokensPtr++;
 		if(this.data.replacedTokensStart == null) {
 			this.data.replacedTokens = new int[10][];

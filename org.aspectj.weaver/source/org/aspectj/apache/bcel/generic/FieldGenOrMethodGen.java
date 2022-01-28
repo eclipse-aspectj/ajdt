@@ -67,7 +67,7 @@ import org.aspectj.apache.bcel.classfile.annotation.RuntimeAnnos;
 
 /**
  * Super class for FieldGen and MethodGen objects, since they have some methods in common!
- * 
+ *
  * @version $Id: FieldGenOrMethodGen.java,v 1.8 2009/09/15 19:40:14 aclement Exp $
  * @author <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
@@ -76,8 +76,8 @@ public abstract class FieldGenOrMethodGen extends Modifiers {
 	protected String name;
 	protected Type type;
 	protected ConstantPool cp;
-	private ArrayList<Attribute> attributeList = new ArrayList<Attribute>();
-	protected ArrayList<AnnotationGen> annotationList = new ArrayList<AnnotationGen>();
+	private List<Attribute> attributeList = new ArrayList<>();
+	protected List<AnnotationGen> annotationList = new ArrayList<>();
 
 	protected FieldGenOrMethodGen() {
 	}

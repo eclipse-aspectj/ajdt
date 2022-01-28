@@ -18,7 +18,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ModuleBinding;
 
 /**
  * This interface denotes a compilation unit, providing its name and content.
- * 
+ *
  * <p>
  * Note: This internal interface has been implemented illegally by the
  * org.apache.jasper.glassfish bundle from Orbit, see
@@ -74,4 +74,10 @@ default char[] getModuleName() {
 default String getDestinationPath() {
 	return null;
 }
+/**
+ * Answers a path for external annotations that has been configured for
+ * the providing classpath entry, or <code>null</code>.
+ */
+default String getExternalAnnotationPath(String qualifiedTypeName) { return null; }
+
 }

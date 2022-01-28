@@ -1,12 +1,12 @@
 /* *******************************************************************
  * Copyright (c) 2004 IBM
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
  *     Andy Clement -     initial implementation {date}
  * ******************************************************************/
 package org.aspectj.apache.bcel.classfile.annotation;
@@ -22,45 +22,45 @@ import org.aspectj.apache.bcel.classfile.Attribute;
 import org.aspectj.apache.bcel.classfile.ConstantPool;
 
 public abstract class RuntimeParamAnnos extends Attribute {
-	
+
 	private List<AnnotationGen[]> parameterAnnotations;
 	private boolean visible;
-	
+
 
 	// Keep just a byte stream of the data until someone actually asks for it
 	private boolean inflated = false;
 	private byte[] annotation_data;
 
-	  
+
 	public RuntimeParamAnnos(byte attrid, boolean visible,
             int nameIdx, int len, ConstantPool cpool) {
 		super(attrid,nameIdx,len,cpool);
-		this.visible = visible; 
-		parameterAnnotations = new ArrayList<AnnotationGen[]>();
+		this.visible = visible;
+		parameterAnnotations = new ArrayList<>();
 	}
-	
+
 	public RuntimeParamAnnos(byte attrid,boolean visible,int nameIdx,int len,byte[] data,ConstantPool cpool) {
 		super(attrid,nameIdx,len,cpool);
 		this.visible = visible;
-		parameterAnnotations = new ArrayList<AnnotationGen[]>();
+		parameterAnnotations = new ArrayList<>();
 		annotation_data = data;
 	}
-	
+
 	public final void dump(DataOutputStream dos) throws IOException {
 	  super.dump(dos);
 	  writeAnnotations(dos);
-	}	  
+	}
 
 	public Attribute copy(ConstantPool constant_pool) {
 	  	throw new RuntimeException("Not implemented yet!");
 	}
-	  
+
 	/** Return a list of Annotation[] - each list entry contains the annotations for one parameter */
 	public List /*Annotation[]*/<AnnotationGen[]> getParameterAnnotations() {
 		if (!inflated) inflate();
 		return parameterAnnotations;
 	}
-	
+
 	public AnnotationGen[] getAnnotationsOnParameter(int parameterIndex) {
 		if (!inflated) inflate();
 		// This may happen.  In a ctor for a non static inner type the compiler
@@ -73,7 +73,7 @@ public abstract class RuntimeParamAnnos extends Attribute {
 		}
 		return parameterAnnotations.get(parameterIndex);
 	}
-	
+
 	public boolean areVisible() {
 		return visible;
 	}
@@ -88,7 +88,7 @@ public abstract class RuntimeParamAnnos extends Attribute {
 			DataInputStream dis = new DataInputStream(new ByteArrayInputStream(annotation_data));
 			int numParameters = dis.readUnsignedByte();
 			if (numParameters > 0) {
-				List<AnnotationGen[]> inflatedParameterAnnotations = new ArrayList<AnnotationGen[]>();
+				List<AnnotationGen[]> inflatedParameterAnnotations = new ArrayList<>();
 				for (int i=0; i<numParameters; i++) {
 					int numAnnotations = dis.readUnsignedShort();
 					if (numAnnotations == 0 ) {
@@ -109,22 +109,21 @@ public abstract class RuntimeParamAnnos extends Attribute {
 		}
 	}
 
-	
+
 	protected void writeAnnotations(DataOutputStream dos) throws IOException {
 		if (!inflated) {
 			dos.write(annotation_data,0,length);
 		} else {
 			dos.writeByte(parameterAnnotations.size());
-			for (int i=0; i<parameterAnnotations.size(); i++) {
-				AnnotationGen[] annotations = parameterAnnotations.get(i);
+			for (AnnotationGen[] annotations : parameterAnnotations) {
 				dos.writeShort(annotations.length);
-				for (int j=0; j<annotations.length;j++) {
-					annotations[j].dump(dos);
+				for (AnnotationGen annotation : annotations) {
+					annotation.dump(dos);
 				}
 			}
 		}
 	}
-	
+
 	/** FOR TESTING ONLY: Tells you if the annotations have been inflated to an object graph */
 	public boolean isInflated() {
 		return inflated;

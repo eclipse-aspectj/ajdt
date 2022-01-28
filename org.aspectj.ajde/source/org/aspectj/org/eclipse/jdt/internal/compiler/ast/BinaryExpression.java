@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -87,6 +87,15 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 	} finally {
 		// account for exception possibly thrown by arithmetics
 		flowContext.recordAbruptExit();
+	}
+}
+
+@Override
+protected void updateFlowOnBooleanResult(FlowInfo flowInfo, boolean result) {
+	int operator = (this.bits & OperatorMASK) >> OperatorSHIFT;
+	if (result ? operator == AND_AND : operator == OR_OR) {
+		this.left.updateFlowOnBooleanResult(flowInfo, result);
+		this.right.updateFlowOnBooleanResult(flowInfo, result);
 	}
 }
 
@@ -1803,9 +1812,25 @@ public StringBuffer printExpressionNoParenthesis(int indent, StringBuffer output
 }
 
 @Override
+public void addPatternVariables(BlockScope scope, CodeStream codeStream) {
+	this.left.addPatternVariables(scope, codeStream);
+	this.right.addPatternVariables(scope, codeStream);
+}
+@Override
+public boolean containsPatternVariable() {
+	return this.left.containsPatternVariable() || this.right.containsPatternVariable();
+}
+@Override
 public TypeBinding resolveType(BlockScope scope) {
 	// keep implementation in sync with CombinedBinaryExpression#resolveType
 	// and nonRecursiveResolveTypeUpwards
+	if(this.patternVarsWhenFalse == null && this.patternVarsWhenTrue == null &&
+			this.containsPatternVariable()) {
+		// the null check is to guard against a second round of collection.
+		// This usually doesn't happen,
+		// except when we call collectPatternVariablesToScope() from here
+		this.collectPatternVariablesToScope(null, scope);
+	}
 	boolean leftIsCast, rightIsCast;
 	if ((leftIsCast = this.left instanceof CastExpression) == true) this.left.bits |= ASTNode.DisableUnnecessaryCastCheck; // will check later on
 	TypeBinding leftType = this.left.resolveType(scope);

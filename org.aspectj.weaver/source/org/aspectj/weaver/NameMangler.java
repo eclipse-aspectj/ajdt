@@ -1,13 +1,13 @@
 /* *******************************************************************
  * Copyright (c) 2002 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     PARC     initial implementation
  * ******************************************************************/
 
 package org.aspectj.weaver;
@@ -72,7 +72,7 @@ public class NameMangler {
 				return false; // body of an itd-m
 			}
 			return true;
-		} else if (methodName.indexOf("_aroundBody") != -1) {
+		} else if (methodName.contains("_aroundBody")) {
 			return true;
 		}
 		// these aren't the droids you're looking for...move along...... pr148727
@@ -114,8 +114,8 @@ public class NameMangler {
 	}
 
 	/**
-	 * Create the old style (<1.6.9) format getter name which includes the aspect requesting access and the type containing the
-	 * field in the name of the type. At 1.6.9 and above the name is simply ajc$get$<fieldname>
+	 * Create the old style (&lt;1.6.9) format getter name which includes the aspect requesting access and the type containing the
+	 * field in the name of the type. At 1.6.9 and above the name is simply ajc$get$&lt;fieldname&gt;
 	 */
 	public static String privilegedAccessMethodForFieldGet(String name, UnresolvedType objectType, UnresolvedType aspectType) {
 		StringBuilder nameBuilder = new StringBuilder();
@@ -124,8 +124,8 @@ public class NameMangler {
 	}
 
 	/**
-	 * Create the old style (<1.6.9) format setter name which includes the aspect requesting access and the type containing the
-	 * field in the name of the type. At 1.6.9 and above the name is simply ajc$set$<fieldname>
+	 * Create the old style (&lt;1.6.9) format setter name which includes the aspect requesting access and the type containing the
+	 * field in the name of the type. At 1.6.9 and above the name is simply ajc$set$&lt;fieldname&gt;
 	 */
 	public static String privilegedAccessMethodForFieldSet(String name, UnresolvedType objectType, UnresolvedType aspectType) {
 		return makeName("privFieldSet", aspectType.getNameAsIdentifier(), objectType.getNameAsIdentifier(), name);
@@ -327,13 +327,13 @@ public class NameMangler {
 	}
 
 	public static String aroundShadowMethodName(Member shadowSig, String suffixTag) {
-		StringBuffer ret = new StringBuffer();
+		StringBuilder ret = new StringBuilder();
 		ret.append(getExtractableName(shadowSig)).append("_aroundBody").append(suffixTag);
 		return ret.toString();
 	}
 
 	public static String aroundAdviceMethodName(Member shadowSig, String suffixTag) {
-		StringBuffer ret = new StringBuffer();
+		StringBuilder ret = new StringBuilder();
 		ret.append(getExtractableName(shadowSig)).append("_aroundBody").append(suffixTag).append("$advice");
 		return ret.toString();
 	}

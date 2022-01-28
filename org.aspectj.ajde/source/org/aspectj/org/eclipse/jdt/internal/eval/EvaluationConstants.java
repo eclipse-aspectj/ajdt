@@ -18,8 +18,8 @@ import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 public interface EvaluationConstants {
 	public static final char[] CODE_SNIPPET_CLASS_NAME_PREFIX = "CodeSnippet_".toCharArray(); //$NON-NLS-1$
 	public static final char[] GLOBAL_VARS_CLASS_NAME_PREFIX = "GlobalVariables_".toCharArray(); //$NON-NLS-1$
-	public static final char[] PACKAGE_NAME = "org.aspectj.org.eclipse.jdt.internal.eval.target".toCharArray(); //$NON-NLS-1$
-	public static final char[] CODE_SNIPPET_NAME = "org.aspectj.org.eclipse.jdt/internal/eval/target/CodeSnippet".toCharArray(); //$NON-NLS-1$
+	public static final char[] PACKAGE_NAME = "org.eclipse.jdt.internal.eval.target".toCharArray(); //$NON-NLS-1$
+	public static final char[] CODE_SNIPPET_NAME = "org/eclipse/jdt/internal/eval/target/CodeSnippet".toCharArray(); //$NON-NLS-1$
 	public static final char[] ROOT_CLASS_NAME = "CodeSnippet".toCharArray(); //$NON-NLS-1$
 	public static final String ROOT_FULL_CLASS_NAME = new String(PACKAGE_NAME) + "." + new String(ROOT_CLASS_NAME); //$NON-NLS-1$
 	public static final char[] SETRESULT_SELECTOR = "setResult".toCharArray(); //$NON-NLS-1$

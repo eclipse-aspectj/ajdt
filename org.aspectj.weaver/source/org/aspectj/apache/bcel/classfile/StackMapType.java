@@ -1,5 +1,9 @@
 package org.aspectj.apache.bcel.classfile;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+
 /* ====================================================================
  * The Apache Software License, Version 1.1
  *
@@ -55,7 +59,6 @@ package org.aspectj.apache.bcel.classfile;
  */
 
 import  org.aspectj.apache.bcel.Constants;
-import  java.io.*;
 
 /**
  * This class represents the type of a local variable or item on stack
@@ -110,19 +113,19 @@ public final class StackMapType implements Cloneable {
    * in byte code, if type == ITEM_NewObject, and -1 otherwise
    */
   public int  getIndex()      { return index; }
-  
+
   /**
    * Dump type entries to file.
    *
    * @param file Output file stream
    * @throws IOException
-   */ 
+   */
   public final void dump(DataOutputStream file) throws IOException
   {
     file.writeByte(type);
     if(hasIndex())
       file.writeShort(getIndex());
-  }    
+  }
 
   /** @return true, if type is either ITEM_Object or ITEM_NewObject
    */
@@ -142,10 +145,10 @@ public final class StackMapType implements Cloneable {
 
   /**
    * @return String representation
-   */ 
+   */
   public final String toString() {
     return "(type=" + Constants.ITEM_NAMES[type] + printIndex() + ")";
-  }    
+  }
 
   /**
    * @return deep copy of this object
@@ -160,12 +163,12 @@ public final class StackMapType implements Cloneable {
 
   /**
    * @return Constant pool used by this object.
-   */   
+   */
   public final ConstantPool getConstantPool() { return constant_pool; }
 
   /**
    * @param constant_pool Constant pool to be used for this object.
-   */   
+   */
   public final void setConstantPool(ConstantPool constant_pool) {
     this.constant_pool = constant_pool;
   }

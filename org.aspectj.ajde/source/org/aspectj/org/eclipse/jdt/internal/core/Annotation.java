@@ -39,7 +39,7 @@ public class Annotation extends SourceRefElement implements IAnnotation {
 
 	public Annotation(JavaElement parent, String name, String memberValuePairName) {
 		super(parent);
-		this.name = name;
+		this.name = name.intern();
 		this.memberValuePairName = memberValuePairName;
 	}
 
@@ -133,7 +133,7 @@ public class Annotation extends SourceRefElement implements IAnnotation {
 
 	@Override
 	public IClassFile getClassFile() {
-		return ((JavaElement)getParent()).getClassFile();
+		return getParent().getClassFile();
 	}
 
 	@Override

@@ -1,13 +1,13 @@
 /* *******************************************************************
  * Copyright (c) 2003 Contributors.
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     Mik Kersten     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     Mik Kersten     initial implementation
  *     Andy Clement    Extensions for better IDE representation
  * ******************************************************************/
 
@@ -43,7 +43,7 @@ public class AspectJElementHierarchy implements IHierarchy {
 	// Access to the handleMap and typeMap are now synchronized - at least the find methods and the updateHandleMap function
 	// see pr305788
 	private Map<String, IProgramElement> fileMap = null;
-	private Map<String, IProgramElement> handleMap = new HashMap<String, IProgramElement>();
+	private Map<String, IProgramElement> handleMap = new HashMap<>();
 	private Map<String, IProgramElement> typeMap = null;
 
 	public AspectJElementHierarchy(AsmManager asm) {
@@ -84,8 +84,8 @@ public class AspectJElementHierarchy implements IHierarchy {
 
 	public void setRoot(IProgramElement root) {
 		this.root = root;
-		handleMap = new HashMap<String, IProgramElement>();
-		typeMap = new HashMap<String, IProgramElement>();
+		handleMap = new HashMap<>();
+		typeMap = new HashMap<>();
 	}
 
 	public void addToFileMap(String key, IProgramElement value) {
@@ -96,7 +96,7 @@ public class AspectJElementHierarchy implements IHierarchy {
 		return fileMap.remove(canonicalFilePath) != null;
 	}
 
-	public void setFileMap(HashMap<String, IProgramElement> fileMap) {
+	public void setFileMap(Map<String, IProgramElement> fileMap) {
 		this.fileMap = fileMap;
 	}
 
@@ -114,7 +114,7 @@ public class AspectJElementHierarchy implements IHierarchy {
 
 	/**
 	 * Returns the first match
-	 * 
+	 *
 	 * @param parent
 	 * @param kind not null
 	 * @return null if not found
@@ -149,7 +149,7 @@ public class AspectJElementHierarchy implements IHierarchy {
 
 	/**
 	 * Find the entry in the model that represents a particular type.
-	 * 
+	 *
 	 * @param packageName the package in which the type is declared or null for the default package
 	 * @param typeName the name of the type
 	 * @return the IProgramElement representing the type, or null if not found
@@ -217,7 +217,7 @@ public class AspectJElementHierarchy implements IHierarchy {
 	/**
 	 * Look for any package nodes matching the specified package name. There may be multiple in the case where the types within a
 	 * package are split across source folders.
-	 * 
+	 *
 	 * @param packagename the packagename being searched for
 	 * @return a list of package nodes that match that name
 	 */
@@ -230,7 +230,7 @@ public class AspectJElementHierarchy implements IHierarchy {
 		if ((children.get(0)).getKind() == IProgramElement.Kind.SOURCE_FOLDER) {
 			String searchPackageName = (packagename == null ? "" : packagename); // default package means match on ""
 			// dealing with source folders
-			List<IProgramElement> matchingPackageNodes = new ArrayList<IProgramElement>();
+			List<IProgramElement> matchingPackageNodes = new ArrayList<>();
 			for (IProgramElement sourceFolder : children) {
 				List<IProgramElement> possiblePackageNodes = sourceFolder.getChildren();
 				for (IProgramElement possiblePackageNode : possiblePackageNodes) {
@@ -248,11 +248,11 @@ public class AspectJElementHierarchy implements IHierarchy {
 			// thing to return in the list
 			if (packagename == null) {
 				// default package
-				List<IProgramElement> result = new ArrayList<IProgramElement>();
+				List<IProgramElement> result = new ArrayList<>();
 				result.add(root);
 				return result;
 			}
-			List<IProgramElement> result = new ArrayList<IProgramElement>();
+			List<IProgramElement> result = new ArrayList<>();
 			for (IProgramElement possiblePackage : children) {
 				if (possiblePackage.getKind() == IProgramElement.Kind.PACKAGE && possiblePackage.getName().equals(packagename)) {
 					result.add(possiblePackage);
@@ -321,7 +321,7 @@ public class AspectJElementHierarchy implements IHierarchy {
 	}
 
 	/**
-	 * @param sourceFilePath modified to '/' delimited path for consistency
+	 * @param sourceFile modified to '/' delimited path for consistency
 	 * @return a new structure node for the file if it was not found in the model
 	 */
 	public IProgramElement findElementForSourceFile(String sourceFile) {
@@ -356,7 +356,7 @@ public class AspectJElementHierarchy implements IHierarchy {
 
 	/**
 	 * Never returns null
-	 * 
+	 *
 	 * @param sourceFilePath canonicalized path for consistency
 	 * @param lineNumber if 0 or 1 the corresponding file node will be returned
 	 * @return a new structure node for the file if it was not found in the model
@@ -383,7 +383,7 @@ public class AspectJElementHierarchy implements IHierarchy {
 
 	/**
 	 * Discover the node representing a particular source file.
-	 * 
+	 *
 	 * @param node where in the model to start looking (usually the root on the initial call)
 	 * @param sourcefilePath the source file being searched for
 	 * @return the node representing that source file or null if it cannot be found
@@ -442,7 +442,7 @@ public class AspectJElementHierarchy implements IHierarchy {
 
 	/**
 	 * For a specified node, check if any of the children more accurately represent the specified line.
-	 * 
+	 *
 	 * @param node where to start looking
 	 * @param lineno the line number
 	 * @return any closer match below 'node' or null if nothing is a more accurate match
@@ -643,7 +643,7 @@ public class AspectJElementHierarchy implements IHierarchy {
 	// TODO rename this method ... it does more than just the handle map
 	public void updateHandleMap(Set<String> deletedFiles) {
 		// Only delete the entries we need to from the handle map - for performance reasons
-		List<String> forRemoval = new ArrayList<String>();
+		List<String> forRemoval = new ArrayList<>();
 		Set<String> k = null;
 		synchronized (this) {
 			k = handleMap.keySet();

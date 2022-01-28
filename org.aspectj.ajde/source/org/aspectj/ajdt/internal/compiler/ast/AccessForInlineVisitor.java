@@ -1,13 +1,13 @@
 /* *******************************************************************
  * Copyright (c) 2002 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     PARC     initial implementation
  * ******************************************************************/
 
 package org.aspectj.ajdt.internal.compiler.ast;
@@ -52,13 +52,13 @@ import org.aspectj.weaver.ResolvedMember;
 
 /**
  * Walks the body of around advice
- * 
+ *
  * Makes sure that all member accesses are to public members. Will convert to use access methods when needed to ensure that. This
  * makes it much simpler (and more modular) to inline the body of an around.
- * 
+ *
  * ??? constructors are handled different and require access to the target type. changes to
  * org.eclipse.jdt.internal.compiler.ast.AllocationExpression would be required to fix this issue.
- * 
+ *
  * @author Jim Hugunin
  */
 
@@ -66,7 +66,7 @@ public class AccessForInlineVisitor extends ASTVisitor {
 	PrivilegedHandler handler;
 	AspectDeclaration inAspect;
 	EclipseFactory world; // alias for inAspect.world
-	private Map<TypeBinding, Map<FieldBinding, ResolvedMember>> alreadyProcessedReceivers = new HashMap<TypeBinding, Map<FieldBinding, ResolvedMember>>();
+	private Map<TypeBinding, Map<FieldBinding, ResolvedMember>> alreadyProcessedReceivers = new HashMap<>();
 
 	// set to true for ClassLiteralAccess and AssertStatement
 	// ??? A better answer would be to transform these into inlinable forms
@@ -130,7 +130,7 @@ public class AccessForInlineVisitor extends ASTVisitor {
 		}
 
 	}
-	
+
 	private boolean isCloneMethod(MethodBinding binding) {
 		return (CharOperation.equals(binding.selector, TypeConstants.CLONE)) &&
 				(CharOperation.equals(binding.declaringClass.compoundName, TypeConstants.JAVA_LANG_OBJECT));
@@ -172,11 +172,7 @@ public class AccessForInlineVisitor extends ASTVisitor {
 		}
 
 		// Avoid repeatedly building ResolvedMembers by using info on any done previously in this visitor
-		Map<FieldBinding, ResolvedMember> alreadyResolvedMembers = alreadyProcessedReceivers.get(receiverType);
-		if (alreadyResolvedMembers == null) {
-			alreadyResolvedMembers = new HashMap<FieldBinding, ResolvedMember>();
-			alreadyProcessedReceivers.put(receiverType, alreadyResolvedMembers);
-		}
+		Map<FieldBinding, ResolvedMember> alreadyResolvedMembers = alreadyProcessedReceivers.computeIfAbsent(receiverType, k -> new HashMap<>());
 		ResolvedMember m = alreadyResolvedMembers.get(binding);
 		if (m == null) {
 			m = world.makeResolvedMember(binding, receiverType);

@@ -1,11 +1,11 @@
 /* *******************************************************************
  * Copyright (c) 2004 IBM Corporation.
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
  * ******************************************************************/
 
 package org.aspectj.weaver.patterns;
@@ -13,7 +13,6 @@ package org.aspectj.weaver.patterns;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -45,7 +44,7 @@ import org.aspectj.weaver.ast.Var;
  * (at)Annotation((at)Foo) or (at)Annotation(foo)<br>
  * <p>
  * Matches any join point where the subject of the join point has an annotation matching the annotationTypePattern:
- * 
+ *
  * <br>
  * Join Point Kind - Subject <br>
  * ================================ <br>
@@ -97,7 +96,7 @@ public class AnnotationPointcut extends NameBindingPointcut {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.aspectj.weaver.patterns.Pointcut#fastMatch(org.aspectj.weaver.patterns.FastMatchInfo)
 	 */
 	@Override
@@ -111,7 +110,7 @@ public class AnnotationPointcut extends NameBindingPointcut {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.aspectj.weaver.patterns.Pointcut#match(org.aspectj.weaver.Shadow)
 	 */
 	@Override
@@ -140,9 +139,9 @@ public class AnnotationPointcut extends NameBindingPointcut {
 			if (rMember.isAnnotatedElsewhere()) {
 				if (kind == Shadow.FieldGet || kind == Shadow.FieldSet) {
 					// FIXME asc should include supers with getInterTypeMungersIncludingSupers ?
-					List mungers = rMember.getDeclaringType().resolve(shadow.getIWorld()).getInterTypeMungers();
-					for (Iterator iter = mungers.iterator(); iter.hasNext();) {
-						ConcreteTypeMunger typeMunger = (ConcreteTypeMunger) iter.next();
+					List<ConcreteTypeMunger> mungers = rMember.getDeclaringType().resolve(shadow.getIWorld()).getInterTypeMungers();
+					for (Object munger : mungers) {
+						ConcreteTypeMunger typeMunger = (ConcreteTypeMunger) munger;
 						if (typeMunger.getMunger() instanceof NewFieldTypeMunger) {
 							ResolvedMember fakerm = typeMunger.getSignature();
 							if (fakerm.equals(member)) {
@@ -162,8 +161,7 @@ public class AnnotationPointcut extends NameBindingPointcut {
 
 	private ResolvedMember findMethod(ResolvedType aspectType, ResolvedMember ajcMethod) {
 		ResolvedMember decMethods[] = aspectType.getDeclaredMethods();
-		for (int i = 0; i < decMethods.length; i++) {
-			ResolvedMember member = decMethods[i];
+		for (ResolvedMember member : decMethods) {
 			if (member.equals(ajcMethod)) {
 				return member;
 			}
@@ -173,7 +171,7 @@ public class AnnotationPointcut extends NameBindingPointcut {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.aspectj.weaver.patterns.Pointcut#resolveBindings(org.aspectj.weaver.patterns.IScope,
 	 * org.aspectj.weaver.patterns.Bindings)
 	 */
@@ -190,7 +188,7 @@ public class AnnotationPointcut extends NameBindingPointcut {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.aspectj.weaver.patterns.Pointcut#concretize1(org.aspectj.weaver.ResolvedType, org.aspectj.weaver.IntMap)
 	 */
 	@Override
@@ -258,13 +256,13 @@ public class AnnotationPointcut extends NameBindingPointcut {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.aspectj.weaver.patterns.NameBindingPointcut#getBindingAnnotationTypePatterns()
 	 */
 	@Override
 	public List<BindingPattern> getBindingAnnotationTypePatterns() {
 		if (annotationTypePattern instanceof BindingPattern) { // BindingAnnotationTypePattern) {
-			List<BindingPattern> l = new ArrayList<BindingPattern>();
+			List<BindingPattern> l = new ArrayList<>();
 			l.add((BindingPattern)annotationTypePattern);
 			return l;
 		} else {
@@ -274,7 +272,7 @@ public class AnnotationPointcut extends NameBindingPointcut {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.aspectj.weaver.patterns.NameBindingPointcut#getBindingTypePatterns()
 	 */
 	@Override
@@ -284,7 +282,7 @@ public class AnnotationPointcut extends NameBindingPointcut {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.aspectj.weaver.patterns.PatternNode#write(java.io.DataOutputStream)
 	 */
 	@Override
@@ -318,7 +316,7 @@ public class AnnotationPointcut extends NameBindingPointcut {
 	}
 
 	public void buildDeclarationText() {
-		StringBuffer buf = new StringBuffer();
+		StringBuilder buf = new StringBuilder();
 		buf.append("@annotation(");
 		String annPatt = annotationTypePattern.toString();
 		buf.append(annPatt.startsWith("@") ? annPatt.substring(1) : annPatt);

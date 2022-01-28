@@ -1,13 +1,13 @@
 /* *******************************************************************
  * Copyright (c) 2002 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     PARC     initial implementation
  * ******************************************************************/
 
 package org.aspectj.ajdt.internal.compiler.problem;
@@ -17,7 +17,6 @@ import java.io.StringWriter;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -79,7 +78,7 @@ import org.aspectj.weaver.patterns.TypePattern;
  * Extends problem reporter to support compiler-side implementation of declare soft. Also overrides error reporting for the need to
  * implement abstract methods to account for inter-type declarations and pointcut declarations. This second job might be better done
  * directly in the SourceTypeBinding/ClassScope classes.
- * 
+ *
  * @author Jim Hugunin
  */
 public class AjProblemReporter extends ProblemReporter {
@@ -145,7 +144,7 @@ public class AjProblemReporter extends ProblemReporter {
 
 		super.unhandledException(exceptionType, location);
 	}
-	
+
 	public void unhandledExceptionFromAutoClose(TypeBinding exceptionType, ASTNode location) {
 		if (!factory.getWorld().getDeclareSoft().isEmpty()) {
 			Shadow callSite = factory.makeShadow(location, referenceContext);
@@ -229,8 +228,7 @@ public class AjProblemReporter extends ProblemReporter {
 			// so we don't have to worry about interfaces, just the superclass.
 			onTypeX = factory.fromEclipse(type.superclass()); // abstractMethod.declaringClass);
 		}
-		for (Iterator i = onTypeX.getInterTypeMungersIncludingSupers().iterator(); i.hasNext();) {
-			ConcreteTypeMunger m = (ConcreteTypeMunger) i.next();
+		for (ConcreteTypeMunger m : onTypeX.getInterTypeMungersIncludingSupers()) {
 			ResolvedMember sig = m.getSignature();
 			if (!Modifier.isAbstract(sig.getModifiers())) {
 				if (ResolvedType.matches(
@@ -314,7 +312,7 @@ public class AjProblemReporter extends ProblemReporter {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemReporter#disallowedTargetForAnnotation(org.aspectj.org.eclipse
 	 * .jdt.internal.compiler.ast.Annotation)
@@ -326,25 +324,25 @@ public class AjProblemReporter extends ProblemReporter {
 			String name = new String(binding.selector);
 			if (name.startsWith("ajc$")) {
 				long metaTagBits = annotation.resolvedType.getAnnotationTagBits(); // could be forward reference
-				if (name.indexOf("interField") != -1) {
+				if (name.contains("interField")) {
 					if ((metaTagBits & TagBits.AnnotationForField) != 0)
 						return;
-				} else if (name.indexOf("interConstructor") != -1) {
+				} else if (name.contains("interConstructor")) {
 					if ((metaTagBits & TagBits.AnnotationForConstructor) != 0)
 						return;
-				} else if (name.indexOf("interMethod") != -1) {
+				} else if (name.contains("interMethod")) {
 					if ((metaTagBits & TagBits.AnnotationForMethod) != 0)
 						return;
-				} else if (name.indexOf("declare_" + DeclareAnnotation.AT_TYPE + "_") != -1) {
+				} else if (name.contains("declare_" + DeclareAnnotation.AT_TYPE + "_")) {
 					if ((metaTagBits & TagBits.AnnotationForAnnotationType) != 0 || (metaTagBits & TagBits.AnnotationForType) != 0)
 						return;
-				} else if (name.indexOf("declare_" + DeclareAnnotation.AT_FIELD + "_") != -1) {
+				} else if (name.contains("declare_" + DeclareAnnotation.AT_FIELD + "_")) {
 					if ((metaTagBits & TagBits.AnnotationForField) != 0)
 						return;
-				} else if (name.indexOf("declare_" + DeclareAnnotation.AT_CONSTRUCTOR + "_") != -1) {
+				} else if (name.contains("declare_" + DeclareAnnotation.AT_CONSTRUCTOR + "_")) {
 					if ((metaTagBits & TagBits.AnnotationForConstructor) != 0)
 						return;
-				} else if (name.indexOf("declare_eow") != -1) {
+				} else if (name.contains("declare_eow")) {
 					if ((metaTagBits & TagBits.AnnotationForField) != 0)
 						return;
 				}
@@ -366,7 +364,7 @@ public class AjProblemReporter extends ProblemReporter {
 		if (severity != ProblemSeverities.Ignore && DUMP_STACK) {
 			Thread.dumpStack();
 		}
-		super.handle(problemId, problemArguments, 
+		super.handle(problemId, problemArguments,
 				0, // no message elaboration
 				messageArguments, severity, problemStartPosition, problemEndPosition,
 				referenceContext, unitResult);
@@ -434,9 +432,8 @@ public class AjProblemReporter extends ProblemReporter {
 		ResolvedType supertypeToLookAt = onTypeX.getSuperclass();
 		while (supertypeToLookAt != null) {
 			List<ConcreteTypeMunger> itMungers = supertypeToLookAt.getInterTypeMungers();
-			for (Iterator<ConcreteTypeMunger> i = itMungers.iterator(); i.hasNext();) {
-				ConcreteTypeMunger m = (ConcreteTypeMunger) i.next();
-				if (m.getMunger()!=null && m.getMunger().getKind()== ResolvedTypeMunger.PrivilegedAccess) {
+			for (ConcreteTypeMunger m : itMungers) {
+				if (m.getMunger() != null && m.getMunger().getKind() == ResolvedTypeMunger.PrivilegedAccess) {
 					continue;
 				}
 				ResolvedMember sig = m.getSignature();
@@ -459,7 +456,7 @@ public class AjProblemReporter extends ProblemReporter {
 	}
 
 	private String typesAsString(boolean isVarargs, TypeBinding[] types, boolean makeShort) {
-		StringBuffer buffer = new StringBuffer(10);
+		StringBuilder buffer = new StringBuilder(10);
 		for (int i = 0, length = types.length; i < length; i++) {
 			if (i != 0)
 				buffer.append(", "); //$NON-NLS-1$
@@ -492,13 +489,11 @@ public class AjProblemReporter extends ProblemReporter {
 			AspectDeclaration ad = (AspectDeclaration) typeDecl.enclosingType;
 			if (ad.concreteName != null) {
 				List<Declare> declares = ad.concreteName.declares;
-				for (Iterator<Declare> iter = declares.iterator(); iter.hasNext();) {
-					Object dec = iter.next();
+				for (Object dec : declares) {
 					if (dec instanceof DeclareParents) {
 						DeclareParents decp = (DeclareParents) dec;
 						TypePattern[] newparents = decp.getParents().getTypePatterns();
-						for (int i = 0; i < newparents.length; i++) {
-							TypePattern pattern = newparents[i];
+						for (TypePattern pattern : newparents) {
 							UnresolvedType ut = pattern.getExactType();
 							if (ut == null)
 								continue;
@@ -511,7 +506,7 @@ public class AjProblemReporter extends ProblemReporter {
 		}
 		super.unusedPrivateType(typeDecl);
 	}
-	
+
 	private final static char[] thisJoinPointName = "thisJoinPoint".toCharArray();
 	private final static char[] thisJoinPointStaticPartName = "thisJoinPointStaticPart".toCharArray();
 	private final static char[] thisEnclosingJoinPointStaticPartName = "thisEnclosingJoinPointStaticPart".toCharArray();
@@ -521,22 +516,22 @@ public class AjProblemReporter extends ProblemReporter {
 	public void uninitializedLocalVariable(LocalVariableBinding binding, ASTNode location, Scope scope) {
 		if (CharOperation.equals(binding.name, thisJoinPointName) ||
 			CharOperation.equals(binding.name, thisJoinPointStaticPartName) ||
-			CharOperation.equals(binding.name, thisAspectInstanceName) || 
+			CharOperation.equals(binding.name, thisAspectInstanceName) ||
 			CharOperation.equals(binding.name, thisEnclosingJoinPointStaticPartName)) {
 			// If in advice, this is not a problem
 			if (binding.declaringScope!=null && (binding.declaringScope.referenceContext() instanceof AdviceDeclaration ||
 												 binding.declaringScope.referenceContext() instanceof IfMethodDeclaration)) {
 				return;
 			}
-		}			
+		}
 		super.uninitializedLocalVariable(binding, location, scope);
 	}
-	
+
 	public void abstractMethodInConcreteClass(SourceTypeBinding type) {
 		if (type.scope!=null && type.scope.referenceContext instanceof AspectDeclaration) {
 			// TODO could put out an Aspect specific message here
 			return;
-		} 
+		}
 		super.abstractMethodInConcreteClass(type);
 	}
 
@@ -552,8 +547,7 @@ public class AjProblemReporter extends ProblemReporter {
 				weaverType = factory.fromEclipse(type.superclass());
 			}
 			Set checked = new HashSet();
-			for (Iterator i = weaverType.getInterTypeMungersIncludingSupers().iterator(); i.hasNext();) {
-				ConcreteTypeMunger m = (ConcreteTypeMunger) i.next();
+			for (ConcreteTypeMunger m : weaverType.getInterTypeMungersIncludingSupers()) {
 				ResolvedType theAspect = m.getAspectType();
 				if (!checked.contains(theAspect)) {
 					TypeBinding tb = factory.makeTypeBinding(m.getAspectType());
@@ -570,8 +564,8 @@ public class AjProblemReporter extends ProblemReporter {
 							Collection/* ResolvedMember */privvies = ((ReferenceType) theAspect).getPrivilegedAccesses();
 							// On an incremental compile the information is in the bcel delegate
 							if (privvies != null) {
-								for (Iterator iterator = privvies.iterator(); iterator.hasNext();) {
-									ResolvedMember priv = (ResolvedMember) iterator.next();
+								for (Object privvy : privvies) {
+									ResolvedMember priv = (ResolvedMember) privvy;
 									if (priv.getName().equals(fname)) {
 										return;
 									}
@@ -667,7 +661,7 @@ public class AjProblemReporter extends ProblemReporter {
 			ex.fillInStackTrace();
 			StringWriter sw = new StringWriter();
 			ex.printStackTrace(new PrintWriter(sw));
-			StringBuffer sb = new StringBuffer();
+			StringBuilder sb = new StringBuilder();
 			sb.append(CompilationAndWeavingContext.getCurrentContext());
 			sb.append(sw.toString());
 			problem = new PinpointedProblem(problem, sb.toString());
@@ -690,7 +684,7 @@ public class AjProblemReporter extends ProblemReporter {
 			this.delegate = aProblem;
 			// if this was a problem that came via the weaver, it will already have
 			// pinpoint info, don't do it twice...
-			if (delegate.getMessage().indexOf("message issued...") == -1) {
+			if (!delegate.getMessage().contains("message issued...")) {
 				this.message = delegate.getMessage() + "\n" + pinpoint;
 			} else {
 				this.message = delegate.getMessage();

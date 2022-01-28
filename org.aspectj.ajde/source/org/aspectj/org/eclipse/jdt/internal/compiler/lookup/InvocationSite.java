@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -34,15 +34,20 @@ public interface InvocationSite {
 	void setFieldIndex(int depth);
 	int sourceEnd();
 	int sourceStart();
+	default int nameSourceStart() { return sourceStart(); }
+	default int nameSourceEnd() { return sourceEnd(); }
 	TypeBinding invocationTargetType();
 	boolean receiverIsImplicitThis();
 	boolean checkingPotentialCompatibility();
 	void acceptPotentiallyCompatibleMethods(MethodBinding [] methods);
-	
+	public default LocalVariableBinding[] getPatternVariablesWhenTrue() {
+		return null;
+	}
+
 	/** When inference for this invocationSite starts, get a fresh inference context, initialized from this site. */
 	InferenceContext18 freshInferenceContext(Scope scope);
 	ExpressionContext getExpressionContext();
-	
+
 	static class EmptyWithAstNode implements InvocationSite {
 		ASTNode node;
 		public EmptyWithAstNode(ASTNode node) {

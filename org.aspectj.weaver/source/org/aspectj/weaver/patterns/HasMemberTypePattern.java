@@ -1,12 +1,12 @@
 /* *******************************************************************
  * Copyright (c) 2005 Contributors.
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
  *   Adrian Colyer			Initial implementation
  *   Nieraj Singh
  * ******************************************************************/
@@ -61,7 +61,7 @@ public class HasMemberTypePattern extends TypePattern {
 	private boolean hasField(ResolvedType type) {
 		// TODO what about ITDs
 		World world = type.getWorld();
-		for (Iterator iter = type.getFields(); iter.hasNext();) {
+		for (Iterator<ResolvedMember> iter = type.getFields(); iter.hasNext();) {
 			Member field = (Member) iter.next();
 			if (field.getName().startsWith(declareAtPrefix)) {
 				continue;
@@ -104,8 +104,7 @@ public class HasMemberTypePattern extends TypePattern {
 		}
 		// try itds before we give up (this doesnt find annotations - the signature returned may not include them)
 		List<ConcreteTypeMunger> mungers = type.getInterTypeMungersIncludingSupers();
-		for (Iterator<ConcreteTypeMunger> iter = mungers.iterator(); iter.hasNext();) {
-			ConcreteTypeMunger munger = iter.next();
+		for (ConcreteTypeMunger munger : mungers) {
 			Member member = munger.getSignature();
 			if (signaturePattern.matches(member, type.getWorld(), false)) {
 				if (!Modifier.isPublic(member.getModifiers())) {
@@ -163,7 +162,7 @@ public class HasMemberTypePattern extends TypePattern {
 
 	@Override
 	public String toString() {
-		StringBuffer buff = new StringBuffer();
+		StringBuilder buff = new StringBuilder();
 		if (signaturePattern.getKind() == Member.FIELD) {
 			buff.append("hasfield(");
 		} else {

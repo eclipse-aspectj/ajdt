@@ -2,13 +2,13 @@
  * Copyright (c) 2011 Contributors.
  * All rights reserved.
  * This program and the accompanying materials are made available
- * under the terms of the Eclipse Public License v1.0
+ * under the terms of the Eclipse Public License v 2.0
  * which accompanies this distribution and is available at
- * http://eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
  *
  * Contributors:
  *   Abraham Nevado - Lucierna	initial implementation
- *   	Just a slight variation of current DocumentParser.java from Alexandre Vasseur. 
+ *   	Just a slight variation of current DocumentParser.java from Alexandre Vasseur.
  *******************************************************************************/
 package org.aspectj.weaver.loadtime.definition;
 
@@ -17,7 +17,6 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.Set;
 
 import org.aspectj.util.LangUtil;
 import org.aspectj.weaver.loadtime.definition.Definition.AdviceKind;
@@ -27,7 +26,7 @@ import org.xml.sax.SAXException;
 /**
  * This class has been created to avoid deadlocks when instrumenting SAXParser.
  * So it is used as a wrapper for the ligthweigh XML parser LightXMLParser.
- * 
+ *
  * @author A. Nevado
  */
 public class SimpleAOPParser {
@@ -81,7 +80,7 @@ public class SimpleAOPParser {
 		return sap.m_definition;
 	}
 
-	private void startElement(String qName, Map attrMap) throws Exception {
+	private void startElement(String qName, Map<String, Object> attrMap) throws Exception {
 		if (ASPECT_ELEMENT.equals(qName)) {
 			String name = (String) attrMap.get(NAME_ATTRIBUTE);
 			String scopePattern = replaceXmlAnd((String) attrMap
@@ -184,7 +183,7 @@ public class SimpleAOPParser {
 						}
 					}
 				}
-			
+
 			}
 		}
 		else if (BEFORE_ELEMENT.equals(qName) && m_inAspects ) {
@@ -234,7 +233,7 @@ public class SimpleAOPParser {
 		}
 	}
 
-	private String getWithinAttribute(Map attributes) {
+	private String getWithinAttribute(Map<String, Object> attributes) {
 		return replaceXmlAnd((String) attributes.get(WITHIN_ATTRIBUTE));
 	}
 
@@ -254,9 +253,9 @@ public class SimpleAOPParser {
 	private static void traverse(SimpleAOPParser sap, LightXMLParser xml)
 			throws Exception {
 		sap.startElement(xml.getName(), xml.getAttributes());
-		ArrayList childrens = xml.getChildrens();
-		for (int i = 0; i < childrens.size(); i++) {
-			LightXMLParser child = (LightXMLParser) childrens.get(i);
+		Iterable<LightXMLParser> childrens = xml.getChildrens();
+		for (Object children : childrens) {
+			LightXMLParser child = (LightXMLParser) children;
 			traverse(sap, child);
 		}
 		sap.endElement(xml.getName());

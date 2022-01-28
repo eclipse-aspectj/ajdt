@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014, 2016 Mateusz Matela and others.
+ * Copyright (c) 2014, 2021 Mateusz Matela and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -13,11 +13,10 @@
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.formatter;
 
-import static org.aspectj.org.eclipse.jdt.internal.compiler.parser.TerminalTokens.TokenNameCOMMENT_BLOCK;
-import static org.aspectj.org.eclipse.jdt.internal.compiler.parser.TerminalTokens.TokenNameCOMMENT_JAVADOC;
-import static org.aspectj.org.eclipse.jdt.internal.compiler.parser.TerminalTokens.TokenNameLBRACE;
+import static org.aspectj.org.eclipse.jdt.internal.compiler.parser.TerminalTokens.TokenNameCOMMENT_LINE;
 import static org.aspectj.org.eclipse.jdt.internal.compiler.parser.TerminalTokens.TokenNameNotAToken;
 import static org.aspectj.org.eclipse.jdt.internal.compiler.parser.TerminalTokens.TokenNameStringLiteral;
+import static org.aspectj.org.eclipse.jdt.internal.compiler.parser.TerminalTokens.TokenNameTextBlock;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,12 +24,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
+import java.util.stream.Stream;
 import org.aspectj.org.eclipse.jdt.core.dom.ASTNode;
-import org.aspectj.org.eclipse.jdt.core.dom.Block;
-import org.aspectj.org.eclipse.jdt.core.dom.IfStatement;
-import org.aspectj.org.eclipse.jdt.core.dom.ReturnStatement;
-import org.aspectj.org.eclipse.jdt.core.dom.ThrowStatement;
+import org.aspectj.org.eclipse.jdt.core.dom.Expression;
+import org.aspectj.org.eclipse.jdt.core.dom.InfixExpression;
+import org.aspectj.org.eclipse.jdt.core.dom.StringLiteral;
+import org.aspectj.org.eclipse.jdt.core.dom.TypeDeclaration;
+import org.aspectj.org.eclipse.jdt.core.dom.InfixExpression.Operator;
 import org.aspectj.org.eclipse.jdt.internal.formatter.Token.WrapMode;
 import org.aspectj.org.eclipse.jdt.internal.formatter.linewrap.CommentWrapExecutor;
 
@@ -177,19 +177,8 @@ public class TokenManager implements Iterable<Token> {
 		return this.tokens.iterator();
 	}
 
-	public boolean isGuardClause(Block node) {
-		if (node.statements().size() != 1)
-			return false;
-		ASTNode parent = node.getParent();
-		if (!(parent instanceof IfStatement) || ((IfStatement) parent).getElseStatement() != null)
-			return false;
-		Object statement = node.statements().get(0);
-		if (!(statement instanceof ReturnStatement) && !(statement instanceof ThrowStatement))
-			return false;
-		// guard clause cannot start with a comment
-		// https://bugs.eclipse.org/bugs/show_bug.cgi?id=58565
-		int openBraceIndex = firstIndexIn(node, TokenNameLBRACE);
-		return !get(openBraceIndex + 1).isComment();
+	public Stream<Token> stream() {
+		return this.tokens.stream();
 	}
 
 	public int firstIndexIn(ASTNode node, int tokenType) {
@@ -268,9 +257,16 @@ public class TokenManager implements Iterable<Token> {
 			}
 			if (traversed.getAlign() > 0)
 				this.counter = traversed.getAlign();
-			List<Token> internalStructure = traversed.getInternalStructure();
-			if (internalStructure != null && !internalStructure.isEmpty()) {
-				assert traversed.tokenType == TokenNameCOMMENT_BLOCK || traversed.tokenType == TokenNameCOMMENT_JAVADOC;
+			if (traversed.tokenType == TokenNameTextBlock) {
+				List<Token> lines = traversed.getInternalStructure();
+				if (lines == null) {
+					this.counter = getLength(traversed, 0);
+				} else {
+					this.counter = traversed.getIndent() + lines.get(1).getIndent();
+					this.counter += getLength(lines.get(lines.size() - 1), this.counter);
+				}
+			} else if (traversed.isComment()) {
+				assert traversed.tokenType != TokenNameCOMMENT_LINE;
 				this.counter = TokenManager.this.commentWrapper.wrapMultiLineComment(traversed, this.counter, true,
 						this.isNLSTagInLine);
 			} else {
@@ -340,7 +336,7 @@ public class TokenManager implements Iterable<Token> {
 	/**
 	 * Calculates the length of a source code fragment.
 	 * @param originalStart the first position of the source code fragment
-	 * @param originalEnd the last position of the source code fragment 
+	 * @param originalEnd the last position of the source code fragment
 	 * @param startPosition position in line of the first character (affects tabs calculation)
 	 * @return length, considering tabs and escaping characters as HTML entities
 	 */
@@ -404,6 +400,26 @@ public class TokenManager implements Iterable<Token> {
 	private boolean tokenInside(ASTNode node, int index) {
 		return get(index).originalStart >= node.getStartPosition()
 				&& get(index).originalEnd <= node.getStartPosition() + node.getLength();
+	}
+
+	public boolean isStringConcatenation(InfixExpression node) {
+		if (!node.getOperator().equals(Operator.PLUS))
+			return false;
+		List<Expression> operands = new ArrayList<Expression>(node.extendedOperands());
+		operands.add(node.getLeftOperand());
+		operands.add(node.getRightOperand());
+		for (Expression o : operands) {
+			if (o instanceof StringLiteral)
+				return true;
+			if ((o instanceof InfixExpression) && isStringConcatenation((InfixExpression) o))
+				return true;
+		}
+		return false;
+	}
+
+	public boolean isFake(TypeDeclaration node) {
+		// might be a fake type created by parsing in class body mode
+		return node.getName().getStartPosition() == -1;
 	}
 
 	public void addNLSAlignIndex(int index, int align) {

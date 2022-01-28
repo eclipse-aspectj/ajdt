@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -7,7 +7,7 @@
  * https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann - Contribution for
@@ -42,7 +42,7 @@ public class IntersectionTypeBinding18 extends ReferenceBinding {
 	public ReferenceBinding [] intersectingTypes;
 	private ReferenceBinding javaLangObject;
 	int length;
-	
+
 	public IntersectionTypeBinding18(ReferenceBinding[] intersectingTypes, LookupEnvironment environment) {
 		this.intersectingTypes = intersectingTypes;
 		this.length = intersectingTypes.length;
@@ -51,7 +51,7 @@ public class IntersectionTypeBinding18 extends ReferenceBinding {
 			this.modifiers |= ClassFileConstants.AccInterface;
 		}
 	}
-	
+
 	private IntersectionTypeBinding18(IntersectionTypeBinding18 prototype) {
 		this.intersectingTypes = prototype.intersectingTypes;
 		this.length = prototype.length;
@@ -60,7 +60,7 @@ public class IntersectionTypeBinding18 extends ReferenceBinding {
 			this.modifiers |= ClassFileConstants.AccInterface;
 		}
 	}
-	
+
 	@Override
 	public TypeBinding clone(TypeBinding enclosingType) {
 		return new IntersectionTypeBinding18(this);
@@ -87,7 +87,7 @@ public class IntersectionTypeBinding18 extends ReferenceBinding {
 
 	@Override
 	public boolean hasTypeBit(int bit) { // Stephan ??
-		for (int i = 0; i < this.length; i++) {		
+		for (int i = 0; i < this.length; i++) {
 			if (this.intersectingTypes[i].hasTypeBit(bit))
 				return true;
 		}
@@ -98,7 +98,7 @@ public class IntersectionTypeBinding18 extends ReferenceBinding {
 	public boolean canBeInstantiated() {
 		return false;
 	}
-	
+
 	@Override
 	public boolean canBeSeenBy(PackageBinding invocationPackage) {
 		for (int i = 0; i < this.length; i++) {
@@ -107,7 +107,7 @@ public class IntersectionTypeBinding18 extends ReferenceBinding {
 		}
 		return true;
 	}
-	
+
 	@Override
 	public boolean canBeSeenBy(Scope scope) {
 		for (int i = 0; i < this.length; i++) {
@@ -116,7 +116,7 @@ public class IntersectionTypeBinding18 extends ReferenceBinding {
 		}
 		return true;
 	}
-	
+
 	@Override
 	public boolean canBeSeenBy(ReferenceBinding receiverType, ReferenceBinding invocationType) {
 		for (int i = 0; i < this.length; i++) {
@@ -125,8 +125,8 @@ public class IntersectionTypeBinding18 extends ReferenceBinding {
 		}
 		return true;
 	}
-	
-	
+
+
 	@Override
 	public char[] constantPoolName() {
 		TypeBinding erasure = erasure();
@@ -141,7 +141,7 @@ public class IntersectionTypeBinding18 extends ReferenceBinding {
 	public PackageBinding getPackage() {
 		throw new UnsupportedOperationException(); // cannot be referred to
 	}
-	
+
 	@Override
 	public ReferenceBinding[] getIntersectingTypes() {
 		return this.intersectingTypes;
@@ -149,9 +149,9 @@ public class IntersectionTypeBinding18 extends ReferenceBinding {
 
 	@Override
 	public ReferenceBinding superclass() {
-		return this.intersectingTypes[0].isClass() ? this.intersectingTypes[0] : this.javaLangObject; 
+		return this.intersectingTypes[0].isClass() ? this.intersectingTypes[0] : this.javaLangObject;
 	}
-	
+
 	@Override
 	public ReferenceBinding [] superInterfaces() {
 		if (this.intersectingTypes[0].isClass()) {
@@ -161,12 +161,12 @@ public class IntersectionTypeBinding18 extends ReferenceBinding {
 		}
 		return this.intersectingTypes;
 	}
-	
+
 	@Override
 	public boolean isBoxedPrimitiveType() {
 		return this.intersectingTypes[0].isBoxedPrimitiveType();
 	}
-	
+
 	/* Answer true if the receiver type can be assigned to the argument type (right)
 	 */
 	@Override
@@ -187,36 +187,49 @@ public class IntersectionTypeBinding18 extends ReferenceBinding {
 			rightIntersectingTypes = ((IntersectionTypeBinding18) right).intersectingTypes;
 		}
 		if (rightIntersectingTypes != null) {
-			int numRequired = rightIntersectingTypes.length;
-			TypeBinding[] required = new TypeBinding[numRequired];
-			System.arraycopy(rightIntersectingTypes, 0, required, 0, numRequired);
-			for (int i = 0; i < this.length; i++) {
-				TypeBinding provided = this.intersectingTypes[i];
-				for (int j = 0; j < required.length; j++) {
-					if (required[j] == null) continue;
-					if (provided.isCompatibleWith(required[j], scope)) {
-						required[j] = null;
-						if (--numRequired == 0)
-							return true;
-						break;
-					}
+			nextRequired:
+			for (TypeBinding required : rightIntersectingTypes) {
+				for (TypeBinding provided : this.intersectingTypes) {
+					if (provided.isCompatibleWith(required, scope))
+						continue nextRequired;
 				}
+				return false;
 			}
-			return false;
+			return true;
 		}
 
 		// normal case:
-		for (int i = 0; i < this.length; i++) {		
+		for (int i = 0; i < this.length; i++) {
 			if (this.intersectingTypes[i].isCompatibleWith(right, scope))
 				return true;
 		}
 		return false;
 	}
-	
+
 	@Override
 	public boolean isSubtypeOf(TypeBinding other, boolean simulatingBugJDK8026527) {
 		if (TypeBinding.equalsEquals(this, other))
 			return true;
+		if (other instanceof ReferenceBinding) {
+			TypeBinding[] rightIntersectingTypes = ((ReferenceBinding) other).getIntersectingTypes();
+			if (rightIntersectingTypes != null && rightIntersectingTypes.length > 1) {
+				int numRequired = rightIntersectingTypes.length;
+				TypeBinding[] required = new TypeBinding[numRequired];
+				System.arraycopy(rightIntersectingTypes, 0, required, 0, numRequired);
+				for (int i = 0; i < this.length; i++) {
+					TypeBinding provided = this.intersectingTypes[i];
+					for (int j = 0; j < required.length; j++) {
+						if (required[j] == null) continue;
+						if (provided.isSubtypeOf(required[j], simulatingBugJDK8026527)) {
+							required[j] = null;
+							if (--numRequired == 0)
+								return true;
+						}
+					}
+				}
+				return false;
+			}
+		}
 		for (int i = 0; i < this.intersectingTypes.length; i++) {
 			if (this.intersectingTypes[i].isSubtypeOf(other, false))
 				return true;
@@ -238,14 +251,14 @@ public class IntersectionTypeBinding18 extends ReferenceBinding {
 			}
 		}
 		if (classIdx > -1 && classIdx < Integer.MAX_VALUE)
-			return this.intersectingTypes[classIdx];
+			return this.intersectingTypes[classIdx].erasure();
 		return this;
 	}
 
 	@Override
 	public char[] qualifiedSourceName() {
-		StringBuffer qualifiedSourceName = new StringBuffer(16);
-		for (int i = 0; i < this.length; i++) {		
+		StringBuilder qualifiedSourceName = new StringBuilder(16);
+		for (int i = 0; i < this.length; i++) {
 				qualifiedSourceName.append(this.intersectingTypes[i].qualifiedSourceName());
 				if (i != this.length - 1)
 					qualifiedSourceName.append(" & "); //$NON-NLS-1$
@@ -255,8 +268,8 @@ public class IntersectionTypeBinding18 extends ReferenceBinding {
 
 	@Override
 	public char[] sourceName() {
-		StringBuffer srcName = new StringBuffer(16);
-		for (int i = 0; i < this.length; i++) {		
+		StringBuilder srcName = new StringBuilder(16);
+		for (int i = 0; i < this.length; i++) {
 				srcName.append(this.intersectingTypes[i].sourceName());
 				if (i != this.length - 1)
 					srcName.append(" & "); //$NON-NLS-1$
@@ -266,8 +279,8 @@ public class IntersectionTypeBinding18 extends ReferenceBinding {
 
 	@Override
 	public char[] readableName() {
-		StringBuffer readableName = new StringBuffer(16);
-		for (int i = 0; i < this.length; i++) {		
+		StringBuilder readableName = new StringBuilder(16);
+		for (int i = 0; i < this.length; i++) {
 				readableName.append(this.intersectingTypes[i].readableName());
 				if (i != this.length - 1)
 					readableName.append(" & "); //$NON-NLS-1$
@@ -276,8 +289,8 @@ public class IntersectionTypeBinding18 extends ReferenceBinding {
 	}
 	@Override
 	public char[] shortReadableName() {
-		StringBuffer shortReadableName = new StringBuffer(16);
-		for (int i = 0; i < this.length; i++) {		
+		StringBuilder shortReadableName = new StringBuilder(16);
+		for (int i = 0; i < this.length; i++) {
 				shortReadableName.append(this.intersectingTypes[i].shortReadableName());
 				if (i != this.length - 1)
 					shortReadableName.append(" & "); //$NON-NLS-1$
@@ -294,8 +307,8 @@ public class IntersectionTypeBinding18 extends ReferenceBinding {
 	}
 	@Override
 	public String debugName() {
-		StringBuffer debugName = new StringBuffer(16);
-		for (int i = 0; i < this.length; i++) {		
+		StringBuilder debugName = new StringBuilder(16);
+		for (int i = 0; i < this.length; i++) {
 				debugName.append(this.intersectingTypes[i].debugName());
 				if (i != this.length - 1)
 					debugName.append(" & "); //$NON-NLS-1$
@@ -325,7 +338,7 @@ public class IntersectionTypeBinding18 extends ReferenceBinding {
 		for (int i = 0; i < this.intersectingTypes.length; i++)
 			this.intersectingTypes[i].collectInferenceVariables(variables);
 	}
-	
+
 	@Override
 	public ReferenceBinding upwardsProjection(Scope scope, TypeBinding[] mentionedTypeVariables) {
 		ReferenceBinding[] projectedTypes = new ReferenceBinding[this.intersectingTypes.length];

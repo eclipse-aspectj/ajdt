@@ -39,7 +39,9 @@ import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceStatus;
 import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.resources.WorkspaceJob;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -56,6 +58,7 @@ import org.aspectj.org.eclipse.jdt.internal.core.util.Messages;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
 
 public class ExternalFoldersManager {
+	private static final boolean WINDOWS = System.getProperty("os.name").toLowerCase().contains("windows");  //$NON-NLS-1$//$NON-NLS-2$
 	private static final String EXTERNAL_PROJECT_NAME = ".org.aspectj.org.eclipse.jdt.core.external.folders"; //$NON-NLS-1$
 	private static final String LINKED_FOLDER_NAME = ".link"; //$NON-NLS-1$
 	private Map<IPath, IFolder> folders;
@@ -69,7 +72,33 @@ public class ExternalFoldersManager {
 		// Prevent instantiation
 		// https://bugs.eclipse.org/bugs/show_bug.cgi?id=377806
 		if (Platform.isRunning()) {
-			getFolders();
+			/*
+			 * The code here runs during JavaCore start-up.
+			 * So if we need to open the external folders project, we do this from a job.
+			 * Otherwise workspace jobs that attempt to access JDT core functionality can cause a deadlock.
+			 *
+			 * See https://bugs.eclipse.org/bugs/show_bug.cgi?id=542860.
+			 */
+			class InitializeFolders extends WorkspaceJob {
+				public InitializeFolders() {
+					super("Initialize external folders"); //$NON-NLS-1$
+				}
+
+				@Override
+				public IStatus runInWorkspace(IProgressMonitor monitor) {
+					getFolders();
+					return Status.OK_STATUS;
+				}
+
+				@Override
+				public boolean belongsTo(Object family) {
+					return family == InitializeFolders.class;
+				}
+			}
+			InitializeFolders initializeFolders = new InitializeFolders();
+			IProject project = getExternalFoldersProject();
+			initializeFolders.setRule(project);
+			initializeFolders.schedule();
 		}
 	}
 
@@ -110,26 +139,76 @@ public class ExternalFoldersManager {
 
 	/**
 	 * Returns <code>true</code> if the provided path is a folder external to the project.
+	 * The path is expected to be one matching the {@link IClasspathEntry#CPE_LIBRARY} case in
+	 * {@link IClasspathEntry#getPath()} definition.
 	 */
 	public static boolean isExternalFolderPath(IPath externalPath) {
-		if (externalPath == null)
+		if (externalPath == null || externalPath.isEmpty()) {
 			return false;
-		String firstSegment = externalPath.segment(0);
-		if (firstSegment != null && ResourcesPlugin.getWorkspace().getRoot().getProject(firstSegment).exists())
-			return false;
+		}
+
 		JavaModelManager manager = JavaModelManager.getJavaModelManager();
-		if (manager.isExternalFile(externalPath) || manager.isAssumedExternalFile(externalPath))
+		if (manager.isExternalFile(externalPath) || manager.isAssumedExternalFile(externalPath)) {
 			return false;
+		}
+		if (!externalPath.isAbsolute()
+				|| (WINDOWS && (externalPath.getDevice() == null && !externalPath.isUNC()))) {
+			// can be only project relative path
+			return false;
+		}
+		// Test if this an absolute path in local file system (not the workspace path)
 		File externalFolder = externalPath.toFile();
-		if (externalFolder.isFile()) {
+		if (Files.isRegularFile(externalFolder.toPath())) {
 			manager.addExternalFile(externalPath);
 			return false;
 		}
-		if (externalPath.getFileExtension() != null/*likely a .jar, .zip, .rar or other file*/ && !externalFolder.exists()) {
-			manager.addAssumedExternalFile(externalPath);
+		if (Files.isDirectory(externalFolder.toPath())) {
+			return true;
+		}
+		// this can be now only full workspace path or an external path to a not existing file or folder
+		if (isInternalFilePath(externalPath)) {
 			return false;
 		}
+		if (isInternalContainerPath(externalPath)) {
+			return false;
+		}
+		// From here on the legacy code assumes that not existing resource must be external.
+		// We just follow the old assumption.
+		if (externalPath.getFileExtension() != null/*likely a .jar, .zip, .rar or other file*/) {
+			manager.addAssumedExternalFile(externalPath);
+			// assume not existing external (?) file (?) (can also be a folder with dotted name!)
+			return false;
+		}
+		// assume not existing external (?) folder (?)
 		return true;
+	}
+
+	/**
+	 * @param path full absolute workspace path
+	 */
+	private static boolean isInternalFilePath(IPath path) {
+		IWorkspaceRoot wsRoot = ResourcesPlugin.getWorkspace().getRoot();
+		// in case this is full workspace path it should start with project segment
+		if(path.segmentCount() > 1 && wsRoot.getFile(path).exists()) {
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * @param path full absolute workspace path
+	 */
+	private static boolean isInternalContainerPath(IPath path) {
+		IWorkspaceRoot wsRoot = ResourcesPlugin.getWorkspace().getRoot();
+		// in case this is full workspace path it should start with project segment
+		int segmentCount = path.segmentCount();
+		if(segmentCount == 1 && wsRoot.getProject(path.segment(0)).exists()) {
+			return true;
+		}
+		if(segmentCount > 1 && wsRoot.getFolder(path).exists()) {
+			return true;
+		}
+		return false;
 	}
 
 	public static boolean isInternalPathForExternalFolder(IPath resourcePath) {
@@ -354,7 +433,7 @@ public class ExternalFoldersManager {
 		return getFolders().get(externalFolderPath);
 	}
 
-	private Map<IPath, IFolder> getFolders() {
+	Map<IPath, IFolder> getFolders() {
 		if (this.folders == null) {
 			Map<IPath, IFolder> tempFolders = new LinkedHashMap<>();
 			IProject project = getExternalFoldersProject();
@@ -378,7 +457,11 @@ public class ExternalFoldersManager {
 			} catch (CoreException e) {
 				Util.log(e, "Exception while initializing external folders"); //$NON-NLS-1$
 			}
-			this.folders = Collections.synchronizedMap(tempFolders);
+			synchronized (this) {
+				if (this.folders == null) {
+					this.folders = Collections.synchronizedMap(tempFolders);
+				}
+			}
 		}
 		return this.folders;
 	}

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2005, 2012 IBM Corporation and others.
+ * Copyright (c) 2005, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -55,7 +55,7 @@ public class CompletionContext {
 	 * @since 3.4
 	 */
 	public static final int TL_STATEMENT_START = 2;
-	
+
 	/**
 	 * The completed token is the first token of a constructor
 	 * invocation expression.<br>
@@ -73,6 +73,19 @@ public class CompletionContext {
 	 * @since 3.9
 	 */
 	public static final int TL_CONSTRUCTOR_START = 4;
+
+	/**
+	 * The completed token is part of an import statement<br>
+	 * e.g.
+	 * <pre>
+	 * import java.util| // completion occurs at |
+	 * </pre>
+	 *
+	 * @see #getTokenLocation()
+	 *
+	 * @since 3.21
+	 */
+	public static final int TL_IN_IMPORT = 8;
 
 	/**
 	 * The completion token is unknown.
@@ -157,7 +170,7 @@ public class CompletionContext {
 	public char[][] getExpectedTypesSignatures() {
 		return null; // default overridden by concrete implementation
 	}
-	
+
 	/**
 	 * Return keys of expected types of a potential completion proposal at the completion position.
 	 *

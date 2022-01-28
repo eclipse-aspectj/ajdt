@@ -1,13 +1,13 @@
 /* *******************************************************************
  * Copyright (c) 2002 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     PARC     initial implementation
  * ******************************************************************/
 
 package org.aspectj.ajdt.internal.compiler.ast;
@@ -50,7 +50,7 @@ import org.aspectj.weaver.UnresolvedType;
 /**
  * Represents before, after and around advice in an aspect. Will generate a method corresponding to the body of the advice with an
  * attribute including additional information.
- * 
+ *
  * @author Jim Hugunin
  */
 public class AdviceDeclaration extends AjMethodDeclaration {
@@ -61,11 +61,11 @@ public class AdviceDeclaration extends AjMethodDeclaration {
 
 	public AdviceKind kind; // set during parsing, referenced by Proceed and AsmElementFormatter
 	private int extraArgumentFlags = 0;
-	
+
 	public int adviceSequenceNumberInType;
 
 	public MethodBinding proceedMethodBinding; // set during this.resolveStaments, referenced by Proceed
-	public List<Proceed> proceedCalls = new ArrayList<Proceed>(2); // populated during Proceed.findEnclosingAround
+	public List<Proceed> proceedCalls = new ArrayList<>(2); // populated during Proceed.findEnclosingAround
 
 	private boolean proceedInInners;
 	private ResolvedMember[] proceedCallSignatures;
@@ -80,7 +80,7 @@ public class AdviceDeclaration extends AjMethodDeclaration {
 
 	// override
 	protected int generateInfoAttributes(ClassFile classFile) {
-		List<EclipseAttributeAdapter> l = new ArrayList<EclipseAttributeAdapter>(1);
+		List<EclipseAttributeAdapter> l = new ArrayList<>(1);
 		l.add(new EclipseAttributeAdapter(makeAttribute()));
 		addDeclarationStartLineAttribute(l, classFile);
 		return classFile.generateMethodInfoAttributes(binding, l);
@@ -141,12 +141,11 @@ public class AdviceDeclaration extends AjMethodDeclaration {
 
 			// XXX set these correctly
 			formalsUnchangedToProceed = new boolean[baseArgumentCount];
-			proceedCallSignatures = new ResolvedMember[0];
+			proceedCallSignatures = ResolvedMember.NONE;
 			proceedInInners = false;
-			declaredExceptions = new UnresolvedType[0];
+			declaredExceptions = UnresolvedType.NONE;
 
-			for (int i = 0; i < n; i++) {
-				Proceed call = (Proceed) proceedCalls.get(i);
+			for (Proceed call : proceedCalls) {
 				if (call.inInner) {
 					// System.err.println("proceed in inner: " + call);
 					proceedInInners = true;
@@ -183,7 +182,13 @@ public class AdviceDeclaration extends AjMethodDeclaration {
 	// called by Proceed.resolveType
 	public int getDeclaredParameterCount() {
 		// this only works before code generation
-		return this.arguments.length - 3 - ((extraArgument == null) ? 0 : 1);
+		if (this.arguments == null) {
+			// Indicates something seriously wrong and a separate error should show the real problem.
+			// (for example duplicate .aj file: https://bugs.eclipse.org/bugs/show_bug.cgi?id=549583)
+			return 0;
+		} else {
+			return this.arguments.length - 3 - ((extraArgument == null) ? 0 : 1);
+		}
 		// Advice.countOnes(extraArgumentFlags);
 	}
 
@@ -240,7 +245,7 @@ public class AdviceDeclaration extends AjMethodDeclaration {
 		}
 		AstUtil.generateReturn(returnType, codeStream);
 		codeStream.recordPositionsFrom(0, 1);
-		classFile.completeCodeAttribute(codeAttributeOffset);
+		classFile.completeCodeAttribute(codeAttributeOffset,scope);
 		attributeNumber++;
 		classFile.completeMethodInfo(binding,methodAttributeOffset, attributeNumber);
 	}
@@ -303,7 +308,7 @@ public class AdviceDeclaration extends AjMethodDeclaration {
 	}
 
 	private String buildArgNameRepresentation() {
-		StringBuffer args = new StringBuffer();
+		StringBuilder args = new StringBuilder();
 		int numArgsWeCareAbout = getDeclaredParameterCount();
 		if (this.arguments != null) {
 			for (int i = 0; i < numArgsWeCareAbout; i++) {

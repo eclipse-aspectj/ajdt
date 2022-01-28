@@ -14,8 +14,6 @@
 
 package org.aspectj.org.eclipse.jdt.core.compiler;
 
-import org.aspectj.org.eclipse.jdt.core.compiler.InvalidInputException;
-
  /**
   * <p>
   * <strong>Caveat:</strong> With the introduction of "restricted keywords" in Java 9

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -17,9 +17,9 @@ import java.util.HashMap;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.CategorizedProblem;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractVariableDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ImportReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ModuleDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
@@ -31,7 +31,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
  *
  * The structural investigation includes: - package statement - import
  * statements - top-level types: package member, member types (member types of
- * member types...) - fields - methods. From Java 9 onwards it includes the 
+ * member types...) - fields - methods. From Java 9 onwards it includes the
  * module name in a module declaration
  *
  * If reference information is requested, then all source constructs are
@@ -88,6 +88,7 @@ public interface ISourceElementRequestor {
 		public int nameSourceEnd;
 		public char[] superclass;
 		public char[][] superinterfaces;
+		public char[][] permittedSubtypes;
 		public TypeParameterInfo[] typeParameters;
 		public char[][] categories;
 		public boolean secondary;
@@ -110,6 +111,7 @@ public interface ISourceElementRequestor {
 
 	public static class MethodInfo {
 		public boolean typeAnnotated;
+		public boolean isCanonicalConstr;
 		public boolean isConstructor;
 		public boolean isAnnotation;
 		public int declarationStart;
@@ -141,6 +143,7 @@ public interface ISourceElementRequestor {
 		public char[] name;
 	}
 	public static class FieldInfo {
+		public boolean isRecordComponent;
 		public boolean typeAnnotated;
 		public int declarationStart;
 		public int modifiers;
@@ -150,7 +153,7 @@ public interface ISourceElementRequestor {
 		public int nameSourceEnd;
 		public char[][] categories;
 		public Annotation[] annotations;
-		public FieldDeclaration node;
+		public AbstractVariableDeclaration node;
 	}
 
 	void acceptAnnotationTypeReference(char[][] annotation, int sourceStart, int sourceEnd);
@@ -228,12 +231,14 @@ public interface ISourceElementRequestor {
 	 */
 	void exitField(int initializationStart, int declarationEnd, int declarationSourceEnd);
 
+	void exitRecordComponent(int declarationEnd, int declarationSourceEnd);
+
 	void exitInitializer(int declarationEnd);
 
 	void exitMethod(int declarationEnd, Expression defaultValue);
 
 	void exitType(int declarationEnd);
-	
+
 	default void enterModule(ModuleInfo info) {
 		// do nothing
 	}

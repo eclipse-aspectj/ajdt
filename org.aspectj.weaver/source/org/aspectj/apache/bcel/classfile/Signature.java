@@ -52,7 +52,7 @@ package org.aspectj.apache.bcel.classfile;
  * individuals on behalf of the Apache Software Foundation.  For more
  * information on the Apache Software Foundation, please see
  * <http://www.apache.org/>.
- * 
+ *
  * Extended by Adrian Colyer, June 2005 to support unpacking of Signature
  * attribute
  */
@@ -67,7 +67,7 @@ import org.aspectj.apache.bcel.Constants;
 /**
  * This class is derived from <em>Attribute</em> and represents a reference to a <href="http://wwwipd.ira.uka.de/~pizza/gj/">GJ</a>
  * attribute.
- * 
+ *
  * @version $Id: Signature.java,v 1.11 2009/09/15 19:40:12 aclement Exp $
  * @author <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see Attribute
@@ -85,7 +85,7 @@ public final class Signature extends Attribute {
 
 	/**
 	 * Construct object from file stream.
-	 * 
+	 *
 	 * @param name_index Index in constant pool to CONSTANT_Utf8
 	 * @param length Content length in bytes
 	 * @param file Input stream
@@ -110,7 +110,7 @@ public final class Signature extends Attribute {
 	/**
 	 * Called by objects that are traversing the nodes of the tree implicitely defined by the contents of a Java class. I.e., the
 	 * hierarchy of methods, fields, attributes, etc. spawns a tree of objects.
-	 * 
+	 *
 	 * @param v Visitor object
 	 */
 	@Override
@@ -121,7 +121,7 @@ public final class Signature extends Attribute {
 
 	/**
 	 * Dump source file attribute to file stream in binary format.
-	 * 
+	 *
 	 * @param file Output file stream
 	 * @throws IOException
 	 */
@@ -183,7 +183,7 @@ public final class Signature extends Attribute {
 		return ch == 'T' || ch == 'L';
 	}
 
-	private static final void matchIdent(MyByteArrayInputStream in, StringBuffer buf) {
+	private static final void matchIdent(MyByteArrayInputStream in, StringBuilder buf) {
 		int ch;
 
 		if ((ch = in.read()) == -1)
@@ -192,7 +192,7 @@ public final class Signature extends Attribute {
 		// System.out.println("return from ident:" + (char)ch);
 
 		if (!identStart(ch)) {
-			StringBuffer buf2 = new StringBuffer();
+			StringBuilder buf2 = new StringBuilder();
 
 			int count = 1;
 			while (Character.isJavaIdentifierPart((char) ch)) {
@@ -216,7 +216,7 @@ public final class Signature extends Attribute {
 			return;
 		}
 
-		StringBuffer buf2 = new StringBuffer();
+		StringBuilder buf2 = new StringBuilder();
 		ch = in.read();
 
 		do {
@@ -234,7 +234,7 @@ public final class Signature extends Attribute {
 			in.unread();
 	}
 
-	private static final void matchGJIdent(MyByteArrayInputStream in, StringBuffer buf) {
+	private static final void matchGJIdent(MyByteArrayInputStream in, StringBuilder buf) {
 		int ch;
 
 		matchIdent(in, buf);
@@ -274,7 +274,7 @@ public final class Signature extends Attribute {
 
 	public static String translate(String s) {
 		// System.out.println("Sig:" + s);
-		StringBuffer buf = new StringBuffer();
+		StringBuilder buf = new StringBuilder();
 
 		matchGJIdent(new MyByteArrayInputStream(s), buf);
 

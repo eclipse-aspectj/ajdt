@@ -1,14 +1,14 @@
 /* *******************************************************************
- * Copyright (c) 1999-2001 Xerox Corporation, 
+ * Copyright (c) 1999-2001 Xerox Corporation,
  *               2002 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     Xerox/PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     Xerox/PARC     initial implementation
  * ******************************************************************/
 
 package org.aspectj.ajdt.ajc;
@@ -26,8 +26,8 @@ import java.util.StringTokenizer;
 public class ConfigParser {
 	Location location;
 	protected File relativeDirectory = null;
-	protected List<File> files = new LinkedList<File>();
-	protected List<File> xmlfiles = new ArrayList<File>();
+	protected List<File> files = new LinkedList<>();
+	protected List<File> xmlfiles = new ArrayList<>();
 	private boolean fileParsed = false;
 	protected static String CONFIG_MSG = "build config error: ";
 
@@ -41,9 +41,9 @@ public class ConfigParser {
 
 	public void parseCommandLine(String[] argsArray) throws ParseException {
 		location = new CommandLineLocation();
-		LinkedList<Arg> args = new LinkedList<Arg>();
-		for (int i = 0; i < argsArray.length; i++) {
-			args.add(new Arg(argsArray[i], location));
+		LinkedList<Arg> args = new LinkedList<>();
+		for (String s : argsArray) {
+			args.add(new Arg(s, location));
 		}
 		String aspectjOptions = null;
 		try {
@@ -80,7 +80,7 @@ public class ConfigParser {
 			return;
 		}
 
-		LinkedList<Arg> args = new LinkedList<Arg>();
+		LinkedList<Arg> args = new LinkedList<>();
 		int lineNum = 0;
 
 		try {
@@ -188,8 +188,8 @@ public class ConfigParser {
 				showWarning("no matching files found in: " + dir);
 			}
 
-			for (int i = 0; i < files.length; i++) {
-				addFile(files[i]);
+			for (File file : files) {
+				addFile(file);
 			}
 		}
 	}
@@ -264,7 +264,7 @@ public class ConfigParser {
 		} else if (isSourceFileName(v)) {
 			addFileOrPattern(makeFile(v));
 			if (v.endsWith("module-info.java")) {
-				parseOption(arg.getValue(), args);				
+				parseOption(arg.getValue(), args);
 			}
 		} else if (isXml(v)) {
 			addXmlFile(makeFile(v));
@@ -309,7 +309,7 @@ public class ConfigParser {
 		public String toString() {
 			return "Arg[location="+location+" value="+value+"]";
 		}
-		
+
 		public Arg(String value, Location location) {
 			this.value = value;
 			this.location = location;

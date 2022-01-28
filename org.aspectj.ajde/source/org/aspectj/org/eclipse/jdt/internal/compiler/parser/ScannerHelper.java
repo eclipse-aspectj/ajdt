@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2005, 2018 IBM Corporation and others.
+ * Copyright (c) 2005, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -16,7 +16,6 @@ package org.aspectj.org.eclipse.jdt.internal.compiler.parser;
 
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.InvalidInputException;
@@ -47,6 +46,9 @@ public class ScannerHelper {
 	private static long[][][] Tables8;
 	private static long[][][] Tables9;
 	private static long[][][] Tables11;
+	private static long[][][] Tables12;
+	private static long[][][] Tables13;
+	private static long[][][] Tables15;
 
 	public final static int MAX_OBVIOUS = 128;
 	public final static int[] OBVIOUS_IDENT_CHAR_NATURES = new int[MAX_OBVIOUS];
@@ -151,6 +153,15 @@ static void initializeTable19() {
 static void initializeTableJava11() {
 	Tables11 = initializeTables("unicode10"); //$NON-NLS-1$
 }
+static void initializeTableJava12() {
+	Tables12 = initializeTables("unicode11"); //$NON-NLS-1$
+}
+static void initializeTableJava13() {
+	Tables13 = initializeTables("unicode12_1"); //$NON-NLS-1$
+}
+static void initializeTableJava15() {
+	Tables15 = initializeTables13andPlus("unicode13"); //$NON-NLS-1$
+}
 static long[][][] initializeTables(String unicode_path) {
 	long[][][] tempTable = new long[2][][];
 	tempTable[START_INDEX] = new long[3][];
@@ -161,8 +172,6 @@ static long[][][] initializeTables(String unicode_path) {
 			readValues[i] = inputStream.readLong();
 		}
 		tempTable[START_INDEX][0] = readValues;
-	} catch (FileNotFoundException e) {
-		e.printStackTrace();
 	} catch (IOException e) {
 		e.printStackTrace();
 	}
@@ -172,8 +181,6 @@ static long[][][] initializeTables(String unicode_path) {
 			readValues[i] = inputStream.readLong();
 		}
 		tempTable[START_INDEX][1] = readValues;
-	} catch (FileNotFoundException e) {
-		e.printStackTrace();
 	} catch (IOException e) {
 		e.printStackTrace();
 	}
@@ -183,8 +190,6 @@ static long[][][] initializeTables(String unicode_path) {
 			readValues[i] = inputStream.readLong();
 		}
 		tempTable[START_INDEX][2] = readValues;
-	} catch (FileNotFoundException e) {
-		e.printStackTrace();
 	} catch (IOException e) {
 		e.printStackTrace();
 	}
@@ -194,8 +199,6 @@ static long[][][] initializeTables(String unicode_path) {
 			readValues[i] = inputStream.readLong();
 		}
 		tempTable[PART_INDEX][0] = readValues;
-	} catch (FileNotFoundException e) {
-		e.printStackTrace();
 	} catch (IOException e) {
 		e.printStackTrace();
 	}
@@ -205,8 +208,6 @@ static long[][][] initializeTables(String unicode_path) {
 			readValues[i] = inputStream.readLong();
 		}
 		tempTable[PART_INDEX][1] = readValues;
-	} catch (FileNotFoundException e) {
-		e.printStackTrace();
 	} catch (IOException e) {
 		e.printStackTrace();
 	}
@@ -216,8 +217,6 @@ static long[][][] initializeTables(String unicode_path) {
 			readValues[i] = inputStream.readLong();
 		}
 		tempTable[PART_INDEX][2] = readValues;
-	} catch (FileNotFoundException e) {
-		e.printStackTrace();
 	} catch (IOException e) {
 		e.printStackTrace();
 	}
@@ -227,8 +226,93 @@ static long[][][] initializeTables(String unicode_path) {
 			readValues[i] = inputStream.readLong();
 		}
 		tempTable[PART_INDEX][3] = readValues;
-	} catch (FileNotFoundException e) {
+	} catch (IOException e) {
 		e.printStackTrace();
+	}
+	return tempTable;
+}
+static long[][][] initializeTables13andPlus(String unicode_path) {
+	long[][][] tempTable = new long[2][][];
+	tempTable[START_INDEX] = new long[4][];
+	tempTable[PART_INDEX] = new long[5][];
+	try (DataInputStream inputStream = new DataInputStream(new BufferedInputStream(ScannerHelper.class.getResourceAsStream(unicode_path + "/start0.rsc")))) { //$NON-NLS-1$
+		long[] readValues = new long[1024];
+		for (int i = 0; i < 1024; i++) {
+			readValues[i] = inputStream.readLong();
+		}
+		tempTable[START_INDEX][0] = readValues;
+	} catch (IOException e) {
+		e.printStackTrace();
+	}
+	try (DataInputStream inputStream = new DataInputStream(new BufferedInputStream(ScannerHelper.class.getResourceAsStream(unicode_path + "/start1.rsc")))) { //$NON-NLS-1$
+		long[] readValues = new long[1024];
+		for (int i = 0; i < 1024; i++) {
+			readValues[i] = inputStream.readLong();
+		}
+		tempTable[START_INDEX][1] = readValues;
+	} catch (IOException e) {
+		e.printStackTrace();
+	}
+	try (DataInputStream inputStream = new DataInputStream(new BufferedInputStream(ScannerHelper.class.getResourceAsStream(unicode_path + "/start2.rsc")))) { //$NON-NLS-1$
+		long[] readValues = new long[1024];
+		for (int i = 0; i < 1024; i++) {
+			readValues[i] = inputStream.readLong();
+		}
+		tempTable[START_INDEX][2] = readValues;
+	} catch (IOException e) {
+		e.printStackTrace();
+	}
+	try (DataInputStream inputStream = new DataInputStream(new BufferedInputStream(ScannerHelper.class.getResourceAsStream(unicode_path + "/start3.rsc")))) { //$NON-NLS-1$
+		long[] readValues = new long[1024];
+		for (int i = 0; i < 1024; i++) {
+			readValues[i] = inputStream.readLong();
+		}
+		tempTable[START_INDEX][3] = readValues;
+	} catch (IOException e) {
+		e.printStackTrace();
+	}
+	try (DataInputStream inputStream = new DataInputStream(new BufferedInputStream(ScannerHelper.class.getResourceAsStream(unicode_path + "/part0.rsc")))) { //$NON-NLS-1$
+		long[] readValues = new long[1024];
+		for (int i = 0; i < 1024; i++) {
+			readValues[i] = inputStream.readLong();
+		}
+		tempTable[PART_INDEX][0] = readValues;
+	} catch (IOException e) {
+		e.printStackTrace();
+	}
+	try (DataInputStream inputStream = new DataInputStream(new BufferedInputStream(ScannerHelper.class.getResourceAsStream(unicode_path + "/part1.rsc")))) { //$NON-NLS-1$
+		long[] readValues = new long[1024];
+		for (int i = 0; i < 1024; i++) {
+			readValues[i] = inputStream.readLong();
+		}
+		tempTable[PART_INDEX][1] = readValues;
+	} catch (IOException e) {
+		e.printStackTrace();
+	}
+	try (DataInputStream inputStream = new DataInputStream(new BufferedInputStream(ScannerHelper.class.getResourceAsStream(unicode_path + "/part2.rsc")))) { //$NON-NLS-1$
+		long[] readValues = new long[1024];
+		for (int i = 0; i < 1024; i++) {
+			readValues[i] = inputStream.readLong();
+		}
+		tempTable[PART_INDEX][2] = readValues;
+	} catch (IOException e) {
+		e.printStackTrace();
+	}
+	try (DataInputStream inputStream = new DataInputStream(new BufferedInputStream(ScannerHelper.class.getResourceAsStream(unicode_path + "/part3.rsc")))) { //$NON-NLS-1$
+		long[] readValues = new long[1024];
+		for (int i = 0; i < 1024; i++) {
+			readValues[i] = inputStream.readLong();
+		}
+		tempTable[PART_INDEX][3] = readValues;
+	} catch (IOException e) {
+		e.printStackTrace();
+	}
+	try (DataInputStream inputStream = new DataInputStream(new BufferedInputStream(ScannerHelper.class.getResourceAsStream(unicode_path + "/part14.rsc")))) { //$NON-NLS-1$
+		long[] readValues = new long[1024];
+		for (int i = 0; i < 1024; i++) {
+			readValues[i] = inputStream.readLong();
+		}
+		tempTable[PART_INDEX][4] = readValues;
 	} catch (IOException e) {
 		e.printStackTrace();
 	}
@@ -254,18 +338,29 @@ public static boolean isJavaIdentifierPart(long complianceLevel, char c) {
 	return isJavaIdentifierPart(complianceLevel, (int) c);
 }
 private static boolean isJavaIdentifierPart0(int codePoint, long[][][] tables) {
-		switch((codePoint & 0x1F0000) >> 16) {
-			case 0 :
+	return isJavaIdentifierPart0(codePoint, tables, false);
+}
+private static boolean isJavaIdentifierPart0(int codePoint, long[][][] tables, boolean isJava15orAbove) {
+	switch((codePoint & 0x1F0000) >> 16) {
+		case 0 :
 			return isBitSet(tables[PART_INDEX][0], codePoint & 0xFFFF);
-			case 1 :
+		case 1 :
 			return isBitSet(tables[PART_INDEX][1], codePoint & 0xFFFF);
-			case 2 :
+		case 2 :
 			return isBitSet(tables[PART_INDEX][2], codePoint & 0xFFFF);
-			case 14 :
+		case 3 :
+			if (isJava15orAbove) {
+				return isBitSet(tables[PART_INDEX][3], codePoint & 0xFFFF);
+			}
+			return false;
+		case 14 :
+			if (isJava15orAbove) {
+				return isBitSet(tables[PART_INDEX][4], codePoint & 0xFFFF);
+			}
 			return isBitSet(tables[PART_INDEX][3], codePoint & 0xFFFF);
 	}
 	return false;
-		}
+}
 public static boolean isJavaIdentifierPart(long complianceLevel, int codePoint) {
 	if (complianceLevel <= ClassFileConstants.JDK1_6) {
 		if (Tables == null) {
@@ -290,12 +385,31 @@ public static boolean isJavaIdentifierPart(long complianceLevel, int codePoint) 
 			initializeTable19();
 		}
 		return isJavaIdentifierPart0(codePoint, Tables9);
-	} else {
+	} else if (complianceLevel <= ClassFileConstants.JDK11) {
 		// java 11 supports Unicode 10
 		if (Tables11 == null) {
 			initializeTableJava11();
 		}
 		return isJavaIdentifierPart0(codePoint, Tables11);
+	} else if (complianceLevel <= ClassFileConstants.JDK12) {
+		// java 12 supports Unicode 11
+		if (Tables12 == null) {
+			initializeTableJava12();
+		}
+		return isJavaIdentifierPart0(codePoint, Tables12);
+	} else if (complianceLevel <= ClassFileConstants.JDK14) {
+		// java 13 and 14 support Unicode 12.1
+		if (Tables13 == null) {
+			initializeTableJava13();
+		}
+		return isJavaIdentifierPart0(codePoint, Tables13);
+
+	} else {
+		// java 15 supports Unicode 13
+		if (Tables15 == null) {
+			initializeTableJava15();
+		}
+		return isJavaIdentifierPart0(codePoint, Tables15, true);
 	}
 }
 public static boolean isJavaIdentifierPart(long complianceLevel, char high, char low) {
@@ -317,13 +431,20 @@ public static boolean isJavaIdentifierStart(long complianceLevel, char high, cha
 	return isJavaIdentifierStart(complianceLevel, toCodePoint(high, low));
 }
 private static boolean isJavaIdentifierStart0(int codePoint, long[][][] tables) {
-		switch((codePoint & 0x1F0000) >> 16) {
-			case 0 :
+	return isJavaIdentifierStart0(codePoint, tables, false);
+}
+private static boolean isJavaIdentifierStart0(int codePoint, long[][][] tables, boolean isJava15orAbove) {
+	switch((codePoint & 0x1F0000) >> 16) {
+		case 0 :
 			return isBitSet(tables[START_INDEX][0], codePoint & 0xFFFF);
-			case 1 :
+		case 1 :
 			return isBitSet(tables[START_INDEX][1], codePoint & 0xFFFF);
-			case 2 :
+		case 2 :
 			return isBitSet(tables[START_INDEX][2], codePoint & 0xFFFF);
+		case 3 :
+			if (isJava15orAbove)
+				return isBitSet(tables[START_INDEX][3], codePoint & 0xFFFF);
+			return false;
 	}
 	return false;
 }
@@ -351,12 +472,30 @@ public static boolean isJavaIdentifierStart(long complianceLevel, int codePoint)
 			initializeTable19();
 		}
 		return isJavaIdentifierStart0(codePoint, Tables9);
-	} else {
+	} else if (complianceLevel <= ClassFileConstants.JDK11) {
 		// java 11 supports Unicode 10
 		if (Tables11 == null) {
 			initializeTableJava11();
 		}
 		return isJavaIdentifierStart0(codePoint, Tables11);
+	} else if (complianceLevel <= ClassFileConstants.JDK12) {
+		// java 12 supports Unicode 11
+		if (Tables12 == null) {
+			initializeTableJava12();
+		}
+		return isJavaIdentifierStart0(codePoint, Tables12);
+	} else if (complianceLevel <= ClassFileConstants.JDK14) {
+		// java 13 and 14 support Unicode 12.1
+		if (Tables13 == null) {
+			initializeTableJava13();
+		}
+		return isJavaIdentifierStart0(codePoint, Tables13);
+	} else {
+		// java 15 supports Unicode 13
+		if (Tables15 == null) {
+			initializeTableJava15();
+		}
+		return isJavaIdentifierStart0(codePoint, Tables15, true);
 	}
 }
 private static int toCodePoint(char high, char low) {
@@ -366,10 +505,7 @@ public static boolean isDigit(char c) throws InvalidInputException {
 	if(c < ScannerHelper.MAX_OBVIOUS) {
 		return (ScannerHelper.OBVIOUS_IDENT_CHAR_NATURES[c] & ScannerHelper.C_DIGIT) != 0;
 	}
-	if (Character.isDigit(c)) {
-		throw new InvalidInputException(Scanner.INVALID_DIGIT);
-	}
-	return false;
+	return Character.isDigit(c);
 }
 public static int digit(char c, int radix) {
 	if (c < ScannerHelper.MAX_OBVIOUS) {

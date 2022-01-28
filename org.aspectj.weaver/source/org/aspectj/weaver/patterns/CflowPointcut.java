@@ -1,13 +1,13 @@
 /* *******************************************************************
  * Copyright (c) 2002 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     PARC     initial implementation
  * ******************************************************************/
 
 package org.aspectj.weaver.patterns;
@@ -50,7 +50,7 @@ public class CflowPointcut extends Pointcut {
 
 	/**
 	 * Used to indicate that we're in the context of a cflow when concretizing if's
-	 * 
+	 *
 	 * Will be removed or replaced with something better when we handle this as a non-error
 	 */
 	public static final ResolvedPointcutDefinition CFLOW_MARKER = new ResolvedPointcutDefinition(null, 0, null,
@@ -194,7 +194,7 @@ public class CflowPointcut extends Pointcut {
 			entryBindings.popEnclosingDefinitition();
 		}
 
-		List<ShadowMunger> innerCflowEntries = new ArrayList<ShadowMunger>(xcut.getCflowEntries());
+		List<ShadowMunger> innerCflowEntries = new ArrayList<>(xcut.getCflowEntries());
 		innerCflowEntries.removeAll(previousCflowEntries);
 
 		// Four routes of interest through this code (did I hear someone say
@@ -248,7 +248,7 @@ public class CflowPointcut extends Pointcut {
 			return ret;
 		} else {
 
-			List<Slot> slots = new ArrayList<Slot>();
+			List<Slot> slots = new ArrayList<>();
 
 			for (int i = 0, len = freeVars.length; i < len; i++) {
 				int freeVar = freeVars[i];
@@ -316,7 +316,7 @@ public class CflowPointcut extends Pointcut {
 	}
 
 	private String getKey(Pointcut p, ResolvedType a, String stackOrCounter) {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		sb.append(a.getName());
 		sb.append("::");
 		sb.append(p.toString());

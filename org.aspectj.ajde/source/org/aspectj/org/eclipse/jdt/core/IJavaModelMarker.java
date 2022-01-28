@@ -26,7 +26,7 @@ public interface IJavaModelMarker {
 
 	/**
 	 * Java model problem marker type (value
-	 * <code>"org.aspectj.org.eclipse.jdt.core.problem"</code>). This can be used to
+	 * <code>"org.eclipse.jdt.core.problem"</code>). This can be used to
 	 * recognize those markers in the workspace that flag problems detected by
 	 * the Java tooling during compilation.
 	 */
@@ -50,7 +50,7 @@ public interface IJavaModelMarker {
 
 	/**
 	 * Java model task marker type (value
-	 * <code>"org.aspectj.org.eclipse.jdt.core.task"</code>). This can be used to
+	 * <code>"org.eclipse.jdt.core.task"</code>). This can be used to
 	 * recognize task markers in the workspace that correspond to tasks
 	 * specified in Java source comments and detected during compilation (for
 	 * example, 'TO-DO: ...'). Tasks are identified by a task tag, which can be
@@ -70,7 +70,7 @@ public interface IJavaModelMarker {
 	 * <p>If the argument contains a '#', the character is doubled.<br>
 	 * {"foo#test", "bar" } is encoded as "2:foo##test#bar"
 	 * </p>
-	 * 
+	 *
 	 * @since 2.0
 	 * @see CorrectionEngine#getProblemArguments(IMarker)
 	 */
@@ -117,12 +117,12 @@ public interface IJavaModelMarker {
 	 * @since 2.0
 	 */
 	String CLASSPATH_FILE_FORMAT = "classpathFileFormat"; //$NON-NLS-1$
-	
+
 	/**
-	 * Output overlapping another source attribute (value <code>"outputOverlappingSource"</code>). 
-	 * Used only on buildpath problem markers. The value of this attribute is 
+	 * Output overlapping another source attribute (value <code>"outputOverlappingSource"</code>).
+	 * Used only on buildpath problem markers. The value of this attribute is
 	 * either "true" or "false".
-	 * 
+	 *
 	 * @since 3.6.4
 	 */
 	String OUTPUT_OVERLAPPING_SOURCE = "outputOverlappingSource"; //$NON-NLS-1$

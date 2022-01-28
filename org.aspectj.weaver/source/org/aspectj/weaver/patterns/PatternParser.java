@@ -1,12 +1,12 @@
 /* *******************************************************************
  * Copyright (c) 2002,2010
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
  *     PARC     initial implementation
  *     Adrian Colyer, IBM
  *     Andy Clement, IBM, SpringSource
@@ -97,7 +97,7 @@ public class PatternParser {
 		eat(")");
 		return new PerCflow(entry, isBelow);
 	}
-	
+
 	public boolean moreToParse() {
 		return tokenSource.hasMoreTokens();
 	}
@@ -259,7 +259,7 @@ public class PatternParser {
 	}
 
 	public DeclarePrecedence parseDominates() {
-		List<TypePattern> l = new ArrayList<TypePattern>();
+		List<TypePattern> l = new ArrayList<>();
 		do {
 			l.add(parseTypePattern());
 		} while (maybeEat(","));
@@ -282,7 +282,7 @@ public class PatternParser {
 		}
 		boolean isExtends = t.getString().equals("extends");
 
-		List<TypePattern> l = new ArrayList<TypePattern>();
+		List<TypePattern> l = new ArrayList<>();
 		do {
 			l.add(parseTypePattern());
 		} while (maybeEat(","));
@@ -302,7 +302,7 @@ public class PatternParser {
 
 	/**
 	 * Attempt to parse a pointcut, if that fails then try again for a type pattern.
-	 * 
+	 *
 	 * @param isError true if it is declare error rather than declare warning
 	 * @return the new declare
 	 */
@@ -334,7 +334,7 @@ public class PatternParser {
 		String message = parsePossibleStringSequence(true);
 		return new DeclareErrorOrWarning(isError, pointcut, message);
 	}
-	
+
 	public Pointcut parsePointcut(boolean shouldConsumeAllInput) {
 		Pointcut p = parsePointcut();
 		if (shouldConsumeAllInput && tokenSource.hasMoreTokens()) {
@@ -357,7 +357,7 @@ public class PatternParser {
 
 		return p;
 	}
-	
+
 	private Pointcut parseNotOrPointcut() {
 		Pointcut p = parseAtomicPointcut();
 		if (maybeEat("&&")) {
@@ -559,7 +559,7 @@ public class PatternParser {
 
 	/**
 	 * Method parseWithinPointcut.
-	 * 
+	 *
 	 * @return Pointcut
 	 */
 	private Pointcut parseWithinPointcut() {
@@ -572,7 +572,7 @@ public class PatternParser {
 
 	/**
 	 * Method parseThisOrTargetPointcut.
-	 * 
+	 *
 	 * @return Pointcut
 	 */
 	private Pointcut parseThisOrTargetPointcut(String kind) {
@@ -617,7 +617,7 @@ public class PatternParser {
 
 	/**
 	 * Method parseArgsPointcut.
-	 * 
+	 *
 	 * @return Pointcut
 	 */
 	private Pointcut parseArgsPointcut() {
@@ -660,7 +660,7 @@ public class PatternParser {
 	private Pointcut parseDesignatorPointcut(PointcutDesignatorHandler pcdHandler) {
 		eat("(");
 		int parenCount = 1;
-		StringBuffer pointcutBody = new StringBuffer();
+		StringBuilder pointcutBody = new StringBuilder();
 		while (parenCount > 0) {
 			if (maybeEat("(")) {
 				parenCount++;
@@ -679,7 +679,7 @@ public class PatternParser {
 	}
 
 	public List<String> parseDottedIdentifier() {
-		List<String> ret = new ArrayList<String>();
+		List<String> ret = new ArrayList<>();
 		ret.add(parseIdentifier());
 		while (maybeEat(".")) {
 			ret.add(parseIdentifier());
@@ -915,7 +915,7 @@ public class PatternParser {
 	// Parse annotation values. In an expression in @A(a=b,c=d) this method will be
 	// parsing the a=b,c=d.)
 	public Map<String, String> parseAnnotationValues() {
-		Map<String, String> values = new HashMap<String, String>();
+		Map<String, String> values = new HashMap<>();
 		boolean seenDefaultValue = false;
 		do {
 			String possibleKeyString = parseAnnotationNameValuePattern();
@@ -1049,10 +1049,10 @@ public class PatternParser {
 	}
 
 	/**
-	 * Attempt to parse a typeIs(<category>) construct. If it cannot be parsed we just return null and that should cause the caller
+	 * Attempt to parse a typeIs(&lt;category&gt;) construct. If it cannot be parsed we just return null and that should cause the caller
 	 * to reset their position and attempt to consume it in another way. This means we won't have problems here: execution(*
 	 * typeIs(..)) because someone has decided to call a method the same as our construct.
-	 * 
+	 *
 	 * @return a TypeIsTypePattern or null if could not be parsed
 	 */
 	public TypePattern parseIsTypePattern() {
@@ -1133,7 +1133,7 @@ public class PatternParser {
 	}
 
 	public TypePattern parseGenericsWildcardTypePattern() {
-		List<NamePattern> names = new ArrayList<NamePattern>();
+		List<NamePattern> names = new ArrayList<>();
 		names.add(new NamePattern("?"));
 		TypePattern upperBound = null;
 		TypePattern[] additionalInterfaceBounds = new TypePattern[0];
@@ -1203,7 +1203,7 @@ public class PatternParser {
 	private ExactAnnotationTypePattern parseSimpleAnnotationName() {
 		// the @ has already been eaten...
 		ExactAnnotationTypePattern p;
-		StringBuffer annotationName = new StringBuffer();
+		StringBuilder annotationName = new StringBuilder();
 		annotationName.append(parseIdentifier());
 		while (maybeEat(".")) {
 			annotationName.append('.');
@@ -1242,8 +1242,8 @@ public class PatternParser {
 	// }
 
 	public List<NamePattern> parseDottedNamePattern() {
-		List<NamePattern> names = new ArrayList<NamePattern>();
-		StringBuffer buf = new StringBuffer();
+		List<NamePattern> names = new ArrayList<>();
+		StringBuilder buf = new StringBuilder();
 		IToken previous = null;
 		boolean justProcessedEllipsis = false; // Remember if we just dealt with an ellipsis (PR61536)
 		boolean justProcessedDot = false;
@@ -1329,7 +1329,7 @@ public class PatternParser {
 
 	// supported form 'a.b.c.d' or just 'a'
 	public String parseAnnotationNameValuePattern() {
-		StringBuffer buf = new StringBuffer();
+		StringBuilder buf = new StringBuilder();
 		IToken tok;
 		// int startPos =
 		tokenSource.peek().getStart();
@@ -1379,7 +1379,7 @@ public class PatternParser {
 	}
 
 	public NamePattern parseNamePattern() {
-		StringBuffer buf = new StringBuffer();
+		StringBuilder buf = new StringBuilder();
 		IToken previous = null;
 		IToken tok;
 		int startPos = tokenSource.peek().getStart();
@@ -1464,7 +1464,7 @@ public class PatternParser {
 	}
 
 	public TypePatternList parseArgumentsPattern(boolean parameterAnnotationsPossible) {
-		List<TypePattern> patterns = new ArrayList<TypePattern>();
+		List<TypePattern> patterns = new ArrayList<>();
 		eat("(");
 
 		// ()
@@ -1485,7 +1485,7 @@ public class PatternParser {
 	}
 
 	public AnnotationPatternList parseArgumentsAnnotationPattern() {
-		List<AnnotationTypePattern> patterns = new ArrayList<AnnotationTypePattern>();
+		List<AnnotationTypePattern> patterns = new ArrayList<>();
 		eat("(");
 		if (maybeEat(")")) {
 			return new AnnotationPatternList();
@@ -1509,8 +1509,8 @@ public class PatternParser {
 		IToken t = tokenSource.peek();
 		if (t.isIdentifier() && t.getString().equals("throws")) {
 			tokenSource.next();
-			List<TypePattern> required = new ArrayList<TypePattern>();
-			List<TypePattern> forbidden = new ArrayList<TypePattern>();
+			List<TypePattern> required = new ArrayList<>();
+			List<TypePattern> forbidden = new ArrayList<>();
 			do {
 				boolean isForbidden = maybeEat("!");
 				// ???might want an error for a second ! without a paren
@@ -1686,15 +1686,14 @@ public class PatternParser {
 	/**
 	 * Parse type variable declarations for a generic method or at the start of a signature pointcut to identify type variable names
 	 * in a generic type.
-	 * 
-	 * @param includeParameterizedTypes
+	 *
 	 * @return
 	 */
 	public TypeVariablePatternList maybeParseTypeVariableList() {
 		if (!maybeEat("<")) {
 			return null;
 		}
-		List<TypeVariablePattern> typeVars = new ArrayList<TypeVariablePattern>();
+		List<TypeVariablePattern> typeVars = new ArrayList<>();
 		TypeVariablePattern t = parseTypeVariable();
 		typeVars.add(t);
 		while (maybeEat(",")) {
@@ -1712,7 +1711,7 @@ public class PatternParser {
 		if (!maybeEat("<")) {
 			return null;
 		}
-		List<String> typeVarNames = new ArrayList<String>();
+		List<String> typeVarNames = new ArrayList<>();
 		do {
 			typeVarNames.add(parseIdentifier());
 		} while (maybeEat(","));
@@ -1726,7 +1725,7 @@ public class PatternParser {
 		if (!maybeEat("<")) {
 			return null;
 		}
-		List<TypePattern> typePats = new ArrayList<TypePattern>();
+		List<TypePattern> typePats = new ArrayList<>();
 		do {
 			TypePattern tp = parseTypePattern(true, false);
 			typePats.add(tp);
@@ -1752,7 +1751,7 @@ public class PatternParser {
 	}
 
 	private TypePattern[] maybeParseAdditionalInterfaceBounds() {
-		List<TypePattern> boundsList = new ArrayList<TypePattern>();
+		List<TypePattern> boundsList = new ArrayList<>();
 		while (maybeEat("&")) {
 			TypePattern tp = parseTypePattern();
 			boundsList.add(tp);
@@ -1766,7 +1765,7 @@ public class PatternParser {
 	}
 
 	public String parsePossibleStringSequence(boolean shouldEnd) {
-		StringBuffer result = new StringBuffer();
+		StringBuilder result = new StringBuilder();
 
 		IToken token = tokenSource.next();
 		if (token.getLiteralKind() == null) {

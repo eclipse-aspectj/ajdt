@@ -23,7 +23,7 @@ public class ElementValuePair {
 	char[] name;
 	public Object value;
 	public MethodBinding binding;
-	
+
 	/**
 	 * We want to avoid eagerly resolving of all enums that are used in annotations.
 	 * This class encapsulates an unresolved enum constant as referenced in an ElementValuePair.
@@ -142,7 +142,7 @@ void setValue(Object value) {
 
 @Override
 public String toString() {
-	StringBuffer buffer = new StringBuffer(5);
+	StringBuilder buffer = new StringBuilder(5);
 	buffer.append(this.name).append(" = "); //$NON-NLS-1$
 	buffer.append(this.value);
 	return buffer.toString();

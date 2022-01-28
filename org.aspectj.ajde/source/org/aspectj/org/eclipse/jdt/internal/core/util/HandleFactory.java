@@ -45,7 +45,6 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.HashtableOfObjectToInt;
 import org.aspectj.org.eclipse.jdt.internal.core.*;
 import org.aspectj.org.eclipse.jdt.internal.core.search.AbstractJavaSearchScope;
-import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
 
 /**
  * Creates java element handles.
@@ -105,7 +104,7 @@ public class HandleFactory {
 			String module = null;
 			String rootPath = this.lastPkgFragmentRoot.getPath().toOSString();
 			if (org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.isJrt(rootPath)) {
-				module = resourcePath.substring(separatorIndex + 1, 
+				module = resourcePath.substring(separatorIndex + 1,
 						(separatorIndex = resourcePath.lastIndexOf(IJavaSearchScope.JAR_FILE_ENTRY_SEPARATOR)));
 			}
 			String classFilePath= resourcePath.substring(separatorIndex + 1);
@@ -241,7 +240,7 @@ public class HandleFactory {
 				if (scope.isLambdaScope()) {
 					parentElement = createElement(scope.parent, elementPosition, unit, existingElements, knownScopes);
 					LambdaExpression expression = (LambdaExpression) scope.originalReferenceContext();
-					if (expression.resolvedType != null && expression.resolvedType.isValidBinding() && 
+					if (expression.resolvedType != null && expression.resolvedType.isValidBinding() &&
 							!(expression.descriptor instanceof ProblemMethodBinding)) { // chain in lambda element only if resolved properly.
 						//newElement = new org.aspectj.org.eclipse.jdt.internal.core.SourceLambdaExpression((JavaElement) parentElement, expression).getMethod();
 						newElement = LambdaFactory.createLambdaExpression((JavaElement) parentElement, expression).getMethod();
@@ -366,10 +365,10 @@ public class HandleFactory {
 				if (classpathEnty != null) {
 					if (target instanceof IFile) {
 						// internal jar
-						return (PackageFragmentRoot) javaProject.getPackageFragmentRoot((IFile)target);
+						return (PackageFragmentRoot) javaProject.getPackageFragmentRoot((IFile)target, null, classpathEnty.getExtraAttributes());
 					} else {
 						// external jar
-						return (PackageFragmentRoot) javaProject.getPackageFragmentRoot0(jarPath);
+						return (PackageFragmentRoot) javaProject.getPackageFragmentRoot0(jarPath, classpathEnty.getExtraAttributes());
 					}
 				}
 			} catch (JavaModelException e) {

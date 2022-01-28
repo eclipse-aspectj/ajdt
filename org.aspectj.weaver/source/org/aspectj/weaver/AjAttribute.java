@@ -1,13 +1,13 @@
 /* *******************************************************************
  * Copyright (c) 2002 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     PARC     initial implementation
  * ******************************************************************/
 
 package org.aspectj.weaver;
@@ -28,12 +28,12 @@ import org.aspectj.weaver.patterns.Pointcut;
 
 /**
  * These attributes are written to and read from .class files (see the JVM spec).
- * 
+ *
  * <p>
  * Each member or type can have a number of AjAttributes. Each such attribute is in 1-1 correspondence with an Unknown bcel
  * attribute. Creating one of these does NOTHING to the underlying thing, so if you really want to add an attribute to a particular
  * thing, well, you'd better actually do that.
- * 
+ *
  * @author Erik Hilsdale
  * @author Jim Hugunin
  */
@@ -67,8 +67,8 @@ public abstract class AjAttribute {
 
 	/**
 	 * Writes the full attribute, i.e. name_index, length, and contents
-	 * 
-	 * @param constantPool
+	 *
+	 * @param dataCompressor
 	 */
 	public byte[] getAllBytes(short nameIndex, ConstantPoolWriter dataCompressor) {
 		try {
@@ -374,9 +374,9 @@ public abstract class AjAttribute {
 			}
 			s.writeInt(lineBreaks.length);
 			int previous = 0;
-			for (int i = 0, max = lineBreaks.length; i < max; i++) {
-				s.writeShort(lineBreaks[i] - previous);
-				previous = lineBreaks[i];
+			for (int lineBreak : lineBreaks) {
+				s.writeShort(lineBreak - previous);
+				previous = lineBreak;
 			}
 		}
 
@@ -525,7 +525,7 @@ public abstract class AjAttribute {
 		private UnresolvedType[] declaredExceptions;
 
 		/**
-		 * @param lexicalPosition must be greater than the lexicalPosition of any advice declared before this one in an aspect,
+		 * @param start must be greater than the start of any advice declared before this one in an aspect,
 		 *        otherwise, it can be any value.
 		 */
 		public AdviceAttribute(AdviceKind kind, Pointcut pointcut, int extraArgumentFlags, int start, int end,

@@ -2,9 +2,9 @@
  * Copyright (c) 2002 Palo Alto Research Center, Incorporated (PARC).
  * All rights reserved.
  * This program and the accompanying materials are made available
- * under the terms of the Eclipse Public License v1.0
+ * under the terms of the Eclipse Public License v 2.0
  * which accompanies this distribution and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
  *
  * Contributors:
  *     PARC     initial implementation
@@ -57,7 +57,7 @@ import org.aspectj.weaver.patterns.Pointcut;
 
 /**
  * Advice implemented for BCEL
- * 
+ *
  * @author Erik Hilsdale
  * @author Jim Hugunin
  * @author Andy Clement
@@ -71,22 +71,22 @@ class BcelAdvice extends Advice {
 	private Test runtimeTest;
 	private ExposedState exposedState;
 	private int containsInvokedynamic = 0;// 0 = dontknow, 1=no, 2=yes
-	
+
 	public BcelAdvice(AjAttribute.AdviceAttribute attribute, Pointcut pointcut, Member adviceSignature, ResolvedType concreteAspect) {
 		super(attribute, pointcut, simplify(attribute.getKind(), adviceSignature));
 		this.concreteAspect = concreteAspect;
 	}
-	
+
 	public boolean bindsProceedingJoinPoint() {
 		UnresolvedType[] parameterTypes = signature.getParameterTypes();
-		for (int i=0;i<parameterTypes.length;i++) {
-			if (parameterTypes[i].equals(UnresolvedType.PROCEEDING_JOINPOINT)) {
+		for (UnresolvedType parameterType : parameterTypes) {
+			if (parameterType.equals(UnresolvedType.PROCEEDING_JOINPOINT)) {
 				return true;
 			}
 		}
 		return false;
 	}
-	
+
 	/**
 	 * A heavyweight BcelMethod object is only required for around advice that will be inlined. For other kinds of advice it is
 	 * possible to save some space.
@@ -247,7 +247,7 @@ class BcelAdvice extends Advice {
 		}
 		// Need isJava8 check
 		// Does the advice contain invokedynamic...
-		if (boType.javaClass.getMajor() == Constants.MAJOR_1_8) {
+		if (boType.javaClass.getMajor() >= Constants.MAJOR_1_8) {
 			if (containsInvokedynamic == 0) {
 				containsInvokedynamic = 1;
 				LazyMethodGen lmg = boType.getLazyClassGen().getLazyMethodGen(this.signature.getName(), this.signature.getSignature(), true);
@@ -423,16 +423,16 @@ class BcelAdvice extends Advice {
 			return Collections.emptyList();
 		}
 
-		Collection<ResolvedType> ret = new ArrayList<ResolvedType>();
+		Collection<ResolvedType> ret = new ArrayList<>();
 		World world = concreteAspect.getWorld();
 		ResolvedType runtimeException = world.getCoreType(UnresolvedType.RUNTIME_EXCEPTION);
 		ResolvedType error = world.getCoreType(UnresolvedType.ERROR);
 
-		for (int i = 0, len = excs.length; i < len; i++) {
-			ResolvedType t = world.resolve(excs[i], true);
+		for (UnresolvedType exc : excs) {
+			ResolvedType t = world.resolve(exc, true);
 			if (t.isMissing()) {
 				world.getLint().cantFindType
-						.signal(WeaverMessages.format(WeaverMessages.CANT_FIND_TYPE_EXCEPTION_TYPE, excs[i].getName()),
+						.signal(WeaverMessages.format(WeaverMessages.CANT_FIND_TYPE_EXCEPTION_TYPE, exc.getName()),
 								getSourceLocation());
 				// IMessage msg = new Message(
 				// WeaverMessages.format(WeaverMessages.CANT_FIND_TYPE_EXCEPTION_TYPE,excs[i].getName()),
@@ -472,7 +472,7 @@ class BcelAdvice extends Advice {
 	/**
 	 * The munger must not check for the advice exceptions to be declared by the shadow in the case of @AJ aspects so that around
 	 * can throws Throwable
-	 * 
+	 *
 	 * @return
 	 */
 	@Override
@@ -499,7 +499,7 @@ class BcelAdvice extends Advice {
 	/**
 	 * get the instruction list for the really simple version of this advice. Is broken apart for other advice, but if you want it
 	 * in one block, this is the method to call.
-	 * 
+	 *
 	 * @param s The shadow around which these instructions will eventually live.
 	 * @param extraArgVar The var that will hold the return value or thrown exception for afterX advice
 	 * @param ifNoAdvice The instructionHandle to jump to if the dynamic tests for this munger fails.
@@ -546,8 +546,7 @@ class BcelAdvice extends Advice {
 			LocalVariableTable lvt = shadow.getEnclosingMethod().getMemberView().getMethod().getLocalVariableTable();
 			if (lvt != null) {
 				LocalVariable[] lvTable = lvt.getLocalVariableTable();
-				for (int i = 0; i < lvTable.length; i++) {
-					LocalVariable lv = lvTable[i];
+				for (LocalVariable lv : lvTable) {
 					if (lv.getStartPC() == 0) {
 						start.addTargeter(new LocalVariableTag(lv.getSignature(), lv.getName(), lv.getIndex(), 0));
 					}

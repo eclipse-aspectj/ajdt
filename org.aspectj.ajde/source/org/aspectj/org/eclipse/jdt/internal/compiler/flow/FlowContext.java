@@ -1,6 +1,6 @@
 // ASPECTJ
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -72,7 +72,7 @@ public class FlowContext implements TypeConstants {
 	public FlowInfo initsOnFinally;
 		// only used within try blocks; remembers upstream flow info mergedWith
 		// any null related operation happening within the try block
-	/** 
+	/**
 	 * Used to record whether effects in a try block affect the finally-block
 	 * conditionally or unconditionally.
 	 * -1 means: no effect,
@@ -97,7 +97,7 @@ public class FlowContext implements TypeConstants {
 	// inside an assertFalse or a not-expression checks for equality / inequality have reversed meaning for syntactic analysis for fields:
 	public static final int INSIDE_NEGATION = 0x4;
 	/**
-	 * used to hide null comparison related warnings inside assert statements 
+	 * used to hide null comparison related warnings inside assert statements
 	 */
 	public static final int HIDE_NULL_COMPARISON_WARNING = 0x1000;
 	public static final int HIDE_NULL_COMPARISON_WARNING_MASK = 0xF000;
@@ -109,7 +109,7 @@ public static final int CAN_ONLY_NULL = 0x0001;
 public static final int CAN_ONLY_NON_NULL = 0x0002;
 //check against non null, with definite values -- comparisons
 public static final int MAY_NULL = 0x0003;
-//check binding a value to a @NonNull variable 
+//check binding a value to a @NonNull variable
 public final static int ASSIGN_TO_NONNULL = 0x0080;
 //check against an unboxing conversion
 public static final int IN_UNBOXING = 0x0010;
@@ -183,15 +183,15 @@ public void extendTimeToLiveForNullCheckedField(int t) {
 		for (int i = 0; i < this.timesToLiveForNullCheckInfo.length; i++)
 			if (this.timesToLiveForNullCheckInfo[i] > 0)
 				this.timesToLiveForNullCheckInfo[i] += t;
-}
+	}
 }
 
 /**
  * Forget any information about fields that were previously known to be non-null.
- * 
+ *
  * Will only cause any effect if CompilerOptions.enableSyntacticNullAnalysisForFields
  * (implicitly by guards before calls to {@link #recordNullCheckedFieldReference(Reference, int)}).
- */	 
+ */
 public void expireNullCheckedFieldInfo() {
 	if (this.nullCheckedFieldReferences != null) {
 		for (int i = 0; i < this.nullCheckedFieldReferences.length; i++) {
@@ -201,7 +201,7 @@ public void expireNullCheckedFieldInfo() {
 	}
 }
 
-/** 
+/**
  * Is the given field reference equivalent to a reference that is freshly known to be non-null?
  * Can only return true if CompilerOptions.enableSyntacticNullAnalysisForFields
  * (implicitly by guards before calls to {@link #recordNullCheckedFieldReference(Reference, int)}).
@@ -245,7 +245,7 @@ public void checkExceptionHandlers(TypeBinding raisedException, ASTNode location
 	if (scope.compilerOptions().sourceLevel >= ClassFileConstants.JDK1_7 && location instanceof ThrowStatement) {
 		Expression throwExpression = ((ThrowStatement)location).exception;
 		LocalVariableBinding throwArgBinding = throwExpression.localVariableBinding();
-		if (throwExpression instanceof SingleNameReference // https://bugs.eclipse.org/bugs/show_bug.cgi?id=350361 
+		if (throwExpression instanceof SingleNameReference // https://bugs.eclipse.org/bugs/show_bug.cgi?id=350361
 				&& throwArgBinding instanceof CatchParameterBinding && throwArgBinding.isEffectivelyFinal()) {
 			CatchParameterBinding parameter = (CatchParameterBinding) throwArgBinding;
 			checkExceptionHandlers(parameter.getPreciseTypes(), location, flowInfo, scope);
@@ -317,11 +317,11 @@ public void checkExceptionHandlers(TypeBinding raisedException, ASTNode location
 
 				// anonymous constructors are allowed to throw any exceptions (their thrown exceptions
 				// clause will be fixed up later as per JLS 8.6).
-				if (exceptionContext.associatedNode instanceof AbstractMethodDeclaration){
+				if (exceptionContext.associatedNode instanceof AbstractMethodDeclaration) {
 					AbstractMethodDeclaration method = (AbstractMethodDeclaration)exceptionContext.associatedNode;
 					if (method.isConstructor() && method.binding.declaringClass.isAnonymousType())
 						shouldMergeUnhandledExceptions = true;
-					}
+				}
 				if (shouldMergeUnhandledExceptions) {
 					exceptionContext.mergeUnhandledException(raisedException);
 					return; // no need to complain, will fix up constructor/lambda exceptions
@@ -440,7 +440,7 @@ public void checkExceptionHandlers(TypeBinding[] raisedExceptions, ASTNode locat
 										caughtException,
 										exceptionFlow.unconditionalInits(),
 										raisedException,
-										caughtException, 
+										caughtException,
 										location,
 										false);
 									// was not caught already per construction
@@ -469,18 +469,18 @@ public void checkExceptionHandlers(TypeBinding[] raisedExceptions, ASTNode locat
 				boolean shouldMergeUnhandledException = exceptionContext instanceof ExceptionInferenceFlowContext;
 				// anonymous constructors are allowed to throw any exceptions (their thrown exceptions
 				// clause will be fixed up later as per JLS 8.6).
-				if (exceptionContext.associatedNode instanceof AbstractMethodDeclaration){
+				if (exceptionContext.associatedNode instanceof AbstractMethodDeclaration) {
 					AbstractMethodDeclaration method = (AbstractMethodDeclaration)exceptionContext.associatedNode;
 					if (method.isConstructor() && method.binding.declaringClass.isAnonymousType())
 						shouldMergeUnhandledException = true;
 				}
 				if (shouldMergeUnhandledException) {
-						for (int i = 0; i < raisedCount; i++) {
-							TypeBinding raisedException;
-							if ((raisedException = raisedExceptions[i]) != null) {
-								exceptionContext.mergeUnhandledException(raisedException);
-							}
+					for (int i = 0; i < raisedCount; i++) {
+						TypeBinding raisedException;
+						if ((raisedException = raisedExceptions[i]) != null) {
+							exceptionContext.mergeUnhandledException(raisedException);
 						}
+					}
 					return; // no need to complain, will fix up constructor/lambda exceptions
 				}
 				break; // not handled anywhere, thus jump to error handling
@@ -630,6 +630,24 @@ public FlowContext getTargetContextForDefaultBreak() {
 	// not found
 	return null;
 }
+/*
+ * lookup a default yield through switch expression locations
+ */
+public FlowContext getTargetContextForDefaultYield() {
+	FlowContext current = this, lastNonReturningSubRoutine = null;
+	while (current != null) {
+		if (current.isNonReturningContext()) {
+			lastNonReturningSubRoutine = current;
+		}
+		if (current.isBreakable() && current.labelName() == null && ((SwitchFlowContext) current).isExpression){
+			if (lastNonReturningSubRoutine == null) return current;
+			return lastNonReturningSubRoutine;
+		}
+		current = current.getLocalParent();
+	}
+	// not found
+	return null;
+}
 
 /*
  * lookup a default continue amongst continuable locations
@@ -651,16 +669,16 @@ public FlowContext getTargetContextForDefaultContinue() {
 	return null;
 }
 
-/** 
+/**
  * Answer flow context that corresponds to initialization. Suitably override in subtypes.
  */
 public FlowContext getInitializationContext() {
 	return null;
 }
 
-/** 
+/**
  * Answer the parent flow context but be careful not to cross the boundary of a nested type,
- * or null if no such parent exists. 
+ * or null if no such parent exists.
  */
 public FlowContext getLocalParent() {
 	if (this.associatedNode instanceof AbstractMethodDeclaration || this.associatedNode instanceof TypeDeclaration || this.associatedNode instanceof LambdaExpression)
@@ -766,7 +784,7 @@ public void recordContinueFrom(FlowContext innerFlowContext, FlowInfo flowInfo) 
 	// default implementation: do nothing
 }
 
-/** 
+/**
  * Record that we found an early exit from a method while a resource is in scope.
  * @param scope enclosing scope
  * @param flowInfo flowInfo at the point of the early exit
@@ -816,8 +834,33 @@ protected boolean recordFinalAssignment(VariableBinding variable, Reference fina
  *      Alternatively, a {@link #IN_UNBOXING} check can e requested.
  * @param nullInfo the null flow info observed at this first visit of location.
  */
-protected void recordNullReference(LocalVariableBinding local,
+protected final void recordNullReference(LocalVariableBinding local,
 	ASTNode location, int checkType, FlowInfo nullInfo) {
+	recordNullReferenceWithAnnotationStatus(local, location, checkType, nullInfo, null);
+}
+
+/**
+ * Record a null reference for use by deferred checks. Only looping or
+ * finally contexts really record that information. Other contexts
+ * immediately check for unboxing.
+ * @param local the local variable involved in the check
+ * @param location the location triggering the analysis, for normal null dereference
+ *      this is an expression resolving to 'local', for resource leaks it is an
+ *      early exit statement.
+ * @param checkType the checkType against which the check must be performed; one of
+ * 		{@link #CAN_ONLY_NULL CAN_ONLY_NULL}, {@link #CAN_ONLY_NULL_NON_NULL
+ * 		CAN_ONLY_NULL_NON_NULL}, {@link #MAY_NULL MAY_NULL},
+ *      {@link #CAN_ONLY_NON_NULL CAN_ONLY_NON_NULL}, potentially
+ *      combined with a context indicator (one of {@link #IN_COMPARISON_NULL},
+ *      {@link #IN_COMPARISON_NON_NULL}, {@link #IN_ASSIGNMENT} or {@link #IN_INSTANCEOF}).
+ *      <br>
+ *      Alternatively, a {@link #IN_UNBOXING} check can e requested.
+ * @param nullInfo the null flow info observed at this first visit of location.
+ * @param nullAnnotationStatus if null annotations are analysed this may hold more information
+ * 		about the exact kind of problem, can be <code>null</code>
+ */
+protected void recordNullReferenceWithAnnotationStatus(LocalVariableBinding local,
+	ASTNode location, int checkType, FlowInfo nullInfo, NullAnnotationMatching nullAnnotationStatus) {
 	// default implementation: do nothing
 }
 
@@ -883,7 +926,7 @@ public void recordSettingFinal(VariableBinding variable, Reference finalReferenc
  * 		CAN_ONLY_NULL_NON_NULL}, {@link #MAY_NULL MAY_NULL}, potentially
  *      combined with a context indicator (one of {@link #IN_COMPARISON_NULL},
  *      {@link #IN_COMPARISON_NON_NULL}, {@link #IN_ASSIGNMENT} or {@link #IN_INSTANCEOF})
- *      and a bit to indicate whether the reference is being recorded inside an assert, 
+ *      and a bit to indicate whether the reference is being recorded inside an assert,
  *      {@link #HIDE_NULL_COMPARISON_WARNING}
  * @param flowInfo the flow info at the check point; deferring contexts will
  *  	perform supplementary checks against flow info instances that cannot
@@ -1002,7 +1045,7 @@ public SubRoutineStatement subroutine() {
 
 @Override
 public String toString() {
-	StringBuffer buffer = new StringBuffer();
+	StringBuilder buffer = new StringBuilder();
 	FlowContext current = this;
 	int parentsCount = 0;
 	while ((current = current.parent) != null) {
@@ -1050,7 +1093,7 @@ public void recordNullityMismatch(BlockScope currentScope, Expression expression
 			if ((this.tagBits & FlowContext.HIDE_NULL_COMPARISON_WARNING) != 0) {
 				isInsideAssert = FlowContext.HIDE_NULL_COMPARISON_WARNING;
 			}
-			if (currentContext.internalRecordNullityMismatch(expression, providedType, flowInfo, nullStatus, expectedType, ASSIGN_TO_NONNULL | isInsideAssert))
+			if (currentContext.internalRecordNullityMismatch(expression, providedType, flowInfo, nullStatus, annotationStatus, expectedType, ASSIGN_TO_NONNULL | isInsideAssert))
 				return;
 			currentContext = currentContext.parent;
 		}
@@ -1062,7 +1105,7 @@ public void recordNullityMismatch(BlockScope currentScope, Expression expression
 		currentScope.problemReporter().nullityMismatch(expression, providedType, expectedType, nullStatus,
 														currentScope.environment().getNonNullAnnotationName());
 }
-protected boolean internalRecordNullityMismatch(Expression expression, TypeBinding providedType, FlowInfo flowInfo, int nullStatus, TypeBinding expectedType, int checkType) {
+protected boolean internalRecordNullityMismatch(Expression expression, TypeBinding providedType, FlowInfo flowInfo, int nullStatus, NullAnnotationMatching nullAnnotationStatus, TypeBinding expectedType, int checkType) {
 	// nop, to be overridden in subclasses
 	return false; // not recorded
 }

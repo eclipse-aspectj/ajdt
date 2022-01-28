@@ -111,6 +111,7 @@ public final class Messages extends NLS {
 	public static String build_inconsistentClassFile;
 	public static String build_inconsistentProject;
 	public static String build_incompleteClassPath;
+	public static String build_errorOnModuleDirective;
 	public static String build_missingSourceFile;
 	public static String build_prereqProjectHasClasspathProblems;
 	public static String build_prereqProjectMustBeRebuilt;
@@ -192,6 +193,7 @@ public final class Messages extends NLS {
 	public static String classpath_invalidExternalAnnotationPath;
 	public static String classpath_testSourceRequiresSeparateOutputFolder;
 	public static String classpath_testOutputFolderMustBeSeparateFromMainOutputFolders;
+	public static String classpath_main_only_project_depends_on_test_only_project;
 	public static String file_notFound;
 	public static String file_badFormat;
 	public static String path_nullPath;
@@ -279,6 +281,10 @@ public final class Messages extends NLS {
 	public static String disassembler_inner_accessflags;
 	public static String disassembler_nesthost;
 	public static String disassembler_nestmembers;
+	public static String disassembler_record;
+	public static String disassembler_permittedsubclasses;
+	public static String disassembler_components;
+	public static String disassembler_endofcomponent;
 	public static String disassembler_genericattributeheader;
 	public static String disassembler_signatureattributeheader;
 	public static String disassembler_bootstrapmethodattributesheader;
@@ -401,6 +407,7 @@ public final class Messages extends NLS {
 	public static String classfileformat_linenumbertableentry;
 	public static String classfileformat_localvariabletableentry;
 	public static String classfileformat_versionUnknown;
+	public static String classfileformat_componentdescriptor;
 
 	public static String disassembler_frame_same_locals_1_stack_item_extended;
 	public static String disassembler_frame_chop;
@@ -410,7 +417,7 @@ public final class Messages extends NLS {
 	public static String disassembler_frame_same_frame;
 	public static String disassembler_frame_same_locals_1_stack_item;
 	public static String internal_error;
-	
+
 	public static String disassembler_method_type_ref_getfield;
 	public static String disassembler_method_type_ref_putfield;
 	public static String disassembler_method_type_ref_getstatic;

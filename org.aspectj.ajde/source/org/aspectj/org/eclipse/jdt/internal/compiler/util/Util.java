@@ -1,6 +1,6 @@
 // ASPECTJ
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -8,7 +8,7 @@
  * https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     daolaf@gmail.com - Contribution for bug 3292227
@@ -17,20 +17,23 @@ package org.aspectj.org.eclipse.jdt.internal.compiler.util;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.zip.ZipEntry;
@@ -232,7 +235,7 @@ public class Util implements SuffixConstants {
 		String displayString(Object o);
 	}
 
-	private static final int DEFAULT_READING_SIZE = 8192;
+	private static final int DEFAULT_READING_SIZE = 8192;  // AspectJ: keep Java 8 compatibility
 	private static final int DEFAULT_WRITING_SIZE = 1024;
 	public final static String UTF_8 = "UTF-8";	//$NON-NLS-1$
 	public static final String LINE_SEPARATOR = System.getProperty("line.separator"); //$NON-NLS-1$
@@ -319,7 +322,7 @@ public class Util implements SuffixConstants {
 						Messages.output_isFile, f.getAbsolutePath()));
 				  }
 			}
-			StringBuffer outDir = new StringBuffer(outputPath);
+			StringBuilder outDir = new StringBuilder(outputPath);
 			outDir.append(fileSeparator);
 			StringTokenizer tokenizer =
 				new StringTokenizer(relativeFileName, fileSeparator);
@@ -364,7 +367,7 @@ public class Util implements SuffixConstants {
 	 */
 	public static char[] bytesToChar(byte[] bytes, String encoding) throws IOException {
 
-		return getInputStreamAsCharArray(new ByteArrayInputStream(bytes), bytes.length, encoding);
+		return getInputStreamAsCharArray(new ByteArrayInputStream(bytes), encoding);
 
 	}
 
@@ -401,7 +404,7 @@ public class Util implements SuffixConstants {
 		InputStream stream = null;
 		try {
 			stream = new BufferedInputStream(new FileInputStream(file));
-			return getInputStreamAsByteArray(stream, (int) file.length());
+			return getInputStreamAsByteArray(stream);
 		} finally {
 			if (stream != null) {
 				try {
@@ -421,7 +424,7 @@ public class Util implements SuffixConstants {
 		InputStream stream = null;
 		try {
 			stream = new FileInputStream(file);
-			return getInputStreamAsCharArray(stream, (int) file.length(), encoding);
+			return getInputStreamAsCharArray(stream, encoding);
 		} finally {
 			if (stream != null) {
 				try {
@@ -461,172 +464,163 @@ public class Util implements SuffixConstants {
 		}
 	}
 
-	/*
-	 * NIO support to get input stream as byte array.
-	 * Not used as with JDK 1.4.2 this support is slower than standard IO one...
-	 * Keep it as comment for future in case of next JDK versions improve performance
-	 * in this area...
-	 *
-	public static byte[] getInputStreamAsByteArray(FileInputStream stream, int length)
-		throws IOException {
-
-		FileChannel channel = stream.getChannel();
-		int size = (int)channel.size();
-		if (length >= 0 && length < size) size = length;
-		byte[] contents = new byte[size];
-		ByteBuffer buffer = ByteBuffer.wrap(contents);
-		channel.read(buffer);
-		return contents;
-	}
-	*/
 	/**
 	 * Returns the given input stream's contents as a byte array.
-	 * If a length is specified (i.e. if length != -1), only length bytes
-	 * are returned. Otherwise all bytes in the stream are returned.
+	 * All bytes in the stream are returned.
 	 * Note this doesn't close the stream.
-	 * @throws IOException if a problem occured reading the stream.
+	 * @throws IOException if a problem occurred reading the stream.
 	 */
-	public static byte[] getInputStreamAsByteArray(InputStream stream, int length)
-			throws IOException {
-		byte[] contents;
-		if (length == -1) {
-			contents = new byte[0];
-			int contentsLength = 0;
-			int amountRead = -1;
-			do {
-				int amountRequested = Math.max(stream.available(), DEFAULT_READING_SIZE);  // read at least 8K
-
-				// resize contents if needed
-				if (contentsLength + amountRequested > contents.length) {
-					System.arraycopy(
-						contents,
-						0,
-						contents = new byte[contentsLength + amountRequested],
-						0,
-						contentsLength);
-				}
-
-				// read as many bytes as possible
-				amountRead = stream.read(contents, contentsLength, amountRequested);
-
-				if (amountRead > 0) {
-					// remember length of contents
-					contentsLength += amountRead;
-				}
-			} while (amountRead != -1);
-
-			// resize contents if necessary
-			if (contentsLength < contents.length) {
-				System.arraycopy(
-					contents,
-					0,
-					contents = new byte[contentsLength],
-					0,
-					contentsLength);
-			}
-		} else {
-			contents = new byte[length];
-			int len = 0;
-			int readSize = 0;
-			while ((readSize != -1) && (len != length)) {
-				// See PR 1FMS89U
-				// We record first the read size. In this case len is the actual read size.
-				len += readSize;
-				readSize = stream.read(contents, len, length - len);
-			}
+	public static byte[] getInputStreamAsByteArray(InputStream input) throws IOException {
+		// AspectJ begin: keep Java 8 compatibility
+		// Original code:
+		// return input.readAllBytes(); // will have even slighly better performance as of JDK17+ see JDK-8264777
+		if (input instanceof ByteArrayInputStream) {
+			// not available in java 8: ((ByteArrayInputStream) input).readAllBytes();
+			int length = ((ByteArrayInputStream) input).available();
+			return readNBytes(input, length);
 		}
-
-		return contents;
+		if (input instanceof FileInputStream) {
+			long length = ((FileInputStream) input).getChannel().size();
+			return readNBytes(input, length);
+		}
+		return readAllBytes(input);
 	}
 
-	/*
-	 * NIO support to get input stream as char array.
-	 * Not used as with JDK 1.4.2 this support is slower than standard IO one...
-	 * Keep it as comment for future in case of next JDK versions improve performance
-	 * in this area...
-	public static char[] getInputStreamAsCharArray(FileInputStream stream, int length, String encoding)
-		throws IOException {
-
-		FileChannel channel = stream.getChannel();
-		int size = (int)channel.size();
-		if (length >= 0 && length < size) size = length;
-		Charset charset = encoding==null?systemCharset:Charset.forName(encoding);
-		if (charset != null) {
-			MappedByteBuffer bbuffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, size);
-		    CharsetDecoder decoder = charset.newDecoder();
-		    CharBuffer buffer = decoder.decode(bbuffer);
-		    char[] contents = new char[buffer.limit()];
-		    buffer.get(contents);
-		    return contents;
+	private static byte[] readAllBytes(InputStream input) throws IOException {
+		ArrayList<byte[]> byteBufList = new ArrayList<byte[]>(3);
+		int totalByteCount = 0;
+		int bytesJustRead;
+		do {
+			int bufLength = Math.max(input.available(), DEFAULT_READING_SIZE); // read at least 8K
+			byte[] byteBuf = new byte[bufLength];
+			int bytesInBuf = 0;
+			int byteTransferSize = bufLength;
+			while ((bytesJustRead = input.read(byteBuf, bytesInBuf, byteTransferSize)) >= 0) {
+				bytesInBuf += bytesJustRead;
+				totalByteCount += bytesJustRead;
+				byteTransferSize = bufLength - bytesInBuf;
+				if (byteTransferSize <= 0)
+					break;
+			}
+			if (bytesInBuf>0)
+				byteBufList.add(byteBuf);
+		} while (bytesJustRead >= 0);
+		// final concatenation of buffers:
+		if (byteBufList.size()==1) {
+			byte[] firstBuf = byteBufList.get(0);
+			if (firstBuf.length >= totalByteCount) { // fast path
+				return (firstBuf.length == totalByteCount) ? firstBuf : Arrays.copyOf(firstBuf, totalByteCount);
+			}
 		}
-		throw new UnsupportedCharsetException(SYSTEM_FILE_ENCODING);
+		byte[] result = new byte[totalByteCount];
+		int byteCount = 0;
+		for (byte[] byteBuf : byteBufList) {
+			int byteTransferSize = Math.min(totalByteCount - byteCount, byteBuf.length);
+			System.arraycopy(byteBuf, 0, result, byteCount, byteTransferSize);
+			byteCount += byteTransferSize;
+		}
+		return result;
 	}
-	*/
+
+	public static final int MAX_ARRAY_LENGTH = Integer.MAX_VALUE - 8;
+
+	public static byte[] readNBytes(java.io.InputStream input, long length) throws IOException {
+		if (length > MAX_ARRAY_LENGTH) // fail fast
+			throw new OutOfMemoryError("File too large for array: " + length); //$NON-NLS-1$
+		return readNBytes(input, (int) length);
+	}
+	// AspectJ end
+
+	/**
+	 * Returns the given input stream's first bytes as array.
+	 * Note this doesn't close the stream.
+	 * @throws IOException if a problem occurred reading the stream.
+	 */
+	public static byte[] readNBytes(InputStream input, int byteLength) throws IOException {
+		// AspectJ begin: keep Java 8 compatibility
+		// Original code:
+		// return input.readNBytes(byteLength);
+		// InputStream.readNBytes() only available after java 11
+		if (byteLength == 0)
+			return new byte[0];
+		byte[] byteBuf = new byte[byteLength]; // exact buffer size
+		int byteCount = 0;
+		int byteTransferSize = byteBuf.length;
+		int bytesRead;
+		while ((bytesRead = input.read(byteBuf, byteCount, byteTransferSize)) >= 0) {
+			byteCount += bytesRead;
+			byteTransferSize = byteBuf.length - byteCount;
+			if (byteTransferSize <= 0) {
+				break;
+			}
+		}
+		return (byteBuf.length == byteCount) ? byteBuf : Arrays.copyOf(byteBuf, byteCount);
+		// AspectJ end
+	}
+
+	private static Map<String, byte[]> bomByEncoding = new HashMap<String, byte[]>();
+	static {
+		// org.eclipse.core.runtime.content.IContentDescription.BOM_UTF_8:
+		bomByEncoding.put("UTF-8", new byte[] { (byte) 0xEF, (byte) 0xBB, (byte) 0xBF }); //$NON-NLS-1$
+		// XXX UTF-16, UTF-32 may have BOM too
+		// @see org.eclipse.core.runtime.content.IContentDescription.BOM_UTF_16BE ,..
+	}
+
 	/**
 	 * Returns the given input stream's contents as a character array.
-	 * If a length is specified (i.e. if length != -1), this represents the number of bytes in the stream.
 	 * Note this doesn't close the stream.
 	 * @throws IOException if a problem occured reading the stream.
 	 */
-	public static char[] getInputStreamAsCharArray(InputStream stream, int length, String encoding)
+	public static char[] getInputStreamAsCharArray(InputStream stream,  String encoding)
 			throws IOException {
-		BufferedReader reader = null;
+		byte[] byteContents =  getInputStreamAsByteArray(stream);
+
+		Charset charset;
 		try {
-			reader = encoding == null
-						? new BufferedReader(new InputStreamReader(stream))
-						: new BufferedReader(new InputStreamReader(stream, encoding));
-		} catch (UnsupportedEncodingException e) {
+			charset = Charset.forName(encoding);
+		} catch (IllegalArgumentException e) {
 			// encoding is not supported
-			reader =  new BufferedReader(new InputStreamReader(stream));
+			charset = Charset.defaultCharset();
 		}
-		char[] contents;
-		int totalRead = 0;
-		if (length == -1) {
-			contents = CharOperation.NO_CHAR;
+
+		// check for BOM in encoded byte content
+		// (instead of after decoding to avoid array copy after decoding):
+		byte[] bom = bomByEncoding.get(charset.name());
+		int start;
+		if (bom != null && startsWith(byteContents, bom)) {
+			start = bom.length; // skip BOM
 		} else {
-			// length is a good guess when the encoding produces less or the same amount of characters than the file length
-			contents = new char[length]; // best guess
+			start = 0;
 		}
 
-		while (true) {
-			int amountRequested;
-			if (totalRead < length) {
-				// until known length is met, reuse same array sized eagerly
-				amountRequested = length - totalRead;
-			} else {
-				// reading beyond known length
-				int current = reader.read();
-				if (current < 0) break;
+		return decode(byteContents, start, byteContents.length - start, charset);
+	}
 
-				amountRequested = Math.max(stream.available(), DEFAULT_READING_SIZE);  // read at least 8K
-
-				// resize contents if needed
-				if (totalRead + 1 + amountRequested > contents.length)
-					System.arraycopy(contents, 	0, 	contents = new char[totalRead + 1 + amountRequested], 0, totalRead);
-
-				// add current character
-				contents[totalRead++] = (char) current; // coming from totalRead==length
-			}
-			// read as many chars as possible
-			int amountRead = reader.read(contents, totalRead, amountRequested);
-			if (amountRead < 0) break;
-			totalRead += amountRead;
+	/**
+	 * conversionless inmplementation of
+	 *
+	 * @return new String(srcBytes, start, length, charset).toCharArray();
+	 **/
+	private static char[] decode(byte[] srcBytes, int start, int length, Charset charset) {
+		ByteBuffer srcBuffer = ByteBuffer.wrap(srcBytes, start, length);
+		CharBuffer destBuffer = charset.decode(srcBuffer);
+		char[] dst = destBuffer.array();
+		int chars = destBuffer.remaining();
+		if (chars != dst.length) {
+			dst = Arrays.copyOf(dst, chars);
 		}
+		return dst;
+	}
 
-		// Do not keep first character for UTF-8 BOM encoding
-		int start = 0;
-		if (totalRead > 0 && UTF_8.equals(encoding)) {
-			if (contents[0] == 0xFEFF) { // if BOM char then skip
-				totalRead--;
-				start = 1;
-			}
+	private static boolean startsWith(byte[] a, byte[] start) {
+		if (a.length < start.length) {
+			return false;
 		}
-
-		// resize contents if necessary
-		if (totalRead < contents.length)
-			System.arraycopy(contents, start, contents = new char[totalRead], 	0, 	totalRead);
-
-		return contents;
+		for (int i = 0; i < start.length; i++) {
+			if (a[i] != start[i])
+				return false;
+		}
+		return true;
 	}
 
 	/**
@@ -637,7 +631,7 @@ public class Util implements SuffixConstants {
 	public static String getExceptionSummary(Throwable exception) {
 		StringWriter stringWriter = new StringWriter();
 		exception.printStackTrace(new PrintWriter(stringWriter));
-		StringBuffer buffer = stringWriter.getBuffer();		
+		StringBuffer buffer = stringWriter.getBuffer();
 		StringBuffer exceptionBuffer = new StringBuffer(50);
 		exceptionBuffer.append(exception.toString());
 		// only keep leading frame portion of the trace (i.e. line no. 2 from the stacktrace)
@@ -648,7 +642,7 @@ public class Util implements SuffixConstants {
 					if (line2Start > 0) {
 						exceptionBuffer.append(' ').append(buffer.substring(line2Start, i));
 						break lookupLine2;
-					}						
+					}
 					lineSep++;
 					break;
 				case ' ' :
@@ -664,7 +658,7 @@ public class Util implements SuffixConstants {
 		}
 		return exceptionBuffer.toString();
 	}
-	
+
 	public static int getLineNumber(int position, int[] lineEnds, int g, int d) {
 		if (lineEnds == null)
 			return 1;
@@ -698,7 +692,7 @@ public class Util implements SuffixConstants {
 			InputStream inputStream = zip.getInputStream(ze);
 			if (inputStream == null) throw new IOException("Invalid zip entry name : " + ze.getName()); //$NON-NLS-1$
 			stream = new BufferedInputStream(inputStream);
-			return getInputStreamAsByteArray(stream, (int) ze.getSize());
+			return readNBytes(stream, (int) ze.getSize());
 		} finally {
 			if (stream != null) {
 				try {
@@ -752,10 +746,10 @@ public class Util implements SuffixConstants {
 		}
 		return true; // it is neither a ".java" file nor a ".class" file, so this is a potential archive name
 	}
-	
+
 	public static final int ZIP_FILE = 0;
 	public static final int JMOD_FILE = 1;
-	
+
 	/**
 	 * Returns the kind of archive this file is. The format is one of
 	 * #ZIP_FILE or {@link #JMOD_FILE}
@@ -768,7 +762,7 @@ public class Util implements SuffixConstants {
 			return -1; // dot was before the last file separator, it cannot be a zip archive name
 		int length = name.length();
 		int extensionLength = length - lastDot - 1;
-		
+
 		if (extensionLength == EXTENSION_java.length()) {
 			for (int i = extensionLength-1; i >=0; i--) {
 				if (Character.toLowerCase(name.charAt(length - extensionLength + i)) != EXTENSION_java.charAt(i)) {
@@ -905,7 +899,7 @@ public class Util implements SuffixConstants {
 		}
 		return true;
 	}
-	
+
 	// AspectJ Extension
 	public final static boolean isAjFileName(String name) {
 		int nameLength = name == null ? 0 : name.length();
@@ -1035,7 +1029,7 @@ public class Util implements SuffixConstants {
 	 */
 	public static String toString(Object[] objects, Displayable renderer) {
 		if (objects == null) return ""; //$NON-NLS-1$
-		StringBuffer buffer = new StringBuffer(10);
+		StringBuilder buffer = new StringBuilder(10);
 		for (int i = 0; i < objects.length; i++){
 			if (i > 0) buffer.append(", "); //$NON-NLS-1$
 			buffer.append(renderer.displayString(objects[i]));
@@ -1179,11 +1173,11 @@ public class Util implements SuffixConstants {
 	}
 	public static void collectRunningVMBootclasspath(List<Classpath> bootclasspaths) {
 		collectVMBootclasspath(bootclasspaths, null);
-			}
+	}
 	public static long getJDKLevel(File javaHome) {
 		String version = System.getProperty("java.version"); //$NON-NLS-1$
 		return CompilerOptions.versionToJdkLevel(version);
-		}
+	}
 	public static List<FileSystem.Classpath> collectFilesNames() {
 		return collectPlatformLibraries(null);
 	}
@@ -1199,16 +1193,16 @@ public class Util implements SuffixConstants {
 			throw new IllegalStateException();
 		}
 		long jdkLevel = CompilerOptions.versionToJdkLevel(javaversion);
-			if (jdkLevel >= ClassFileConstants.JDK9) {
+		if (jdkLevel >= ClassFileConstants.JDK9) {
 			List<FileSystem.Classpath> filePaths = new ArrayList<>();
 			if (javaHome == null) {
 				javaHome = getJavaHome();
 			}
-				if (javaHome != null) {
+			if (javaHome != null) {
 				filePaths.add(FileSystem.getJrtClasspath(javaHome.getAbsolutePath(), null, null, null));
-					return filePaths;
-				}
+				return filePaths;
 			}
+		}
 
 		/*
 		 * Handle >= JDK 1.2.2 settings: retrieve the bootclasspath
@@ -1273,7 +1267,7 @@ public class Util implements SuffixConstants {
 			int count = 0;
 			int i = CharOperation.indexOf(C_PARAM_START, methodSignature);
 			if (i < 0) {
-				throw new IllegalArgumentException();
+				throw new IllegalArgumentException(String.valueOf(methodSignature));
 			} else {
 				i++;
 			}
@@ -1283,14 +1277,14 @@ public class Util implements SuffixConstants {
 				}
 				int e= Util.scanTypeSignature(methodSignature, i);
 				if (e < 0) {
-					throw new IllegalArgumentException();
+					throw new IllegalArgumentException(String.valueOf(methodSignature));
 				} else {
 					i = e + 1;
 				}
 				count++;
 			}
 		} catch (ArrayIndexOutOfBoundsException e) {
-			throw new IllegalArgumentException(e);
+			throw new IllegalArgumentException(String.valueOf(methodSignature), e);
 		}
 	}
 
@@ -1313,7 +1307,7 @@ public class Util implements SuffixConstants {
 	public static int scanTypeSignature(char[] string, int start) {
 		// need a minimum 1 char
 		if (start >= string.length) {
-			throw new IllegalArgumentException();
+			throw newIllegalArgumentException(string, start);
 		}
 		char c = string[start];
 		switch (c) {
@@ -1341,7 +1335,7 @@ public class Util implements SuffixConstants {
 			case C_STAR:
 				return scanTypeBoundSignature(string, start);
 			default :
-				throw new IllegalArgumentException();
+				throw newIllegalArgumentException(string, start);
 		}
 	}
 
@@ -1365,13 +1359,13 @@ public class Util implements SuffixConstants {
 	public static int scanBaseTypeSignature(char[] string, int start) {
 		// need a minimum 1 char
 		if (start >= string.length) {
-			throw new IllegalArgumentException();
+			throw newIllegalArgumentException(string, start);
 		}
 		char c = string[start];
 		if ("BCDFIJSVZ".indexOf(c) >= 0) { //$NON-NLS-1$
 			return start;
 		} else {
-			throw new IllegalArgumentException();
+			throw newIllegalArgumentException(string, start);
 		}
 	}
 
@@ -1392,18 +1386,18 @@ public class Util implements SuffixConstants {
 		int length = string.length;
 		// need a minimum 2 char
 		if (start >= length - 1) {
-			throw new IllegalArgumentException();
+			throw newIllegalArgumentException(string, start);
 		}
 		char c = string[start];
 		if (c != C_ARRAY) {
-			throw new IllegalArgumentException();
+			throw newIllegalArgumentException(string, start);
 		}
-	
+
 		c = string[++start];
 		while(c == C_ARRAY) {
 			// need a minimum 2 char
 			if (start >= length - 1) {
-				throw new IllegalArgumentException();
+				throw newIllegalArgumentException(string, start);
 			}
 			c = string[++start];
 		}
@@ -1426,11 +1420,11 @@ public class Util implements SuffixConstants {
 	public static int scanCaptureTypeSignature(char[] string, int start) {
 		// need a minimum 2 char
 		if (start >= string.length - 1) {
-			throw new IllegalArgumentException();
+			throw newIllegalArgumentException(string, start);
 		}
 		char c = string[start];
 		if (c != C_CAPTURE) {
-			throw new IllegalArgumentException();
+			throw newIllegalArgumentException(string, start);
 		}
 		return scanTypeBoundSignature(string, start + 1);
 	}
@@ -1451,19 +1445,19 @@ public class Util implements SuffixConstants {
 	public static int scanTypeVariableSignature(char[] string, int start) {
 		// need a minimum 3 chars "Tx;"
 		if (start >= string.length - 2) {
-			throw new IllegalArgumentException();
+			throw newIllegalArgumentException(string, start);
 		}
 		// must start in "T"
 		char c = string[start];
 		if (c != C_TYPE_VARIABLE) {
-			throw new IllegalArgumentException();
+			throw newIllegalArgumentException(string, start);
 		}
 		int id = scanIdentifier(string, start + 1);
 		c = string[id + 1];
 		if (c == C_SEMICOLON) {
 			return id + 1;
 		} else {
-			throw new IllegalArgumentException();
+			throw newIllegalArgumentException(string, start);
 		}
 	}
 
@@ -1480,7 +1474,7 @@ public class Util implements SuffixConstants {
 	public static int scanIdentifier(char[] string, int start) {
 		// need a minimum 1 char
 		if (start >= string.length) {
-			throw new IllegalArgumentException();
+			throw newIllegalArgumentException(string, start);
 		}
 		int p = start;
 		while (true) {
@@ -1516,7 +1510,7 @@ public class Util implements SuffixConstants {
 	public static int scanClassTypeSignature(char[] string, int start) {
 		// need a minimum 3 chars "Lx;"
 		if (start >= string.length - 2) {
-			throw new IllegalArgumentException();
+			throw newIllegalArgumentException(string, start);
 		}
 		// must start in "L" or "Q"
 		char c = string[start];
@@ -1526,7 +1520,7 @@ public class Util implements SuffixConstants {
 		int p = start + 1;
 		while (true) {
 			if (p >= string.length) {
-				throw new IllegalArgumentException();
+				throw newIllegalArgumentException(string, start);
 			}
 			c = string[p];
 			if (c == C_SEMICOLON) {
@@ -1560,7 +1554,7 @@ public class Util implements SuffixConstants {
 	public static int scanTypeBoundSignature(char[] string, int start) {
 		// need a minimum 1 char for wildcard
 		if (start >= string.length) {
-			throw new IllegalArgumentException();
+			throw newIllegalArgumentException(string, start);
 		}
 		char c = string[start];
 		switch (c) {
@@ -1571,8 +1565,7 @@ public class Util implements SuffixConstants {
 				break;
 			default :
 				// must start in "+/-"
-					throw new IllegalArgumentException();
-	
+				throw newIllegalArgumentException(string, start);
 		}
 		c = string[++start];
 		if (c != C_STAR && start >= string.length -1) { // unless "-*" we need at least one more char, e.g. after "+[", other variants are even longer
@@ -1594,7 +1587,7 @@ public class Util implements SuffixConstants {
 			case C_STAR:
 				return start;
 			default:
-				throw new IllegalArgumentException();
+				throw newIllegalArgumentException(string, start);
 		}
 	}
 
@@ -1618,16 +1611,16 @@ public class Util implements SuffixConstants {
 	public static int scanTypeArgumentSignatures(char[] string, int start) {
 		// need a minimum 2 char "<>"
 		if (start >= string.length - 1) {
-			throw new IllegalArgumentException();
+			throw newIllegalArgumentException(string, start);
 		}
 		char c = string[start];
 		if (c != C_GENERIC_START) {
-			throw new IllegalArgumentException();
+			throw newIllegalArgumentException(string, start);
 		}
 		int p = start + 1;
 		while (true) {
 			if (p >= string.length) {
-				throw new IllegalArgumentException();
+				throw newIllegalArgumentException(string, start);
 			}
 			c = string[p];
 			if (c == C_GENERIC_END) {
@@ -1659,7 +1652,7 @@ public class Util implements SuffixConstants {
 	public static int scanTypeArgumentSignature(char[] string, int start) {
 		// need a minimum 1 char
 		if (start >= string.length) {
-			throw new IllegalArgumentException();
+			throw newIllegalArgumentException(string, start);
 		}
 		char c = string[start];
 		switch (c) {
@@ -1688,7 +1681,7 @@ public class Util implements SuffixConstants {
 		}
 		return true;
 	}
-	
+
 	public static void appendEscapedChar(StringBuffer buffer, char c, boolean stringLiteral) {
 		switch (c) {
 			case '\b' :
@@ -1734,5 +1727,9 @@ public class Util implements SuffixConstants {
 					buffer.append(c);
 				}
 		}
+	}
+
+	private static IllegalArgumentException newIllegalArgumentException(char[] string, int start) {
+		return new IllegalArgumentException("\"" + String.valueOf(string) + "\" at " + start); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 }

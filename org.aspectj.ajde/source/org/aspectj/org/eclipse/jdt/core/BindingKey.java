@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2005, 2011 IBM Corporation and others.
+ * Copyright (c) 2005, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -49,7 +49,6 @@ public final class BindingKey {
 	 * createArrayTypeBindingKey("I", 2) -> "[[I"
 	 * </code>
 	 * </pre>
-	 * </p>
 	 *
 	 * @param typeKey the binding key of the given type
 	 * @param arrayDimension the given array dimension
@@ -57,7 +56,7 @@ public final class BindingKey {
 	 */
 	public static String createArrayTypeBindingKey(String typeKey, int arrayDimension) {
 		// Note this implementation is heavily dependent on ArrayTypeBinding#computeUniqueKey()
-		StringBuffer buffer = new StringBuffer();
+		StringBuilder buffer = new StringBuilder();
 		while (arrayDimension-- > 0)
 			buffer.append('[');
 		buffer.append(typeKey);
@@ -80,7 +79,6 @@ public final class BindingKey {
 	 *       "Ljava/util/List&lt;&gt;;"
 	 * </code>
 	 * </pre>
-	 * </p>
 	 *
 	 * @param genericTypeKey the binding key of the generic type
 	 * @param argumentTypeKeys the possibly empty list of binding keys of argument types
@@ -88,7 +86,7 @@ public final class BindingKey {
 	 */
 	public static String createParameterizedTypeBindingKey(String genericTypeKey, String[] argumentTypeKeys) {
 		// Note this implementation is heavily dependent on ParameterizedTypeBinding#computeUniqueKey() and its subclasses
-		StringBuffer buffer = new StringBuffer();
+		StringBuilder buffer = new StringBuilder();
 		buffer.append(Signature.getTypeErasure(genericTypeKey));
 		buffer.insert(buffer.length()-1, '<');
 		for (int i = 0, length = argumentTypeKeys.length; i < length; i++) {
@@ -113,7 +111,6 @@ public final class BindingKey {
 	 * createTypeBindingKey("boolean[]") -> "[Z"
 	 * </code>
 	 * </pre>
-	 * </p>
 	 *
 	 * @param typeName the possibly qualified type name
 	 * @return a new type binding key
@@ -136,7 +133,6 @@ public final class BindingKey {
 	 *   "Lp/X;.foo()V:TSomeTypeVariable;"
 	 * </code>
 	 * </pre>
-	 * </p>
 	 *
 	 * @param typeVariableName the name of the given type variable
 	 * @param declaringKey the binding key of the type or method the type variable belongs to
@@ -144,7 +140,7 @@ public final class BindingKey {
 	 */
 	public static String createTypeVariableBindingKey(String typeVariableName, String declaringKey) {
 		// Note this implementation is heavily dependent on TypeVariableBinding#computeUniqueKey()
-		StringBuffer buffer = new StringBuffer();
+		StringBuilder buffer = new StringBuilder();
 		buffer.append(declaringKey);
 		buffer.append(':');
 		buffer.append('T');
@@ -168,7 +164,6 @@ public final class BindingKey {
 	 *    "+Ljava/util/ArrayList;"
 	 * </code>
 	 * </pre>
-	 * </p>
 	 *
 	 * @param typeKey the binding key of the given type
 	 * @param kind one of {@link Signature#C_STAR}, {@link Signature#C_SUPER}, or {@link Signature#C_EXTENDS}
@@ -205,16 +200,15 @@ public final class BindingKey {
 	 *    "Ljava/util/HashMap;{1}+Ljava/lang/String;"
 	 * </code>
 	 * </pre>
-	 * </p>
 	 *
 	 * @param genericTypeKey the binding key of the generic type
 	 * @param boundKind one of {@link Signature#C_STAR}, {@link Signature#C_SUPER}, or {@link Signature#C_EXTENDS}
 	 * @param boundTypeKey the binding key of the bounding type.
-	 * @param rank the relative position of this wild card type in the parameterization of the generic type. 
+	 * @param rank the relative position of this wild card type in the parameterization of the generic type.
 	 * @return a new wildcard type binding key
 	 * @since 3.5
 	 */
-	
+
 	public static String createWildcardTypeBindingKey(String genericTypeKey, char boundKind, String boundTypeKey, int rank) {
 		// Note this implementation is heavily dependent on WildcardBinding#computeUniqueKey()
 		String wildCardKey;
@@ -237,11 +231,11 @@ public final class BindingKey {
 	/**
 	 * Returns the binding key of the declaring type of the element represented by this binding key. If the binding key
 	 * does not represent a member or if the member doesn't have a declaring type, returns <code>null</code>.
-	 * 
+	 *
 	 * <p>
 	 * Note that only binding keys for references to methods and fields
 	 * are fully supported. The binding keys for declarations will not have type parameters.
-	 * 
+	 *
 	 * @return the type binding key or <code>null</code>
 	 * @since 3.7.1
 	 */

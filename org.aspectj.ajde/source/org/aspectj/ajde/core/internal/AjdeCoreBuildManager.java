@@ -1,11 +1,11 @@
 /********************************************************************
- * Copyright (c) 2007 Contributors. All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: IBM Corporation - initial API and implementation 
+ * Copyright (c) 2007 Contributors. All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors: IBM Corporation - initial API and implementation
  * 				 Helen Hawkins   - initial version (bug 148190)
  *******************************************************************/
 package org.aspectj.ajde.core.internal;
@@ -13,7 +13,6 @@ package org.aspectj.ajde.core.internal;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -70,7 +69,7 @@ public class AjdeCoreBuildManager {
 
 	/**
 	 * Execute a full or incremental build
-	 * 
+	 *
 	 * @param fullBuild true if requesting a full build, false if requesting to try an incremental build
 	 */
 	public void performBuild(boolean fullBuild) {
@@ -160,12 +159,12 @@ public class AjdeCoreBuildManager {
 	private String getFormattedOptionsString() {
 		ICompilerConfiguration compilerConfig = compiler.getCompilerConfiguration();
 		return "Building with settings: " + "\n-> output paths: "
-				+ formatCollection(compilerConfig.getOutputLocationManager().getAllOutputLocations()) + "\n-> classpath: "
-				+ compilerConfig.getClasspath() + "\n-> -inpath " + formatCollection(compilerConfig.getInpath()) + "\n-> -outjar "
-				+ formatOptionalString(compilerConfig.getOutJar()) + "\n-> -aspectpath "
-				+ formatCollection(compilerConfig.getAspectPath()) + "\n-> -sourcePathResources "
-				+ formatMap(compilerConfig.getSourcePathResources()) + "\n-> non-standard options: "
-				+ compilerConfig.getNonStandardOptions() + "\n-> javaoptions:" + formatMap(compilerConfig.getJavaOptionsMap());
+		+ formatCollection(compilerConfig.getOutputLocationManager().getAllOutputLocations()) + "\n-> classpath: "
+		+ compilerConfig.getClasspath() + "\n-> -inpath " + formatCollection(compilerConfig.getInpath()) + "\n-> -outjar "
+		+ formatOptionalString(compilerConfig.getOutJar()) + "\n-> -aspectpath "
+		+ formatCollection(compilerConfig.getAspectPath()) + "\n-> -sourcePathResources "
+		+ formatMap(compilerConfig.getSourcePathResources()) + "\n-> non-standard options: "
+		+ compilerConfig.getNonStandardOptions() + "\n-> javaoptions:" + formatMap(compilerConfig.getJavaOptionsMap());
 	}
 
 	private String formatCollection(Collection<?> options) {
@@ -176,10 +175,9 @@ public class AjdeCoreBuildManager {
 			return "none";
 		}
 
-		StringBuffer formattedOptions = new StringBuffer();
-		Iterator<?> it = options.iterator();
-		while (it.hasNext()) {
-			String o = it.next().toString();
+		StringBuilder formattedOptions = new StringBuilder();
+		for (Object option : options) {
+			String o = option.toString();
 			if (formattedOptions.length() > 0) {
 				formattedOptions.append(", ");
 			}
@@ -210,7 +208,7 @@ public class AjdeCoreBuildManager {
 	/**
 	 * Generate a new AjBuildConfig from the compiler configuration associated with this AjdeCoreBuildManager or from a
 	 * configuration file.
-	 * 
+	 *
 	 * @return null if invalid configuration, corresponding AjBuildConfig otherwise
 	 */
 	public AjBuildConfig generateAjBuildConfig() {
@@ -227,8 +225,7 @@ public class AjdeCoreBuildManager {
 			if (projectSourceFiles == null) {
 				return null;
 			}
-			List<String> l = new ArrayList<>();
-			l.addAll(projectSourceFiles);
+			List<String> l = new ArrayList<>(projectSourceFiles);
 			// If the processor options are specified build the command line options for the JDT compiler to see
 			String processor = compilerConfig.getProcessor();
 			if (processor != null && processor.length() != 0) {
@@ -250,15 +247,15 @@ public class AjdeCoreBuildManager {
 				args = new String[l.size() + xmlfiles.size() + 1];
 				// TODO speedup
 				int p = 0;
-				for (int i = 0; i < l.size(); i++) {
-					args[p++] = l.get(i);
+				for (String s : l) {
+					args[p++] = s;
 				}
-				for (int i = 0; i < xmlfiles.size(); i++) {
-					args[p++] = xmlfiles.get(i);
+				for (String xmlfile : xmlfiles) {
+					args[p++] = xmlfile;
 				}
 				args[p++] = "-xmlConfigured";
 			} else {
-				args = l.toArray(new String[l.size()]);
+				args = l.toArray(new String[0]);
 			}
 		}
 
@@ -273,7 +270,7 @@ public class AjdeCoreBuildManager {
 		if (propcp != null && propcp.length() != 0) {
 			StringTokenizer st = new StringTokenizer(propcp, File.pathSeparator);
 			List<String> configClasspath = config.getClasspath();
-			ArrayList<String> toAdd = new ArrayList<String>();
+			ArrayList<String> toAdd = new ArrayList<>();
 			while (st.hasMoreTokens()) {
 				String entry = st.nextToken();
 				if (!configClasspath.contains(entry)) {
@@ -281,7 +278,7 @@ public class AjdeCoreBuildManager {
 				}
 			}
 			if (0 < toAdd.size()) {
-				ArrayList<String> both = new ArrayList<String>(configClasspath.size() + toAdd.size());
+				List<String> both = new ArrayList<>(configClasspath.size() + toAdd.size());
 				both.addAll(configClasspath);
 				both.addAll(toAdd);
 				config.setClasspath(both);
@@ -377,7 +374,7 @@ public class AjdeCoreBuildManager {
 		// Break a string into a string array of non-standard options.
 		// Allows for one option to include a ' '. i.e. assuming it has been quoted, it
 		// won't accidentally get treated as a pair of options (can be needed for xlint props file option)
-		List<String> tokens = new ArrayList<String>();
+		List<String> tokens = new ArrayList<>();
 		int ind = nonStdOptions.indexOf('\"');
 		int ind2 = nonStdOptions.indexOf('\"', ind + 1);
 		if ((ind > -1) && (ind2 > -1)) { // dont tokenize within double quotes
@@ -405,7 +402,7 @@ public class AjdeCoreBuildManager {
 
 	/** Local helper method for splitting option strings */
 	private List<String> tokenizeString(String str) {
-		List<String> tokens = new ArrayList<String>();
+		List<String> tokens = new ArrayList<>();
 		StringTokenizer tok = new StringTokenizer(str);
 		while (tok.hasMoreTokens()) {
 			tokens.add(tok.nextToken());

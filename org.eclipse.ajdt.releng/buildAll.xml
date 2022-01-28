@@ -14,7 +14,7 @@
 		</classpath>
 	</taskdef>
 
-		<!-- - - - - - - - - - - - - - - - - - 
+		<!-- - - - - - - - - - - - - - - - - -
           target: init
           Initializes properties
      - - - - - - - - - - - - - - - - - -->
@@ -58,10 +58,10 @@
     	<condition property="target.eclipse.tar" value="${target.eclipse.tar.45}">
     		<equals arg1="${target.eclipse.version}" arg2="45"/>
     	</condition>
-    	
+
     	<echo message="target.eclipse.version=${target.eclipse.version}"/>
     	<echo message="target.eclipse.tar=${target.eclipse.tar}"/>
-    	
+
     </target>
 
 
@@ -84,7 +84,7 @@
 			<arg value="org.eclipse.ant.core.antRunner" />
 			<arg value="-data" />
 			<arg value="${build.dest}/target/build-workspace" />
-<arg value="-verbose" /> 
+<arg value="-verbose" />
 			<arg value="-DfetchCacheLocation=${fetchCacheLocation}" />
 			<arg value="-Dbuilder=${workdir}/org.eclipse.ajdt.releng" />
 			<arg value="-DallowBinaryCycles=true"/>
@@ -107,14 +107,14 @@
 		<zip destfile="${zip.full.location}">
 			<fileset dir="${updateSite.loc}" />
 		</zip>
-		
+
 		<!-- now store the zip name and location in a property file-->
 		<propertyfile file="${build.dist}/ajdt-zip.properties" comment="This properties file contains the location and name of the AJDT update site archive produced by the latest build">
 			<entry key="zip.name" value="${zip.name}"/>
 			<entry key="zip.full.location" value="${zip.full.location}"/>
 		</propertyfile>
 	</target>
-	
+
 	<target name="find.pdebuild.home">
 		<echo message="build.eclipse=${build.eclipse}"/>
 		<files includes="${build.eclipse}/plugins/org.eclipse.pde.build_*/scripts" id="pdebuild.folder" />
@@ -122,7 +122,7 @@
 		<echo message="pdebuild.home=${pdebuild.home}" />
 		<echo message="path=${build.eclipse}/plugins/org.eclipse.pde.build_*/scripts" />
 		<echo message="path=${toString:pdebuild.folder}" />
-			
+
 	</target>
 
 	<target name="generateP2metadata" depends="init,init-classpaths,find.pdebuild.home" description="Generate p2 metadata for the AJDT update site">
@@ -151,7 +151,7 @@
 		</java>
 	</target>
 
-	
+
 	<target name="signUpdateSite" depends="init,init-classpaths,find.pdebuild.home" description="Digitally signs the update site">
 
 		<taskdef resource="net/sf/antcontrib/antcontrib.properties" >
@@ -167,13 +167,13 @@
 				<delete file="${updateSite.loc}/content.xml" />
 				<delete file="${updateSite.loc}/artifacts.xml" />
 
-				<java classname="org.eclipse.equinox.internal.p2.jarprocessor.Main" fork="true" 
+				<java classname="org.eclipse.equinox.internal.p2.jarprocessor.Main" fork="true"
 						classpathref="jarprocessor.classpath" failonerror="true" maxmemory="256m" dir="${updateSite.loc}">
 					<arg line="-verbose -processAll -repack -pack -sign ${signer}" />
 					<arg line="-outputDir ${updateSite.loc} ${updateSite.loc}" />
 				</java>
 
-				<java classname="org.eclipse.equinox.launcher.Main" fork="true" classpathref="eclipse.classpath" 
+				<java classname="org.eclipse.equinox.launcher.Main" fork="true" classpathref="eclipse.classpath"
 						failonerror="true" maxmemory="256m" dir="${updateSite.loc}">
 					<arg line="-application org.eclipse.equinox.p2.publisher.FeaturesAndBundlesPublisher" />
 					<arg line="-source ${updateSite.loc} -metadataRepository file:${updateSite.loc}" />
@@ -181,7 +181,7 @@
 					<arg line="-artifactRepositoryName '${p2.repository.name}' -reusePackedFiles -reusePack200Files -publishArtifacts" />
 				</java>
 
-				<java classname="org.eclipse.equinox.launcher.Main" fork="true" classpathref="eclipse.classpath" 
+				<java classname="org.eclipse.equinox.launcher.Main" fork="true" classpathref="eclipse.classpath"
 						failonerror="true" maxmemory="256m" dir="${updateSite.loc}">
 					<arg line="-application org.eclipse.equinox.p2.publisher.CategoryPublisher" />
 					<arg line="-metadataRepository file:${updateSite.loc}" />
@@ -191,11 +191,11 @@
 			</then>
 		</if>
 	</target>
-	
+
 	<!--
 		Run the site optimizer over the update site directory, prior to
 		uploading to the update server - spyoung
-		
+
 		ADE - this is not working any more, so disable.  It seems that
 		some jars are not being properly processed.  As this is not a
 		requirement any longer, it is ok to disable.
@@ -210,9 +210,9 @@
 			<arg line="-outputDir ${updateSite.loc}" />
 			<arg value="${updateSite.loc}" />
 			</java>
-			
+
 		<!-- Step 2 - "repack" all the JARs (i.e actaully pack them!) -->
-		<java fork="true" failonerror="true" classpathref="eclipse.classpath" 
+		<java fork="true" failonerror="true" classpathref="eclipse.classpath"
 			classname="org.eclipse.core.launcher.Main">
 			<arg value="-application" />
 			<arg value="org.eclipse.update.core.siteOptimizer" />
@@ -222,24 +222,24 @@
 		</java>
 	</target>
 
-	
+
 	<target name="check.provision.build" description="Check to see if the build eclipse has already been provisioned">
 		<echo message="build.eclipse=${build.eclipse}"/>
 		<available file="${build.eclipse}/.provisioned" property="provision.build.completed"/>
 		<echo message="provision.build.completed=${provision.build.completed}"/>
 	</target>
-	
+
 	<!-- for now, only tar files are supported -->
 <!--	<target name="provision-build-eclipse" depends="init,check.provision.build,download-eclipse" description="Provisions the Eclipse that is driving the build process"> -->
 	<target name="provision-build-eclipse" depends="init,init-classpaths,check.provision.build" unless="provision.build.completed" description="Provisions the Eclipse that is driving the build process">
 		<!-- set the build eclipse archive if it doesn't already exist -->
 		<!-- the build eclipse is 4.3 based -->
-		
+
 		<echo message="Provision BUILD eclipse"/>
-		
+
 		<property name="build.eclipse.tar" value="${download.home}/${target.eclipse.tar.45}"/>
 		<echo message="build.eclipse.tar=${build.eclipse.tar}"/>
-		
+
 		<!-- Unpack eclipse -->
 		<mkdir dir="${build.dest}"/>
 		<antcall target="unpack-archive">
@@ -248,21 +248,21 @@
 		</antcall>
 
 		<!-- Install AJDT -->
-		<install-bundle 
-			eclipse.loc="${build.dest}/eclipse" 
-			updatesite.url="http://download.eclipse.org/tools/ajdt/45/dev/update" 
+		<install-bundle
+			eclipse.loc="${build.dest}/eclipse"
+			updatesite.url="http://download.eclipse.org/tools/ajdt/45/dev/update"
 			feature.id="org.eclipse.ajdt" />
 
 		<!-- Install Fetach factory for git repos -->
-		<install-bundle 
-			eclipse.loc="${build.dest}/eclipse" 
-			updatesite.url="http://download.eclipse.org/egit/pde/updates-nightly" 
+		<install-bundle
+			eclipse.loc="${build.dest}/eclipse"
+			updatesite.url="http://download.eclipse.org/egit/pde/updates-nightly"
 			feature.id="org.eclipse.egit.fetchfactory" />
-		
+
 
 		<!-- Mark as provisioned -->
 		<touch file="${build.dest}/eclipse/.provisioned" />
-		
+
 	</target>
 
 	<target name="init-classpaths">
@@ -307,33 +307,33 @@
     	<property name="mylyn.update.site" value="http://download.eclipse.org/mylyn/releases/latest"/>
 
 		<echo message="mylyn.update.site = ${mylyn.update.site}"/>
-		
+
 		<!-- Install Mylyn -->
-		<install-bundle 
-			eclipse.loc="${build.dest}/target/eclipse" 
-			updatesite.url="${mylyn.update.site}" 
+		<install-bundle
+			eclipse.loc="${build.dest}/target/eclipse"
+			updatesite.url="${mylyn.update.site}"
 			feature.id="org.eclipse.mylyn_feature" />
-		<install-bundle 
-			eclipse.loc="${build.dest}/target/eclipse" 
-			updatesite.url="${mylyn.update.site}" 
+		<install-bundle
+			eclipse.loc="${build.dest}/target/eclipse"
+			updatesite.url="${mylyn.update.site}"
 			feature.id="org.eclipse.mylyn.context_feature" />
-		<install-bundle 
-			eclipse.loc="${build.dest}/target/eclipse" 
-			updatesite.url="${mylyn.update.site}" 
+		<install-bundle
+			eclipse.loc="${build.dest}/target/eclipse"
+			updatesite.url="${mylyn.update.site}"
 			feature.id="org.eclipse.mylyn.ide_feature" />
-		<install-bundle 
-			eclipse.loc="${build.dest}/target/eclipse" 
-			updatesite.url="${mylyn.update.site}" 
+		<install-bundle
+			eclipse.loc="${build.dest}/target/eclipse"
+			updatesite.url="${mylyn.update.site}"
 			feature.id="org.eclipse.mylyn.java_feature" />
 
 		<!-- The osg.jar in 4.4.M7 contains entries that 4.3 builder gets confused by and only 4.4.M7 PDE build handles properly
 		     See http://git.eclipse.org/c/pde/eclipse.pde.build.git/diff/org.eclipse.pde.build/src/org/eclipse/pde/internal?id=3ed6008e0d23de975203cd313e3d04ca9f23c69b
-		     
+
 		     We avoid the problem by replacing the profiles index file in the osgi jar.
 		     Yes, dirty hack. But what else can we do?
-		     
+
 		     Once we can build 4.4 with 4.4
-		     
+
 		<property name="target.osgi.jar" value="${build.dest}/target/eclipse/plugins/org.eclipse.osgi_3.10.0.v20140428-1446.jar"/>
 		<jar destfile="${target.osgi.jar}" update="true">
 			<fileset dir="${builder}/provisioning_support/osgi-3.10-patching">
@@ -341,30 +341,30 @@
 			</fileset>
 		</jar>
 		     -->
-		
-		<!-- install more recent jdt because ajdt requires it in target pf. M6 isn't good enough 
+
+		<!-- install more recent jdt because ajdt requires it in target pf. M6 isn't good enough
           Now that M7 is out this shouldn't be needed anymore.
-		<install-bundle 
-			eclipse.loc="${build.dest}/target/eclipse" 
-			updatesite.url="http://download.eclipse.org/eclipse/updates/4.4-I-builds" 
+		<install-bundle
+			eclipse.loc="${build.dest}/target/eclipse"
+			updatesite.url="http://download.eclipse.org/eclipse/updates/4.4-I-builds"
 			feature.id="org.eclipse.jdt" />
 		 -->
 	</target>
-	
+
 
 	<!-- Provisions the target Eclipse so that it can run the tests.  Does so by installing all of the test plugins. -->
 	<target name="provision-test-eclipse" depends="init">
-		<install-bundle 
-			eclipse.loc="${build.dest}/target/eclipse" 
-			updatesite.url="file:${updateSite.loc}" 
+		<install-bundle
+			eclipse.loc="${build.dest}/target/eclipse"
+			updatesite.url="file:${updateSite.loc}"
 			feature.id="org.eclipse.ajdt" />
-		<install-bundle 
-			eclipse.loc="${build.dest}/target/eclipse" 
-			updatesite.url="file:${updateSite.loc}" 
+		<install-bundle
+			eclipse.loc="${build.dest}/target/eclipse"
+			updatesite.url="file:${updateSite.loc}"
 			feature.id="org.eclipse.equinox.weaving.sdk" />
-		<install-bundle 
-			eclipse.loc="${build.dest}/target/eclipse" 
-			updatesite.url="file:${updateSite.loc}" 
+		<install-bundle
+			eclipse.loc="${build.dest}/target/eclipse"
+			updatesite.url="file:${updateSite.loc}"
 			feature.id="org.eclipse.aspectj.feature_tests" />
 
 		<!-- Ensure that weaving bundle is auto-started, but ensure that we don't add the line twice -->
@@ -377,24 +377,24 @@
 		<delete dir="${build.dest}/target/test_framework"/>
 		<mkdir dir="${build.dest}/target/test_framework"/>
 		<unzip src="${builder}/build_bundles/${eclipse.test.framework.version}" dest="${build.dest}/target/test_framework" />
-		
+
 <!--
 		<uninstall-bundle
-			eclipse.loc="${build.dest}/target/eclipse" 
-			updatesite.url="file:${build.dest}/target/test_framework" 
+			eclipse.loc="${build.dest}/target/eclipse"
+			updatesite.url="file:${build.dest}/target/test_framework"
 			feature.id="org.eclipse.test"/>
 -->
 
-		<install-bundle-version 
-			eclipse.loc="${build.dest}/target/eclipse" 
-			updatesite.url="file:${build.dest}/target/test_framework" 
-			feature.id="org.eclipse.test" version="${org.eclipse.test.feature.version}"/>
-		
 		<install-bundle-version
-			eclipse.loc="${build.dest}/eclipse" 
-			updatesite.url="file:${build.dest}/target/test_framework" 
+			eclipse.loc="${build.dest}/target/eclipse"
+			updatesite.url="file:${build.dest}/target/test_framework"
 			feature.id="org.eclipse.test" version="${org.eclipse.test.feature.version}"/>
-		
+
+		<install-bundle-version
+			eclipse.loc="${build.dest}/eclipse"
+			updatesite.url="file:${build.dest}/target/test_framework"
+			feature.id="org.eclipse.test" version="${org.eclipse.test.feature.version}"/>
+
 <copy file="${builder}/build_bundles/library.xml" todir="${build.eclipse}/plugins/org.eclipse.test_${org.eclipse.test}/"/>
 <copy file="${builder}/build_bundles/JUNIT.XSL" todir="${build.eclipse}/plugins/org.eclipse.test_${org.eclipse.test}/"/>
 
@@ -407,7 +407,7 @@
 	</target>
 
 	<target name="run-test-eclipse" depends="init,run-weaving-tests,run-core-tests,run-ui-tests"/>
-	
+
 	<target name="run-weaving-tests" depends="init,refresh-test-workspace">
 		<antcall target="refresh-test-workspace" />
 		<ant target="ui-test" antfile="${test.library.xml}" dir="${target.eclipse}" inheritall="false">
@@ -423,7 +423,7 @@
 			<property name="timeout" value="720000"/>
 		</ant>
 	</target>
-	
+
 	<target name="run-core-tests" depends="init,refresh-test-workspace">
 		<antcall target="refresh-test-workspace" />
 		<!-- This should be a core-test, but the tests are hanging on the build server, so maybe they need to be UI tests. -->
@@ -454,16 +454,16 @@
 			<property name="ws" value="${build.ws}"/>
 		</ant>
 	</target>
-	
-	
+
+
 	<target name="set-test-properties">
-		<property name="vmargs" value="-Xmx1024M -XX:PermSize=64M -XX:MaxPermSize=256M -XX:-UseSplitVerifier"/>
+		<property name="vmargs" value="-Xmx1024M -XX:PermSize=64M -XX:-UseSplitVerifier"/>
 		<property name="osgi.vmargs" value="-Daj.weaving.verbose=true -Dorg.aspectj.weaver.showWeaveInfo=true -Dorg.aspectj.osgi.verbose=true -Dosgi.clean=true"/>
 	</target>
-	
+
 	<!--
 	FIXADE:
-	
+
 	Note that we have to run an empty test before we can run the real test.
 	The first run of a ui test case in a clean workspace is failing
 	on the build server.  So, we run this empty test first in order to get things
@@ -483,8 +483,8 @@
              <property name="ws" value="${build.ws}"/>
      </ant>
 	</target>
-	
-	
+
+
 	<target name="copy-test-results" depends="init">
 		<!--
 			Copy the xml output files created by the plugin test harness to a
@@ -527,7 +527,7 @@
 
 <!--	<target name="build" depends="provision-build-eclipse,provision-target-eclipse,pdebuild,optimizeUpdateSite,generateP2metadata,zip-archive" /> -->
 	<!-- Disable optimizeUpdateSite -->
-	<target name="build" depends="init,provision-build-eclipse,provision-target-eclipse,pdebuild,generateP2metadata,signUpdateSite,zip-archive" /> 
+	<target name="build" depends="init,provision-build-eclipse,provision-target-eclipse,pdebuild,generateP2metadata,signUpdateSite,zip-archive" />
 
 	<target name="tests" depends="init,provision-test-eclipse,run-test-eclipse,copy-test-results,check-results,check-tests-failed" />
 
@@ -562,5 +562,5 @@
         <target name="upload-and-unzip" depends="upload-build,delete-old,unzip-build"
                 description="Uploads, and unzips build on download server">
         </target>
-	
+
 </project>

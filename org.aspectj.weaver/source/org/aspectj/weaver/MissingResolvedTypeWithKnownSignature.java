@@ -1,12 +1,12 @@
 /* *******************************************************************
  * Copyright (c) 2005 Contributors.
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
  *   Adrian Colyer			Initial implementation
  * ******************************************************************/
 package org.aspectj.weaver;
@@ -21,12 +21,10 @@ import org.aspectj.bridge.context.CompilationAndWeavingContext;
  * When we try to resolve a type in the world that we require to be present, and then fail to find it, we return an instance of this
  * class. This class defers the production of the "can't find type error" until the first time that someone asks a question that
  * can't be answered solely from the signature. This enables the weaver to be more tolerant of missing types.
- * 
+ *
  */
 public class MissingResolvedTypeWithKnownSignature extends ResolvedType {
 
-	private static ResolvedMember[] NO_MEMBERS = new ResolvedMember[0];
-	private static ResolvedType[] NO_TYPES = new ResolvedType[0];
 	private boolean issuedCantFindTypeError = false;
 	private boolean issuedJoinPointWarning = false;
 	private boolean issuedMissingInterfaceWarning = false;
@@ -55,24 +53,24 @@ public class MissingResolvedTypeWithKnownSignature extends ResolvedType {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.aspectj.weaver.ResolvedType#getDeclaredFields()
 	 */
 	@Override
 	public ResolvedMember[] getDeclaredFields() {
 		raiseCantFindType(WeaverMessages.CANT_FIND_TYPE_FIELDS);
-		return NO_MEMBERS;
+		return ResolvedMember.NONE;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.aspectj.weaver.ResolvedType#getDeclaredMethods()
 	 */
 	@Override
 	public ResolvedMember[] getDeclaredMethods() {
 		raiseCantFindType(WeaverMessages.CANT_FIND_TYPE_METHODS);
-		return NO_MEMBERS;
+		return ResolvedMember.NONE;
 	}
 
 	@Override
@@ -84,13 +82,13 @@ public class MissingResolvedTypeWithKnownSignature extends ResolvedType {
 	@Override
 	public ResolvedType[] getDeclaredInterfaces() {
 		raiseCantFindType(WeaverMessages.CANT_FIND_TYPE_INTERFACES);
-		return NO_TYPES;
+		return ResolvedType.EMPTY_RESOLVED_TYPE_ARRAY;
 	}
 
 	@Override
 	public ResolvedMember[] getDeclaredPointcuts() {
 		raiseCantFindType(WeaverMessages.CANT_FIND_TYPE_POINTCUTS);
-		return NO_MEMBERS;
+		return ResolvedMember.NONE;
 	}
 
 	@Override
@@ -107,7 +105,7 @@ public class MissingResolvedTypeWithKnownSignature extends ResolvedType {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.aspectj.weaver.ResolvedType#getSourceContext()
 	 */
 	@Override
@@ -138,7 +136,7 @@ public class MissingResolvedTypeWithKnownSignature extends ResolvedType {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.aspectj.weaver.ResolvedType#isAssignableFrom(org.aspectj.weaver.ResolvedType)
 	 */
 	@Override
@@ -155,10 +153,10 @@ public class MissingResolvedTypeWithKnownSignature extends ResolvedType {
 			return isAssignableFrom(other);
 		}
 	}
-	
+
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.aspectj.weaver.ResolvedType#isCoerceableFrom(org.aspectj.weaver.ResolvedType)
 	 */
 	@Override
@@ -169,7 +167,7 @@ public class MissingResolvedTypeWithKnownSignature extends ResolvedType {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.aspectj.weaver.AnnotatedElement#hasAnnotation(org.aspectj.weaver.UnresolvedType)
 	 */
 	@Override

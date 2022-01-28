@@ -69,7 +69,7 @@ public class ModuleDescriptionInfo extends AnnotatableInfo implements ISourceMod
 		char[][] target;
 		@Override
 		public String toString() {
-			StringBuffer buffer = new StringBuffer();
+			StringBuilder buffer = new StringBuilder();
 			buffer.append(this.pack);
 			if (this.target != null) {
 				buffer.append(" to "); //$NON-NLS-1$
@@ -105,7 +105,7 @@ public class ModuleDescriptionInfo extends AnnotatableInfo implements ISourceMod
 		}
 		@Override
 		public String toString() {
-			StringBuffer buffer = new StringBuffer();
+			StringBuilder buffer = new StringBuilder();
 			buffer.append(this.serviceName);
 			buffer.append(" with "); //$NON-NLS-1$
 			for (int i = 0; i < this.implNames.length; i++) {
@@ -132,8 +132,8 @@ public class ModuleDescriptionInfo extends AnnotatableInfo implements ISourceMod
 				mod.requires[i+1].modifiers = refs[i].modifiers;
 			}
 		} else {
-			mod.requires = CharOperation.equals(module.moduleName, TypeConstants.JAVA_BASE) 
-					? NO_REQUIRES 
+			mod.requires = CharOperation.equals(module.moduleName, TypeConstants.JAVA_BASE)
+					? NO_REQUIRES
 					: new ModuleReferenceInfo[] { getJavaBaseReference() };
 		}
 		if (module.exportsCount > 0) {

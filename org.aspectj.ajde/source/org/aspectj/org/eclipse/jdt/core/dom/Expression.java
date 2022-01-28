@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -7,7 +7,6 @@
  * https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -17,7 +16,6 @@ package org.aspectj.org.eclipse.jdt.core.dom;
 /**
  * Abstract base class of AST nodes that represent expressions.
  * There are several kinds of expressions.
- * <p>
  * <pre>
  * Expression:
  *    {@link Annotation},
@@ -26,6 +24,7 @@ package org.aspectj.org.eclipse.jdt.core.dom;
  *    {@link ArrayInitializer},
  *    {@link Assignment},
  *    {@link BooleanLiteral},
+ *    {@link CaseDefaultExpression},
  *    {@link CastExpression},
  *    {@link CharacterLiteral},
  *    {@link ClassInstanceCreation},
@@ -41,6 +40,7 @@ package org.aspectj.org.eclipse.jdt.core.dom;
  *    {@link Name},
  *    {@link NullLiteral},
  *    {@link NumberLiteral},
+ *    {@link Pattern},
  *    {@link ParenthesizedExpression},
  *    {@link PostfixExpression},
  *    {@link PrefixExpression},
@@ -48,12 +48,12 @@ package org.aspectj.org.eclipse.jdt.core.dom;
  *    {@link SuperFieldAccess},
  *    {@link SuperMethodInvocation},
  *    {@link SuperMethodReference},
+ *    {@link SwitchExpression},
  *    {@link ThisExpression},
  *    {@link TypeLiteral},
  *    {@link TypeMethodReference},
  *    {@link VariableDeclarationExpression}
  * </pre>
- * </p>
  *
  * @since 2.0
  */

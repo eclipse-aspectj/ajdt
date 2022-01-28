@@ -1,13 +1,13 @@
 /* *******************************************************************
- * Copyright (c) 2000-2001 Xerox Corporation. 
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     Xerox/PARC     initial implementation 
+ * Copyright (c) 2000-2001 Xerox Corporation.
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     Xerox/PARC     initial implementation
  * ******************************************************************/
 
 package org.aspectj.tools.ant.taskdefs.compilers;
@@ -32,7 +32,7 @@ import org.apache.tools.ant.types.Commandline;
  * This task was developed by the <a href="http://aspectj.org">AspectJ Project</a>
  *
  * @author <a href="mailto:palm@parc.xerox.com">Jeffrey Palm</a>
- * @see    org.aspectj.tools.ant.taskdefs.Ajc
+ * @see    org.aspectj.tools.ant.taskdefs.Ajc2
  */
 public class Ajc extends DefaultCompilerAdapter {
 
@@ -41,26 +41,25 @@ public class Ajc extends DefaultCompilerAdapter {
 
     /** The name of the compiler's main class. */
     private final static String MAIN_CLASS_NAME = "org.aspectj.tools.ajc.Main";
-    
+
     /**
      * List of arguments allowed only by javac and <b>not</b> ajc.
-     */    
+     */
     final static List<String> javacOnlyFlags
         = finalList(new String[] { "-g:none", "-g:lines",
         "-g:vars", "-g:source", "-nowarn"});
-    final static List<String> javacOnlyArgs  
+    final static List<String> javacOnlyArgs
         = finalList(new String[] { "-sourcepath",
         "-encoding", "-target" });
 
     private static List<String> finalList(String[] args) {
-        List<String> result = new ArrayList<String>();
-        result.addAll(Arrays.asList(args));
+        List<String> result = new ArrayList<>(Arrays.asList(args));
         return Collections.unmodifiableList(result);
     }
 
     /**
      * Checks the command line for arguments allowed only in AJC and
-     * disallowed by AJC and then calls the <code>compile()<code> method.
+     * disallowed by AJC and then calls the <code>compile()</code> method.
      *
      * @return true if a good compile, false otherwise.
      * @throws org.apache.tools.ant.BuildException
@@ -91,11 +90,11 @@ public class Ajc extends DefaultCompilerAdapter {
                                                     Project.MSG_WARN));
             System.setOut(logstr);
             System.setErr(logstr);
-            return ((Integer)main.getMethod
-                    ("compile", new Class[]{String[].class}).invoke
-                    (main.newInstance(), new Object[]{
-                        removeUnsupported(cline, logstr)
-                    })).intValue() == AJC_COMPILER_SUCCESS;
+            return (Integer) main.getMethod
+					("compile", new Class[]{String[].class}).invoke
+					(main.getDeclaredConstructor().newInstance(), new Object[]{
+							removeUnsupported(cline, logstr)
+					}) == AJC_COMPILER_SUCCESS;
         } catch (Exception e) {
             if (e instanceof BuildException) {
                 throw (BuildException)e;
@@ -109,7 +108,7 @@ public class Ajc extends DefaultCompilerAdapter {
         }
     }
 
-    
+
     /**
      * Removes unsupported arguments from <code>cline</code>
      * issuing warnings for each using <code>log</code>.
@@ -138,9 +137,9 @@ public class Ajc extends DefaultCompilerAdapter {
                 argsList.add(args[i]);
             }
         }
-        return (String[])argsList.toArray(new String[argsList.size()]);
+        return (String[])argsList.toArray(new String[0]);
     }
-    
+
     /**
      * Adds arguments that setupJavacCommand() doesn't pick up.
      *
@@ -152,7 +151,7 @@ public class Ajc extends DefaultCompilerAdapter {
      */
     private Commandline addAjcOptions(Commandline cline) throws BuildException {
         Javac javac = getJavac();
-                               
+
         org.aspectj.tools.ant.taskdefs.Ajc2 ajc = null;
 
         try {
@@ -160,7 +159,7 @@ public class Ajc extends DefaultCompilerAdapter {
         } catch (ClassCastException cce) {
             throw new BuildException(cce+"");
         }
-        
+
         if (ajc.getThreads() != null) {
             cline.createArgument().setValue("-threads");
             cline.createArgument().setValue(ajc.getThreads() + "");
@@ -183,40 +182,38 @@ public class Ajc extends DefaultCompilerAdapter {
     }
 
     /**
-     * Logs the compilation parameters, adds the files to compile and logs the 
-     * &qout;niceSourceList&quot;
+     * Logs the compilation parameters, adds the files to compile and logs the
+     * &quot;niceSourceList&quot;
      */
     @Override
 	protected void logAndAddFilesToCompile(Commandline cmd) {
 
         // Same behavior as DefaultCompilerAdapter.logAndAddFilesToCompile
         attributes.log("Compilation args: " + cmd.toString(), Project.MSG_VERBOSE);
-        StringBuffer niceSourceList = new StringBuffer("File");
+        StringBuilder niceSourceList = new StringBuilder("File");
         if (compileList.length != 1) {
             niceSourceList.append("s");
         }
         niceSourceList.append(" to be compiled:");
         niceSourceList.append(lSep);
 
-        for (int i=0; i < compileList.length; i++) {
+		for (File file : compileList) {
 
-            // DefaultCompilerAdapter only expects .java files but we must deal
-            // with .lst files also
-            File file = compileList[i];
+			// DefaultCompilerAdapter only expects .java files but we must deal
+			// with .lst files also
+			if (file == null) continue;
 
-            if (file == null) continue;
+			String arg = file.getAbsolutePath();
+			String rest = "";
+			String name = file.getName();
 
-            String arg = file.getAbsolutePath();
-            String rest = "";
-            String name = file.getName();
-
-            // For .java files take the default behavior and add that
-            // file to the command line
-            if (name.endsWith(".java")) {
-                cmd.createArgument().setValue(arg);
-            }
-            niceSourceList.append("   " + arg + rest + lSep);
-        }
+			// For .java files take the default behavior and add that
+			// file to the command line
+			if (name.endsWith(".java")) {
+				cmd.createArgument().setValue(arg);
+			}
+			niceSourceList.append("   " + arg + rest + lSep);
+		}
         attributes.log(niceSourceList.toString(), Project.MSG_VERBOSE);
-    }    
+    }
 }

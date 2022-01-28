@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -48,7 +48,6 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.UnaryExpression;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.Parser;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.RecoveryScanner;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.HashtableOfObject;
-import org.aspectj.org.eclipse.jdt.internal.compiler.util.HashtableOfObjectToInt;
 import org.aspectj.org.eclipse.jdt.internal.core.util.ReferenceInfoAdapter;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
 /**
@@ -56,7 +55,7 @@ import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
  */
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class CompilationUnitStructureRequestor extends ReferenceInfoAdapter implements ISourceElementRequestor {
-	
+
 	/**
 	 * The handle to the compilation unit being parsed
 	 */
@@ -84,13 +83,13 @@ public class CompilationUnitStructureRequestor extends ReferenceInfoAdapter impl
 	/*
 	 * A table from a handle (with occurenceCount == 1) to the current occurence count for this handle
 	 */
-	private HashtableOfObjectToInt occurenceCounts;
+	private HashMap<Object, Integer> occurenceCounts;
 
 	/*
 	 * A table to store the occurrence count of anonymous types. The key will be the handle to the
 	 * enclosing type of the anonymous.
 	 */
-	private HashtableOfObjectToInt localOccurrenceCounts;
+	private HashMap<Object, Integer> localOccurrenceCounts;
 
 	/**
 	 * Stack of parent scope info objects. The info on the
@@ -138,8 +137,8 @@ protected CompilationUnitStructureRequestor(ICompilationUnit unit, CompilationUn
 	this.unit = unit;
 	this.unitInfo = unitInfo;
 	this.newElements = newElements;
-	this.occurenceCounts = new HashtableOfObjectToInt();
-	this.localOccurrenceCounts = new HashtableOfObjectToInt(5);
+	this.occurenceCounts = new HashMap<>();
+	this.localOccurrenceCounts = new HashMap<>(5);
 }
 /**
  * @see ISourceElementRequestor
@@ -239,6 +238,16 @@ protected Annotation createAnnotation(JavaElement parent, String name) {
 protected SourceField createField(JavaElement parent, FieldInfo fieldInfo) {
 	String fieldName = JavaModelManager.getJavaModelManager().intern(new String(fieldInfo.name));
 	return new SourceField(parent, fieldName);
+}
+protected SourceField createRecordComponent(JavaElement parent, FieldInfo compInfo) {
+	String name = JavaModelManager.getJavaModelManager().intern(new String(compInfo.name));
+	SourceField field = new SourceField(parent, name) {
+		@Override
+		public boolean isRecordComponent() throws JavaModelException {
+			return true;
+		}
+	};
+	return field;
 }
 protected ImportContainer createImportContainer(ICompilationUnit parent) {
 	return (ImportContainer)parent.getImportContainer();
@@ -346,7 +355,11 @@ public void enterField(FieldInfo fieldInfo) {
 	JavaElement parentHandle= (JavaElement) this.handleStack.peek();
 	SourceField handle = null;
 	if (parentHandle.getElementType() == IJavaElement.TYPE) {
-		handle = createField(parentHandle, fieldInfo);
+		if (fieldInfo.isRecordComponent) {
+			handle = createRecordComponent(parentHandle, fieldInfo);
+		} else {
+			handle = createField(parentHandle, fieldInfo);
+		}
 	}
 	else {
 		Assert.isTrue(false); // Should not happen
@@ -376,7 +389,7 @@ public void enterInitializer(int declarationSourceStart, int modifiers) {
 		Assert.isTrue(false); // Should not happen
 	}
 	resolveDuplicates(handle);
-	
+
 	addToChildren(parentInfo, handle);
 
 	this.infoStack.push(new int[] {declarationSourceStart, modifiers});
@@ -413,7 +426,7 @@ public void enterMethod(MethodInfo methodInfo) {
 
 	this.infoStack.push(methodInfo);
 	this.handleStack.push(handle);
-	
+
 	addToChildren(parentInfo, handle);
 	parentInfo.childrenCategories.put(handle, methodInfo.categories);
 }
@@ -427,6 +440,7 @@ private SourceMethodElementInfo createMethodInfo(MethodInfo methodInfo, SourceMe
 	} else {
 		info = elements.length == 0 ? new SourceMethodInfo() : new SourceMethodWithChildrenInfo(elements);
 	}
+	info.isCanonicalConstructor = methodInfo.isCanonicalConstr;
 	info.setSourceRangeStart(methodInfo.declarationStart);
 	int flags = methodInfo.modifiers;
 	info.setNameSourceStart(methodInfo.nameSourceStart);
@@ -480,7 +494,7 @@ private LocalVariable[] acceptMethodParameters(Argument[] arguments, JavaElement
 		localVarInfo.setSourceRangeEnd(argument.declarationSourceStart);
 		localVarInfo.setNameSourceStart(argument.sourceStart);
 		localVarInfo.setNameSourceEnd(argument.sourceEnd);
-		
+
 		String paramTypeSig = JavaModelManager.getJavaModelManager().intern(Signature.createTypeSignature(methodInfo.parameterTypes[i], false));
 		result[i] = new LocalVariable(
 				methodHandle,
@@ -491,7 +505,7 @@ private LocalVariable[] acceptMethodParameters(Argument[] arguments, JavaElement
 				argument.sourceEnd,
 				paramTypeSig,
 				argument.annotations,
-				argument.modifiers, 
+				argument.modifiers,
 				true);
 		this.newElements.put(result[i], localVarInfo);
 		this.infoStack.push(localVarInfo);
@@ -514,7 +528,7 @@ public void enterModule(ModuleInfo info) {
 	Object parentInfo = this.infoStack.peek();
 	JavaElement parentHandle= (JavaElement) this.handleStack.peek();
 	JavaElement handle = createModuleHandle(parentHandle, info);
-	
+
 	this.infoStack.push(info);
 	this.handleStack.push(handle);
 
@@ -575,10 +589,14 @@ private SourceTypeElementInfo createTypeInfo(TypeInfo typeInfo, SourceType handl
 	JavaModelManager manager = JavaModelManager.getJavaModelManager();
 	char[] superclass = typeInfo.superclass;
 	info.setSuperclassName(superclass == null ? null : manager.intern(superclass));
-	char[][] superinterfaces = typeInfo.superinterfaces;
-	for (int i = 0, length = superinterfaces == null ? 0 : superinterfaces.length; i < length; i++)
-		superinterfaces[i] = manager.intern(superinterfaces[i]);
-	info.setSuperInterfaceNames(superinterfaces);
+	char[][] typeNames = typeInfo.superinterfaces;
+	for (int i = 0, length = typeNames == null ? 0 : typeNames.length; i < length; i++)
+		typeNames[i] = manager.intern(typeNames[i]);
+	info.setSuperInterfaceNames(typeNames);
+	typeNames = typeInfo.permittedSubtypes;
+	for (int i = 0, length = typeNames == null ? 0 : typeNames.length; i < length; i++)
+		typeNames[i] = manager.intern(typeNames[i]);
+	info.setPermittedSubtypeNames(typeNames);
 	info.addCategories(handle, typeInfo.categories);
 	this.newElements.put(handle, info);
 
@@ -602,7 +620,7 @@ private SourceTypeElementInfo createTypeInfo(TypeInfo typeInfo, SourceType handl
 			Map.Entry entry = (Map.Entry) iterator.next();
 			info.addCategories((IJavaElement) entry.getKey(), (char[][]) entry.getValue());
 		}
-		
+
 	}
 	if (typeInfo.typeAnnotated) {
 		this.unitInfo.annotationNumber = CompilationUnitElementInfo.ANNOTATION_THRESHOLD_FOR_DIET_PARSE;
@@ -692,7 +710,7 @@ public void exitField(int initializationStart, int declarationEnd, int declarati
 	info.setSourceRangeEnd(declarationSourceEnd);
 	this.handleStack.pop();
 	this.infoStack.pop();
-	
+
 	// remember initializer source if field is a constant
 	if (initializationStart != -1) {
 		int flags = info.flags;
@@ -716,18 +734,52 @@ public void exitField(int initializationStart, int declarationEnd, int declarati
  * @see ISourceElementRequestor
  */
 @Override
+public void exitRecordComponent(int declarationEnd, int declarationSourceEnd) {
+	JavaElement handle = (JavaElement) this.handleStack.peek();
+	FieldInfo compInfo = (FieldInfo) this.infoStack.peek();
+	IJavaElement[] elements = getChildren(compInfo);
+	SourceFieldElementInfo info = elements.length == 0 ? new SourceFieldElementInfo() : new SourceFieldWithChildrenInfo(elements);
+	info.isRecordComponent = true;
+	info.setNameSourceStart(compInfo.nameSourceStart);
+	info.setNameSourceEnd(compInfo.nameSourceEnd);
+	info.setSourceRangeStart(compInfo.declarationStart);
+	info.setFlags(compInfo.modifiers);
+	char[] typeName = JavaModelManager.getJavaModelManager().intern(compInfo.type);
+	info.setTypeName(typeName);
+	this.newElements.put(handle, info);
+
+	if (compInfo.annotations != null) {
+		int length = compInfo.annotations.length;
+		this.unitInfo.annotationNumber += length;
+		for (int i = 0; i < length; i++) {
+			org.aspectj.org.eclipse.jdt.internal.compiler.ast.Annotation annotation = compInfo.annotations[i];
+			acceptAnnotation(annotation, info, handle);
+		}
+	}
+	info.setSourceRangeEnd(declarationSourceEnd);
+	this.handleStack.pop();
+	this.infoStack.pop();
+
+	if (compInfo.typeAnnotated) {
+		this.unitInfo.annotationNumber = CompilationUnitElementInfo.ANNOTATION_THRESHOLD_FOR_DIET_PARSE;
+	}
+}
+/**
+ * @see ISourceElementRequestor
+ */
+@Override
 public void exitInitializer(int declarationEnd) {
 	JavaElement handle = (JavaElement) this.handleStack.peek();
 	int[] initializerInfo = (int[]) this.infoStack.peek();
 	IJavaElement[] elements = getChildren(initializerInfo);
-	
+
 	InitializerElementInfo info = elements.length == 0 ? new InitializerElementInfo() : new InitializerWithChildrenInfo(elements);
 	info.setSourceRangeStart(initializerInfo[0]);
 	info.setFlags(initializerInfo[1]);
 	info.setSourceRangeEnd(declarationEnd);
 
 	this.newElements.put(handle, info);
-	
+
 	this.handleStack.pop();
 	this.infoStack.pop();
 }
@@ -738,10 +790,10 @@ public void exitInitializer(int declarationEnd) {
 public void exitMethod(int declarationEnd, Expression defaultValue) {
 	SourceMethod handle = (SourceMethod) this.handleStack.peek();
 	MethodInfo methodInfo = (MethodInfo) this.infoStack.peek();
-	
+
 	SourceMethodElementInfo info = createMethodInfo(methodInfo, handle);
 	info.setSourceRangeEnd(declarationEnd);
-	
+
 	// remember default value of annotation method
 	if (info.isAnnotationMethod() && defaultValue != null) {
 		SourceAnnotationMethodInfo annotationMethodInfo = (SourceAnnotationMethodInfo) info;
@@ -752,7 +804,7 @@ public void exitMethod(int declarationEnd, Expression defaultValue) {
 		defaultMemberValuePair.value = getMemberValue(defaultMemberValuePair, defaultValue);
 		annotationMethodInfo.defaultValue = defaultMemberValuePair;
 	}
-	
+
 	this.handleStack.pop();
 	this.infoStack.pop();
 }
@@ -794,12 +846,12 @@ public void exitType(int declarationEnd) {
  * of the handle being created.
  */
 protected void resolveDuplicates(SourceRefElement handle) {
-	int occurenceCount = this.occurenceCounts.get(handle);
-	if (occurenceCount == -1)
-		this.occurenceCounts.put(handle, 1);
+	Integer occurenceCount = this.occurenceCounts.get(handle);
+	if (occurenceCount == null)
+		this.occurenceCounts.put(handle, Integer.valueOf(1));
 	else {
-		this.occurenceCounts.put(handle, ++occurenceCount);
-		handle.occurrenceCount = occurenceCount;
+		this.occurenceCounts.put(handle, Integer.valueOf(occurenceCount.intValue() + 1));
+		handle.occurrenceCount = occurenceCount.intValue() + 1;
 	}
 
 	// https://bugs.eclipse.org/bugs/show_bug.cgi?id=342393
@@ -808,11 +860,11 @@ protected void resolveDuplicates(SourceRefElement handle) {
 	if (handle instanceof SourceType && ((SourceType) handle).isAnonymous()) {
 		Object key = handle.getParent().getAncestor(IJavaElement.TYPE);
 		occurenceCount = this.localOccurrenceCounts.get(key);
-		if (occurenceCount == -1)
-			this.localOccurrenceCounts.put(key, 1);
+		if (occurenceCount == null)
+			this.localOccurrenceCounts.put(key, Integer.valueOf(1));
 		else {
-			this.localOccurrenceCounts.put(key, ++occurenceCount);
-			((SourceType)handle).localOccurrenceCount = occurenceCount;
+			this.localOccurrenceCounts.put(key, Integer.valueOf(occurenceCount.intValue() + 1));
+			((SourceType)handle).localOccurrenceCount = occurenceCount.intValue() + 1;
 		}
 	}
 }

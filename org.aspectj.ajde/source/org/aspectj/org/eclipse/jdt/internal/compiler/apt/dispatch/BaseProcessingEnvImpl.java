@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2015 BEA Systems, Inc. 
+ * Copyright (c) 2007, 2021 BEA Systems, Inc.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -33,6 +33,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.apt.model.TypesImpl;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ModuleBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
 
 /**
@@ -45,7 +46,7 @@ public abstract class BaseProcessingEnvImpl implements ProcessingEnvironment {
 	protected Messager _messager;
 	protected Map<String, String> _processorOptions;
 	protected Compiler _compiler;
-	
+
 	// Initialized in this base class:
 	protected Elements _elementUtils;
 	protected Types _typeUtils;
@@ -54,6 +55,7 @@ public abstract class BaseProcessingEnvImpl implements ProcessingEnvironment {
 	private List<ICompilationUnit> _deletedUnits;
 	private boolean _errorRaised;
 	private Factory _factory;
+	public ModuleBinding _current_module;
 
 	public BaseProcessingEnvImpl() {
 		_addedUnits = new ArrayList<>();
@@ -72,7 +74,7 @@ public abstract class BaseProcessingEnvImpl implements ProcessingEnvironment {
 	public void addNewClassFile(ReferenceBinding binding) {
 		_addedClassFiles.add(binding);
 	}
-	
+
 	public Compiler getCompiler() {
 		return _compiler;
 	}
@@ -103,7 +105,7 @@ public abstract class BaseProcessingEnvImpl implements ProcessingEnvironment {
 	public Messager getMessager() {
 		return _messager;
 	}
-	
+
 	@Override
 	public Map<String, String> getOptions() {
 		return _processorOptions;
@@ -127,15 +129,49 @@ public abstract class BaseProcessingEnvImpl implements ProcessingEnvironment {
 			return SourceVersion.RELEASE_6;
 		}
 		try {
-			return SourceVersion.valueOf("RELEASE_7"); //$NON-NLS-1$
+			if (this._compiler.options.sourceLevel == ClassFileConstants.JDK1_7) {
+				return SourceVersion.valueOf("RELEASE_7"); //$NON-NLS-1$
+			}
+			if (this._compiler.options.sourceLevel == ClassFileConstants.JDK1_8) {
+				return SourceVersion.valueOf("RELEASE_8"); //$NON-NLS-1$
+			}
+			if (this._compiler.options.sourceLevel == ClassFileConstants.JDK9) {
+				return SourceVersion.valueOf("RELEASE_9"); //$NON-NLS-1$
+			}
+			if (this._compiler.options.sourceLevel == ClassFileConstants.JDK10) {
+				return SourceVersion.valueOf("RELEASE_10"); //$NON-NLS-1$
+			}
+			if (this._compiler.options.sourceLevel == ClassFileConstants.JDK11) {
+				return SourceVersion.valueOf("RELEASE_11"); //$NON-NLS-1$
+			}
+			if (this._compiler.options.sourceLevel == ClassFileConstants.JDK12) {
+				return SourceVersion.valueOf("RELEASE_12"); //$NON-NLS-1$
+			}
+			if (this._compiler.options.sourceLevel == ClassFileConstants.JDK13) {
+				return SourceVersion.valueOf("RELEASE_13"); //$NON-NLS-1$
+			}
+			if (this._compiler.options.sourceLevel == ClassFileConstants.JDK14) {
+				return SourceVersion.valueOf("RELEASE_14"); //$NON-NLS-1$
+			}
+			if (this._compiler.options.sourceLevel == ClassFileConstants.JDK15) {
+				return SourceVersion.valueOf("RELEASE_15"); //$NON-NLS-1$
+			}
+			if (this._compiler.options.sourceLevel == ClassFileConstants.JDK16) {
+				return SourceVersion.valueOf("RELEASE_16"); //$NON-NLS-1$
+			}
+			if (this._compiler.options.sourceLevel == ClassFileConstants.JDK17) {
+				return SourceVersion.valueOf("RELEASE_17"); //$NON-NLS-1$
+			}
 		} catch(IllegalArgumentException e) {
 			// handle call on a JDK 6
 			return SourceVersion.RELEASE_6;
 		}
+		// handle call on a JDK 6 by default
+		return SourceVersion.RELEASE_6;
 	}
 
 	/**
-	 * Called when AnnotationProcessorManager has retrieved the list of 
+	 * Called when AnnotationProcessorManager has retrieved the list of
 	 * newly generated compilation units (ie, once per round)
 	 */
 	public void reset() {
@@ -172,5 +208,12 @@ public abstract class BaseProcessingEnvImpl implements ProcessingEnvironment {
 		_addedClassFiles.toArray(result);
 		return result;
 	}
+	/*
+	 * This overrides ProcessingEnvironment, but can't declare so since
+	 * we are still compiling against JDK 8.
+	 */
+    public boolean isPreviewEnabled() {
+        return this._compiler.options.enablePreviewFeatures;
+    }
 
 }

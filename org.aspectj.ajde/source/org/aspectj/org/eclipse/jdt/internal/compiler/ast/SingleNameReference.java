@@ -8,7 +8,7 @@
  * https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann <stephan@cs.tu-berlin.de> - Contributions for
@@ -19,7 +19,7 @@
  *								Bug 412203 - [compiler] Internal compiler error: java.lang.IllegalArgumentException: info cannot be null
  *								Bug 458396 - NPE in CodeStream.invoke()
  *								Bug 407414 - [compiler][null] Incorrect warning on a primitive type being null
- *     Jesper S Moller - <jesper@selskabet.org>   - Contributions for 
+ *     Jesper S Moller - <jesper@selskabet.org>   - Contributions for
  *     							bug 382721 - [1.8][compiler] Effectively final variables needs special treatment
  *								bug 378674 - "The method can be declared as static" is wrong
  *								bug 404657 - [1.8][compiler] Analysis for effectively final variables fails to consider loops
@@ -64,6 +64,7 @@ public class SingleNameReference extends NameReference implements OperatorIds {
 	public char[] token;
 	public MethodBinding[] syntheticAccessors; // [0]=read accessor [1]=write accessor
 	public TypeBinding genericCast;
+	public boolean isLabel;// flagging for break expression when expression is SwitchExpression - java 12 preview-feature
 
 public SingleNameReference(char[] source, long pos) {
 	super();
@@ -225,7 +226,7 @@ public TypeBinding checkFieldAccess(BlockScope scope) {
 	if (fieldBinding.isStatic()) {
 		// check if accessing enum static field in initializer
 		ReferenceBinding declaringClass = fieldBinding.declaringClass;
-		if (declaringClass.isEnum() && !scope.isModuleScope()) {
+		if (declaringClass.isEnum() && scope.kind != Scope.MODULE_SCOPE) {
 			SourceTypeBinding sourceType = scope.enclosingSourceType();
 			if (this.constant == Constant.NotAConstant
 					&& !methodScope.isStatic
@@ -310,7 +311,7 @@ public void computeConversion(Scope scope, TypeBinding runtimeTimeType, TypeBind
 									ProblemReasons.NotVisible));
 				}
 			}
-		    }// AspectJ Extension - close the new if()		        
+		    }// AspectJ Extension - close the new if()
 		}
 	}
 	super.computeConversion(scope, runtimeTimeType, compileTimeType);
@@ -391,7 +392,7 @@ public void generateAssignment(BlockScope currentScope, CodeStream codeStream, A
 							default :
 								codeStream.pop();
 								break;
-						}						
+						}
 					}
 				}
 				return;
@@ -405,6 +406,9 @@ public void generateAssignment(BlockScope currentScope, CodeStream codeStream, A
 
 			// normal local assignment (since cannot store in outer local which are final locations)
 			codeStream.store(localBinding, valueRequired);
+			if ((this.bits & ASTNode.IsSecretYieldValueUsage) != 0) {
+				localBinding.recordInitializationStartPC(codeStream.position);
+			}
 			if ((this.bits & ASTNode.FirstAssignmentToLocal) != 0) { // for local variable debug attributes
 				localBinding.recordInitializationStartPC(codeStream.position);
 			}
@@ -495,9 +499,8 @@ public void generateCode(BlockScope currentScope, CodeStream codeStream, boolean
 					codeStream.recordPositionsFrom(pc, this.sourceStart);
 					return;
 				}
-				// outer local?
-				if ((this.bits & ASTNode.IsCapturedOuterLocal) != 0) {
-					checkEffectiveFinality(localBinding, currentScope);
+				// checkEffectiveFinality() returns if it's outer local
+				if (checkEffectiveFinality(localBinding, currentScope)) {
 					// outer local can be reached either through a synthetic arg or a synthetic field
 					VariableBinding[] path = currentScope.getEmulationPath(localBinding);
 					codeStream.generateOuterAccess(path, this, localBinding, currentScope);
@@ -570,7 +573,7 @@ public void generateCompoundAssignment(BlockScope currentScope, CodeStream codeS
 			FieldBinding codegenField = ((FieldBinding) this.binding).original();
 			if (codegenField.isStatic()) {
 				if ((this.syntheticAccessors == null) || (this.syntheticAccessors[SingleNameReference.READ] == null)) {
-					TypeBinding constantPoolDeclaringClass = CodeStream.getConstantPoolDeclaringClass(currentScope, codegenField, this.actualReceiverType, true /* implicit this */);					
+					TypeBinding constantPoolDeclaringClass = CodeStream.getConstantPoolDeclaringClass(currentScope, codegenField, this.actualReceiverType, true /* implicit this */);
 					codeStream.fieldAccess(Opcodes.OPC_getstatic, codegenField, constantPoolDeclaringClass);
 				} else {
 					codeStream.invoke(Opcodes.OPC_invokestatic, this.syntheticAccessors[SingleNameReference.READ], null /* default declaringClass */);
@@ -765,7 +768,7 @@ public void generatePostIncrement(BlockScope currentScope, CodeStream codeStream
 						default:
 							codeStream.dup();
 							break;
-					}					
+					}
 				} else { // Stack:  [owner][old field value]  ---> [old field value][owner][old field value]
 					switch (operandType.id) {
 						case TypeIds.T_long :
@@ -783,7 +786,7 @@ public void generatePostIncrement(BlockScope currentScope, CodeStream codeStream
 			codeStream.sendOperator(postIncrement.operator, this.implicitConversion & TypeIds.COMPILE_TYPE_MASK);
 			codeStream.generateImplicitConversion(postIncrement.preAssignImplicitConversion);
 			fieldStore(currentScope, codeStream, codegenField, this.syntheticAccessors == null ? null : this.syntheticAccessors[SingleNameReference.WRITE], this.actualReceiverType, true /*implicit this*/, false);
-			// no need for generic cast 
+			// no need for generic cast
 			return;
 		case Binding.LOCAL : // assigning to a local variable
 			LocalVariableBinding localBinding = (LocalVariableBinding) this.binding;
@@ -820,7 +823,7 @@ public void generatePostIncrement(BlockScope currentScope, CodeStream codeStream
 						default:
 							codeStream.dup();
 							break;
-					}					
+					}
 				}
 				codeStream.generateImplicitConversion(this.implicitConversion);
 				codeStream.generateConstant(postIncrement.expression.constant, this.implicitConversion);
@@ -877,7 +880,7 @@ public VariableBinding nullAnnotatedVariableBinding(boolean supportTypeAnnotatio
 	switch (this.bits & ASTNode.RestrictiveFlagMASK) {
 		case Binding.FIELD : // reading a field
 		case Binding.LOCAL : // reading a local variable
-			if (supportTypeAnnotations 
+			if (supportTypeAnnotations
 					|| (((VariableBinding)this.binding).tagBits & TagBits.AnnotationNullMASK) != 0)
 				return (VariableBinding) this.binding;
 	}
@@ -929,7 +932,7 @@ public void manageSyntheticAccessIfNecessary(BlockScope currentScope, FlowInfo f
 
 	if ((this.bits & Binding.FIELD) != 0) {
 		FieldBinding fieldBinding = (FieldBinding) this.binding;
-			
+
 			// AspectJ Extension
 			if (isReadAccess && fieldBinding.alwaysNeedsAccessMethod(true)) {
 				if (syntheticAccessors == null) {
@@ -947,16 +950,15 @@ public void manageSyntheticAccessIfNecessary(BlockScope currentScope, FlowInfo f
 				FieldBinding codegenField = fieldBinding.original();
 //				this.codegenBinding = codegenField;
 				return;
-			}	
+			}
 			// End	AspectJ Extension
-			
+
 		FieldBinding codegenField = fieldBinding.original();
 		if (((this.bits & ASTNode.DepthMASK) != 0)
 			&& ((codegenField.isPrivate() // private access
 					&& !currentScope.enclosingSourceType().isNestmateOf(codegenField.declaringClass) )
 				|| (codegenField.isProtected() // implicit protected access
 						&& codegenField.declaringClass.getPackage() != currentScope.invocationType().getPackage()))) { // AspectJ Extension
-
 //						&& codegenField.declaringClass.getPackage() != currentScope.enclosingSourceType().getPackage()))) {
 			if (this.syntheticAccessors == null)
 				this.syntheticAccessors = new MethodBinding[2];
@@ -1053,6 +1055,7 @@ public TypeBinding resolveType(BlockScope scope) {
 							if (scope.compilerOptions().sourceLevel < ClassFileConstants.JDK1_8) // for 8, defer till effective finality could be ascertained.
 								scope.problemReporter().cannotReferToNonFinalOuterLocal((LocalVariableBinding)variable, this);
 						}
+						checkLocalStaticClassVariables(scope, variable);
 						variableType = variable.type;
 						this.constant = (this.bits & ASTNode.IsStrictlyAssigned) == 0 ? variable.constant(scope) : Constant.NotAConstant;
 					} else {
@@ -1091,6 +1094,22 @@ public TypeBinding resolveType(BlockScope scope) {
 	}
 	// error scenario
 	return this.resolvedType = reportError(scope);
+}
+
+private void checkLocalStaticClassVariables(BlockScope scope, VariableBinding variable) {
+	if (this.actualReceiverType.isStatic() && this.actualReceiverType.isLocalType()) {
+		if ((variable.modifiers & ClassFileConstants.AccStatic) == 0 &&
+				(this.bits & ASTNode.IsCapturedOuterLocal) != 0) {
+			BlockScope declaringScope = ((LocalVariableBinding) this.binding).declaringScope;
+			MethodScope declaringMethodScope = declaringScope instanceof MethodScope ? (MethodScope)declaringScope :
+				declaringScope.enclosingMethodScope();
+			MethodScope currentMethodScope = scope instanceof MethodScope ? (MethodScope) scope : scope.enclosingMethodScope();
+			ClassScope declaringClassScope = declaringMethodScope != null ? declaringMethodScope.classScope() : null;
+			ClassScope currentClassScope = currentMethodScope != null ? currentMethodScope.classScope() : null;
+			if (declaringClassScope != currentClassScope)
+			scope.problemReporter().recordStaticReferenceToOuterLocalVariable((LocalVariableBinding)variable, this);
+		}
+	}
 }
 
 @Override

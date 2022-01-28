@@ -1,13 +1,13 @@
 /* *******************************************************************
  * Copyright (c) 2002 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     PARC     initial implementation
  * ******************************************************************/
 package org.aspectj.weaver;
 
@@ -36,12 +36,12 @@ import org.aspectj.weaver.patterns.PointcutRewriter;
 /**
  * This holds on to all members that have an invasive effect outside of there own compilation unit. These members need to be all
  * gathered up and in a world before any weaving can take place.
- * 
+ *
  * They are also important in the compilation process and need to be gathered up before the inter-type declaration weaving stage
  * (unsurprisingly).
- * 
+ *
  * All members are concrete.
- * 
+ *
  * @author Jim Hugunin
  */
 public class CrosscuttingMembers {
@@ -50,21 +50,21 @@ public class CrosscuttingMembers {
 
 	private PerClause perClause;
 
-	private List<ShadowMunger> shadowMungers = new ArrayList<ShadowMunger>(4);
-	private List<ConcreteTypeMunger> typeMungers = new ArrayList<ConcreteTypeMunger>(4);
-	private List<ConcreteTypeMunger> lateTypeMungers = new ArrayList<ConcreteTypeMunger>(0);
+	private List<ShadowMunger> shadowMungers = new ArrayList<>(4);
+	private List<ConcreteTypeMunger> typeMungers = new ArrayList<>(4);
+	private List<ConcreteTypeMunger> lateTypeMungers = new ArrayList<>(0);
 
-	private Set<DeclareParents> declareParents = new HashSet<DeclareParents>();
-	private Set<DeclareSoft> declareSofts = new HashSet<DeclareSoft>();
-	private List<Declare> declareDominates = new ArrayList<Declare>(4);
+	private Set<DeclareParents> declareParents = new HashSet<>();
+	private Set<DeclareSoft> declareSofts = new HashSet<>();
+	private List<Declare> declareDominates = new ArrayList<>(4);
 
 	// These are like declare parents type mungers
-	private Set<DeclareAnnotation> declareAnnotationsOnType = new LinkedHashSet<DeclareAnnotation>();
-	private Set<DeclareAnnotation> declareAnnotationsOnField = new LinkedHashSet<DeclareAnnotation>();
-	private Set<DeclareAnnotation> declareAnnotationsOnMethods = new LinkedHashSet<DeclareAnnotation>();
+	private Set<DeclareAnnotation> declareAnnotationsOnType = new LinkedHashSet<>();
+	private Set<DeclareAnnotation> declareAnnotationsOnField = new LinkedHashSet<>();
+	private Set<DeclareAnnotation> declareAnnotationsOnMethods = new LinkedHashSet<>();
 	// declareAnnotationsOnMethods includes constructors too
 
-	private Set<DeclareTypeErrorOrWarning> declareTypeEow = new HashSet<DeclareTypeErrorOrWarning>();
+	private Set<DeclareTypeErrorOrWarning> declareTypeEow = new HashSet<>();
 
 	private boolean shouldConcretizeIfNeeded = true;
 
@@ -74,8 +74,8 @@ public class CrosscuttingMembers {
 		this.shouldConcretizeIfNeeded = shouldConcretizeIfNeeded;
 	}
 
-	private final Hashtable<String, Object> cflowFields = new Hashtable<String, Object>();
-	private final Hashtable<String, Object> cflowBelowFields = new Hashtable<String, Object>();
+	private final Map<String, Object> cflowFields = new Hashtable<>();
+	private final Map<String, Object> cflowBelowFields = new Hashtable<>();
 
 	// public void addConcreteShadowMungers(Collection c) {
 	// shadowMungers.addAll(c);
@@ -186,8 +186,7 @@ public class CrosscuttingMembers {
 		}
 		// Check we haven't already got a munger for this:
 		String signatureToLookFor = typeToExpose.getSignature();
-		for (Iterator<ConcreteTypeMunger> iterator = typeMungers.iterator(); iterator.hasNext();) {
-			ConcreteTypeMunger cTM = iterator.next();
+		for (ConcreteTypeMunger cTM : typeMungers) {
 			ResolvedTypeMunger rTM = cTM.getMunger();
 			if (rTM != null && rTM instanceof ExposeTypeMunger) {
 				String exposedType = ((ExposeTypeMunger) rTM).getExposedTypeSignature();
@@ -238,7 +237,7 @@ public class CrosscuttingMembers {
 	}
 
 	public Collection<ShadowMunger> getCflowEntries() {
-		List<ShadowMunger> ret = new ArrayList<ShadowMunger>();
+		List<ShadowMunger> ret = new ArrayList<>();
 		for (ShadowMunger m : shadowMungers) {
 			if (m instanceof Advice) {
 				Advice a = (Advice) m;
@@ -256,7 +255,7 @@ public class CrosscuttingMembers {
 	 * comparison with the existing list of shadowmungers would return that something has changed even though it might not have, so
 	 * in this first round we ignore the shadowMungers. The second time this is called is whilst we're preparing to weave. At this
 	 * point we know everything in the system and so we're able to compare the shadowMunger list. (see bug 129163)
-	 * 
+	 *
 	 * @param other
 	 * @param careAboutShadowMungers
 	 * @return true if something has changed since the last time this method was called, false otherwise
@@ -277,8 +276,8 @@ public class CrosscuttingMembers {
 
 		if (careAboutShadowMungers) {
 			// bug 129163: use set equality rather than list equality
-			Set<ShadowMunger> theseShadowMungers = new HashSet<ShadowMunger>();
-			Set<ShadowMunger> theseInlinedAroundMungers = new HashSet<ShadowMunger>();
+			Set<ShadowMunger> theseShadowMungers = new HashSet<>();
+			Set<ShadowMunger> theseInlinedAroundMungers = new HashSet<>();
 			for (ShadowMunger munger : shadowMungers) {
 				if (munger instanceof Advice) {
 					Advice adviceMunger = (Advice) munger;
@@ -294,10 +293,9 @@ public class CrosscuttingMembers {
 					theseShadowMungers.add(munger);
 				}
 			}
-			Set<ShadowMunger> tempSet = new HashSet<ShadowMunger>();
-			tempSet.addAll(other.shadowMungers);
-			Set<ShadowMunger> otherShadowMungers = new HashSet<ShadowMunger>();
-			Set<ShadowMunger> otherInlinedAroundMungers = new HashSet<ShadowMunger>();
+			Set<ShadowMunger> tempSet = new HashSet<>(other.shadowMungers);
+			Set<ShadowMunger> otherShadowMungers = new HashSet<>();
+			Set<ShadowMunger> otherInlinedAroundMungers = new HashSet<>();
 			for (ShadowMunger munger : tempSet) {
 				if (munger instanceof Advice) {
 					Advice adviceMunger = (Advice) munger;
@@ -342,11 +340,10 @@ public class CrosscuttingMembers {
 		// if we dont care about shadow mungers then ignore those
 		// typeMungers which are created to help with the implementation
 		// of shadowMungers
-		Set<Object> theseTypeMungers = new HashSet<Object>();
-		Set<Object> otherTypeMungers = new HashSet<Object>();
+		Set<Object> theseTypeMungers = new HashSet<>();
+		Set<Object> otherTypeMungers = new HashSet<>();
 		if (!careAboutShadowMungers) {
-			for (Iterator<ConcreteTypeMunger> iter = typeMungers.iterator(); iter.hasNext();) {
-				Object o = iter.next();
+			for (Object o : typeMungers) {
 				if (o instanceof ConcreteTypeMunger) {
 					ConcreteTypeMunger typeMunger = (ConcreteTypeMunger) o;
 					if (!typeMunger.existsToSupportShadowMunging()) {
@@ -357,8 +354,7 @@ public class CrosscuttingMembers {
 				}
 			}
 
-			for (Iterator<ConcreteTypeMunger> iter = other.typeMungers.iterator(); iter.hasNext();) {
-				Object o = iter.next();
+			for (Object o : other.typeMungers) {
 				if (o instanceof ConcreteTypeMunger) {
 					ConcreteTypeMunger typeMunger = (ConcreteTypeMunger) o;
 					if (!typeMunger.existsToSupportShadowMunging()) {
@@ -434,16 +430,14 @@ public class CrosscuttingMembers {
 			// the up front comparison
 			if (!careAboutShadowMungers) {
 				// this means we are in front end compilation and if the differences are purely mixin parents, we can continue OK
-				Set<DeclareParents> trimmedThis = new HashSet<DeclareParents>();
-				for (Iterator<DeclareParents> iterator = declareParents.iterator(); iterator.hasNext();) {
-					DeclareParents decp = iterator.next();
+				Set<DeclareParents> trimmedThis = new HashSet<>();
+				for (DeclareParents decp : declareParents) {
 					if (!decp.isMixin()) {
 						trimmedThis.add(decp);
 					}
 				}
-				Set<DeclareParents> trimmedOther = new HashSet<DeclareParents>();
-				for (Iterator<DeclareParents> iterator = other.declareParents.iterator(); iterator.hasNext();) {
-					DeclareParents decp = iterator.next();
+				Set<DeclareParents> trimmedOther = new HashSet<>();
+				for (DeclareParents decp : other.declareParents) {
 					if (!decp.isMixin()) {
 						trimmedOther.add(decp);
 					}
@@ -490,11 +484,11 @@ public class CrosscuttingMembers {
 		if (theseInlinedAroundMungers.size() != otherInlinedAroundMungers.size()) {
 			return false;
 		}
-		for (Iterator<ShadowMunger> iter = theseInlinedAroundMungers.iterator(); iter.hasNext();) {
-			Advice thisAdvice = (Advice) iter.next();
+		for (ShadowMunger theseInlinedAroundMunger : theseInlinedAroundMungers) {
+			Advice thisAdvice = (Advice) theseInlinedAroundMunger;
 			boolean foundIt = false;
-			for (Iterator<ShadowMunger> iterator = otherInlinedAroundMungers.iterator(); iterator.hasNext();) {
-				Advice otherAdvice = (Advice) iterator.next();
+			for (ShadowMunger otherInlinedAroundMunger : otherInlinedAroundMungers) {
+				Advice otherAdvice = (Advice) otherInlinedAroundMunger;
 				if (thisAdvice.equals(otherAdvice)) {
 					if (thisAdvice.getSignature() instanceof ResolvedMemberImpl) {
 						if (((ResolvedMemberImpl) thisAdvice.getSignature()).isEquivalentTo(otherAdvice.getSignature())) {

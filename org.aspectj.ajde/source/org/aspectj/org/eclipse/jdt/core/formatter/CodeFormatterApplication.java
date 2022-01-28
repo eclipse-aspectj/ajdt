@@ -7,7 +7,7 @@
  *  https://www.eclipse.org/legal/epl-2.0/
  *
  *  SPDX-License-Identifier: EPL-2.0
- * 
+ *
  *  Contributors:
  *     Ben Konrath <ben@bagu.org> - initial implementation
  *     Red Hat Incorporated - improvements based on comments from JDT developers
@@ -23,7 +23,6 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.MessageFormat;
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.Properties;
 
@@ -40,9 +39,9 @@ import org.eclipse.text.edits.TextEdit;
 
 /**
  * Implements an Eclipse Application for org.aspectj.org.eclipse.jdt.core.JavaCodeFormatter.
- * 
+ *
  * <p>On MacOS, when invoked using the Eclipse executable, the "user.dir" property is set to the folder
- * in which the eclipse.ini file is located. This makes it harder to use relative paths to point to the 
+ * in which the eclipse.ini file is located. This makes it harder to use relative paths to point to the
  * files to be formatted or the configuration file to use to set the code formatter's options.</p>
  *
  * <p>There are a couple improvements that could be made: 1. Make a list of all the
@@ -54,7 +53,7 @@ import org.eclipse.text.edits.TextEdit;
  * @noinstantiate This class is not intended to be instantiated by clients.
  * @noextend This class is not intended to be subclassed by clients.
  */
-@SuppressWarnings({"rawtypes", "unchecked"})
+@SuppressWarnings({"rawtypes"})
 public class CodeFormatterApplication implements IApplication {
 
 	/**
@@ -260,10 +259,6 @@ public class CodeFormatterApplication implements IApplication {
 
 	private File[] processCommandLine(String[] argsArray) {
 
-		ArrayList args = new ArrayList();
-		for (int i = 0, max = argsArray.length; i < max; i++) {
-			args.add(argsArray[i]);
-		}
 		int index = 0;
 		final int argCount = argsArray.length;
 

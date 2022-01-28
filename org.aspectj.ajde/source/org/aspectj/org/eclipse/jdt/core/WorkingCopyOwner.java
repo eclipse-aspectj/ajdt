@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -92,16 +92,16 @@ public abstract class WorkingCopyOwner {
 	public IProblemRequestor getProblemRequestor(ICompilationUnit workingCopy) {
 		return null;
 	}
-	
+
 	/**
 	 * Returns the source of the compilation unit that defines the given type in
 	 * the given package, or <code>null</code> if the type is unknown to this
 	 * owner.
-	 * <p>This method is called before the normal lookup (i.e. before looking 
-	 * at the project's classpath and before looking at the working copies of this 
+	 * <p>This method is called before the normal lookup (i.e. before looking
+	 * at the project's classpath and before looking at the working copies of this
 	 * owner.)</p>
-	 * <p>This allows to provide types that are not normally available, or to hide 
-	 * types that would normally be available by returning an empty source for 
+	 * <p>This allows to provide types that are not normally available, or to hide
+	 * types that would normally be available by returning an empty source for
 	 * the given type and package.</p>
 	 * <p>Example of use:
 	 * <pre>
@@ -128,7 +128,7 @@ public abstract class WorkingCopyOwner {
 	 * // Working copy on X.java with the following contents:
 	 * //    public class X extends to.be.Generated {
 	 * //    }
-	 * ICompilationUnit workingCopy = ... 
+	 * ICompilationUnit workingCopy = ...
 	 * ASTParser parser = ASTParser.newParser(AST.JLS3);
 	 * parser.setSource(workingCopy);
 	 * parser.setResolveBindings(true);
@@ -136,8 +136,7 @@ public abstract class WorkingCopyOwner {
 	 * CompilationUnit cu = (CompilationUnit) parser.createAST(null);
 	 * assert cu.getProblems().length == 0;
 	 * </pre>
-	 * </p>
-	 * 
+	 *
 	 * @param typeName the simple name of the type to lookup
 	 * @param packageName the dot-separated name of the package of type
 	 * @return the source of the compilation unit that defines the given type in
@@ -148,16 +147,16 @@ public abstract class WorkingCopyOwner {
 	public String findSource(String typeName, String packageName) {
 		return null;
 	}
-	
+
 	/**
 	 * Returns whether the given package segments represent a package.
-	 * <p>This method is called before the normal lookup (i.e. before looking 
-	 * at the project's classpath and before looking at the working copies of this 
+	 * <p>This method is called before the normal lookup (i.e. before looking
+	 * at the project's classpath and before looking at the working copies of this
 	 * owner.)</p>
 	 * <p>This allows to provide packages that are not normally available.</p>
-	 * <p>If <code>false</code> is returned, then normal lookup is used on 
+	 * <p>If <code>false</code> is returned, then normal lookup is used on
 	 * this package.</p>
-	 * 
+	 *
 	 * @param pkg the segments of a package to lookup
 	 * @return whether the given package segments represent a package.
 	 * @see #findSource(String, String)
@@ -178,7 +177,7 @@ public abstract class WorkingCopyOwner {
 	 * </p><p>
 	 * A DOM AST created using this working copy will have bindings resolved using the given
 	 * classpath, and problem are reported to the given problem requestor.
-	 * <p></p>
+	 * </p><p>
 	 * <code>JavaCore#getOptions()</code> is used to create the DOM AST as it is not
 	 * possible to set the options on the non-existing Java project.
 	 * </p><p>
@@ -231,7 +230,7 @@ public abstract class WorkingCopyOwner {
 	 * If a DOM AST is created using this working copy, then given classpath will be used
 	 *  if bindings need to be resolved. Problems will be reported to the problem requestor
 	 * of the current working copy owner problem if it is not <code>null</code>.
-	 * <p></p>
+	 * </p><p>
 	 * Options used to create the DOM AST are got from {@link JavaCore#getOptions()}
 	 * as it is not possible to set the options on a non-existing Java project.
 	 * </p><p>

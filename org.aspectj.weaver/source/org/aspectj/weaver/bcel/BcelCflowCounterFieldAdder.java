@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
- * are made available under the terms of the Eclipse Public License v1.0
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- * 
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *      (Andy Clement)
@@ -56,7 +56,7 @@ public class BcelCflowCounterFieldAdder extends BcelTypeMunger {
 
 		setup.append(fact.createNew(new ObjectType(NameMangler.CFLOW_COUNTER_TYPE)));
 		setup.append(InstructionFactory.createDup(1));
-		setup.append(fact.createInvoke(NameMangler.CFLOW_COUNTER_TYPE, "<init>", Type.VOID, new Type[0], Constants.INVOKESPECIAL));
+		setup.append(fact.createInvoke(NameMangler.CFLOW_COUNTER_TYPE, "<init>", Type.VOID, Type.NO_ARGS, Constants.INVOKESPECIAL));
 
 		setup.append(Utility.createSet(fact, cflowCounterField));
 		clinit.getBody().insert(setup);

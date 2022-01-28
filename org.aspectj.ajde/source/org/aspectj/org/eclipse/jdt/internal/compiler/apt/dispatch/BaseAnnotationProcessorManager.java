@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2018 BEA Systems, Inc. 
+ * Copyright (c) 2007, 2018 BEA Systems, Inc.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -10,7 +10,7 @@
  *
  * Contributors:
  *    wharley@bea.com - initial API and implementation
- *    
+ *
  *******************************************************************************/
 
 package org.aspectj.org.eclipse.jdt.internal.compiler.apt.dispatch;
@@ -23,6 +23,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.AbstractAnnotationProcessor
 import org.aspectj.org.eclipse.jdt.internal.compiler.Compiler;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ModuleBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
 
 /**
@@ -36,29 +37,29 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
  * there is in general one of these for every Compiler that has annotation
  * processing enabled.  Within the IDE there will typically be one for every
  * Java project, because each project potentially has a separate processor path.
- *  
+ *
  * TODO: do something useful with _supportedOptions and _supportedAnnotationTypes.
  */
-public abstract class BaseAnnotationProcessorManager extends AbstractAnnotationProcessorManager 
-		implements IProcessorProvider 
+public abstract class BaseAnnotationProcessorManager extends AbstractAnnotationProcessorManager
+		implements IProcessorProvider
 {
 
 	protected PrintWriter _out;
 	protected PrintWriter _err;
 	protected BaseProcessingEnvImpl _processingEnv;
-	protected boolean _isFirstRound = true;
-	
+	public boolean _isFirstRound = true;
+
 	/**
 	 * The list of processors that have been loaded so far.  A processor on this
 	 * list has been initialized, but may not yet have been called to process().
 	 */
 	protected List<ProcessorInfo> _processors = new ArrayList<>();
-	
+
 	// Tracing
 	protected boolean _printProcessorInfo = false;
 	protected boolean _printRounds = false;
 	protected int _round;
-	
+
 	/* (non-Javadoc)
 	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.AbstractAnnotationProcessorManager#configure(org.aspectj.org.eclipse.jdt.internal.compiler.batch.Main, java.lang.String[])
 	 */
@@ -148,18 +149,29 @@ public abstract class BaseAnnotationProcessorManager extends AbstractAnnotationP
 	 */
 	@Override
 	public void processAnnotations(CompilationUnitDeclaration[] units, ReferenceBinding[] referenceBindings, boolean isLastRound) {
-		RoundEnvImpl roundEnv = new RoundEnvImpl(units, referenceBindings, isLastRound, _processingEnv);
-		if (_isFirstRound) {
-			_isFirstRound = false;
+		if (units != null) {
+			for (CompilationUnitDeclaration declaration : units) {
+				if (declaration != null && declaration.scope != null) {
+					ModuleBinding m = declaration.scope.module();
+					if (m != null) {
+						_processingEnv._current_module = m;
+						break;
+					}
+				}
+			}
 		}
-		PrintWriter traceProcessorInfo = _printProcessorInfo ? _out : null;
-		PrintWriter traceRounds = _printRounds ? _out : null;
+		RoundEnvImpl roundEnv = new RoundEnvImpl(units, referenceBindings, isLastRound, _processingEnv);
+		PrintWriter out = _out; // closable resource not manages in this class
+		PrintWriter traceProcessorInfo = _printProcessorInfo ? out : null;
+		PrintWriter traceRounds = _printRounds ? out : null;
 		if (traceRounds != null) {
 			traceRounds.println("Round " + ++_round + ':'); //$NON-NLS-1$
 		}
 		RoundDispatcher dispatcher = new RoundDispatcher(
 				this, roundEnv, roundEnv.getRootAnnotations(), traceProcessorInfo, traceRounds);
 		dispatcher.round();
+		if (_isFirstRound) {
+			_isFirstRound = false;
+		}
 	}
-
 }

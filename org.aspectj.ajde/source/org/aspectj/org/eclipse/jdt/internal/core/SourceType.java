@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -45,6 +45,7 @@ public class SourceType extends NamedMember implements IType {
  * Currently this is computed and used only for anonymous types.
  */
 public int localOccurrenceCount = 1;
+private static final IField[] NO_FIELDS = new IField[0];
 
 protected SourceType(JavaElement parent, String name) {
 	super(parent, name);
@@ -118,7 +119,7 @@ public void codeComplete(
 		throw new IllegalArgumentException("Completion requestor cannot be null"); //$NON-NLS-1$
 	}
 
-	JavaProject project = (JavaProject) getJavaProject();
+	JavaProject project = getJavaProject();
 	SearchableEnvironment environment = project.newSearchableNameEnvironment(owner, requestor.isTestCodeExcluded());
 	CompletionEngine engine = new CompletionEngine(environment, requestor, project.getOptions(true), project, owner, monitor);
 
@@ -196,7 +197,7 @@ public IType createType(String contents, IJavaElement sibling, boolean force, IP
 @Override
 public boolean equals(Object o) {
 	if (!(o instanceof SourceType)) return false;
-	if (((SourceType) o).isLambda()) 
+	if (((SourceType) o).isLambda())
 		return false;
 	return super.equals(o);
 }
@@ -282,10 +283,53 @@ public IField getField(String fieldName) {
  */
 @Override
 public IField[] getFields() throws JavaModelException {
+	if (!isRecord()) {
+		ArrayList list = getChildrenOfType(FIELD);
+		if (list.size() == 0) {
+			return NO_FIELDS;
+		}
+		IField[] array= new IField[list.size()];
+		list.toArray(array);
+		return array;
+	}
+	return getFieldsOrComponents(false);
+}
+@Override
+public IField[] getRecordComponents() throws JavaModelException {
+	if (!isRecord())
+		return NO_FIELDS;
+	return getFieldsOrComponents(true);
+}
+@Override
+public String[] getPermittedSubtypeNames() throws JavaModelException {
+	SourceTypeElementInfo info = (SourceTypeElementInfo) getElementInfo();
+	char[][] names= info.getPermittedSubtypeNames();
+	return CharOperation.toStrings(names);
+}
+private IField[] getFieldsOrComponents(boolean component) throws JavaModelException {
 	ArrayList list = getChildrenOfType(FIELD);
-	IField[] array= new IField[list.size()];
-	list.toArray(array);
+	if (list.size() == 0) {
+		return NO_FIELDS;
+	}
+	ArrayList<IField> fields = new ArrayList<>();
+	for (Object object : list) {
+		IField field = (IField) object;
+		if (field.isRecordComponent() == component)
+			fields.add(field);
+	}
+	IField[] array= new IField[fields.size()];
+	fields.toArray(array);
 	return array;
+}
+@Override
+public IField getRecordComponent(String compName) {
+	try {
+		if (isRecord())
+			return new SourceField(this, compName);
+	} catch (JavaModelException e) {
+		// Should throw an exception instead?
+	}
+	return null;
 }
 /**
  * @see IType#getFullyQualifiedName()
@@ -351,7 +395,7 @@ public IJavaElement getHandleFromMemento(String token, MementoTokenizer memento,
 					case JEM_METHOD:
 						if (!memento.hasMoreTokens()) return this;
 						String param = memento.nextToken();
-						StringBuffer buffer = new StringBuffer();
+						StringBuilder buffer = new StringBuilder();
 						while (param.length() == 1 && Signature.C_ARRAY == param.charAt(0)) { // backward compatible with 3.0 mementos
 							buffer.append(Signature.C_ARRAY);
 							if (!memento.hasMoreTokens()) return this;
@@ -459,7 +503,7 @@ public IMethod[] getMethods() throws JavaModelException {
  */
 @Override
 public IPackageFragment getPackageFragment() {
-	IJavaElement parentElement = this.parent;
+	IJavaElement parentElement = this.getParent();
 	while (parentElement != null) {
 		if (parentElement.getElementType() == IJavaElement.PACKAGE_FRAGMENT) {
 			return (IPackageFragment)parentElement;
@@ -473,21 +517,21 @@ public IPackageFragment getPackageFragment() {
 }
 
 @Override
-public IJavaElement getPrimaryElement(boolean checkOwner) {
+public JavaElement getPrimaryElement(boolean checkOwner) {
 	if (checkOwner) {
 		CompilationUnit cu = (CompilationUnit)getAncestor(COMPILATION_UNIT);
 		if (cu.isPrimary()) return this;
 	}
-	IJavaElement primaryParent = this.parent.getPrimaryElement(false);
+	IJavaElement primaryParent = this.getParent().getPrimaryElement(false);
 	switch (primaryParent.getElementType()) {
 		case IJavaElement.COMPILATION_UNIT:
-			return ((ICompilationUnit)primaryParent).getType(this.name);
+			return (JavaElement)((ICompilationUnit)primaryParent).getType(this.name);
 		case IJavaElement.TYPE:
-			return ((IType)primaryParent).getType(this.name);
+			return (JavaElement)((IType)primaryParent).getType(this.name);
 		case IJavaElement.FIELD:
 		case IJavaElement.INITIALIZER:
 		case IJavaElement.METHOD:
-			return ((IMember)primaryParent).getType(this.name, this.occurrenceCount);
+			return (JavaElement)((IMember)primaryParent).getType(this.name, this.occurrenceCount);
 	}
 	return this;
 }
@@ -648,6 +692,25 @@ public boolean isEnum() throws JavaModelException {
 }
 
 /**
+ * @see IType#isRecord()
+ * @since 3.26
+ */
+@Override
+public boolean isRecord() throws JavaModelException {
+	SourceTypeElementInfo info = (SourceTypeElementInfo) getElementInfo();
+	return TypeDeclaration.kind(info.getModifiers()) == TypeDeclaration.RECORD_DECL;
+}
+/**
+ * @see IType#isSealed()
+ * @noreference This method is not intended to be referenced by clients as it is a part of Java preview feature.
+ */
+@Override
+public boolean isSealed() throws JavaModelException {
+	SourceTypeElementInfo info = (SourceTypeElementInfo) getElementInfo();
+	return Flags.isSealed(info.getModifiers());
+}
+
+/**
  * @see IType
  */
 @Override
@@ -676,7 +739,7 @@ public boolean isAnnotation() throws JavaModelException {
  */
 @Override
 public boolean isLocal() {
-	switch (this.parent.getElementType()) {
+	switch (this.getParent().getElementType()) {
 		case IJavaElement.METHOD:
 		case IJavaElement.INITIALIZER:
 		case IJavaElement.FIELD:
@@ -840,7 +903,7 @@ public ITypeHierarchy newTypeHierarchy(IJavaProject project, WorkingCopyOwner ow
 @Override
 public ITypeHierarchy newTypeHierarchy(IProgressMonitor monitor) throws JavaModelException {
 	// https://bugs.eclipse.org/bugs/show_bug.cgi?id=228845, The new type hierarchy should consider changes in primary
-	// working copy. 
+	// working copy.
 	return newTypeHierarchy(DefaultWorkingCopyOwner.PRIMARY, monitor);
 }
 
@@ -889,7 +952,7 @@ public ITypeHierarchy newTypeHierarchy(
 }
 @Override
 public JavaElement resolved(Binding binding) {
-	ResolvedSourceType resolvedHandle = new ResolvedSourceType(this.parent, this.name, new String(binding.computeUniqueKey()));
+	ResolvedSourceType resolvedHandle = new ResolvedSourceType(this.getParent(), this.name, new String(binding.computeUniqueKey()));
 	resolvedHandle.occurrenceCount = this.occurrenceCount;
 	resolvedHandle.localOccurrenceCount = this.localOccurrenceCount;
 	return resolvedHandle;
@@ -919,7 +982,12 @@ protected void toStringInfo(int tab, StringBuffer buffer, Object info, boolean s
 		}
 	} else {
 		try {
-			if (isEnum()) {
+			if (isSealed()) {
+				buffer.append("sealed "); //$NON-NLS-1$
+			}
+			if (isRecord()) {
+				buffer.append("record "); //$NON-NLS-1$
+			} else if (isEnum()) {
 				buffer.append("enum "); //$NON-NLS-1$
 			} else if (isAnnotation()) {
 				buffer.append("@interface "); //$NON-NLS-1$

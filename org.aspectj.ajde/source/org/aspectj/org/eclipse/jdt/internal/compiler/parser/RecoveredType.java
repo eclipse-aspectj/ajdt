@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -40,7 +40,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class RecoveredType extends RecoveredStatement implements TerminalTokens {
 	public static final int MAX_TYPE_DEPTH = 256;
-	
+
 	public TypeDeclaration typeDeclaration;
 
 	public RecoveredAnnotation[] annotations;
@@ -352,6 +352,9 @@ public boolean bodyStartsAtHeaderEnd(){
 			return this.typeDeclaration.bodyStart == this.typeDeclaration.superclass.sourceEnd+1;
 		}
 	} else {
+		if (this.typeDeclaration.permittedTypes != null)
+			return this.typeDeclaration.bodyStart
+			== this.typeDeclaration.permittedTypes[this.typeDeclaration.permittedTypes.length-1].sourceEnd+1;
 		return this.typeDeclaration.bodyStart
 				== this.typeDeclaration.superInterfaces[this.typeDeclaration.superInterfaces.length-1].sourceEnd+1;
 	}
@@ -515,7 +518,7 @@ public TypeDeclaration updatedTypeDeclaration(int depth, Set<TypeDeclaration> kn
 
 	if(knownTypes.contains(this.typeDeclaration)) return null;
 	knownTypes.add(this.typeDeclaration);
-	
+
 	int lastEnd = this.typeDeclaration.bodyStart;
 	/* update annotations */
 	if (this.modifiers != 0) {
@@ -554,7 +557,7 @@ public TypeDeclaration updatedTypeDeclaration(int depth, Set<TypeDeclaration> kn
 			this.memberTypes[this.memberTypeCount - 1].typeDeclaration.declarationSourceEnd = bodyEndValue;
 			this.memberTypes[this.memberTypeCount - 1].typeDeclaration.bodyEnd =  bodyEndValue;
 		}
-		
+
 		int updatedCount = 0;
 		for (int i = 0; i < this.memberTypeCount; i++){
 			TypeDeclaration updatedTypeDeclaration = this.memberTypes[i].updatedTypeDeclaration(depth + 1, knownTypes);
@@ -566,8 +569,8 @@ public TypeDeclaration updatedTypeDeclaration(int depth, Set<TypeDeclaration> kn
 			int length = existingCount + updatedCount;
 			System.arraycopy(memberTypeDeclarations, 0, memberTypeDeclarations = new TypeDeclaration[length], 0, length);
 		}
-		
-		if (memberTypeDeclarations.length > 0) { 
+
+		if (memberTypeDeclarations.length > 0) {
 			this.typeDeclaration.memberTypes = memberTypeDeclarations;
 			if(memberTypeDeclarations[memberTypeDeclarations.length - 1].declarationSourceEnd > lastEnd) {
 				lastEnd = memberTypeDeclarations[memberTypeDeclarations.length - 1].declarationSourceEnd;
@@ -595,14 +598,14 @@ public TypeDeclaration updatedTypeDeclaration(int depth, Set<TypeDeclaration> kn
 		for (int i = 0; i < this.fieldCount; i++){
 			fieldDeclarations[existingCount + i] = this.fields[i].updatedFieldDeclaration(depth, knownTypes);
 		}
-		
+
 		for (int i = this.fieldCount - 1; 0 < i; i--) {
 			if (fieldDeclarations[existingCount + i - 1].declarationSourceStart == fieldDeclarations[existingCount + i].declarationSourceStart) {
 				fieldDeclarations[existingCount + i - 1].declarationSourceEnd = fieldDeclarations[existingCount + i].declarationSourceEnd;
 				fieldDeclarations[existingCount + i - 1].declarationEnd = fieldDeclarations[existingCount + i].declarationEnd;
 			}
 		}
-		
+
 		this.typeDeclaration.fields = fieldDeclarations;
 		if(fieldDeclarations[fieldDeclarations.length - 1].declarationSourceEnd > lastEnd) {
 			lastEnd = fieldDeclarations[fieldDeclarations.length - 1].declarationSourceEnd;
@@ -684,6 +687,7 @@ public TypeDeclaration updatedTypeDeclaration(int depth, Set<TypeDeclaration> kn
 		if (!hasConstructor &&
 				kind != TypeDeclaration.INTERFACE_DECL &&
 				kind != TypeDeclaration.ANNOTATION_TYPE_DECL &&
+				kind != TypeDeclaration.RECORD_DECL &&
 				this.typeDeclaration.allocation == null) {// if was already reduced, then constructor
 			boolean insideFieldInitializer = false;
 			RecoveredElement parentElement = this.parent;
@@ -731,6 +735,7 @@ public void updateFromParserState(){
 				for (int i = 1, max = length + 1; i < max; i++) {
 					if(!(parser.astStack[astPtr + i ] instanceof TypeReference)) {
 						canConsume = false;
+						break;
 					}
 				}
 			}
@@ -753,6 +758,7 @@ public void updateFromParserState(){
 				for (int i = 0; i < length; i++) {
 					if(!(parser.genericsStack[genericsPtr - i] instanceof TypeParameter)) {
 						canConsume = false;
+						break;
 					}
 				}
 			}
@@ -796,6 +802,7 @@ public RecoveredElement updateOnOpeningBrace(int braceStart, int braceEnd){
 			case -1 :
 			case TokenNameextends :
 			case TokenNameimplements :
+			case TokenNameRestrictedIdentifierpermits:
 			case TokenNameGREATER :
 			case TokenNameRIGHT_SHIFT :
 			case TokenNameUNSIGNED_RIGHT_SHIFT :

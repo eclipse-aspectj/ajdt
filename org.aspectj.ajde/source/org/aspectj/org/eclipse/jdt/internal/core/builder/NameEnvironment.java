@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -10,7 +10,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Terry Parker <tparker@google.com> 
+ *     Terry Parker <tparker@google.com>
  *           - Contribution for https://bugs.eclipse.org/bugs/show_bug.cgi?id=372418
  *           -  Another problem with inner classes referenced from jars or class folders: "The type ... cannot be resolved"
  *     Stephan Herrmann - Contribution for
@@ -27,6 +27,7 @@ import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IUpdatableModule.UpdateKind;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.NameEnvironmentAnswer;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.AbortCompilation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.SimpleLookupTable;
@@ -112,6 +113,11 @@ private void computeClasspathLocations(
 			cycleMarker.setAttribute(IMarker.SEVERITY, severity);
 	}
 
+	List<ClasspathLocation> allLocationsForEEA = null;
+	if (JavaCore.ENABLED.equals(javaProject.getOption(JavaCore.CORE_JAVA_BUILD_EXTERNAL_ANNOTATIONS_FROM_ALL_LOCATIONS, true))) {
+		allLocationsForEEA = new ArrayList<>(); // non-null value is also used as an enablement flag
+	}
+
 	IClasspathEntry[] classpathEntries = javaProject.getExpandedClasspath(this.compilationGroup == CompilationGroup.MAIN);
 	ArrayList sLocations = new ArrayList(classpathEntries.length);
 	ArrayList bLocations = new ArrayList(classpathEntries.length);
@@ -127,7 +133,7 @@ private void computeClasspathLocations(
 	}
 	IModuleDescription projectModule = javaProject.getModuleDescription();
 
-	String patchedModuleName = ModuleEntryProcessor.pushPatchToFront(classpathEntries);
+	String patchedModuleName = ModuleEntryProcessor.pushPatchToFront(classpathEntries, javaProject);
 	IModule patchedModule = null;
 
 	nextEntry : for (int i = 0, l = classpathEntries.length; i < l; i++) {
@@ -168,7 +174,8 @@ private void computeClasspathLocations(
 						createOutputFolder(outputFolder);
 				}
 				if (this.compilationGroup == CompilationGroup.TEST && !entry.isTest()) {
-					ClasspathLocation bLocation = ClasspathLocation.forBinaryFolder(outputFolder, true, entry.getAccessRuleSet(), externalAnnotationPath, isOnModulePath);
+					ClasspathLocation bLocation = ClasspathLocation.forBinaryFolder(outputFolder, true, entry.getAccessRuleSet(),
+							externalAnnotationPath, allLocationsForEEA, isOnModulePath);
 					bLocations.add(bLocation);
 					sLocationsForTest.add(bLocation);
 					if (patchedModule != null) {
@@ -177,11 +184,13 @@ private void computeClasspathLocations(
 					bLocation.patchModuleName = patchedModuleName;
 				} else {
 					ClasspathLocation sourceLocation = ClasspathLocation.forSourceFolder(
-								(IContainer) target, 
+								(IContainer) target,
 								outputFolder,
-								entry.fullInclusionPatternChars(), 
+								entry.fullInclusionPatternChars(),
 								entry.fullExclusionPatternChars(),
-								entry.ignoreOptionalProblems());
+								entry.ignoreOptionalProblems(),
+								externalAnnotationPath,
+								allLocationsForEEA);
 					if (patchedModule != null) {
 						ModuleEntryProcessor.combinePatchIntoModuleEntry(sourceLocation, patchedModule, moduleEntries);
 					}
@@ -204,8 +213,26 @@ private void computeClasspathLocations(
 					if (prereqEntry.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
 						if ((this.compilationGroup == CompilationGroup.MAIN || entry.isWithoutTestCode()) && prereqEntry.isTest())
 							continue nextPrereqEntry;
+						IPath srcExtAnnotPath = (externalAnnotationPath != null)
+							? externalAnnotationPath
+							: ClasspathEntry.getExternalAnnotationPath(prereqEntry, javaProject.getProject(), true);
 						Object prereqTarget = JavaModel.getTarget(prereqEntry.getPath(), true);
 						if (!(prereqTarget instanceof IContainer)) continue nextPrereqEntry;
+						if (srcExtAnnotPath == null) {
+							// search in other sources contributing to the same binary location (that other loc will be skipped below, due to seen.contains()):
+							IPath outputLoc = prereqEntry.getOutputLocation();
+							for (int k = j+1; k < m; k++) {
+								IClasspathEntry other = prereqClasspathEntries[k];
+								if (other.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
+									IPath otherOutput = other.getOutputLocation();
+									if ((outputLoc == null) ? otherOutput == null : outputLoc.equals(otherOutput)) {
+										srcExtAnnotPath = ClasspathEntry.getExternalAnnotationPath(other, javaProject.getProject(),  true);
+										if (srcExtAnnotPath != null)
+											break; // TODO: merging of several .eea?
+									}
+								}
+							}
+						}
 						IPath prereqOutputPath = prereqEntry.getOutputLocation() != null
 							? prereqEntry.getOutputLocation()
 							: prereqJavaProject.getOutputLocation();
@@ -214,7 +241,8 @@ private void computeClasspathLocations(
 							: (IContainer) root.getFolder(prereqOutputPath);
 						if (binaryFolder.exists() && !seen.contains(binaryFolder)) {
 							seen.add(binaryFolder);
-							ClasspathLocation bLocation = ClasspathLocation.forBinaryFolder(binaryFolder, true, entry.getAccessRuleSet(), externalAnnotationPath, isOnModulePath);
+							ClasspathLocation bLocation = ClasspathLocation.forBinaryFolder(binaryFolder, true, entry.getAccessRuleSet(),
+									srcExtAnnotPath, allLocationsForEEA, isOnModulePath);
 							bLocations.add(bLocation);
 							projectLocations.add(bLocation);
 							if (binaryLocationsPerProject != null) { // normal builder mode
@@ -271,14 +299,16 @@ private void computeClasspathLocations(
 							&& JavaCore.IGNORE.equals(javaProject.getOption(JavaCore.COMPILER_PB_DISCOURAGED_REFERENCE, true)))
 								? null
 								: entry.getAccessRuleSet();
-						bLocation = ClasspathLocation.forLibrary((IFile) resource, accessRuleSet, externalAnnotationPath, isOnModulePath, compliance);
+						bLocation = ClasspathLocation.forLibrary((IFile) resource, accessRuleSet,
+								externalAnnotationPath, allLocationsForEEA, isOnModulePath, compliance);
 					} else if (resource instanceof IContainer) {
 						AccessRuleSet accessRuleSet =
 							(JavaCore.IGNORE.equals(javaProject.getOption(JavaCore.COMPILER_PB_FORBIDDEN_REFERENCE, true))
 							&& JavaCore.IGNORE.equals(javaProject.getOption(JavaCore.COMPILER_PB_DISCOURAGED_REFERENCE, true)))
 								? null
 								: entry.getAccessRuleSet();
-						bLocation = ClasspathLocation.forBinaryFolder((IContainer) target, false, accessRuleSet, externalAnnotationPath, isOnModulePath);	 // is library folder not output folder
+						bLocation = ClasspathLocation.forBinaryFolder((IContainer) target, false, accessRuleSet,	// is library folder not output folder
+								externalAnnotationPath, allLocationsForEEA, isOnModulePath);
 					}
 					bLocations.add(bLocation);
 					// TODO: Ideally we need to do something like mapToModulePathEntry using the path and if it is indeed
@@ -305,11 +335,11 @@ private void computeClasspathLocations(
 							&& JavaCore.IGNORE.equals(javaProject.getOption(JavaCore.COMPILER_PB_DISCOURAGED_REFERENCE, true)))
 								? null
 								: entry.getAccessRuleSet();
-					String release = JavaCore.DISABLED.equals(javaProject.getOption(JavaCore.COMPILER_RELEASE, true)) ? null : compliance;
+					String release = JavaCore.ENABLED.equals(javaProject.getOption(JavaCore.COMPILER_RELEASE, false)) ? compliance : null;
 					ClasspathLocation bLocation = null;
 					String libPath = path.toOSString();
 					if (Util.isJrt(libPath)) {
-						bLocation = ClasspathLocation.forJrtSystem(path.toOSString(), accessRuleSet, externalAnnotationPath, release);
+						bLocation = ClasspathLocation.forJrtSystem(path.toOSString(), accessRuleSet, externalAnnotationPath, allLocationsForEEA, release);
 					} else {
 						bLocation = ClasspathLocation.forLibrary(path.toOSString(), accessRuleSet, externalAnnotationPath, isOnModulePath, compliance);
 					}
@@ -322,6 +352,11 @@ private void computeClasspathLocations(
 				}
 				continue nextEntry;
 		}
+	}
+
+	if (allLocationsForEEA != null) {
+		allLocationsForEEA.addAll(bLocations);
+		allLocationsForEEA.addAll(sLocations);
 	}
 
 	// now split the classpath locations... place the output folders ahead of the other .class file folders & jars
@@ -378,7 +413,7 @@ private void computeClasspathLocations(
 		this.binaryLocations[index++] = (ClasspathLocation) outputFolders.get(i);
 	for (int i = 0, l = bLocations.size(); i < l; i++)
 		this.binaryLocations[index++] = (ClasspathLocation) bLocations.get(i);
-	
+
 	if (moduleEntries != null && !moduleEntries.isEmpty())
 		this.modulePathEntries = moduleEntries;
 }
@@ -482,7 +517,7 @@ private NameEnvironmentAnswer findClass(String qualifiedTypeName, char[] typeNam
 		// if we answer X.java & it no longer defines Y then the binary type looking for Y will think the class path is wrong
 		// let the recompile loop fix up dependents when the secondary type Y has been deleted from X.java
 		// Only enclosing type names are present in the additional units table, so strip off inner class specifications
-		// when doing the lookup (https://bugs.eclipse.org/372418). 
+		// when doing the lookup (https://bugs.eclipse.org/372418).
 		// Also take care of $ in the name of the class (https://bugs.eclipse.org/377401)
 		// and prefer name with '$' if unit exists rather than failing to search for nested class (https://bugs.eclipse.org/392727)
 		SourceFile unit = (SourceFile) this.additionalUnits.get(qualifiedTypeName); // doesn't have file extension
@@ -545,7 +580,7 @@ public NameEnvironmentAnswer findType(char[][] compoundName, char[] moduleName) 
 	if (compoundName != null)
 		return findClass(
 			String.valueOf(CharOperation.concatWith(compoundName, '/')),
-			compoundName[compoundName.length - 1], 
+			compoundName[compoundName.length - 1],
 			LookupStrategy.get(moduleName),
 			LookupStrategy.getStringName(moduleName));
 	return null;
@@ -561,8 +596,8 @@ public NameEnvironmentAnswer findType(char[] typeName, char[][] packageName, cha
 }
 
 @Override
-public char[][] getModulesDeclaringPackage(char[][] parentPackageName, char[] name, char[] moduleName) {
-	String pkgName = new String(CharOperation.concatWith(parentPackageName, name, '/'));
+public char[][] getModulesDeclaringPackage(char[][] packageName, char[] moduleName) {
+	String pkgName = new String(CharOperation.concatWith(packageName, '/'));
 	String modName = new String(moduleName);
 	LookupStrategy strategy = LookupStrategy.get(moduleName);
 	switch (strategy) {
@@ -685,7 +720,19 @@ public boolean isPackage(String qualifiedPackageName, char[] moduleName) {
 	}
 	return false;
 }
-
+@Override
+public char[][] listPackages(char[] moduleName) {
+	LookupStrategy strategy = LookupStrategy.get(moduleName);
+	switch (strategy) {
+		case Named:
+			IModulePathEntry entry = this.modulePathEntries.get(String.valueOf(moduleName));
+			if (entry == null)
+				return CharOperation.NO_CHAR_CHAR;
+			return entry.listPackages();
+		default:
+			throw new UnsupportedOperationException("can list packages only of a named module"); //$NON-NLS-1$
+	}
+}
 void setNames(String[] typeNames, SourceFile[] additionalFiles) {
 	// convert the initial typeNames to a set
 	if (typeNames == null) {

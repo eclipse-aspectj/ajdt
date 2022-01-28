@@ -1,14 +1,14 @@
 /* *******************************************************************
  * Copyright (c) 2004 IBM Corporation
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
  *     Matthew Webster, Adrian Colyer, John Kew + Lyor Goldstein (caching)
- *     Martin Lippert     initial implementation 
+ *     Martin Lippert     initial implementation
  * ******************************************************************/
 
 package org.aspectj.weaver.tools;
@@ -69,7 +69,7 @@ import org.aspectj.weaver.tools.cache.WeavedClassCache;
  * A weaving class loader should create a <code>WeavingAdaptor</code> before any classes are defined, typically during construction.
  * The set of aspects passed to the adaptor is fixed for the lifetime of the adaptor although the classpath can be augmented. A
  * system property can be set to allow verbose weaving messages to be written to the console.
- * 
+ *
  */
 public class WeavingAdaptor implements IMessageContext {
 
@@ -91,7 +91,7 @@ public class WeavingAdaptor implements IMessageContext {
 	private WeavingAdaptorMessageHolder messageHolder;
 	private boolean abortOnError = false;
 	protected GeneratedClassHandler generatedClassHandler;
-	protected Map<String, IUnwovenClassFile> generatedClasses = new HashMap<String, IUnwovenClassFile>();
+	protected Map<String, IUnwovenClassFile> generatedClasses = new HashMap<>();
 	public BcelObjectType delegateForCurrentClass; // lazily initialized, should be used to prevent parsing bytecode multiple
 	// times
 	protected ProtectionDomain activeProtectionDomain;
@@ -113,7 +113,7 @@ public class WeavingAdaptor implements IMessageContext {
 	 * Construct a WeavingAdaptor with a reference to a weaving class loader. The adaptor will automatically search the class loader
 	 * hierarchy to resolve classes. The adaptor will also search the hierarchy for WeavingClassLoader instances to determine the
 	 * set of aspects to be used for weaving.
-	 * 
+	 *
 	 * @param loader instance of <code>ClassLoader</code>
 	 */
 	public WeavingAdaptor(WeavingClassLoader loader) {
@@ -126,7 +126,7 @@ public class WeavingAdaptor implements IMessageContext {
 	 * Construct a WeavingAdaptor with a reference to a <code>GeneratedClassHandler</code>, a full search path for resolving classes
 	 * and a complete set of aspects. The search path must include classes loaded by the class loader constructing the
 	 * WeavingAdaptor and all its parents in the hierarchy.
-	 * 
+	 *
 	 * @param handler <code>GeneratedClassHandler</code>
 	 * @param classURLs the URLs from which to resolve classes
 	 * @param aspectURLs the aspects used to weave classes defined by this class loader
@@ -138,7 +138,7 @@ public class WeavingAdaptor implements IMessageContext {
 	}
 
 	protected List<String> getFullClassPath(ClassLoader loader) {
-		List<String> list = new LinkedList<String>();
+		List<String> list = new LinkedList<>();
 		for (; loader != null; loader = loader.getParent()) {
 			if (loader instanceof URLClassLoader) {
 				URL[] urls = ((URLClassLoader) loader).getURLs();
@@ -149,7 +149,7 @@ public class WeavingAdaptor implements IMessageContext {
 		}
 		// On Java9 it is possible to fail to find a URLClassLoader from which to derive a suitable classpath
 		// For now we can determine it from the java.class.path:
-        if (LangUtil.is19VMOrGreater()) {
+        if (LangUtil.is9VMOrGreater()) {
 	    		list.add(0, LangUtil.getJrtFsFilePath());
 			List<String> javaClassPathEntries = makeClasspath(System.getProperty("java.class.path"));
 			for (int i=javaClassPathEntries.size()-1;i>=0;i--) {
@@ -159,13 +159,13 @@ public class WeavingAdaptor implements IMessageContext {
 				}
 			}
         }
-		// On Java9 the sun.boot.class.path won't be set. System classes accessible through JRT filesystem 
+		// On Java9 the sun.boot.class.path won't be set. System classes accessible through JRT filesystem
 		list.addAll(0, makeClasspath(System.getProperty("sun.boot.class.path")));
 		return list;
 	}
 
 	private List<String> getFullAspectPath(ClassLoader loader) {
-		List<String> list = new LinkedList<String>();
+		List<String> list = new LinkedList<>();
 		for (; loader != null; loader = loader.getParent()) {
 			if (loader instanceof WeavingClassLoader) {
 				URL[] urls = ((WeavingClassLoader) loader).getAspectURLs();
@@ -200,9 +200,7 @@ public class WeavingAdaptor implements IMessageContext {
 		bcelWorld = new BcelWorld(classPath, messageHandler, null);
 		bcelWorld.setXnoInline(false);
 		bcelWorld.getLint().loadDefaultProperties();
-		if (LangUtil.is15VMOrGreater()) {
-			bcelWorld.setBehaveInJava5Way(true);
-		}
+		bcelWorld.setBehaveInJava5Way(true);
 
 		weaver = new BcelWeaver(bcelWorld);
 		registerAspectLibraries(aspectPath);
@@ -285,7 +283,7 @@ public class WeavingAdaptor implements IMessageContext {
 
 	/**
 	 * Appends URL to path used by the WeavingAdptor to resolve classes
-	 * 
+	 *
 	 * @param url to be appended to search path
 	 */
 	public void addURL(URL url) {
@@ -299,7 +297,7 @@ public class WeavingAdaptor implements IMessageContext {
 
 	/**
 	 * Weave a class using aspects previously supplied to the adaptor.
-	 * 
+	 *
 	 * @param name the name of the class
 	 * @param bytes the class bytes
 	 * @return the woven bytes
@@ -319,7 +317,7 @@ public class WeavingAdaptor implements IMessageContext {
 
 	/**
 	 * Weave a class using aspects previously supplied to the adaptor.
-	 * 
+	 *
 	 * @param name the name of the class
 	 * @param bytes the class bytes
 	 * @param mustWeave if true then this class *must* get woven (used for concrete aspects generated from XML)
@@ -428,7 +426,7 @@ public class WeavingAdaptor implements IMessageContext {
 			}
 			return bytes;
 		} finally {
-			weaverRunning.set(false);
+			weaverRunning.remove();
 		}
 	}
 
@@ -501,7 +499,7 @@ public class WeavingAdaptor implements IMessageContext {
 
 	/**
 	 * We allow @AJ aspect weaving so that we can add aspectOf() as part of the weaving (and not part of the source compilation)
-	 * 
+	 *
 	 * @param name
 	 * @param bytes bytecode (from classloader), allow to NOT lookup stuff on disk again during resolve
 	 * @return true if @Aspect
@@ -540,7 +538,7 @@ public class WeavingAdaptor implements IMessageContext {
 
 	/**
 	 * Weave a set of bytes defining a class.
-	 * 
+	 *
 	 * @param name the name of the class being woven
 	 * @param bytes the bytes that define the class
 	 * @return byte[] the woven bytes for the class
@@ -555,7 +553,7 @@ public class WeavingAdaptor implements IMessageContext {
 	/**
 	 * Weave a set of bytes defining a class for only what is needed to turn @AspectJ aspect in a usefull form ie with aspectOf
 	 * method - see #113587
-	 * 
+	 *
 	 * @param name the name of the class being woven
 	 * @param bytes the bytes that define the class
 	 * @return byte[] the woven bytes for the class
@@ -568,10 +566,10 @@ public class WeavingAdaptor implements IMessageContext {
 		return wcp.getBytes();
 	}
 
-	private void registerAspectLibraries(List aspectPath) {
+	private void registerAspectLibraries(List<String> aspectPath) {
 		// System.err.println("? WeavingAdaptor.registerAspectLibraries(" + aspectPath + ")");
-		for (Iterator i = aspectPath.iterator(); i.hasNext();) {
-			String libName = (String) i.next();
+		for (Object o : aspectPath) {
+			String libName = (String) o;
 			addAspectLibrary(libName);
 		}
 
@@ -582,9 +580,9 @@ public class WeavingAdaptor implements IMessageContext {
 	 * Register an aspect library with this classloader for use during weaving. This class loader will also return (unmodified) any
 	 * of the classes in the library in response to a <code>findClass()</code> request. The library is not required to be on the
 	 * weavingClasspath given when this classloader was constructed.
-	 * 
+	 *
 	 * @param aspectLibraryJarFile a jar file representing an aspect library
-	 * 
+	 *
 	 * @throws IOException
 	 */
 	private void addAspectLibrary(String aspectLibraryName) {
@@ -602,7 +600,7 @@ public class WeavingAdaptor implements IMessageContext {
 	}
 
 	private static List<String> makeClasspath(String cp) {
-		List<String> ret = new ArrayList<String>();
+		List<String> ret = new ArrayList<>();
 		if (cp != null) {
 			StringTokenizer tok = new StringTokenizer(cp, File.pathSeparator);
 			while (tok.hasMoreTokens()) {
@@ -642,11 +640,10 @@ public class WeavingAdaptor implements IMessageContext {
 
 	/**
 	 * Dump the given bytcode in _dump/... (dev mode)
-	 * 
+	 *
 	 * @param name
 	 * @param b
 	 * @param before whether we are dumping before weaving
-	 * @throws Throwable
 	 */
 	protected void dump(String name, byte[] b, boolean before) {
 		String dirName = getDumpDir();
@@ -723,7 +720,7 @@ public class WeavingAdaptor implements IMessageContext {
 
 		public void flushMessages() {
 			if (savedMessages == null) {
-				savedMessages = new ArrayList<IMessage>();
+				savedMessages = new ArrayList<>();
 				savedMessages.addAll(super.getUnmodifiableListView());
 				clearMessages();
 				for (IMessage message : savedMessages) {
@@ -794,7 +791,7 @@ public class WeavingAdaptor implements IMessageContext {
 		@Override
 		public List<IMessage> getUnmodifiableListView() {
 			// System.err.println("? WeavingAdaptorMessageHolder.getUnmodifiableListView() savedMessages=" + savedMessages);
-			List<IMessage> allMessages = new ArrayList<IMessage>();
+			List<IMessage> allMessages = new ArrayList<>();
 			allMessages.addAll(savedMessages);
 			allMessages.addAll(super.getUnmodifiableListView());
 			return allMessages;
@@ -803,7 +800,7 @@ public class WeavingAdaptor implements IMessageContext {
 
 	protected class WeavingAdaptorMessageWriter extends MessageWriter {
 
-		private final Set<IMessage.Kind> ignoring = new HashSet<IMessage.Kind>();
+		private final Set<IMessage.Kind> ignoring = new HashSet<>();
 		private final IMessage.Kind failKind;
 
 		public WeavingAdaptorMessageWriter(PrintWriter writer) {
@@ -859,7 +856,7 @@ public class WeavingAdaptor implements IMessageContext {
 	private class WeavingClassFileProvider implements IClassFileProvider {
 
 		private final UnwovenClassFile unwovenClass;
-		private final List<UnwovenClassFile> unwovenClasses = new ArrayList<UnwovenClassFile>();
+		private final List<UnwovenClassFile> unwovenClasses = new ArrayList<>();
 		private IUnwovenClassFile wovenClass;
 		private boolean isApplyAtAspectJMungersOnly = false;
 

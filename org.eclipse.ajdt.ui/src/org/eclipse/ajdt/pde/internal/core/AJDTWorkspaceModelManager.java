@@ -20,7 +20,7 @@ import org.eclipse.pde.internal.core.WorkspacePluginModelManager;
 public class AJDTWorkspaceModelManager extends WorkspacePluginModelManager {
 
 	public IPluginModelBase getWorkspacePluginModel(IProject project) {
-		return super.getPluginModel(project);
+		return super.getModel(project);
 	}
 	
 }

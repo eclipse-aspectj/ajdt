@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -7,7 +7,7 @@
  * https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -39,6 +39,9 @@ public abstract class ASTVisitor {
 			AnnotationMethodDeclaration annotationTypeDeclaration,
 			ClassScope classScope) {
 			// do nothing by default
+	}
+	public void endVisit(TypePattern anyPattern, BlockScope scope) {
+		// do nothing by default
 	}
 	public void endVisit(Argument argument, BlockScope scope) {
 		// do nothing by default
@@ -106,6 +109,9 @@ public abstract class ASTVisitor {
 	public void endVisit(Clinit clinit, ClassScope scope) {
 		// do nothing by default
 	}
+	public void endVisit(CompactConstructorDeclaration ccd, ClassScope scope) {
+		// do nothing by default
+	}
 	public void endVisit(
 		CompilationUnitDeclaration compilationUnitDeclaration,
 		CompilationUnitScope scope) {
@@ -149,6 +155,9 @@ public abstract class ASTVisitor {
 		BlockScope scope) {
 		// do nothing by default
 	}
+	public void endVisit(FakeDefaultLiteral fakeDefaultLiteral, BlockScope scope) {
+		// do nothing by default
+	}
 	public void endVisit(FalseLiteral falseLiteral, BlockScope scope) {
 		// do nothing by default
 	}
@@ -169,6 +178,9 @@ public abstract class ASTVisitor {
 	}
 	public void endVisit(ForStatement forStatement, BlockScope scope) {
 		// do nothing by default
+	}
+	public void endVisit(GuardedPattern guardedPattern, BlockScope scope) {
+		// do nothing by default, keep traversing
 	}
 	public void endVisit(IfStatement ifStatement, BlockScope scope) {
 		// do nothing by default
@@ -239,6 +251,12 @@ public abstract class ASTVisitor {
 		// do nothing by default
 	}
 	public void endVisit(JavadocQualifiedTypeReference typeRef, ClassScope scope) {
+		// do nothing by default
+	}
+	public void endVisit(JavadocModuleReference moduleRef, BlockScope scope) {
+		// do nothing by default
+	}
+	public void endVisit(JavadocModuleReference moduleRef, ClassScope scope) {
 		// do nothing by default
 	}
 	public void endVisit(JavadocReturnStatement statement, BlockScope scope) {
@@ -321,6 +339,9 @@ public abstract class ASTVisitor {
 		// do nothing by default
 	}
 	public void endVisit(OR_OR_Expression or_or_Expression, BlockScope scope) {
+		// do nothing by default
+	}
+	public void endVisit(Pattern patternExpression, BlockScope scope) {
 		// do nothing by default
 	}
 	public void endVisit(ParameterizedQualifiedTypeReference parameterizedQualifiedTypeReference, BlockScope scope) {
@@ -487,6 +508,9 @@ public abstract class ASTVisitor {
 			ClassScope scope) {
 		// do nothing by default
 	}
+	public void endVisit(YieldStatement yieldStatement, BlockScope scope) {
+		// do nothing by default
+	}
 	public void endVisit(WhileStatement whileStatement, BlockScope scope) {
 		// do nothing by default
 	}
@@ -500,13 +524,19 @@ public abstract class ASTVisitor {
 		// do nothing by default
 	}
 	public void endVisit(ReferenceExpression referenceExpression, BlockScope blockScope) {
-		// do nothing by default	
+		// do nothing by default
 	}
 	public void endVisit(IntersectionCastTypeReference intersectionCastTypeReference, ClassScope scope) {
 		// do nothing by default
 	}
 	public void endVisit(IntersectionCastTypeReference intersectionCastTypeReference, BlockScope scope) {
 		// do nothing by default
+	}
+	public void endVisit(SwitchExpression switchExpression,	BlockScope scope) {
+		// do nothing by default
+	}
+	public void endVisit(RecordComponent recordComponent, BlockScope scope) {
+		// do nothing by default, keep traversing
 	}
 	public boolean visit(
     		AllocationExpression allocationExpression,
@@ -519,6 +549,9 @@ public abstract class ASTVisitor {
 	public boolean visit(
 			AnnotationMethodDeclaration annotationTypeDeclaration,
 			ClassScope classScope) {
+		return true; // do nothing by default, keep traversing
+	}
+	public boolean visit(TypePattern anyPattern, BlockScope scope) {
 		return true; // do nothing by default, keep traversing
 	}
 	public boolean visit(Argument argument, BlockScope scope) {
@@ -590,6 +623,9 @@ public abstract class ASTVisitor {
 	public boolean visit(ModuleDeclaration module, CompilationUnitScope scope) {
 		return true;
 	}
+	public boolean visit(CompactConstructorDeclaration ccd, ClassScope scope) {
+		return true; // do nothing by default, keep traversing
+	}
 	public boolean visit(
 		CompilationUnitDeclaration compilationUnitDeclaration,
 		CompilationUnitScope scope) {
@@ -633,6 +669,9 @@ public abstract class ASTVisitor {
 		BlockScope scope) {
 		return true; // do nothing by default, keep traversing
 	}
+	public boolean visit(FakeDefaultLiteral fakeDefaultLiteral, BlockScope scope) {
+		return true; // do nothing by default, keep traversing
+	}
 	public boolean visit(FalseLiteral falseLiteral, BlockScope scope) {
 		return true; // do nothing by default, keep traversing
 	}
@@ -652,6 +691,9 @@ public abstract class ASTVisitor {
 		return true; // do nothing by default, keep traversing
 	}
 	public boolean visit(ForStatement forStatement, BlockScope scope) {
+		return true; // do nothing by default, keep traversing
+	}
+	public boolean visit(GuardedPattern guardedPattern, BlockScope scope) {
 		return true; // do nothing by default, keep traversing
 	}
 	public boolean visit(IfStatement ifStatement, BlockScope scope) {
@@ -723,6 +765,12 @@ public abstract class ASTVisitor {
 		return true; // do nothing by default, keep traversing
 	}
 	public boolean visit(JavadocQualifiedTypeReference typeRef, ClassScope scope) {
+		return true; // do nothing by default, keep traversing
+	}
+	public boolean visit(JavadocModuleReference moduleRef, BlockScope scope) {
+		return true; // do nothing by default, keep traversing
+	}
+	public boolean visit(JavadocModuleReference moduleRef, ClassScope scope) {
 		return true; // do nothing by default, keep traversing
 	}
 	public boolean visit(JavadocReturnStatement statement, BlockScope scope) {
@@ -824,6 +872,9 @@ public abstract class ASTVisitor {
 		return true; // do nothing by default, keep traversing
 	}
 	public boolean visit(ParameterizedSingleTypeReference parameterizedSingleTypeReference, ClassScope scope) {
+		return true; // do nothing by default, keep traversing
+	}
+	public boolean visit(Pattern patternExpression, BlockScope scope) {
 		return true; // do nothing by default, keep traversing
 	}
 	public boolean visit(PostfixExpression postfixExpression, BlockScope scope) {
@@ -978,6 +1029,9 @@ public abstract class ASTVisitor {
 			ClassScope scope) {
 		return true; // do nothing by default, keep traversing
 	}
+	public boolean visit(YieldStatement yieldStatement, BlockScope scope) {
+		return true; // do nothing by default, keep traversing
+	}
 	public boolean visit(WhileStatement whileStatement, BlockScope scope) {
 		return true; // do nothing by default, keep traversing
 	}
@@ -997,6 +1051,12 @@ public abstract class ASTVisitor {
 		return true; // do nothing by default, keep traversing
 	}
 	public boolean visit(IntersectionCastTypeReference intersectionCastTypeReference, BlockScope scope) {
+		return true; // do nothing by default, keep traversing
+	}
+	public boolean visit(SwitchExpression switchExpression, BlockScope blockScope) {
+		return true; // do nothing by default, keep traversing
+	}
+	public  boolean visit(RecordComponent recordComponent, BlockScope scope) {
 		return true; // do nothing by default, keep traversing
 	}
 }

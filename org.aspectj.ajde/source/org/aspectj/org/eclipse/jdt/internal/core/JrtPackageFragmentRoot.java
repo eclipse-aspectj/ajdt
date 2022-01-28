@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2018 IBM Corporation and others.
+ * Copyright (c) 2015, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -18,9 +18,12 @@ import java.nio.file.FileVisitResult;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Arrays;
+
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
+import org.aspectj.org.eclipse.jdt.core.IClasspathAttribute;
 import org.aspectj.org.eclipse.jdt.core.IClasspathEntry;
 import org.aspectj.org.eclipse.jdt.core.IJavaModelStatusConstants;
 import org.aspectj.org.eclipse.jdt.core.IModuleDescription;
@@ -42,15 +45,15 @@ import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
 public class JrtPackageFragmentRoot extends JarPackageFragmentRoot implements IModulePathEntry {
 
 	String moduleName;
-	
+
 	public static final ThreadLocal<Boolean> workingOnOldClasspath = new ThreadLocal<>();
-	
+
 	/**
 	 * Constructs a package fragment root which represents a module
 	 * contained in a JRT.
 	 */
-	protected JrtPackageFragmentRoot(IPath jrtPath, String moduleName, JavaProject project) {
-		super(jrtPath, project);
+	protected JrtPackageFragmentRoot(IPath jrtPath, String moduleName, JavaProject project, IClasspathAttribute[] extraAttributes) {
+		super(null, jrtPath, project, extraAttributes);
 		this.moduleName = moduleName;
 	}
 
@@ -78,8 +81,8 @@ public class JrtPackageFragmentRoot extends JarPackageFragmentRoot implements IM
 				}
 
 				@Override
-				public FileVisitResult visitModule(Path mod) throws IOException {
-					if (!JrtPackageFragmentRoot.this.moduleName.equals(mod.toString())) {
+				public FileVisitResult visitModule(Path path, String name) throws IOException {
+					if (!JrtPackageFragmentRoot.this.moduleName.equals(name)) {
 						return FileVisitResult.SKIP_SUBTREE;
 					}
 					return FileVisitResult.CONTINUE;
@@ -113,7 +116,8 @@ public class JrtPackageFragmentRoot extends JarPackageFragmentRoot implements IM
 		if (o instanceof JrtPackageFragmentRoot) {
 			JrtPackageFragmentRoot other= (JrtPackageFragmentRoot) o;
 			return this.moduleName.equals(other.moduleName) &&
-					this.jarPath.equals(other.jarPath);
+					this.jarPath.equals(other.jarPath) &&
+					Arrays.equals(this.extraAttributes, other.extraAttributes);
 		}
 		return false;
 	}
@@ -128,7 +132,11 @@ public class JrtPackageFragmentRoot extends JarPackageFragmentRoot implements IM
 	}
 	@Override
 	public int hashCode() {
-		return this.jarPath.hashCode() + this.moduleName.hashCode();
+		int hash = 31;
+		hash = Util.combineHashCodes(hash, this.jarPath.hashCode());
+		hash = Util.combineHashCodes(hash, this.moduleName.hashCode());
+		hash = Util.combineHashCodes(hash, Arrays.hashCode(this.extraAttributes));
+		return hash;
 	}
 	@Override
 	protected void toStringInfo(int tab, StringBuffer buffer, Object info, boolean showResolvedInfo) {
@@ -150,6 +158,11 @@ public class JrtPackageFragmentRoot extends JarPackageFragmentRoot implements IM
 			}
 		}
 		return null;
+	}
+
+	@Override
+	protected boolean isComplianceJava9OrHigher() {
+		return true;
 	}
 
 	@Override

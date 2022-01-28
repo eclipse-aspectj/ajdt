@@ -1,13 +1,13 @@
 /* *******************************************************************
  * Copyright (c) 2002 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     PARC     initial implementation
  *     Alexandre Vasseur    @AspectJ ITDs
  * ******************************************************************/
 
@@ -156,7 +156,7 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 	// This set contains pairs of types whose signatures are concatenated
 	// together, this means with a fast lookup we can tell if two types
 	// are equivalent.
-	protected static Set<String> validBoxing = new HashSet<String>();
+	protected static Set<String> validBoxing = new HashSet<>();
 
 	static {
 		validBoxing.add("Ljava/lang/Byte;B");
@@ -202,14 +202,14 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 	/**
 	 * returns an iterator through all of the fields of this type, in order for checking from JVM spec 2ed 5.4.3.2. This means that
 	 * the order is
-	 * <p/>
 	 * <ul>
 	 * <li>fields from current class</li>
 	 * <li>recur into direct superinterfaces</li>
 	 * <li>recur into superclass</li>
 	 * </ul>
-	 * <p/>
+	 * <p>
 	 * We keep a hashSet of interfaces that we've visited so we don't spiral out into 2^n land.
+	 * </p>
 	 */
 	public Iterator<ResolvedMember> getFields() {
 		final Iterators.Filter<ResolvedType> dupFilter = Iterators.dupFilter();
@@ -225,14 +225,12 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 	/**
 	 * returns an iterator through all of the methods of this type, in order for checking from JVM spec 2ed 5.4.3.3. This means that
 	 * the order is
-	 * <p/>
 	 * <ul>
 	 * <li>methods from current class</li>
 	 * <li>recur into superclass, all the way up, not touching interfaces</li>
 	 * <li>recur into all superinterfaces, in some unspecified order (but those 'closest' to this type are first)</li>
 	 * </ul>
-	 * <p/>
-	 * 
+	 *
 	 * @param wantGenerics is true if the caller would like all generics information, otherwise those methods are collapsed to their
 	 *        erasure
 	 */
@@ -315,19 +313,24 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 	/**
 	 * Return an iterator over the types in this types hierarchy - starting with this type first, then all superclasses up to Object
 	 * and then all interfaces (starting with those 'nearest' this type).
-	 * 
-	 * @param wantGenerics true if the caller wants full generic information
-	 * @param wantDeclaredParents true if the caller even wants those parents introduced via declare parents
 	 * @return an iterator over all types in the hierarchy of this type
 	 */
 	public Iterator<ResolvedType> getHierarchy() {
 		return getHierarchy(false, false);
 	}
 
+	/**
+	 * Return an iterator over the types in this types hierarchy - starting with this type first, then all superclasses up to Object
+	 * and then all interfaces (starting with those 'nearest' this type).
+	 *
+	 * @param wantGenerics true if the caller wants full generic information
+	 * @param wantDeclaredParents true if the caller even wants those parents introduced via declare parents
+	 * @return an iterator over all types in the hierarchy of this type
+	 */
 	public Iterator<ResolvedType> getHierarchy(final boolean wantGenerics, final boolean wantDeclaredParents) {
 
 		final Iterators.Getter<ResolvedType, ResolvedType> interfaceGetter = new Iterators.Getter<ResolvedType, ResolvedType>() {
-			List<String> alreadySeen = new ArrayList<String>(); // Strings are signatures (ResolvedType.getSignature())
+			List<String> alreadySeen = new ArrayList<>(); // Strings are signatures (ResolvedType.getSignature())
 
 			@Override
 			public Iterator<ResolvedType> get(ResolvedType type) {
@@ -337,7 +340,7 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 				// relatively expensive but hopefully uncommon
 				if (!wantDeclaredParents && type.hasNewParentMungers()) {
 					// Throw away interfaces from that array if they were decp'd onto here
-					List<Integer> forRemoval = new ArrayList<Integer>();
+					List<Integer> forRemoval = new ArrayList<>();
 					for (ConcreteTypeMunger munger : type.interTypeMungers) {
 						if (munger.getMunger() != null) {
 							ResolvedTypeMunger m = munger.getMunger();
@@ -391,8 +394,8 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 	 * declared on the superinterfaces. This is expensive - use the getMethods() method if you can!
 	 */
 	public List<ResolvedMember> getMethodsWithoutIterator(boolean includeITDs, boolean allowMissing, boolean genericsAware) {
-		List<ResolvedMember> methods = new ArrayList<ResolvedMember>();
-		Set<String> knowninterfaces = new HashSet<String>();
+		List<ResolvedMember> methods = new ArrayList<>();
+		Set<String> knowninterfaces = new HashSet<>();
 		addAndRecurse(knowninterfaces, methods, this, includeITDs, allowMissing, genericsAware);
 		return methods;
 	}
@@ -400,13 +403,13 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 	/**
 	 * Return a list of the types in the hierarchy of this type, starting with this type. The order in the list is the superclasses
 	 * followed by the super interfaces.
-	 * 
+	 *
 	 * @param genericsAware should the list include parameterized/generic types (if not, they will be collapsed to raw)?
 	 * @return list of resolvedtypes in this types hierarchy, including this type first
 	 */
 	public List<ResolvedType> getHierarchyWithoutIterator(boolean includeITDs, boolean allowMissing, boolean genericsAware) {
-		List<ResolvedType> types = new ArrayList<ResolvedType>();
-		Set<String> visited = new HashSet<String>();
+		List<ResolvedType> types = new ArrayList<>();
+		Set<String> visited = new HashSet<>();
 		recurseHierarchy(visited, types, this, includeITDs, allowMissing, genericsAware);
 		return types;
 	}
@@ -437,8 +440,8 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 		}
 		// Go through the interfaces on the way back down
 		ResolvedType[] interfaces = resolvedType.getDeclaredInterfaces();
-		for (int i = 0; i < interfaces.length; i++) {
-			ResolvedType iface = interfaces[i];
+		for (ResolvedType anInterface : interfaces) {
+			ResolvedType iface = anInterface;
 			if (!genericsAware && iface.isParameterizedOrGenericType()) {
 				iface = iface.getRawType();
 			}
@@ -487,8 +490,8 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 		}
 		// Go through the interfaces on the way back down
 		ResolvedType[] interfaces = resolvedType.getDeclaredInterfaces();
-		for (int i = 0; i < interfaces.length; i++) {
-			ResolvedType iface = interfaces[i];
+		for (ResolvedType anInterface : interfaces) {
+			ResolvedType iface = anInterface;
 			if (!genericsAware && (iface.isParameterizedType() || iface.isGenericType())) {
 				iface = iface.getRawType();
 			}
@@ -548,13 +551,13 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 
 	/**
 	 * described in JVM spec 2ed 5.4.3.3. Doesnt check ITDs.
-	 * 
+	 *
 	 * <p>
 	 * Check the current type for the method. If it is not found, check the super class and any super interfaces. Taking care not to
 	 * process interfaces multiple times.
 	 */
 	public ResolvedMember lookupMethod(Member m) {
-		List<ResolvedType> typesTolookat = new ArrayList<ResolvedType>();
+		List<ResolvedType> typesTolookat = new ArrayList<>();
 		typesTolookat.add(this);
 		int pos = 0;
 		while (pos < typesTolookat.size()) {
@@ -562,8 +565,7 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 			if (!type.isMissing()) {
 				ResolvedMember[] methods = type.getDeclaredMethods();
 				if (methods != null) {
-					for (int i = 0; i < methods.length; i++) {
-						ResolvedMember method = methods[i];
+					for (ResolvedMember method : methods) {
 						if (matches(method, m)) {
 							return method;
 						}
@@ -584,8 +586,7 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 			// Queue any interfaces not already checked:
 			ResolvedType[] superinterfaces = type.getDeclaredInterfaces();
 			if (superinterfaces != null) {
-				for (int i = 0; i < superinterfaces.length; i++) {
-					ResolvedType interf = superinterfaces[i];
+				for (ResolvedType interf : superinterfaces) {
 					if (!typesTolookat.contains(interf)) {
 						typesTolookat.add(interf);
 					}
@@ -612,8 +613,7 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 	 * return null if not found
 	 */
 	private ResolvedMember lookupMember(Member m, ResolvedMember[] a) {
-		for (int i = 0; i < a.length; i++) {
-			ResolvedMember f = a[i];
+		for (ResolvedMember f : a) {
 			if (matches(f, m)) {
 				return f;
 			}
@@ -635,7 +635,7 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 			toSearch = getMethodsIncludingIntertypeDeclarations(!eraseGenerics, true);
 		} else if (aMember.getKind()==Member.ADVICE) {
 			return null;
-		} else { 
+		} else {
 			assert aMember.getKind() == Member.FIELD;
 			toSearch = getFields();
 		}
@@ -693,7 +693,7 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 	/**
 	 * Do the two members conflict?  Due to the change in 1.7.1, field itds on interfaces now act like 'default' fields - so types implementing
 	 * those fields get the field if they don't have it already, otherwise they keep what they have.  The conflict detection below had to be
-	 * altered.  Previously (<1.7.1) it is not a conflict if the declaring types are different.  With v2itds it may still be a conflict if the
+	 * altered.  Previously (&lt;1.7.1) it is not a conflict if the declaring types are different.  With v2itds it may still be a conflict if the
 	 * declaring types are different.
 	 */
 	public static boolean conflictingSignature(Member m1, Member m2, boolean v2itds) {
@@ -742,14 +742,14 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 	/**
 	 * returns an iterator through all of the pointcuts of this type, in order for checking from JVM spec 2ed 5.4.3.2 (as for
 	 * fields). This means that the order is
-	 * <p/>
 	 * <ul>
 	 * <li>pointcuts from current class</li>
 	 * <li>recur into direct superinterfaces</li>
 	 * <li>recur into superclass</li>
 	 * </ul>
-	 * <p/>
+	 * <p>
 	 * We keep a hashSet of interfaces that we've visited so we don't spiral out into 2^n land.
+	 * </p>
 	 */
 	public Iterator<ResolvedMember> getPointcuts() {
 		final Iterators.Filter<ResolvedType> dupFilter = Iterators.dupFilter();
@@ -810,7 +810,7 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 			return Collections.emptyList();
 		}
 
-		List<Declare> ret = new ArrayList<Declare>();
+		List<Declare> ret = new ArrayList<>();
 		// if (this.isAbstract()) {
 		// for (Iterator i = getDeclares().iterator(); i.hasNext();) {
 		// Declare dec = (Declare) i.next();
@@ -833,8 +833,7 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 			while (typeIterator.hasNext()) {
 				ResolvedType ty = typeIterator.next();
 				// System.out.println("super: " + ty + ", " + );
-				for (Iterator<Declare> i = ty.getDeclares().iterator(); i.hasNext();) {
-					Declare dec = i.next();
+				for (Declare dec : ty.getDeclares()) {
 					if (dec.isAdviceLike()) {
 						if (includeAdviceLike) {
 							ret.add(dec);
@@ -854,7 +853,7 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 			return Collections.emptyList();
 		}
 
-		List<ShadowMunger> acc = new ArrayList<ShadowMunger>();
+		List<ShadowMunger> acc = new ArrayList<>();
 		final Iterators.Filter<ResolvedType> dupFilter = Iterators.dupFilter();
 		Iterators.Getter<ResolvedType, ResolvedType> typeGetter = new Iterators.Getter<ResolvedType, ResolvedType>() {
 			@Override
@@ -951,7 +950,7 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 	public AnnotationAJ[] getAnnotations() {
 		throw new RuntimeException("ResolvedType.getAnnotations() should never be called");
 	}
-	
+
 	public boolean hasAnnotations() {
 		throw new RuntimeException("ResolvedType.getAnnotations() should never be called");
 	}
@@ -979,7 +978,7 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 	}
 
 	public boolean isSynthetic() {
-		return signature.indexOf("$ajc") != -1;
+		return signature.contains("$ajc");
 	}
 
 	public final boolean isFinal() {
@@ -991,7 +990,7 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 			return Collections.emptyMap();
 		}
 		TypeVariable[] tvs = getGenericType().getTypeVariables();
-		Map<String, UnresolvedType> parameterizationMap = new HashMap<String, UnresolvedType>();
+		Map<String, UnresolvedType> parameterizationMap = new HashMap<>();
 		if (tvs.length != typeParameters.length) {
 			world.getMessageHandler()
 					.handleMessage(
@@ -1025,14 +1024,14 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 	}
 
 	public List<ShadowMunger> getDeclaredAdvice() {
-		List<ShadowMunger> l = new ArrayList<ShadowMunger>();
+		List<ShadowMunger> l = new ArrayList<>();
 		ResolvedMember[] methods = getDeclaredMethods();
 		if (isParameterizedType()) {
 			methods = getGenericType().getDeclaredMethods();
 		}
 		Map<String, UnresolvedType> typeVariableMap = getAjMemberParameterizationMap();
-		for (int i = 0, len = methods.length; i < len; i++) {
-			ShadowMunger munger = methods[i].getAssociatedShadowMunger();
+		for (ResolvedMember method : methods) {
+			ShadowMunger munger = method.getAssociatedShadowMunger();
 			if (munger != null) {
 				if (ajMembersNeedParameterization()) {
 					// munger.setPointcut(munger.getPointcut().parameterizeWith(
@@ -1041,7 +1040,7 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 					if (munger instanceof Advice) {
 						Advice advice = (Advice) munger;
 						// update to use the parameterized signature...
-						UnresolvedType[] ptypes = methods[i].getGenericParameterTypes();
+						UnresolvedType[] ptypes = method.getGenericParameterTypes();
 						UnresolvedType[] newPTypes = new UnresolvedType[ptypes.length];
 						for (int j = 0; j < ptypes.length; j++) {
 							if (ptypes[j] instanceof TypeVariableReferenceType) {
@@ -1080,13 +1079,13 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 	}
 
 	private ResolvedMember[] filterInJavaVisible(ResolvedMember[] ms) {
-		List<ResolvedMember> l = new ArrayList<ResolvedMember>();
-		for (int i = 0, len = ms.length; i < len; i++) {
-			if (!ms[i].isAjSynthetic() && ms[i].getAssociatedShadowMunger() == null) {
-				l.add(ms[i]);
+		List<ResolvedMember> l = new ArrayList<>();
+		for (ResolvedMember m : ms) {
+			if (!m.isAjSynthetic() && m.getAssociatedShadowMunger() == null) {
+				l.add(m);
 			}
 		}
-		return l.toArray(new ResolvedMember[l.size()]);
+		return l.toArray(ResolvedMember.NONE);
 	}
 
 	public abstract ISourceContext getSourceContext();
@@ -1123,7 +1122,7 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 		public final int getSize() {
 			return size;
 		}
-		
+
 		@Override
 		public final int getModifiers() {
 			return Modifier.PUBLIC | Modifier.FINAL;
@@ -1359,7 +1358,7 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 
 	/**
 	 * as lookupMemberNoSupers, but does not include ITDs
-	 * 
+	 *
 	 * @param member
 	 * @return
 	 */
@@ -1378,7 +1377,7 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 	/**
 	 * This lookup has specialized behaviour - a null result tells the EclipseTypeMunger that it should make a default
 	 * implementation of a method on this type.
-	 * 
+	 *
 	 * @param member
 	 * @return
 	 */
@@ -1398,8 +1397,8 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 			if (ret == null) {
 				// try interfaces then, but only ITDs now...
 				ResolvedType[] superInterfaces = onType.getDeclaredInterfaces();
-				for (int i = 0; i < superInterfaces.length; i++) {
-					ret = superInterfaces[i].lookupMethodInITDs(member);
+				for (ResolvedType superInterface : superInterfaces) {
+					ret = superInterface.lookupMethodInITDs(member);
 					if (ret != null) {
 						return ret;
 					}
@@ -1409,14 +1408,14 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 		return ret;
 	}
 
-	protected List<ConcreteTypeMunger> interTypeMungers = new ArrayList<ConcreteTypeMunger>();
+	protected List<ConcreteTypeMunger> interTypeMungers = new ArrayList<>();
 
 	public List<ConcreteTypeMunger> getInterTypeMungers() {
 		return interTypeMungers;
 	}
 
 	public List<ConcreteTypeMunger> getInterTypeParentMungers() {
-		List<ConcreteTypeMunger> l = new ArrayList<ConcreteTypeMunger>();
+		List<ConcreteTypeMunger> l = new ArrayList<>();
 		for (ConcreteTypeMunger element : interTypeMungers) {
 			if (element.getMunger() instanceof NewParentTypeMunger) {
 				l.add(element);
@@ -1429,13 +1428,13 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 	 * ??? This method is O(N*M) where N = number of methods and M is number of inter-type declarations in my super
 	 */
 	public List<ConcreteTypeMunger> getInterTypeMungersIncludingSupers() {
-		ArrayList<ConcreteTypeMunger> ret = new ArrayList<ConcreteTypeMunger>();
+		List<ConcreteTypeMunger> ret = new ArrayList<>();
 		collectInterTypeMungers(ret);
 		return ret;
 	}
 
 	public List<ConcreteTypeMunger> getInterTypeParentMungersIncludingSupers() {
-		ArrayList<ConcreteTypeMunger> ret = new ArrayList<ConcreteTypeMunger>();
+		List<ConcreteTypeMunger> ret = new ArrayList<>();
 		collectInterTypeParentMungers(ret);
 		return ret;
 	}
@@ -1528,7 +1527,7 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 	/**
 	 * See PR70794. This method checks that if an abstract inter-type method declaration is made on an interface then it must also
 	 * be public. This is a compiler limitation that could be made to work in the future (if someone provides a worthwhile usecase)
-	 * 
+	 *
 	 * @return indicates if the munger failed the check
 	 */
 	private boolean checkAbstractDeclaration(ConcreteTypeMunger munger) {
@@ -1561,11 +1560,12 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 	/**
 	 * Returns a ResolvedType object representing the declaring type of this type, or null if this type does not represent a
 	 * non-package-level-type.
-	 * <p/>
+	 * <p>
 	 * <strong>Warning</strong>: This is guaranteed to work for all member types. For anonymous/local types, the only guarantee is
 	 * given in JLS 13.1, where it guarantees that if you call getDeclaringType() repeatedly, you will eventually get the top-level
 	 * class, but it does not say anything about classes in between.
-	 * 
+	 * </p>
+	 *
 	 * @return the declaring type, or null if it is not an nested type.
 	 */
 	public ResolvedType getDeclaringType() {
@@ -1623,7 +1623,7 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 	/**
 	 * Look up the actual occurence of a particular type in the hierarchy for 'this' type. The input is going to be a generic type,
 	 * and the caller wants to know if it was used in its RAW or a PARAMETERIZED form in this hierarchy.
-	 * 
+	 *
 	 * returns null if it can't be found.
 	 */
 	public ResolvedType discoverActualOccurrenceOfTypeInHierarchy(ResolvedType lookingFor) {
@@ -1646,8 +1646,7 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 		}
 
 		ResolvedType[] superIs = getDeclaredInterfaces();
-		for (int i = 0; i < superIs.length; i++) {
-			ResolvedType superI = superIs[i];
+		for (ResolvedType superI : superIs) {
 			if (superI.genericTypeEquals(lookingFor)) {
 				return superI;
 			}
@@ -1662,8 +1661,8 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 	/**
 	 * Called for all type mungers but only does something if they share type variables with a generic type which they target. When
 	 * this happens this routine will check for the target type in the target hierarchy and 'bind' any type parameters as
-	 * appropriate. For example, for the ITD "List<T> I<T>.x" against a type like this: "class A implements I<String>" this routine
-	 * will return a parameterized form of the ITD "List<String> I.x"
+	 * appropriate. For example, for the ITD "List&lt;T&gt; I&lt;T&gt;.x" against a type like this: "class A implements I&lt;String&gt;" this routine
+	 * will return a parameterized form of the ITD "List&lt;String&gt; I.x"
 	 */
 	public ConcreteTypeMunger fillInAnyTypeParameters(ConcreteTypeMunger munger) {
 		boolean debug = false;
@@ -1785,7 +1784,7 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 													.equals(newFieldTypeMunger.getSignature().getDeclaringType())) {
 
 										// report error on the aspect
-										StringBuffer sb = new StringBuffer();
+										StringBuilder sb = new StringBuilder();
 										sb.append("Cannot handle two aspects both attempting to use new style ITDs for the same named field ");
 										sb.append("on the same target type.  Please recompile at least one aspect with '-Xset:itdVersion=1'.");
 										sb.append(" Aspects involved: " + munger.getAspectType().getName() + " and "
@@ -1868,7 +1867,7 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 	/**
 	 * Compare the type transformer with the existing members. A clash may not be an error (the ITD may be the 'default
 	 * implementation') so returning false is not always a sign of an error.
-	 * 
+	 *
 	 * @return true if there is a clash
 	 */
 	private boolean clashesWithExistingMember(ConcreteTypeMunger typeTransformer, Iterator<ResolvedMember> existingMembers) {
@@ -1925,7 +1924,7 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 								if (Modifier.isPrivate(typeTransformerSignature.getModifiers()) &&
 									Modifier.isPublic(existingMember.getModifiers())) {
 									world.getMessageHandler().handleMessage(new Message("private intertype declaration '"+typeTransformerSignature.toString()+"' clashes with public member '"+existingMember.toString()+"'",existingMember.getSourceLocation(),true));
-								}	
+								}
 							}
 						}
 						// existingMember dominates munger
@@ -2096,7 +2095,7 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 		} else {
 			ResolvedType rtParentReturnType = parent.resolve(world).getGenericReturnType().resolve(world);
 			ResolvedType rtChildReturnType = child.resolve(world).getGenericReturnType().resolve(world);
-			
+
 			incompatibleReturnTypes = !rtParentReturnType.equals(rtChildReturnType);
 		}
 
@@ -2128,17 +2127,18 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 		ResolvedType runtimeException = world.resolve("java.lang.RuntimeException");
 		ResolvedType error = world.resolve("java.lang.Error");
 
-		outer: for (int i = 0, leni = childExceptions.length; i < leni; i++) {
+		outer:
+		for (ResolvedType childException : childExceptions) {
 			// System.err.println("checking: " + childExceptions[i]);
-			if (runtimeException.isAssignableFrom(childExceptions[i])) {
+			if (runtimeException.isAssignableFrom(childException)) {
 				continue;
 			}
-			if (error.isAssignableFrom(childExceptions[i])) {
+			if (error.isAssignableFrom(childException)) {
 				continue;
 			}
 
-			for (int j = 0, lenj = parentExceptions.length; j < lenj; j++) {
-				if (parentExceptions[j].isAssignableFrom(childExceptions[i])) {
+			for (ResolvedType parentException : parentExceptions) {
+				if (parentException.isAssignableFrom(childException)) {
 					continue outer;
 				}
 			}
@@ -2262,7 +2262,7 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 				int count = ret.getParameterTypes().length;
 				String[] paramNames = new String[count];
 				for (int i = 0; i < count; i++) {
-					paramNames[i] = new StringBuffer("dim").append(i).toString();
+					paramNames[i] = new StringBuilder("dim").append(i).toString();
 				}
 				ret.setParameterNames(paramNames);
 				return ret;
@@ -2315,8 +2315,8 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 
 		private Getter<ResolvedType, ResolvedType> ifaceGetter;
 		Iterator<ResolvedType> delegate = null;
-		public Queue<ResolvedType> toPersue = new LinkedList<ResolvedType>();
-		public Set<ResolvedType> visited = new HashSet<ResolvedType>();
+		public Queue<ResolvedType> toPersue = new LinkedList<>();
+		public Set<ResolvedType> visited = new HashSet<>();
 
 		SuperInterfaceWalker(Iterators.Getter<ResolvedType, ResolvedType> ifaceGetter) {
 			this.ifaceGetter = ifaceGetter;
@@ -2377,7 +2377,7 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 		}
 		// interTypeMungers.clear();
 		// BUG? Why can't this be clear() instead: 293620 c6
-		interTypeMungers = new ArrayList<ConcreteTypeMunger>();
+		interTypeMungers = new ArrayList<>();
 	}
 
 	public boolean isTopmostImplementor(ResolvedType interfaceType) {
@@ -2414,7 +2414,7 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 	}
 
 	public List<ResolvedMember> getExposedPointcuts() {
-		List<ResolvedMember> ret = new ArrayList<ResolvedMember>();
+		List<ResolvedMember> ret = new ArrayList<>();
 		if (getSuperclass() != null) {
 			ret.addAll(getSuperclass().getExposedPointcuts());
 		}
@@ -2439,9 +2439,9 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 	}
 
 	private void addPointcutsResolvingConflicts(List<ResolvedMember> acc, List<ResolvedMember> added, boolean isOverriding) {
-		for (Iterator<ResolvedMember> i = added.iterator(); i.hasNext();) {
-			ResolvedPointcutDefinition toAdd = (ResolvedPointcutDefinition) i.next();
-			for (Iterator<ResolvedMember> j = acc.iterator(); j.hasNext();) {
+		for (ResolvedMember resolvedMember : added) {
+			ResolvedPointcutDefinition toAdd = (ResolvedPointcutDefinition) resolvedMember;
+			for (Iterator<ResolvedMember> j = acc.iterator(); j.hasNext(); ) {
 				ResolvedPointcutDefinition existing = (ResolvedPointcutDefinition) j.next();
 				if (toAdd == null || existing == null || existing == toAdd) {
 					continue;
@@ -2495,7 +2495,7 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 
 	/**
 	 * Overridden by ReferenceType to return a sensible answer for parameterized and raw types.
-	 * 
+	 *
 	 * @return
 	 */
 	public ReferenceType getGenericType() {
@@ -2517,7 +2517,7 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 	}
 
 	/**
-	 * Iff I am a parameterized type, and any of my parameters are type variable references (or nested parameterized types), 
+	 * Iff I am a parameterized type, and any of my parameters are type variable references (or nested parameterized types),
 	 * return a version with those type parameters replaced in accordance with the passed bindings.
 	 */
 	@Override
@@ -2527,8 +2527,8 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 			return this;
 		}
 		boolean workToDo = false;
-		for (int i = 0; i < typeParameters.length; i++) {
-			if (typeParameters[i].isTypeVariableReference() || (typeParameters[i] instanceof BoundedReferenceType) || typeParameters[i].isParameterizedType()) {
+		for (UnresolvedType typeParameter : typeParameters) {
+			if (typeParameter.isTypeVariableReference() || (typeParameter instanceof BoundedReferenceType) || typeParameter.isParameterizedType()) {
 				workToDo = true;
 			}
 		}
@@ -2574,7 +2574,7 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 
 	/**
 	 * Similar to the above method, but accumulates the super types
-	 * 
+	 *
 	 * @return
 	 */
 	// public ResolvedType[] getParameterizedSuperTypes() {
@@ -2625,9 +2625,8 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 	 * from all types. A primitive type is convertable from X iff it's assignable from X. A reference type is convertable from X iff
 	 * it's coerceable from X. In other words, X isConvertableFrom Y iff the compiler thinks that _some_ value of Y could be
 	 * assignable to a variable of type X without loss of precision.
-	 * 
+	 *
 	 * @param other the other type
-	 * @param world the {@link World} in which the possible assignment should be checked.
 	 * @return true iff variables of this type could be assigned values of other with possible conversion
 	 */
 	public final boolean isConvertableFrom(ResolvedType other) {
@@ -2663,9 +2662,8 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 	/**
 	 * Determines if the variables of this type could be assigned values of another type without casting. This still allows for
 	 * assignment conversion as per JLS 2ed 5.2. For object types, this means supertypeOrEqual(THIS, OTHER).
-	 * 
+	 *
 	 * @param other the other type
-	 * @param world the {@link World} in which the possible assignment should be checked.
 	 * @return true iff variables of this type could be assigned values of other without casting
 	 * @throws NullPointerException if other is null
 	 */
@@ -2676,20 +2674,18 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 	/**
 	 * Determines if values of another type could possibly be cast to this type. The rules followed are from JLS 2ed 5.5,
 	 * "Casting Conversion".
-	 * <p/>
 	 * <p>
 	 * This method should be commutative, i.e., for all UnresolvedType a, b and all World w:
-	 * <p/>
+	 * </p>
 	 * <blockquote>
-	 * 
+	 *
 	 * <pre>
 	 * a.isCoerceableFrom(b, w) == b.isCoerceableFrom(a, w)
 	 * </pre>
-	 * 
+	 *
 	 * </blockquote>
-	 * 
+	 *
 	 * @param other the other type
-	 * @param world the {@link World} in which the possible coersion should be checked.
 	 * @return true iff values of other could possibly be cast to this type.
 	 * @throws NullPointerException if other is null.
 	 */
@@ -2720,22 +2716,22 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 				return false;
 			}
 
-			for (int i = 0; i < typeParameters.length; i++) {
-				ResolvedType aType = (ResolvedType) typeParameters[i];
+			for (UnresolvedType typeParameter : typeParameters) {
+				ResolvedType aType = (ResolvedType) typeParameter;
 				if (aType.isTypeVariableReference()
-				// Changed according to the problems covered in bug 222648
-				// Don't care what kind of type variable - the fact that there
-				// is one
-				// at all means we can't risk caching it against we get confused
-				// later
-				// by another variation of the parameterization that just
-				// happens to
-				// use the same type variable name
+					// Changed according to the problems covered in bug 222648
+					// Don't care what kind of type variable - the fact that there
+					// is one
+					// at all means we can't risk caching it against we get confused
+					// later
+					// by another variation of the parameterization that just
+					// happens to
+					// use the same type variable name
 
-				// assume the worst - if its definetly not a type declared one,
-				// it could be anything
-				// && ((TypeVariableReference)aType).getTypeVariable().
-				// getDeclaringElementKind()!=TypeVariable.TYPE
+					// assume the worst - if its definetly not a type declared one,
+					// it could be anything
+					// && ((TypeVariableReference)aType).getTypeVariable().
+					// getDeclaringElementKind()!=TypeVariable.TYPE
 				) {
 					parameterizedWithTypeVariable = FuzzyBoolean.YES;
 					return true;
@@ -2880,7 +2876,7 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 
 	/**
 	 * return the weaver version used to build this type - defaults to the most recent version unless discovered otherwise.
-	 * 
+	 *
 	 * @return the (major) version, {@link WeaverVersionInfo}
 	 */
 	public int getCompilerVersion() {
@@ -2917,7 +2913,7 @@ public abstract class ResolvedType extends UnresolvedType implements AnnotatedEl
 		}
 		return (bits & IsGroovyObject) != 0;
 	}
-	
+
 	public boolean isPrivilegedAspect() {
 		if ((bits & IsPrivilegedBitInitialized) == 0) {
 			AnnotationAJ privilegedAnnotation = getAnnotationOfType(UnresolvedType.AJC_PRIVILEGED);

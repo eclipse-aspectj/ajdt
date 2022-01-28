@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -18,8 +18,18 @@ import java.util.regex.Pattern;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
-import org.aspectj.org.eclipse.jdt.core.*;
-import org.aspectj.org.eclipse.jdt.core.compiler.*;
+import org.aspectj.org.eclipse.jdt.core.IField;
+import org.aspectj.org.eclipse.jdt.core.IImportDeclaration;
+import org.aspectj.org.eclipse.jdt.core.IJavaElement;
+import org.aspectj.org.eclipse.jdt.core.IMember;
+import org.aspectj.org.eclipse.jdt.core.IMethod;
+import org.aspectj.org.eclipse.jdt.core.IModularClassFile;
+import org.aspectj.org.eclipse.jdt.core.IType;
+import org.aspectj.org.eclipse.jdt.core.ITypeParameter;
+import org.aspectj.org.eclipse.jdt.core.JavaModelException;
+import org.aspectj.org.eclipse.jdt.core.Signature;
+import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
+import org.aspectj.org.eclipse.jdt.core.compiler.InvalidInputException;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.AccessRuleSet;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.Scanner;
@@ -33,7 +43,22 @@ import org.aspectj.org.eclipse.jdt.internal.core.search.IndexQueryRequestor;
 import org.aspectj.org.eclipse.jdt.internal.core.search.JavaSearchScope;
 import org.aspectj.org.eclipse.jdt.internal.core.search.StringOperation;
 import org.aspectj.org.eclipse.jdt.internal.core.search.indexing.IIndexConstants;
-import org.aspectj.org.eclipse.jdt.internal.core.search.matching.*;
+import org.aspectj.org.eclipse.jdt.internal.core.search.indexing.QualifierQuery;
+import org.aspectj.org.eclipse.jdt.internal.core.search.matching.AndPattern;
+import org.aspectj.org.eclipse.jdt.internal.core.search.matching.ConstructorPattern;
+import org.aspectj.org.eclipse.jdt.internal.core.search.matching.FieldPattern;
+import org.aspectj.org.eclipse.jdt.internal.core.search.matching.LocalVariablePattern;
+import org.aspectj.org.eclipse.jdt.internal.core.search.matching.MatchLocator;
+import org.aspectj.org.eclipse.jdt.internal.core.search.matching.MethodPattern;
+import org.aspectj.org.eclipse.jdt.internal.core.search.matching.ModulePattern;
+import org.aspectj.org.eclipse.jdt.internal.core.search.matching.OrPattern;
+import org.aspectj.org.eclipse.jdt.internal.core.search.matching.PackageDeclarationPattern;
+import org.aspectj.org.eclipse.jdt.internal.core.search.matching.PackageReferencePattern;
+import org.aspectj.org.eclipse.jdt.internal.core.search.matching.QualifiedTypeDeclarationPattern;
+import org.aspectj.org.eclipse.jdt.internal.core.search.matching.SuperTypeReferencePattern;
+import org.aspectj.org.eclipse.jdt.internal.core.search.matching.TypeDeclarationPattern;
+import org.aspectj.org.eclipse.jdt.internal.core.search.matching.TypeParameterPattern;
+import org.aspectj.org.eclipse.jdt.internal.core.search.matching.TypeReferencePattern;
 
 
 /**
@@ -218,7 +243,7 @@ public abstract class SearchPattern {
 	 * of other match rule flags are combined with this one, then match rule validation
 	 * will return a modified rule in order to perform a better appropriate search request
 	 * (see {@link #validateMatchRule(String, int)} for more details).
-	 * 
+	 *
 	 * <p>
 	 * This is implemented only for code assist and not available for normal search.
 	 *
@@ -226,31 +251,70 @@ public abstract class SearchPattern {
 	 */
 	public static final int R_SUBSTRING_MATCH = 0x0200;
 
+	/**
+	 * Match rule: The search pattern contains a subword expression in a case-insensitive way.
+	 * <p>
+	 * Examples:
+	 * <ul>
+	 * 	<li>'addlist' string pattern will match
+	 * 		'addListener' and 'addChangeListener'</li>
+	 * </ul>
+	 *
+	 * This rule is not intended to be combined with any other match rule. In case
+	 * of other match rule flags are combined with this one, then match rule validation
+	 * will return a modified rule in order to perform a better appropriate search request
+	 * (see {@link #validateMatchRule(String, int)} for more details).
+	 *
+	 * <p>
+	 * This is implemented only for code assist and not available for normal search.
+	 *
+	 * @noreference This is not intended to be referenced by clients as it is a part of Java preview feature.
+	 * @since 3.21
+	 */
+	public static final int R_SUBWORD_MATCH = 0x0400;
+
 	private static final int MODE_MASK = R_EXACT_MATCH
 		| R_PREFIX_MATCH
 		| R_PATTERN_MATCH
 		| R_REGEXP_MATCH
 		| R_CAMELCASE_MATCH
-		| R_CAMELCASE_SAME_PART_COUNT_MATCH;
+		| R_CAMELCASE_SAME_PART_COUNT_MATCH
+		| R_SUBSTRING_MATCH
+		| R_SUBWORD_MATCH;
 
 	private int matchRule;
 
 	/**
 	 * The focus element (used for reference patterns)
-	 * @noreference This field is not intended to be referenced by clients. 
+	 * @noreference This field is not intended to be referenced by clients.
 	 */
 	public IJavaElement focus;
+
+	/**
+	 * The encoded index qualifier query which is used to narrow down number of indexes to search based on the qualifier.
+	 * This is optional. In absence all indexes provided by scope will be searched.
+	 * <br>
+	 * The encoded query format is as following
+	 * <pre>
+	 * CATEGORY1[,CATEGORY2]:SIMPLE_KEY:QUALIFIED_KEY
+	 * </pre>
+	 * if the category is not provided, then the index qualifier search will be done for all type of qualifiers.
+	 *
+	 * @noreference This field is not intended to be referenced by clients.
+	 * @see QualifierQuery#encodeQuery(org.aspectj.org.eclipse.jdt.internal.core.search.indexing.QualifierQuery.QueryCategory[], char[], char[])
+	 */
+	public char[] indexQualifierQuery;
 
 	/**
 	 * @noreference This field is not intended to be referenced by clients.
 	 */
 	public int kind;
-	
+
 	/**
 	 * @noreference This field is not intended to be referenced by clients.
 	 */
 	public boolean mustResolve = true;
-	
+
 /**
  * Creates a search pattern with the rule to apply for matching index keys.
  * It can be exact match, prefix match, pattern match or regexp match.
@@ -317,7 +381,7 @@ public void acceptMatch(String relativePath, String containerPath, char separato
 		// Note that requestor has to verify if needed whether the document violates the access restriction or not
 		AccessRuleSet access = javaSearchScope.getAccessRuleSet(relativePath, containerPath);
 		if (access != JavaSearchScope.NOT_ENCLOSED) { // scope encloses the document path
-			StringBuffer documentPath = new StringBuffer(containerPath.length() + 1 + relativePath.length());
+			StringBuilder documentPath = new StringBuilder(containerPath.length() + 1 + relativePath.length());
 			documentPath.append(containerPath);
 			documentPath.append(separator);
 			documentPath.append(relativePath);
@@ -325,21 +389,21 @@ public void acceptMatch(String relativePath, String containerPath, char separato
 				throw new OperationCanceledException();
 		}
 	} else {
-		StringBuffer buffer = new StringBuffer(containerPath.length() + 1 + relativePath.length());
+		StringBuilder buffer = new StringBuilder(containerPath.length() + 1 + relativePath.length());
 		buffer.append(containerPath);
 		buffer.append(separator);
 		buffer.append(relativePath);
 		String documentPath = buffer.toString();
 		boolean encloses = (scope instanceof HierarchyScope) ? ((HierarchyScope)scope).encloses(documentPath, monitor)
 							: scope.encloses(documentPath);
-		if (encloses) 
+		if (encloses)
 			if (!requestor.acceptIndexMatch(documentPath, pattern, participant, null))
 				throw new OperationCanceledException();
 
 	}
 }
 /**
- * @noreference This method is not intended to be referenced by clients. 
+ * @noreference This method is not intended to be referenced by clients.
  * @nooverride This method is not intended to be re-implemented or extended by clients.
  */
 public SearchPattern currentPattern() {
@@ -375,7 +439,6 @@ public SearchPattern currentPattern() {
  * For instance, 'HM' , 'HaMa' and  'HMap' patterns will match 'HashMap',
  * 'HatMapper' <b>and also</b> 'HashMapEntry'.
  * <p>
- * <pre>
  * Examples:
  * <ol><li>  pattern = "NPE"
  *  name = NullPointerException / NoPermissionException
@@ -395,7 +458,7 @@ public SearchPattern currentPattern() {
  * <li>  pattern = "HMap"
  *  name = "HatMapper"
  *  result => true</li>
- * </ol></pre>
+ * </ol>
  *
  * @see #camelCaseMatch(String, int, int, String, int, int, boolean) for algorithm
  * implementation
@@ -445,7 +508,6 @@ public static final boolean camelCaseMatch(String pattern, String name) {
  * For instance, 'HM' , 'HaMa' and  'HMap' patterns will match 'HashMap' and
  * 'HatMapper' <b>but not</b> 'HashMapEntry'.
  * <p>
- * <pre>
  * Examples:
  * <ol><li>  pattern = "NPE"
  *  name = NullPointerException / NoPermissionException
@@ -462,7 +524,7 @@ public static final boolean camelCaseMatch(String pattern, String name) {
  * <li>  pattern = "HM"
  *  name = "HashMapEntry"
  *  result => (samePartCount == false)</li>
- * </ol></pre>
+ * </ol>
  *
  * @see #camelCaseMatch(String, int, int, String, int, int, boolean) for algorithm
  * 	implementation
@@ -525,8 +587,7 @@ public static final boolean camelCaseMatch(String pattern, String name, boolean 
  * pattern (see {@link #camelCaseMatch(String, int, int, String, int, int, boolean)}).<br>
  * For instance, 'HM' , 'HaMa' and  'HMap' patterns will match 'HashMap',
  * 'HatMapper' <b>and also</b> 'HashMapEntry'.
- * <p>
- * <pre>Examples:<ol>
+ * <ol>
  * <li>  pattern = "NPE"
  *  patternStart = 0
  *  patternEnd = 3
@@ -583,7 +644,7 @@ public static final boolean camelCaseMatch(String pattern, String name, boolean 
  *  nameStart = 0
  *  nameEnd = 9
  *  result => true</li>
- * </ol></pre>
+ * </ol>
  *
  * @param pattern the given pattern
  * @param patternStart the start index of the pattern, inclusive
@@ -632,7 +693,8 @@ public static final boolean camelCaseMatch(String pattern, int patternStart, int
  * For instance, 'HM' , 'HaMa' and  'HMap' patterns will match 'HashMap' and
  * 'HatMapper' <b>but not</b> 'HashMapEntry'.
  * <p>
- * <pre>Examples:<ol>
+ * Examples:
+ * <ol>
  * <li>  pattern = "NPE"
  *  patternStart = 0
  *  patternEnd = 3
@@ -682,7 +744,7 @@ public static final boolean camelCaseMatch(String pattern, int patternStart, int
  *  nameStart = 0
  *  nameEnd = 12
  *  result => (samePartCount == false)</li>
- * </ol></pre>
+ * </ol>
  *
  * @see CharOperation#camelCaseMatch(char[], int, int, char[], int, int, boolean)
  * 	from which algorithm implementation has been entirely copied.
@@ -712,7 +774,7 @@ public static final boolean camelCaseMatch(String pattern, int patternStart, int
 /**
  * Answers all the regions in a given name matching a given pattern using
  * a specified match rule.
- * </p><p>
+ * <p>
  * Each of these regions is made of its starting index and its length in the given
  * name. They are all concatenated in a single array of <code>int</code>
  * which therefore always has an even length.
@@ -735,7 +797,7 @@ public static final boolean camelCaseMatch(String pattern, int patternStart, int
  * Each of these rules may be combined with the
  * {@link #R_CASE_SENSITIVE case sensitive flag} if the match comparison
  * should respect the case.
- * <pre>
+ * <p>
  * Examples:
  * <ol><li>  pattern = "NPE"
  *  name = NullPointerException / NoPermissionException
@@ -761,7 +823,7 @@ public static final boolean camelCaseMatch(String pattern, int patternStart, int
  *  name = "HashMapEntry"
  *  matchRule = {@link #R_PATTERN_MATCH}
  *  result:  { 0, 2, 4, 1, 7, 3 }</li>
- * </ol></pre>
+ * </ol>
  *
  * @see #camelCaseMatch(String, String, boolean) for more details on the
  * 	camel case behavior
@@ -812,7 +874,7 @@ public static final boolean camelCaseMatch(String pattern, int patternStart, int
  *     <code>'?*'</code>, <code>'???'</code>, etc.) when using a pattern
  *     match rule.
  *     </p>
- * 
+ *
  * @since 3.5
  */
 public static final int[] getMatchingRegions(String pattern, String name, int matchRule) {
@@ -874,6 +936,8 @@ public static final int[] getMatchingRegions(String pattern, String name, int ma
 				return next >= 0 ? new int[] {next, patternLength} : null;
 			}
 			break;
+		case SearchPattern.R_SUBWORD_MATCH:
+			return CharOperation.getSubWordMatchingRegions(pattern, name);
 	}
 	return null;
 }
@@ -1452,7 +1516,7 @@ private static SearchPattern createPackagePattern(String patternString, int limi
  *      Unnamed modules can also be included and are represented either by an absence of module name implicitly
  *      or explicitly by specifying ALL-UNNAMED for module name.
  * 		Module graph search is also supported with the limitTo option set to <code>IJavaSearchConstants.MODULE_GRAPH</code>.
- *      In the module graph case, the given type is searched in all the modules required directly as well 
+ *      In the module graph case, the given type is searched in all the modules required directly as well
  *      as indirectly by the given module(s).
  *      </p>
  *      <p>
@@ -1464,7 +1528,7 @@ private static SearchPattern createPackagePattern(String patternString, int limi
  * 				<li><code>java.base/java.lang.Object</code></li>
  *				<li><code>mod.one, mod.two/pack.X</code> find declaration in the list of given modules.</li>
  *				<li><code>/pack.X</code> find in the unnamed module.</li>
- *				<li><code>ALL-UNNAMED/pack.X</code> find in the unnamed module.</li> 
+ *				<li><code>ALL-UNNAMED/pack.X</code> find in the unnamed module.</li>
  *			</ul>
  *			<p>
  * 	</li>
@@ -1540,16 +1604,16 @@ private static SearchPattern createPackagePattern(String patternString, int limi
  *				Note that types may be only classes or only interfaces if {@link IJavaSearchConstants#CLASS CLASS} or
  *				{@link IJavaSearchConstants#INTERFACE INTERFACE} is respectively used instead of {@link IJavaSearchConstants#TYPE TYPE}.
  *		</li>
- *		 <li>{@link IJavaSearchConstants#MODULE_GRAPH MODULE_GRAPH}: for types with a module prefix, 
+ *		 <li>{@link IJavaSearchConstants#MODULE_GRAPH MODULE_GRAPH}: for types with a module prefix,
  *             will find all types present in required modules (directly or indirectly required) ie
  *             in any module present in the module graph of the given module.
  *		</li>
  *		 <li>All other fine grain constants defined in the <b>limitTo</b> category
- *				of the {@link IJavaSearchConstants} are also accepted nature: 
- * 			<table border=0>
+ *				of the {@link IJavaSearchConstants} are also accepted nature:
+ * 			<table>
  *     			<tr>
- *         		<th align=left>Fine grain constant
- *         		<th align=left>Meaning
+ *         		<th>Fine grain constant
+ *         		<th>Meaning
  *     			<tr>
  *         		<td>{@link IJavaSearchConstants#FIELD_DECLARATION_TYPE_REFERENCE FIELD_DECLARATION_TYPE_REFERENCE}
  *         		<td>Return only type references used as the type of a field declaration.
@@ -1639,7 +1703,7 @@ private static SearchPattern createPackagePattern(String patternString, int limi
  * 	on non-generic types/methods search.</p>
  *
  * 	<p>Note that {@link #R_REGEXP_MATCH} is supported since 3.14  for the special case of
- * {@link IJavaSearchConstants#DECLARATIONS DECLARATIONS} search of 
+ * {@link IJavaSearchConstants#DECLARATIONS DECLARATIONS} search of
  * {@link IJavaSearchConstants#MODULE MODULE}</p>
  * 	<p>
  * 	Note also that the default behavior for generic types/methods search is to find exact matches.</p>
@@ -1731,11 +1795,11 @@ public static SearchPattern createPattern(String stringPattern, int searchFor, i
  *				references as specified above.
  *		</li>
  *		 <li>All other fine grain constants defined in the <b>limitTo</b> category
- *				of the {@link IJavaSearchConstants} are also accepted nature: 
- * 			<table border=0>
+ *				of the {@link IJavaSearchConstants} are also accepted nature:
+ * 			<table>
  *     			<tr>
- *         		<th align=left>Fine grain constant
- *         		<th align=left>Meaning
+ *         		<th>Fine grain constant
+ *         		<th>Meaning
  *     			<tr>
  *         		<td>{@link IJavaSearchConstants#FIELD_DECLARATION_TYPE_REFERENCE FIELD_DECLARATION_TYPE_REFERENCE}
  *         		<td>Return only type references used as the type of a field declaration.
@@ -1843,11 +1907,11 @@ public static SearchPattern createPattern(IJavaElement element, int limitTo) {
  *				references as specified above.
  *		</li>
  *		 <li>All other fine grain constants defined in the <b>limitTo</b> category
- *				of the {@link IJavaSearchConstants} are also accepted nature: 
- * 			<table border=0>
+ *				of the {@link IJavaSearchConstants} are also accepted nature:
+ * 			<table>
  *     			<tr>
- *         		<th align=left>Fine grain constant
- *         		<th align=left>Meaning
+ *         		<th>Fine grain constant
+ *         		<th>Meaning
  *     			<tr>
  *         		<td>{@link IJavaSearchConstants#FIELD_DECLARATION_TYPE_REFERENCE FIELD_DECLARATION_TYPE_REFERENCE}
  *         		<td>Return only type references used as the type of a field declaration.
@@ -1908,6 +1972,9 @@ public static SearchPattern createPattern(IJavaElement element, int limitTo) {
  *     			<tr>
  *         		<td>{@link IJavaSearchConstants#METHOD_REFERENCE_EXPRESSION METHOD_REFERENCE_EXPRESSION}
  *         		<td>Return only method reference expressions (e.g. <code>A :: foo</code>).
+ *         		<tr>
+ *         		<td>{@link IJavaSearchConstants#PERMITTYPE_TYPE_REFERENCE PERMITTYPE_TYPE_REFERENCE}
+ *         		<td>Return only type references used as a permit type.
  * 			</table>
  * 	</li>
  *	</ul>
@@ -2002,6 +2069,28 @@ public static SearchPattern createPattern(IJavaElement element, int limitTo, int
 					typeSignature,
 					limitTo,
 					matchRule);
+
+			//If field is record's component, create a OR pattern comprising of record's component and its accessor methods
+			IType declaringType = field.getDeclaringType();
+			try {
+				if( declaringType.isRecord()){
+					MethodPattern accessorMethodPattern = new MethodPattern(name,
+							declaringQualification,
+							declaringSimpleName,
+							typeQualification,
+							typeSimpleName,
+							null,
+							null,
+							field.getDeclaringType(),
+							limitTo,
+							matchRule);
+
+					searchPattern= new OrPattern(searchPattern,accessorMethodPattern);
+				}
+			} catch (JavaModelException e1) {
+			// continue with previous searchPattern
+			}
+
 			break;
 		case IJavaElement.IMPORT_DECLARATION :
 			String elementName = element.getElementName();
@@ -2380,8 +2469,8 @@ public void decodeIndexKey(char[] key) {
 }
 /**
  * Query a given index for matching entries. Assumes the sender has opened the index and will close when finished.
- * 
- * @noreference This method is not intended to be referenced by clients. 
+ *
+ * @noreference This method is not intended to be referenced by clients.
  * @nooverride This method is not intended to be re-implemented or extended by clients.
  */
 public void findIndexMatches(Index index, IndexQueryRequestor requestor, SearchParticipant participant, IJavaSearchScope scope, IProgressMonitor monitor) throws IOException {
@@ -2392,13 +2481,13 @@ public void findIndexMatches(Index index, IndexQueryRequestor requestor, SearchP
 		EntryResult[] entries = pattern.queryIn(index);
 		if (entries == null) return;
 
-		SearchPattern decodedResult = pattern.getBlankPattern();
 		String containerPath = index.containerPath;
 		char separator = index.separator;
 		for (int i = 0, l = entries.length; i < l; i++) {
 			if (monitor != null && monitor.isCanceled()) throw new OperationCanceledException();
 
 			EntryResult entry = entries[i];
+			SearchPattern decodedResult = pattern.getBlankPattern();
 			decodedResult.decodeIndexKey(entry.getWord());
 			if (pattern.matchesDecodedKey(decodedResult)) {
 				// TODO (kent) some clients may not need the document names
@@ -2464,7 +2553,7 @@ public final int getMatchRule() {
 	return this.matchRule;
 }
 /**
- * @noreference This method is not intended to be referenced by clients. 
+ * @noreference This method is not intended to be referenced by clients.
  * @nooverride This method is not intended to be re-implemented or extended by clients.
  */
 public boolean isPolymorphicSearch() {
@@ -2505,6 +2594,18 @@ public boolean matchesName(char[] pattern, char[] name) {
 		boolean sameLength = pattern.length == name.length;
 		boolean canBePrefix = name.length >= pattern.length;
 		boolean matchFirstChar = !isCaseSensitive || emptyPattern || (name.length > 0 &&  pattern[0] == name[0]);
+
+		if ((matchMode & R_SUBSTRING_MATCH) != 0) {
+			if (CharOperation.substringMatch(pattern, name))
+				return true;
+			matchMode &= ~R_SUBSTRING_MATCH;
+		}
+		if ((matchMode & SearchPattern.R_SUBWORD_MATCH) != 0) {
+			if (CharOperation.subWordMatch(pattern, name))
+				return true;
+			matchMode &= ~SearchPattern.R_SUBWORD_MATCH;
+		}
+
 		switch (matchMode) {
 			case R_EXACT_MATCH :
 				if (sameLength && matchFirstChar) {
@@ -2652,7 +2753,7 @@ public static int validateMatchRule(String stringPattern, int matchRule) {
 
 // enabling special cases (read regular expressions) based on searchFor and limitTo
 private static int validateMatchRule(String stringPattern, int searchFor, int limitTo, int matchRule) {
-	if (searchFor == IJavaSearchConstants.MODULE && 
+	if (searchFor == IJavaSearchConstants.MODULE &&
 			limitTo == IJavaSearchConstants.DECLARATIONS &&
 			matchRule == SearchPattern.R_REGEXP_MATCH)
 		return matchRule;
@@ -2685,7 +2786,7 @@ private static boolean validateCamelCasePattern(String stringPattern) {
 }
 
 /**
- * @noreference This method is not intended to be referenced by clients. 
+ * @noreference This method is not intended to be referenced by clients.
  * @nooverride This method is not intended to be re-implemented or extended by clients.
  */
 public EntryResult[] queryIn(Index index) throws IOException {
@@ -2698,5 +2799,13 @@ public EntryResult[] queryIn(Index index) throws IOException {
 @Override
 public String toString() {
 	return "SearchPattern"; //$NON-NLS-1$
+}
+
+/**
+ * @since 3.25
+ */
+@Override
+public SearchPattern clone() throws CloneNotSupportedException {
+	return (SearchPattern) super.clone();
 }
 }

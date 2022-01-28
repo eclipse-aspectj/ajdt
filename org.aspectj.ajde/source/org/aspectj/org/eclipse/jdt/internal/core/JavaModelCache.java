@@ -39,8 +39,8 @@ public class JavaModelCache {
 	public static final int DEFAULT_OPENABLE_SIZE = 250; // average 6629 bytes per openable (includes children) -> maximum size : 662900*BASE_VALUE bytes
 	public static final int DEFAULT_CHILDREN_SIZE = 250*20; // average 20 children per openable
 	public static final int DEFAULT_ACCESSRULE_SIZE = 1024;
-	public static final String RATIO_PROPERTY = "org.aspectj.org.eclipse.jdt.core.javamodelcache.ratio"; //$NON-NLS-1$
-	public static final String JAR_TYPE_RATIO_PROPERTY = "org.aspectj.org.eclipse.jdt.core.javamodelcache.jartyperatio"; //$NON-NLS-1$
+	public static final String RATIO_PROPERTY = "org.eclipse.jdt.core.javamodelcache.ratio"; //$NON-NLS-1$
+	public static final String JAR_TYPE_RATIO_PROPERTY = "org.eclipse.jdt.core.javamodelcache.jartyperatio"; //$NON-NLS-1$
 
 	public static final Object NON_EXISTING_JAR_TYPE_INFO = new Object();
 
@@ -78,7 +78,7 @@ public class JavaModelCache {
 	 * Cache of open children of openable Java Model Java elements
 	 */
 	protected Map<IJavaElement, Object> childrenCache;
-	
+
 	/**
 	 * Cache of access rules
 	 */
@@ -320,7 +320,7 @@ public String toString() {
 	return toStringFillingRation(""); //$NON-NLS-1$
 }
 public String toStringFillingRation(String prefix) {
-	StringBuffer buffer = new StringBuffer();
+	StringBuilder buffer = new StringBuilder();
 	buffer.append(prefix);
 	buffer.append("Project cache: "); //$NON-NLS-1$
 	buffer.append(this.projectCache.size());

@@ -7,10 +7,10 @@
  * https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     
+ *
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.parser;
 
@@ -24,7 +24,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.RequiresStatement;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.UsesStatement;
 
 public class RecoveredModule extends RecoveredElement {
-	
+
 	public RecoveredExportsStatement[] exports;
 	public int exportCount;
 	public RecoveredOpensStatement[] opens;
@@ -43,7 +43,7 @@ public class RecoveredModule extends RecoveredElement {
 	}
 	@Override
 	public RecoveredElement add(ModuleStatement moduleStatement, int bracketBalanceValue) {
-		
+
 		// TODO: can't we do away with all these additions except for ProvidesStatement - to check
 		// if there are any corner cases that uses these.
 		if (moduleStatement instanceof ExportsStatement) {
@@ -61,7 +61,7 @@ public class RecoveredModule extends RecoveredElement {
 		if (moduleStatement instanceof UsesStatement) {
 			return add((UsesStatement) moduleStatement, bracketBalanceValue);
 		}
-		
+
 		return this;
 	}
 
@@ -166,7 +166,7 @@ public class RecoveredModule extends RecoveredElement {
 	}
 	@Override
 	public String toString(int tab) {
-		StringBuffer result = new StringBuffer(tabString(tab));
+		StringBuilder result = new StringBuilder(tabString(tab));
 		result.append("Recovered module:\n"); //$NON-NLS-1$
 		result.append("module ");//$NON-NLS-1$
 		result.append(CharOperation.charToString(this.moduleDeclaration.moduleName));
@@ -279,7 +279,7 @@ public class RecoveredModule extends RecoveredElement {
 				providesStmts[actualCount++] = this.services[i].updatedProvidesStatement();
 			}
 			mod.services = providesStmts;
-			mod.servicesCount = actualCount;  			
+			mod.servicesCount = actualCount;
 		}
 	}
 	@Override

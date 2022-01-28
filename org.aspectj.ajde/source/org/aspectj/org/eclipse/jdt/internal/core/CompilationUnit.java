@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -12,12 +12,13 @@
  *     IBM Corporation - initial API and implementation
  *     Alex Smirnoff (alexsmr@sympatico.ca) - part of the changes to support Java-like extension
  *                                                            (see https://bugs.eclipse.org/bugs/show_bug.cgi?id=71460)
+ *     Microsoft Corporation - support custom options at compilation unit level
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.core;
 
 import java.io.IOException;
 import java.util.*;
-
+import java.util.concurrent.ConcurrentHashMap;
 import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.*;
 import org.aspectj.org.eclipse.jdt.core.*;
@@ -78,9 +79,7 @@ public UndoEdit applyTextEdit(TextEdit edit, IProgressMonitor monitor) throws Ja
 		try {
 			UndoEdit undoEdit= edit.apply(document);
 			return undoEdit;
-		} catch (MalformedTreeException e) {
-			throw new JavaModelException(e, IJavaModelStatusConstants.BAD_TEXT_EDIT_LOCATION);
-		} catch (BadLocationException e) {
+		} catch (MalformedTreeException | BadLocationException e) {
 			throw new JavaModelException(e, IJavaModelStatusConstants.BAD_TEXT_EDIT_LOCATION);
 		}
 	}
@@ -139,7 +138,7 @@ protected boolean buildStructure(OpenableElementInfo info, final IProgressMonito
 
 	boolean computeProblems = perWorkingCopyInfo != null && perWorkingCopyInfo.isActive() && project != null && JavaProject.hasJavaNature(project.getProject());
 	IProblemFactory problemFactory = new DefaultProblemFactory();
-	Map options = project == null ? JavaCore.getOptions() : project.getOptions(true);
+	Map options = this.getOptions(true);
 	if (!computeProblems) {
 		// disable task tags checking to speed up parsing
 		options.put(JavaCore.COMPILER_TASK_TAGS, ""); //$NON-NLS-1$
@@ -216,7 +215,7 @@ protected boolean buildStructure(OpenableElementInfo info, final IProgressMonito
  * DO NOT PASS TO CLIENTS
  */
 public CompilationUnit cloneCachingContents() {
-	return new CompilationUnit((PackageFragment) this.parent, this.name, this.owner) {
+	return new CompilationUnit((PackageFragment) this.getParent(), this.name, this.owner) {
 		private char[] cachedContents;
 		@Override
 		public char[] getContents() {
@@ -615,7 +614,7 @@ public IJavaElement findSharedWorkingCopy(IBufferFactory factory) {
  */
 @Override
 public ICompilationUnit findWorkingCopy(WorkingCopyOwner workingCopyOwner) {
-	CompilationUnit cu = new CompilationUnit((PackageFragment)this.parent, getElementName(), workingCopyOwner);
+	CompilationUnit cu = new CompilationUnit((PackageFragment)this.getParent(), getElementName(), workingCopyOwner);
 	if (workingCopyOwner == DefaultWorkingCopyOwner.PRIMARY) {
 		return cu;
 	} else {
@@ -634,20 +633,15 @@ public ICompilationUnit findWorkingCopy(WorkingCopyOwner workingCopyOwner) {
 @Override
 public IType[] getAllTypes() throws JavaModelException {
 	IJavaElement[] types = getTypes();
-	int i;
 	ArrayList allTypes = new ArrayList(types.length);
 	ArrayList typesToTraverse = new ArrayList(types.length);
-	for (i = 0; i < types.length; i++) {
-		typesToTraverse.add(types[i]);
-	}
+	Collections.addAll(typesToTraverse, types);
 	while (!typesToTraverse.isEmpty()) {
 		IType type = (IType) typesToTraverse.get(0);
 		typesToTraverse.remove(type);
 		allTypes.add(type);
 		types = type.getTypes();
-		for (i = 0; i < types.length; i++) {
-			typesToTraverse.add(types[i]);
-		}
+		Collections.addAll(typesToTraverse, types);
 	}
 	IType[] arrayOfAllTypes = new IType[allTypes.size()];
 	allTypes.toArray(arrayOfAllTypes);
@@ -657,7 +651,7 @@ public IType[] getAllTypes() throws JavaModelException {
  * @see IMember#getCompilationUnit()
  */
 @Override
-public ICompilationUnit getCompilationUnit() {
+public CompilationUnit getCompilationUnit() {
 	return this;
 }
 /**
@@ -666,7 +660,11 @@ public ICompilationUnit getCompilationUnit() {
 @Override
 public char[] getContents() {
 	IBuffer buffer = getBufferManager().getBuffer(this);
-	if (buffer == null) {
+	char[] contents = null;
+	if (buffer != null) {
+		contents = buffer.getCharacters();
+	}
+	if (buffer == null || (!isWorkingCopy() && contents == null && buffer.isClosed())) {
 		// no need to force opening of CU to get the content
 		// also this cannot be a working copy, as its buffer is never closed while the working copy is alive
 		IFile file = (IFile) getResource();
@@ -693,7 +691,6 @@ public char[] getContents() {
 			return CharOperation.NO_CHAR;
 		}
 	}
-	char[] contents = buffer.getCharacters();
 	if (contents == null) { // see https://bugs.eclipse.org/bugs/show_bug.cgi?id=129814
 		if (JavaModelManager.getJavaModelManager().abortOnMissingSource.get() == Boolean.TRUE) {
 			IOException ioException = new IOException(Messages.buffer_closed);
@@ -763,12 +760,12 @@ public char[] getFileName(){
 public IJavaElement getHandleFromMemento(String token, MementoTokenizer memento, WorkingCopyOwner workingCopyOwner) {
 	switch (token.charAt(0)) {
 		case JEM_IMPORTDECLARATION:
-			JavaElement container = (JavaElement)getImportContainer();
+			JavaElement container = getImportContainer();
 			return container.getHandleFromMemento(token, memento, workingCopyOwner);
 		case JEM_PACKAGEDECLARATION:
 			if (!memento.hasMoreTokens()) return this;
 			String pkgName = memento.nextToken();
-			JavaElement pkgDecl = (JavaElement)getPackageDeclaration(pkgName);
+			JavaElement pkgDecl = getPackageDeclaration(pkgName);
 			return pkgDecl.getHandleFromMemento(memento, workingCopyOwner);
 		case JEM_TYPE:
 			if (!memento.hasMoreTokens()) return this;
@@ -795,14 +792,14 @@ protected char getHandleMementoDelimiter() {
  * @see ICompilationUnit#getImport(String)
  */
 @Override
-public IImportDeclaration getImport(String importName) {
+public ImportDeclaration getImport(String importName) {
 	return getImportContainer().getImport(importName);
 }
 /**
  * @see ICompilationUnit#getImportContainer()
  */
 @Override
-public IImportContainer getImportContainer() {
+public ImportContainer getImportContainer() {
 	return new ImportContainer(this);
 }
 
@@ -881,7 +878,7 @@ public WorkingCopyOwner getOwner() {
  * @see ICompilationUnit#getPackageDeclaration(String)
  */
 @Override
-public IPackageDeclaration getPackageDeclaration(String pkg) {
+public PackageDeclaration getPackageDeclaration(String pkg) {
 	return new PackageDeclaration(this, pkg);
 }
 /**
@@ -931,7 +928,7 @@ public ICompilationUnit getPrimary() {
 }
 
 @Override
-public IJavaElement getPrimaryElement(boolean checkOwner) {
+public JavaElement getPrimaryElement(boolean checkOwner) {
 	if (checkOwner && isPrimary()) return this;
 	return new CompilationUnit((PackageFragment)getParent(), getElementName(), DefaultWorkingCopyOwner.PRIMARY);
 }
@@ -939,7 +936,7 @@ public IJavaElement getPrimaryElement(boolean checkOwner) {
 @Override
 public IResource resource(PackageFragmentRoot root) {
 	if (root == null) return null; // working copy not in workspace
-	return ((IContainer) ((Openable) this.parent).resource(root)).getFile(new Path(getElementName()));
+	return ((IContainer) ((Openable) this.getParent()).resource(root)).getFile(new Path(getElementName()));
 }
 /**
  * @see ISourceReference#getSource()
@@ -1186,7 +1183,7 @@ protected IBuffer openBuffer(IProgressMonitor pm, Object info) throws JavaModelE
 			? this.owner.createBuffer(this)
 			: BufferManager.createBuffer(this);
 	if (buffer == null) return null;
-	
+
 	ICompilationUnit original = null;
 	boolean mustSetToOriginalContent = false;
 	if (isWorkingCopy) {
@@ -1221,12 +1218,12 @@ protected IBuffer openBuffer(IProgressMonitor pm, Object info) throws JavaModelE
 					buffer.setContents(Util.getResourceContentsAsCharArray(file));
 				}
 			}
-	
+
 			// add buffer to buffer cache
 			// note this may cause existing buffers to be removed from the buffer cache, but only primary compilation unit's buffer
 			// can be closed, thus no call to a client's IBuffer#close() can be done in this synchronized block.
 			bufManager.addBuffer(buffer);
-	
+
 			// listen to buffer changes
 			buffer.addBufferChangedListener(this);
 		}
@@ -1449,5 +1446,31 @@ public char[] getModuleName() {
 		e.printStackTrace();
 	}
 	return null;
+}
+
+@Override
+public void setOptions(Map<String, String> newOptions) {
+	Map<String, String> customOptions = newOptions == null ? null : new ConcurrentHashMap<String, String>(newOptions);
+	try {
+		this.getCompilationUnitElementInfo().setCustomOptions(customOptions);
+	} catch (JavaModelException e) {
+		// do nothing
+	}
+}
+
+@Override
+public Map<String, String> getCustomOptions() {
+	try {
+		Map<String, String> customOptions = this.getCompilationUnitElementInfo().getCustomOptions();
+		return customOptions == null ? Collections.emptyMap() : customOptions;
+	} catch (JavaModelException e) {
+		// do nothing
+	}
+
+	return Collections.emptyMap();
+}
+
+private CompilationUnitElementInfo getCompilationUnitElementInfo() throws JavaModelException {
+	return (CompilationUnitElementInfo) this.getElementInfo();
 }
 }

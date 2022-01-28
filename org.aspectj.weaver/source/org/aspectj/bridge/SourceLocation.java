@@ -1,14 +1,14 @@
 /* *******************************************************************
- * Copyright (c) 1999-2001 Xerox Corporation, 
+ * Copyright (c) 1999-2001 Xerox Corporation,
  *               2002 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     Xerox/PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     Xerox/PARC     initial implementation
  * ******************************************************************/
 
 package org.aspectj.bridge;
@@ -18,13 +18,10 @@ import java.io.File;
 import org.aspectj.util.LangUtil;
 
 /**
- * Immutable source location. This guarantees that the source file is not null and that the numeric values are positive and line <=
+ * Immutable source location. This guarantees that the source file is not null and that the numeric values are positive and line &le;
  * endLine.
- * 
+ *
  * @see org.aspectj.lang.reflect.SourceLocation
- * @see org.aspectj.compiler.base.parser.SourceInfo
- * @see org.aspectj.tools.ide.SourceLine
- * @see org.aspectj.testing.harness.ErrorLine
  */
 public class SourceLocation implements ISourceLocation {
 
@@ -77,7 +74,7 @@ public class SourceLocation implements ISourceLocation {
 	/**
 	 * @param file File of the source; if null, use ISourceLocation.NO_FILE, not null
 	 * @param line int starting line of the location - positive number
-	 * @param endLine int ending line of the location - <= starting line
+	 * @param endLine int ending line of the location - &le; starting line
 	 * @param column int character position of starting location - positive number
 	 */
 	public SourceLocation(File file, int line, int endLine, int column) {
@@ -134,7 +131,7 @@ public class SourceLocation implements ISourceLocation {
 
 	/** @return String {context\n}{file:}line{:column} */
 	public String toString() {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		if (null != context) {
 			sb.append(context);
 			sb.append(LangUtil.EOL);

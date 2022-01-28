@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -44,12 +44,17 @@ public abstract class Binding {
 	public static final int TYPE_USE = TYPE | ASTNode.Bit15;
 	public static final int INTERSECTION_TYPE18 = TYPE | ASTNode.Bit16;
 	public static final int POLY_TYPE = TYPE | ASTNode.Bit17;
-	
-	// In the unlikely event you add a new type binding, remember to update TypeBindingVisitor and Scope.substitute methods. 
+	// Java 14 - Records - preview
+	public static final int RECORD_COMPONENT = ASTNode.Bit18;
+//	public static final int VARIABLE = FIELD | LOCAL | RECORD_COMPONENT;
+	public static final int PATTERN = ASTNode.Bit19;
+
+	// In the unlikely event you add a new type binding, remember to update TypeBindingVisitor and Scope.substitute methods.
 
 	// Shared binding collections
 	public static final ModuleBinding[] NO_MODULES = new ModuleBinding[0];
 	public static final PackageBinding[] NO_PACKAGES = new PackageBinding[0];
+	public static final PlainPackageBinding[] NO_PLAIN_PACKAGES = new PlainPackageBinding[0];
 	public static final TypeBinding[] NO_TYPES = new TypeBinding[0];
 	public static final ReferenceBinding[] NO_REFERENCE_TYPES = new ReferenceBinding[0];
 	public static final TypeBinding[] NO_PARAMETERS = new TypeBinding[0];
@@ -57,13 +62,16 @@ public abstract class Binding {
 	public static final ReferenceBinding[] ANY_EXCEPTION = new ReferenceBinding[] { null }; // special handler for all exceptions
 	public static final FieldBinding[] NO_FIELDS = new FieldBinding[0];
 	public static final MethodBinding[] NO_METHODS = new MethodBinding[0];
+	public static final ReferenceBinding[] NO_PERMITTEDTYPES = new ReferenceBinding[0];
 	public static final ReferenceBinding[] NO_SUPERINTERFACES = new ReferenceBinding[0];
 	public static final ReferenceBinding[] NO_MEMBER_TYPES = new ReferenceBinding[0];
 	public static final TypeVariableBinding[] NO_TYPE_VARIABLES = new TypeVariableBinding[0];
 	public static final AnnotationBinding[] NO_ANNOTATIONS = new AnnotationBinding[0];
 	public static final ElementValuePair[] NO_ELEMENT_VALUE_PAIRS = new ElementValuePair[0];
 	public static final char[][] NO_PARAMETER_NAMES = new char[0][];
-	
+	public static final RecordComponentBinding[] NO_COMPONENTS = new RecordComponentBinding[0];
+
+	public static final RecordComponentBinding[] UNINITIALIZED_COMPONENTS = new RecordComponentBinding[0];
 	public static final FieldBinding[] UNINITIALIZED_FIELDS = new FieldBinding[0];
 	public static final MethodBinding[] UNINITIALIZED_METHODS = new MethodBinding[0];
 	public static final ReferenceBinding[] UNINITIALIZED_REFERENCE_TYPES = new ReferenceBinding[0];
@@ -111,7 +119,7 @@ public abstract class Binding {
 
 	public static final int DefaultLocationsForTrueValue = DefaultLocationParameter | DefaultLocationReturnType | DefaultLocationField;
 
-	public static final int NullnessDefaultMASK = 
+	public static final int NullnessDefaultMASK =
 			NULL_UNSPECIFIED_BY_DEFAULT | // included to terminate search up the parent chain
 			DefaultLocationParameter | DefaultLocationReturnType | DefaultLocationField |
 			DefaultLocationTypeArgument | DefaultLocationTypeParameter | DefaultLocationTypeBound | DefaultLocationArrayContents;
@@ -140,7 +148,7 @@ public abstract class Binding {
 	/**
 	 * Compute the tagbits for standard annotations. For source types, these could require
 	 * lazily resolving corresponding annotation nodes, in case of forward references.
-	 * For type use bindings, this method still returns the tagbits corresponding to the type 
+	 * For type use bindings, this method still returns the tagbits corresponding to the type
 	 * declaration binding.
 	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding#getAnnotationTagBits()
 	 */
@@ -160,7 +168,7 @@ public abstract class Binding {
 	public boolean isAnnotationType() {
 		return false;
 	}
-	
+
 	/* API
 	* Answer true if the receiver is not a problem binding
 	*/

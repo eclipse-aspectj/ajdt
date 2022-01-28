@@ -1,13 +1,13 @@
 /* *******************************************************************
  * Copyright (c) 2002-2019 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     PARC     initial implementation
  * ******************************************************************/
 
 package org.aspectj.weaver;
@@ -32,13 +32,13 @@ import org.aspectj.weaver.AjAttribute.WeaverVersionInfo;
 /**
  * WeaverStateInfo represents how a type was processed. It is used by the weaver to determine how a type was previously treated and
  * whether reweaving is allowed. The format in the data stream is:
- * 
+ *
  * Byte: Kind. UNTOUCHED|WOVEN|EXTENDED - If extended it can have two extra bits set 'REWEAVABLE' and 'REWEAVABLE_COMPRESSION_BIT'
- * Short: typeMungerCount - how many type mungers have affected this type <UnresolvedType & ResolvedTypeMunger>: The type mungers
+ * Short: typeMungerCount - how many type mungers have affected this type &lt;UnresolvedType &amp; ResolvedTypeMunger&gt;: The type mungers
  * themselves If we are reweavable then we also have: Short: Number of aspects that touched this type in some way when it was
- * previously woven <String> The fully qualified name of each type Int: Length of class file data (i.e. the unwovenclassfile)
+ * previously woven &lt;String&gt; The fully qualified name of each type Int: Length of class file data (i.e. the unwovenclassfile)
  * Byte[]: The class file data, compressed if REWEAVABLE_COMPRESSION_BIT set.
- * 
+ *
  * @author Andy Clement
  */
 public class WeaverStateInfo {
@@ -89,7 +89,7 @@ public class WeaverStateInfo {
 	}
 
 	public WeaverStateInfo(boolean reweavable) {
-		this(new ArrayList<Entry>(), false, reweavable, reweavableCompressedModeDefault, reweavableDiffModeDefault);
+		this(new ArrayList<>(), false, reweavable, reweavableCompressedModeDefault, reweavableDiffModeDefault);
 	}
 
 	private WeaverStateInfo(List<Entry> typeMungers, boolean oldStyle, boolean reweavableMode, boolean reweavableCompressedMode,
@@ -99,7 +99,7 @@ public class WeaverStateInfo {
 		this.reweavable = reweavableMode;
 		this.reweavableCompressedMode = reweavableCompressedMode;
 		this.reweavableDiffMode = reweavableMode ? reweavableDiffMode : false;
-		this.aspectsAffectingType = new HashSet<String>();
+		this.aspectsAffectingType = new HashSet<>();
 		this.unwovenClassFile = null;
 	}
 
@@ -147,7 +147,7 @@ public class WeaverStateInfo {
 			}
 
 			int n = s.readShort();
-			List<Entry> l = new ArrayList<Entry>();
+			List<Entry> l = new ArrayList<>();
 			for (int i = 0; i < n; i++) {
 				// conditional on version
 				UnresolvedType aspectType = null;
@@ -233,12 +233,12 @@ public class WeaverStateInfo {
 	}
 
 	private final static byte[] NO_BYTES = new byte[0];
-	
+
 	/**
 	 * If the weaver is ever invoked in over weaving mode, we should
 	 * not include the key when writing out, it won't be replaced later.
 	 * If we turn off the reweaving flag that unfortunately removes
-	 * the 'what aspects have been woven into this type' list which we 
+	 * the 'what aspects have been woven into this type' list which we
 	 * want to keep as it helps overweaving avoid weaving an aspect in
 	 * twice.
 	 */
@@ -257,7 +257,7 @@ public class WeaverStateInfo {
 
 	public List<ConcreteTypeMunger> getTypeMungers(ResolvedType onType) {
 		World world = onType.getWorld();
-		List<ConcreteTypeMunger> ret = new ArrayList<ConcreteTypeMunger>();
+		List<ConcreteTypeMunger> ret = new ArrayList<>();
 		for (Entry entry : typeMungers) {
 			ResolvedType aspectType = world.resolve(entry.aspectType, true);
 			if (aspectType.isMissing()) {
@@ -278,7 +278,7 @@ public class WeaverStateInfo {
 	public byte[] getUnwovenClassFileData() {
 		return unwovenClassFile;
 	}
-	
+
 	public byte[] getUnwovenClassFileData(byte wovenClassFile[]) {
 		if (unwovenClassFileIsADiff) {
 			unwovenClassFile = applyDiff(wovenClassFile, unwovenClassFile);

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2012 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -21,10 +21,10 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.*;
 
 public class BreakStatement extends BranchStatement {
 
+	public boolean isSynthetic;
 public BreakStatement(char[] label, int sourceStart, int e) {
 	super(label, sourceStart, e);
 }
-
 @Override
 public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, FlowInfo flowInfo) {
 
@@ -36,6 +36,11 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 		? flowContext.getTargetContextForDefaultBreak()
 		: flowContext.getTargetContextForBreakLabel(this.label);
 
+		// JLS 13 14.15
+		if (targetContext instanceof SwitchFlowContext &&
+				targetContext.associatedNode instanceof SwitchExpression) {
+			currentScope.problemReporter().switchExpressionBreakNotAllowed(this);
+		}
 	if (targetContext == null) {
 		if (this.label == null) {
 			currentScope.problemReporter().invalidBreak(this);
@@ -105,5 +110,16 @@ public void traverse(ASTVisitor visitor, BlockScope blockscope) {
 @Override
 public boolean doesNotCompleteNormally() {
 	return true;
+}
+
+@Override
+public boolean canCompleteNormally() {
+	return false;
+}
+
+
+@Override
+protected boolean doNotReportUnreachable() {
+	return this.isSynthetic;
 }
 }

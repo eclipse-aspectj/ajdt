@@ -1,13 +1,13 @@
 /* *******************************************************************
  * Copyright (c) 2002 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     PARC     initial implementation
  * ******************************************************************/
 
 package org.aspectj.weaver.patterns;
@@ -32,8 +32,8 @@ public class NamePattern extends PatternNode {
 	public NamePattern(char[] pattern) {
 		this.pattern = pattern;
 
-		for (int i = 0, len = pattern.length; i < len; i++) {
-			if (pattern[i] == '*') {
+		for (char c : pattern) {
+			if (c == '*') {
 				starCount++;
 			}
 		}
@@ -182,7 +182,7 @@ public class NamePattern extends PatternNode {
 
 	/**
 	 * Method maybeGetSimpleName.
-	 * 
+	 *
 	 * @return String
 	 */
 	public String maybeGetSimpleName() {
@@ -194,7 +194,7 @@ public class NamePattern extends PatternNode {
 
 	/**
 	 * Method isAny.
-	 * 
+	 *
 	 * @return boolean
 	 */
 	public boolean isAny() {

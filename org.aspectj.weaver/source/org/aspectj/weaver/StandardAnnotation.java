@@ -1,11 +1,11 @@
 /* *******************************************************************
  * Copyright (c) 2008 Contributors
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
  * ******************************************************************/
 package org.aspectj.weaver;
 
@@ -20,7 +20,7 @@ import java.util.Set;
  * This type represents the weavers abstraction of an annotation - it is not tied to any underlying BCI toolkit. The weaver actualy
  * handles these through AnnotationX wrapper objects - until we start transforming the BCEL annotations into this form (expensive)
  * or offer a clever visitor mechanism over the BCEL annotation stuff that builds these annotation types directly.
- * 
+ *
  * @author AndyClement
  */
 public class StandardAnnotation extends AbstractAnnotationAJ {
@@ -45,7 +45,7 @@ public class StandardAnnotation extends AbstractAnnotationAJ {
 	 * {@inheritDoc}
 	 */
 	public String stringify() {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		sb.append("@").append(type.getClassName());
 		if (hasNameValuePairs()) {
 			sb.append("(");
@@ -58,7 +58,7 @@ public class StandardAnnotation extends AbstractAnnotationAJ {
 	}
 
 	public String toString() {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		sb.append("Anno[" + getTypeSignature() + " " + (isRuntimeVisible ? "rVis" : "rInvis"));
 		if (nvPairs != null) {
 			sb.append(" ");
@@ -81,8 +81,7 @@ public class StandardAnnotation extends AbstractAnnotationAJ {
 		if (nvPairs == null) {
 			return false;
 		}
-		for (int i = 0; i < nvPairs.size(); i++) {
-			AnnotationNameValuePair pair = nvPairs.get(i);
+		for (AnnotationNameValuePair pair : nvPairs) {
 			if (pair.getName().equals(n)) {
 				return true;
 			}
@@ -97,8 +96,7 @@ public class StandardAnnotation extends AbstractAnnotationAJ {
 		if (nvPairs == null) {
 			return false;
 		}
-		for (int i = 0; i < nvPairs.size(); i++) {
-			AnnotationNameValuePair pair = nvPairs.get(i);
+		for (AnnotationNameValuePair pair : nvPairs) {
 			if (pair.getName().equals(n)) {
 				if (pair.getValue().stringify().equals(v)) {
 					return true;
@@ -118,9 +116,9 @@ public class StandardAnnotation extends AbstractAnnotationAJ {
 		AnnotationNameValuePair nvp = nvPairs.get(0);
 		ArrayAnnotationValue aav = (ArrayAnnotationValue) nvp.getValue();
 		AnnotationValue[] avs = aav.getValues();
-		Set<String> targets = new HashSet<String>();
-		for (int i = 0; i < avs.length; i++) {
-			EnumAnnotationValue value = (EnumAnnotationValue)avs[i];
+		Set<String> targets = new HashSet<>();
+		for (AnnotationValue av : avs) {
+			EnumAnnotationValue value = (EnumAnnotationValue) av;
 			targets.add(value.getValue());
 		}
 		return targets;
@@ -136,7 +134,7 @@ public class StandardAnnotation extends AbstractAnnotationAJ {
 
 	public void addNameValuePair(AnnotationNameValuePair pair) {
 		if (nvPairs == null) {
-			nvPairs = new ArrayList<AnnotationNameValuePair>();
+			nvPairs = new ArrayList<>();
 		}
 		nvPairs.add(pair);
 	}

@@ -65,7 +65,7 @@ import org.aspectj.apache.bcel.classfile.annotation.RuntimeAnnos;
 
 /**
  * Abstract super class for fields and methods.
- * 
+ *
  * @version $Id: FieldOrMethod.java,v 1.12 2009/09/15 19:40:12 aclement Exp $
  * @author <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
@@ -167,9 +167,8 @@ public abstract class FieldOrMethod extends Modifiers implements Node {
 		// remain there.
 		if (annotations == null) {
 			// Find attributes that contain annotation data
-			List<AnnotationGen> accumulatedAnnotations = new ArrayList<AnnotationGen>();
-			for (int i = 0; i < attributes.length; i++) {
-				Attribute attribute = attributes[i];
+			List<AnnotationGen> accumulatedAnnotations = new ArrayList<>();
+			for (Attribute attribute : attributes) {
 				if (attribute instanceof RuntimeAnnos) {
 					RuntimeAnnos runtimeAnnotations = (RuntimeAnnos) attribute;
 					accumulatedAnnotations.addAll(runtimeAnnotations.getAnnotations());
@@ -178,7 +177,7 @@ public abstract class FieldOrMethod extends Modifiers implements Node {
 			if (accumulatedAnnotations.size() == 0) {
 				annotations = AnnotationGen.NO_ANNOTATIONS;
 			} else {
-				annotations = accumulatedAnnotations.toArray(new AnnotationGen[] {});
+				annotations = accumulatedAnnotations.toArray(AnnotationGen.NO_ANNOTATIONS);
 			}
 		}
 		return annotations;

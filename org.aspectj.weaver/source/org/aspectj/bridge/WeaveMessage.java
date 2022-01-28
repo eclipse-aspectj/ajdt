@@ -1,12 +1,12 @@
 /* *******************************************************************
  * Copyright (c) 2004 IBM Corporation
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
  *    Andy Clement IBM     initial implementation 30-May-2004
  * ******************************************************************/
 
@@ -51,13 +51,13 @@ public class WeaveMessage extends Message {
 
 	/**
 	 * Static helper method for constructing weaving messages.
-	 * 
+	 *
 	 * @param kind what kind of message (e.g. declare parents)
 	 * @param inserts inserts for the message (inserts are marked %n in the message)
 	 * @return new weaving message
 	 */
 	public static WeaveMessage constructWeavingMessage(WeaveMessageKind kind, String[] inserts) {
-		StringBuffer str = new StringBuffer(kind.getMessage());
+		StringBuilder str = new StringBuilder(kind.getMessage());
 		int pos = -1;
 		while ((pos = new String(str).indexOf("%")) != -1) {
 			int n = Character.getNumericValue(str.charAt(pos + 1));
@@ -68,7 +68,7 @@ public class WeaveMessage extends Message {
 
 	/**
 	 * Static helper method for constructing weaving messages.
-	 * 
+	 *
 	 * @param kind what kind of message (e.g. declare parents)
 	 * @param inserts inserts for the message (inserts are marked %n in the message)
 	 * @param affectedtypename the type which is being advised/declaredUpon
@@ -77,7 +77,7 @@ public class WeaveMessage extends Message {
 	 */
 	public static WeaveMessage constructWeavingMessage(WeaveMessageKind kind, String[] inserts, String affectedtypename,
 			String aspectname) {
-		StringBuffer str = new StringBuffer(kind.getMessage());
+		StringBuilder str = new StringBuilder(kind.getMessage());
 		int pos = -1;
 		while ((pos = new String(str).indexOf("%")) != -1) {
 			int n = Character.getNumericValue(str.charAt(pos + 1));

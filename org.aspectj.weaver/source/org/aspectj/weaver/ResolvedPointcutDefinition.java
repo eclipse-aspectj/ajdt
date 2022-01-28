@@ -1,13 +1,13 @@
 /* *******************************************************************
  * Copyright (c) 2002 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     PARC     initial implementation
  * ******************************************************************/
 
 package org.aspectj.weaver;
@@ -28,7 +28,7 @@ public class ResolvedPointcutDefinition extends ResolvedMemberImpl {
 
 	/**
 	 * An instance which can be given a specific returnType, used f.e. in if() pointcut for @AJ
-	 * 
+	 *
 	 * @param declaringType
 	 * @param modifiers
 	 * @param name
@@ -64,7 +64,7 @@ public class ResolvedPointcutDefinition extends ResolvedMemberImpl {
 
 	@Override
 	public String toString() {
-		StringBuffer buf = new StringBuffer();
+		StringBuilder buf = new StringBuilder();
 		buf.append("pointcut ");
 		buf.append((getDeclaringType() == null ? "<nullDeclaringType>" : getDeclaringType().getName()));
 		buf.append(".");
@@ -101,7 +101,7 @@ public class ResolvedPointcutDefinition extends ResolvedMemberImpl {
 		if (isParameterized && (typeVariables.length != typeParameters.length)) {
 			throw new IllegalStateException("Wrong number of type parameters supplied");
 		}
-		Map typeMap = new HashMap();
+		Map<String, UnresolvedType> typeMap = new HashMap<>();
 		boolean typeParametersSupplied = typeParameters != null && typeParameters.length > 0;
 		if (typeVariables != null) {
 			// If no 'replacements' were supplied in the typeParameters array then collapse

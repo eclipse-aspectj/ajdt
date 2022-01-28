@@ -2,9 +2,9 @@
  * Copyright (c) 2005 Contributors.
  * All rights reserved.
  * This program and the accompanying materials are made available
- * under the terms of the Eclipse Public License v1.0
+ * under the terms of the Eclipse Public License v 2.0
  * which accompanies this distribution and is available at
- * http://eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
  *
  * Contributors:
  * initial implementation              Alexandre Vasseur
@@ -85,8 +85,8 @@ import org.aspectj.weaver.patterns.TypePattern;
 
 /**
  * Annotation defined aspect reader. Reads the Java 5 annotations and turns them into AjAttributes
- * 
- * @author <a href="mailto:alex AT gnilux DOT com">Alexandre Vasseur</a>
+ *
+ * @author Alexandre Vasseur (alex AT gnilux DOT com)
  */
 public class AtAjAttributes {
 
@@ -109,7 +109,7 @@ public class AtAjAttributes {
 		/**
 		 * The list of AjAttribute.XXX that we are populating from the @AJ read
 		 */
-		List<AjAttribute> ajAttributes = new ArrayList<AjAttribute>();
+		List<AjAttribute> ajAttributes = new ArrayList<>();
 
 		/**
 		 * The resolved type (class) for which we are reading @AJ for (be it class, method, field annotations)
@@ -128,7 +128,7 @@ public class AtAjAttributes {
 
 	/**
 	 * A struct when we read @AJ on method
-	 * 
+	 *
 	 * @author <a href="mailto:alex AT gnilux DOT com">Alexandre Vasseur</a>
 	 */
 	private static class AjAttributeMethodStruct extends AjAttributeStruct {
@@ -176,7 +176,7 @@ public class AtAjAttributes {
 
 	/**
 	 * Annotations are RuntimeVisible only. This allow us to not visit RuntimeInvisible ones.
-	 * 
+	 *
 	 * @param attribute
 	 * @return true if runtime visible annotation
 	 */
@@ -186,7 +186,7 @@ public class AtAjAttributes {
 
 	/**
 	 * Extract class level annotations and turn them into AjAttributes.
-	 * 
+	 *
 	 * @param javaClass
 	 * @param type
 	 * @param context
@@ -203,8 +203,7 @@ public class AtAjAttributes {
 		boolean containsPointcut = false;
 		boolean containsAnnotationClassReference = false;
 		Constant[] cpool = javaClass.getConstantPool().getConstantPool();
-		for (int i = 0; i < cpool.length; i++) {
-			Constant constant = cpool[i];
+		for (Constant constant : cpool) {
 			if (constant != null && constant.getTag() == Constants.CONSTANT_Utf8) {
 				String constantValue = ((ConstantUtf8) constant).getValue();
 				if (constantValue.length() > 28 && constantValue.charAt(1) == PACKAGE_INITIAL_CHAR) {
@@ -233,8 +232,7 @@ public class AtAjAttributes {
 		boolean hasAtPrecedenceAnnotation = false;
 
 		WeaverVersionInfo wvinfo = null;
-		for (int i = 0; i < attributes.length; i++) {
-			Attribute attribute = attributes[i];
+		for (Attribute attribute : attributes) {
 			if (acceptAttribute(attribute)) {
 				RuntimeAnnos rvs = (RuntimeAnnos) attribute;
 				// we don't need to look for several attribute occurrences since
@@ -345,8 +343,7 @@ public class AtAjAttributes {
 			AjAttributeMethodStruct mstruct = null;
 			boolean processedPointcut = false;
 			Attribute[] mattributes = method.getAttributes();
-			for (int j = 0; j < mattributes.length; j++) {
-				Attribute mattribute = mattributes[j];
+			for (Attribute mattribute : mattributes) {
 				if (acceptAttribute(mattribute)) {
 					// TODO speed all this nonsense up rather than looking
 					// through all the annotations every time
@@ -368,8 +365,7 @@ public class AtAjAttributes {
 		// code style declare error / warning / implements / parents are field
 		// attributes
 		Field[] fs = javaClass.getFields();
-		for (int i = 0; i < fs.length; i++) {
-			Field field = fs[i];
+		for (Field field : fs) {
 			if (field.getName().startsWith(NameMangler.PREFIX)) {
 				continue; // already dealt with by ajc...
 			}
@@ -378,8 +374,7 @@ public class AtAjAttributes {
 			AjAttributeFieldStruct fstruct = new AjAttributeFieldStruct(field, null, type, context, msgHandler);
 			Attribute[] fattributes = field.getAttributes();
 
-			for (int j = 0; j < fattributes.length; j++) {
-				Attribute fattribute = fattributes[j];
+			for (Attribute fattribute : fattributes) {
 				if (acceptAttribute(fattribute)) {
 					RuntimeAnnos frvs = (RuntimeAnnos) fattribute;
 					if (handleDeclareErrorOrWarningAnnotation(model, frvs, fstruct)
@@ -404,7 +399,7 @@ public class AtAjAttributes {
 
 	/**
 	 * Extract method level annotations and turn them into AjAttributes.
-	 * 
+	 *
 	 * @param method
 	 * @param type
 	 * @param context
@@ -433,8 +428,7 @@ public class AtAjAttributes {
 		// be too silent.
 		boolean hasAtAspectJAnnotation = false;
 		boolean hasAtAspectJAnnotationMustReturnVoid = false;
-		for (int i = 0; i < attributes.length; i++) {
-			Attribute attribute = attributes[i];
+		for (Attribute attribute : attributes) {
 			try {
 				if (acceptAttribute(attribute)) {
 					RuntimeAnnos rvs = (RuntimeAnnos) attribute;
@@ -502,7 +496,7 @@ public class AtAjAttributes {
 
 	/**
 	 * Extract field level annotations and turn them into AjAttributes.
-	 * 
+	 *
 	 * @param field
 	 * @param type
 	 * @param context
@@ -518,7 +512,7 @@ public class AtAjAttributes {
 
 	/**
 	 * Read @Aspect
-	 * 
+	 *
 	 * @param runtimeAnnotations
 	 * @param struct
 	 * @return true if found
@@ -564,7 +558,7 @@ public class AtAjAttributes {
 				// struct.ajAttributes.add(new AjAttribute.WeaverVersionInfo());
 				AjAttribute.Aspect aspectAttribute = new AjAttribute.Aspect(perClause);
 				struct.ajAttributes.add(aspectAttribute);
-				FormalBinding[] bindings = new org.aspectj.weaver.patterns.FormalBinding[0];
+				FormalBinding[] bindings = FormalBinding.NONE;
 				final IScope binding;
 				binding = new BindingScope(struct.enclosingType, struct.context, bindings);
 
@@ -585,7 +579,7 @@ public class AtAjAttributes {
 
 	/**
 	 * Read a perClause, returns null on failure and issue messages
-	 * 
+	 *
 	 * @param perClauseString like "pertarget(.....)"
 	 * @param struct for which we are parsing the per clause
 	 * @return a PerClause instance
@@ -638,7 +632,7 @@ public class AtAjAttributes {
 
 	/**
 	 * Read @DeclarePrecedence
-	 * 
+	 *
 	 * @param runtimeAnnotations
 	 * @param struct
 	 * @return true if found
@@ -709,21 +703,11 @@ public class AtAjAttributes {
 	// return false;
 	// }
 
-	/**
-	 * Read @DeclareParents
-	 * 
-	 * @param runtimeAnnotations
-	 * @param struct
-	 * @return true if found
-	 */
-	private static boolean handleDeclareParentsAnnotation(RuntimeAnnos runtimeAnnotations, AjAttributeFieldStruct struct) {// ,
-		// ResolvedPointcutDefinition
-		// preResolvedPointcut)
-		// {
-		AnnotationGen decp = getAnnotation(runtimeAnnotations, AjcMemberMaker.DECLAREPARENTS_ANNOTATION);
-		if (decp != null) {
-			NameValuePair decpPatternNVP = getAnnotationElement(decp, VALUE);
-			String decpPattern = decpPatternNVP.getValue().stringifyValue();
+	private static boolean handleDeclareParentsAnnotation(RuntimeAnnos runtimeAnnotations, AjAttributeFieldStruct struct) {
+		AnnotationGen decpAnno = getAnnotation(runtimeAnnotations, AjcMemberMaker.DECLAREPARENTS_ANNOTATION);
+		if (decpAnno != null) {
+			NameValuePair decpPatternNameValuePair = getAnnotationElement(decpAnno, VALUE);
+			String decpPattern = decpPatternNameValuePair.getValue().stringifyValue();
 			if (decpPattern != null) {
 				TypePattern typePattern = parseTypePattern(decpPattern, struct);
 				ResolvedType fieldType = UnresolvedType.forSignature(struct.field.getSignature()).resolve(
@@ -733,10 +717,10 @@ public class AtAjAttributes {
 				}
 				if (fieldType.isInterface()) {
 					TypePattern parent = parseTypePattern(fieldType.getName(), struct);
-					FormalBinding[] bindings = new org.aspectj.weaver.patterns.FormalBinding[0];
+					FormalBinding[] bindings = FormalBinding.NONE;
 					IScope binding = new BindingScope(struct.enclosingType, struct.context, bindings);
 					// first add the declare implements like
-					List<TypePattern> parents = new ArrayList<TypePattern>(1);
+					List<TypePattern> parents = new ArrayList<>(1);
 					parents.add(parent);
 					DeclareParents dp = new DeclareParents(typePattern, parents, false);
 					dp.resolve(binding); // resolves the parent and child parts of the decp
@@ -756,7 +740,7 @@ public class AtAjAttributes {
 
 					// do we have a defaultImpl=xxx.class (ie implementation)
 					String defaultImplClassName = null;
-					NameValuePair defaultImplNVP = getAnnotationElement(decp, "defaultImpl");
+					NameValuePair defaultImplNVP = getAnnotationElement(decpAnno, "defaultImpl");
 					if (defaultImplNVP != null) {
 						ClassElementValue defaultImpl = (ClassElementValue) defaultImplNVP.getValue();
 						defaultImplClassName = UnresolvedType.forSignature(defaultImpl.getClassString()).getName();
@@ -771,8 +755,7 @@ public class AtAjAttributes {
 									|| Modifier.isProtected(implModifiers) || Modifier.isPublic(implModifiers));
 							boolean hasNoCtorOrANoArgOne = true;
 							ResolvedMember foundOneOfIncorrectVisibility = null;
-							for (int i = 0; i < mm.length; i++) {
-								ResolvedMember resolvedMember = mm[i];
+							for (ResolvedMember resolvedMember : mm) {
 								if (resolvedMember.getName().equals("<init>")) {
 									hasNoCtorOrANoArgOne = false;
 
@@ -816,9 +799,8 @@ public class AtAjAttributes {
 						}
 
 					}
-
-					// then iterate on field interface hierarchy (not object)
 					boolean hasAtLeastOneMethod = false;
+					// then iterate on field interface hierarchy (not object)
 					Iterator<ResolvedMember> methodIterator = fieldType.getMethodsIncludingIntertypeDeclarations(false, true);
 					while (methodIterator.hasNext()) {
 						ResolvedMember method = methodIterator.next();
@@ -871,10 +853,10 @@ public class AtAjAttributes {
 	}
 
 	/**
-	 * Return a nicely formatted method string, for example: int X.foo(java.lang.String)
+	 * @return a nicely formatted method string, for example: int X.foo(java.lang.String)
 	 */
 	public static String getMethodForMessage(AjAttributeMethodStruct methodstructure) {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		sb.append("Method '");
 		sb.append(methodstructure.method.getReturnType().toString());
 		sb.append(" ").append(methodstructure.enclosingType).append(".").append(methodstructure.method.getName());
@@ -894,11 +876,11 @@ public class AtAjAttributes {
 
 	/**
 	 * Process any @DeclareMixin annotation.
-	 * 
+	 *
 	 * Example Declaration <br>
-	 * 
+	 *
 	 * @DeclareMixin("Foo+") public I createImpl(Object o) { return new Impl(o); }
-	 * 
+	 *
 	 * <br>
 	 * @param runtimeAnnotations
 	 * @param struct
@@ -938,10 +920,10 @@ public class AtAjAttributes {
 		// supplied as a list in the 'Class[] interfaces' value in the annotation value
 		// supplied as just the interface return value of the annotated method
 		// supplied as just the class return value of the annotated method
-		NameValuePair interfaceListSpecified = getAnnotationElement(declareMixinAnnotation, "interfaces"); 
+		NameValuePair interfaceListSpecified = getAnnotationElement(declareMixinAnnotation, "interfaces");
 
-		List<TypePattern> newParents = new ArrayList<TypePattern>(1);
-		List<ResolvedType> newInterfaceTypes = new ArrayList<ResolvedType>(1);
+		List<TypePattern> newParents = new ArrayList<>(1);
+		List<ResolvedType> newInterfaceTypes = new ArrayList<>(1);
 		if (interfaceListSpecified != null) {
 			ArrayElementValue arrayOfInterfaceTypes = (ArrayElementValue) interfaceListSpecified.getValue();
 			int numberOfTypes = arrayOfInterfaceTypes.getElementValuesArraySize();
@@ -988,7 +970,7 @@ public class AtAjAttributes {
 		}
 
 		// Create the declare parents that will add the interfaces to matching targets
-		FormalBinding[] bindings = new org.aspectj.weaver.patterns.FormalBinding[0];
+		FormalBinding[] bindings = FormalBinding.NONE;
 		IScope binding = new BindingScope(struct.enclosingType, struct.context, bindings);
 		// how do we mark this as a decp due to decmixin?
 		DeclareParents dp = new DeclareParentsMixin(targetTypePattern, newParents);
@@ -1004,14 +986,13 @@ public class AtAjAttributes {
 
 		boolean hasAtLeastOneMethod = false;
 
-		for (Iterator<ResolvedType> iterator = newInterfaceTypes.iterator(); iterator.hasNext();) {
-			ResolvedType typeForDelegation = iterator.next();
+		for (ResolvedType typeForDelegation : newInterfaceTypes) {
 			// TODO check for overlapping interfaces. Eg. A implements I, I extends J - if they specify interfaces={I,J} we dont
 			// want to do any methods twice
 			ResolvedMember[] methods = typeForDelegation.getMethodsWithoutIterator(true, false, false).toArray(
-					new ResolvedMember[0]);
-			for (int i = 0; i < methods.length; i++) {
-				ResolvedMember method = methods[i];
+                    ResolvedMember.NONE);
+			for (ResolvedMember resolvedMember : methods) {
+				ResolvedMember method = resolvedMember;
 				if (method.isAbstract()) {
 					hasAtLeastOneMethod = true;
 					if (method.hasBackingGenericMember()) {
@@ -1036,7 +1017,7 @@ public class AtAjAttributes {
 
 	/**
 	 * Read @Before
-	 * 
+	 *
 	 * @param runtimeAnnotations
 	 * @param struct
 	 * @return true if found
@@ -1052,7 +1033,7 @@ public class AtAjAttributes {
 				if (argumentNames != null) {
 					struct.unparsedArgumentNames = argumentNames;
 				}
-				FormalBinding[] bindings = new org.aspectj.weaver.patterns.FormalBinding[0];
+				FormalBinding[] bindings = FormalBinding.NONE;
 				try {
 					bindings = extractBindings(struct);
 				} catch (UnreadableDebugInfoException unreadableDebugInfoException) {
@@ -1089,7 +1070,7 @@ public class AtAjAttributes {
 
 	/**
 	 * Read @After
-	 * 
+	 *
 	 * @param runtimeAnnotations
 	 * @param struct
 	 * @return true if found
@@ -1101,7 +1082,7 @@ public class AtAjAttributes {
 			NameValuePair afterAdvice = getAnnotationElement(after, VALUE);
 			if (afterAdvice != null) {
 				// this/target/args binding
-				FormalBinding[] bindings = new org.aspectj.weaver.patterns.FormalBinding[0];
+				FormalBinding[] bindings = FormalBinding.NONE;
 				String argumentNames = getArgNamesValue(after);
 				if (argumentNames != null) {
 					struct.unparsedArgumentNames = argumentNames;
@@ -1141,7 +1122,7 @@ public class AtAjAttributes {
 
 	/**
 	 * Read @AfterReturning
-	 * 
+	 *
 	 * @param runtimeAnnotations
 	 * @param struct
 	 * @return true if found
@@ -1191,7 +1172,7 @@ public class AtAjAttributes {
 			// this/target/args binding
 			// exclude the return binding from the pointcut binding since it is
 			// an extraArg binding
-			FormalBinding[] bindings = new org.aspectj.weaver.patterns.FormalBinding[0];
+			FormalBinding[] bindings = FormalBinding.NONE;
 			try {
 				bindings = (returned == null ? extractBindings(struct) : extractBindings(struct, returned));
 			} catch (UnreadableDebugInfoException unreadableDebugInfoException) {
@@ -1231,7 +1212,7 @@ public class AtAjAttributes {
 
 	/**
 	 * Read @AfterThrowing
-	 * 
+	 *
 	 * @param runtimeAnnotations
 	 * @param struct
 	 * @return true if found
@@ -1281,7 +1262,7 @@ public class AtAjAttributes {
 			// this/target/args binding
 			// exclude the throwned binding from the pointcut binding since it
 			// is an extraArg binding
-			FormalBinding[] bindings = new org.aspectj.weaver.patterns.FormalBinding[0];
+			FormalBinding[] bindings = FormalBinding.NONE;
 			try {
 				bindings = (thrownFormal == null ? extractBindings(struct) : extractBindings(struct, thrownFormal));
 			} catch (UnreadableDebugInfoException unreadableDebugInfoException) {
@@ -1320,7 +1301,7 @@ public class AtAjAttributes {
 
 	/**
 	 * Read @Around
-	 * 
+	 *
 	 * @param runtimeAnnotations
 	 * @param struct
 	 * @return true if found
@@ -1336,7 +1317,7 @@ public class AtAjAttributes {
 				if (argumentNames != null) {
 					struct.unparsedArgumentNames = argumentNames;
 				}
-				FormalBinding[] bindings = new org.aspectj.weaver.patterns.FormalBinding[0];
+				FormalBinding[] bindings = FormalBinding.NONE;
 				try {
 					bindings = extractBindings(struct);
 				} catch (UnreadableDebugInfoException unreadableDebugInfoException) {
@@ -1372,7 +1353,7 @@ public class AtAjAttributes {
 
 	/**
 	 * Read @Pointcut and handle the resolving in a lazy way to deal with pointcut references
-	 * 
+	 *
 	 * @param runtimeAnnotations
 	 * @param struct
 	 * @return true if a pointcut was handled
@@ -1467,7 +1448,7 @@ public class AtAjAttributes {
 
 	/**
 	 * Read @DeclareError, @DeclareWarning
-	 * 
+	 *
 	 * @param runtimeAnnotations
 	 * @param struct
 	 * @return true if found
@@ -1521,12 +1502,12 @@ public class AtAjAttributes {
 	 * Sets the location for the declare error / warning using the corresponding IProgramElement in the structure model. This will
 	 * only fix bug 120356 if compiled with -emacssym, however, it does mean that the cross references view in AJDT will show the
 	 * correct information.
-	 * 
+	 *
 	 * Other possibilities for fix: 1. using the information in ajcDeclareSoft (if this is set correctly) which will fix the problem
 	 * if compiled with ajc but not if compiled with javac. 2. creating an AjAttribute called FieldDeclarationLineNumberAttribute
 	 * (much like MethodDeclarationLineNumberAttribute) which we can ask for the offset. This will again only fix bug 120356 when
 	 * compiled with ajc.
-	 * 
+	 *
 	 * @param deow
 	 * @param struct
 	 */
@@ -1547,12 +1528,12 @@ public class AtAjAttributes {
 
 	/**
 	 * Returns a readable representation of a method. Method.toString() is not suitable.
-	 * 
+	 *
 	 * @param method
 	 * @return a readable representation of a method
 	 */
 	private static String methodToString(Method method) {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		sb.append(method.getName());
 		sb.append(method.getSignature());
 		return sb.toString();
@@ -1560,7 +1541,7 @@ public class AtAjAttributes {
 
 	/**
 	 * Build the bindings for a given method (pointcut / advice)
-	 * 
+	 *
 	 * @param struct
 	 * @return null if no debug info is available
 	 */
@@ -1576,7 +1557,7 @@ public class AtAjAttributes {
 			throw new UnreadableDebugInfoException();
 		}
 
-		List<FormalBinding> bindings = new ArrayList<FormalBinding>();
+		List<FormalBinding> bindings = new ArrayList<>();
 		for (int i = 0; i < argumentNames.length; i++) {
 			String argumentName = argumentNames[i];
 			UnresolvedType argumentType = UnresolvedType.forSignature(method.getArgumentTypes()[i].getSignature());
@@ -1598,7 +1579,7 @@ public class AtAjAttributes {
 			}
 		}
 
-		return bindings.toArray(new FormalBinding[] {});
+		return bindings.toArray(FormalBinding.NONE);
 	}
 
 	// FIXME alex deal with exclude index
@@ -1637,7 +1618,7 @@ public class AtAjAttributes {
 
 	/**
 	 * Compute the flag for the xxxJoinPoint extra argument
-	 * 
+	 *
 	 * @param method
 	 * @return extra arg flag
 	 */
@@ -1652,20 +1633,20 @@ public class AtAjAttributes {
 
 	/**
 	 * Compute the flag for the xxxJoinPoint extra argument
-	 * 
+	 *
 	 * @param argumentSignatures
 	 * @return extra arg flag
 	 */
 	public static int extractExtraArgument(String[] argumentSignatures) {
 		int extraArgument = 0;
-		for (int i = 0; i < argumentSignatures.length; i++) {
-			if (AjcMemberMaker.TYPEX_JOINPOINT.getSignature().equals(argumentSignatures[i])) {
+		for (String argumentSignature : argumentSignatures) {
+			if (AjcMemberMaker.TYPEX_JOINPOINT.getSignature().equals(argumentSignature)) {
 				extraArgument |= Advice.ThisJoinPoint;
-			} else if (AjcMemberMaker.TYPEX_PROCEEDINGJOINPOINT.getSignature().equals(argumentSignatures[i])) {
+			} else if (AjcMemberMaker.TYPEX_PROCEEDINGJOINPOINT.getSignature().equals(argumentSignature)) {
 				extraArgument |= Advice.ThisJoinPoint;
-			} else if (AjcMemberMaker.TYPEX_STATICJOINPOINT.getSignature().equals(argumentSignatures[i])) {
+			} else if (AjcMemberMaker.TYPEX_STATICJOINPOINT.getSignature().equals(argumentSignature)) {
 				extraArgument |= Advice.ThisJoinPointStaticPart;
-			} else if (AjcMemberMaker.TYPEX_ENCLOSINGSTATICJOINPOINT.getSignature().equals(argumentSignatures[i])) {
+			} else if (AjcMemberMaker.TYPEX_ENCLOSINGSTATICJOINPOINT.getSignature().equals(argumentSignature)) {
 				extraArgument |= Advice.ThisEnclosingJoinPointStaticPart;
 			}
 		}
@@ -1674,7 +1655,7 @@ public class AtAjAttributes {
 
 	/**
 	 * Returns the runtime (RV/RIV) annotation of type annotationType or null if no such annotation
-	 * 
+	 *
 	 * @param rvs
 	 * @param annotationType
 	 * @return annotation
@@ -1691,7 +1672,7 @@ public class AtAjAttributes {
 
 	/**
 	 * Returns the value of a given element of an annotation or null if not found Caution: Does not handles default value.
-	 * 
+	 *
 	 * @param annotation
 	 * @param elementName
 	 * @return annotation NVP
@@ -1731,7 +1712,7 @@ public class AtAjAttributes {
 	 * Extract the method argument names. First we try the debug info attached to the method (the LocalVariableTable) - if we cannot
 	 * find that we look to use the argNames value that may have been supplied on the associated annotation. If that fails we just
 	 * don't know and return an empty string.
-	 * 
+	 *
 	 * @param method
 	 * @param argNamesFromAnnotation
 	 * @param methodStruct
@@ -1744,12 +1725,11 @@ public class AtAjAttributes {
 		}
 
 		final int startAtStackIndex = method.isStatic() ? 0 : 1;
-		final List<MethodArgument> arguments = new ArrayList<MethodArgument>();
+		final List<MethodArgument> arguments = new ArrayList<>();
 		LocalVariableTable lt = method.getLocalVariableTable();
 		if (lt != null) {
 			LocalVariable[] lvt = lt.getLocalVariableTable();
-			for (int j = 0; j < lvt.length; j++) {
-				LocalVariable localVariable = lvt[j];
+			for (LocalVariable localVariable : lvt) {
 				if (localVariable != null) { // pr348488
 					if (localVariable.getStartPC() == 0) {
 						if (localVariable.getIndex() >= startAtStackIndex) {
@@ -1804,7 +1784,7 @@ public class AtAjAttributes {
 		}
 
 		// sort by index
-		Collections.sort(arguments, new Comparator<MethodArgument>() {
+		arguments.sort(new Comparator<MethodArgument>() {
 			public int compare(MethodArgument mo, MethodArgument mo1) {
 				if (mo.indexOnStack == mo1.indexOnStack) {
 					return 0;
@@ -1826,12 +1806,12 @@ public class AtAjAttributes {
 	private static String[] extractArgNamesFromAnnotationValue(Method method, String argNamesFromAnnotation,
 			AjAttributeMethodStruct methodStruct) {
 		StringTokenizer st = new StringTokenizer(argNamesFromAnnotation, " ,");
-		List<String> args = new ArrayList<String>();
+		List<String> args = new ArrayList<>();
 		while (st.hasMoreTokens()) {
 			args.add(st.nextToken());
 		}
 		if (args.size() != method.getArgumentTypes().length) {
-			StringBuffer shortString = new StringBuffer().append(lastbit(method.getReturnType().toString())).append(" ")
+			StringBuilder shortString = new StringBuilder().append(lastbit(method.getReturnType().toString())).append(" ")
 					.append(method.getName());
 			if (method.getArgumentTypes().length > 0) {
 				shortString.append("(");
@@ -1853,7 +1833,7 @@ public class AtAjAttributes {
 
 	/**
 	 * A method argument, used for sorting by indexOnStack (ie order in signature)
-	 * 
+	 *
 	 * @author <a href="mailto:alex AT gnilux DOT com">Alexandre Vasseur</a>
 	 */
 	private static class MethodArgument {
@@ -1869,8 +1849,8 @@ public class AtAjAttributes {
 	/**
 	 * LazyResolvedPointcutDefinition lazyly resolve the pointcut so that we have time to register all pointcut referenced before
 	 * pointcut resolution happens
-	 * 
-	 * @author <a href="mailto:alex AT gnilux DOT com">Alexandre Vasseur</a>
+	 *
+	 * @author Alexandre Vasseur (alex AT gnilux DOT com)
 	 */
 	public static class LazyResolvedPointcutDefinition extends ResolvedPointcutDefinition {
 		private final Pointcut m_pointcutUnresolved; // null for abstract
@@ -1901,7 +1881,7 @@ public class AtAjAttributes {
 
 	/**
 	 * Helper to test empty strings
-	 * 
+	 *
 	 * @param s
 	 * @return true if empty or null
 	 */
@@ -1911,21 +1891,20 @@ public class AtAjAttributes {
 
 	/**
 	 * Set the pointcut bindings for which to ignore unbound issues, so that we can implicitly bind xxxJoinPoint for @AJ advices
-	 * 
+	 *
 	 * @param pointcut
 	 * @param bindings
 	 */
 	private static void setIgnoreUnboundBindingNames(Pointcut pointcut, FormalBinding[] bindings) {
 		// register ImplicitBindings as to be ignored since unbound
 		// TODO is it likely to fail in a bad way if f.e. this(jp) etc ?
-		List<String> ignores = new ArrayList<String>();
-		for (int i = 0; i < bindings.length; i++) {
-			FormalBinding formalBinding = bindings[i];
+		List<String> ignores = new ArrayList<>();
+		for (FormalBinding formalBinding : bindings) {
 			if (formalBinding instanceof FormalBinding.ImplicitFormalBinding) {
 				ignores.add(formalBinding.getName());
 			}
 		}
-		pointcut.m_ignoreUnboundBindingForNames = ignores.toArray(new String[ignores.size()]);
+		pointcut.m_ignoreUnboundBindingForNames = ignores.toArray(new String[0]);
 	}
 
 	/**
@@ -1936,7 +1915,7 @@ public class AtAjAttributes {
 
 	/**
 	 * Report an error
-	 * 
+	 *
 	 * @param message
 	 * @param location
 	 */
@@ -1954,7 +1933,7 @@ public class AtAjAttributes {
 
 	/**
 	 * Report a warning
-	 * 
+	 *
 	 * @param message
 	 * @param location
 	 */
@@ -1966,7 +1945,7 @@ public class AtAjAttributes {
 
 	/**
 	 * Parse the given pointcut, return null on failure and issue an error
-	 * 
+	 *
 	 * @param pointcutString
 	 * @param struct
 	 * @param allowIf
@@ -1978,7 +1957,7 @@ public class AtAjAttributes {
 			Pointcut pointcut = parser.parsePointcut();
 			parser.checkEof();
 			pointcut.check(null, struct.enclosingType.getWorld());
-			if (!allowIf && pointcutString.indexOf("if()") >= 0 && hasIf(pointcut)) {
+			if (!allowIf && pointcutString.contains("if()") && hasIf(pointcut)) {
 				reportError("if() pointcut is not allowed at this pointcut location '" + pointcutString + "'", struct);
 				return null;
 			}
@@ -2000,7 +1979,7 @@ public class AtAjAttributes {
 
 	/**
 	 * Parse the given type pattern, return null on failure and issue an error
-	 * 
+	 *
 	 * @param patternString
 	 * @param location
 	 * @return type pattern

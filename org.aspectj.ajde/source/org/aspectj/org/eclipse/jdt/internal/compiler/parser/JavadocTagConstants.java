@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -44,6 +44,15 @@ public interface JavadocTagConstants {
 	public static final char[] TAG_SINCE = "since".toCharArray(); //$NON-NLS-1$
 	public static final char[] TAG_VERSION = "version".toCharArray(); //$NON-NLS-1$
 	public static final char[] TAG_CATEGORY = "category".toCharArray(); //$NON-NLS-1$
+	public static final char[] TAG_SYSTEM_PROPERTY = "systemProperty".toCharArray(); //$NON-NLS-1$
+	public static final char[] TAG_USES = "uses".toCharArray(); //$NON-NLS-1$
+	public static final char[] TAG_PROVIDES = "provides".toCharArray(); //$NON-NLS-1$
+	public static final char[] TAG_HIDDEN = "hidden".toCharArray(); //$NON-NLS-1$
+	public static final char[] TAG_INDEX = "index".toCharArray(); //$NON-NLS-1$
+	public static final char[] TAG_SUMMARY = "summary".toCharArray(); //$NON-NLS-1$
+	public static final char[] TAG_API_NOTE = "apiNote".toCharArray(); //$NON-NLS-1$
+	public static final char[] TAG_IMPL_SPEC = "implSpec".toCharArray(); //$NON-NLS-1$
+	public static final char[] TAG_IMPL_NOTE = "implNote".toCharArray(); //$NON-NLS-1$
 
 	// tags lengthes
 	public static final int TAG_DEPRECATED_LENGTH = TAG_DEPRECATED.length;
@@ -66,6 +75,15 @@ public interface JavadocTagConstants {
 	public static final int TAG_CODE_LENGTH = TAG_CODE.length;
 	public static final int TAG_LITERAL_LENGTH = TAG_LITERAL.length;
 	public static final int TAG_DOC_ROOT_LENGTH = TAG_DOC_ROOT.length;
+	public static final int TAG_SYSTEM_PROPERTY_LENGTH = TAG_SYSTEM_PROPERTY.length;
+	public static final int TAG_USES_LENGTH = TAG_USES.length;
+	public static final int TAG_PROVIDES_LENGTH = TAG_PROVIDES.length;
+	public static final int TAG_HIDDEN_LENGTH = TAG_HIDDEN.length;
+	public static final int TAG_INDEX_LENGTH = TAG_INDEX.length;
+	public static final int TAG_SUMMARY_LENGTH = TAG_SUMMARY.length;
+	public static final int TAG_API_NOTE_LENGTH = TAG_API_NOTE.length;
+	public static final int TAG_IMPL_SPEC_LENGTH = TAG_IMPL_SPEC.length;
+	public static final int TAG_IMPL_NOTE_LENGTH = TAG_IMPL_NOTE.length;
 
 	// tags value
 	public static final int NO_TAG_VALUE = 0;
@@ -89,8 +107,16 @@ public interface JavadocTagConstants {
 	public static final int TAG_CODE_VALUE = 18;
 	public static final int TAG_LITERAL_VALUE = 19;
 	public static final int TAG_DOC_ROOT_VALUE = 20;
+	public static final int TAG_SYSTEM_PROPERTY_VALUE=21;
+	public static final int TAG_USES_VALUE=22;
+	public static final int TAG_PROVIDES_VALUE=23;
+	public static final int TAG_HIDDEN_VALUE = 24;
+	public static final int TAG_INDEX_VALUE = 25;
+	public static final int TAG_SUMMARY_VALUE = 26;
+	public static final int TAG_API_NOTE_VALUE = 27;
+	public static final int TAG_IMPL_SPEC_VALUE = 28;
+	public static final int TAG_IMPL_NOTE_VALUE = 29;
 	public static final int TAG_OTHERS_VALUE = 100;
-	
 	// Tag names array
 	public static final char[][] TAG_NAMES = {
 		CharOperation.NO_CHAR,
@@ -114,6 +140,15 @@ public interface JavadocTagConstants {
 		TAG_CODE,					/* 18 */
 		TAG_LITERAL,				/* 19 */
 		TAG_DOC_ROOT,			/* 20 */
+		TAG_SYSTEM_PROPERTY,    /* 21 */
+		TAG_USES,				/* 22 */
+		TAG_PROVIDES,			/* 23 */
+		TAG_HIDDEN,				/* 24 */
+		TAG_INDEX,				/* 25 */
+		TAG_SUMMARY,			/* 26 */
+		TAG_API_NOTE,			/* 27 */
+		TAG_IMPL_SPEC,			/* 28 */
+		TAG_IMPL_NOTE,			/* 29 */
 	};
 
 	// tags expected positions
@@ -151,13 +186,25 @@ public interface JavadocTagConstants {
 		// since 1.7
 		{},
 		// since 1.8
-		{},
+		{TAG_API_NOTE, TAG_IMPL_SPEC, TAG_IMPL_NOTE},
 		// since 9
-		{},
+		{ TAG_HIDDEN, TAG_USES, TAG_PROVIDES },
 		// since 10
 		{},
 		// since 11
-		{}
+		{},
+		//since 12
+		{},
+		//since 13
+		{},
+		//since 14
+		{},
+		//since 15
+		{},
+		//since 16
+		{},
+		// since 17
+		{},
 	};
 	public static final char[][][] INLINE_TAGS = {
 		// since 1.0
@@ -179,10 +226,22 @@ public interface JavadocTagConstants {
 		// since 1.8
 		{},
 		// since 9
-		{},
+		{ TAG_INDEX },
 		// since 10
-		{},
+		{ TAG_SUMMARY },
 		// since 11
+		{},
+		//since 12
+		{TAG_SYSTEM_PROPERTY},
+		//since 13
+		{},
+		//since 14
+		{},
+		//since 15
+		{},
+		//since 16
+		{},
+		//since 17
 		{}
 	};
 	public final static int INLINE_TAGS_LENGTH = INLINE_TAGS.length;
@@ -192,7 +251,6 @@ public interface JavadocTagConstants {
 	public final static short TAG_TYPE_NONE = 0;
 	public final static short TAG_TYPE_INLINE = 1;
 	public final static short TAG_TYPE_BLOCK = 2;
-	
 	public static final short[] JAVADOC_TAG_TYPE = {
 		TAG_TYPE_NONE, 		// NO_TAG_VALUE = 0;
 		TAG_TYPE_BLOCK,		// TAG_DEPRECATED_VALUE = 1;
@@ -214,7 +272,16 @@ public interface JavadocTagConstants {
 		TAG_TYPE_BLOCK,		// TAG_VERSION_VALUE = 17;
 		TAG_TYPE_INLINE,	// TAG_CODE_VALUE = 18;
 		TAG_TYPE_INLINE,	// TAG_LITERAL_VALUE = 19;
-		TAG_TYPE_INLINE		// TAG_DOC_ROOT_VALUE = 20;
+		TAG_TYPE_INLINE,	// TAG_DOC_ROOT_VALUE = 20;
+		TAG_TYPE_INLINE,    // TAG_DOC_SYSTEM_PROPERTY = 21
+		TAG_TYPE_BLOCK,		// TAG_USES_VALUE = 22;
+		TAG_TYPE_BLOCK,		// TAG_PROVIDES_VALUE = 23;
+		TAG_TYPE_BLOCK,		// TAG_HIDDEN_VALUE = 24;
+		TAG_TYPE_INLINE,	// TAG_INDEX_VALUE = 25;
+		TAG_TYPE_INLINE,	// TAG_SUMMARY_VALUE = 26;
+		TAG_TYPE_BLOCK,		// TAG_API_NOTE = 27;
+		TAG_TYPE_BLOCK,		// TAG_IMPL_SPEC = 28;
+		TAG_TYPE_BLOCK,		// TAG_IMPL_NOTE = 29;
 	};
 	/*
 	 * Tags usage
@@ -230,6 +297,13 @@ public interface JavadocTagConstants {
 		TAG_LINKPLAIN,
 		TAG_DOC_ROOT,
 		TAG_VALUE,
+		TAG_SYSTEM_PROPERTY,
+		TAG_HIDDEN,
+		TAG_INDEX,
+		TAG_SUMMARY,
+		TAG_API_NOTE,
+		TAG_IMPL_SPEC,
+		TAG_IMPL_NOTE,
 	};
 	public static final char[][] COMPILATION_UNIT_TAGS = {};
 	public static final char[][] CLASS_TAGS = {
@@ -246,7 +320,14 @@ public interface JavadocTagConstants {
 		TAG_DOC_ROOT,
 		TAG_VALUE,
 		TAG_CODE,
-		TAG_LITERAL
+		TAG_LITERAL,
+		TAG_SYSTEM_PROPERTY,
+		TAG_HIDDEN,
+		TAG_INDEX,
+		TAG_SUMMARY,
+		TAG_API_NOTE,
+		TAG_IMPL_SPEC,
+		TAG_IMPL_NOTE,
 	};
 	public static final char[][] FIELD_TAGS = {
 		TAG_SEE,
@@ -260,7 +341,14 @@ public interface JavadocTagConstants {
 		TAG_DOC_ROOT,
 		TAG_VALUE,
 		TAG_CODE,
-		TAG_LITERAL
+		TAG_LITERAL,
+		TAG_SYSTEM_PROPERTY,
+		TAG_INDEX,
+		TAG_HIDDEN,
+		TAG_SUMMARY,
+		TAG_API_NOTE,
+		TAG_IMPL_SPEC,
+		TAG_IMPL_NOTE,
 	};
 	public static final char[][] METHOD_TAGS = {
 		TAG_SEE,
@@ -278,6 +366,36 @@ public interface JavadocTagConstants {
 		TAG_DOC_ROOT,
 		TAG_VALUE,
 		TAG_CODE,
-		TAG_LITERAL
+		TAG_LITERAL,
+		TAG_SYSTEM_PROPERTY,
+		TAG_HIDDEN,
+		TAG_INDEX,
+		TAG_SUMMARY,
+		TAG_API_NOTE,
+		TAG_IMPL_SPEC,
+		TAG_IMPL_NOTE,
 	};
+	public static final char[][] MODULE_TAGS = {
+			TAG_SEE,
+			TAG_SINCE,
+			TAG_DEPRECATED,
+			TAG_SERIAL,
+			TAG_AUTHOR,
+			TAG_VERSION,
+			TAG_CATEGORY,
+			TAG_LINK,
+			TAG_LINKPLAIN,
+			TAG_DOC_ROOT,
+			TAG_VALUE,
+			TAG_CODE,
+			TAG_LITERAL,
+			TAG_USES,
+			TAG_PROVIDES,
+			TAG_HIDDEN,
+			TAG_INDEX,
+			TAG_SUMMARY,
+			TAG_API_NOTE,
+			TAG_IMPL_SPEC,
+			TAG_IMPL_NOTE,
+		};
 }

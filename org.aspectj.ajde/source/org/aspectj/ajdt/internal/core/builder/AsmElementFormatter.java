@@ -2,9 +2,9 @@
  * Copyright (c) 2002 Palo Alto Research Center, Incorporated (PARC).
  * All rights reserved.
  * This program and the accompanying materials are made available
- * under the terms of the Eclipse Public License v1.0
+ * under the terms of the Eclipse Public License v 2.0
  * which accompanies this distribution and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
  *
  * Contributors:
  *     PARC                     initial implementation
@@ -16,6 +16,7 @@ package org.aspectj.ajdt.internal.core.builder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.StringJoiner;
 
 import org.aspectj.ajdt.internal.compiler.ast.AdviceDeclaration;
 import org.aspectj.ajdt.internal.compiler.ast.DeclareDeclaration;
@@ -70,7 +71,7 @@ public class AsmElementFormatter {
 				node.setCorrespondingType(ad.returnType.toString()); // returnTypeToString(0));
 			}
 
-			StringBuffer details = new StringBuffer();
+			StringBuilder details = new StringBuilder();
 			if (ad.pointcutDesignator != null) {
 				details.append(AsmRelationshipUtils.genPointcutDetails(ad.pointcutDesignator.getPointcut()));
 			} else {
@@ -110,7 +111,7 @@ public class AsmElementFormatter {
 				node.setName(name + AsmRelationshipUtils.DECLARE_PARENTS);
 
 				String kindOfDP = null;
-				StringBuffer details = new StringBuffer("");
+				StringBuilder details = new StringBuilder("");
 				TypePattern[] newParents = dp.getParents().getTypePatterns();
 				for (int i = 0; i < newParents.length; i++) {
 					TypePattern tp = newParents[i];
@@ -174,7 +175,7 @@ public class AsmElementFormatter {
 		} else if (methodDeclaration instanceof InterTypeDeclaration) {
 			InterTypeDeclaration itd = (InterTypeDeclaration) methodDeclaration;
 			String fqname = itd.getOnType().toString();
-			if (fqname.indexOf(".") != -1) {
+			if (fqname.contains(".")) {
 				// TODO the string handling round here is embarrassing
 				node.addFullyQualifiedName(fqname + "." + new String(itd.getDeclaredSelector()));
 				fqname = fqname.substring(fqname.lastIndexOf(".") + 1);
@@ -248,7 +249,7 @@ public class AsmElementFormatter {
 	}
 
 	private String genDecaLabel(DeclareAnnotation deca) {
-		StringBuffer sb = new StringBuffer("");
+		StringBuilder sb = new StringBuilder("");
 		sb.append(deca.getPatternAsString());
 		sb.append(" : ");
 		sb.append(deca.getAnnotationString());
@@ -256,14 +257,11 @@ public class AsmElementFormatter {
 	}
 
 	private String genPrecedenceListLabel(TypePatternList list) {
-		String tpList = "";
+		StringJoiner tpList = new StringJoiner(", ");
 		for (int i = 0; i < list.size(); i++) {
-			tpList += genTypePatternLabel(list.get(i));
-			if (i < list.size() - 1) {
-				tpList += ", ";
-			}
+			tpList.add(genTypePatternLabel(list.get(i)));
 		}
-		return tpList;
+		return tpList.toString();
 	}
 
 	// private String genArguments(MethodDeclaration md) {
@@ -284,7 +282,7 @@ public class AsmElementFormatter {
 
 	private String handleSigForReference(TypeReference ref, TypeBinding tb, MethodScope scope) {
 		try {
-			StringBuffer sb = new StringBuffer();
+			StringBuilder sb = new StringBuilder();
 			createHandleSigForReference(ref, tb, scope, sb);
 			return sb.toString();
 		} catch (Throwable t) {
@@ -299,7 +297,7 @@ public class AsmElementFormatter {
 	 * handle. Whether a type is qualified or unqualified in its source reference is actually reflected in the handle and this code
 	 * allows for that.
 	 */
-	private void createHandleSigForReference(TypeReference ref, TypeBinding tb, MethodScope scope, StringBuffer handleSig) {
+	private void createHandleSigForReference(TypeReference ref, TypeBinding tb, MethodScope scope, StringBuilder handleSig) {
 		if (ref instanceof Wildcard) {
 			Wildcard w = (Wildcard) ref;
 			if (w.bound == null) {
@@ -321,8 +319,7 @@ public class AsmElementFormatter {
 			TypeReference[] typeRefs = pstr.typeArguments;
 			if (typeRefs != null && typeRefs.length > 0) {
 				handleSig.append("\\<");
-				for (int i = 0; i < typeRefs.length; i++) {
-					TypeReference typeR = typeRefs[i];
+				for (TypeReference typeR : typeRefs) {
 					TypeBinding typeB = typeR.resolvedType;
 					if (typeB == null) {
 						typeB = typeR.resolveType(scope);
@@ -368,8 +365,7 @@ public class AsmElementFormatter {
 				TypeReference[] typeRefs = pstr.typeArguments[i];
 				if (typeRefs != null && typeRefs.length > 0) {
 					handleSig.append("\\<");
-					for (int j = 0; j < typeRefs.length; j++) {
-						TypeReference typeR = typeRefs[j];
+					for (TypeReference typeR : typeRefs) {
 						TypeBinding typeB = typeR.resolvedType;
 						if (typeB == null) {
 							typeB = typeR.resolveType(scope);
@@ -424,15 +420,15 @@ public class AsmElementFormatter {
 			pe.setParameterNames(Collections.<String>emptyList());
 			pe.setParameterSignatures(Collections.<char[]>emptyList(), Collections.<String>emptyList());
 		} else {
-			List<String> names = new ArrayList<String>();
-			List<char[]> paramSigs = new ArrayList<char[]>();
-			List<String> paramSourceRefs = new ArrayList<String>();
+			List<String> names = new ArrayList<>();
+			List<char[]> paramSigs = new ArrayList<>();
+			List<String> paramSourceRefs = new ArrayList<>();
 			boolean problemWithSourceRefs = false;
-			for (int i = 0; i < argArray.length; i++) {
-				String argName = new String(argArray[i].name);
+			for (Argument argument : argArray) {
+				String argName = new String(argument.name);
 				// String argType = "<UnknownType>"; // pr135052
-				if (acceptArgument(argName, argArray[i].type.toString())) {
-					TypeReference typeR = argArray[i].type;
+				if (acceptArgument(argName, argument.type.toString())) {
+					TypeReference typeR = argument.type;
 					if (typeR != null && md.scope != null) {
 						TypeBinding typeB = typeR.resolvedType;
 						if (typeB == null) {

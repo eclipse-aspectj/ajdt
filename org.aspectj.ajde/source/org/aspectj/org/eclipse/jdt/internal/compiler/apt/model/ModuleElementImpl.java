@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 IBM Corporation and others.
+ * Copyright (c) 2018, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -7,13 +7,14 @@
  * https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     
+ *
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.apt.model;
 
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -34,7 +35,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.AnnotationBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ModuleBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.PackageBinding;
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.SplitPackageBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.PlainPackageBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 
 public class ModuleElementImpl extends ElementImpl implements ModuleElement {
@@ -52,13 +53,6 @@ public class ModuleElementImpl extends ElementImpl implements ModuleElement {
 	ModuleElementImpl(BaseProcessingEnvImpl env, ModuleBinding binding) {
 		super(env, binding);
 		this.binding = binding;
-	}
-
-	private PackageBinding getModulesPackageBinding(PackageBinding binding) {
-		if (binding instanceof SplitPackageBinding) {
-			return ((SplitPackageBinding) binding).getIncarnation(this.binding);
-		}
-		return binding;
 	}
 
 	@Override
@@ -79,39 +73,41 @@ public class ModuleElementImpl extends ElementImpl implements ModuleElement {
 
 	@Override
 	public Name getSimpleName() {
-		return new NameImpl(this.binding.moduleName);
+		char[] simpleName = this.binding.moduleName;
+		for(int i = simpleName.length-1;i>=0;i--) {
+			if(simpleName[i] == '.') {
+				simpleName = Arrays.copyOfRange(simpleName, i+1, simpleName.length);
+				break;
+			}
+		}
+		return new NameImpl(simpleName);
 	}
 
 	@Override
 	public List<? extends Element> getEnclosedElements() {
 		ModuleBinding module = this.binding;
-		PackageBinding[] packs = module.declaredPackages.valueTable;
-		Set<PackageBinding> unique = new HashSet<>();
-		for (PackageBinding p : packs) {
-			if (p == null)
-				continue;
+		Set<PlainPackageBinding> unique = new HashSet<>();
+		for (PlainPackageBinding p : module.declaredPackages.values()) {
 			if (!p.hasCompilationUnit(true))
 				continue;
-			unique.add(getModulesPackageBinding(p));
+			unique.add(p);
 		}
 		if (module.isUnnamed()) {
-			PackageBinding def = module.environment.defaultPackage;
+			PlainPackageBinding def = module.environment.defaultPackage;
 			// FIXME: Does it have any impact for unnamed modules - default package combo?
 			if (def != null && def.hasCompilationUnit(true)) {
 				unique.add(def);
 			}
 		} else {
-			packs = this.binding.getExports();
-			for (PackageBinding pBinding : packs) {
-				unique.add(getModulesPackageBinding(pBinding));
+			for (PlainPackageBinding pBinding : this.binding.getExports()) {
+				unique.add(pBinding);
 			}
-			packs = this.binding.getOpens();
-			for (PackageBinding pBinding : packs) {
-				unique.add(getModulesPackageBinding(pBinding));
+			for (PlainPackageBinding pBinding : this.binding.getOpens()) {
+				unique.add(pBinding);
 			}
 		}
 		List<Element> enclosed = new ArrayList<>(unique.size());
-		for (PackageBinding p : unique) {
+		for (PlainPackageBinding p : unique) {
 			PackageElement pElement = (PackageElement) _env.getFactory().newElement(p);
 			enclosed.add(pElement);
 		}
@@ -142,9 +138,8 @@ public class ModuleElementImpl extends ElementImpl implements ModuleElement {
 		if (this.directives == null)
 			this.directives = new ArrayList<>();
 
-		PackageBinding[] packs = this.binding.getExports();
-		for (PackageBinding exp : packs) {
-			exp = getModulesPackageBinding(exp);
+		PlainPackageBinding[] packs = this.binding.getExports();
+		for (PlainPackageBinding exp : packs) {
 			this.directives.add(new ExportsDirectiveImpl(exp));
 		}
 		Set<ModuleBinding> transitive = new HashSet<>();
@@ -169,8 +164,7 @@ public class ModuleElementImpl extends ElementImpl implements ModuleElement {
 			this.directives.add(new ProvidesDirectiveImpl(tBinding));
 		}
 		packs = this.binding.getOpens();
-		for (PackageBinding exp : packs) {
-			exp = getModulesPackageBinding(exp);
+		for (PlainPackageBinding exp : packs) {
 			this.directives.add(new OpensDirectiveImpl(exp));
 		}
 		return this.directives;

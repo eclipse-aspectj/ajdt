@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2005, 2017 IBM Corporation and others.
+ * Copyright (c) 2005, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -42,6 +42,7 @@ import org.aspectj.org.eclipse.jdt.core.dom.ModuleDeclaration;
 import org.aspectj.org.eclipse.jdt.core.dom.NormalAnnotation;
 import org.aspectj.org.eclipse.jdt.core.dom.PackageDeclaration;
 import org.aspectj.org.eclipse.jdt.core.dom.ParameterizedType;
+import org.aspectj.org.eclipse.jdt.core.dom.RecordDeclaration;
 import org.aspectj.org.eclipse.jdt.core.dom.SingleMemberAnnotation;
 import org.aspectj.org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.aspectj.org.eclipse.jdt.core.dom.TypeDeclaration;
@@ -203,6 +204,13 @@ public class DOMFinder extends ASTVisitor {
 	}
 
 	@Override
+	public boolean visit(RecordDeclaration node) {
+		if (found(node, node.getName()) && this.resolveBinding)
+			this.foundBinding = node.resolveBinding();
+		return true;
+	}
+
+	@Override
 	public boolean visit(TypeParameter node) {
 		if (found(node, node.getName()) && this.resolveBinding)
 			this.foundBinding = node.resolveBinding();
@@ -220,7 +228,7 @@ public class DOMFinder extends ASTVisitor {
 	public boolean visit(SingleVariableDeclaration node) {
 		if (found(node, node.getName()) && this.resolveBinding)
 			this.foundBinding = node.resolveBinding();
-		return true;		
+		return true;
 	}
 
 	@Override

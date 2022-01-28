@@ -1,14 +1,14 @@
 /* *******************************************************************
- * Copyright (c) 1999-2001 Xerox Corporation, 
+ * Copyright (c) 1999-2001 Xerox Corporation,
  *               2002 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     Xerox/PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     Xerox/PARC     initial implementation
  *     Mik Kersten	  port to AspectJ 1.1+ code base
  * ******************************************************************/
 
@@ -20,8 +20,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.aspectj.asm.AsmManager;
 import org.aspectj.asm.IProgramElement;
@@ -32,7 +32,7 @@ import org.aspectj.util.FileUtil;
  */
 class StubFileGenerator {
 
-	static Hashtable declIDTable = null;
+	static Map declIDTable = null;
 
 	static void doFiles(AsmManager model, Hashtable table, File[] inputFiles, File[] signatureFiles) throws DocException {
 		declIDTable = table;
@@ -48,7 +48,7 @@ class StubFileGenerator {
 			   FileUtil.copyFile(inputFile, signatureFile);
 			   return;
 			}
-			
+
 			String path = StructureUtil.translateAjPathName(signatureFile.getCanonicalPath());
 			PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(path)));
 
@@ -59,8 +59,7 @@ class StubFileGenerator {
 			}
 
 			IProgramElement fileNode = model.getHierarchy().findElementForSourceFile(inputFile.getAbsolutePath());
-			for (Iterator it = fileNode.getChildren().iterator(); it.hasNext();) {
-				IProgramElement node = (IProgramElement) it.next();
+			for (IProgramElement node : fileNode.getChildren()) {
 				if (node.getKind().isPackageDeclaration()) {
 					// skip
 				} else if (node.getKind().equals(IProgramElement.Kind.IMPORT_REFERENCE)) {
@@ -84,8 +83,8 @@ class StubFileGenerator {
 
 	private static void processImportDeclaration(IProgramElement node, PrintWriter writer) throws IOException {
 		List imports = node.getChildren();
-		for (Iterator i = imports.iterator(); i.hasNext();) {
-			IProgramElement importNode = (IProgramElement) i.next();
+		for (Object anImport : imports) {
+			IProgramElement importNode = (IProgramElement) anImport;
 			writer.println(importNode.getSourceSignature());
 		}
 	}
@@ -111,8 +110,8 @@ class StubFileGenerator {
 
 	private static void processMembers(List/* IProgramElement */members, PrintWriter writer, boolean declaringTypeIsInterface)
 			throws DocException {
-		for (Iterator it = members.iterator(); it.hasNext();) {
-			IProgramElement member = (IProgramElement) it.next();
+		for (Object o : members) {
+			IProgramElement member = (IProgramElement) o;
 
 			if (member.getKind().isType()) {
 				if (!member.getParent().getKind().equals(IProgramElement.Kind.METHOD) && !StructureUtil.isAnonymous(member)) {// don't
@@ -154,7 +153,7 @@ class StubFileGenerator {
 
 				if (member.getKind().equals(IProgramElement.Kind.METHOD)
 						|| member.getKind().equals(IProgramElement.Kind.CONSTRUCTOR)) {
-					if (member.getParent().getKind().equals(IProgramElement.Kind.INTERFACE) || signature.indexOf("abstract ") != -1) {
+					if (member.getParent().getKind().equals(IProgramElement.Kind.INTERFACE) || signature.contains("abstract ")) {
 						writer.println(";");
 					} else {
 						writer.println(" { }");
@@ -191,7 +190,7 @@ class StubFileGenerator {
 
 	/**
 	 * We want to go: just before the first period just before the first @ just before the end of the comment
-	 * 
+	 *
 	 * Adds a place holder for the period ('#') if one will need to be replaced.
 	 */
 	static String addToFormal(String formalComment, String string) {

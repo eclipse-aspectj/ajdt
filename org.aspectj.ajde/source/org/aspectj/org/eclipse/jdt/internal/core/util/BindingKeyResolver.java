@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2005, 2017 IBM Corporation and others.
+ * Copyright (c) 2005, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -45,8 +45,8 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LocalTypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.PackageBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ParameterizedTypeBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.PlainPackageBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.PolymorphicMethodBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.RawTypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
@@ -62,7 +62,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.util.HashtableOfObject;
 public class BindingKeyResolver extends BindingKeyParser {
 
 	/** Synthetic bindings for local variables (method arguments) restored from a binding key. */
-	private final class SyntheticLocalVariableBinding extends LocalVariableBinding {
+	private static final class SyntheticLocalVariableBinding extends LocalVariableBinding {
 
 		private final MethodBinding enclosingMethod;
 		private int paramPosition;
@@ -89,7 +89,7 @@ public class BindingKeyResolver extends BindingKeyParser {
 			}
 			return this.key;
 		}
-		
+
 		@Override
 		public MethodBinding getEnclosingMethod() {
 			return this.enclosingMethod;
@@ -125,7 +125,7 @@ public class BindingKeyResolver extends BindingKeyParser {
 	TypeBinding typeBinding;
 	TypeDeclaration typeDeclaration;
 	ArrayList types = new ArrayList();
-	
+
 	int wildcardRank;
 
 	CompilationUnitDeclaration outerMostParsedUnit;
@@ -357,12 +357,12 @@ public class BindingKeyResolver extends BindingKeyParser {
 			this.typeBinding = null;
 			return;
 		}
- 		LocalTypeBinding[] localTypeBindings  = this.parsedUnit.localTypes;
- 		for (int i = 0; i < this.parsedUnit.localTypeCount; i++)
- 			if (CharOperation.equals(uniqueKey, localTypeBindings[i].computeUniqueKey(false/*not a leaf*/))) {
- 				this.typeBinding = localTypeBindings[i];
+ 		for (LocalTypeBinding localTypeBinding : this.parsedUnit.localTypes.values()) {
+ 			if (CharOperation.equals(uniqueKey, localTypeBinding.computeUniqueKey(false/*not a leaf*/))) {
+ 				this.typeBinding = localTypeBinding;
  				return;
  			}
+ 		}
 	}
 
 	@Override
@@ -500,7 +500,7 @@ public class BindingKeyResolver extends BindingKeyParser {
 	@Override
 	public void consumePackage(char[] pkgName) {
 		this.compoundName = CharOperation.splitOn('/', pkgName);
-		this.compilerBinding = new PackageBinding(this.compoundName, null, this.environment, this.environment.module); //TODO(SHMOD) enclosingModule
+		this.compilerBinding = new PlainPackageBinding(this.compoundName, null, this.environment, this.environment.module); //TODO(SHMOD) enclosingModule
 	}
 
 	@Override
@@ -630,7 +630,7 @@ public class BindingKeyResolver extends BindingKeyParser {
 	public void consumeWildcardRank(int aRank) {
 		this.wildcardRank = aRank;
 	}
-	
+
 	@Override
 	public void consumeWildCard(int kind) {
 		switch (kind) {

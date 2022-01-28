@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -26,6 +26,7 @@ public class SwitchFlowContext extends FlowContext {
 
 	public BranchLabel breakLabel;
 	public UnconditionalFlowInfo initsOnBreak = FlowInfo.DEAD_END;
+	public boolean isExpression = false;
 
 public SwitchFlowContext(FlowContext parent, ASTNode associatedNode, BranchLabel breakLabel, boolean isPreTest, boolean inheritNullFieldChecks) {
 	super(parent, associatedNode, inheritNullFieldChecks);
@@ -42,7 +43,7 @@ public BranchLabel breakLabel() {
 
 @Override
 public String individualToString() {
-	StringBuffer buffer = new StringBuffer("Switch flow context"); //$NON-NLS-1$
+	StringBuilder buffer = new StringBuilder("Switch flow context"); //$NON-NLS-1$
 	buffer.append("[initsOnBreak -").append(this.initsOnBreak.toString()).append(']'); //$NON-NLS-1$
 	return buffer.toString();
 }

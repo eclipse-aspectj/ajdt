@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 IBM Corporation and others.
+ * Copyright (c) 2017, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -13,26 +13,29 @@
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.core;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import org.aspectj.org.eclipse.jdt.core.IJavaElement;
 import org.aspectj.org.eclipse.jdt.core.IModuleDescription;
 import org.aspectj.org.eclipse.jdt.core.ITypeRoot;
 import org.aspectj.org.eclipse.jdt.core.JavaModelException;
+import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IModule;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IModule.IModuleReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IModule.IPackageExport;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IModule.IService;
 
 public interface AbstractModule extends IModuleDescription {
-	
+
 	/**
 	 * Handle for an automatic module.
 	 *
 	 * <p>Note, that by definition this is mostly a fake, only {@link #getElementName()} provides a useful value.</p>
 	 */
 	static class AutoModule extends NamedMember implements AbstractModule {
-	
+
 		private boolean nameFromManifest;
 
 		public AutoModule(JavaElement parent, String name, boolean nameFromManifest) {
@@ -72,12 +75,44 @@ public interface AbstractModule extends IModuleDescription {
 			buffer.append(this.name);
 		}
 	}
-	
+
 	// "forward declaration" for a method from JavaElement:
 	abstract Object getElementInfo() throws JavaModelException;
 
 	default IModule getModuleInfo() throws JavaModelException {
 		return (IModule) getElementInfo();
+	}
+	@Override
+	default String[] getExportedPackageNames(IModuleDescription targetModule) throws JavaModelException {
+		IModule info = getModuleInfo();
+		if (info != null) {
+			List<String> result = new ArrayList<>();
+			for (IPackageExport packageExport : info.exports()) {
+				if (targetModule == null || !packageExport.isQualified()
+						|| CharOperation.containsEqual(packageExport.targets(), targetModule.getElementName().toCharArray()))
+				{
+					result.add(new String(packageExport.name()));
+				}
+			}
+			return result.toArray(new String[result.size()]);
+		}
+		return new String[0];
+	}
+	@Override
+	default String[] getOpenedPackageNames(IModuleDescription targetModule) throws JavaModelException {
+		IModule info = getModuleInfo();
+		if (info != null) {
+			List<String> result = new ArrayList<>();
+			for (IPackageExport packageOpen : info.opens()) {
+				if (targetModule == null || !packageOpen.isQualified()
+						|| CharOperation.containsEqual(packageOpen.targets(), targetModule.getElementName().toCharArray()))
+				{
+					result.add(new String(packageOpen.name()));
+				}
+			}
+			return result.toArray(new String[result.size()]);
+		}
+		return new String[0];
 	}
 	default IModuleReference[] getRequiredModules() throws JavaModelException {
 		return getModuleInfo().requires();
@@ -88,8 +123,28 @@ public interface AbstractModule extends IModuleDescription {
 	default IService[] getProvidedServices() throws JavaModelException {
 		return getModuleInfo().provides();
 	}
+	@Override
+	default String[] getProvidedServiceNames() throws JavaModelException {
+		ArrayList<String> results = new ArrayList<>();
+		IService[] services = getProvidedServices();
+		for (IService service : services) {
+			results.add(new String(service.name()));
+		}
+		return results.toArray(new String[0]);
+
+	}
 	default char[][] getUsedServices() throws JavaModelException {
 		return getModuleInfo().uses();
+	}
+	@Override
+	default String[] getUsedServiceNames() throws JavaModelException {
+		ArrayList<String> results = new ArrayList<>();
+		char[][] services = getUsedServices();
+		for (int i = 0; i < services.length; ++i) {
+			char[] service = services[i];
+			results.add(new String(service));
+		}
+		return results.toArray(new String[0]);
 	}
 	default IPackageExport[] getOpenedPackages() throws JavaModelException {
 		return getModuleInfo().opens();

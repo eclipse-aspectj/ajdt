@@ -198,13 +198,13 @@ public class SelectionJavadocParser extends JavadocParser {
 	 */
 	@Override
 	protected void updateDocComment() {
-		if (this.selectedNode instanceof Expression) {
+		if (this.selectedNode instanceof Expression && ((Expression) this.selectedNode).isTrulyExpression()) {
 			((SelectionJavadoc) this.docComment).selectedNode = (Expression) this.selectedNode;
 		} else if (this.inheritDocTagSelected) {
 			((SelectionJavadoc) this.docComment).inheritDocSelected = true;
 		}
 	}
-	
+
 	/*
 	 * Sets a flag to denote that selection has taken place on an inheritDoc tag
 	 */

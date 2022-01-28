@@ -1,12 +1,12 @@
 /* *******************************************************************
  * Copyright (c) 2005 Contributors.
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
  *   Adrian Colyer			Initial implementation
  * ******************************************************************/
 package org.aspectj.internal.lang.reflect;
@@ -63,9 +63,9 @@ import org.aspectj.lang.reflect.Pointcut;
  *
  */
 public class AjTypeImpl<T> implements AjType<T> {
-	
+
 	private static final String ajcMagic = "ajc$";
-	
+
 	private Class<T> clazz;
 	private Pointcut[] declaredPointcuts = null;
 	private Pointcut[] pointcuts = null;
@@ -77,7 +77,7 @@ public class AjTypeImpl<T> implements AjType<T> {
 	private InterTypeFieldDeclaration[] itdFields = null;
 	private InterTypeConstructorDeclaration[] itdCons = null;
 	private InterTypeConstructorDeclaration[] declaredITDCons = null;
-	
+
 	public AjTypeImpl(Class<T> fromClass) {
 		this.clazz = fromClass;
 	}
@@ -110,7 +110,7 @@ public class AjTypeImpl<T> implements AjType<T> {
 	public int getModifiers() {
 		return clazz.getModifiers();
 	}
-	
+
 	public Class<T> getJavaClass() {
 		return clazz;
 	}
@@ -120,7 +120,7 @@ public class AjTypeImpl<T> implements AjType<T> {
 	 */
 	public AjType<? super T> getSupertype() {
 		Class<? super T> superclass = clazz.getSuperclass();
-		return superclass==null ? null : (AjType<? super T>) new AjTypeImpl(superclass);
+		return superclass==null ? null : (AjType<? super T>) new AjTypeImpl<>(superclass);
 	}
 
 	/* (non-Javadoc)
@@ -149,17 +149,17 @@ public class AjTypeImpl<T> implements AjType<T> {
 	 */
 	public AjType<?> getEnclosingType() {
 		Class<?> enc = clazz.getEnclosingClass();
-		return enc != null ? new AjTypeImpl(enc) : null;
+		return enc != null ? new AjTypeImpl<>(enc) : null;
 	}
 
 	/* (non-Javadoc)
 	 * @see org.aspectj.lang.reflect.AjType#getDeclaringType()
 	 */
 	public AjType<?> getDeclaringType() {
-		Class dec = clazz.getDeclaringClass();
-		return dec != null ? new AjTypeImpl(dec) : null;
+		Class<?> dec = clazz.getDeclaringClass();
+		return dec != null ? new AjTypeImpl<>(dec) : null;
 	}
-	
+
 	public PerClause getPerClause() {
 		if (isAspect()) {
 			Aspect aspectAnn = clazz.getAnnotation(Aspect.class);
@@ -167,18 +167,18 @@ public class AjTypeImpl<T> implements AjType<T> {
 			if (perClause.equals("")) {
 				if (getSupertype().isAspect()) {
 					return getSupertype().getPerClause();
-				} 
+				}
 				return new PerClauseImpl(PerClauseKind.SINGLETON);
 			} else if (perClause.startsWith("perthis(")) {
 				return new PointcutBasedPerClauseImpl(PerClauseKind.PERTHIS,perClause.substring("perthis(".length(),perClause.length() - 1));
 			} else if (perClause.startsWith("pertarget(")) {
-				return new PointcutBasedPerClauseImpl(PerClauseKind.PERTARGET,perClause.substring("pertarget(".length(),perClause.length() - 1));				
+				return new PointcutBasedPerClauseImpl(PerClauseKind.PERTARGET,perClause.substring("pertarget(".length(),perClause.length() - 1));
 			} else if (perClause.startsWith("percflow(")) {
-				return new PointcutBasedPerClauseImpl(PerClauseKind.PERCFLOW,perClause.substring("percflow(".length(),perClause.length() - 1));								
+				return new PointcutBasedPerClauseImpl(PerClauseKind.PERCFLOW,perClause.substring("percflow(".length(),perClause.length() - 1));
 			} else if (perClause.startsWith("percflowbelow(")) {
 				return new PointcutBasedPerClauseImpl(PerClauseKind.PERCFLOWBELOW,perClause.substring("percflowbelow(".length(),perClause.length() - 1));
 			} else if (perClause.startsWith("pertypewithin")) {
-				return new TypePatternBasedPerClauseImpl(PerClauseKind.PERTYPEWITHIN,perClause.substring("pertypewithin(".length(),perClause.length() - 1));				
+				return new TypePatternBasedPerClauseImpl(PerClauseKind.PERTYPEWITHIN,perClause.substring("pertypewithin(".length(),perClause.length() - 1));
 			} else {
 				throw new IllegalStateException("Per-clause not recognized: " + perClause);
 			}
@@ -197,7 +197,7 @@ public class AjTypeImpl<T> implements AjType<T> {
 	public <A extends Annotation> A getAnnotation(Class<A> annotationType) {
 		return clazz.getAnnotation(annotationType);
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see org.aspectj.lang.reflect.AjType#getAnnotations()
 	 */
@@ -270,9 +270,9 @@ public class AjTypeImpl<T> implements AjType<T> {
 	 */
 	public Field[] getDeclaredFields() {
 		Field[] fields = clazz.getDeclaredFields();
-		List<Field> filteredFields = new ArrayList<Field>();
-		for (Field field : fields) 
-			if (!field.getName().startsWith(ajcMagic) 
+		List<Field> filteredFields = new ArrayList<>();
+		for (Field field : fields)
+			if (!field.getName().startsWith(ajcMagic)
 				&& !field.isAnnotationPresent(DeclareWarning.class)
 				&& !field.isAnnotationPresent(DeclareError.class)) {
 				filteredFields.add(field);
@@ -296,9 +296,9 @@ public class AjTypeImpl<T> implements AjType<T> {
 	 */
 	public Field[] getFields() {
 		Field[] fields = clazz.getFields();
-		List<Field> filteredFields = new ArrayList<Field>();
+		List<Field> filteredFields = new ArrayList<>();
 		for (Field field : fields)
-			if (!field.getName().startsWith(ajcMagic) 
+			if (!field.getName().startsWith(ajcMagic)
 					&& !field.isAnnotationPresent(DeclareWarning.class)
 					&& !field.isAnnotationPresent(DeclareError.class)) {
 					filteredFields.add(field);
@@ -331,7 +331,7 @@ public class AjTypeImpl<T> implements AjType<T> {
 	 */
 	public Method[] getDeclaredMethods() {
 		Method[] methods = clazz.getDeclaredMethods();
-		List<Method> filteredMethods = new ArrayList<Method>();
+		List<Method> filteredMethods = new ArrayList<>();
 		for (Method method : methods) {
 			if (isReallyAMethod(method)) filteredMethods.add(method);
 		}
@@ -345,7 +345,7 @@ public class AjTypeImpl<T> implements AjType<T> {
 	 */
 	public Method[] getMethods() {
 		Method[] methods = clazz.getMethods();
-		List<Method> filteredMethods = new ArrayList<Method>();
+		List<Method> filteredMethods = new ArrayList<>();
 		for (Method method : methods) {
 			if (isReallyAMethod(method)) filteredMethods.add(method);
 		}
@@ -365,7 +365,7 @@ public class AjTypeImpl<T> implements AjType<T> {
 		if (method.isAnnotationPresent(Around.class)) return false;
 		return true;
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see org.aspectj.lang.reflect.AjType#getDeclaredPointcut(java.lang.String)
 	 */
@@ -391,7 +391,7 @@ public class AjTypeImpl<T> implements AjType<T> {
 	 */
 	public Pointcut[] getDeclaredPointcuts() {
 		if (declaredPointcuts != null) return declaredPointcuts;
-		List<Pointcut> pointcuts = new ArrayList<Pointcut>();
+		List<Pointcut> pointcuts = new ArrayList<>();
 		Method[] methods = clazz.getDeclaredMethods();
 		for (Method method : methods) {
 			Pointcut pc = asPointcut(method);
@@ -408,7 +408,7 @@ public class AjTypeImpl<T> implements AjType<T> {
 	 */
 	public Pointcut[] getPointcuts() {
 		if (pointcuts != null) return pointcuts;
-		List<Pointcut> pcuts = new ArrayList<Pointcut>();
+		List<Pointcut> pcuts = new ArrayList<>();
 		Method[] methods = clazz.getMethods();
 		for (Method method : methods) {
 			Pointcut pc = asPointcut(method);
@@ -436,8 +436,8 @@ public class AjTypeImpl<T> implements AjType<T> {
 			return null;
 		}
 	}
-	
-	
+
+
 	public Advice[] getDeclaredAdvice(AdviceKind... ofType) {
 		Set<AdviceKind> types;
 		if (ofType.length == 0) {
@@ -448,7 +448,7 @@ public class AjTypeImpl<T> implements AjType<T> {
 		}
 		return getDeclaredAdvice(types);
 	}
-	
+
 	public Advice[] getAdvice(AdviceKind... ofType) {
 		Set<AdviceKind> types;
 		if (ofType.length == 0) {
@@ -463,9 +463,9 @@ public class AjTypeImpl<T> implements AjType<T> {
 	/* (non-Javadoc)
 	 * @see org.aspectj.lang.reflect.AjType#getDeclaredAdvice(org.aspectj.lang.reflect.AdviceType)
 	 */
-	private Advice[] getDeclaredAdvice(Set ofAdviceTypes) {
+	private Advice[] getDeclaredAdvice(Set<AdviceKind> ofAdviceTypes) {
 		if (declaredAdvice == null) initDeclaredAdvice();
-		List<Advice> adviceList = new ArrayList<Advice>();
+		List<Advice> adviceList = new ArrayList<>();
 		for (Advice a : declaredAdvice) {
 			if (ofAdviceTypes.contains(a.getKind())) adviceList.add(a);
 		}
@@ -476,7 +476,7 @@ public class AjTypeImpl<T> implements AjType<T> {
 
 	private void initDeclaredAdvice() {
 		Method[] methods = clazz.getDeclaredMethods();
-		List<Advice> adviceList = new ArrayList<Advice>();
+		List<Advice> adviceList = new ArrayList<>();
 		for (Method method : methods) {
 			Advice advice = asAdvice(method);
 			if (advice != null) adviceList.add(advice);
@@ -488,9 +488,9 @@ public class AjTypeImpl<T> implements AjType<T> {
 	/* (non-Javadoc)
 	 * @see org.aspectj.lang.reflect.AjType#getDeclaredAdvice(org.aspectj.lang.reflect.AdviceType)
 	 */
-	private Advice[] getAdvice(Set ofAdviceTypes) {
+	private Advice[] getAdvice(Set<AdviceKind> ofAdviceTypes) {
 		if (advice == null) initAdvice();
-		List<Advice> adviceList = new ArrayList<Advice>();
+		List<Advice> adviceList = new ArrayList<>();
 		for (Advice a : advice) {
 			if (ofAdviceTypes.contains(a.getKind())) adviceList.add(a);
 		}
@@ -501,7 +501,7 @@ public class AjTypeImpl<T> implements AjType<T> {
 
 	private void initAdvice() {
 		Method[] methods = clazz.getMethods();
-		List<Advice> adviceList = new ArrayList<Advice>();
+		List<Advice> adviceList = new ArrayList<>();
 		for (Method method : methods) {
 			Advice advice = asAdvice(method);
 			if (advice != null) adviceList.add(advice);
@@ -519,7 +519,7 @@ public class AjTypeImpl<T> implements AjType<T> {
 		}
 		throw new NoSuchAdviceException(name);
 	}
-	
+
 	public Advice getDeclaredAdvice(String name) throws NoSuchAdviceException {
 		if (name.equals("")) throw new IllegalArgumentException("use getAdvice(AdviceType...) instead for un-named advice");
 		if (declaredAdvice == null) initDeclaredAdvice();
@@ -528,7 +528,7 @@ public class AjTypeImpl<T> implements AjType<T> {
 		}
 		throw new NoSuchAdviceException(name);
 	}
-	
+
 	private Advice asAdvice(Method method) {
 		if (method.getAnnotations().length == 0) return null;
 		Before beforeAnn = method.getAnnotation(Before.class);
@@ -551,7 +551,7 @@ public class AjTypeImpl<T> implements AjType<T> {
 		if (aroundAnn != null) return new AdviceImpl(method,aroundAnn.value(),AdviceKind.AROUND);
 		return null;
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see org.aspectj.lang.reflect.AjType#getDeclaredITDMethod(java.lang.String, java.lang.Class, java.lang.Class...)
 	 */
@@ -584,18 +584,18 @@ public class AjTypeImpl<T> implements AjType<T> {
 	 */
 	public InterTypeMethodDeclaration[] getDeclaredITDMethods() {
 		if (this.declaredITDMethods == null) {
-			List<InterTypeMethodDeclaration> itdms = new ArrayList<InterTypeMethodDeclaration>();
+			List<InterTypeMethodDeclaration> itdms = new ArrayList<>();
 			Method[] baseMethods = clazz.getDeclaredMethods();
 			for (Method m : baseMethods) {
 				if (!m.getName().contains("ajc$interMethodDispatch1$")) continue;
 				if (m.isAnnotationPresent(ajcITD.class)) {
 					ajcITD ann = m.getAnnotation(ajcITD.class);
-					InterTypeMethodDeclaration itdm = 
+					InterTypeMethodDeclaration itdm =
 						new InterTypeMethodDeclarationImpl(
 								this,ann.targetType(),ann.modifiers(),
 								ann.name(),m);
 					itdms.add(itdm);
-				}				
+				}
 			}
 			addAnnotationStyleITDMethods(itdms,false);
 			this.declaredITDMethods = new InterTypeMethodDeclaration[itdms.size()];
@@ -605,7 +605,7 @@ public class AjTypeImpl<T> implements AjType<T> {
 	}
 
 	public InterTypeMethodDeclaration getITDMethod(String name, AjType<?> target,
-			AjType<?>... parameterTypes) 
+			AjType<?>... parameterTypes)
 	throws NoSuchMethodException {
 		InterTypeMethodDeclaration[] itdms = getITDMethods();
 		outer: for (InterTypeMethodDeclaration itdm : itdms) {
@@ -631,19 +631,19 @@ public class AjTypeImpl<T> implements AjType<T> {
 
 	public InterTypeMethodDeclaration[] getITDMethods() {
 		if (this.itdMethods == null) {
-			List<InterTypeMethodDeclaration> itdms = new ArrayList<InterTypeMethodDeclaration>();
+			List<InterTypeMethodDeclaration> itdms = new ArrayList<>();
 			Method[] baseMethods = clazz.getDeclaredMethods();
 			for (Method m : baseMethods) {
 				if (!m.getName().contains("ajc$interMethod$")) continue;
 				if (m.isAnnotationPresent(ajcITD.class)) {
 					ajcITD ann = m.getAnnotation(ajcITD.class);
 					if (!Modifier.isPublic(ann.modifiers())) continue;
-					InterTypeMethodDeclaration itdm = 
+					InterTypeMethodDeclaration itdm =
 						new InterTypeMethodDeclarationImpl(
 								this,ann.targetType(),ann.modifiers(),
 								ann.name(),m);
 					itdms.add(itdm);
-				}				
+				}
 			}
 			addAnnotationStyleITDMethods(itdms,true);
 			this.itdMethods = new InterTypeMethodDeclaration[itdms.size()];
@@ -651,7 +651,7 @@ public class AjTypeImpl<T> implements AjType<T> {
 		}
 		return this.itdMethods;
 	}
-	
+
 	private void addAnnotationStyleITDMethods(List<InterTypeMethodDeclaration> toList, boolean publicOnly) {
 		if (isAspect()) {
             for (Field f : clazz.getDeclaredFields()) {
@@ -704,16 +704,16 @@ public class AjTypeImpl<T> implements AjType<T> {
 
 	public InterTypeConstructorDeclaration[] getDeclaredITDConstructors() {
 		if (this.declaredITDCons == null) {
-			List<InterTypeConstructorDeclaration> itdcs = new ArrayList<InterTypeConstructorDeclaration>();
+			List<InterTypeConstructorDeclaration> itdcs = new ArrayList<>();
 			Method[] baseMethods = clazz.getDeclaredMethods();
 			for (Method m : baseMethods) {
 				if (!m.getName().contains("ajc$postInterConstructor")) continue;
 				if (m.isAnnotationPresent(ajcITD.class)) {
 					ajcITD ann = m.getAnnotation(ajcITD.class);
-					InterTypeConstructorDeclaration itdc = 
+					InterTypeConstructorDeclaration itdc =
 						new InterTypeConstructorDeclarationImpl(this,ann.targetType(),ann.modifiers(),m);
 					itdcs.add(itdc);
-				}				
+				}
 			}
 			this.declaredITDCons = new InterTypeConstructorDeclaration[itdcs.size()];
 			itdcs.toArray(this.declaredITDCons);
@@ -746,17 +746,17 @@ public class AjTypeImpl<T> implements AjType<T> {
 
 	public InterTypeConstructorDeclaration[] getITDConstructors() {
 		if (this.itdCons == null) {
-			List<InterTypeConstructorDeclaration> itdcs = new ArrayList<InterTypeConstructorDeclaration>();
+			List<InterTypeConstructorDeclaration> itdcs = new ArrayList<>();
 			Method[] baseMethods = clazz.getMethods();
 			for (Method m : baseMethods) {
 				if (!m.getName().contains("ajc$postInterConstructor")) continue;
 				if (m.isAnnotationPresent(ajcITD.class)) {
 					ajcITD ann = m.getAnnotation(ajcITD.class);
 					if (!Modifier.isPublic(ann.modifiers())) continue;
-					InterTypeConstructorDeclaration itdc = 
+					InterTypeConstructorDeclaration itdc =
 						new InterTypeConstructorDeclarationImpl(this,ann.targetType(),ann.modifiers(),m);
 					itdcs.add(itdc);
-				}				
+				}
 			}
 			this.itdCons = new InterTypeConstructorDeclaration[itdcs.size()];
 			itdcs.toArray(this.itdCons);
@@ -771,16 +771,16 @@ public class AjTypeImpl<T> implements AjType<T> {
 				try {
 					AjType<?> itdTarget = itdf.getTargetType();
 					if (itdTarget.equals(target)) return itdf;
-				} catch (ClassNotFoundException cnfEx) { 
+				} catch (ClassNotFoundException cnfEx) {
 					// move on to next field
-				}				
+				}
 			}
 		}
 		throw new NoSuchFieldException(name);
 	}
 
 	public InterTypeFieldDeclaration[] getDeclaredITDFields() {
-		List<InterTypeFieldDeclaration> itdfs = new ArrayList<InterTypeFieldDeclaration>();
+		List<InterTypeFieldDeclaration> itdfs = new ArrayList<>();
 		if (this.declaredITDFields == null) {
 			Method[] baseMethods = clazz.getDeclaredMethods();
 			for(Method m : baseMethods) {
@@ -788,7 +788,7 @@ public class AjTypeImpl<T> implements AjType<T> {
 					if (!m.getName().contains("ajc$interFieldInit")) continue;
 					ajcITD ann = m.getAnnotation(ajcITD.class);
 					String interFieldInitMethodName = m.getName();
-					String interFieldGetDispatchMethodName = 
+					String interFieldGetDispatchMethodName =
 						interFieldInitMethodName.replace("FieldInit","FieldGetDispatch");
 					try {
 						Method dispatch = clazz.getDeclaredMethod(interFieldGetDispatchMethodName, m.getParameterTypes());
@@ -809,7 +809,7 @@ public class AjTypeImpl<T> implements AjType<T> {
 		return this.declaredITDFields;
 	}
 
-	public InterTypeFieldDeclaration getITDField(String name, AjType<?> target) 
+	public InterTypeFieldDeclaration getITDField(String name, AjType<?> target)
 	throws NoSuchFieldException {
 		InterTypeFieldDeclaration[] itdfs = getITDFields();
 		for (InterTypeFieldDeclaration itdf : itdfs) {
@@ -817,16 +817,16 @@ public class AjTypeImpl<T> implements AjType<T> {
 				try {
 					AjType<?> itdTarget = itdf.getTargetType();
 					if (itdTarget.equals(target)) return itdf;
-				} catch (ClassNotFoundException cnfEx) { 
+				} catch (ClassNotFoundException cnfEx) {
 					// move on to next field
-				}				
+				}
 			}
 		}
 		throw new NoSuchFieldException(name);
 	}
 
 	public InterTypeFieldDeclaration[] getITDFields() {
-		List<InterTypeFieldDeclaration> itdfs = new ArrayList<InterTypeFieldDeclaration>();
+		List<InterTypeFieldDeclaration> itdfs = new ArrayList<>();
 		if (this.itdFields == null) {
 			Method[] baseMethods = clazz.getMethods();
 			for(Method m : baseMethods) {
@@ -835,7 +835,7 @@ public class AjTypeImpl<T> implements AjType<T> {
 					if (!m.getName().contains("ajc$interFieldInit")) continue;
 					if (!Modifier.isPublic(ann.modifiers())) continue;
 					String interFieldInitMethodName = m.getName();
-					String interFieldGetDispatchMethodName = 
+					String interFieldGetDispatchMethodName =
 						interFieldInitMethodName.replace("FieldInit","FieldGetDispatch");
 					try {
 						Method dispatch = m.getDeclaringClass().getDeclaredMethod(interFieldGetDispatchMethodName, m.getParameterTypes());
@@ -857,7 +857,7 @@ public class AjTypeImpl<T> implements AjType<T> {
 	}
 
 	public DeclareErrorOrWarning[] getDeclareErrorOrWarnings() {
-		List<DeclareErrorOrWarning> deows = new ArrayList<DeclareErrorOrWarning>();
+		List<DeclareErrorOrWarning> deows = new ArrayList<>();
 		for (Field field : clazz.getDeclaredFields()) {
 			try {
 				if (field.isAnnotationPresent(DeclareWarning.class)) {
@@ -866,14 +866,14 @@ public class AjTypeImpl<T> implements AjType<T> {
 						 String message = (String) field.get(null);
 						 DeclareErrorOrWarningImpl deow = new DeclareErrorOrWarningImpl(dw.value(),message,false,this);
 						 deows.add(deow);
-					 } 
+					 }
 				} else if (field.isAnnotationPresent(DeclareError.class)) {
 					 DeclareError de = field.getAnnotation(DeclareError.class);
 					 if (Modifier.isPublic(field.getModifiers()) && Modifier.isStatic(field.getModifiers())) {
 						 String message = (String) field.get(null);
 						 DeclareErrorOrWarningImpl deow = new DeclareErrorOrWarningImpl(de.value(),message,true,this);
 						 deows.add(deow);
-					 } 				
+					 }
 				}
 			} catch (IllegalArgumentException e) {
 				// just move on to the next field
@@ -894,7 +894,7 @@ public class AjTypeImpl<T> implements AjType<T> {
 	}
 
 	public DeclareParents[] getDeclareParents() {
-		List<DeclareParents> decps = new ArrayList<DeclareParents>();
+		List<DeclareParents> decps = new ArrayList<>();
 		for (Method method : clazz.getDeclaredMethods()) {
 			if (method.isAnnotationPresent(ajcDeclareParents.class)) {
 				ajcDeclareParents decPAnn = method.getAnnotation(ajcDeclareParents.class);
@@ -915,7 +915,7 @@ public class AjTypeImpl<T> implements AjType<T> {
 		decps.toArray(ret);
 		return ret;
 	}
-	
+
 	private void addAnnotationStyleDeclareParents(List<DeclareParents> toList) {
         for (Field f : clazz.getDeclaredFields()) {
             if (f.isAnnotationPresent(org.aspectj.lang.annotation.DeclareParents.class)) {
@@ -934,7 +934,7 @@ public class AjTypeImpl<T> implements AjType<T> {
 	}
 
 	public DeclareSoft[] getDeclareSofts() {
-		List<DeclareSoft> decs = new ArrayList<DeclareSoft>();
+		List<DeclareSoft> decs = new ArrayList<>();
 		for (Method method : clazz.getDeclaredMethods()) {
 			if (method.isAnnotationPresent(ajcDeclareSoft.class)) {
 				ajcDeclareSoft decSAnn = method.getAnnotation(ajcDeclareSoft.class);
@@ -955,7 +955,7 @@ public class AjTypeImpl<T> implements AjType<T> {
 	}
 
 	public DeclareAnnotation[] getDeclareAnnotations() {
-		List<DeclareAnnotation> decAs = new ArrayList<DeclareAnnotation>();
+		List<DeclareAnnotation> decAs = new ArrayList<>();
 		for (Method method : clazz.getDeclaredMethods()) {
 			if (method.isAnnotationPresent(ajcDeclareAnnotation.class)) {
 				ajcDeclareAnnotation decAnn = method.getAnnotation(ajcDeclareAnnotation.class);
@@ -988,11 +988,11 @@ public class AjTypeImpl<T> implements AjType<T> {
 	}
 
 	public DeclarePrecedence[] getDeclarePrecedence() {
-		List<DeclarePrecedence> decps = new ArrayList<DeclarePrecedence>();
-		
+		List<DeclarePrecedence> decps = new ArrayList<>();
+
 		// @AspectJ Style
 		if (clazz.isAnnotationPresent(org.aspectj.lang.annotation.DeclarePrecedence.class)) {
-			org.aspectj.lang.annotation.DeclarePrecedence ann = 
+			org.aspectj.lang.annotation.DeclarePrecedence ann =
 				clazz.getAnnotation(org.aspectj.lang.annotation.DeclarePrecedence.class);
 			DeclarePrecedenceImpl decp = new DeclarePrecedenceImpl(
 					ann.value(),
@@ -1000,7 +1000,7 @@ public class AjTypeImpl<T> implements AjType<T> {
 					);
 			decps.add(decp);
 		}
-		
+
 		// annotated code-style
 		for (Method method : clazz.getDeclaredMethods()) {
 			if (method.isAnnotationPresent(ajcDeclarePrecedence.class)) {
@@ -1067,19 +1067,19 @@ public class AjTypeImpl<T> implements AjType<T> {
 	public boolean isPrivileged() {
 		return isAspect() && clazz.isAnnotationPresent(ajcPrivileged.class);
 	}
-	
+
 	@Override
 	public boolean equals(Object obj) {
 		if (!(obj instanceof AjTypeImpl)) return false;
-		AjTypeImpl other = (AjTypeImpl) obj;
+		AjTypeImpl<?> other = (AjTypeImpl<?>) obj;
 		return other.clazz.equals(clazz);
 	}
-	
+
 	@Override
 	public int hashCode() {
 		return clazz.hashCode();
 	}
-	
+
 	private AjType<?>[] toAjTypeArray(Class<?>[] classes) {
 		AjType<?>[] ajtypes = new AjType<?>[classes.length];
 		for (int i = 0; i < ajtypes.length; i++) {
@@ -1087,7 +1087,7 @@ public class AjTypeImpl<T> implements AjType<T> {
 		}
 		return ajtypes;
 	}
-	
+
 	private Class<?>[] toClassArray(AjType<?>[] ajTypes) {
 		Class<?>[] classes = new Class<?>[ajTypes.length];
 		for (int i = 0; i < classes.length; i++) {
@@ -1095,7 +1095,7 @@ public class AjTypeImpl<T> implements AjType<T> {
 		}
 		return classes;
 	}
-	
+
 	public String toString() { return getName(); }
 
 }

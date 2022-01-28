@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014, 2018 Mateusz Matela and others.
+ * Copyright (c) 2014, 2020 Mateusz Matela and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -18,6 +18,7 @@ package org.aspectj.org.eclipse.jdt.internal.formatter.linewrap;
 import static org.aspectj.org.eclipse.jdt.internal.compiler.parser.TerminalTokens.TokenNameCOMMENT_BLOCK;
 import static org.aspectj.org.eclipse.jdt.internal.compiler.parser.TerminalTokens.TokenNameCOMMENT_JAVADOC;
 import static org.aspectj.org.eclipse.jdt.internal.compiler.parser.TerminalTokens.TokenNameCOMMENT_LINE;
+import static org.aspectj.org.eclipse.jdt.internal.compiler.parser.TerminalTokens.TokenNameTextBlock;
 import static org.aspectj.org.eclipse.jdt.internal.compiler.parser.TerminalTokens.TokenNameWHITESPACE;
 
 import java.util.ArrayDeque;
@@ -25,14 +26,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-
+import java.util.function.Predicate;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.ScannerHelper;
 import org.aspectj.org.eclipse.jdt.internal.formatter.DefaultCodeFormatterOptions;
+import org.aspectj.org.eclipse.jdt.internal.formatter.DefaultCodeFormatterOptions.Alignment;
 import org.aspectj.org.eclipse.jdt.internal.formatter.Token;
-import org.aspectj.org.eclipse.jdt.internal.formatter.TokenManager;
-import org.aspectj.org.eclipse.jdt.internal.formatter.TokenTraverser;
 import org.aspectj.org.eclipse.jdt.internal.formatter.Token.WrapMode;
 import org.aspectj.org.eclipse.jdt.internal.formatter.Token.WrapPolicy;
+import org.aspectj.org.eclipse.jdt.internal.formatter.TokenManager;
+import org.aspectj.org.eclipse.jdt.internal.formatter.TokenTraverser;
+import org.eclipse.jface.text.IRegion;
 
 public class WrapExecutor {
 
@@ -99,13 +102,14 @@ public class WrapExecutor {
 
 	private class LineAnalyzer extends TokenTraverser {
 
+		private final TokenManager tm2 = WrapExecutor.this.tm;
 		private final CommentWrapExecutor commentWrapper;
 		private int lineIndent;
 		int firstPotentialWrap;
 		int activeTopPriorityWrap;
 		int minStructureDepth;
 		int extraLines;
-		boolean lineExceeded;
+		int lineWidthExtent;
 		boolean isNextLineWrapped;
 		final List<Integer> extraLinesPerComment = new ArrayList<Integer>();
 		final List<Integer> topPriorityGroupStarts = new ArrayList<Integer>();
@@ -120,29 +124,32 @@ public class WrapExecutor {
 		 * @return index of the last token in line
 		 */
 		public int analyzeLine(int startIndex, int indent) {
-			Token startToken = WrapExecutor.this.tm.get(startIndex);
+			Token startToken = this.tm2.get(startIndex);
 			assert startToken.getLineBreaksBefore() > 0;
-			this.counter = WrapExecutor.this.tm.toIndent(indent, startToken.isWrappable());
+			this.counter = this.tm2.toIndent(indent, startToken.isWrappable());
 			this.lineIndent = indent;
 			this.firstPotentialWrap = -1;
 			this.activeTopPriorityWrap = -1;
 			this.minStructureDepth = Integer.MAX_VALUE;
 			this.extraLines = 0;
+			this.lineWidthExtent = 0;
 			this.isNextLineWrapped = false;
 			this.extraLinesPerComment.clear();
 			this.topPriorityGroupStarts.clear();
 			this.currentTopPriorityGroupEnd = -1;
 			this.isNLSTagInLine = false;
-			int lastIndex = WrapExecutor.this.tm.traverse(startIndex, this);
+			int lastIndex = this.tm2.traverse(startIndex, this);
 			return lastIndex + (this.isNextLineWrapped ? 1 : 0);
 		}
 
 		@Override
 		protected boolean token(Token token, int index) {
+			setIndent(token, this.lineIndent);
+
 			if (token.hasNLSTag())
 				this.isNLSTagInLine = true;
 
-			if (token.isWrappable()) {
+			if (token.isWrappable() && isWrapInsideFormatRegion(index)) {
 				WrapPolicy wrapPolicy = token.getWrapPolicy();
 				if (wrapPolicy.wrapMode == WrapMode.TOP_PRIORITY && getLineBreaksBefore() == 0
 						&& index > this.currentTopPriorityGroupEnd) {
@@ -167,30 +174,40 @@ public class WrapExecutor {
 				this.counter++;
 			}
 
-			if (!token.isComment()) {
-				this.counter += WrapExecutor.this.tm.getLength(token, this.counter);
+			if (token.tokenType == TokenNameTextBlock) {
+				List<Token> lines = token.getInternalStructure();
+				if (lines == null) {
+					this.counter = this.tm2.getLength(token, 0);
+				} else {
+					this.lineWidthExtent = Math.max(this.lineWidthExtent,
+							this.counter + this.tm2.getLength(lines.get(0), this.counter));
+					this.counter = this.lineIndent + lines.get(1).getIndent();
+					lines.stream().skip(1).forEach(e -> this.lineWidthExtent = Math.max(this.lineWidthExtent,
+							this.counter + this.tm2.getLength(e, this.counter)));
+					this.counter += this.tm2.getLength(lines.get(lines.size() - 1), this.counter);
+				}
+			} else if (!token.isComment()) {
+				this.counter += this.tm2.getLength(token, this.counter);
 			} else if (token.tokenType != TokenNameCOMMENT_LINE) {
 				this.counter = this.commentWrapper.wrapMultiLineComment(token, this.counter, true, this.isNLSTagInLine);
 				this.extraLines += this.commentWrapper.getLinesCount() - 1;
 				this.extraLinesPerComment.add(this.commentWrapper.getLinesCount() - 1);
 			}
 
-			this.lineExceeded = this.counter > WrapExecutor.this.options.page_width;
-			if (this.lineExceeded && this.firstPotentialWrap >= 0) {
+			this.lineWidthExtent = Math.max(this.lineWidthExtent, this.counter);
+			if (this.lineWidthExtent > WrapExecutor.this.options.page_width && this.firstPotentialWrap >= 0) {
 				return false;
 			}
-			token.setIndent(this.lineIndent);
 
 			if (getNext() != null && getNext().isWrappable() && getLineBreaksAfter() > 0) {
 				this.isNextLineWrapped = true;
 				if (this.firstPotentialWrap < 0)
 					this.firstPotentialWrap = index + 1;
-				return false; 
+				return false;
 			}
 
-			boolean isLineEnd = getLineBreaksAfter() > 0 || getNext() == null
-					|| (getNext().isNextLineOnWrap() && WrapExecutor.this.tm
-							.get(WrapExecutor.this.tm.findFirstTokenInLine(index)).isWrappable());
+			boolean isLineEnd = getLineBreaksAfter() > 0 || getNext() == null || (getNext().isNextLineOnWrap()
+					&& this.tm2.get(this.tm2.findFirstTokenInLine(index)).isWrappable());
 			return !isLineEnd;
 		}
 
@@ -199,25 +216,23 @@ public class WrapExecutor {
 				return false;
 
 			for (int i = index - 1; i > wrapPolicy.wrapParentIndex; i--) {
-				Token token = WrapExecutor.this.tm.get(i);
+				Token token = this.tm2.get(i);
 				if (token.isWrappable() && token.getWrapPolicy().wrapParentIndex == wrapPolicy.wrapParentIndex
-					&& (token.getLineBreaksBefore() > 0 || WrapExecutor.this.tm.get(i - 1).getLineBreaksAfter() > 0)) {
+					&& (token.getLineBreaksBefore() > 0 || this.tm2.get(i - 1).getLineBreaksAfter() > 0)) {
 						return true;
 				}
 			}
 			return false;
 		}
-
-		public int getLastPosition() {
-			return this.counter;
-		}
 	}
 
 	private class WrapsApplier extends TokenTraverser {
 
+		private final TokenManager tm2 = WrapExecutor.this.tm;
 		private ArrayDeque<Token> stack = new ArrayDeque<>();
 		private int initialIndent;
 		private int currentIndent;
+		private int fixedIndentDelta;
 		private WrapInfo nextWrap;
 
 		public WrapsApplier() {
@@ -230,31 +245,87 @@ public class WrapExecutor {
 				newLine(token, index);
 			} else if ((this.nextWrap != null && index == this.nextWrap.wrapTokenIndex)
 					|| checkForceWrap(token, index, this.currentIndent)
-					|| (token.isNextLineOnWrap() && WrapExecutor.this.tm
-							.get(WrapExecutor.this.tm.findFirstTokenInLine(index)).isWrappable())) {
+					|| (token.isNextLineOnWrap() && this.tm2.get(this.tm2.findFirstTokenInLine(index)).isWrappable())) {
 				token.breakBefore();
 				newLine(token, index);
 			} else {
-				token.setIndent(this.currentIndent);
+				checkOnColumnAlign(token, index);
+				setIndent(token, this.currentIndent);
 			}
 			return true;
+		}
+
+		private void checkOnColumnAlign(Token token, int index) {
+			// if some further tokens in a group are wrapped on column,
+			// the first one should be aligned on column even if it's not wrapped
+			WrapPolicy wrapPolicy = token.getWrapPolicy();
+			if (wrapPolicy == null || !wrapPolicy.indentOnColumn || !wrapPolicy.isFirstInGroup)
+				return;
+			int positionInLine = this.tm2.getPositionInLine(index);
+			if (this.tm2.toIndent(positionInLine, true) == positionInLine)
+				return;
+
+			Predicate<Token> aligner = t -> {
+				WrapPolicy wp = t.getWrapPolicy();
+				if (wp != null && wp.indentOnColumn && wp.wrapParentIndex == wrapPolicy.wrapParentIndex) {
+					this.currentIndent = this.tm2.toIndent(positionInLine, true);
+					token.setAlign(this.currentIndent);
+					this.stack.push(token);
+					return true;
+				}
+				return false;
+			};
+
+			// check all future wraps
+			WrapInfo furtherWrap = this.nextWrap;
+			while (furtherWrap != null) {
+				if (aligner.test(this.tm2.get(furtherWrap.wrapTokenIndex)))
+					return;
+				furtherWrap = WrapExecutor.this.wrapSearchResults.get(furtherWrap).nextWrap;
+			}
+			// check all tokens that are already wrapped
+			for (int i = index; i <= wrapPolicy.groupEndIndex; i++) {
+				Token t = this.tm2.get(i);
+				if (t.getLineBreaksBefore() > 0 && aligner.test(t))
+					return;
+			}
 		}
 
 		private void newLine(Token token, int index) {
 			while (!this.stack.isEmpty() && index > this.stack.peek().getWrapPolicy().groupEndIndex)
 				this.stack.pop();
 			if (token.getWrapPolicy() != null) {
-				token.setIndent(getWrapIndent(token));
-				handleOnColumnIndent(index, token.getWrapPolicy());
+				setIndent(token, getWrapIndent(token));
 				this.stack.push(token);
 			} else if (this.stack.isEmpty()) {
-				this.initialIndent = token.getIndent();
+				if (isFixedLineStart(token, index)) {
+					int fixedIndent = this.tm2.findSourcePositionInLine(token.originalStart);
+					this.initialIndent = fixedIndent;
+					this.fixedIndentDelta = fixedIndent - token.getIndent();
+				} else {
+					this.initialIndent = Math.max(0, token.getIndent() + this.fixedIndentDelta);
+				}
 				WrapExecutor.this.wrapSearchResults.clear();
 			}
 
 			this.currentIndent = this.stack.isEmpty() ? this.initialIndent : this.stack.peek().getIndent();
-			token.setIndent(this.currentIndent);
+			setIndent(token, this.currentIndent);
 			this.nextWrap = findWrapsCached(index, this.currentIndent).nextWrap;
+		}
+
+		private boolean isFixedLineStart(Token token, int index) {
+			if (WrapExecutor.this.options.initial_indentation_level > 0)
+				return false; // must be handling ast rewrite
+			if (index > 0 && this.tm2.countLineBreaksBetween(getPrevious(), token) == 0)
+				return false;
+			if (isWrapInsideFormatRegion(index))
+				return false;
+			int start = token.originalStart;
+			boolean inDisableFormat = this.tm2.getDisableFormatTokenPairs().stream()
+					.anyMatch(p -> p[0].originalStart <= start && p[1].originalStart >= start);
+			if (inDisableFormat)
+				return false;
+			return true;
 		}
 	}
 
@@ -360,12 +431,14 @@ public class WrapExecutor {
 
 	final TokenManager tm;
 	final DefaultCodeFormatterOptions options;
+	final List<IRegion> regions;
 
 	private final WrapInfo wrapInfoTemp = new WrapInfo();
 
-	public WrapExecutor(TokenManager tokenManager, DefaultCodeFormatterOptions options) {
+	public WrapExecutor(TokenManager tokenManager, DefaultCodeFormatterOptions options, List<IRegion> regions) {
 		this.tm = tokenManager;
 		this.options = options;
+		this.regions = regions;
 		this.lineAnalyzer = new LineAnalyzer(tokenManager, options);
 	}
 
@@ -414,7 +487,7 @@ public class WrapExecutor {
 				token.setWrapped(false);
 				this.wrapSearchStack.pop();
 				this.wrapSearchResults.put(item, wrapResult);
-				assert wrapResult.nextWrap == null || this.wrapSearchResults.get(wrapResult.nextWrap) != null; 
+				assert wrapResult.nextWrap == null || this.wrapSearchResults.get(wrapResult.nextWrap) != null;
 				if (item.wrapTokenIndex == startTokenIndex && item.indent == indent)
 					break;
 			} else {
@@ -432,13 +505,13 @@ public class WrapExecutor {
 
 	/**
 	 * The main algorithm that looks for optimal places to wrap.
-	 * Calls itself recursively to get results for wrapped sub-lines.  
+	 * Calls itself recursively to get results for wrapped sub-lines.
 	 */
 	private WrapResult findWraps(int wrapTokenIndex, int indent) {
 		final int lastIndex = this.lineAnalyzer.analyzeLine(wrapTokenIndex, indent);
 		final boolean nextLineWrapped = this.lineAnalyzer.isNextLineWrapped;
-		final boolean wrapRequired = this.lineAnalyzer.lineExceeded || nextLineWrapped;
-		int lineOverflow = Math.max(0, this.lineAnalyzer.getLastPosition() - this.options.page_width);
+		int lineOverflow = Math.max(0, this.lineAnalyzer.lineWidthExtent - this.options.page_width);
+		final boolean wrapRequired = lineOverflow > 0 || nextLineWrapped;
 		int extraLines = this.lineAnalyzer.extraLines;
 		final int firstPotentialWrap = this.lineAnalyzer.firstPotentialWrap;
 		final int activeTopPriorityWrap = this.lineAnalyzer.activeTopPriorityWrap;
@@ -470,7 +543,7 @@ public class WrapExecutor {
 			if (this.lineAnalyzer.minStructureDepth < currentDepth)
 				depthLimit = currentDepth;
 		}
-		// optimization: turns out there's no point checking multiple wraps with the same policy 
+		// optimization: turns out there's no point checking multiple wraps with the same policy
 		LinkedHashSet<WrapPolicy> policiesTried = new LinkedHashSet<>();
 
 		for (int i = lastIndex; firstPotentialWrap >= 0 && i >= firstPotentialWrap; i--) {
@@ -494,7 +567,8 @@ public class WrapExecutor {
 			if (!token.isWrappable()
 					|| (activeTopPriorityWrap >= 0 && i != activeTopPriorityWrap)
 					|| policiesTried.contains(wrapPolicy)
-					|| wrapPolicy.structureDepth >= depthLimit)
+					|| wrapPolicy.structureDepth >= depthLimit
+					|| !isWrapInsideFormatRegion(i))
 				continue;
 			policiesTried.add(wrapPolicy);
 
@@ -626,21 +700,11 @@ public class WrapExecutor {
 		return result;
 	}
 
-	void handleOnColumnIndent(int tokenIndex, WrapPolicy wrapPolicy) {
-		if (wrapPolicy != null && wrapPolicy.indentOnColumn && !wrapPolicy.isFirstInGroup
-				&& this.options.tab_char == DefaultCodeFormatterOptions.TAB
-				&& !this.options.use_tabs_only_for_leading_indentations) {
-			// special case: first wrap in a group should be aligned on column even if it's not wrapped
-			for (int i = tokenIndex - 1; i >= 0; i--) {
-				Token token = this.tm.get(i);
-				WrapPolicy wrapPolicy2 = token.getWrapPolicy();
-				if (wrapPolicy2 != null && wrapPolicy2.isFirstInGroup
-						&& wrapPolicy2.wrapParentIndex == wrapPolicy.wrapParentIndex) {
-					token.setAlign(getWrapIndent(token));
-					break;
-				}
-			}
-		}
+	boolean isWrapInsideFormatRegion(int tokenIndex) {
+		int pos1 = tokenIndex == 0 ? 0 : this.tm.get(tokenIndex - 1).originalEnd;
+		int pos2 = this.tm.get(tokenIndex).originalStart;
+		return this.regions.stream().anyMatch(r -> (pos1 >= r.getOffset() && pos1 < r.getOffset() + r.getLength())
+				|| (pos2 >= r.getOffset() && pos2 < r.getOffset() + r.getLength()));
 	}
 
 	int getWrapIndent(Token token) {
@@ -661,5 +725,26 @@ public class WrapExecutor {
 		}
 		wrapIndent += policy.extraIndent;
 		return this.tm.toIndent(wrapIndent, true);
+	}
+
+	void setIndent(Token token, int indent) {
+		token.setIndent(indent);
+
+		List<Token> structure = token.getInternalStructure();
+		if (token.tokenType == TokenNameTextBlock && structure != null) {
+			int lineIndent;
+			int indentOption = this.options.text_block_indentation;
+			if (indentOption == Alignment.M_INDENT_BY_ONE) {
+				lineIndent = 1 * this.options.indentation_size;
+			} else if (indentOption == Alignment.M_INDENT_DEFAULT) {
+				lineIndent = this.options.continuation_indentation * this.options.indentation_size;
+			} else if (indentOption == Alignment.M_INDENT_ON_COLUMN) {
+				lineIndent = this.tm.toIndent(this.tm.getPositionInLine(this.tm.indexOf(token)), true) - indent;
+			} else {
+				assert false;
+				lineIndent = 0;
+			}
+			structure.stream().skip(1).forEach(t -> t.setIndent(lineIndent));
+		}
 	}
 }

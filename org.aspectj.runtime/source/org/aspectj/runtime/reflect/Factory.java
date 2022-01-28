@@ -1,14 +1,14 @@
 /* *******************************************************************
- * Copyright (c) 1999-2001 Xerox Corporation, 
+ * Copyright (c) 1999-2001 Xerox Corporation,
  *               2002-2018 Palo Alto Research Center, Incorporated (PARC), Contributors
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *      Xerox/PARC    initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *      Xerox/PARC    initial implementation
  *    Alex Vasseur    new factory methods for variants of JP
  *  Abraham Nevado    new factory methods for collapsed SJPs
  *    Andy Clement    new factory methods that rely on LDC <class>
@@ -35,15 +35,15 @@ import org.aspectj.lang.reflect.SourceLocation;
 import org.aspectj.lang.reflect.UnlockSignature;
 
 public final class Factory {
-	Class lexicalClass;
+	Class<?> lexicalClass;
 	ClassLoader lookupClassLoader;
 	String filename;
 	int count;
-	
+
 	private static final Class[] NO_TYPES = new Class[0];
 	private static final String[] NO_STRINGS = new String[0];
 
-	static Hashtable prims = new Hashtable();
+	static Hashtable<String, Class<?>> prims = new Hashtable<>();
 	static {
 		prims.put("void", Void.TYPE);
 		prims.put("boolean", Boolean.TYPE);
@@ -56,10 +56,10 @@ public final class Factory {
 		prims.put("double", Double.TYPE);
 	}
 
-	static Class makeClass(String s, ClassLoader loader) {
+	static Class<?> makeClass(String s, ClassLoader loader) {
 		if (s.equals("*"))
 			return null;
-		Class ret = (Class)prims.get(s);
+		Class<?> ret = (Class)prims.get(s);
 		if (ret != null)
 			return ret;
 		try {
@@ -88,7 +88,7 @@ public final class Factory {
 		lookupClassLoader = lexicalClass.getClassLoader();
 	}
 
-	
+
 	//
 	// Create a signature and build a JoinPoint in one step.  Prior to 1.6.10 this was done as a two step operation in the generated
 	// code but merging these methods in the runtime library enables the generated code to be shorter.  Generating code that
@@ -99,95 +99,95 @@ public final class Factory {
 		Signature sig = this.makeMethodSig(modifiers, methodName, declaringType, paramTypes, paramNames, exceptionTypes, returnType);
 		return new JoinPointImpl.StaticPartImpl(count++, kind, sig, makeSourceLoc(l, -1));
 	}
-	
+
 	// Create a signature and build a JoinPoint in one step.  Prior to 1.6.10 this was done as a two step operation in the generated
 	// code but merging these methods in the runtime library enables the generated code to be shorter.  Generating code that
 	// uses this method requires the weaver to be invoked with <tt>-Xset:targetRuntime1_6_10=true</tt>.
 	// This method differs from the previous one in that it includes no exceptionTypes parameter - it is an optimization for the
 	// case where there are no exceptions.  The generated code won't build an empty string and will not pass it into here.
-	// 
+	//
 	// @since 1.6.10
 	public JoinPoint.StaticPart makeSJP(String kind, String modifiers, String methodName, String declaringType, String paramTypes,
 			String paramNames, String returnType, int l) {
 		Signature sig = this.makeMethodSig(modifiers, methodName, declaringType, paramTypes, paramNames, "", returnType);
 		return new JoinPointImpl.StaticPartImpl(count++, kind, sig, makeSourceLoc(l, -1));
 	}
-	
+
 	// These are direct routes to creating thisJoinPoint and thisEnclosingJoinPoint objects
 	// added in 1.9.1
-	
+
 	public JoinPoint.StaticPart makeMethodSJP(String kind, int modifiers, String methodName, Class declaringType, Class[] paramTypes, String[] paramNames, Class[] exceptionTypes, Class returnType, int line) {
-		Signature sig = this.makeMethodSig(modifiers, methodName, declaringType, paramTypes==null?NO_TYPES:paramTypes, 
+		Signature sig = this.makeMethodSig(modifiers, methodName, declaringType, paramTypes==null?NO_TYPES:paramTypes,
 			paramNames==null?NO_STRINGS:paramNames, exceptionTypes==null?NO_TYPES:exceptionTypes, returnType == null?Void.TYPE:returnType);
-		return new JoinPointImpl.StaticPartImpl(count++, kind, sig, makeSourceLoc(line, -1));		
+		return new JoinPointImpl.StaticPartImpl(count++, kind, sig, makeSourceLoc(line, -1));
 	}
 
 	public JoinPoint.EnclosingStaticPart makeMethodESJP(String kind, int modifiers, String methodName, Class declaringType, Class[] paramTypes, String[] paramNames, Class[] exceptionTypes, Class returnType, int line) {
 		Signature sig = this.makeMethodSig(modifiers, methodName, declaringType, paramTypes==null?NO_TYPES:paramTypes,
 				paramNames==null?NO_STRINGS:paramNames, exceptionTypes==null?NO_TYPES:exceptionTypes, returnType == null?Void.TYPE:returnType);
-		return new JoinPointImpl.EnclosingStaticPartImpl(count++, kind, sig, makeSourceLoc(line, -1));		
+		return new JoinPointImpl.EnclosingStaticPartImpl(count++, kind, sig, makeSourceLoc(line, -1));
 	}
 
 	public JoinPoint.StaticPart makeConstructorSJP(String kind, int modifiers, Class declaringType, Class[] parameterTypes, String[] parameterNames, Class[] exceptionTypes, int line) {
 		ConstructorSignatureImpl sig = new ConstructorSignatureImpl(modifiers, declaringType, parameterTypes==null?NO_TYPES:parameterTypes, parameterNames==null?NO_STRINGS:parameterNames,
 				exceptionTypes==null?NO_TYPES:exceptionTypes);
-		return new JoinPointImpl.StaticPartImpl(count++, kind, sig, makeSourceLoc(line, -1));	
+		return new JoinPointImpl.StaticPartImpl(count++, kind, sig, makeSourceLoc(line, -1));
 	}
 
 	public JoinPoint.EnclosingStaticPart makeConstructorESJP(String kind, int modifiers, Class declaringType, Class[] parameterTypes, String[] parameterNames, Class[] exceptionTypes, int line) {
 		ConstructorSignatureImpl sig = new ConstructorSignatureImpl(modifiers, declaringType, parameterTypes==null?NO_TYPES:parameterTypes, parameterNames==null?NO_STRINGS:parameterNames,
 				exceptionTypes==null?NO_TYPES:exceptionTypes);
-		return new JoinPointImpl.EnclosingStaticPartImpl(count++, kind, sig, makeSourceLoc(line, -1));	
+		return new JoinPointImpl.EnclosingStaticPartImpl(count++, kind, sig, makeSourceLoc(line, -1));
 	}
 
 	public JoinPoint.StaticPart makeCatchClauseSJP(String kind, Class declaringType, Class parameterType, String parameterName, int line) {
 		CatchClauseSignatureImpl sig = new CatchClauseSignatureImpl(declaringType, parameterType, parameterName==null?"":parameterName);
-		return new JoinPointImpl.StaticPartImpl(count++, kind, sig, makeSourceLoc(line, -1));	
+		return new JoinPointImpl.StaticPartImpl(count++, kind, sig, makeSourceLoc(line, -1));
 	}
 
 	public JoinPoint.EnclosingStaticPart makeCatchClauseESJP(String kind, Class declaringType, Class parameterType, String parameterName, int line) {
 		CatchClauseSignatureImpl sig = new CatchClauseSignatureImpl(declaringType, parameterType, parameterName==null?"":parameterName);
-		return new JoinPointImpl.EnclosingStaticPartImpl(count++, kind, sig, makeSourceLoc(line, -1));	
+		return new JoinPointImpl.EnclosingStaticPartImpl(count++, kind, sig, makeSourceLoc(line, -1));
 	}
 
 	public JoinPoint.StaticPart makeFieldSJP(String kind, int modifiers, String name, Class declaringType, Class fieldType, int line) {
 		FieldSignatureImpl sig = new FieldSignatureImpl(modifiers, name, declaringType, fieldType);
-		return new JoinPointImpl.StaticPartImpl(count++, kind, sig, makeSourceLoc(line, -1));	
+		return new JoinPointImpl.StaticPartImpl(count++, kind, sig, makeSourceLoc(line, -1));
 	}
 
 	public JoinPoint.EnclosingStaticPart makeFieldESJP(String kind, int modifiers, String name, Class declaringType, Class fieldType, int line) {
 		FieldSignatureImpl sig = new FieldSignatureImpl(modifiers, name, declaringType, fieldType);
-		return new JoinPointImpl.EnclosingStaticPartImpl(count++, kind, sig, makeSourceLoc(line, -1));	
+		return new JoinPointImpl.EnclosingStaticPartImpl(count++, kind, sig, makeSourceLoc(line, -1));
 	}
-	
+
 	public JoinPoint.StaticPart makeInitializerSJP(String kind, int modifiers, Class declaringType, int line) {
 		InitializerSignatureImpl sig = new InitializerSignatureImpl(modifiers, declaringType);
-		return new JoinPointImpl.StaticPartImpl(count++, kind, sig, makeSourceLoc(line, -1));	
+		return new JoinPointImpl.StaticPartImpl(count++, kind, sig, makeSourceLoc(line, -1));
 	}
 
 	public JoinPoint.EnclosingStaticPart makeInitializerESJP(String kind, int modifiers, Class declaringType, int line) {
 		InitializerSignatureImpl sig = new InitializerSignatureImpl(modifiers, declaringType);
-		return new JoinPointImpl.EnclosingStaticPartImpl(count++, kind, sig, makeSourceLoc(line, -1));	
+		return new JoinPointImpl.EnclosingStaticPartImpl(count++, kind, sig, makeSourceLoc(line, -1));
 	}
-	
+
 	public JoinPoint.StaticPart makeLockSJP(String kind, Class declaringType, int line) {
 		LockSignatureImpl sig = new LockSignatureImpl(declaringType);
-		return new JoinPointImpl.StaticPartImpl(count++, kind, sig, makeSourceLoc(line, -1));	
+		return new JoinPointImpl.StaticPartImpl(count++, kind, sig, makeSourceLoc(line, -1));
 	}
 
 	public JoinPoint.EnclosingStaticPart makeLockESJP(String kind, Class declaringType, int line) {
 		LockSignatureImpl sig = new LockSignatureImpl(declaringType);
-		return new JoinPointImpl.EnclosingStaticPartImpl(count++, kind, sig, makeSourceLoc(line, -1));	
+		return new JoinPointImpl.EnclosingStaticPartImpl(count++, kind, sig, makeSourceLoc(line, -1));
 	}
 
 	public JoinPoint.StaticPart makeUnlockSJP(String kind, Class declaringType, int line) {
 		UnlockSignatureImpl sig = new UnlockSignatureImpl(declaringType);
-		return new JoinPointImpl.StaticPartImpl(count++, kind, sig, makeSourceLoc(line, -1));	
+		return new JoinPointImpl.StaticPartImpl(count++, kind, sig, makeSourceLoc(line, -1));
 	}
 
 	public JoinPoint.EnclosingStaticPart makeUnlockESJP(String kind, Class declaringType, int line) {
 		UnlockSignatureImpl sig = new UnlockSignatureImpl(declaringType);
-		return new JoinPointImpl.EnclosingStaticPartImpl(count++, kind, sig, makeSourceLoc(line, -1));	
+		return new JoinPointImpl.EnclosingStaticPartImpl(count++, kind, sig, makeSourceLoc(line, -1));
 	}
 
 	public JoinPoint.StaticPart makeAdviceSJP(String kind, int modifiers, String name, Class declaringType, Class[] parameterTypes,
@@ -197,7 +197,7 @@ public final class Factory {
 				parameterNames==null?NO_STRINGS:parameterNames,
 				exceptionTypes==null?NO_TYPES:exceptionTypes,
 				returnType==null?Void.TYPE:returnType);
-		return new JoinPointImpl.StaticPartImpl(count++, kind, sig, makeSourceLoc(line, -1));	
+		return new JoinPointImpl.StaticPartImpl(count++, kind, sig, makeSourceLoc(line, -1));
 	}
 
 	public JoinPoint.EnclosingStaticPart makeAdviceESJP(String kind, int modifiers, String name, Class declaringType, Class[] parameterTypes,
@@ -207,9 +207,9 @@ public final class Factory {
 				parameterNames==null?NO_STRINGS:parameterNames,
 				exceptionTypes==null?NO_TYPES:exceptionTypes,
 				returnType==null?Void.TYPE:returnType);
-		return new JoinPointImpl.EnclosingStaticPartImpl(count++, kind, sig, makeSourceLoc(line, -1));	
+		return new JoinPointImpl.EnclosingStaticPartImpl(count++, kind, sig, makeSourceLoc(line, -1));
 	}
-		
+
 	// ---
 
 	public JoinPoint.StaticPart makeSJP(String kind, Signature sig, SourceLocation loc) {
@@ -246,7 +246,7 @@ public final class Factory {
 					.getReturnType());
 			kind = JoinPoint.METHOD_EXECUTION;
 		} else if (member instanceof Constructor) {
-			Constructor cons = (Constructor) member;
+			Constructor<?> cons = (Constructor<?>) member;
 			sig = new ConstructorSignatureImpl(cons.getModifiers(), cons.getDeclaringClass(), cons.getParameterTypes(),
 					new String[cons.getParameterTypes().length], cons.getExceptionTypes());
 			kind = JoinPoint.CONSTRUCTOR_EXECUTION;
@@ -279,13 +279,13 @@ public final class Factory {
 		ret.setLookupClassLoader(lookupClassLoader);
 		return ret;
 	}
-	
+
 	public MethodSignature makeMethodSig(String modifiers, String methodName, String declaringType, String paramTypes,
 			String paramNames, String exceptionTypes, String returnType) {
-		Class declaringTypeClass = makeClass(declaringType, lookupClassLoader);
+		Class<?> declaringTypeClass = makeClass(declaringType, lookupClassLoader);
 		return makeMethodSig(modifiers, methodName, declaringTypeClass, paramTypes, paramNames, exceptionTypes, returnType);
 	}
-	
+
 	public MethodSignature makeMethodSig(String modifiers, String methodName, Class declaringTypeClass, String paramTypes,
 			String paramNames, String exceptionTypes, String returnType) {
 		int modifiersAsInt = Integer.parseInt(modifiers, 16);
@@ -308,7 +308,7 @@ public final class Factory {
 		for (int i = 0; i < numParams; i++)
 			exceptionTypeClasses[i] = makeClass(st.nextToken(), lookupClassLoader);
 
-		Class returnTypeClass = makeClass(returnType, lookupClassLoader);
+		Class<?> returnTypeClass = makeClass(returnType, lookupClassLoader);
 
 		MethodSignatureImpl ret = new MethodSignatureImpl(modifiersAsInt, methodName, declaringTypeClass, paramTypeClasses,
 				paramNamesArray, exceptionTypeClasses, returnTypeClass);
@@ -334,7 +334,7 @@ public final class Factory {
 			String exceptionTypes) {
 		int modifiersAsInt = Integer.parseInt(modifiers, 16);
 
-		Class declaringTypeClass = makeClass(declaringType, lookupClassLoader);
+		Class<?> declaringTypeClass = makeClass(declaringType, lookupClassLoader);
 
 		StringTokenizer st = new StringTokenizer(paramTypes, ":");
 		int numParams = st.countTokens();
@@ -376,8 +376,8 @@ public final class Factory {
 
 	public FieldSignature makeFieldSig(String modifiers, String name, String declaringType, String fieldType) {
 		int modifiersAsInt = Integer.parseInt(modifiers, 16);
-		Class declaringTypeClass = makeClass(declaringType, lookupClassLoader);
-		Class fieldTypeClass = makeClass(fieldType, lookupClassLoader);
+		Class<?> declaringTypeClass = makeClass(declaringType, lookupClassLoader);
+		Class<?> fieldTypeClass = makeClass(fieldType, lookupClassLoader);
 
 		FieldSignatureImpl ret = new FieldSignatureImpl(modifiersAsInt, name, declaringTypeClass, fieldTypeClass);
 		ret.setLookupClassLoader(lookupClassLoader);
@@ -400,7 +400,7 @@ public final class Factory {
 			String exceptionTypes, String returnType) {
 		int modifiersAsInt = Integer.parseInt(modifiers, 16);
 
-		Class declaringTypeClass = makeClass(declaringType, lookupClassLoader);
+		Class<?> declaringTypeClass = makeClass(declaringType, lookupClassLoader);
 
 		StringTokenizer st = new StringTokenizer(paramTypes, ":");
 		int numParams = st.countTokens();
@@ -421,7 +421,7 @@ public final class Factory {
 			exceptionTypeClasses[i] = makeClass(st.nextToken(), lookupClassLoader);
 		;
 
-		Class returnTypeClass = makeClass(returnType, lookupClassLoader);
+		Class<?> returnTypeClass = makeClass(returnType, lookupClassLoader);
 
 		AdviceSignatureImpl ret = new AdviceSignatureImpl(modifiersAsInt, name, declaringTypeClass, paramTypeClasses,
 				paramNamesArray, exceptionTypeClasses, returnTypeClass);
@@ -445,7 +445,7 @@ public final class Factory {
 
 	public InitializerSignature makeInitializerSig(String modifiers, String declaringType) {
 		int modifiersAsInt = Integer.parseInt(modifiers, 16);
-		Class declaringTypeClass = makeClass(declaringType, lookupClassLoader);
+		Class<?> declaringTypeClass = makeClass(declaringType, lookupClassLoader);
 
 		InitializerSignatureImpl ret = new InitializerSignatureImpl(modifiersAsInt, declaringTypeClass);
 		ret.setLookupClassLoader(lookupClassLoader);
@@ -465,10 +465,10 @@ public final class Factory {
 	}
 
 	public CatchClauseSignature makeCatchClauseSig(String declaringType, String parameterType, String parameterName) {
-		Class declaringTypeClass = makeClass(declaringType, lookupClassLoader);
+		Class<?> declaringTypeClass = makeClass(declaringType, lookupClassLoader);
 
 		StringTokenizer st = new StringTokenizer(parameterType, ":");
-		Class parameterTypeClass = makeClass(st.nextToken(), lookupClassLoader);
+		Class<?> parameterTypeClass = makeClass(st.nextToken(), lookupClassLoader);
 
 		st = new StringTokenizer(parameterName, ":");
 		String parameterNameForReturn = st.nextToken();
@@ -491,7 +491,7 @@ public final class Factory {
 	}
 
 	public LockSignature makeLockSig() {
-		Class declaringTypeClass = makeClass("Ljava/lang/Object;", lookupClassLoader);
+		Class<?> declaringTypeClass = makeClass("Ljava/lang/Object;", lookupClassLoader);
 		LockSignatureImpl ret = new LockSignatureImpl(declaringTypeClass);
 		ret.setLookupClassLoader(lookupClassLoader);
 		return ret;
@@ -510,7 +510,7 @@ public final class Factory {
 	}
 
 	public UnlockSignature makeUnlockSig() {
-		Class declaringTypeClass = makeClass("Ljava/lang/Object;", lookupClassLoader);
+		Class<?> declaringTypeClass = makeClass("Ljava/lang/Object;", lookupClassLoader);
 		UnlockSignatureImpl ret = new UnlockSignatureImpl(declaringTypeClass);
 		ret.setLookupClassLoader(lookupClassLoader);
 		return ret;

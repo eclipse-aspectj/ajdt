@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -49,14 +49,13 @@ import org.aspectj.org.eclipse.jdt.core.eval.IEvaluationContext;
  * the corresponding generated class files from the required project's output
  * location(s)). The classpath format is a sequence of classpath entries
  * describing the location and contents of package fragment roots.
- * </p>
+ * <p>
  * Java project elements need to be opened before they can be navigated or manipulated.
  * The children of a Java project are the package fragment roots that are
  * defined by the classpath and contained in this project (in other words, it
  * does not include package fragment roots for other projects). The children
- * (i.e. the package fragment roots) appear in the order they are defined by 
+ * (i.e. the package fragment roots) appear in the order they are defined by
  * the classpath.
- * </p>
  * <p>
  * An instance of one of these handles can be created via
  * <code>JavaCore.create(project)</code>.
@@ -70,11 +69,11 @@ public interface IJavaProject extends IParent, IJavaElement, IOpenable {
 
 	/**
 	 * Path of the file containing the project's classpath relative to the project's root.
-	 * 
+	 *
 	 * <p>The file is a child of the project folder.</p>
 	 * <p>The format of this file is unspecified and it is not meant to be modified.
 	 * Its contents is modified by using the <code>IJavaProject#setRawClasspath(..)</code> methods.</p>
-	 * 
+	 *
 	 * @see #setRawClasspath(IClasspathEntry[], IProgressMonitor)
 	 * @see #setRawClasspath(IClasspathEntry[], boolean, IProgressMonitor)
 	 * @see #setRawClasspath(IClasspathEntry[], IPath, IProgressMonitor)
@@ -172,7 +171,7 @@ public interface IJavaProject extends IParent, IJavaElement, IOpenable {
 	 * 		variable}</li>
 	 * <li>{@link IAnnotation} for a binding key from an
 	 * 		{@link IAnnotationBinding}</li>
-	 * </ul></p>
+	 * </ul>
 	 * <p>Note: if two methods correspond to the binding key because their
 	 * parameter types' simple names are the same, then the first one is returned.
 	 * For example, if a class defines two methods <code>foo(p1.Y, String)</code>
@@ -236,7 +235,7 @@ public interface IJavaProject extends IParent, IJavaElement, IOpenable {
 	 * <p>
 	 * The result does not include package fragment roots in other projects
 	 * referenced on this project's classpath.
-	 * 
+	 *
 	 * @param entry the given entry
 	 * @return the existing package fragment roots identified by the given entry
 	 * @see IClasspathContainer
@@ -252,7 +251,7 @@ public interface IJavaProject extends IParent, IJavaElement, IOpenable {
 	 * <p>
 	 * This API can be used to bypass any filter and get really all roots to which the given entry is resolved.
 	 * </p>
-	 * 
+	 *
 	 * @param entry a classpath entry of this Java project
 	 * @return the unfiltered array of package fragment roots to which the classpath entry resolves
 	 * @see #findPackageFragmentRoots(IClasspathEntry)
@@ -432,7 +431,7 @@ public interface IJavaProject extends IParent, IJavaElement, IOpenable {
 	 * If the returned module descriptor is part of a compilation unit, its owner is the given owner.
 	 * @param moduleName the given module name
 	 * @param owner the owner of the returned module descriptor's compilation unit
-	 * 
+	 *
 	 * @exception JavaModelException if this project does not exist or if an
 	 *		exception occurs while accessing its corresponding resource
 	 * @return the first module found following this project's module path
@@ -555,7 +554,7 @@ public interface IJavaProject extends IParent, IJavaElement, IOpenable {
 	 * Returns all of the  package fragment roots contained in this
 	 * project, identified on this project's resolved classpath. The result
 	 * does not include package fragment roots in other projects referenced
-	 * on this project's classpath. The package fragment roots appear in the 
+	 * on this project's classpath. The package fragment roots appear in the
 	 * order they are defined by the classpath.
 	 *
 	 * <p>NOTE: This is equivalent to <code>getChildren()</code>.
@@ -579,7 +578,7 @@ public interface IJavaProject extends IParent, IJavaElement, IOpenable {
 	 * <p>
 	 * The result does not include package fragment roots in other projects
 	 * referenced on this project's classpath.
-	 * 
+	 *
 	 * @param entry the given entry
 	 * @return the existing package fragment roots identified by the given entry
 	 * @see IClasspathContainer
@@ -611,21 +610,38 @@ public interface IJavaProject extends IParent, IJavaElement, IOpenable {
 	IProject getProject();
 
 	/**
-	 * Returns the <code>IModuleDescription</code> this project represents or 
-	 * null if the Java project doesn't represent any named module. A Java 
-	 * project is said to represent a module if any of its source package 
-	 * fragment roots (see {@link IPackageFragmentRoot#K_SOURCE}) contains a 
+	 * Returns the {@link IModuleDescription} this project represents or
+	 * null if the Java project doesn't represent any named module. A Java
+	 * project is said to represent a module if any of its source package
+	 * fragment roots (see {@link IPackageFragmentRoot#K_SOURCE}) contains a
 	 * valid Java module descriptor, or if one of its classpath entries
-	 * has a valid {@link IClasspathAttribute#PATCH_MODULE} attribute.
+	 * has a valid {@link IClasspathAttribute#PATCH_MODULE} attribute
+	 * affecting the current project.
 	 * In the latter case the corresponding module description of the
 	 * location referenced by that classpath entry is returned.
-	 * 
-	 * @return the <code>IModule</code> this project represents.
+	 *
+	 * @return the {@link IModuleDescription} this project represents.
 	 * @exception JavaModelException if this element does not exist or if an
 	 *		exception occurs while accessing its corresponding resource
 	 * @since 3.14
 	 */
 	IModuleDescription getModuleDescription() throws JavaModelException;
+
+	/**
+	 * Returns the <code>IModuleDescription</code> owned by this project or
+	 * null if the Java project doesn't own a valid Java module descriptor.
+	 * This method considers only module descriptions contained in any of the
+	 * project's source package fragment roots (see {@link IPackageFragmentRoot#K_SOURCE}).
+	 * In particular any {@link IClasspathAttribute#PATCH_MODULE} attribute
+	 * is not considered.
+	 *
+	 * @return the {@link IModuleDescription} this project owns.
+	 * @exception JavaModelException if this element does not exist or if an
+	 *		exception occurs while accessing its corresponding resource
+	 * @throws JavaModelException
+	 * @since 3.20
+	 */
+	IModuleDescription getOwnModuleDescription() throws JavaModelException;
 
 	/**
 	 * Returns the raw classpath for the project, as a list of classpath
@@ -649,7 +665,7 @@ public interface IJavaProject extends IParent, IJavaElement, IOpenable {
 	 * </p>
 	 * <p>
 	 * Note that in case the project isn't yet opened, the classpath will
-	 * be read directly from the associated <tt>.classpath</tt> file.
+	 * be read directly from the associated <code>.classpath</code> file.
 	 * </p>
 	 *
 	 * @return the raw classpath for the project, as a list of classpath entries
@@ -685,8 +701,8 @@ public interface IJavaProject extends IParent, IJavaElement, IOpenable {
 	 * Because of this, hanging on resolved classpath is not recommended.
 	 * </p>
 	 * <p>
-	 * Note that if the resolution creates duplicate entries 
-	 * (i.e. {@link IClasspathEntry entries} which are {@link Object#equals(Object)}), 
+	 * Note that if the resolution creates duplicate entries
+	 * (i.e. {@link IClasspathEntry entries} which are {@link Object#equals(Object)}),
 	 * only the first one is added to the resolved classpath.
 	 * </p>
 	 *
@@ -1079,23 +1095,23 @@ public interface IJavaProject extends IParent, IJavaElement, IOpenable {
 	void setRawClasspath(IClasspathEntry[] entries, boolean canModifyResources, IProgressMonitor monitor) throws JavaModelException;
 
 	/**
-	 * Works similar to {@link #setRawClasspath(IClasspathEntry[], IPath, IProgressMonitor)} and 
+	 * Works similar to {@link #setRawClasspath(IClasspathEntry[], IPath, IProgressMonitor)} and
 	 * additionally allows persisting the given array of referenced entries for this project.
-	 * The referenced entries and their attributes are stored in the .classpath file of this 
-	 * project. For details on referenced entries, see 
+	 * The referenced entries and their attributes are stored in the .classpath file of this
+	 * project. For details on referenced entries, see
 	 * {@link JavaCore#getReferencedClasspathEntries(IClasspathEntry, IJavaProject)}
 	 * and {@link IClasspathEntry#getReferencingEntry()}.
 	 * <p>
-	 * Since the referenced entries are stored in the .classpath file, clients can store additional 
+	 * Since the referenced entries are stored in the .classpath file, clients can store additional
 	 * information that belong to these entries and retrieve them across sessions, though the referenced
 	 * entries themselves may not be present in the raw classpath. By passing a <code>null</code>
 	 * referencedEntries, clients can choose not to modify the already persisted referenced entries,
 	 * which is fully equivalent to {@link #setRawClasspath(IClasspathEntry[], IPath, IProgressMonitor)}.
-	 * If an empty array is passed as referencedEntries, the already persisted referenced entries, 
-	 * if any, will be cleared. 
+	 * If an empty array is passed as referencedEntries, the already persisted referenced entries,
+	 * if any, will be cleared.
 	 * </p> <p>
-	 * If there are duplicates of a referenced entry or if any of the <code>referencedEntries</code> 
-	 * is already present in the raw classpath(<code>entries</code>) those referenced entries will 
+	 * If there are duplicates of a referenced entry or if any of the <code>referencedEntries</code>
+	 * is already present in the raw classpath(<code>entries</code>) those referenced entries will
 	 * be excluded and not be persisted.
 	 *</p>
 	 * @param entries a list of classpath entries
@@ -1116,8 +1132,8 @@ public interface IJavaProject extends IParent, IJavaElement, IOpenable {
 			IProgressMonitor monitor) throws JavaModelException;
 
 	/**
-	 * Returns the list of referenced classpath entries stored in the .classpath file of <code>this</code> 
-	 * java project. Clients can store the referenced classpath entries using 
+	 * Returns the list of referenced classpath entries stored in the .classpath file of <code>this</code>
+	 * java project. Clients can store the referenced classpath entries using
 	 * {@link #setRawClasspath(IClasspathEntry[], IClasspathEntry[], IPath, IProgressMonitor)}
 	 * If the client has not stored any referenced entries for this project, an empty array is returned.
 	 *
@@ -1127,7 +1143,7 @@ public interface IJavaProject extends IParent, IJavaElement, IOpenable {
 	 * @since 3.6
 	 */
 	IClasspathEntry[] getReferencedClasspathEntries() throws JavaModelException;
-	
+
 	/**
 	 * Sets the classpath of this project using a list of classpath entries. In particular such a classpath may contain
 	 * classpath variable entries. Classpath variable entries can be resolved individually ({@link JavaCore#getClasspathVariable(String)}),
@@ -1215,10 +1231,10 @@ public interface IJavaProject extends IParent, IJavaElement, IOpenable {
 	/**
 	 * Returns the classpath entry that refers to the given path or <code>null</code> if there is no reference to the
 	 * path.
-	 * 
+	 *
 	 * @param path
 	 *            IPath
-	 * @return the classpath entry or <code>null</null>.
+	 * @return the classpath entry or <code>null</code>.
 	 * @throws JavaModelException
 	 * @since 3.14
 	 */
@@ -1230,7 +1246,7 @@ public interface IJavaProject extends IParent, IJavaElement, IOpenable {
 	 * test-only dependencies that should not be mentioned in the module-info.java). When executing test code that was
 	 * compiled like this, corresponding "--add-reads" options need to be passed to the java runtime. This method
 	 * returns the list of modules on the project's classpath for which this is the case.
-	 * 
+	 *
 	 * @return the set of module names
 	 * @throws JavaModelException
 	 *             when access to the classpath or module description of the given project fails.

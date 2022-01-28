@@ -17,8 +17,7 @@ package org.aspectj.org.eclipse.jdt.internal.core.builder;
 
 import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.*;
-import org.eclipse.core.runtime.jobs.ISchedulingRule;
-import org.eclipse.core.runtime.preferences.InstanceScope;
+
 import org.aspectj.org.eclipse.jdt.core.*;
 import org.aspectj.org.eclipse.jdt.core.compiler.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.SimpleLookupTable;
@@ -32,7 +31,6 @@ import java.util.*;
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class JavaBuilder extends IncrementalProjectBuilder {
 
-public static final String PREF_NULL_SCHEDULING_RULE = "useNullSchedulingRule"; //$NON-NLS-1$
 IProject currentProject;
 JavaProject javaProject;
 IWorkspaceRoot workspaceRoot;
@@ -49,6 +47,13 @@ public static final String SOURCE_ID = "JDT"; //$NON-NLS-1$
 
 public static boolean DEBUG = false;
 public static boolean SHOW_STATS = false;
+
+/**
+ * Bug 549457: In case auto-building on a JDT core settings change (e.g. compiler compliance) is not desired,
+ * specify VM property: {@code -Dorg.eclipse.disableAutoBuildOnSettingsChange=true}
+ */
+private static final boolean DISABLE_AUTO_BUILDING_ON_SETTINGS_CHANGE = Boolean.getBoolean("org.eclipse.disableAutoBuildOnSettingsChange"); //$NON-NLS-1$
+private static final IPath JDT_CORE_SETTINGS_PATH = Path.fromPortableString(JavaProject.DEFAULT_PREFERENCES_DIRNAME + IPath.SEPARATOR + JavaProject.JAVA_CORE_PREFS_FILE);
 
 /**
  * A list of project names that have been built.
@@ -154,7 +159,7 @@ public static void removeProblemsAndTasksFor(IResource resource) {
 	}
 }
 
-public static State readState(IProject project, DataInputStream in) throws IOException {
+public static State readState(IProject project, DataInputStream in) throws IOException, CoreException {
 	return State.read(project, in);
 }
 
@@ -201,7 +206,13 @@ protected IProject[] build(int kind, Map ignored, IProgressMonitor monitor) thro
 							System.out.println("JavaBuilder: Performing full build since deltas are missing after incremental request"); //$NON-NLS-1$
 						buildAll();
 					} else if (deltas.elementSize > 0) {
-						buildDeltas(deltas);
+						if (hasJdtCoreSettingsChange(deltas) && !DISABLE_AUTO_BUILDING_ON_SETTINGS_CHANGE) {
+							if (DEBUG)
+								System.out.println("JavaBuilder: Performing full build since project settings have changed"); //$NON-NLS-1$
+							buildAll();
+						} else {
+							buildDeltas(deltas);
+						}
 					} else if (DEBUG) {
 						System.out.println("JavaBuilder: Nothing to build since deltas were empty"); //$NON-NLS-1$
 					}
@@ -230,15 +241,12 @@ protected IProject[] build(int kind, Map ignored, IProgressMonitor monitor) thro
 		if (DEBUG)
 			System.out.println(Messages.bind(Messages.build_missingSourceFile, e.missingSourceFile));
 		removeProblemsAndTasksFor(this.currentProject); // make this the only problem for this project
-		IMarker marker = this.currentProject.createMarker(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER);
-		marker.setAttributes(
-			new String[] {IMarker.MESSAGE, IMarker.SEVERITY, IMarker.SOURCE_ID},
-			new Object[] {
-				Messages.bind(Messages.build_missingSourceFile, e.missingSourceFile),
-				Integer.valueOf(IMarker.SEVERITY_ERROR),
-				JavaBuilder.SOURCE_ID
-			}
-		);
+
+		Map<String, Object> attributes = new HashMap<>();
+		attributes.put(IMarker.MESSAGE, Messages.bind(Messages.build_missingSourceFile, e.missingSourceFile));
+		attributes.put(IMarker.SEVERITY, Integer.valueOf(IMarker.SEVERITY_ERROR));
+		attributes.put(IMarker.SOURCE_ID, JavaBuilder.SOURCE_ID);
+		this.currentProject.createMarker(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, attributes);
 	} finally {
 		for (int i = 0, l = this.participants == null ? 0 : this.participants.length; i < l; i++)
 			this.participants[i].buildFinished(this.javaProject);
@@ -271,7 +279,7 @@ private void buildAll() {
 	BatchImageBuilder testImageBuilder  = getBatchImageBuilder2(imageBuilder, true, CompilationGroup.TEST); // AspectJ Extension - use factory, was new BatchImageBuilder(imageBuilder, true, CompilationGroup.TEST);
 	imageBuilder.build();
 	if (testImageBuilder.sourceLocations.length > 0) {
-		// Note: testImageBuilder *MUST* have a separate output folder, or it will delete the files created by imageBuilder.build() 
+		// Note: testImageBuilder *MUST* have a separate output folder, or it will delete the files created by imageBuilder.build()
 		testImageBuilder.build();
 	} else {
 		testImageBuilder.cleanUp();
@@ -352,22 +360,24 @@ private void createInconsistentBuildMarker(CoreException coreException) throws C
  	if (message == null)
  		message = coreException.getMessage();
 
-	IMarker marker = this.currentProject.createMarker(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER);
-	marker.setAttributes(
-		new String[] {IMarker.MESSAGE, IMarker.SEVERITY, IJavaModelMarker.CATEGORY_ID, IMarker.SOURCE_ID},
-		new Object[] {
-			Messages.bind(Messages.build_inconsistentProject, message),
-			Integer.valueOf(IMarker.SEVERITY_ERROR),
-			Integer.valueOf(CategorizedProblem.CAT_BUILDPATH),
-			JavaBuilder.SOURCE_ID
-		}
-	);
+	Map<String, Object> attributes = new HashMap<>();
+	attributes.put(IMarker.MESSAGE, Messages.bind(Messages.build_inconsistentProject, message));
+	attributes.put(IMarker.SEVERITY, Integer.valueOf(IMarker.SEVERITY_ERROR));
+	attributes.put(IJavaModelMarker.CATEGORY_ID, Integer.valueOf(CategorizedProblem.CAT_BUILDPATH));
+	attributes.put(IMarker.SOURCE_ID, JavaBuilder.SOURCE_ID);
+	this.currentProject.createMarker(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, attributes);
 }
 
 private void cleanup() {
 	this.participants = null;
-	this.nameEnvironment = null;
-	this.testNameEnvironment = null;
+	if(this.nameEnvironment != null) {
+		this.nameEnvironment.cleanup();
+		this.nameEnvironment = null;
+	}
+	if(this.testNameEnvironment != null) {
+		this.testNameEnvironment.cleanup();
+		this.testNameEnvironment = null;
+	}
 	this.binaryLocationsPerProject = null;
 	this.lastState = null;
 	this.notifier = null;
@@ -516,8 +526,16 @@ boolean hasBuildpathErrors() throws CoreException {
 	return false;
 }
 
+private boolean hasJdtCoreSettingsChange(SimpleLookupTable deltas) {
+	Object resourceDelta = deltas.get(this.currentProject);
+	if (resourceDelta instanceof IResourceDelta) {
+		return ((IResourceDelta) resourceDelta).findMember(JDT_CORE_SETTINGS_PATH) != null;
+	}
+	return false;
+}
+
 private boolean hasClasspathChanged() {
-	return hasClasspathChanged(CompilationGroup.MAIN) || hasClasspathChanged(CompilationGroup.TEST);	
+	return hasClasspathChanged(CompilationGroup.MAIN) || hasClasspathChanged(CompilationGroup.TEST);
 }
 
 private boolean hasClasspathChanged(CompilationGroup compilationGroup) {
@@ -577,14 +595,14 @@ private boolean hasClasspathChanged(CompilationGroup compilationGroup) {
 	for (n = o = 0; n < newLength && o < oldLength; n++, o++) {
 		if (newBinaryLocations[n].equals(oldBinaryLocations[o])) continue;
 		if (DEBUG) {
-			System.out.println("JavaBuilder: New location: " + newBinaryLocations[n] + "\n!= old location: " + oldBinaryLocations[o]); //$NON-NLS-1$ //$NON-NLS-2$
+			System.out.println("JavaBuilder: New test location: " + newBinaryLocations[n] + "\n!= old test location: " + oldBinaryLocations[o]); //$NON-NLS-1$ //$NON-NLS-2$
 			printLocations(newBinaryLocations, oldBinaryLocations);
 		}
 		return true;
 	}
 	if (n < newLength || o < oldLength) {
 		if (DEBUG) {
-			System.out.println("JavaBuilder: Number of binary folders/jar files has changed:"); //$NON-NLS-1$
+			System.out.println("JavaBuilder: Number of test binary folders/jar files has changed:"); //$NON-NLS-1$
 			printLocations(newBinaryLocations, oldBinaryLocations);
 		}
 		return true;
@@ -710,16 +728,13 @@ private boolean isWorthBuilding() throws CoreException {
 
 		removeProblemsAndTasksFor(this.currentProject); // remove all compilation problems
 
-		IMarker marker = this.currentProject.createMarker(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER);
-		marker.setAttributes(
-			new String[] {IMarker.MESSAGE, IMarker.SEVERITY, IJavaModelMarker.CATEGORY_ID, IMarker.SOURCE_ID},
-			new Object[] {
-				Messages.build_abortDueToClasspathProblems,
-				Integer.valueOf(IMarker.SEVERITY_ERROR),
-				Integer.valueOf(CategorizedProblem.CAT_BUILDPATH),
-				JavaBuilder.SOURCE_ID
-			}
-		);
+		Map<String, Object> attributes = new HashMap<>();
+		attributes.put(IMarker.MESSAGE, Messages.build_abortDueToClasspathProblems);
+		attributes.put(IMarker.SEVERITY, Integer.valueOf(IMarker.SEVERITY_ERROR));
+		attributes.put(IJavaModelMarker.CATEGORY_ID, Integer.valueOf(CategorizedProblem.CAT_BUILDPATH));
+		attributes.put(IMarker.SOURCE_ID, JavaBuilder.SOURCE_ID);
+
+		this.currentProject.createMarker(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, attributes);
 		return false;
 	}
 
@@ -751,18 +766,16 @@ private boolean isWorthBuilding() throws CoreException {
 					+ " was not built"); //$NON-NLS-1$
 
 			removeProblemsAndTasksFor(this.currentProject); // make this the only problem for this project
-			IMarker marker = this.currentProject.createMarker(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER);
-			marker.setAttributes(
-				new String[] {IMarker.MESSAGE, IMarker.SEVERITY, IJavaModelMarker.CATEGORY_ID, IMarker.SOURCE_ID},
-				new Object[] {
+
+			Map<String, Object> attributes = new HashMap<>();
+			attributes.put(IMarker.MESSAGE,
 					isClasspathBroken(prereq, true)
-						? Messages.bind(Messages.build_prereqProjectHasClasspathProblems, p.getName())
-						: Messages.bind(Messages.build_prereqProjectMustBeRebuilt, p.getName()),
-					Integer.valueOf(IMarker.SEVERITY_ERROR),
-					Integer.valueOf(CategorizedProblem.CAT_BUILDPATH),
-					JavaBuilder.SOURCE_ID
-				}
-			);
+							? Messages.bind(Messages.build_prereqProjectHasClasspathProblems, p.getName())
+							: Messages.bind(Messages.build_prereqProjectMustBeRebuilt, p.getName()));
+			attributes.put(IMarker.SEVERITY, Integer.valueOf(IMarker.SEVERITY_ERROR));
+			attributes.put(IJavaModelMarker.CATEGORY_ID, Integer.valueOf(CategorizedProblem.CAT_BUILDPATH));
+			attributes.put(IMarker.SOURCE_ID, JavaBuilder.SOURCE_ID);
+			this.currentProject.createMarker(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, attributes);
 			return false;
 		}
 	}
@@ -775,7 +788,7 @@ private boolean isWorthBuilding() throws CoreException {
  */
 void mustPropagateStructuralChanges() {
 	LinkedHashSet cycleParticipants = new LinkedHashSet(3);
-	this.javaProject.updateCycleParticipants(new ArrayList(), cycleParticipants, this.workspaceRoot, new HashSet(3), null);
+	this.javaProject.updateCycleParticipants(new ArrayList(), cycleParticipants, new HashMap<>(), this.workspaceRoot, new HashSet(3), null);
 	IPath currentPath = this.javaProject.getPath();
 	Iterator i= cycleParticipants.iterator();
 	while (i.hasNext()) {
@@ -825,12 +838,4 @@ public String toString() {
 		? "JavaBuilder for unknown project" //$NON-NLS-1$
 		: "JavaBuilder for " + this.currentProject.getName(); //$NON-NLS-1$
 }
-
-	@Override
-	public ISchedulingRule getRule(int kind, Map<String, String> args) {
-		if (InstanceScope.INSTANCE.getNode(JavaCore.PLUGIN_ID).getBoolean(PREF_NULL_SCHEDULING_RULE, false)) {
-			return null;
-		}
-		return super.getRule(kind, args);
-	}
 }

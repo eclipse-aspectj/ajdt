@@ -1,13 +1,13 @@
 /* *******************************************************************
  * Copyright (c) 2005 IBM Corporation Ltd
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     Adrian Colyer  initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     Adrian Colyer  initial implementation
  * ******************************************************************/
 package org.aspectj.ajdt.internal.compiler.ast;
 
@@ -280,7 +280,7 @@ public class ValidateAtAspectJAnnotationsVisitor extends ASTVisitor {
 			if (perClause != null && !perClause.equals("")) {
 				ISourceContext context = new EclipseSourceContext(unit.compilationResult, pcLoc[0]);
 				Pointcut pc = new PatternParser(perClause, context).maybeParsePerClause();
-				FormalBinding[] bindings = new FormalBinding[0];
+				FormalBinding[] bindings = FormalBinding.NONE;
 				if (pc != null)
 					pc.resolve(new EclipseScope(bindings, typeDecl.scope));
 			}
@@ -361,7 +361,7 @@ public class ValidateAtAspectJAnnotationsVisitor extends ASTVisitor {
 
 	/**
 	 * Get the argument names as a string list
-	 * 
+	 *
 	 * @param arguments
 	 * @return argument names (possibly empty)
 	 */
@@ -370,8 +370,8 @@ public class ValidateAtAspectJAnnotationsVisitor extends ASTVisitor {
 		if (arguments == null) {
 			return names;
 		} else {
-			for (int i = 0; i < arguments.length; i++) {
-				names.add(new String(arguments[i].name));
+			for (Argument argument : arguments) {
+				names.add(new String(argument.name));
 			}
 			return names;
 		}
@@ -430,9 +430,9 @@ public class ValidateAtAspectJAnnotationsVisitor extends ASTVisitor {
 
 	private FormalBinding[] buildFormalAdviceBindingsFrom(MethodDeclaration mDecl) {
 		if (mDecl.arguments == null)
-			return new FormalBinding[0];
+			return FormalBinding.NONE;
 		if (mDecl.binding == null)
-			return new FormalBinding[0];
+			return FormalBinding.NONE;
 		EclipseFactory factory = EclipseFactory.fromScopeLookupEnvironment(mDecl.scope);
 		String extraArgName = maybeGetExtraArgName();
 		if (extraArgName == null)
@@ -486,10 +486,10 @@ public class ValidateAtAspectJAnnotationsVisitor extends ASTVisitor {
 		MemberValuePair[] mvps = ann.memberValuePairs;
 		if (mvps == null)
 			return null;
-		for (int i = 0; i < mvps.length; i++) {
-			if (CharOperation.equals(memberName.toCharArray(), mvps[i].name)) {
-				if (mvps[i].value instanceof StringLiteral) {
-					StringLiteral sv = (StringLiteral) mvps[i].value;
+		for (MemberValuePair mvp : mvps) {
+			if (CharOperation.equals(memberName.toCharArray(), mvp.name)) {
+				if (mvp.value instanceof StringLiteral) {
+					StringLiteral sv = (StringLiteral) mvp.value;
 					location[0] = sv.sourceStart;
 					location[1] = sv.sourceEnd;
 					return new String(sv.source());
@@ -528,6 +528,7 @@ public class ValidateAtAspectJAnnotationsVisitor extends ASTVisitor {
 
 		boolean noValueSupplied = true;
 		boolean containsIfPcd = false;
+		boolean isIfTrueOrFalse = false;
 		int[] pcLocation = new int[2];
 		String pointcutExpression = getStringLiteralFor("value", ajAnnotations.pointcutAnnotation, pcLocation);
 		try {
@@ -538,6 +539,11 @@ public class ValidateAtAspectJAnnotationsVisitor extends ASTVisitor {
 			} else {
 				noValueSupplied = false;
 				pc = new PatternParser(pointcutExpression, context).parsePointcut();
+				if (pc instanceof IfPointcut) {
+					if (((IfPointcut)pc).alwaysFalse() || ((IfPointcut)pc).alwaysTrue()) {
+						isIfTrueOrFalse = true;
+					}
+				}
 			}
 			pcDecl.pointcutDesignator = (pc == null) ? null : new PointcutDesignator(pc);
 			pcDecl.setGenerateSyntheticPointcutMethod();
@@ -592,10 +598,10 @@ public class ValidateAtAspectJAnnotationsVisitor extends ASTVisitor {
 					methodDeclaration.returnType.sourceEnd,
 					"Methods annotated with @Pointcut must return void unless the pointcut contains an if() expression");
 		}
-		if (!returnsBoolean && containsIfPcd) {
+		if (!returnsBoolean && containsIfPcd && !isIfTrueOrFalse) {
 			methodDeclaration.scope.problemReporter().signalError(methodDeclaration.returnType.sourceStart,
 					methodDeclaration.returnType.sourceEnd,
-					"Methods annotated with @Pointcut must return boolean when the pointcut contains an if() expression");
+					"Methods annotated with @Pointcut must return boolean when the pointcut contains an if() expression unless it is if(false) or if(true)");
 		}
 
 		if (methodDeclaration.statements != null && methodDeclaration.statements.length > 0 && !containsIfPcd) {
@@ -686,45 +692,45 @@ public class ValidateAtAspectJAnnotationsVisitor extends ASTVisitor {
 		public AspectJAnnotations(Annotation[] annotations) {
 			if (annotations == null)
 				return;
-			for (int i = 0; i < annotations.length; i++) {
-				if (annotations[i].resolvedType == null)
+			for (Annotation annotation : annotations) {
+				if (annotation.resolvedType == null)
 					continue; // user messed up annotation declaration
-				char[] sig = annotations[i].resolvedType.signature();
+				char[] sig = annotation.resolvedType.signature();
 				if (CharOperation.equals(afterAdviceSig, sig)) {
 					adviceKind = AdviceKind.After;
-					addAdviceAnnotation(annotations[i]);
+					addAdviceAnnotation(annotation);
 				} else if (CharOperation.equals(afterReturningAdviceSig, sig)) {
 					adviceKind = AdviceKind.AfterReturning;
-					addAdviceAnnotation(annotations[i]);
+					addAdviceAnnotation(annotation);
 				} else if (CharOperation.equals(afterThrowingAdviceSig, sig)) {
 					adviceKind = AdviceKind.AfterThrowing;
-					addAdviceAnnotation(annotations[i]);
+					addAdviceAnnotation(annotation);
 				} else if (CharOperation.equals(beforeAdviceSig, sig)) {
 					adviceKind = AdviceKind.Before;
-					addAdviceAnnotation(annotations[i]);
+					addAdviceAnnotation(annotation);
 				} else if (CharOperation.equals(aroundAdviceSig, sig)) {
 					adviceKind = AdviceKind.Around;
-					addAdviceAnnotation(annotations[i]);
+					addAdviceAnnotation(annotation);
 				} else if (CharOperation.equals(adviceNameSig, sig)) {
 					hasAdviceNameAnnotation = true;
-					adviceNameAnnotation = annotations[i];
+					adviceNameAnnotation = annotation;
 				} else if (CharOperation.equals(declareParentsSig, sig)) {
 					hasDeclareParents = true;
 				} else if (CharOperation.equals(aspectSig, sig)) {
 					if (hasAspectAnnotation) {
 						hasMultipleAspectAnnotations = true;
-						duplicateAspectAnnotation = annotations[i];
+						duplicateAspectAnnotation = annotation;
 					} else {
 						hasAspectAnnotation = true;
-						aspectAnnotation = annotations[i];
+						aspectAnnotation = annotation;
 					}
 				} else if (CharOperation.equals(pointcutSig, sig)) {
 					if (hasPointcutAnnotation) {
 						hasMultiplePointcutAnnotations = true;
-						duplicatePointcutAnnotation = annotations[i];
+						duplicatePointcutAnnotation = annotation;
 					} else {
 						hasPointcutAnnotation = true;
-						pointcutAnnotation = annotations[i];
+						pointcutAnnotation = annotation;
 					}
 
 				}

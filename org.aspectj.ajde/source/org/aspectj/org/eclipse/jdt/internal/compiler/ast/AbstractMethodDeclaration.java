@@ -1,6 +1,6 @@
 // ASPECTJ
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -77,9 +77,11 @@ public abstract class AbstractMethodDeclaration
 	public int bodyStart;
 	public int bodyEnd = -1;
 	public CompilationResult compilationResult;
+	public boolean containsSwitchWithTry = false;
 
 	AbstractMethodDeclaration(CompilationResult compilationResult){
 		this.compilationResult = compilationResult;
+		this.containsSwitchWithTry = false;
 	}
 
 	/*
@@ -159,9 +161,17 @@ public abstract class AbstractMethodDeclaration
 					paramAnnotations[i] = Binding.NO_ANNOTATIONS;
 				}
 			}
+			if (paramAnnotations == null) {
+				paramAnnotations = getPropagatedRecordComponentAnnotations();
+			}
+
 			if (paramAnnotations != null)
 				this.binding.setParameterAnnotations(paramAnnotations);
 		}
+	}
+
+	protected AnnotationBinding[][] getPropagatedRecordComponentAnnotations() {
+		return null;
 	}
 
 	/**
@@ -223,7 +233,7 @@ public abstract class AbstractMethodDeclaration
 					else if (methodBinding.parameters[i].isFreeTypeVariable()) {
 						flowInfo.markNullStatus(methodArguments[i].binding, FlowInfo.FREE_TYPEVARIABLE);
 					}
-				} else {					
+				} else {
 					if (methodBinding.parameterNonNullness != null) {
 						// leverage null-info from parameter annotations:
 						Boolean nonNullNess = methodBinding.parameterNonNullness[i];
@@ -308,7 +318,7 @@ public abstract class AbstractMethodDeclaration
 					restart = true;
 				} else {
 					restart = false;
-					abort = true; 
+					abort = true;
 				}
 			}
 		} while (restart);
@@ -345,8 +355,9 @@ public abstract class AbstractMethodDeclaration
 				}
 			}
 			if (this.statements != null) {
-				for (int i = 0, max = this.statements.length; i < max; i++)
-					this.statements[i].generateCode(this.scope, codeStream);
+				for (Statement stmt : this.statements) {
+					stmt.generateCode(this.scope, codeStream);
+				}
 			}
 			// if a problem got reported during code gen, then trigger problem method creation
 			if (this.ignoreFurtherInvestigation) {
@@ -359,7 +370,7 @@ public abstract class AbstractMethodDeclaration
 			codeStream.exitUserScope(this.scope);
 			codeStream.recordPositionsFrom(0, this.declarationSourceEnd);
 			try {
-				classFile.completeCodeAttribute(codeAttributeOffset);
+				classFile.completeCodeAttribute(codeAttributeOffset,this.scope);
 			} catch(NegativeArraySizeException e) {
 				throw new AbortMethod(this.scope.referenceCompilationUnit().compilationResult, null);
 			}
@@ -428,6 +439,10 @@ public abstract class AbstractMethodDeclaration
 		return false;
 	}
 
+	public boolean isCanonicalConstructor() {
+
+		return false;
+	}
 	public boolean isDefaultConstructor() {
 
 		return false;
@@ -452,6 +467,10 @@ public abstract class AbstractMethodDeclaration
 		if (this.binding != null)
 			return this.binding.isNative();
 		return (this.modifiers & ClassFileConstants.AccNative) != 0;
+	}
+
+	public RecordComponent getRecordComponent() {
+		return null;
 	}
 
 	public boolean isStatic() {
@@ -548,7 +567,7 @@ public abstract class AbstractMethodDeclaration
 			resolveReceiver();
 			bindThrownExceptions();
 			resolveAnnotations(this.scope, this.annotations, this.binding, this.isConstructor());
-			
+
 			long sourceLevel = this.scope.compilerOptions().sourceLevel;
 			if (sourceLevel < ClassFileConstants.JDK1_8) // otherwise already checked via Argument.createBinding
 				validateNullAnnotations(this.scope.environment().usesNullTypeAnnotations());
@@ -642,8 +661,9 @@ public abstract class AbstractMethodDeclaration
 	public void resolveStatements() {
 
 		if (this.statements != null) {
-			for (int i = 0, length = this.statements.length; i < length; i++) {
-				this.statements[i].resolve(this.scope);
+ 			for (int i = 0, length = this.statements.length; i < length; i++) {
+ 				Statement stmt = this.statements[i];
+ 				stmt.resolve(this.scope);
 			}
 		} else if ((this.bits & UndocumentedEmptyBlock) != 0) {
 			if (!this.isConstructor() || this.arguments != null) { // https://bugs.eclipse.org/bugs/show_bug.cgi?id=319626
@@ -656,7 +676,7 @@ public abstract class AbstractMethodDeclaration
 	public void tagAsHavingErrors() {
 		this.ignoreFurtherInvestigation = true;
 	}
-	
+
 	@Override
 	public void tagAsHavingIgnoredMandatoryErrors(int problemId) {
 		// Nothing to do for this context;

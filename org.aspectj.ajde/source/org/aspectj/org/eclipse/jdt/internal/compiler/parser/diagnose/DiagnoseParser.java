@@ -1,6 +1,6 @@
 // ASPECTJ
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -2221,7 +2221,7 @@ public class DiagnoseParser implements ParserBasicInformation, TerminalTokens, C
 					name);
 				 break;
 			case SCOPE_CODE:
-				StringBuffer buf = new StringBuffer();
+				StringBuilder buf = new StringBuilder();
 
 				int[] addedTokens = null;
 	            int addedTokenCount = 0;
@@ -2408,7 +2408,7 @@ public class DiagnoseParser implements ParserBasicInformation, TerminalTokens, C
 				// error start is on the last token start
 				errorStart = this.lexStream.start(rightToken);
 
-	            StringBuffer buf = new StringBuffer();
+	            StringBuilder buf = new StringBuilder();
 
 	            int[] addedTokens = null;
 	            int addedTokenCount = 0;
@@ -2551,7 +2551,7 @@ public class DiagnoseParser implements ParserBasicInformation, TerminalTokens, C
 
 	@Override
 	public String toString() {
-		StringBuffer res = new StringBuffer();
+		StringBuilder res = new StringBuilder();
 
 		res.append(this.lexStream.toString());
 
@@ -2561,11 +2561,11 @@ public class DiagnoseParser implements ParserBasicInformation, TerminalTokens, C
 	@Override
 	public boolean atConflictScenario(int token) {
 		/* There is too much voodoo that goes on here in DiagnoseParser (multiple machines, lexer stream reset etc.)
-		   So we take a simple minded view that we will always ask for disambiguation, except there is one scenario 
+		   So we take a simple minded view that we will always ask for disambiguation, except there is one scenario
 		   that needs special handling, we let the lexer stream deal with that: In X<String>.Y<Integer>:: the second
 		   '<' should not be tagged for disambiguation. If a synthetic token gets injected there, there will be syntax
 		   error. See that this is not a problem for the regular/normal parser.
-		*/ 
+		*/
 		return (token == TokenNameLPAREN || token == TokenNameAT || (token == TokenNameLESS && !this.lexStream.awaitingColonColon()));
 	}
 
@@ -2573,5 +2573,10 @@ public class DiagnoseParser implements ParserBasicInformation, TerminalTokens, C
 	public boolean isParsingModuleDeclaration() {
 		//
 		return this.parser.isParsingModuleDeclaration();
+	}
+
+	@Override
+	public boolean isParsingJava14() {
+		return this.parser.isParsingJava14();
 	}
 }

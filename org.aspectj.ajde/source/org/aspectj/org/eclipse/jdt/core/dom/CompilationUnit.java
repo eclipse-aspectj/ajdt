@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -40,12 +40,12 @@ import org.eclipse.text.edits.TextEdit;
  * CompilationUnit:
  *     OrdinaryCompilationUnit
  *     ModularCompilationUnit
- *     
+ *
  * OrdinaryCompilationUnit:
  *     [ PackageDeclaration ]
  *         { ImportDeclaration }
  *         { TypeDeclaration | EnumDeclaration | AnnotationTypeDeclaration | <b>;</b> }
- * 
+ *
  * ModularCompilationUnit:
  *     {ImportDeclaration}
  *         ModuleDeclaration
@@ -349,6 +349,7 @@ public class CompilationUnit extends ASTNode {
      * <li>member value pair binding - an <code>MemberValuePair</code>,
      *      or <code>null</code> if it represents a default value or a single member value</li>
 	 * </ul>
+	 * <p>
      * For parameterized or raw type bindings, the declaring node is
      * that of the corresponding generic type. And for parameterized or raw
      * method bindings, the declaring node is that of the corresponding
@@ -407,7 +408,6 @@ public class CompilationUnit extends ASTNode {
      * that of the corresponding generic type. And for parameterized or raw
      * method bindings, the declaring node is that of the corresponding
      * generic method.
-	 * </p>
 	 *
 	 * @param key the binding key, or <code>null</code>
 	 * @return the corresponding node where a binding with the given
@@ -672,18 +672,18 @@ public class CompilationUnit extends ASTNode {
 
 	/**
 	 * Internal method
-	 * 
+	 *
 	 * This method return internal data used to perform statements recovery.
-	 * 
+	 *
 	 * @return internal data used to perform statements recovery.
-	 * 
+	 *
 	 * @noreference This method is not intended to be referenced by clients.
 	 * @since 3.5
 	 */
 	public Object getStatementsRecoveryData() {
 		return this.statementsRecoveryData;
 	}
-	
+
 	/**
 	 * The Java type root (a {@link org.aspectj.org.eclipse.jdt.core.ICompilationUnit compilation unit} or a {@link org.aspectj.org.eclipse.jdt.core.IClassFile class file})
 	 * this compilation unit was created from, or <code>null</code> if it was not created from a Java type root.
@@ -1111,13 +1111,13 @@ public class CompilationUnit extends ASTNode {
 		}
 		this.problems = problems;
 	}
-	
+
 	/**
 	 * Internal method
-	 * 
+	 *
 	 * Sets internal data used to perform statements recovery.
 	 * @param data
-	 * 
+	 *
 	 * @since 3.5
 	 */
 	void setStatementsRecoveryData(Object data) {

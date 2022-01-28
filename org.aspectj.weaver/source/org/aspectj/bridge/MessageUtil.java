@@ -1,14 +1,14 @@
 /* *******************************************************************
- * Copyright (c) 1999-2001 Xerox Corporation, 
+ * Copyright (c) 1999-2001 Xerox Corporation,
  *               2002 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     Xerox/PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     Xerox/PARC     initial implementation
  * ******************************************************************/
 
 package org.aspectj.bridge;
@@ -135,7 +135,7 @@ public class MessageUtil {
 	/**
 	 * Create fail message. If message is empty but thrown is not, use thrown.getMessage() as the message. If message is empty and
 	 * thrown is null, return FAIL_NOMESSAGE.
-	 * 
+	 *
 	 * @return FAIL_NOMESSAGE if thrown is null and message is empty or IMessage FAIL with message and thrown otherwise
 	 */
 	public static IMessage fail(String message, Throwable thrown) {
@@ -231,7 +231,7 @@ public class MessageUtil {
 	// ------------------------ printing messages
 	/**
 	 * Print total counts message to the print stream, starting each on a new line
-	 * 
+	 *
 	 * @param messageHolder
 	 * @param out
 	 */
@@ -248,10 +248,10 @@ public class MessageUtil {
 
 	/**
 	 * Print all message to the print stream, starting each on a new line
-	 * 
+	 *
 	 * @param messageHolder
 	 * @param out
-	 * @see #print(PrintStream, String, IMessageHolder, IMessageRenderer, IMessageHandler)
+	 * @see #print(PrintStream, IMessageHolder, String, IMessageRenderer, IMessageHandler)
 	 */
 	public static void print(PrintStream out, IMessageHolder messageHolder) {
 		print(out, messageHolder, (String) null, (IMessageRenderer) null, (IMessageHandler) null);
@@ -259,10 +259,10 @@ public class MessageUtil {
 
 	/**
 	 * Print all message to the print stream, starting each on a new line, with a prefix.
-	 * 
-	 * @param messageHolder
+	 *
+	 * @param holder
 	 * @param out
-	 * @see #print(PrintStream, String, IMessageHolder, IMessageRenderer, IMessageHandler)
+	 * @see #print(PrintStream, IMessageHolder, String, IMessageRenderer, IMessageHandler)
 	 */
 	public static void print(PrintStream out, IMessageHolder holder, String prefix) {
 		print(out, holder, prefix, (IMessageRenderer) null, (IMessageHandler) null);
@@ -270,11 +270,11 @@ public class MessageUtil {
 
 	/**
 	 * Print all message to the print stream, starting each on a new line, with a prefix and using a renderer.
-	 * 
-	 * @param messageHolder
+	 *
+	 * @param holder
 	 * @param out
 	 * @param renderer IMessageRender to render result - use MESSAGE_LINE if null
-	 * @see #print(PrintStream, String, IMessageHolder, IMessageRenderer, IMessageHandler)
+	 * @see #print(PrintStream, IMessageHolder, String, IMessageRenderer, IMessageHandler)
 	 */
 	public static void print(PrintStream out, IMessageHolder holder, String prefix, IMessageRenderer renderer) {
 		print(out, holder, prefix, renderer, (IMessageHandler) null);
@@ -283,16 +283,17 @@ public class MessageUtil {
 	/**
 	 * Print all message to the print stream, starting each on a new line, with a prefix and using a renderer. The first line
 	 * renders a summary: {prefix}MessageHolder: {summary} Each message line has the following form:
-	 * 
+	 *
 	 * <pre>
 	 * {prefix}[{kind} {index}]: {rendering}
 	 * </pre>
-	 * 
+	 *
 	 * (where "{index}" (length 3) is the position within the set of like-kinded messages, ignoring selector omissions. Renderers
 	 * are free to render multi-line output.
-	 * 
+	 *
 	 * @param out the PrintStream sink - return silently if null
-	 * @param messageHolder the IMessageHolder with the messages to print
+	 * @param holder the IMessageHolder with the messages to print
+	 * @param prefix the prefix for each line
 	 * @param renderer IMessageRender to render result - use MESSAGE_ALL if null
 	 * @param selector IMessageHandler to select messages to render - if null, do all non-null
 	 */
@@ -351,12 +352,12 @@ public class MessageUtil {
 	/**
 	 * Select all messages in holder except those of the same kind (optionally or greater). If kind is null, then all messages are
 	 * rejected, so an empty list is returned.
-	 * 
+	 *
 	 * @return unmodifiable list of specified IMessage
 	 */
 	public static IMessage[] getMessagesExcept(IMessageHolder holder, final IMessage.Kind kind, final boolean orGreater) {
 		if ((null == holder) || (null == kind)) {
-			return new IMessage[0];
+			return IMessage.RA_IMessage;
 		}
 
 		IMessageHandler selector = new IMessageHandler() {
@@ -397,10 +398,10 @@ public class MessageUtil {
 
 	/**
 	 * Extract messages of type kind from the input list.
-	 * 
+	 *
 	 * @param messages if null, return EMPTY_LIST
 	 * @param kind if null, return messages
-	 * @see MessageHandler#getMessages(Kind)
+	 * @see MessageHandler#getMessages(Kind, boolean)
 	 */
 	public static List<IMessage> getMessages(List<IMessage> messages, IMessage.Kind kind) {
 		if (null == messages) {
@@ -409,7 +410,7 @@ public class MessageUtil {
 		if (null == kind) {
 			return messages;
 		}
-		ArrayList<IMessage> result = new ArrayList<IMessage>();
+		List<IMessage> result = new ArrayList<>();
 		for (IMessage message : messages) {
 			if (kind == message.getKind()) {
 				result.add(message);
@@ -423,7 +424,7 @@ public class MessageUtil {
 
 	/**
 	 * Map to the kind of messages associated with this string key.
-	 * 
+	 *
 	 * @param kind the String representing the kind of message (IMessage.Kind.toString())
 	 * @return Kind the associated IMessage.Kind, or null if not found
 	 */
@@ -463,7 +464,7 @@ public class MessageUtil {
 
 	/**
 	 * Run visitor over a collection of messages, optionally accumulating those accepted by the visitor
-	 * 
+	 *
 	 * @param messages if null or empty, return IMessage.RA_IMessage
 	 * @param visitor run visitor.handleMessage(message) on each message - if null and messages not empty, IllegalArgumentException
 	 * @param accumulate if true, then return accepted IMessage[]
@@ -478,7 +479,7 @@ public class MessageUtil {
 			return IMessage.RA_IMessage;
 		}
 		LangUtil.throwIaxIfNull(visitor, "visitor");
-		ArrayList<IMessage> result = (accumulate ? new ArrayList<IMessage>() : null);
+		ArrayList<IMessage> result = (accumulate ? new ArrayList<>() : null);
 		for (IMessage m : messages) {
 			if (visitor.handleMessage(m)) {
 				if (accumulate) {
@@ -497,7 +498,7 @@ public class MessageUtil {
 
 	/**
 	 * Make an IMessageHandler that handles IMessage if they have the right kind (or greater) and contain some infix String.
-	 * 
+	 *
 	 * @param kind the IMessage.Kind required of the message
 	 * @param orGreater if true, also accept messages with greater kinds, as defined by IMessage.Kind.COMPARATOR
 	 * @param infix the String text to require in the message - may be null or empty to accept any message with the specified kind.
@@ -587,7 +588,7 @@ public class MessageUtil {
 				return true;
 			}
 			String text = message.getMessage();
-			return (text.indexOf(infix) != -1);
+			return (text.contains(infix));
 		}
 
 		public void ignore(Kind kind) {
@@ -596,7 +597,7 @@ public class MessageUtil {
 
 	// ------------------ components to render messages
 	/** parameterize rendering behavior for messages */
-	public static interface IMessageRenderer {
+	public interface IMessageRenderer {
 		String renderToString(IMessage message);
 	}
 
@@ -778,7 +779,7 @@ public class MessageUtil {
 
 	/**
 	 * This renders IMessage as String, ignoring empty elements and eliding any thrown stack traces.
-	 * 
+	 *
 	 * @return "((IMessage) null)" if null or String rendering otherwise, including everything (esp. throwable stack trace)
 	 * @see renderSourceLocation(ISourceLocation loc)
 	 */
@@ -788,7 +789,7 @@ public class MessageUtil {
 
 	/**
 	 * This renders IMessage as String, ignoring empty elements and eliding any thrown.
-	 * 
+	 *
 	 * @return "((IMessage) null)" if null or String rendering otherwise, including everything (esp. throwable stack trace)
 	 * @see renderSourceLocation(ISourceLocation loc)
 	 */
@@ -838,19 +839,19 @@ public class MessageUtil {
 	/**
 	 * Render ISourceLocation to String, ignoring empty elements (null or ISourceLocation.NO_FILE or ISourceLocation.NO_COLUMN
 	 * (though implementations may return 0 from getColumn() when passed NO_COLUMN as input)).
-	 * 
+	 *
 	 * @return "((ISourceLocation) null)" if null or String rendering
-	 * 
+	 *
 	 *         <pre>
 	 * {file:}line{:column}
 	 * </pre>
-	 * 
+	 *
 	 */
 	public static String renderSourceLocation(ISourceLocation loc) {
 		if (null == loc) {
 			return "((ISourceLocation) null)";
 		}
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 
 		File sourceFile = loc.getSourceFile();
 		if (sourceFile != ISourceLocation.NO_FILE) {
@@ -872,7 +873,7 @@ public class MessageUtil {
 	 * Render message in a line. IMessage.Kind is always printed, then any unqualified exception class, then the remainder of text
 	 * and location according to their relative scale, all to fit in max characters or less. This does not render thrown except for
 	 * the unqualified class name
-	 * 
+	 *
 	 * @param max the number of characters - forced to 32..10000
 	 * @param textScale relative proportion to spend on message and/or exception message, relative to source location - if 0,
 	 *        message is suppressed
@@ -900,7 +901,7 @@ public class MessageUtil {
 		Throwable thrown = message.getThrown();
 		ISourceLocation sl = message.getSourceLocation();
 		IMessage.Kind kind = message.getKind();
-		StringBuffer result = new StringBuffer();
+		StringBuilder result = new StringBuilder();
 		result.append(kind.toString());
 		result.append(": ");
 		if (null != thrown) {
@@ -987,7 +988,7 @@ public class MessageUtil {
 		if (0 == holder.numMessages(null, false)) {
 			return "(0 messages)";
 		}
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		for (IMessage.Kind kind : IMessage.KINDS) {
 			int num = holder.numMessages(kind, false);
 			if (0 < num) {
@@ -999,7 +1000,7 @@ public class MessageUtil {
 
 	/**
 	 * Factory for handler adapted to PrintStream XXX weak - only handles println(String)
-	 * 
+	 *
 	 * @param handler the IMessageHandler sink for the messages generated
 	 * @param kind the IMessage.Kind of message to create
 	 * @param overage the OuputStream for text not captured by the handler (if null, System.out used)
@@ -1037,9 +1038,9 @@ public class MessageUtil {
 
 	/**
 	 * Handle all messages in the second handler using the first
-	 * 
-	 * @param handler the IMessageHandler sink for all messages in source
-	 * @param holder the IMessageHolder source for all messages to handle
+	 *
+	 * @param sink the IMessageHandler sink for all messages in source
+	 * @param source the IMessageHolder source for all messages to handle
 	 * @param fastFail if true, stop on first failure
 	 * @return false if any sink.handleMessage(..) failed
 	 */
@@ -1049,9 +1050,9 @@ public class MessageUtil {
 
 	/**
 	 * Handle messages in the second handler using the first
-	 * 
-	 * @param handler the IMessageHandler sink for all messages in source
-	 * @param holder the IMessageHolder source for all messages to handle
+	 *
+	 * @param sink the IMessageHandler sink for all messages in source
+	 * @param source the IMessageHolder source for all messages to handle
 	 * @param kind the IMessage.Kind to select, if not null
 	 * @param orGreater if true, also accept greater kinds
 	 * @param fastFail if true, stop on first failure
@@ -1067,9 +1068,9 @@ public class MessageUtil {
 	/**
 	 * Handle messages in the second handler using the first if they are NOT of this kind (optionally, or greater). If you pass null
 	 * as the kind, then all messages are ignored and this returns true.
-	 * 
-	 * @param handler the IMessageHandler sink for all messages in source
-	 * @param holder the IMessageHolder source for all messages to handle
+	 *
+	 * @param sink the IMessageHandler sink for all messages in source
+	 * @param source the IMessageHolder source for all messages to handle
 	 * @param kind the IMessage.Kind to reject, if not null
 	 * @param orGreater if true, also reject greater kinds
 	 * @param fastFail if true, stop on first failure
@@ -1088,8 +1089,8 @@ public class MessageUtil {
 
 	/**
 	 * Handle messages in the sink.
-	 * 
-	 * @param handler the IMessageHandler sink for all messages in source
+	 *
+	 * @param sink the IMessageHandler sink for all messages in source
 	 * @param sources the IMessage[] messages to handle
 	 * @param fastFail if true, stop on first failure
 	 * @return false if any sink.handleMessage(..) failed
@@ -1101,8 +1102,8 @@ public class MessageUtil {
 			return true;
 		}
 		boolean result = true;
-		for (int i = 0; i < sources.length; i++) {
-			if (!sink.handleMessage(sources[i])) {
+		for (IMessage source : sources) {
+			if (!sink.handleMessage(source)) {
 				if (fastFail) {
 					return false;
 				}

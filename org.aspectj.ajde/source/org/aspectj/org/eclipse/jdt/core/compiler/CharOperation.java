@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -7,7 +7,7 @@
  * https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Luiz-Otavio Zorzella <zorzella at gmail dot com> - Improve CamelCase algorithm
@@ -56,6 +56,8 @@ public final class CharOperation {
 	 * @since 3.14
 	 */
 	public static final char[] COMMA_SEPARATOR = new char[] {','};
+
+	private static final int[] EMPTY_REGIONS = new int[0];
 
 /**
  * Answers a new array with appending the suffix character at the end of the array.
@@ -296,8 +298,8 @@ public static final char[][] arrayConcat(char[][] first, char[][] second) {
  * For instance, 'HM' , 'HaMa' and  'HMap' patterns will match 'HashMap',
  * 'HatMapper' <b>and also</b> 'HashMapEntry'.
  * <p>
- * <pre>
- * Examples:<ol>
+ * Examples:
+ * <ol>
  * <li> pattern = "NPE".toCharArray()
  * name = "NullPointerException".toCharArray()
  * result => true</li>
@@ -319,7 +321,7 @@ public static final char[][] arrayConcat(char[][] first, char[][] second) {
  * <li> pattern = "HM".toCharArray()
  * name = "HashMapEntry".toCharArray()
  * result => true</li>
- * </ol></pre>
+ * </ol>
  *
  * @param pattern the given pattern
  * @param name the given name
@@ -366,7 +368,6 @@ public static final boolean camelCaseMatch(char[] pattern, char[] name) {
  * For instance, 'HM' , 'HaMa' and  'HMap' patterns will match 'HashMap' and
  * 'HatMapper' <b>but not</b> 'HashMapEntry'.
  * <p>
- * <pre>
  * Examples:<ol>
  * <li> pattern = "NPE".toCharArray()
  * name = "NullPointerException".toCharArray()
@@ -389,7 +390,7 @@ public static final boolean camelCaseMatch(char[] pattern, char[] name) {
  * <li> pattern = "HM".toCharArray()
  * name = "HashMapEntry".toCharArray()
  * result => (samePartCount == false)</li>
- * </ol></pre>
+ * </ol>
  *
  * @param pattern the given pattern
  * @param name the given name
@@ -550,7 +551,6 @@ public static final boolean camelCaseMatch(char[] pattern, int patternStart, int
  * For instance, 'HM' , 'HaMa' and  'HMap' patterns will match 'HashMap' and
  * 'HatMapper' <b>but not</b> 'HashMapEntry'.
  * <p>
- * <pre>
  * Examples:
  * <ol>
  * <li> pattern = "NPE".toCharArray()
@@ -603,7 +603,6 @@ public static final boolean camelCaseMatch(char[] pattern, int patternStart, int
  * nameEnd = 12
  * result => (samePartCount == false)</li>
  * </ol>
- * </pre>
  *
  * @param pattern the given pattern
  * @param patternStart the start index of the pattern, inclusive
@@ -748,6 +747,71 @@ public static final boolean camelCaseMatch(char[] pattern, int patternStart, int
 
 /**
  * Answers true if the characters of the pattern are contained in the
+ * name as a subword, in a case-insensitive way.
+ *
+ * @param pattern the given pattern
+ * @param name the given name
+ * @return true if the pattern matches the given name, false otherwise
+ * @since 3.21
+ */
+public static final boolean subWordMatch(char[] pattern, char[] name) {
+	if (name == null)
+		return false; // null name cannot match
+	if (pattern == null)
+		return true; // null pattern is equivalent to '*'
+
+	int[] matchingRegions = getSubWordMatchingRegions(new String(pattern), new String(name));
+	return matchingRegions != null;
+}
+
+/**
+ * Answers all the regions in a given name matching a subword pattern.
+ * <p>
+ * Each of these regions is made of its starting index and its length in the given
+ * name. They are all concatenated in a single array of <code>int</code>
+ * which therefore always has an even length.
+ * <p>
+ * Note that each region is disjointed from the following one.<br>
+ * E.g. if the regions are <code>{ start1, length1, start2, length2 }</code>,
+ * then <code>start1+length1</code> will always be smaller than
+ * <code>start2</code>.
+ * <p>
+ * Examples:
+ * <ol>
+ * <li><pre>
+ *    pattern = "linkedmap"
+ *    name = LinkedHashMap
+ *    result:  { 0, 6, 10, 3 }
+ * </pre></li>
+ * </ol>
+ *
+ * @see CharOperation#subWordMatch(char[], char[])
+ * 	for more details on the subword behavior
+ *
+ * @param pattern the given pattern
+ * @param name the given name
+ * @return an array of <code>int</code> having two slots per returned
+ * 	regions (first one is the starting index of the region and the second
+ * 	one the length of the region).<br>
+ * 	Note that it may be <code>null</code> if the given name does not match
+ * 	the pattern
+ * @since 3.21
+ */
+public static final int[] getSubWordMatchingRegions(String pattern, String name) {
+
+	if (name == null)
+		return null; // null name cannot match
+	if (pattern == null) {
+		// null pattern cannot match any region
+		// see bug https://bugs.eclipse.org/bugs/show_bug.cgi?id=264816
+		return EMPTY_REGIONS;
+	}
+
+	return new SubwordMatcher(name).getMatchingRegions(pattern);
+}
+
+/**
+ * Answers true if the characters of the pattern are contained in the
  * name as a substring, in a case-insensitive way.
  *
  * @param pattern the given pattern
@@ -868,7 +932,7 @@ public static String charToString(char[] charArray) {
 /**
  * Converts the given list of strings to an array of equal size,
  * containing the individual strings converted to char[] each.
- * 
+ *
  * @param stringList
  * @return an array of char[], representing the elements in the input list, or {@code null} if the list was {@code null}.
  * @since 3.14
@@ -961,7 +1025,7 @@ public static final int compareTo(char[] array1, char[] array2) {
  * @param array2 the second given array
  * @param start the starting position to compare (inclusive)
  * @param end the ending position to compare (exclusive)
- * 
+ *
  * @return the returned value of the comparison between array1 and array2
  * @throws NullPointerException if one of the arrays is null
  * @since 3.7.1
@@ -1026,7 +1090,6 @@ public static final int compareTo(char[] array1, char[] array2, int start, int e
  * </pre>
  * </li>
  * </ol>
- * </p>
  *
  * @param array the given array
  * @param prefix the given prefix
@@ -1414,7 +1477,7 @@ public static final char[] concat(
  *    => result = { ' a' , '/', 'b' }
  * </pre>
  * </li>
- *  * <li><pre>
+ * <li><pre>
  *    first = { ' a' }
  *    second = {  }
  *    separator = '/'
@@ -1754,7 +1817,7 @@ public static final char[] concatWith(char[][] array, char separator) {
 }
 
 /**
- * Answers the concatenation of the given array parts using the given separator between each part 
+ * Answers the concatenation of the given array parts using the given separator between each part
  * irrespective of whether an element is a zero length array or not.
  * <br>
  * <br>
@@ -2143,17 +2206,7 @@ public static final boolean equals(
  * @return true if the two arrays are identical character by character, otherwise false
  */
 public static final boolean equals(char[] first, char[] second) {
-	if (first == second)
-		return true;
-	if (first == null || second == null)
-		return false;
-	if (first.length != second.length)
-		return false;
-
-	for (int i = first.length; --i >= 0;)
-		if (first[i] != second[i])
-			return false;
-	return true;
+	return Arrays.equals(first, second);
 }
 
 /**
@@ -3018,7 +3071,7 @@ public static final boolean match(
 		if (iPattern == patternEnd) {
 			if (iName == nameEnd) return true; // the chars match
 			return false; // pattern has ended but not the name, no match
-		} 
+		}
 		if ((patternChar = pattern[iPattern]) == '*') {
 			break;
 		}
@@ -4031,13 +4084,13 @@ public static final char[][] splitOnWithEnclosures(
 		int enclCount = 0;
 		for (int i = start; i < end; i++) {
 			if (array[i] == openEncl)
-				enclCount++; 
+				enclCount++;
 			else if (array[i] == divider)
 				wordCount++;
 		}
 		if (enclCount == 0)
 			return CharOperation.splitOn(divider, array, start, end);
-		
+
 		int nesting = 0;
 		if (openEncl == divider || closeEncl == divider) // divider should be distinct
 			return CharOperation.NO_CHAR_CHAR;
@@ -4050,7 +4103,7 @@ public static final char[][] splitOnWithEnclosures(
 				continue;
 			}
 			if (array[i] == closeEncl) {
-				if (nesting > 0) 
+				if (nesting > 0)
 					--nesting;
 				continue;
 			}
@@ -4237,7 +4290,7 @@ final static public char[] toLowerCase(char[] chars) {
  *
  * @param chars the chars to convert
  * @return the result of a char[] conversion to uppercase
- * 
+ *
  * @since 3.5
  */
 final static public char[] toUpperCase(char[] chars) {

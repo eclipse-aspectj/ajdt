@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -12,18 +12,25 @@
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann  - Contribution for bug 295551
  *     Jesper S Moller   - Contributions for
- *							  Bug 405066 - [1.8][compiler][codegen] Implement code generation infrastructure for JSR335             
+ *							  Bug 405066 - [1.8][compiler][codegen] Implement code generation infrastructure for JSR335
+ *     Frits Jalvingh    - contributions for bug 533830.
+ *     Red Hat Inc.	     - add module-info Javadoc support
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.CategorizedProblem;
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
+import org.aspectj.org.eclipse.jdt.core.compiler.IProblem;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ClassFile;
 import org.aspectj.org.eclipse.jdt.internal.compiler.CompilationResult;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.LambdaExpression.LocalTypeSubstitutor;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
@@ -34,16 +41,17 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.CompilationUnitScope
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ImportBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LocalTypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ModuleBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Scope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeIds;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Substitution.NullSubstitution;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.NLSTag;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.AbortCompilationUnit;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.AbortMethod;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.AbortType;
-import org.aspectj.org.eclipse.jdt.internal.compiler.problem.DefaultProblem;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemSeverities;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.HashSetOfInt;
@@ -73,8 +81,7 @@ public class CompilationUnitDeclaration extends ASTNode implements ProblemSeveri
 	public ProblemReporter problemReporter;
 	public CompilationResult compilationResult;
 
-	public LocalTypeBinding[] localTypes;
-	public int localTypeCount = 0;
+	public Map<Integer,LocalTypeBinding> localTypes = Collections.emptyMap();
 
 	public boolean isPropagatingInnerClassEmulation;
 
@@ -149,10 +156,9 @@ public void cleanUp() {
 		for (int i = 0, max = this.types.length; i < max; i++) {
 			cleanUp(this.types[i]);
 		}
-		for (int i = 0, max = this.localTypeCount; i < max; i++) {
-		    LocalTypeBinding localType = this.localTypes[i];
+		for (LocalTypeBinding localType : this.localTypes.values()) {
 			// null out the type's scope backpointers
-			localType.scope = null; // local members are already in the list
+			localType.cleanUp(); // local members are already in the list
 			localType.enclosingCase = null;
 		}
 	}
@@ -192,7 +198,7 @@ private void cleanUp(TypeDeclaration type) {
 		this.compilationResult.hasAnnotations = true;
 	if (type.binding != null) {
 		// null out the type's scope backpointers
-		type.binding.scope = null;
+		type.binding.cleanUp();
 	}
 }
 
@@ -241,11 +247,6 @@ public void finalizeProblems() {
 	int problemCount = this.compilationResult.problemCount;
 	CategorizedProblem[] problems = this.compilationResult.problems;
 	if (this.suppressWarningsCount == 0) {
-		 for (int iProblem = 0, length = problemCount; iProblem < length; iProblem++) {
-			 if (problems[iProblem] instanceof DefaultProblem) {
-				 ((DefaultProblem)problems[iProblem]).reportError();
-			 }
-		 }
 		return;
 	}
 	int removed = 0;
@@ -276,9 +277,6 @@ public void finalizeProblems() {
 			if (start < startSuppress) continue nextSuppress;
 			if (end > endSuppress) continue nextSuppress;
 			if (!this.suppressWarningIrritants[iSuppress].isSet(irritant)) {
-				if (problem instanceof DefaultProblem) {
-					((DefaultProblem) problem).reportError();
-				}
 				continue nextSuppress;
 			}
 			// discard suppressed warning
@@ -349,7 +347,7 @@ public void finalizeProblems() {
 														String key = CompilerOptions.optionKeyFromIrritant(id);
 														this.scope.problemReporter().problemNotAnalysed(inits[iToken], key);
 													} else {
-														this.scope.problemReporter().unusedWarningToken(inits[iToken]);														
+														this.scope.problemReporter().unusedWarningToken(inits[iToken]);
 													}
 												}
 											}
@@ -517,8 +515,7 @@ public StringBuffer print(int indent, StringBuffer output) {
  */
 public void propagateInnerEmulationForAllLocalTypes() {
 	this.isPropagatingInnerClassEmulation = true;
-	for (int i = 0, max = this.localTypeCount; i < max; i++) {
-		LocalTypeBinding localType = this.localTypes[i];
+	for (LocalTypeBinding localType : this.localTypes.values()) {
 		// only propagate for reachable local types
 		if ((localType.scope.referenceType().bits & IsReachable) != 0) {
 			localType.updateInnerEmulationDependents();
@@ -561,7 +558,7 @@ private boolean isLambdaExpressionCopyContext(ReferenceContext context) {
 	if (context instanceof LambdaExpression && context != ((LambdaExpression) context).original())
 		return true; // Do not record from copies. See https://bugs.eclipse.org/bugs/show_bug.cgi?id=441929
 	Scope cScope = context instanceof AbstractMethodDeclaration ? ((AbstractMethodDeclaration) context).scope :
-		context instanceof TypeDeclaration ? ((TypeDeclaration) context).scope : 
+		context instanceof TypeDeclaration ? ((TypeDeclaration) context).scope :
 		context instanceof LambdaExpression ? ((LambdaExpression) context).scope :
 			null;
 	return cScope != null ? isLambdaExpressionCopyContext(cScope.parent.referenceContext()) : false;
@@ -569,7 +566,7 @@ private boolean isLambdaExpressionCopyContext(ReferenceContext context) {
 public void recordSuppressWarnings(IrritantSet irritants, Annotation annotation, int scopeStart, int scopeEnd, ReferenceContext context) {
 	if (isLambdaExpressionCopyContext(context))
 		return; // Do not record from copies. See https://bugs.eclipse.org/bugs/show_bug.cgi?id=441929
-		
+
 	if (this.suppressWarningIrritants == null) {
 		this.suppressWarningIrritants = new IrritantSet[3];
 		this.suppressWarningAnnotations = new Annotation[3];
@@ -598,16 +595,18 @@ public void recordSuppressWarnings(IrritantSet irritants, Annotation annotation,
  * emulation later on.
  */
 public void record(LocalTypeBinding localType) {
-	if (this.localTypeCount == 0) {
-		this.localTypes = new LocalTypeBinding[5];
-	} else if (this.localTypeCount == this.localTypes.length) {
-		System.arraycopy(this.localTypes, 0, (this.localTypes = new LocalTypeBinding[this.localTypeCount * 2]), 0, this.localTypeCount);
-	}
-	this.localTypes[this.localTypeCount++] = localType;
+	if (this.localTypes == Collections.EMPTY_MAP)
+		this.localTypes = new HashMap<>();
+	this.localTypes.put(localType.sourceStart, localType);
+}
+public void updateLocalTypesInMethod(MethodBinding methodBinding) {
+	if (this.localTypes == Collections.EMPTY_MAP)
+		return;
+	LambdaExpression.updateLocalTypesInMethod(methodBinding, new LocalTypeSubstitutor(this.localTypes, methodBinding), new NullSubstitution(this.scope.environment()));
 }
 
 /*
- * Keep track of all lambda/method reference expressions, so as to be able to look it up later without 
+ * Keep track of all lambda/method reference expressions, so as to be able to look it up later without
  * having to traverse AST. Return the "ordinal" returned by the enclosing type.
  */
 public int record(FunctionalExpression expression) {
@@ -623,6 +622,7 @@ public int record(FunctionalExpression expression) {
 public void resolve() {
 	int startingTypeIndex = 0;
 	boolean isPackageInfo = isPackageInfo();
+	boolean isModuleInfo = isModuleInfo();
 	if (this.types != null && isPackageInfo) {
 		// resolve synthetic type declaration
 		final TypeDeclaration syntheticTypeDeclaration = this.types[0];
@@ -641,6 +641,17 @@ public void resolve() {
 			this.javadoc.resolve(syntheticTypeDeclaration.staticInitializerScope);
 		}
 		startingTypeIndex = 1;
+	} else if (this.moduleDeclaration != null && isModuleInfo) {
+		if (this.javadoc != null) {
+			this.javadoc.resolve(this.moduleDeclaration.scope);
+		} else if (this.moduleDeclaration.binding != null) {
+			ProblemReporter reporter = this.scope.problemReporter();
+			int severity = reporter.computeSeverity(IProblem.JavadocMissing);
+			if (severity != ProblemSeverities.Ignore) {
+				reporter.javadocModuleMissing(this.moduleDeclaration.declarationSourceStart, this.moduleDeclaration.bodyStart,
+						severity);
+			}
+		}
 	} else {
 		// resolve compilation unit javadoc package if any
 		if (this.javadoc != null) {

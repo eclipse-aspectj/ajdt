@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -83,7 +83,7 @@ public void generateCode(BlockScope currentScope, CodeStream codeStream, boolean
 			this.receiver.generateCode(currentScope, codeStream, !isStatic);
 			if ((this.bits & NeedReceiverGenericCast) != 0) {
 				codeStream.checkcast(this.actualReceiverType);
-			}			
+			}
 			codeStream.recordPositionsFrom(pc, this.sourceStart);
 		}
 		// generate arguments
@@ -113,7 +113,7 @@ public void generateCode(BlockScope currentScope, CodeStream codeStream, boolean
 			this.receiver.generateCode(currentScope, codeStream, !isStatic);
 			if ((this.bits & NeedReceiverGenericCast) != 0) {
 				codeStream.checkcast(this.actualReceiverType);
-			}			
+			}
 			codeStream.recordPositionsFrom(pc, this.sourceStart);
 		}
 		if (isStatic) {
@@ -200,7 +200,7 @@ public void manageSyntheticAccessIfNecessary(BlockScope currentScope, FlowInfo f
 public TypeBinding resolveType(BlockScope scope) {
 	// Answer the signature return type
 	// Base type promotion
-	
+
 	if (this.constant != Constant.NotAConstant) {
 		this.constant = Constant.NotAConstant;
 		boolean receiverCast = false;
@@ -262,7 +262,7 @@ public TypeBinding resolveType(BlockScope scope) {
 		}
 	}
 	findMethodBinding(scope);
-		
+
 	if (!this.binding.isValidBinding()) {
 		if (this.binding instanceof ProblemMethodBinding
 			&& ((ProblemMethodBinding) this.binding).problemId() == ProblemReasons.NotVisible) {
@@ -323,7 +323,7 @@ public TypeBinding resolveType(BlockScope scope) {
 			this.receiver.computeConversion(scope, this.actualReceiverType, this.actualReceiverType);
 			if (TypeBinding.notEquals(this.actualReceiverType, oldReceiverType) && TypeBinding.notEquals(this.receiver.postConversionType(scope), this.actualReceiverType)) { // record need for explicit cast at codegen since receiver could not handle it
 				this.bits |= NeedReceiverGenericCast;
-			}			
+			}
 		}
 	}
 	if (checkInvocationArguments(scope, this.receiver, this.actualReceiverType, this.binding, this.arguments, this.argumentTypes, this.argsContainCast, this)) {
@@ -337,7 +337,7 @@ public TypeBinding resolveType(BlockScope scope) {
 		}
 		// abstract private methods cannot occur nor abstract static............
 	}
-	if (isMethodUseDeprecated(this.binding, scope, true))
+	if (isMethodUseDeprecated(this.binding, scope, true, this))
 		scope.problemReporter().deprecatedMethod(this.binding, this);
 
 	// from 1.5 compliance on, array#clone() returns the array type (but binding still shows Object)
@@ -348,12 +348,12 @@ public TypeBinding resolveType(BlockScope scope) {
 		this.resolvedType = this.actualReceiverType;
 	} else {
 		TypeBinding returnType = this.binding.returnType;
-		
+
 		if (returnType != null) {
 			if ((this.bits & ASTNode.Unchecked) != 0 && this.genericTypeArguments == null) {
 				returnType = scope.environment().convertToRawType(returnType.erasure(), true);
 			}
-			returnType = returnType.capture(scope, this.sourceStart, this.sourceEnd);			
+			returnType = returnType.capture(scope, this.sourceStart, this.sourceEnd);
 		}
 		this.resolvedType = returnType;
 	}

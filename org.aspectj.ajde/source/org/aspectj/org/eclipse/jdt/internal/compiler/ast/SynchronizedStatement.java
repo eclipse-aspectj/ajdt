@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -59,11 +59,15 @@ public FlowInfo analyseCode(
 	this.synchroVariable.useFlag = LocalVariableBinding.USED;
 
 	// simple propagation to subnodes
+	FlowInfo expressionFlowInfo = this.expression.analyseCode(this.scope, flowContext, flowInfo);
+
+	this.expression.checkNPE(currentScope, flowContext, expressionFlowInfo, 1);
+
 	flowInfo =
 		this.block.analyseCode(
 			this.scope,
 			new InsideSubRoutineFlowContext(flowContext, this),
-			this.expression.analyseCode(this.scope, flowContext, flowInfo));
+			expressionFlowInfo);
 
 	this.mergedSynchronizedInitStateIndex =
 		currentScope.methodScope().recordInitializationStates(flowInfo);
@@ -109,7 +113,7 @@ public void generateCode(BlockScope currentScope, CodeStream codeStream) {
 			default :
 				codeStream.dup();
 				break;
-		}		
+		}
 		// only take the lock
 		codeStream.monitorenter();
 		codeStream.monitorexit();
@@ -197,6 +201,10 @@ public void resolve(BlockScope upperScope) {
 			case T_null :
 				this.scope.problemReporter().invalidNullToSynchronize(this.expression);
 				break;
+			default :
+				if (type.hasValueBasedTypeAnnotation()) {
+					this.scope.problemReporter().discouragedValueBasedTypeToSynchronize(this.expression, type);
+				}
 			}
 			//continue even on errors in order to have the TC done into the statements
 			this.synchroVariable = new LocalVariableBinding(SecretLocalDeclarationName, type, ClassFileConstants.AccDefault, false);
@@ -230,7 +238,18 @@ public boolean doesNotCompleteNormally() {
 	return this.block.doesNotCompleteNormally();
 }
 @Override
+
 public boolean completesByContinue() {
 	return this.block.completesByContinue();
+}
+
+@Override
+public boolean canCompleteNormally() {
+	return this.block.canCompleteNormally();
+}
+
+@Override
+public boolean continueCompletes() {
+	return this.block.continueCompletes();
 }
 }

@@ -67,7 +67,7 @@ public class RawTypeBinding extends ParameterizedTypeBinding {
 
 	@Override
 	public char[] computeUniqueKey(boolean isLeaf) {
-	    StringBuffer sig = new StringBuffer(10);
+	    StringBuilder sig = new StringBuilder(10);
 		if (isMemberType() && (enclosingType().isParameterizedType() || enclosingType().isRawType())) {
 			if (!hasEnclosingInstanceContext()) {
 			    char[] typeSig = enclosingType().signature(); // don't consider generics from enclosing of static member
@@ -92,7 +92,7 @@ public class RawTypeBinding extends ParameterizedTypeBinding {
 		sig.getChars(0, sigLength, uniqueKey, 0);
 		return uniqueKey;
    	}
-	
+
 	@Override
 	public TypeBinding clone(TypeBinding outerType) {
 		return new RawTypeBinding(this.actualType(), (ReferenceBinding) outerType, this.environment);
@@ -135,13 +135,13 @@ public class RawTypeBinding extends ParameterizedTypeBinding {
 	public String debugName() {
 		if (this.hasTypeAnnotations())
 			return annotatedDebugName();
-		StringBuffer nameBuffer = new StringBuffer(10);
+		StringBuilder nameBuffer = new StringBuilder(10);
 		nameBuffer.append(actualType().sourceName()).append("#RAW"); //$NON-NLS-1$
 	    return nameBuffer.toString();
 	}
 	@Override
 	public String annotatedDebugName() {
-		StringBuffer buffer = new StringBuffer(super.annotatedDebugName());
+		StringBuilder buffer = new StringBuilder(super.annotatedDebugName());
 		buffer.append("#RAW"); //$NON-NLS-1$
 		return buffer.toString();
 	}
@@ -155,7 +155,7 @@ public class RawTypeBinding extends ParameterizedTypeBinding {
 			if ((this.modifiers & ExtraCompilerModifiers.AccGenericSignature) == 0) {
 		    	this.genericTypeSignature = genericType().signature();
 			} else {
-			    StringBuffer sig = new StringBuffer(10);
+			    StringBuilder sig = new StringBuilder(10);
 			    if (isMemberType() && hasEnclosingInstanceContext()) {
 			    	ReferenceBinding enclosing = enclosingType();
 					char[] typeSig = enclosing.genericTypeSignature();
@@ -239,17 +239,17 @@ public class RawTypeBinding extends ParameterizedTypeBinding {
 		}
 		this.arguments = typeArguments;
 	}
-		
+
 	@Override
 	public ParameterizedTypeBinding capture(Scope scope, int start, int end) {
 		return this;
 	}
-	
-	@Override 
+
+	@Override
 	public TypeBinding uncapture(Scope scope) {
 		return this;
 	}
-	
+
 	@Override
 	TypeBinding substituteInferenceVariable(InferenceVariable var, TypeBinding substituteType) {
 		// NEVER substitute the type arguments of a raw type
@@ -269,7 +269,7 @@ public class RawTypeBinding extends ParameterizedTypeBinding {
 		MethodBinding theAbstractMethod = genericType.getSingleAbstractMethod(scope, replaceWildcards);
 		if (theAbstractMethod == null || !theAbstractMethod.isValidBinding())
 			return this.singleAbstractMethod[index] = theAbstractMethod;
-		
+
 		ReferenceBinding declaringType = (ReferenceBinding) scope.environment().convertToRawType(genericType, true);
 		declaringType = (ReferenceBinding) declaringType.findSuperTypeOriginatingFrom(theAbstractMethod.declaringClass);
 		MethodBinding [] choices = declaringType.getMethods(theAbstractMethod.selector);
@@ -312,7 +312,7 @@ public class RawTypeBinding extends ParameterizedTypeBinding {
 		}
 		return shortReadableName;
 	}
-	
+
 	@Override
 	void collectInferenceVariables(Set<InferenceVariable> variables) {
 		// nothing to collect for a raw type.
@@ -326,5 +326,12 @@ public class RawTypeBinding extends ParameterizedTypeBinding {
 	@Override
 	public ReferenceBinding downwardsProjection(Scope scope, TypeBinding[] mentionedTypeVariables) {
 		return this;
+	}
+
+	@Override
+	public ReferenceBinding enclosingType() {
+		// ParameterizedTypeBinding earlier always had a resolved enclosed type, but now it does on-demand resolving.
+		// Behaviour for RawTypeBinding should be unchanged.
+	    return this.enclosingType;
 	}
 }

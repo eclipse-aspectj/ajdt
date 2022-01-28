@@ -1,6 +1,6 @@
 // AspectJ
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -8,7 +8,7 @@
  * https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann - Contribution for
@@ -27,6 +27,7 @@
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
+import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.BranchLabel;
@@ -42,6 +43,8 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BlockScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.CaptureBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ParameterizedTypeBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ProblemReasons;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ProblemReferenceBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TagBits;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
@@ -100,7 +103,7 @@ public class ForeachStatement extends Statement {
 		int initialComplaintLevel = (flowInfo.reachMode() & FlowInfo.UNREACHABLE) != 0 ? Statement.COMPLAINED_FAKE_REACHABLE : Statement.NOT_COMPLAINED;
 
 		// process the element variable and collection
-		flowInfo = this.elementVariable.analyseCode(this.scope, flowContext, flowInfo);		
+		flowInfo = this.elementVariable.analyseCode(this.scope, flowContext, flowInfo);
 		FlowInfo condInfo = this.collection.analyseCode(this.scope, flowContext, flowInfo.copy());
 		this.collection.checkNPE(currentScope, flowContext, condInfo.copy(), 1);
 		LocalVariableBinding elementVarBinding = this.elementVariable.binding;
@@ -132,6 +135,10 @@ public class ForeachStatement extends Statement {
 
 			if (this.action.complainIfUnreachable(actionInfo, this.scope, initialComplaintLevel, true) < Statement.COMPLAINED_UNREACHABLE) {
 				actionInfo = this.action.analyseCode(this.scope, loopingContext, actionInfo).unconditionalCopy();
+				FakedTrackingVariable.markForeachElementVar(this.elementVariable);
+				// action.analyseCode() missed the following check due to identical scopes of ForeachStatement and action:
+				FlowInfo actionNullInfo = condInfo.copy().addNullInfoFrom(actionInfo); // previously action did not see nullinfo from condInfo
+				this.scope.checkUnclosedCloseables(actionNullInfo, loopingContext, null, null);
 			}
 
 			// code generation can be optimized when no need to continue in the loop
@@ -148,6 +155,9 @@ public class ForeachStatement extends Statement {
 			}
 		} else {
 			exitBranch = condInfo.initsWhenFalse();
+			if (this.action instanceof Block && !this.action.isEmptyBlock()) {
+				this.scope.checkUnclosedCloseables(actionInfo, loopingContext, null, null);
+			}
 		}
 
 		// we need the variable to iterate the collection even if the
@@ -425,7 +435,7 @@ public class ForeachStatement extends Statement {
 
 	public static TypeBinding getCollectionElementType(BlockScope scope, TypeBinding collectionType) {
 		if (collectionType == null) return null;
-		
+
 		boolean isTargetJsr14 = scope.compilerOptions().targetJDK == ClassFileConstants.JDK1_4;
 		if (collectionType.isCapture()) {
 			TypeBinding upperBound = ((CaptureBinding)collectionType).firstBound;
@@ -488,6 +498,16 @@ public class ForeachStatement extends Statement {
 				elementType = collectionType;
 			} else {
 				elementType = this.elementVariable.patchType(elementType);
+			}
+			if (elementType instanceof ReferenceBinding) {
+				ReferenceBinding refBinding = (ReferenceBinding) elementType;
+				if (!elementType.canBeSeenBy(upperScope)) {
+					upperScope.problemReporter().invalidType(this.elementVariable,
+							new ProblemReferenceBinding(
+									CharOperation.splitOn('.', refBinding.shortReadableName()),
+									refBinding,
+									ProblemReasons.NotVisible));
+				}
 			}
 			// additional check deferred from LocalDeclaration.resolve():
 			if (this.elementVariable.binding != null && this.elementVariable.binding.isValidBinding()) {
@@ -672,4 +692,10 @@ public class ForeachStatement extends Statement {
 	public boolean doesNotCompleteNormally() {
 		return false; // may not be entered at all.
 	}
+
+	@Override
+	public boolean canCompleteNormally() {
+		return true;
+	}
+
 }

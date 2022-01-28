@@ -1,13 +1,13 @@
 /* *******************************************************************
  * Copyright (c) 2002 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     PARC     initial implementation
  * ******************************************************************/
 
 package org.aspectj.ajdt.internal.compiler.ast;
@@ -59,10 +59,10 @@ import org.aspectj.weaver.UnresolvedType;
 
 /**
  * An inter-type constructor declaration.
- * 
+ *
  * This will generate two implementation methods in the aspect, the main one for the body of the constructor, and an additional
  * <code>preMethod</code> for the code that runs before the super constructor is called.
- * 
+ *
  * @author Jim Hugunin
  */
 public class InterTypeConstructorDeclaration extends InterTypeDeclaration {
@@ -125,18 +125,18 @@ public class InterTypeConstructorDeclaration extends InterTypeDeclaration {
 
 	/**
 	 * true iff constructor has @SuppressAjWarnings or @SuppressAjWarnings("xyz,noExplicitConstructorCall,def,...")
-	 * 
+	 *
 	 * @return
 	 */
 	private boolean suppressingNoExplicitConstructorCall() {
 		if (this.annotations == null)
 			return false;
-		for (int i = 0; i < this.annotations.length; i++) {
-			if (new String(this.annotations[i].resolvedType.signature()).equals(SUPPRESSAJWARNINGS)) {
-				if (this.annotations[i] instanceof MarkerAnnotation) {
+		for (org.aspectj.org.eclipse.jdt.internal.compiler.ast.Annotation annotation : this.annotations) {
+			if (new String(annotation.resolvedType.signature()).equals(SUPPRESSAJWARNINGS)) {
+				if (annotation instanceof MarkerAnnotation) {
 					return true;
-				} else if (this.annotations[i] instanceof SingleMemberAnnotation) {
-					SingleMemberAnnotation sma = (SingleMemberAnnotation) this.annotations[i];
+				} else if (annotation instanceof SingleMemberAnnotation) {
+					SingleMemberAnnotation sma = (SingleMemberAnnotation) annotation;
 					if (sma.memberValue instanceof ArrayInitializer) {
 						ArrayInitializer memberValue = (ArrayInitializer) sma.memberValue;
 						for (int j = 0; j < memberValue.expressions.length; j++) {
@@ -192,7 +192,8 @@ public class InterTypeConstructorDeclaration extends InterTypeDeclaration {
 		}
 
 		InterTypeScope newParent = new InterTypeScope(scope, onTypeBinding);
-		pre.scope.parent = newParent;
+		// Use setter in order to also update member 'compilationUnitScope'
+		pre.scope.setParent(newParent);
 
 		pre.resolveStatements(); // newParent);
 

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -13,11 +13,13 @@
  *     Stephan Herrmann - Contribution for
  *								bug 331649 - [compiler][null] consider null annotations for fields
  *								Bug 400874 - [1.8][compiler] Inference infrastructure should evolve to meet JLS8 18.x (Part G of JSR335 spec)
- *								Bug 426996 - [1.8][inference] try to avoid method Expression.unresolve()? 
+ *								Bug 426996 - [1.8][inference] try to avoid method Expression.unresolve()?
  *     Jesper S Moller - Contributions for
  *							bug 382721 - [1.8][compiler] Effectively final variables needs special treatment
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
+
+import java.util.function.Predicate;
 
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.AbortMethod;
@@ -39,7 +41,7 @@ public NameReference() {
 	this.bits |= Binding.TYPE | Binding.VARIABLE; // restrictiveFlag
 }
 
-/** 
+/**
  * Use this method only when sure that the current reference is <strong>not</strong>
  * a chain of several fields (QualifiedNameReference with more than one field).
  * Otherwise use {@link #lastFieldBinding()}.
@@ -71,7 +73,7 @@ public boolean isSuperAccess() {
 @Override
 public boolean isTypeAccess() {
 	// null is acceptable when we are resolving the first part of a reference
-	return this.binding == null || this.binding instanceof ReferenceBinding;
+	return this.binding == null || (this.binding.kind() & Binding.TYPE) != 0;
 }
 
 @Override
@@ -102,16 +104,33 @@ public abstract String unboundReferenceErrorName();
 
 public abstract char[][] getName();
 
-/* Called during code generation to ensure that outer locals's effectively finality is guaranteed. 
+/* Called during code generation to ensure that outer locals's effectively finality is guaranteed.
    Aborts if constraints are violated. Due to various complexities, this check is not conveniently
    implementable in resolve/analyze phases.
+   Another quirk here is this method tells the clients whether the below condition is true
+     (this.bits & ASTNode.IsCapturedOuterLocal) != 0
 */
-public void checkEffectiveFinality(VariableBinding localBinding, Scope scope) {
+public boolean checkEffectiveFinality(VariableBinding localBinding, Scope scope) {
+	Predicate<VariableBinding> test = (local) -> {
+		return (!localBinding.isFinal() && !localBinding.isEffectivelyFinal());
+	};
 	if ((this.bits & ASTNode.IsCapturedOuterLocal) != 0) {
-		if (!localBinding.isFinal() && !localBinding.isEffectivelyFinal()) {
+		if (test.test(localBinding)) {
 			scope.problemReporter().cannotReferToNonEffectivelyFinalOuterLocal(localBinding, this);
 			throw new AbortMethod(scope.referenceCompilationUnit().compilationResult, null);
 		}
+		return true;
+	} else if ((this.bits & ASTNode.IsUsedInPatternGuard) != 0) {
+		if (test.test(localBinding)) {
+			scope.problemReporter().cannotReferToNonFinalLocalInGuard(localBinding, this);
+			throw new AbortMethod(scope.referenceCompilationUnit().compilationResult, null);
+		}
 	}
+	return false;
+}
+
+@Override
+public boolean isType() {
+	return (this.bits & Binding.TYPE) != 0;
 }
 }

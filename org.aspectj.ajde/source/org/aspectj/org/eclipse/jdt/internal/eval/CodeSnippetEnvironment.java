@@ -25,7 +25,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.env.NameEnvironmentAnswer;
  * An environment that wraps the client's name environment.
  * This wrapper always considers the wrapped environment then if the name is
  * not found, it search in the code snippet support. This includes the super class
- * org.aspectj.org.eclipse.jdt.internal.eval.target.CodeSnippet as well as the global variable classes.
+ * org.eclipse.jdt.internal.eval.target.CodeSnippet as well as the global variable classes.
  */
 public class CodeSnippetEnvironment implements INameEnvironment, EvaluationConstants {
 	INameEnvironment env;

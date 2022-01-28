@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -18,6 +18,7 @@ import java.util.Set;
 
 import org.aspectj.org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
+import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.*;
 
 public class ImportReference extends ASTNode {
@@ -52,12 +53,12 @@ public class ImportReference extends ASTNode {
 		return (this.modifiers & ClassFileConstants.AccStatic) != 0;
 	}
 
-	/**
-	 * @return char[][]
-	 */
 	public char[][] getImportName() {
-
 		return this.tokens;
+	}
+
+	public char[] getSimpleName() {
+		return this.tokens[this.tokens.length - 1];
 	}
 
 	public void checkPackageConflict(CompilationUnitScope scope) {
@@ -70,7 +71,11 @@ public class ImportReference extends ASTNode {
 					declaringMods.add(incarnation.enclosingModule);
 			}
 			if (!declaringMods.isEmpty()) {
-				scope.problemReporter().conflictingPackagesFromOtherModules(this, declaringMods);
+				CompilerOptions compilerOptions = scope.compilerOptions();
+				boolean inJdtDebugCompileMode = compilerOptions.enableJdtDebugCompileMode;
+				if (!inJdtDebugCompileMode) {
+					scope.problemReporter().conflictingPackagesFromOtherModules(this, declaringMods);
+				}
 			}
 		}
 	}

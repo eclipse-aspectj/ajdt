@@ -1,13 +1,13 @@
 /* *******************************************************************
  * Copyright (c) 2002 Contributors
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     PARC     initial implementation
  *     Andy Clement - June 2005 - separated out from ResolvedType
  * ******************************************************************/
 package org.aspectj.weaver;
@@ -42,7 +42,7 @@ public class ReferenceType extends ResolvedType {
 	 * swapped during incremental compilation, the delegate of the derivatives
 	 * is swapped also.
 	 */
-	private final List<WeakReference<ReferenceType>> derivativeTypes = new ArrayList<WeakReference<ReferenceType>>();
+	private final List<WeakReference<ReferenceType>> derivativeTypes = new ArrayList<>();
 
 	/**
 	 * For parameterized types (or the raw type) - this field points to the
@@ -62,7 +62,7 @@ public class ReferenceType extends ResolvedType {
 	ResolvedMember[] parameterizedMethods = null;
 	ResolvedMember[] parameterizedFields = null;
 	ResolvedMember[] parameterizedPointcuts = null;
-	WeakReference<ResolvedType[]> parameterizedInterfaces = new WeakReference<ResolvedType[]>(
+	WeakReference<ResolvedType[]> parameterizedInterfaces = new WeakReference<>(
 			null);
 	Collection<Declare> parameterizedDeclares = null;
 	// Collection parameterizedTypeMungers = null;
@@ -116,13 +116,13 @@ public class ReferenceType extends ResolvedType {
 		// checkDuplicates(dependent);
 		synchronized (derivativeTypes) {
 			this.derivativeTypes
-					.add(new WeakReference<ReferenceType>(dependent));
+					.add(new WeakReference<>(dependent));
 		}
 	}
 
 	public void checkDuplicates(ReferenceType newRt) {
 		synchronized (derivativeTypes) {
-			List<WeakReference<ReferenceType>> forRemoval = new ArrayList<WeakReference<ReferenceType>>();
+			List<WeakReference<ReferenceType>> forRemoval = new ArrayList<>();
 			for (WeakReference<ReferenceType> derivativeTypeReference : derivativeTypes) {
 				ReferenceType derivativeType = derivativeTypeReference.get();
 				if (derivativeType == null) {
@@ -225,8 +225,8 @@ public class ReferenceType extends ResolvedType {
 			return true;
 		}
 		if (annotationTypes != null) {
-			for (int i = 0; i < annotationTypes.length; i++) {
-				if (annotationTypes[i].equals(ofType)) {
+			for (ResolvedType annotationType : annotationTypes) {
+				if (annotationType.equals(ofType)) {
 					return true;
 				}
 			}
@@ -278,17 +278,17 @@ public class ReferenceType extends ResolvedType {
 	public AnnotationAJ getAnnotationOfType(UnresolvedType ofType) {
 		AnnotationAJ[] axs = getDelegate().getAnnotations();
 		if (axs != null) {
-			for (int i = 0; i < axs.length; i++) {
-				if (axs[i].getTypeSignature().equals(ofType.getSignature())) {
-					return axs[i];
+			for (AnnotationAJ ax : axs) {
+				if (ax.getTypeSignature().equals(ofType.getSignature())) {
+					return ax;
 				}
 			}
 		}
 		if (annotations != null) {
 			String searchSig = ofType.getSignature();
-			for (int i = 0; i < annotations.length; i++) {
-				if (annotations[i].getTypeSignature().equals(searchSig)) {
-					return annotations[i];
+			for (AnnotationAJ annotation : annotations) {
+				if (annotation.getTypeSignature().equals(searchSig)) {
+					return annotation;
 				}
 			}
 		}
@@ -376,19 +376,19 @@ public class ReferenceType extends ResolvedType {
 		if (this.isFinal() || other.isFinal()) {
 			return false;
 		}
-		
+
 		// 20170927: What is the block of code for? It mentions jls5.5 which isn't on this topic (old version of jls?)
 		// Some possible references: http://docs.oracle.com/javase/specs/jls/se9/jls9.pdf  5.1.6 (narrowing reference conversion)
 		// On Java 9 the test GenericsTests.testAfterReturningWithWildcardVar will fail because this code below
 		// used to find Set and List were the same, but now finds they are not. (so it doesn't put out the unchecked
 		// conversion message). However the code "List l = (List)someSet;" still compiles on 9 - so is this code bogus?
-		
+
 		// ??? needs to be Methods, not just declared methods? JLS 5.5 unclear
 		ResolvedMember[] a = getDeclaredMethods();
 		ResolvedMember[] b = other.getDeclaredMethods();
-		for (int ai = 0, alen = a.length; ai < alen; ai++) {
-			for (int bi = 0, blen = b.length; bi < blen; bi++) {
-				if (!b[bi].isCompatibleWith(a[ai])) {
+		for (ResolvedMember member : a) {
+			for (ResolvedMember resolvedMember : b) {
+				if (!resolvedMember.isCompatibleWith(member)) {
 					return false;
 				}
 			}
@@ -507,11 +507,11 @@ public class ReferenceType extends ResolvedType {
 			if (((ReferenceType) this.getRawType()).isAssignableFrom(other)) {
 				boolean wildcardsAllTheWay = true;
 				ResolvedType[] myParameters = this.getResolvedTypeParameters();
-				for (int i = 0; i < myParameters.length; i++) {
-					if (!myParameters[i].isGenericWildcard()) {
+				for (ResolvedType myParameter : myParameters) {
+					if (!myParameter.isGenericWildcard()) {
 						wildcardsAllTheWay = false;
 					} else {
-						BoundedReferenceType boundedRT = (BoundedReferenceType) myParameters[i];
+						BoundedReferenceType boundedRT = (BoundedReferenceType) myParameter;
 						if (boundedRT.isExtends() || boundedRT.isSuper()) {
 							wildcardsAllTheWay = false;
 						}
@@ -756,7 +756,7 @@ public class ReferenceType extends ResolvedType {
 					interfaces[i] = delegateInterfaces[i];
 				}
 			}
-			parameterizedInterfaces = new WeakReference<ResolvedType[]>(
+			parameterizedInterfaces = new WeakReference<>(
 					interfaces);
 			return interfaces;
 		} else if (isRawType()) {
@@ -778,12 +778,12 @@ public class ReferenceType extends ResolvedType {
 							.parameterizedWith(toUseForParameterization);
 				}
 			}
-			parameterizedInterfaces = new WeakReference<ResolvedType[]>(
+			parameterizedInterfaces = new WeakReference<>(
 					interfaces);
 			return interfaces;
 		}
 		if (getDelegate().isCacheable()) {
-			parameterizedInterfaces = new WeakReference<ResolvedType[]>(
+			parameterizedInterfaces = new WeakReference<>(
 					delegateInterfaces);
 		}
 		return delegateInterfaces;
@@ -910,8 +910,8 @@ public class ReferenceType extends ResolvedType {
 	public TypeVariable[] getTypeVariables() {
 		if (typeVariables == null) {
 			typeVariables = getDelegate().getTypeVariables();
-			for (int i = 0; i < this.typeVariables.length; i++) {
-				typeVariables[i].resolve(world);
+			for (TypeVariable typeVariable : this.typeVariables) {
+				typeVariable.resolve(world);
 			}
 		}
 		return typeVariables;
@@ -937,7 +937,7 @@ public class ReferenceType extends ResolvedType {
 		Collection<Declare> declares = null;
 		if (ajMembersNeedParameterization()) {
 			Collection<Declare> genericDeclares = getDelegate().getDeclares();
-			parameterizedDeclares = new ArrayList<Declare>();
+			parameterizedDeclares = new ArrayList<>();
 			Map<String, UnresolvedType> parameterizationMap = getAjMemberParameterizationMap();
 			for (Declare declareStatement : genericDeclares) {
 				parameterizedDeclares.add(declareStatement.parameterizeWith(
@@ -968,7 +968,7 @@ public class ReferenceType extends ResolvedType {
 		return getDelegate().getModifiers();
 	}
 
-	WeakReference<ResolvedType> superclassReference = new WeakReference<ResolvedType>(
+	WeakReference<ResolvedType> superclassReference = new WeakReference<>(
 			null);
 
 	@Override
@@ -984,7 +984,7 @@ public class ReferenceType extends ResolvedType {
 						getMemberParameterizationMap()).resolve(getWorld());
 			}
 			if (getDelegate().isCacheable()) {
-				superclassReference = new WeakReference<ResolvedType>(ret);
+				superclassReference = new WeakReference<>(ret);
 			}
 			return newSuperclass;
 		}
@@ -999,7 +999,7 @@ public class ReferenceType extends ResolvedType {
 					getWorld());
 		}
 		if (getDelegate().isCacheable()) {
-			superclassReference = new WeakReference<ResolvedType>(ret);
+			superclassReference = new WeakReference<>(ret);
 		}
 		return ret;
 	}
@@ -1019,7 +1019,7 @@ public class ReferenceType extends ResolvedType {
 		}
 		this.delegate = delegate;
 		synchronized (derivativeTypes) {
-			List<WeakReference<ReferenceType>> forRemoval = new ArrayList<WeakReference<ReferenceType>>();
+			List<WeakReference<ReferenceType>> forRemoval = new ArrayList<>();
 			for (WeakReference<ReferenceType> derivativeRef : derivativeTypes) {
 				ReferenceType derivative = derivativeRef.get();
 				if (derivative != null) {
@@ -1048,7 +1048,7 @@ public class ReferenceType extends ResolvedType {
 		parameterizedInterfaces.clear();
 		parameterizedMethods = null;
 		parameterizedPointcuts = null;
-		superclassReference = new WeakReference<ResolvedType>(null);
+		superclassReference = new WeakReference<>(null);
 	}
 
 	public int getEndPos() {
@@ -1119,7 +1119,7 @@ public class ReferenceType extends ResolvedType {
 	/**
 	 * a parameterized signature starts with a "P" in place of the "L", see the
 	 * comment on signatures in UnresolvedType.
-	 * 
+	 *
 	 * @param aGenericType
 	 * @param someParameters
 	 * @return
@@ -1127,12 +1127,12 @@ public class ReferenceType extends ResolvedType {
 	private static String makeParameterizedSignature(ResolvedType aGenericType,
 			ResolvedType[] someParameters) {
 		String rawSignature = aGenericType.getErasureSignature();
-		StringBuffer ret = new StringBuffer();
+		StringBuilder ret = new StringBuilder();
 		ret.append(PARAMETERIZED_TYPE_IDENTIFIER);
 		ret.append(rawSignature.substring(1, rawSignature.length() - 1));
 		ret.append("<");
-		for (int i = 0; i < someParameters.length; i++) {
-			ret.append(someParameters[i].getSignature());
+		for (ResolvedType someParameter : someParameters) {
+			ret.append(someParameter.getSignature());
 		}
 		ret.append(">;");
 		return ret.toString();
@@ -1140,22 +1140,22 @@ public class ReferenceType extends ResolvedType {
 
 	private static String makeDeclaredSignature(ResolvedType aGenericType,
 			UnresolvedType[] someParameters) {
-		StringBuffer ret = new StringBuffer();
+		StringBuilder ret = new StringBuilder();
 		String rawSig = aGenericType.getErasureSignature();
 		ret.append(rawSig.substring(0, rawSig.length() - 1));
 		ret.append("<");
-		for (int i = 0; i < someParameters.length; i++) {
-			if (someParameters[i] instanceof ReferenceType) {
-				ret.append(((ReferenceType) someParameters[i])
+		for (UnresolvedType someParameter : someParameters) {
+			if (someParameter instanceof ReferenceType) {
+				ret.append(((ReferenceType) someParameter)
 						.getSignatureForAttribute());
-			} else if (someParameters[i] instanceof Primitive) {
-				ret.append(((Primitive) someParameters[i])
+			} else if (someParameter instanceof Primitive) {
+				ret.append(((Primitive) someParameter)
 						.getSignatureForAttribute());
 			} else {
 				throw new IllegalStateException(
 						"DebugFor325731: expected a ReferenceType or Primitive but was "
-								+ someParameters[i] + " of type "
-								+ someParameters[i].getClass().getName());
+								+ someParameter + " of type "
+								+ someParameter.getClass().getName());
 			}
 		}
 		ret.append(">;");
@@ -1171,7 +1171,7 @@ public class ReferenceType extends ResolvedType {
 		newInterfaces = null;
 		typeVariables = null;
 		parameterizedInterfaces.clear();
-		superclassReference = new WeakReference<ResolvedType>(null);
+		superclassReference = new WeakReference<>(null);
 		if (getDelegate() != null) {
 			delegate.ensureConsistent();
 		}
@@ -1192,7 +1192,7 @@ public class ReferenceType extends ResolvedType {
 		}
 		if (newParent.isClass()) {
 			newSuperclass = newParent;
-			superclassReference = new WeakReference<ResolvedType>(null);
+			superclassReference = new WeakReference<>(null);
 		} else {
 			if (newInterfaces == null) {
 				newInterfaces = new ResolvedType[1];
@@ -1200,8 +1200,8 @@ public class ReferenceType extends ResolvedType {
 			} else {
 				ResolvedType[] existing = getDelegate().getDeclaredInterfaces();
 				if (existing != null) {
-					for (int i = 0; i < existing.length; i++) {
-						if (existing[i].equals(newParent)) {
+					for (ResolvedType resolvedType : existing) {
+						if (resolvedType.equals(newParent)) {
 							return; // already has this interface
 						}
 					}
@@ -1245,7 +1245,7 @@ public class ReferenceType extends ResolvedType {
 	 * avoid creating an unnecessary new (duplicate) with the same information
 	 * in it. This method also cleans up any reference entries that have been
 	 * null'd by a GC.
-	 * 
+	 *
 	 * @param typeParameters
 	 *            the type parameters to use when searching for the derivative
 	 *            type.
@@ -1253,7 +1253,7 @@ public class ReferenceType extends ResolvedType {
 	 */
 	public ReferenceType findDerivativeType(ResolvedType[] typeParameters) {
 		synchronized (derivativeTypes) {
-			List<WeakReference<ReferenceType>> forRemoval = new ArrayList<WeakReference<ReferenceType>>();
+			List<WeakReference<ReferenceType>> forRemoval = new ArrayList<>();
 			for (WeakReference<ReferenceType> derivativeTypeRef : derivativeTypes) {
 				ReferenceType derivativeType = derivativeTypeRef.get();
 				if (derivativeType == null) {

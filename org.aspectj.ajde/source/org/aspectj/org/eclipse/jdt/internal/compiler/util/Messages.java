@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -117,6 +117,13 @@ public final class Messages {
 	public static String constant_cannotCastedInto;
 	public static String constant_cannotConvertedTo;
 
+	public static String switch_expression;
+	public static String text_block;
+	public static String pattern_matching_instanceof;
+	public static String records;
+	public static String sealed_types;
+	public static String pattern_matching_switch;
+
 	static {
 		initializeMessages(BUNDLE_NAME, Messages.class);
 	}
@@ -213,9 +220,7 @@ public final class Messages {
 					String value = "Missing message: " + field.getName() + " in: " + bundleName; //$NON-NLS-1$ //$NON-NLS-2$
 					field.set(null, value);
 				}
-			} catch (IllegalArgumentException e) {
-				// ignore
-			} catch (IllegalAccessException e) {
+			} catch (IllegalArgumentException | IllegalAccessException e) {
 				// ignore
 			}
 		}

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -24,7 +24,7 @@
  *								Bug 429958 - [1.8][null] evaluate new DefaultLocation attribute of @NonNullByDefault
  *								Bug 435805 - [1.8][compiler][null] Java 8 compiler does not recognize declaration style null annotations
  *								Bug 457210 - [1.8][compiler][null] Wrong Nullness errors given on full build build but not on incremental build?
- *								Bug 469584 - ClassCastException in Annotation.detectStandardAnnotation (320) 
+ *								Bug 469584 - ClassCastException in Annotation.detectStandardAnnotation (320)
  *        Andy Clement (GoPivotal, Inc) aclement@gopivotal.com - Contributions for
  *                          Bug 383624 - [1.8][compiler] Revive code generation support for type annotations (from Olivier's work)
  *                          Bug 409517 - [1.8][compiler] Type annotation problems on more elaborate array references
@@ -55,28 +55,28 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.*;
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
 public abstract class Annotation extends Expression {
-	
+
 	Annotation persistibleAnnotation = this;  // Emit this into class file, unless this is a repeating annotation, in which case package this into the designated container.
-	
+
 	/**
 	 * Return the location for the corresponding annotation inside the type reference, <code>null</code> if none.
 	 */
 	public static int[] getLocations(
 			final Expression reference,
 			final Annotation annotation) {
-	
+
 		class LocationCollector extends ASTVisitor {
 			Stack typePathEntries;
 			Annotation searchedAnnotation;
 			boolean continueSearch = true;
-			
+
 			public LocationCollector(Annotation currentAnnotation) {
 				this.typePathEntries = new Stack();
 				this.searchedAnnotation = currentAnnotation;
 			}
-			
+
 			private int[] computeNestingDepth(TypeReference typeReference) {
-				TypeBinding type = typeReference.resolvedType == null ? null : typeReference.resolvedType.leafComponentType(); 
+				TypeBinding type = typeReference.resolvedType == null ? null : typeReference.resolvedType.leafComponentType();
 				int[] nestingDepths = new int[typeReference.getAnnotatableLevels()];
 				if (type != null && type.isNestedType()) {
 					int depth = 0;
@@ -95,12 +95,14 @@ public abstract class Annotation extends Expression {
 				}
 				return nestingDepths;
 			}
-			
+
 
 			private void inspectAnnotations(Annotation [] annotations) {
 				for (int i = 0, length = annotations == null ? 0 : annotations.length; this.continueSearch && i < length; i++) {
-					if (annotations[i] == this.searchedAnnotation)
+					if (annotations[i] == this.searchedAnnotation) {
 						this.continueSearch = false;
+						break;
+					}
 				}
 			}
 
@@ -112,7 +114,7 @@ public abstract class Annotation extends Expression {
 					this.typePathEntries.push(TYPE_PATH_ELEMENT_ARRAY);
 				}
 			}
-			
+
 			private void inspectTypeArguments(TypeReference[] typeReferences) {
 				for (int i = 0, length = typeReferences == null ? 0 : typeReferences.length; this.continueSearch && i < length; i++) {
 					int size = this.typePathEntries.size();
@@ -122,7 +124,7 @@ public abstract class Annotation extends Expression {
 					this.typePathEntries.setSize(size);
 				}
 			}
-			
+
 			public boolean visit(TypeReference typeReference, BlockScope scope) {
 				if (this.continueSearch) {
 					inspectArrayDimensions(typeReference.getAnnotationsOnDimensions(), typeReference.dimensions());
@@ -144,18 +146,18 @@ public abstract class Annotation extends Expression {
 						}
 					}
 				}
-				return false; // if annotation is not found in the type reference, it must be one from SE7 location, typePathEntries captures the proper path entries for them. 
-			}	
+				return false; // if annotation is not found in the type reference, it must be one from SE7 location, typePathEntries captures the proper path entries for them.
+			}
 			@Override
 			public boolean visit(SingleTypeReference typeReference, BlockScope scope) {
 				return visit((TypeReference) typeReference, scope);
 			}
-			
+
 			@Override
 			public boolean visit(ArrayTypeReference typeReference, BlockScope scope) {
 				return visit((TypeReference) typeReference, scope);
 			}
-			
+
 			@Override
 			public boolean visit(ParameterizedSingleTypeReference typeReference, BlockScope scope) {
 				return visit((TypeReference) typeReference, scope);
@@ -165,17 +167,17 @@ public abstract class Annotation extends Expression {
 			public boolean visit(QualifiedTypeReference typeReference, BlockScope scope) {
 				return visit((TypeReference) typeReference, scope);
 			}
-			
+
 			@Override
 			public boolean visit(ArrayQualifiedTypeReference typeReference, BlockScope scope) {
 				return visit((TypeReference) typeReference, scope);
 			}
-			
+
 			@Override
 			public boolean visit(ParameterizedQualifiedTypeReference typeReference, BlockScope scope) {
 				return visit((TypeReference) typeReference, scope);
 			}
-			
+
 			@Override
 			public boolean visit(Wildcard typeReference, BlockScope scope) {
 				visit((TypeReference) typeReference, scope);
@@ -203,7 +205,7 @@ public abstract class Annotation extends Expression {
 				}
 				return false;
 			}
-						
+
 			@Override
 			public String toString() {
 				StringBuffer buffer = new StringBuffer();
@@ -245,7 +247,7 @@ public abstract class Annotation extends Expression {
 	static final int[] TYPE_PATH_ELEMENT_ARRAY = new int[]{0,0};
 	static final int[] TYPE_PATH_INNER_TYPE = new int[]{1,0};
 	static final int[] TYPE_PATH_ANNOTATION_ON_WILDCARD_BOUND = new int[]{2,0};
-	
+
 	public int declarationSourceEnd;
 	public Binding recipient;
 
@@ -306,6 +308,10 @@ public abstract class Annotation extends Expression {
 					return TagBits.AnnotationForParameter;
 				else if (CharOperation.equals(elementName, TypeConstants.UPPER_PACKAGE))
 					return TagBits.AnnotationForPackage;
+				break;
+			case 'R' :
+				if (CharOperation.equals(elementName, TypeConstants.UPPER_RECORD_COMPONENT))
+					return TagBits.AnnotationForRecordComponent;
 				break;
 			case 'T' :
 				if (CharOperation.equals(elementName, TypeConstants.TYPE))
@@ -374,6 +380,16 @@ public abstract class Annotation extends Expression {
 					}
 				}
 				break;
+			case TypeIds.T_JdkInternalPreviewFeature :
+				tagBits |= TagBits.AnnotationPreviewFeature;
+				for (MemberValuePair memberValuePair : memberValuePairs()) {
+					if (CharOperation.equals(memberValuePair.name, TypeConstants.ESSENTIAL_API)) {
+						if (memberValuePair.value instanceof TrueLiteral) {
+							tagBits |= TagBits.EssentialAPI;
+						}
+					}
+				}
+				break;
 			// marker annotations
 			case TypeIds.T_JavaLangDeprecated :
 				tagBits |= TagBits.AnnotationDeprecated;
@@ -419,7 +435,7 @@ public abstract class Annotation extends Expression {
 		} else if (annotationType.hasNullBit(TypeIds.BitNonNullByDefaultAnnotation)) {
 			tagBits |= determineNonNullByDefaultTagBits(annotationType, valueAttribute);
 		}
-		
+
 		return tagBits;
 	}
 
@@ -454,7 +470,7 @@ public abstract class Annotation extends Expression {
 	/**
 	 * Convert the value() attribute of @NonNullByDefault into a bitvector a la {@link Binding#NullnessDefaultMASK}.
 	 * This method understands value encodings from source and binary types.
-	 * 
+	 *
 	 * <b>pre:</b> null annotation analysis is enabled
 	 */
 	public static int nullLocationBitsFromAnnotationValue(Object value) {
@@ -515,7 +531,7 @@ public abstract class Annotation extends Expression {
 		}
 		return 0;
 	}
-	
+
 	public static int nullLocationBitsFromElementTypeAnnotationValue(Object value) {
 		if (value instanceof Object[]) {
 			if (((Object[]) value).length == 0) {					// ({})
@@ -559,7 +575,7 @@ public abstract class Annotation extends Expression {
 		return 0;
 	}
 
-	
+
 	static String getRetentionName(long tagBits) {
 		if ((tagBits & TagBits.AnnotationRuntimeRetention) == TagBits.AnnotationRuntimeRetention) {
 			// TagBits.AnnotationRuntimeRetention combines both TagBits.AnnotationClassRetention & TagBits.AnnotationSourceRetention
@@ -578,22 +594,22 @@ public abstract class Annotation extends Expression {
 	}
 
 	public void checkRepeatableMetaAnnotation(BlockScope scope) {
-		
+
 		// `this' is the @Repeatable meta annotation, its recipient is the *repeatable* annotation type - we are at the declaration site, not the repeating use site.
-		
+
 		ReferenceBinding repeatableAnnotationType = (ReferenceBinding) this.recipient; // know it to be an annotation type. On target miss we don't get here
-		
+
 		MemberValuePair[] valuePairs = this.memberValuePairs();
 		if (valuePairs == null || valuePairs.length != 1)
 			return;
-		
+
 		Object value = valuePairs[0].compilerElementPair.value;
 		if (!(value instanceof ReferenceBinding))
 			return; // Has deeper problems, will bark elsewhere.
 		ReferenceBinding containerAnnotationType = (ReferenceBinding) value;
 		if (!containerAnnotationType.isAnnotationType())
 			return; // Has deeper problems, will bark elsewhere.
-		
+
 		repeatableAnnotationType.setContainerAnnotationType(containerAnnotationType); // For now. May be reset later to PRB in case of problems.
 		checkContainerAnnotationType(valuePairs[0], scope, containerAnnotationType, repeatableAnnotationType, false); // false => not use site, i.e declaration site error reporting requested.
 	}
@@ -626,34 +642,34 @@ public abstract class Annotation extends Expression {
 
 		if (useSite)
 			checkContainingAnnotationTargetAtUse((Annotation) culpritNode, scope, containerAnnotationType, repeatableAnnotationType);
-		else 
+		else
 			checkContainerAnnotationTypeTarget(culpritNode, scope, containerAnnotationType, repeatableAnnotationType);
-		
+
 		long annotationTypeBits = getAnnotationRetention(repeatableAnnotationType);
-		long containerTypeBits = getAnnotationRetention(containerAnnotationType); 
+		long containerTypeBits = getAnnotationRetention(containerAnnotationType);
 		// Due to clever layout of the bits, we can compare the absolute value directly
 		if (containerTypeBits < annotationTypeBits) {
 			repeatableAnnotationType.tagAsHavingDefectiveContainerType();
 			scope.problemReporter().containerAnnotationTypeHasShorterRetention(culpritNode, repeatableAnnotationType, getRetentionName(annotationTypeBits), containerAnnotationType, getRetentionName(containerTypeBits));
 		}
-		
+
 		if ((repeatableAnnotationType.getAnnotationTagBits() & TagBits.AnnotationDocumented) != 0 && (containerAnnotationType.getAnnotationTagBits() & TagBits.AnnotationDocumented) == 0) {
 			repeatableAnnotationType.tagAsHavingDefectiveContainerType();
 			scope.problemReporter().repeatableAnnotationTypeIsDocumented(culpritNode, repeatableAnnotationType, containerAnnotationType);
 		}
-		
+
 		if ((repeatableAnnotationType.getAnnotationTagBits() & TagBits.AnnotationInherited) != 0 && (containerAnnotationType.getAnnotationTagBits() & TagBits.AnnotationInherited) == 0) {
 			repeatableAnnotationType.tagAsHavingDefectiveContainerType();
 			scope.problemReporter().repeatableAnnotationTypeIsInherited(culpritNode, repeatableAnnotationType, containerAnnotationType);
 		}
 	}
-	
+
 	// This is for error reporting for bad targets at annotation type declaration site (as opposed to the repeat site)
 	private static void checkContainerAnnotationTypeTarget(ASTNode culpritNode, Scope scope, ReferenceBinding containerType, ReferenceBinding repeatableAnnotationType) {
 		long tagBits = repeatableAnnotationType.getAnnotationTagBits();
 		if ((tagBits & TagBits.AnnotationTargetMASK) == 0)
 			tagBits = TagBits.SE7AnnotationTargetMASK; // absence of @Target meta-annotation implies all SE7 targets not all targets.
-		
+
 		long containerAnnotationTypeTypeTagBits = containerType.getAnnotationTagBits();
 		if ((containerAnnotationTypeTypeTagBits & TagBits.AnnotationTargetMASK) == 0)
 			containerAnnotationTypeTypeTagBits = TagBits.SE7AnnotationTargetMASK;
@@ -708,13 +724,14 @@ public abstract class Annotation extends Expression {
 			builder.check(TagBits.AnnotationForTypeParameter, TypeConstants.TYPE_PARAMETER_TARGET);
 			builder.check(TagBits.AnnotationForTypeUse, TypeConstants.TYPE_USE_TARGET);
 			builder.check(TagBits.AnnotationForModule, TypeConstants.UPPER_MODULE);
+			builder.check(TagBits.AnnotationForRecordComponent, TypeConstants.UPPER_RECORD_COMPONENT);
 			if (builder.hasError()) {
 				repeatableAnnotationType.tagAsHavingDefectiveContainerType();
 				scope.problemReporter().repeatableAnnotationTypeTargetMismatch(culpritNode, repeatableAnnotationType, containerType, builder.toString());
 			}
 		}
 	}
-	
+
 	// This is for error reporting for bad targets at the repeated annotation use site (as opposed to repeatable annotation type declaration site) - Leads to better message.
 	public static void checkContainingAnnotationTargetAtUse(Annotation repeatingAnnotation, BlockScope scope, TypeBinding containerAnnotationType, TypeBinding repeatingAnnotationType) {
 		// check (meta)target compatibility
@@ -740,7 +757,7 @@ public abstract class Annotation extends Expression {
 
 		// we need to filter out only "pure" type use and type parameter annotations, see https://bugs.eclipse.org/bugs/show_bug.cgi?id=392119
 		if ((metaTagBits & (TagBits.AnnotationForTypeParameter | TagBits.AnnotationForTypeUse)) != 0) {
-			if ((metaTagBits & TagBits.SE7AnnotationTargetMASK) == 0) {  // not a hybrid target. 
+			if ((metaTagBits & TagBits.SE7AnnotationTargetMASK) == 0) {  // not a hybrid target.
 				return false;
 			}
 		}
@@ -758,12 +775,11 @@ public abstract class Annotation extends Expression {
 		}
 		long metaTagBits = annotationBinding.getAnnotationTagBits(); // could be forward reference
 
-		if ((metaTagBits & (TagBits.AnnotationTargetMASK)) == 0) { // explicit target required for JSR308 style annotations.
-			return false;
-		}
-		if ((metaTagBits & (TagBits.AnnotationForTypeParameter | TagBits.AnnotationForTypeUse)) == 0) {
-			return false;
-		}
+		if ((metaTagBits & (TagBits.AnnotationTargetMASK)) != 0) {
+			if ((metaTagBits & (TagBits.AnnotationForTypeParameter | TagBits.AnnotationForTypeUse)) == 0) {
+				return false;
+			}
+		} // else: no-@Target always applicable
 
 		if ((metaTagBits & TagBits.AnnotationRetentionMASK) == 0)
 			return true; // by default the retention is CLASS
@@ -778,12 +794,11 @@ public abstract class Annotation extends Expression {
 		}
 		long metaTagBits = annotationBinding.getAnnotationTagBits();
 
-		if ((metaTagBits & (TagBits.AnnotationTargetMASK)) == 0) { // explicit target required for JSR308 style annotations.
-			return false;
-		}
-		if ((metaTagBits & (TagBits.AnnotationForTypeParameter | TagBits.AnnotationForTypeUse)) == 0) {
-			return false;
-		}
+		if ((metaTagBits & (TagBits.AnnotationTargetMASK)) != 0) {
+			if ((metaTagBits & (TagBits.AnnotationForTypeParameter | TagBits.AnnotationForTypeUse)) == 0) {
+				return false;
+			}
+		} // else: no-@Target always applicable
 		if ((metaTagBits & TagBits.AnnotationRetentionMASK) == 0)
 			return false; // by default the retention is CLASS
 
@@ -1020,6 +1035,33 @@ public abstract class Annotation extends Expression {
 						}
 						sourceMethod.defaultNullness |= defaultNullness;
 						break;
+					case Binding.RECORD_COMPONENT :
+						RecordComponentBinding sourceRecordComponent = (RecordComponentBinding) this.recipient;
+						sourceRecordComponent.tagBits |= tagBits;
+						if ((tagBits & TagBits.AnnotationSuppressWarnings) != 0) {
+							RecordComponent recordComponent = sourceRecordComponent.sourceRecordComponent();
+							recordSuppressWarnings(scope, recordComponent.declarationSourceStart, recordComponent.declarationSourceEnd, compilerOptions.suppressWarnings);
+						}
+//						TODO: BUG 562478 Consideration - to uncomment/modify the following:
+//						if (defaultNullness != 0) {
+//							RecordComponent recordComponent = sourceRecordComponent.sourceRecordComponent();
+//							// test merged value of defaultNullness contributed by this annotation and previous annotations on same target is redundant w.r.t. containing value
+//							// (for targets other than fields the resulting value is tested only once after processing all annotations, but this is hard to do for fields)
+//							Binding target = scope.parent.checkRedundantDefaultNullness(
+//									defaultNullness | scope.localNonNullByDefaultValue(recordComponent.sourceStart),
+//									recordComponent.sourceStart);
+//							scope.recordNonNullByDefault(recordComponent.binding, defaultNullness, this, recordComponent.declarationSourceStart, recordComponent.declarationSourceEnd);
+//							if (target != null) {
+//								scope.problemReporter().nullDefaultAnnotationIsRedundant(recordComponent, new Annotation[]{this}, target);
+//							}
+//						}
+//						// fields don't yet have their type resolved, in 1.8 null annotations
+//						// will be transfered from the field to its type during STB.resolveTypeFor().
+//						if ((sourceRecordComponent.tagBits & TagBits.AnnotationNullMASK) == TagBits.AnnotationNullMASK) {
+//							scope.problemReporter().contradictoryNullAnnotations(this);
+//							sourceRecordComponent.tagBits &= ~TagBits.AnnotationNullMASK; // avoid secondary problems
+//						}
+						break;
 					case Binding.FIELD :
 						FieldBinding sourceField = (FieldBinding) this.recipient;
 						sourceField.tagBits |= tagBits;
@@ -1059,10 +1101,10 @@ public abstract class Annotation extends Expression {
 							LocalDeclaration localDeclaration = variable.declaration;
 							recordSuppressWarnings(scope, localDeclaration.declarationSourceStart, localDeclaration.declarationSourceEnd, compilerOptions.suppressWarnings);
 						}
-						// note: defaultNullness for local declarations has been already been handled earlier by handleNonNullByDefault() 
+						// note: defaultNullness for local declarations has been already been handled earlier by handleNonNullByDefault()
 						break;
 				}
-			} 
+			}
 			if (kind == Binding.TYPE) {
 				SourceTypeBinding sourceType = (SourceTypeBinding) this.recipient;
 				if (CharOperation.equals(sourceType.sourceName, TypeConstants.PACKAGE_INFO_NAME))
@@ -1087,7 +1129,7 @@ public abstract class Annotation extends Expression {
 		}
 
 		ReferenceBinding annotationType = (ReferenceBinding) typeBinding;
-		
+
 		if (!annotationType.hasNullBit(TypeIds.BitNonNullByDefaultAnnotation)) {
 			return 0;
 		}
@@ -1118,11 +1160,11 @@ public abstract class Annotation extends Expression {
 		long tagBits = determineNonNullByDefaultTagBits(annotationType, valueAttribute);
 		return (int) (tagBits & Binding.NullnessDefaultMASK);
 	}
-	
+
 	public enum AnnotationTargetAllowed {
 		YES, TYPE_ANNOTATION_ON_QUALIFIED_NAME, NO;
 	}
-	
+
 	private static AnnotationTargetAllowed isAnnotationTargetAllowed(Binding recipient, BlockScope scope, TypeBinding annotationType, int kind, long metaTagBits) {
 		switch (kind) {
 			case Binding.PACKAGE :
@@ -1176,6 +1218,12 @@ public abstract class Annotation extends Expression {
 			case Binding.FIELD :
 				if ((metaTagBits & TagBits.AnnotationForField) != 0) {
 					return AnnotationTargetAllowed.YES;
+				} else if (((FieldBinding) recipient).isRecordComponent()){
+					long recordComponentMask = TagBits.AnnotationForRecordComponent |
+							TagBits.AnnotationForMethod |
+							TagBits.AnnotationForParameter |
+							TagBits.AnnotationForTypeUse;
+					return (metaTagBits & recordComponentMask) != 0 ? AnnotationTargetAllowed.YES : AnnotationTargetAllowed.NO;
 				} else if ((metaTagBits & TagBits.AnnotationForTypeUse) != 0) {
 					FieldBinding sourceField = (FieldBinding) recipient;
 					SourceTypeBinding sourceType = (SourceTypeBinding) sourceField.declaringClass;
@@ -1187,6 +1235,20 @@ public abstract class Annotation extends Expression {
 					}
 				}
 				break;
+			case Binding.RECORD_COMPONENT :
+				/* JLS 14 9.7.4 Record Preview
+				 * It is a compile-time error if an annotation of type T is syntactically a modifier for:
+				 * ...
+				 * a record component but T is not applicable to record component declarations, field declarations,
+				 * method declarations, or type contexts.
+				 */
+				long recordComponentMask = TagBits.AnnotationForRecordComponent |
+				TagBits.AnnotationForField |
+				TagBits.AnnotationForMethod |
+				TagBits.AnnotationForParameter | // See JLS 14 8.10.4 Records Preview - TODO revisit in J15
+				TagBits.AnnotationForTypeUse;
+				return (metaTagBits & recordComponentMask) != 0 ? AnnotationTargetAllowed.YES :
+					AnnotationTargetAllowed.NO;
 			case Binding.LOCAL :
 				LocalVariableBinding localVariableBinding = (LocalVariableBinding) recipient;
 				if ((localVariableBinding.tagBits & TagBits.IsArgument) != 0) {
@@ -1238,12 +1300,7 @@ public abstract class Annotation extends Expression {
 
 		long metaTagBits = annotationType.getAnnotationTagBits(); // could be forward reference
 		if ((metaTagBits & TagBits.AnnotationTargetMASK) == 0) {
-			// does not specify any target restriction - all locations supported in Java 7 and before are possible
-			// TBD - revisit for modules - as per 9.6.4.1, annotation without target is applicable for module declaration
-			// which is listed as a declaration context, but javac does not allow this
-			if (kind == Binding.TYPE_PARAMETER || kind == Binding.TYPE_USE) {
-				scope.problemReporter().explitAnnotationTargetRequired(annotation);
-			}
+			// does not specify any target restriction - all locations are possible
 			return AnnotationTargetAllowed.YES;
 		}
 
@@ -1258,6 +1315,7 @@ public abstract class Annotation extends Expression {
 					case Binding.METHOD :
 					case Binding.FIELD :
 					case Binding.LOCAL :
+					case Binding.RECORD_COMPONENT :
 						scope.problemReporter().invalidUsageOfTypeAnnotations(annotation);
 				}
 			}
@@ -1274,7 +1332,7 @@ public abstract class Annotation extends Expression {
 	AnnotationTargetAllowed annotationTargetAllowed = isAnnotationTargetAllowed(annotation, scope, annotationType, kind);
 	if (annotationTargetAllowed != AnnotationTargetAllowed.YES) {
 		if(annotationTargetAllowed == AnnotationTargetAllowed.TYPE_ANNOTATION_ON_QUALIFIED_NAME) {
-			scope.problemReporter().typeAnnotationAtQualifiedName(annotation);			
+			scope.problemReporter().typeAnnotationAtQualifiedName(annotation);
 		} else {
 			scope.problemReporter().disallowedTargetForAnnotation(annotation);
 		}
@@ -1293,15 +1351,15 @@ public abstract class Annotation extends Expression {
 		// Fail fast if the repeating annotation type can't be a container, anyway
 		MethodBinding[] valueMethods = repeatedAnnotationType.getMethods(TypeConstants.VALUE);
 		if (valueMethods.length != 1) return; // No violations possible
-		
+
 		TypeBinding methodReturnType = valueMethods[0].returnType;
-		// value must be an array 
+		// value must be an array
 		if (! methodReturnType.isArrayType() || methodReturnType.dimensions() != 1) return;
-		
+
 		ArrayBinding array = (ArrayBinding) methodReturnType;
 		TypeBinding elementsType = array.elementsType();
 		if (! elementsType.isRepeatableAnnotationType()) return; // Can't be a problem, then
-		
+
 		for (int i= 0; i < sourceAnnotations.length; ++i) {
 			Annotation annotation = sourceAnnotations[i];
 			if (TypeBinding.equalsEquals(elementsType, annotation.resolvedType)) {
@@ -1322,7 +1380,7 @@ public abstract class Annotation extends Expression {
 		}
 		return true;
 	}
-	
+
 	// Complain if an attempt to annotate the enclosing type of a static member type is being made.
 	public static void isTypeUseCompatible(TypeReference reference, Scope scope, Annotation[] annotations) {
 		if (annotations == null || reference == null || reference.getAnnotatableLevels() == 1)
@@ -1369,7 +1427,7 @@ public abstract class Annotation extends Expression {
 	public Annotation getPersistibleAnnotation() {
 		return this.persistibleAnnotation;      // will be this for non-repeating annotation, the container for the first of the repeating ones and null for the followers.
 	}
-	
+
 	public void setPersistibleAnnotation(ContainerAnnotation container) {
 		this.persistibleAnnotation = container; // will be a legitimate container for the first of the repeating ones and null for the followers.
 	}

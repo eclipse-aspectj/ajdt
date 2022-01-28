@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -7,8 +7,6 @@
  * https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- *
- * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Jesper Steen Moller - Contributions for
  *								bug 404146 - [1.7][compiler] nested try-catch-finally-blocks leads to unrunnable Java byte code
@@ -33,7 +31,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.aspectj.org.eclipse.jdt.core.ICompilationUnit;
-import org.aspectj.org.eclipse.jdt.core.IJavaProject;
 import org.aspectj.org.eclipse.jdt.core.IModuleDescription;
 import org.aspectj.org.eclipse.jdt.core.JavaCore;
 import org.aspectj.org.eclipse.jdt.core.JavaModelException;
@@ -95,6 +92,7 @@ public class DefaultCodeFormatter extends CodeFormatter {
 
 	private Object oldCommentFormatOption;
 	private String sourceLevel;
+	public boolean previewEnabled;
 
 	private String sourceString;
 	char[] sourceArray;
@@ -126,13 +124,14 @@ public class DefaultCodeFormatter extends CodeFormatter {
 			this.workingOptions = new DefaultCodeFormatterOptions(options);
 			this.oldCommentFormatOption = getOldCommentFormatOption(options);
 			String compilerSource = options.get(CompilerOptions.OPTION_Source);
-			this.sourceLevel = compilerSource != null ? compilerSource : CompilerOptions.VERSION_1_8;
+			this.sourceLevel = compilerSource != null ? compilerSource : CompilerOptions.getLatestVersion();
+			this.previewEnabled = JavaCore.ENABLED.equals(options.get(JavaCore.COMPILER_PB_ENABLE_PREVIEW_FEATURES));
 		} else {
 			Map<String, String> settings = DefaultCodeFormatterConstants.getJavaConventionsSettings();
 			this.originalOptions = new DefaultCodeFormatterOptions(settings);
 			this.workingOptions = new DefaultCodeFormatterOptions(settings);
 			this.oldCommentFormatOption = DefaultCodeFormatterConstants.TRUE;
-			this.sourceLevel = CompilerOptions.VERSION_1_8;
+			this.sourceLevel = CompilerOptions.getLatestVersion();
 		}
 		if (defaultCodeFormatterOptions != null) {
 			this.originalOptions.set(defaultCodeFormatterOptions.getMap());
@@ -300,7 +299,7 @@ public class DefaultCodeFormatter extends CodeFormatter {
 		resultBuilder.setAlignChar(DefaultCodeFormatterOptions.SPACE);
 		for (Token token : this.tokens) {
 			List<Token> structure = token.getInternalStructure();
-			if (structure != null && !structure.isEmpty())
+			if (token.isComment() && structure != null && !structure.isEmpty())
 				resultBuilder.processComment(token);
 		}
 
@@ -323,7 +322,7 @@ public class DefaultCodeFormatter extends CodeFormatter {
 		for (int kindToTry : kindsToTry) {
 			ASTNode astNode = createParser(kindToTry).createAST(null);
 			if (!hasErrors(astNode)) {
-				if (kindToTry == K_MODULE_INFO) 
+				if (kindToTry == K_MODULE_INFO)
 					tokenizeSource(kindToTry); // run scanner again to get module specific tokens
 				return astNode;
 			}
@@ -332,8 +331,7 @@ public class DefaultCodeFormatter extends CodeFormatter {
 	}
 
 	private ASTParser createParser(int kind) {
-		@SuppressWarnings("deprecation")
-		ASTParser parser = ASTParser.newParser(AST.JLS9);
+		ASTParser parser = ASTParser.newParser(AST.JLS17);
 
 		if (kind == K_MODULE_INFO) {
 			parser.setSource(createDummyModuleInfoCompilationUnit());
@@ -345,12 +343,14 @@ public class DefaultCodeFormatter extends CodeFormatter {
 		Map<String, String> parserOptions = JavaCore.getOptions();
 		parserOptions.put(CompilerOptions.OPTION_Source, this.sourceLevel);
 		parserOptions.put(CompilerOptions.OPTION_DocCommentSupport, CompilerOptions.ENABLED);
+		parserOptions.put(CompilerOptions.OPTION_EnablePreviews, CompilerOptions.ENABLED); //TODO
+		parserOptions.put(CompilerOptions.OPTION_ReportPreviewFeatures, CompilerOptions.IGNORE);
 		parser.setCompilerOptions(parserOptions);
 		return parser;
 	}
 
 	private ICompilationUnit createDummyModuleInfoCompilationUnit() {
-		IJavaProject dummyProject = new JavaProject() {
+		JavaProject dummyProject = new JavaProject() {
 			@Override
 			public Map<String, String> getOptions(boolean inheritJavaCoreOptions) {
 				return new HashMap<>();
@@ -369,7 +369,7 @@ public class DefaultCodeFormatter extends CodeFormatter {
 			}
 
 			@Override
-			public IJavaProject getJavaProject() {
+			public JavaProject getJavaProject() {
 				return dummyProject;
 			}
 		};
@@ -387,7 +387,7 @@ public class DefaultCodeFormatter extends CodeFormatter {
 	private void tokenizeSource(int kind) {
 		this.tokens.clear();
 		Scanner scanner = new Scanner(true, false, false/* nls */, CompilerOptions.versionToJdkLevel(this.sourceLevel),
-				null/* taskTags */, null/* taskPriorities */, false/* taskCaseSensitive */);
+				null/* taskTags */, null/* taskPriorities */, false/* taskCaseSensitive */, this.previewEnabled);
 		scanner.setSource(this.sourceArray);
 		scanner.fakeInModule = (kind & K_MODULE_INFO) != 0;
 		while (true) {
@@ -414,6 +414,7 @@ public class DefaultCodeFormatter extends CodeFormatter {
 		LineBreaksPreparator breaksPreparator = new LineBreaksPreparator(this.tokenManager, this.workingOptions);
 		this.astRoot.accept(breaksPreparator);
 		breaksPreparator.finishUp();
+		this.astRoot.accept(new OneLineEnforcer(this.tokenManager, this.workingOptions));
 	}
 
 	private void prepareComments() {

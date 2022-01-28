@@ -13,6 +13,7 @@
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.apt.util;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -29,15 +30,15 @@ import java.util.zip.ZipFile;
 /**
  * Used as a zip file cache.
  */
-public class Archive {
+public class Archive implements Closeable {
 
 	public static final Archive UNKNOWN_ARCHIVE = new Archive();
-	
+
 	ZipFile zipFile;
 	File file;
 
 	protected Hashtable<String, ArrayList<String[]>> packagesCache;
-	
+
 	protected Archive() {
 		// used to construct UNKNOWN_ARCHIVE
 	}
@@ -73,22 +74,22 @@ public class Archive {
 			}
 		}
 	}
-	
+
 	public ArchiveFileObject getArchiveFileObject(String fileName, String module, Charset charset) {
 		return new ArchiveFileObject(this.file, fileName, charset);
 	}
-	
+
 	public boolean contains(String entryName) {
 		return this.zipFile.getEntry(entryName) != null;
 	}
-	
+
 	public Set<String> allPackages() {
 		if (this.packagesCache == null) {
 			this.initialize();
 		}
 		return this.packagesCache.keySet();
 	}
-	
+
 	public List<String[]> getTypes(String packageName) {
 		// package name is expected to ends with '/'
 		if (this.packagesCache == null) {
@@ -101,22 +102,23 @@ public class Archive {
 		}
 		return this.packagesCache.get(packageName);
 	}
-	
+
 	public void flush() {
 		this.packagesCache = null;
 	}
 
+	@Override
 	public void close() {
+		this.packagesCache = null;
 		try {
 			if (this.zipFile != null) {
 				this.zipFile.close();
 			}
-			this.packagesCache = null;
 		} catch (IOException e) {
 			// ignore
 		}
 	}
-	
+
 	@Override
 	public String toString() {
 		return "Archive: " + (this.file == null ? "UNKNOWN_ARCHIVE" : this.file.getAbsolutePath()); //$NON-NLS-1$ //$NON-NLS-2$

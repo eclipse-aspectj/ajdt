@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others.
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -30,7 +30,7 @@ import org.eclipse.core.runtime.IPath;
  * <li> project entries (<code>CPE_PROJECT</code>) </li>
  * </ul>
  * In particular, a classpath container can neither reference further classpath containers or classpath variables.
- * <p> 
+ * <p>
  * A library entry can reference other libraries through the Class-Path section of the JAR's MANIFEST.MF file. If the
  * container wants such referenced entries to be part of the classpath, the container must explicitly add them to the
  * array returned from {@link #getClasspathEntries()}.
@@ -98,6 +98,7 @@ public interface IClasspathContainer {
 	 * <li>{@link IJavaProject#readOutputLocation()}</li>
 	 * <li>Java element operations marked as "handle-only"</li>
 	 * </ul>
+	 * <p>
 	 * The effects of using other Java model APIs are unspecified.
 	 * </p>
 	 *

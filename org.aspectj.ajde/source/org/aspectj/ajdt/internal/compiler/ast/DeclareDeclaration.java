@@ -1,13 +1,13 @@
 /* *******************************************************************
  * Copyright (c) 2002 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     PARC     initial implementation
  * ******************************************************************/
 
 package org.aspectj.ajdt.internal.compiler.ast;
@@ -75,7 +75,7 @@ public class DeclareDeclaration extends AjMethodDeclaration {
 			DeclareParents dp = (DeclareParents) declareDecl;
 			String childPattern = dp.getChild().toString();
 			Collection parentPatterns = dp.getParents().getExactTypes();
-			StringBuffer parents = new StringBuffer();
+			StringBuilder parents = new StringBuilder();
 			for (Iterator iter = parentPatterns.iterator(); iter.hasNext();) {
 				UnresolvedType urt = ((UnresolvedType) iter.next());
 				parents.append(urt.getName());
@@ -147,7 +147,7 @@ public class DeclareDeclaration extends AjMethodDeclaration {
 			return null;
 		}
 
-		EclipseScope scope = new EclipseScope(new FormalBinding[0], classScope);
+		EclipseScope scope = new EclipseScope(FormalBinding.NONE, classScope);
 
 		declareDecl.resolve(scope);
 		return declareDecl;
@@ -174,7 +174,7 @@ public class DeclareDeclaration extends AjMethodDeclaration {
 		super.postParse(typeDec);
 		int declareSequenceNumberInType = ((AspectDeclaration) typeDec).declareCounter++;
 		// FIXME asc the name should perhaps include the hashcode of the pattern (type/sig) for binary compatibility reasons!
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		sb.append("ajc$declare");
 		// Declares can choose to provide a piece of the name - to enable
 		// them to be easily distinguised at weave time (e.g. see declare annotation)

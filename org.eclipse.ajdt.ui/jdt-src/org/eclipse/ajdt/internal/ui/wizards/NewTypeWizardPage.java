@@ -66,12 +66,12 @@ import org.eclipse.jdt.core.search.SearchEngine;
 import org.eclipse.jdt.internal.corext.codemanipulation.AddUnimplementedConstructorsOperation;
 import org.eclipse.jdt.internal.corext.codemanipulation.AddUnimplementedMethodsOperation;
 import org.eclipse.jdt.internal.corext.codemanipulation.CodeGenerationSettings;
-import org.eclipse.jdt.internal.corext.codemanipulation.StubUtility;
+import org.eclipse.jdt.internal.core.manipulation.StubUtility;
 import org.eclipse.jdt.internal.corext.dom.ASTNodes;
 import org.eclipse.jdt.internal.corext.dom.TokenScanner;
 import org.eclipse.jdt.internal.corext.refactoring.StubTypeContext;
 import org.eclipse.jdt.internal.corext.refactoring.TypeContextChecker;
-import org.eclipse.jdt.internal.corext.template.java.JavaContext;
+import org.eclipse.jdt.internal.corext.template.java.TemplateUtils;
 import org.eclipse.jdt.internal.corext.util.CodeFormatterUtil;
 import org.eclipse.jdt.internal.corext.util.JavaConventionsUtil;
 import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
@@ -2458,7 +2458,7 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 		try {
 			Template template= JavaPlugin.getDefault().getTemplateStore().findTemplate(name);
 			if (template != null) {
-				return JavaContext.evaluateTemplate(template, parentCU, pos);
+				return TemplateUtils.evaluateTemplate(template, parentCU, pos);
 			}
 		} catch (CoreException e) {
 			JavaPlugin.log(e);
@@ -2507,7 +2507,7 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 				createImports(imports, operation.getCreatedImports());
 			}
 			if (doConstructors) {
-				AddUnimplementedConstructorsOperation operation= new AddUnimplementedConstructorsOperation(unit, binding, null, -1, false, true, false);
+				AddUnimplementedConstructorsOperation operation= new AddUnimplementedConstructorsOperation(unit, binding, null, -1, false, true, false, null);
 				operation.setOmitSuper(true);
 				operation.setCreateComments(isAddComments());
 				operation.run(monitor);

@@ -13,6 +13,7 @@ package org.eclipse.ajdt.core.javaelements;
 
 import org.aspectj.asm.IProgramElement;
 import org.eclipse.jdt.internal.compiler.env.IBinaryTypeAnnotation;
+import org.eclipse.jdt.internal.compiler.env.IRecordComponent;
 import org.eclipse.jdt.internal.compiler.env.ITypeAnnotationWalker;
 import org.eclipse.jdt.internal.compiler.lookup.BinaryTypeBinding.ExternalAnnotationStatus;
 //import org.eclipse.jdt.internal.compiler.lookup.BinaryTypeBinding.ExternalAnnotationStatus;
@@ -159,5 +160,15 @@ public class BinaryAspectElementInfo /*extends ClassFileReader*/ implements IBin
 	public char[] getModule() {
 		return null;
 	}
+
+  public IRecordComponent[] getRecordComponents() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  public boolean isRecord() {
+    // TODO Auto-generated method stub
+    return false;
+  }
 
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -24,6 +24,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ParameterizedGenericMethodBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.RawTypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.SyntheticMethodBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TagBits;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeVariableBinding;
@@ -40,6 +41,7 @@ class MethodBinding implements IMethodBinding {
 		Modifier.ABSTRACT | Modifier.STATIC | Modifier.FINAL | Modifier.SYNCHRONIZED | Modifier.NATIVE |
 		Modifier.STRICTFP | Modifier.DEFAULT;
 	private static final ITypeBinding[] NO_TYPE_BINDINGS = new ITypeBinding[0];
+	static final IVariableBinding[] NO_VARIABLE_BINDINGS = new IVariableBinding[0];
 	protected org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodBinding binding;
 	protected BindingResolver resolver;
 	private volatile ITypeBinding[] parameterTypes;
@@ -69,6 +71,22 @@ class MethodBinding implements IMethodBinding {
 	@Override
 	public boolean isConstructor() {
 		return this.binding.isConstructor();
+	}
+
+	/**
+	 * @see IMethodBinding#isCompactConstructor()
+	 */
+	@Override
+	public boolean isCompactConstructor() {
+		return this.binding.isCompactConstructor();
+	}
+
+	/**
+	 * @see IMethodBinding#isCanonicalConstructor()
+	 */
+	@Override
+	public boolean isCanonicalConstructor() {
+		return ((this.binding.tagBits & TagBits.IsCanonicalConstructor) != 0);
 	}
 
 	/**
@@ -186,7 +204,7 @@ class MethodBinding implements IMethodBinding {
 					paramTypes[i] = typeBinding;
 				} else {
 					// log error
-					StringBuffer message = new StringBuffer("Report method binding where a parameter is null:\n");  //$NON-NLS-1$
+					StringBuilder message = new StringBuilder("Report method binding where a parameter is null:\n");  //$NON-NLS-1$
 					message.append(toString());
 					Util.log(new IllegalArgumentException(), message.toString());
 					// report no binding since one or more parameter has no binding
@@ -231,7 +249,7 @@ class MethodBinding implements IMethodBinding {
 						((metaTagBits & TagBits.AnnotationTargetMASK) != 0)) {
 					continue;
 				}
-				
+
 				final IAnnotationBinding annotationInstance = this.resolver.getAnnotationInstance(internalAnnotation);
 				if (annotationInstance == null) {
 					continue;
@@ -240,7 +258,7 @@ class MethodBinding implements IMethodBinding {
 			}
 			if (convertedAnnotationCount == length) return tempAnnotations;
 			if (convertedAnnotationCount == 0) return AnnotationBinding.NoAnnotations;
-			
+
 			System.arraycopy(tempAnnotations, 0, (tempAnnotations = new IAnnotationBinding[convertedAnnotationCount]), 0, convertedAnnotationCount);
 			return tempAnnotations;
 		}
@@ -515,6 +533,7 @@ class MethodBinding implements IMethodBinding {
 
 		private MethodBinding implementation;
 		private IBinding declaringMember;
+		private IVariableBinding[] syntheticOuterLocalVariables;
 
 		public LambdaMethod(DefaultBindingResolver resolver,
 							org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodBinding lambdaDescriptor,
@@ -571,5 +590,28 @@ class MethodBinding implements IMethodBinding {
 		public String toString() {
 			return super.toString().replace("public abstract ", "public ");  //$NON-NLS-1$//$NON-NLS-2$
 		}
+
+		@Override
+		public IVariableBinding[] getSyntheticOuterLocals() {
+			if (this.syntheticOuterLocalVariables != null) {
+				return this.syntheticOuterLocalVariables;
+			}
+			return NO_VARIABLE_BINDINGS;
+		}
+
+		public  void setSyntheticOuterLocals(IVariableBinding[] syntheticOuterLocalVariables) {
+			this.syntheticOuterLocalVariables = syntheticOuterLocalVariables;
+		}
+	}
+
+	@Override
+	public IVariableBinding[] getSyntheticOuterLocals() {
+		return NO_VARIABLE_BINDINGS;
+	}
+
+	@Override
+	public boolean isSyntheticRecordMethod() {
+		return ((getDeclaringClass().isRecord()) &&
+				(this.binding instanceof SyntheticMethodBinding));
 	}
 }

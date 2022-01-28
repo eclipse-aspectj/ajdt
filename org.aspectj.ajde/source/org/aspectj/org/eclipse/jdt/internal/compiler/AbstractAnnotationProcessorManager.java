@@ -1,3 +1,4 @@
+//AspectJ
 /*******************************************************************************
  * Copyright (c) 2006, 2018 IBM Corporation and others.
  *
@@ -38,7 +39,7 @@ public abstract class AbstractAnnotationProcessorManager {
 	 * @param compiler the given compiler
 	 * @param compilationUnitLocator the given compilation unit locator
 	 * @param javaProject the given java project
-	 * @param isTestCode 
+	 * @param isTestCode
 	 */
 	public abstract void configureFromPlatform(Compiler compiler, Object compilationUnitLocator, Object javaProject, boolean isTestCode);
 
@@ -82,6 +83,13 @@ public abstract class AbstractAnnotationProcessorManager {
 	public abstract void reset();
 
 	/**
+	 * Final cleanup after all rounds have completed.
+	 */
+	protected void cleanUp() {
+		// default: do nothing, because reset() already did the common work
+	}
+
+	/**
 	 * Run a new annotation processing round on the given values.
 	 *
 	 * @param units the given source type
@@ -97,5 +105,6 @@ public abstract class AbstractAnnotationProcessorManager {
 	 */
 	public abstract void setProcessors(Object[] processors);
 
+	// AspectJ extension
 	protected abstract void closeClassLoader();
 }

@@ -1,17 +1,12 @@
 /* *******************************************************************
  * Copyright (c) 2002 Palo Alto Research Center, Incorporated (PARC).
- *               2005 Contributors
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     PARC     initial implementation
- *     Adrian Colyer, Andy Clement, overhaul for generics, Abraham Nevado 
+ *               2005,2020 Contributors
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
  * ******************************************************************/
-
 package org.aspectj.weaver;
 
 import java.lang.ref.Reference;
@@ -22,7 +17,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -53,9 +47,15 @@ import org.aspectj.weaver.tools.TraceFactory;
 
 /**
  * A World is a collection of known types and crosscutting members.
+ *
+ * @author PARC
+ * @author Adrian Colyer
+ * @author Andy Clement
+ * @author Abraham Nevado
+ * @author Joseph MacFarlane
  */
 public abstract class World implements Dump.INode {
-	
+
 	/** handler for any messages produced during resolution etc. */
 	private IMessageHandler messageHandler = IMessageHandler.SYSTEM_ERR;
 
@@ -112,10 +112,10 @@ public abstract class World implements Dump.INode {
 	/** The level of the aspectjrt.jar the code we generate needs to run on */
 	public static final RuntimeVersion RUNTIME_LEVEL_DEFAULT = RuntimeVersion.V1_5;
 	private RuntimeVersion targetAspectjRuntimeLevel = RUNTIME_LEVEL_DEFAULT;
-	
+
 	/** Flags for the new joinpoints that are 'optional': -Xjoinpoints:arrayconstruction -Xjoinpoints:synchronization */
-	private boolean optionalJoinpoint_ArrayConstruction = false; 
-	private boolean optionalJoinpoint_Synchronization = false; 
+	private boolean optionalJoinpoint_ArrayConstruction = false;
+	private boolean optionalJoinpoint_Synchronization = false;
 
 	private boolean addSerialVerUID = false;
 
@@ -378,7 +378,7 @@ public abstract class World implements Dump.INode {
 		// MessageUtil.error(messageHandler,
 		// WeaverMessages.format(WeaverMessages.CANT_FIND_TYPE,ty.getName()));
 		if (dumpState_cantFindTypeExceptions == null) {
-			dumpState_cantFindTypeExceptions = new ArrayList<RuntimeException>();
+			dumpState_cantFindTypeExceptions = new ArrayList<>();
 		}
 		if (dumpState_cantFindTypeExceptions.size() < 100) { // limit growth
 			dumpState_cantFindTypeExceptions.add(new RuntimeException("Can't find type " + ty.getName()));
@@ -407,7 +407,7 @@ public abstract class World implements Dump.INode {
 	/**
 	 * When the world is operating in 1.5 mode, the TypeMap should only contain RAW types and never directly generic types. The RAW
 	 * type will contain a reference to the generic type.
-	 * 
+	 *
 	 * @param type a possibly generic type for which the raw needs creating as it is not currently in the world
 	 * @return a type suitable for putting into the world
 	 */
@@ -862,7 +862,7 @@ public abstract class World implements Dump.INode {
 
 	/**
 	 * Set the error and warning threashold which can be taken from CompilerOptions (see bug 129282)
-	 * 
+	 *
 	 * @param errorThreshold
 	 * @param warningThreshold
 	 */
@@ -968,7 +968,7 @@ public abstract class World implements Dump.INode {
 	public final static String xsetITD_VERSION_DEFAULT = xsetITD_VERSION_2NDGEN;
 	public final static String xsetMINIMAL_MODEL = "minimalModel";
 	public final static String xsetTARGETING_RUNTIME_1610 = "targetRuntime1_6_10";
-	
+
 	// This option allows you to prevent AspectJ adding local variable tables - some tools (e.g. dex) may
 	// not like what gets created because even though it is valid, the bytecode they are processing has
 	// unexpected quirks that mean the table entries are violated in the code. See issue:
@@ -991,10 +991,10 @@ public abstract class World implements Dump.INode {
 		if (jps == null) {
 			return;
 		}
-		if (jps.indexOf("arrayconstruction") != -1) {
+		if (jps.contains("arrayconstruction")) {
 			optionalJoinpoint_ArrayConstruction = true;
 		}
-		if (jps.indexOf("synchronization") != -1) {
+		if (jps.contains("synchronization")) {
 			optionalJoinpoint_Synchronization = true;
 		}
 	}
@@ -1045,11 +1045,11 @@ public abstract class World implements Dump.INode {
 		public int policy = USE_WEAK_REFS;
 
 		// Map of types that never get thrown away
-		final Map<String, ResolvedType> tMap = new HashMap<String, ResolvedType>();
+		final Map<String, ResolvedType> tMap = new HashMap<>();
 
 		// Map of types that may be ejected from the cache if we need space
 		final Map<String, Reference<ResolvedType>> expendableMap = Collections
-				.synchronizedMap(new WeakHashMap<String, Reference<ResolvedType>>());
+				.synchronizedMap(new WeakHashMap<>());
 
 		private final World w;
 
@@ -1057,16 +1057,15 @@ public abstract class World implements Dump.INode {
 		private boolean memoryProfiling = false;
 		private int maxExpendableMapSize = -1;
 		private int collectedTypes = 0;
-		private final ReferenceQueue<ResolvedType> rq = new ReferenceQueue<ResolvedType>();
+		private final ReferenceQueue<ResolvedType> rq = new ReferenceQueue<>();
 
 		TypeMap(World w) {
 			// Demotion activated when switched on and loadtime weaving or in AJDT
 			demotionSystemActive = w.isDemotionActive() && (w.isLoadtimeWeaving() || w.couldIncrementalCompileFollow());
-			addedSinceLastDemote = new ArrayList<String>();
-			writtenClasses = new ArrayList<String>();
+			addedSinceLastDemote = new ArrayList<>();
+			writtenClasses = new ArrayList<>();
 			this.w = w;
-			memoryProfiling = false;// !w.getMessageHandler().isIgnoring(Message.
-			// INFO);
+			memoryProfiling = false;// !w.getMessageHandler().isIgnoring(Message.INFO);
 		}
 
 		// For testing
@@ -1088,7 +1087,7 @@ public abstract class World implements Dump.INode {
 		 * expendable map where GC can claim them at some point later. Demotion means: the type is not an aspect, the type is not
 		 * java.lang.Object, the type is not primitive and the type is not affected by type mungers in any way. Further refinements
 		 * of these conditions may allow for more demotions.
-		 * 
+		 *
 		 * @return number of types demoted
 		 */
 		public int demote(boolean atEndOfCompile) {
@@ -1116,7 +1115,7 @@ public abstract class World implements Dump.INode {
 				addedSinceLastDemote.clear();
 			} else {
 				// Compile time demotion strategy
-				List<String> forRemoval = new ArrayList<String>();
+				List<String> forRemoval = new ArrayList<>();
 				for (String key : addedSinceLastDemote) {
 					ResolvedType type = tMap.get(key);
 					if (type == null) {
@@ -1180,11 +1179,19 @@ public abstract class World implements Dump.INode {
 
 		private void insertInExpendableMap(String key, ResolvedType type) {
 			if (useExpendableMap) {
-				if (!expendableMap.containsKey(key)) {
+				// Need to check both whether the entry is gone, or whether the entry has had
+				// the WR to the value cleared.
+				Reference<ResolvedType> existingReference = expendableMap.get(key);
+				if (existingReference == null || existingReference.get() == null) {
+					// If a previous key is in there, WeakHashMap.put will update the value on the
+					// entry but not the key. We can't allow this as the old key won't
+					// be directly referenced by the new type, meaning that the key and value
+					// might be GC'd independently.
+					expendableMap.remove(key);
 					if (policy == USE_SOFT_REFS) {
-						expendableMap.put(key, new SoftReference<ResolvedType>(type));
+						expendableMap.put(key, new SoftReference<>(type));
 					} else {
-						expendableMap.put(key, new WeakReference<ResolvedType>(type));
+						expendableMap.put(key, new WeakReference<>(type));
 					}
 				}
 			}
@@ -1196,7 +1203,7 @@ public abstract class World implements Dump.INode {
 		 * cannot guarantee you are using the type variable in the same way as someone previously working with a similarly named
 		 * type variable. So, these do not go into the map: - TypeVariableReferenceType. - ParameterizedType where a member type
 		 * variable is involved. - BoundedReferenceType when one of the bounds is a type variable.
-		 * 
+		 *
 		 * definition: "member type variables" - a tvar declared on a generic method/ctor as opposed to those you see declared on a
 		 * generic type.
 		 */
@@ -1218,8 +1225,7 @@ public abstract class World implements Dump.INode {
 				}
 				return type;
 			}
-			// this test should be improved - only avoid putting them in if one
-			// of the
+			// this test should be improved - only avoid putting them in if one of the
 			// bounds is a member type variable
 			if (type instanceof BoundedReferenceType) {
 				if (debug) {
@@ -1243,27 +1249,31 @@ public abstract class World implements Dump.INode {
 			}
 
 			// TODO should this be in as a permanent assertion?
-			
 			if ((type instanceof ReferenceType) && type.getWorld().isInJava5Mode()
 					&& (((ReferenceType) type).getDelegate() != null) && type.isGenericType()) {
 				throw new BCException("Attempt to add generic type to typemap " + type.toString() + " (should be raw)");
 			}
-			
 
 			if (w.isExpendable(type)) {
 				if (useExpendableMap) {
+					// If a previous key is in there, WeakHashMap.put will update the value on the
+					// entry but not the key. We can't allow this as the old key won't be directly
+					// referenced by the new type, meaning that the key and value might
+					// be GC'd independently.
+					expendableMap.remove(key);
+
 					// Dont use reference queue for tracking if not profiling...
 					if (policy == USE_WEAK_REFS) {
 						if (memoryProfiling) {
-							expendableMap.put(key, new WeakReference<ResolvedType>(type, rq));
+							expendableMap.put(key, new WeakReference<>(type, rq));
 						} else {
-							expendableMap.put(key, new WeakReference<ResolvedType>(type));
+							expendableMap.put(key, new WeakReference<>(type));
 						}
 					} else if (policy == USE_SOFT_REFS) {
 						if (memoryProfiling) {
-							expendableMap.put(key, new SoftReference<ResolvedType>(type, rq));
+							expendableMap.put(key, new SoftReference<>(type, rq));
 						} else {
-							expendableMap.put(key, new SoftReference<ResolvedType>(type));
+							expendableMap.put(key, new SoftReference<>(type));
 						}
 						// } else {
 						// expendableMap.put(key, type);
@@ -1307,7 +1317,7 @@ public abstract class World implements Dump.INode {
 
 		/**
 		 * Lookup a type by its signature, always look in the real map before the expendable map
-		 */ 
+		 */
 		public ResolvedType get(String key) {
 			checkq();
 			ResolvedType ret = tMap.get(key);
@@ -1408,7 +1418,7 @@ public abstract class World implements Dump.INode {
 
 		public AspectPrecedenceCalculator(World forSomeWorld) {
 			world = forSomeWorld;
-			cachedResults = new HashMap<PrecedenceCacheKey, Integer>();
+			cachedResults = new HashMap<>();
 		}
 
 		/**
@@ -1418,14 +1428,14 @@ public abstract class World implements Dump.INode {
 		public int compareByPrecedence(ResolvedType firstAspect, ResolvedType secondAspect) {
 			PrecedenceCacheKey key = new PrecedenceCacheKey(firstAspect, secondAspect);
 			if (cachedResults.containsKey(key)) {
-				return (cachedResults.get(key)).intValue();
+				return cachedResults.get(key);
 			} else {
 				int order = 0;
 				DeclarePrecedence orderer = null; // Records the declare
 				// precedence statement that
 				// gives the first ordering
-				for (Iterator<Declare> i = world.getCrosscuttingMembersSet().getDeclareDominates().iterator(); i.hasNext();) {
-					DeclarePrecedence d = (DeclarePrecedence) i.next();
+				for (Declare declare : world.getCrosscuttingMembersSet().getDeclareDominates()) {
+					DeclarePrecedence d = (DeclarePrecedence) declare;
 					int thisOrder = d.compare(firstAspect, secondAspect);
 					if (thisOrder != 0) {
 						if (orderer == null) {
@@ -1443,7 +1453,7 @@ public abstract class World implements Dump.INode {
 						}
 					}
 				}
-				cachedResults.put(key, new Integer(order));
+				cachedResults.put(key, order);
 				return order;
 			}
 		}
@@ -1511,7 +1521,7 @@ public abstract class World implements Dump.INode {
 	// --- I would rather stash this against a reference type - but we don't
 	// guarantee referencetypes are unique for
 	// so we can't :(
-	private final Map<Class<?>, TypeVariable[]> workInProgress1 = new HashMap<Class<?>, TypeVariable[]>();
+	private final Map<Class<?>, TypeVariable[]> workInProgress1 = new HashMap<>();
 
 	public TypeVariable[] getTypeVariablesCurrentlyBeingProcessed(Class<?> baseClass) {
 		return workInProgress1.get(baseClass);
@@ -1628,7 +1638,7 @@ public abstract class World implements Dump.INode {
 
 				s = p.getProperty(xsetDEBUG_STRUCTURAL_CHANGES_CODE, "false");
 				forDEBUG_structuralChangesCode = s.equalsIgnoreCase("true");
-				
+
 				s = p.getProperty(xsetTRANSIENT_TJP_FIELDS,"false");
 				transientTjpFields = s.equalsIgnoreCase("true");
 
@@ -1638,9 +1648,9 @@ public abstract class World implements Dump.INode {
 				s = p.getProperty(xsetGENERATE_NEW_LVTS,"true");
 				generateNewLvts = s.equalsIgnoreCase("true");
 				if (!generateNewLvts) {
-					getMessageHandler().handleMessage(MessageUtil.info("[generateNewLvts=false] for methods without an incoming local variable table, do not generate one"));					
+					getMessageHandler().handleMessage(MessageUtil.info("[generateNewLvts=false] for methods without an incoming local variable table, do not generate one"));
 				}
-				
+
 				s = p.getProperty(xsetOPTIMIZED_MATCHING, "true");
 				optimizedMatching = s.equalsIgnoreCase("true");
 				if (!optimizedMatching) {
@@ -1691,7 +1701,7 @@ public abstract class World implements Dump.INode {
 		ensureAdvancedConfigurationProcessed();
 		return runMinimalMemory;
 	}
-	
+
 	public boolean isTransientTjpFields() {
 		ensureAdvancedConfigurationProcessed();
 		return transientTjpFields;
@@ -1741,12 +1751,12 @@ public abstract class World implements Dump.INode {
 
 	/**
 	 * Register a new pointcut designator handler with the world - this can be used by any pointcut parsers attached to the world.
-	 * 
+	 *
 	 * @param designatorHandler handler for the new pointcut
 	 */
 	public void registerPointcutHandler(PointcutDesignatorHandler designatorHandler) {
 		if (pointcutDesignators == null) {
-			pointcutDesignators = new HashSet<PointcutDesignatorHandler>();
+			pointcutDesignators = new HashSet<>();
 		}
 		pointcutDesignators.add(designatorHandler);
 	}
@@ -1783,7 +1793,7 @@ public abstract class World implements Dump.INode {
 	/**
 	 * Determine if the named aspect requires a particular type around in order to be useful. The type is named in the aop.xml file
 	 * against the aspect.
-	 * 
+	 *
 	 * @return true if there is a type missing that this aspect really needed around
 	 */
 	public boolean hasUnsatisfiedDependency(ResolvedType aspectType) {
@@ -1831,7 +1841,7 @@ public abstract class World implements Dump.INode {
 
 	// map from aspect > excluded types
 	// memory issue here?
-	private Map<ResolvedType, Set<ResolvedType>> exclusionMap = new HashMap<ResolvedType, Set<ResolvedType>>();
+	private Map<ResolvedType, Set<ResolvedType>> exclusionMap = new HashMap<>();
 
 	public Map<ResolvedType, Set<ResolvedType>> getExclusionMap() {
 		return exclusionMap;
@@ -1876,10 +1886,10 @@ public abstract class World implements Dump.INode {
 		long typeCount;
 		long perJoinpointCount;
 		long perTypes;
-		Map<String, Long> joinpointsPerPointcut = new HashMap<String, Long>();
-		Map<String, Long> timePerPointcut = new HashMap<String, Long>();
-		Map<String, Long> fastMatchTimesPerPointcut = new HashMap<String, Long>();
-		Map<String, Long> fastMatchTypesPerPointcut = new HashMap<String, Long>();
+		Map<String, Long> joinpointsPerPointcut = new HashMap<>();
+		Map<String, Long> timePerPointcut = new HashMap<>();
+		Map<String, Long> fastMatchTimesPerPointcut = new HashMap<>();
+		Map<String, Long> fastMatchTypesPerPointcut = new HashMap<>();
 
 		TimeCollector(World world) {
 			this.perJoinpointCount = world.timersPerJoinpoint;
@@ -1887,8 +1897,8 @@ public abstract class World implements Dump.INode {
 			this.world = world;
 			this.joinpointCount = 0;
 			this.typeCount = 0;
-			this.joinpointsPerPointcut = new HashMap<String, Long>();
-			this.timePerPointcut = new HashMap<String, Long>();
+			this.joinpointsPerPointcut = new HashMap<>();
+			this.timePerPointcut = new HashMap<>();
 		}
 
 		public void report() {
@@ -1900,7 +1910,7 @@ public abstract class World implements Dump.INode {
 					MessageUtil.info("Pointcut matching cost (total=" + (totalTime / 1000000) + "ms for " + joinpointCount
 							+ " joinpoint match calls):"));
 			for (String p : joinpointsPerPointcut.keySet()) {
-				StringBuffer sb = new StringBuffer();
+				StringBuilder sb = new StringBuilder();
 				sb.append("Time:" + (timePerPointcut.get(p) / 1000000) + "ms (jps:#" + joinpointsPerPointcut.get(p)
 						+ ") matching against " + p);
 				world.getMessageHandler().handleMessage(MessageUtil.info(sb.toString()));
@@ -1915,7 +1925,7 @@ public abstract class World implements Dump.INode {
 					MessageUtil.info("Pointcut fast matching cost (total=" + (totalTime / 1000000) + "ms for " + typeCount
 							+ " fast match calls):"));
 			for (String p : fastMatchTimesPerPointcut.keySet()) {
-				StringBuffer sb = new StringBuffer();
+				StringBuilder sb = new StringBuilder();
 				sb.append("Time:" + (fastMatchTimesPerPointcut.get(p) / 1000000) + "ms (types:#" + fastMatchTypesPerPointcut.get(p)
 						+ ") fast matching against " + p);
 				world.getMessageHandler().handleMessage(MessageUtil.info(sb.toString()));
@@ -1952,7 +1962,7 @@ public abstract class World implements Dump.INode {
 							MessageUtil.info("Pointcut matching cost (total=" + (totalTime / 1000000) + "ms for " + joinpointCount
 									+ " joinpoint match calls):"));
 					for (String p : joinpointsPerPointcut.keySet()) {
-						StringBuffer sb = new StringBuffer();
+						StringBuilder sb = new StringBuilder();
 						sb.append("Time:" + (timePerPointcut.get(p) / 1000000) + "ms (jps:#" + joinpointsPerPointcut.get(p)
 								+ ") matching against " + p);
 						world.getMessageHandler().handleMessage(MessageUtil.info(sb.toString()));
@@ -1990,7 +2000,7 @@ public abstract class World implements Dump.INode {
 							MessageUtil.info("Pointcut fast matching cost (total=" + (totalTime / 1000000) + "ms for " + typeCount
 									+ " fast match calls):"));
 					for (String p : fastMatchTimesPerPointcut.keySet()) {
-						StringBuffer sb = new StringBuffer();
+						StringBuilder sb = new StringBuilder();
 						sb.append("Time:" + (fastMatchTimesPerPointcut.get(p) / 1000000) + "ms (types:#"
 								+ fastMatchTypesPerPointcut.get(p) + ") fast matching against " + p);
 						world.getMessageHandler().handleMessage(MessageUtil.info(sb.toString()));
@@ -2012,7 +2022,7 @@ public abstract class World implements Dump.INode {
 	/**
 	 * Returns the version of ITD that this world wants to create. The default is the new style (2) but in some cases where there
 	 * might be a clash, the old style can be used. It is set through the option -Xset:itdVersion=1
-	 * 
+	 *
 	 * @return the ITD version this world wants to create - 1=oldstyle 2=new, transparent style
 	 */
 	public int getItdVersion() {

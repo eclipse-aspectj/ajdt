@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -7,7 +7,7 @@
  * https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann - Contributions for
@@ -18,10 +18,12 @@
  *								bug 400421 - [compiler] Null analysis for fields does not take @com.google.inject.Inject into account
  *								bug 382069 - [null] Make the null analysis consider JUnit's assertNotNull similarly to assertions
  *								Bug 410218 - Optional warning for arguments of "unexpected" types to Map#get(Object), Collection#remove(Object) et al.
- *      Jesper S Moller <jesper@selskabet.org> -  Contributions for
+ *     Jesper S Moller <jesper@selskabet.org> -  Contributions for
  *								Bug 412153 - [1.8][compiler] Check validity of annotations which may be repeatable
  *     Ulrich Grave <ulrich.grave@gmx.de> - Contributions for
  *                              bug 386692 - Missing "unused" warning on "autowired" fields
+ *     Pierre-Yves B. <pyvesdev@gmail.com> - Contribution for
+ *                              bug 542520 - [JUnit 5] Warning The method xxx from the type X is never used locally is shown when using MethodSource
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
 
@@ -101,19 +103,19 @@ public interface TypeIds {
 	final int T_JavaIoExternalizable = 56;
 	final int T_JavaIoObjectStreamException = 57;
 	final int T_JavaIoException = 58;
-	
+
 	final int T_JavaUtilCollection = 59;
-	
+
 	// java 7
 	final int T_JavaLangSafeVarargs = 60;
-	
+
 	final int T_JavaLangInvokeMethodHandlePolymorphicSignature = 61;
 
 	// java 7 java.lang.AutoCloseable
 	final int T_JavaLangAutoCloseable = 62;
-	
+
 	// new in 3.8 for null annotations, removed in 4.6 (ids 65-67)
-	
+
 	// new in 3.8 to identify org.eclipse.core.runtime.Assert
 	final int T_OrgEclipseCoreRuntimeAssert = 68;
 	// new in 3.9 to identify more assertion utilities:
@@ -123,6 +125,8 @@ public interface TypeIds {
 	final int T_OrgApacheCommonsLang3Validate = 72;
 	final int T_ComGoogleCommonBasePreconditions = 73;
 	final int T_JavaUtilObjects = 74;
+	// new in 3.26 to identify more assertion utilities:
+	final int T_OrgJunitJupiterApiAssertions = 75;
 
 	// java 8
 	final int T_JavaLangFunctionalInterface = 77;
@@ -136,14 +140,22 @@ public interface TypeIds {
 
 	// Java 8 - JEP 120
 	final int T_JavaLangAnnotationRepeatable = 90;
-	
+
 	// classes with methods with "dangerous" signatures:
 	final int T_JavaUtilMap = 91;
 	final int T_JavaUtilList = 92;
 
+	// @MethodSource
+	final int T_OrgJunitJupiterParamsProviderMethodSource = 93;
+
+	// Java 14 preview
+	final int T_JavaLangRecord = 93;
+
+	final int T_JdkInternalPreviewFeature = 94;
+
 	// If you add new type id, make sure to bump up T_LastWellKnownTypeId if there is a cross over.
 	final int T_LastWellKnownTypeId = 128;
-	
+
 
 	final int NoId = Integer.MAX_VALUE;
 
@@ -231,19 +243,19 @@ public interface TypeIds {
 	 * @see ReferenceBinding#hasTypeBit(int)
 	 */
 	final int BitUninitialized = 0x8000000;
-	/** 
+	/**
 	 * Marks all sub-types of java.lang.AutoCloseable.
 	 * @see ReferenceBinding#hasTypeBit(int)
 	 */
 	final int BitAutoCloseable = 1;
-	/** 
+	/**
 	 * Marks all sub-types of java.io.Closeable.
 	 * @see ReferenceBinding#hasTypeBit(int)
 	 */
 	final int BitCloseable = 2;
 	/**
 	 * Bit for members of a white list:
-	 * Subtypes of Closeable that wrap another resource without directly holding any OS resources. 
+	 * Subtypes of Closeable that wrap another resource without directly holding any OS resources.
 	 */
 	final int BitWrapperCloseable = 4;
 	/**
@@ -251,7 +263,7 @@ public interface TypeIds {
 	 * Subtypes of Closeable that do not hold an OS resource that needs to be released.
 	 */
 	final int BitResourceFreeCloseable = 8;
-	
+
 	final int BitUninternedType = 16;
 
 	/** Bit for a type configured as a @NonNull annotation. */
@@ -275,4 +287,8 @@ public interface TypeIds {
 	 * Set of type bits that should be inherited by any sub types.
 	 */
 	final int InheritableBits = BitAutoCloseable | BitCloseable | BitUninternedType | BitMap | BitCollection | BitList ;
+
+	public static int getCategory(int typeId) {
+		return typeId == TypeIds.T_double || typeId == TypeIds.T_long ? 2 : 1;
+	}
 }

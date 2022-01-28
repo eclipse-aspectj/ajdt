@@ -1,6 +1,5 @@
-// ASPECTJ
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -29,11 +28,23 @@ import java.util.function.Predicate;
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.AnnotationTargetTypeConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.AttributeNamesConstants;
-import org.aspectj.org.eclipse.jdt.internal.compiler.env.*;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryAnnotation;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryElementValuePair;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryField;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryMethod;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryModule;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryNestedType;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryType;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryTypeAnnotation;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.IModule;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.IRecordComponent;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.ITypeAnnotationWalker;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.Constant;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BinaryTypeBinding.ExternalAnnotationStatus;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ExtraCompilerModifiers;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TagBits;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeIds;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.JRTUtil;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
@@ -54,10 +65,11 @@ public class ClassFileReader extends ClassFileStruct implements IBinaryType {
 
 	// initialized in case the .class file is a nested type
 	private InnerClassInfo innerInfo;
-	private int innerInfoIndex;
 	private InnerClassInfo[] innerInfos;
 	private char[][] interfaceNames;
 	private int interfacesCount;
+	private char[][] permittedSubtypesNames;
+	private int permittedSubtypesCount;
 	private MethodInfo[] methods;
 	private int methodsCount;
 	private char[] signature;
@@ -73,6 +85,9 @@ public class ClassFileReader extends ClassFileStruct implements IBinaryType {
 	private char[] nestHost;
 	private int nestMembersCount;
 	private char[][] nestMembers;
+	private boolean isRecord;
+	private int recordComponentsCount;
+	private RecordComponentInfo[] recordComponents;
 
 private static String printTypeModifiers(int modifiers) {
 	java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
@@ -84,6 +99,7 @@ private static String printTypeModifiers(int modifiers) {
 	if ((modifiers & ClassFileConstants.AccSuper) != 0) print.print("super "); //$NON-NLS-1$
 	if ((modifiers & ClassFileConstants.AccInterface) != 0) print.print("interface "); //$NON-NLS-1$
 	if ((modifiers & ClassFileConstants.AccAbstract) != 0) print.print("abstract "); //$NON-NLS-1$
+	if ((modifiers & ExtraCompilerModifiers.AccSealed) != 0) print.print("sealed "); //$NON-NLS-1$
 	print.flush();
 	return out.toString();
 }
@@ -106,7 +122,7 @@ public static ClassFileReader read(InputStream stream, String fileName) throws C
 }
 
 public static ClassFileReader read(InputStream stream, String fileName, boolean fullyInitialize) throws ClassFormatException, IOException {
-	byte classFileBytes[] = Util.getInputStreamAsByteArray(stream, -1);
+	byte classFileBytes[] = Util.getInputStreamAsByteArray(stream);
 	ClassFileReader classFileReader = new ClassFileReader(classFileBytes, fileName.toCharArray());
 	if (fullyInitialize) {
 		classFileReader.initialize();
@@ -290,6 +306,9 @@ public ClassFileReader(byte[] classFileBytes, char[] fileName, boolean fullyInit
 		// field this.superclassName. null is fine.
 		if (superclassNameIndex != 0) {
 			this.superclassName = getConstantClassNameAt(superclassNameIndex);
+			if (CharOperation.equals(this.superclassName, TypeConstants.CharArray_JAVA_LANG_RECORD_SLASH)) {
+				this.accessFlags |= ExtraCompilerModifiers.AccRecord;
+			}
 		}
 
 		// Read the interfaces, use exception handlers to catch bad format
@@ -365,7 +384,6 @@ public ClassFileReader(byte[] classFileBytes, char[] fileName, boolean fullyInit
 									new InnerClassInfo(this.reference, this.constantPoolOffsets, innerOffset);
 								if (this.classNameIndex == this.innerInfos[j].innerClassNameIndex) {
 									this.innerInfo = this.innerInfos[j];
-									this.innerInfoIndex = j;
 								}
 								innerOffset += 8;
 							}
@@ -411,7 +429,10 @@ public ClassFileReader(byte[] classFileBytes, char[] fileName, boolean fullyInit
 						decodeTypeAnnotations(readOffset, true);
 					} else if (CharOperation.equals(attributeName, AttributeNamesConstants.RuntimeInvisibleTypeAnnotationsName)) {
 						decodeTypeAnnotations(readOffset, false);
+					} 	else if (CharOperation.equals(attributeName, AttributeNamesConstants.RecordClass)) {
+						decodeRecords(readOffset, attributeName);
 					}
+
 					break;
 				case 'M' :
 					if (CharOperation.equals(attributeName, AttributeNamesConstants.MissingTypesName)) {
@@ -453,6 +474,23 @@ public ClassFileReader(byte[] classFileBytes, char[] fileName, boolean fullyInit
 						}
 					}
 					break;
+				case 'P' :
+					if (CharOperation.equals(attributeName, AttributeNamesConstants.PermittedSubclasses)) {
+						int offset = readOffset + 6;
+						this.permittedSubtypesCount = u2At(offset);
+						if (this.permittedSubtypesCount != 0) {
+							this.accessFlags |= ExtraCompilerModifiers.AccSealed;
+							offset += 2;
+							this.permittedSubtypesNames = new char[this.permittedSubtypesCount][];
+							for (int j = 0; j < this.permittedSubtypesCount; j++) {
+								utf8Offset =
+									this.constantPoolOffsets[u2At(this.constantPoolOffsets[u2At(offset)] + 1)];
+		 						this.permittedSubtypesNames[j] = utf8At(utf8Offset + 3, u2At(utf8Offset + 1));
+		 						offset += 2;
+							}
+						}
+					}
+					break;
 			}
 			readOffset += (6 + u4At(readOffset + 2));
 		}
@@ -470,6 +508,23 @@ public ClassFileReader(byte[] classFileBytes, char[] fileName, boolean fullyInit
 			this.classFileName,
 			ClassFormatException.ErrTruncatedInput,
 			readOffset);
+	}
+}
+
+private void decodeRecords(int readOffset, char[] attributeName) {
+	if (CharOperation.equals(attributeName, AttributeNamesConstants.RecordClass)) {
+		this.isRecord = true;
+		int offset = readOffset + 6;
+		this.recordComponentsCount = u2At(offset);
+		if (this.recordComponentsCount != 0) {
+			offset += 2;
+			this.recordComponents = new RecordComponentInfo[this.recordComponentsCount];
+			for (int j = 0; j < this.recordComponentsCount; j++) {
+				RecordComponentInfo component = RecordComponentInfo.createComponent(this.reference, this.constantPoolOffsets, offset, this.version);
+				this.recordComponents[j] = component;
+				offset += component.sizeInBytes();
+			}
+		}
 	}
 }
 
@@ -513,7 +568,8 @@ private void decodeAnnotations(int offset, boolean runtimeVisible) {
 			long standardTagBits = newInfo.standardAnnotationTagBits;
 			if (standardTagBits != 0) {
 				this.tagBits |= standardTagBits;
-				if (this.version < ClassFileConstants.JDK9 || (standardTagBits & TagBits.AnnotationDeprecated) == 0)
+				if ((this.version < ClassFileConstants.JDK9 || (standardTagBits & TagBits.AnnotationDeprecated) == 0)
+						&& (standardTagBits & TagBits.AnnotationTargetMASK) == 0)
 					continue;
 			}
 			if (newInfos == null)
@@ -606,7 +662,7 @@ public char[] getEnclosingMethod() {
 	if (this.enclosingMethod == null) {
 		// read the name
 		StringBuffer buffer = new StringBuffer();
-		
+
 		int nameAndTypeOffset = this.constantPoolOffsets[this.enclosingNameAndTypeIndex];
 		int utf8Offset = this.constantPoolOffsets[u2At(nameAndTypeOffset + 1)];
 		buffer.append(utf8At(utf8Offset + 3, u2At(utf8Offset + 1)));
@@ -644,9 +700,9 @@ public char[] getModule() {
 	return this.moduleName;
 }
 /**
- * Returns the module declaration that this class file represents. This will be 
+ * Returns the module declaration that this class file represents. This will be
  * null for non module-info class files.
- * 
+ *
  * @return the module declaration this represents
  */
 public IBinaryModule getModuleDeclaration() {
@@ -698,6 +754,11 @@ public char[][] getInterfaceNames() {
 	return this.interfaceNames;
 }
 
+@Override
+public char[][] getPermittedSubtypeNames() {
+	return this.permittedSubtypesNames;
+}
+
 // AspectJ start - original method has added boolean parameter, this new one has the original signature and simply
 // passes in false.  This is all needed due to the support for inter type inner types
 @Override
@@ -718,14 +779,12 @@ public IBinaryNestedType[] getMemberTypes(boolean keepIncorrectlyNamedInners) { 
 	// we might have some member types of the current type
 	if (this.innerInfos == null) return null;
 
-	int length = this.innerInfos.length;
-	int startingIndex = this.innerInfo != null ? this.innerInfoIndex + 1 : 0;
-	if (length != startingIndex) {
+	int length = this.innerInfos.length;// - (this.innerInfo != null ? 1 : 0); // AspectJ remove this clause we want to see all of them (conditions below will decide what we really need)
+	if (length != 0) {
 		IBinaryNestedType[] memberTypes =
-			new IBinaryNestedType[length - this.innerInfoIndex];
+				new IBinaryNestedType[length];
 		int memberTypeIndex = 0;
-		for (int i = startingIndex; i < length; i++) {
-			InnerClassInfo currentInnerInfo = this.innerInfos[i];
+		for (InnerClassInfo currentInnerInfo : this.innerInfos) {
 			int outerClassNameIdx = currentInnerInfo.outerClassNameIndex;
 			int innerNameIndex = currentInnerInfo.innerNameIndex;
 			/*
@@ -747,7 +806,7 @@ public IBinaryNestedType[] getMemberTypes(boolean keepIncorrectlyNamedInners) { 
 				// was: && outerClassNameIdx == this.classNameIndex
 				// now:
 				&& (keepIncorrectlyNamedInners || outerClassNameIdx == this.classNameIndex)
-				// AspectJ end				
+				// AspectJ end
 				&& currentInnerInfo.getSourceName().length != 0) {
 				memberTypes[memberTypeIndex++] = currentInnerInfo;
 			}
@@ -845,6 +904,8 @@ public int getModifiers() {
 	} else {
 		modifiers = this.accessFlags;
 	}
+	if (this.permittedSubtypesCount > 0)
+		modifiers |= ExtraCompilerModifiers.AccSealed;
 	return modifiers;
 }
 
@@ -1023,6 +1084,17 @@ public boolean hasStructuralChanges(byte[] newBytes, boolean orderRequired, bool
 				return true;
 			for (int i = 0, max = this.interfacesCount; i < max; i++)
 				if (!CharOperation.equals(this.interfaceNames[i], newInterfacesNames[i]))
+					return true;
+		}
+
+		// permitted sub-types
+		char[][] newPermittedSubtypeNames = newClassFile.getPermittedSubtypeNames();
+		if (this.permittedSubtypesNames != newPermittedSubtypeNames) {
+			int newPermittedSubtypesLength = newPermittedSubtypeNames == null ? 0 : newPermittedSubtypeNames.length;
+			if (newPermittedSubtypesLength != this.permittedSubtypesCount)
+				return true;
+			for (int i = 0, max = this.permittedSubtypesCount; i < max; i++)
+				if (!CharOperation.equals(this.permittedSubtypesNames[i], newPermittedSubtypeNames[i]))
 					return true;
 		}
 
@@ -1399,9 +1471,18 @@ public String toString() {
 	return out.toString();
 }
 
-// AspectJ Extension
-public byte[] getReferenceBytes() {
-	return reference;
+@Override
+public boolean isRecord() {
+	return this.isRecord;
 }
+
+@Override
+public IRecordComponent[] getRecordComponents() {
+	return this.recordComponents;
+}
+	// AspectJ Extension
+	public byte[] getReferenceBytes() {
+		return reference;
+	}
 // End AspectJ Extension
 }

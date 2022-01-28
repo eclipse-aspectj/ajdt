@@ -20,9 +20,9 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.ScannerHelper;
 
 public class CharLiteral extends NumberLiteral {
-	
+
 	char value;
-	
+
 public CharLiteral(char[] token, int s, int e) {
 	super(token, s, e);
 	computeValue();
@@ -44,6 +44,9 @@ private void computeValue() {
 		return;
 	char digit;
 	switch (digit = this.source[2]) {
+		case 's' :
+			this.value = ' ';
+			break;
 		case 'b' :
 			this.value = '\b';
 			break;

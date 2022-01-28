@@ -9,7 +9,7 @@
 	</parent>
 
 	<groupId>org.aspectj.ajde</groupId>
-	<version>1.9.2-SNAPSHOT</version>
+	<version>1.9.8-SNAPSHOT</version>
 	<artifactId>org.aspectj</artifactId>
 	<packaging>eclipse-feature</packaging>
 
@@ -29,7 +29,7 @@
 					</execution>
 				</executions>
 			</plugin>
-			
+
 			<plugin>
 				<groupId>org.eclipse.tycho</groupId>
 				<artifactId>tycho-p2-plugin</artifactId>

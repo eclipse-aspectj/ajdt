@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -11,7 +11,7 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *        Andy Clement (GoPivotal, Inc) aclement@gopivotal.com - Contributions for
- *          Bug 407191 - [1.8] Binary access support for type annotations 
+ *          Bug 407191 - [1.8] Binary access support for type annotations
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.classfmt;
 
@@ -40,7 +40,7 @@ public class FieldInfo extends ClassFileStruct implements IBinaryField, Comparab
 
 public static FieldInfo createField(byte classFileBytes[], int offsets[], int offset, long version) {
 	FieldInfo fieldInfo = new FieldInfo(classFileBytes, offsets, offset, version);
-	
+
 	int attributesCount = fieldInfo.u2At(6);
 	int readOffset = 8;
 	AnnotationInfo[] annotations = null;
@@ -93,7 +93,7 @@ public static FieldInfo createField(byte classFileBytes[], int offsets[], int of
 		readOffset += (6 + fieldInfo.u4At(readOffset + 2));
 	}
 	fieldInfo.attributeBytes = readOffset;
-	
+
 	if (typeAnnotations != null)
 		return new FieldInfoWithTypeAnnotation(fieldInfo, annotations, typeAnnotations);
 	if (annotations != null)
@@ -284,10 +284,10 @@ public Object getWrappedConstantValue() {
 					this.wrappedConstantValue = Character.valueOf(fieldConstant.charValue());
 					break;
 				case TypeIds.T_float :
-					this.wrappedConstantValue = new Float(fieldConstant.floatValue());
+					this.wrappedConstantValue = Float.valueOf(fieldConstant.floatValue());
 					break;
 				case TypeIds.T_double :
-					this.wrappedConstantValue = new Double(fieldConstant.doubleValue());
+					this.wrappedConstantValue = Double.valueOf(fieldConstant.doubleValue());
 					break;
 				case TypeIds.T_boolean :
 					this.wrappedConstantValue = Util.toBoolean(fieldConstant.booleanValue());

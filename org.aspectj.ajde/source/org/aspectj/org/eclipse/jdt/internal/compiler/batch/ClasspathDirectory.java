@@ -39,6 +39,13 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
@@ -139,7 +146,7 @@ private NameEnvironmentAnswer findClassInternal(char[] typeName, String qualifie
 		try {
 			ClassFileReader reader = ClassFileReader.read(this.path + qualifiedBinaryFileName);
 			// https://bugs.eclipse.org/bugs/show_bug.cgi?id=321115, package names are to be treated case sensitive.
-			String typeSearched = qualifiedPackageName.length() > 0 ? 
+			String typeSearched = qualifiedPackageName.length() > 0 ?
 					qualifiedPackageName.replace(File.separatorChar, '/') + "/" + fileName //$NON-NLS-1$
 					: fileName;
 			if (!CharOperation.equals(reader.getName(), typeSearched.toCharArray())) {
@@ -152,9 +159,7 @@ private NameEnvironmentAnswer findClassInternal(char[] typeName, String qualifie
 						fetchAccessRestriction(qualifiedBinaryFileName),
 						modName);
 			}
-		} catch (IOException e) {
-			// treat as if file is missing
-		} catch (ClassFormatException e) {
+		} catch (IOException | ClassFormatException e) {
 			// treat as if file is missing
 		}
 	}
@@ -200,8 +205,8 @@ private Hashtable<String, String> getSecondaryTypes(String qualifiedPackageName)
 	Hashtable<String, String> packageEntry = new Hashtable<>();
 
 	String[] dirList = (String[]) this.directoryCache.get(qualifiedPackageName);
-	if (dirList == this.missingPackageHolder // package exists in another classpath directory or jar 
-			|| dirList == null) 
+	if (dirList == this.missingPackageHolder // package exists in another classpath directory or jar
+			|| dirList == null)
 		return packageEntry;
 
 	File dir = new File(this.path + qualifiedPackageName);
@@ -216,7 +221,7 @@ private Hashtable<String, String> getSecondaryTypes(String qualifiedPackageName)
 		if (!(s.endsWith(SUFFIX_STRING_java) || s.endsWith(SUFFIX_STRING_JAVA))) continue;
 		CompilationUnit cu = new CompilationUnit(null, s, this.encoding, this.destinationPath);
 		CompilationResult compilationResult = new CompilationResult(s.toCharArray(), 1, 1, 10);
-		ProblemReporter problemReporter = 
+		ProblemReporter problemReporter =
 				new ProblemReporter(
 					DefaultErrorHandlingPolicies.proceedWithAllProblems(),
 					new CompilerOptions(this.options),
@@ -230,14 +235,14 @@ private Hashtable<String, String> getSecondaryTypes(String qualifiedPackageName)
 		for (int j = 0, k = types.length; j < k; j++) {
 			TypeDeclaration type = types[j];
 			char[] name = type.isSecondary() ? type.name : null;  // add only secondary types
-			if (name != null) 
+			if (name != null)
 				packageEntry.put(new String(name), s);
 		}
 	}
 	return packageEntry;
 }
 private NameEnvironmentAnswer findSourceSecondaryType(String typeName, String qualifiedPackageName, String qualifiedBinaryFileName) {
-	
+
 	if (this.packageSecondaryTypes == null) this.packageSecondaryTypes = new Hashtable<>();
 	Hashtable<String, String> packageEntry = this.packageSecondaryTypes.get(qualifiedPackageName);
 	if (packageEntry == null) {
@@ -313,7 +318,10 @@ public boolean hasCompilationUnit(String qualifiedPackageName, String moduleName
 @Override
 public boolean hasCUDeclaringPackage(String qualifiedPackageName, Function<CompilationUnit, String> pkgNameExtractor) {
 	String qp2 = File.separatorChar == '/' ? qualifiedPackageName : qualifiedPackageName.replace('/', File.separatorChar);
-	return Stream.of(directoryList(qp2)).anyMatch(entry -> {
+	String[] directoryList = directoryList(qp2);
+	if(directoryList == null)
+		return false;
+	return Stream.of(directoryList).anyMatch(entry -> {
 		String entryLC = entry.toLowerCase();
 		boolean hasDeclaration = false;
 		String fullPath = this.path + qp2 + "/" + entry; //$NON-NLS-1$
@@ -329,6 +337,27 @@ public boolean hasCUDeclaringPackage(String qualifiedPackageName, Function<Compi
 		return hasDeclaration;
 	});
 }
+
+@Override
+public char[][] listPackages() {
+	Set<String> packageNames = new HashSet<>();
+	try {
+		Path basePath = FileSystems.getDefault().getPath(this.path);
+		Files.walkFileTree(basePath, new SimpleFileVisitor<Path>() {
+			@Override
+			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+				if (file.toString().toLowerCase().endsWith(SUFFIX_STRING_class)) {
+					packageNames.add(file.getParent().relativize(basePath).toString().replace('/', '.'));
+				}
+				return FileVisitResult.CONTINUE;
+			}
+		});
+	} catch (IOException e) {
+		// treat as if files are missing
+	}
+	return packageNames.stream().map(String::toCharArray).toArray(char[][]::new);
+}
+
 @Override
 public void reset() {
 	super.reset();
@@ -358,9 +387,6 @@ public int getMode() {
 }
 @Override
 public IModule getModule() {
-	if (this.isAutoModule && this.module == null) {
-		return this.module = IModule.createAutomatic(this.path, false, null/*no manifest*/);
-	}
 	return this.module;
 }
 }

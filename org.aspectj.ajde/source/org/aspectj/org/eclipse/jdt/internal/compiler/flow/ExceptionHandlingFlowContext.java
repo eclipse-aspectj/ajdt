@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -19,6 +19,8 @@
 package org.aspectj.org.eclipse.jdt.internal.compiler.flow;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode;
@@ -50,15 +52,15 @@ public class ExceptionHandlingFlowContext extends FlowContext {
 	int[] isReached;
 	int[] isNeeded;
 	// WARNING: This is an array that maps to catch blocks, not caught exceptions (which could be more than catch blocks in a multi-catch block)
-	UnconditionalFlowInfo[] initsOnExceptions; 
+	UnconditionalFlowInfo[] initsOnExceptions;
 	ObjectCache indexes = new ObjectCache();
 	boolean isMethodContext;
 
 	public UnconditionalFlowInfo initsOnReturn;
 	public FlowContext initializationParent; // special parent relationship only for initialization purpose
-	
+
 	// for dealing with anonymous constructor thrown exceptions
-	public ArrayList extendedExceptions;
+	public List extendedExceptions;
 
 	private static final Argument[] NO_ARGUMENTS = new Argument[0];
 	public  Argument [] catchArguments;
@@ -82,11 +84,10 @@ public ExceptionHandlingFlowContext(
 		FlowContext initializationParent,
 		BlockScope scope,
 		FlowInfo flowInfo) {
-	this(parent, tryStatement, handledExceptions, exceptionToCatchBlockMap, 
+	this(parent, tryStatement, handledExceptions, exceptionToCatchBlockMap,
 			tryStatement.catchArguments, initializationParent, scope, flowInfo.unconditionalInits());
 	UnconditionalFlowInfo unconditionalCopy = flowInfo.unconditionalCopy();
-	unconditionalCopy.iNBit = -1L;
-	unconditionalCopy.iNNBit = -1L;
+	unconditionalCopy.acceptAllIncomingNullness();
 	unconditionalCopy.tagBits |= FlowInfo.UNROOTED;
 	this.initsOnFinally = unconditionalCopy;
 }
@@ -189,7 +190,7 @@ public void complainIfUnusedExceptionHandlers(BlockScope scope,TryStatement tryS
 	}
 }
 
-private ASTNode getExceptionType(int index) {	
+private ASTNode getExceptionType(int index) {
 	if (this.exceptionToCatchBlockMap == null) {
 		return this.catchArguments[index].type;
 	}
@@ -200,8 +201,8 @@ private ASTNode getExceptionType(int index) {
 		for (int i = 0, len = typeRefs.length; i < len; i++) {
 			TypeReference typeRef = typeRefs[i];
 			if (TypeBinding.equalsEquals(typeRef.resolvedType, this.handledExceptions[index])) return typeRef;
-		}	
-	} 
+		}
+	}
 	return node;
 }
 
@@ -212,7 +213,7 @@ public FlowContext getInitializationContext() {
 
 @Override
 public String individualToString() {
-	StringBuffer buffer = new StringBuffer("Exception flow context"); //$NON-NLS-1$
+	StringBuilder buffer = new StringBuilder("Exception flow context"); //$NON-NLS-1$
 	int length = this.handledExceptions.length;
 	for (int i = 0; i < length; i++) {
 		int cacheIndex = i / ExceptionHandlingFlowContext.BitCacheSize;
@@ -251,10 +252,7 @@ public UnconditionalFlowInfo initsOnReturn(){
  */
 public void mergeUnhandledException(TypeBinding newException){
 	if (this.extendedExceptions == null){
-		this.extendedExceptions = new ArrayList(5);
-		for (int i = 0; i < this.handledExceptions.length; i++){
-			this.extendedExceptions.add(this.handledExceptions[i]);
-		}
+		this.extendedExceptions = new ArrayList<>(Arrays.asList(this.handledExceptions));
 	}
 	boolean isRedundant = false;
 

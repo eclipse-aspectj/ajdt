@@ -1,12 +1,12 @@
 /* *******************************************************************
  * Copyright (c) 2004 IBM
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
  *     Andy Clement -     initial implementation {date}
  * ******************************************************************/
 
@@ -55,14 +55,14 @@ public class ArrayElementValue extends ElementValue {
 	public void dump(DataOutputStream dos) throws IOException {
 		dos.writeByte(type); // u1 type of value (ARRAY == '[')
 		dos.writeShort(evalues.length);
-		for (int i = 0; i < evalues.length; i++) {
-			evalues[i].dump(dos);
+		for (ElementValue evalue : evalues) {
+			evalue.dump(dos);
 		}
 	}
 
 	@Override
 	public String stringifyValue() {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		sb.append("[");
 		for (int i = 0; i < evalues.length; i++) {
 			ElementValue element = evalues[i];

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008, 2013 IBM Corporation and others.
+ * Copyright (c) 2008, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -18,6 +18,7 @@ import java.util.Map;
 import org.aspectj.org.eclipse.jdt.core.IAnnotation;
 import org.aspectj.org.eclipse.jdt.core.ICompilationUnit;
 import org.aspectj.org.eclipse.jdt.core.IMemberValuePair;
+import org.aspectj.org.eclipse.jdt.core.JavaModelException;
 import org.aspectj.org.eclipse.jdt.internal.codeassist.complete.CompletionOnMarkerAnnotationName;
 import org.aspectj.org.eclipse.jdt.internal.codeassist.complete.CompletionOnMemberValueName;
 import org.aspectj.org.eclipse.jdt.internal.codeassist.complete.CompletionOnParameterizedQualifiedTypeReference;
@@ -36,10 +37,12 @@ import org.aspectj.org.eclipse.jdt.internal.codeassist.impl.AssistSourceType;
 import org.aspectj.org.eclipse.jdt.internal.codeassist.impl.AssistTypeParameter;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.MemberValuePair;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ParameterizedQualifiedTypeReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ParameterizedSingleTypeReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Binding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.Parser;
 import org.aspectj.org.eclipse.jdt.internal.core.AnnotatableInfo;
 import org.aspectj.org.eclipse.jdt.internal.core.Annotation;
@@ -57,22 +60,22 @@ import org.aspectj.org.eclipse.jdt.internal.core.SourceMethod;
 import org.aspectj.org.eclipse.jdt.internal.core.SourceType;
 import org.aspectj.org.eclipse.jdt.internal.core.TypeParameter;
 
-@SuppressWarnings({"rawtypes", "unchecked"})
+@SuppressWarnings({"rawtypes"})
 public class CompletionUnitStructureRequestor extends CompilationUnitStructureRequestor {
 	private ASTNode assistNode;
 
-	private Map bindingCache;
-	private Map elementCache;
-	private Map elementWithProblemCache;
+	private Map<JavaElement, Binding> bindingCache;
+	private Map<Binding, JavaElement> elementCache;
+	private Map<ASTNode, JavaElement> elementWithProblemCache;
 
 	public CompletionUnitStructureRequestor(
 			ICompilationUnit unit,
 			CompilationUnitElementInfo unitInfo,
 			Parser parser,
 			ASTNode assistNode,
-			Map bindingCache,
-			Map elementCache,
-			Map elementWithProblemCache,
+			Map<JavaElement, Binding> bindingCache,
+			Map<Binding, JavaElement> elementCache,
+			Map<ASTNode, JavaElement> elementWithProblemCache,
 			Map newElements) {
 		super(unit, unitInfo, newElements);
 		this.parser = parser;
@@ -91,13 +94,32 @@ public class CompletionUnitStructureRequestor extends CompilationUnitStructureRe
 	protected SourceField createField(JavaElement parent, FieldInfo fieldInfo) {
 		String fieldName = JavaModelManager.getJavaModelManager().intern(new String(fieldInfo.name));
 		AssistSourceField field = new AssistSourceField(parent, fieldName, this.bindingCache, this.newElements);
-		if (fieldInfo.node.binding != null) {
-			this.bindingCache.put(field, fieldInfo.node.binding);
-			this.elementCache.put(fieldInfo.node.binding, field);
+		FieldDeclaration decl = (FieldDeclaration) (fieldInfo.node);
+		if (decl.binding != null) {
+			this.bindingCache.put(field, decl.binding);
+			this.elementCache.put(decl.binding, field);
 		} else {
 			this.elementWithProblemCache.put(fieldInfo.node, field);
 		}
 		return field;
+	}
+	@Override
+	protected SourceField createRecordComponent(JavaElement parent, FieldInfo compInfo) {
+		String compName = JavaModelManager.getJavaModelManager().intern(new String(compInfo.name));
+		SourceField comp = new AssistSourceField(parent, compName, this.bindingCache, this.newElements) {
+			@Override
+			public boolean isRecordComponent() throws JavaModelException {
+				return true;
+			}
+		};
+		FieldDeclaration decl = (FieldDeclaration) (compInfo.node);
+		if (decl.binding != null) {
+			this.bindingCache.put(comp, decl.binding);
+			this.elementCache.put(decl.binding, comp);
+		} else {
+			this.elementWithProblemCache.put(compInfo.node, comp);
+		}
+		return comp;
 	}
 
 	@Override

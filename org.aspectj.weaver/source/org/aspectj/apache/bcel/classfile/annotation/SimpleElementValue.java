@@ -1,12 +1,12 @@
 /* *******************************************************************
  * Copyright (c) 2004 IBM
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
  *     Andy Clement -     initial implementation {date}
  * ******************************************************************/
 
@@ -239,7 +239,7 @@ public class SimpleElementValue extends ElementValue {
 			return Integer.toString(b.getValue());
 		case PRIMITIVE_CHAR:
 			ConstantInteger ch = (ConstantInteger) cpool.getConstant(idx);
-			return new Character((char) ch.getIntValue()).toString();
+			return Character.toString((char) ch.getIntValue());
 		case PRIMITIVE_BOOLEAN:
 			ConstantInteger bo = (ConstantInteger) cpool.getConstant(idx);
 			if (bo.getValue() == 0) {
@@ -262,11 +262,11 @@ public class SimpleElementValue extends ElementValue {
 		switch (type) {
 		case PRIMITIVE_INT:
 			ConstantInteger c = (ConstantInteger) cpool.getConstant(idx);
-			s.append("(int)").append(Integer.toString(c.getValue()));
+			s.append("(int)").append(c.getValue());
 			break;
 		case PRIMITIVE_LONG:
 			ConstantLong j = (ConstantLong) cpool.getConstant(idx);
-			s.append("(long)").append(Long.toString(j.getValue()));
+			s.append("(long)").append(j.getValue());
 			break;
 		case PRIMITIVE_DOUBLE:
 			ConstantDouble d = (ConstantDouble) cpool.getConstant(idx);
@@ -274,19 +274,19 @@ public class SimpleElementValue extends ElementValue {
 			break;
 		case PRIMITIVE_FLOAT:
 			ConstantFloat f = (ConstantFloat) cpool.getConstant(idx);
-			s.append("(float)").append(Float.toString(f.getValue()));
+			s.append("(float)").append(f.getValue());
 			break;
 		case PRIMITIVE_SHORT:
 			ConstantInteger ci = (ConstantInteger) cpool.getConstant(idx);
-			s.append("(short)").append(Integer.toString(ci.getValue()));
+			s.append("(short)").append(ci.getValue());
 			break;
 		case PRIMITIVE_BYTE:
 			ConstantInteger b = (ConstantInteger) cpool.getConstant(idx);
-			s.append("(byte)").append(Integer.toString(b.getValue()));
+			s.append("(byte)").append(b.getValue());
 			break;
 		case PRIMITIVE_CHAR:
 			ConstantInteger ch = (ConstantInteger) cpool.getConstant(idx);
-			s.append("(char)").append(new Character((char) ch.getIntValue()).toString());
+			s.append("(char)").append((char) ch.getIntValue());
 			break;
 		case PRIMITIVE_BOOLEAN:
 			ConstantInteger bo = (ConstantInteger) cpool.getConstant(idx);

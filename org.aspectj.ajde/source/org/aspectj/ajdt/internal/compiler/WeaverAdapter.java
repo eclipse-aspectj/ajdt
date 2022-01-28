@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
- * are made available under the terms of the Eclipse Public License v1.0
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- * 
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -55,7 +55,7 @@ public class WeaverAdapter implements IClassFileProvider, IWeaveRequestor, Itera
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.aspectj.weaver.IClassFileProvider#getClassFileIterator()
 	 */
 	public Iterator getClassFileIterator() {
@@ -69,7 +69,7 @@ public class WeaverAdapter implements IClassFileProvider, IWeaveRequestor, Itera
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.aspectj.weaver.IClassFileProvider#getRequestor()
 	 */
 	public IWeaveRequestor getRequestor() {
@@ -85,7 +85,7 @@ public class WeaverAdapter implements IClassFileProvider, IWeaveRequestor, Itera
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see java.util.Iterator#hasNext()
 	 */
 	public boolean hasNext() {
@@ -118,7 +118,7 @@ public class WeaverAdapter implements IClassFileProvider, IWeaveRequestor, Itera
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see java.util.Iterator#next()
 	 */
 	public Object next() {
@@ -139,7 +139,7 @@ public class WeaverAdapter implements IClassFileProvider, IWeaveRequestor, Itera
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see java.util.Iterator#remove()
 	 */
 	public void remove() {
@@ -190,7 +190,7 @@ public class WeaverAdapter implements IClassFileProvider, IWeaveRequestor, Itera
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.aspectj.weaver.IWeaveRequestor#acceptResult(org.aspectj.weaver.bcel.UnwovenClassFile)
 	 */
 	public void acceptResult(IUnwovenClassFile result) {
@@ -199,7 +199,7 @@ public class WeaverAdapter implements IClassFileProvider, IWeaveRequestor, Itera
 		AjClassFile ajcf = new AjClassFile(key, result.getBytes());
 		lastReturnedResult.result().record(ajcf.fileName(), ajcf);
 		if (!weaverMessageHandler.isIgnoring(IMessage.INFO) || progressListener != null) {
-			StringBuffer msg = new StringBuffer();
+			StringBuilder msg = new StringBuilder();
 			msg.append(progressPhasePrefix).append(result.getClassName()).append(" (from ").append(nowProcessing.fileName())
 					.append(")");
 			weaverMessageHandler.handleMessage(MessageUtil.info(msg.toString()));
@@ -234,8 +234,8 @@ public class WeaverAdapter implements IClassFileProvider, IWeaveRequestor, Itera
 			return true;
 		}
 		char[] victim = null;
-		for (Iterator iter = aMap.keySet().iterator(); iter.hasNext();) {
-			char[] thisKey = (char[]) iter.next();
+		for (Object o : aMap.keySet()) {
+			char[] thisKey = (char[]) o;
 			if (CharOperation.equals(thisKey, key)) {
 				// if (skey.equals(new String(thisKey))) {
 				victim = thisKey;

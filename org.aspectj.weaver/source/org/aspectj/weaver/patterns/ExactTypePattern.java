@@ -1,13 +1,13 @@
 /* *******************************************************************
  * Copyright (c) 2002 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     PARC     initial implementation
  * ******************************************************************/
 
 package org.aspectj.weaver.patterns;
@@ -40,7 +40,7 @@ public class ExactTypePattern extends TypePattern {
 	private static final Map<String, Class<?>> boxedTypesMap;
 
 	static {
-		primitiveTypesMap = new HashMap<String, Class<?>>();
+		primitiveTypesMap = new HashMap<>();
 		primitiveTypesMap.put("int", int.class);
 		primitiveTypesMap.put("short", short.class);
 		primitiveTypesMap.put("long", long.class);
@@ -49,7 +49,7 @@ public class ExactTypePattern extends TypePattern {
 		primitiveTypesMap.put("float", float.class);
 		primitiveTypesMap.put("double", double.class);
 
-		boxedPrimitivesMap = new HashMap<String, Class<?>>();
+		boxedPrimitivesMap = new HashMap<>();
 		boxedPrimitivesMap.put("java.lang.Integer", Integer.class);
 		boxedPrimitivesMap.put("java.lang.Short", Short.class);
 		boxedPrimitivesMap.put("java.lang.Long", Long.class);
@@ -58,7 +58,7 @@ public class ExactTypePattern extends TypePattern {
 		boxedPrimitivesMap.put("java.lang.Float", Float.class);
 		boxedPrimitivesMap.put("java.lang.Double", Double.class);
 
-		boxedTypesMap = new HashMap<String, Class<?>>();
+		boxedTypesMap = new HashMap<>();
 		boxedTypesMap.put("int", Integer.class);
 		boxedTypesMap.put("short", Short.class);
 		boxedTypesMap.put("long", Long.class);
@@ -97,7 +97,7 @@ public class ExactTypePattern extends TypePattern {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.aspectj.weaver.patterns.TypePattern#couldEverMatchSameTypesAs(org.aspectj.weaver.patterns.TypePattern)
 	 */
 	@Override
@@ -234,8 +234,8 @@ public class ExactTypePattern extends TypePattern {
 	public int hashCode() {
 		int result = 17;
 		result = 37 * result + type.hashCode();
-		result = 37 * result + new Boolean(includeSubtypes).hashCode();
-		result = 37 * result + new Boolean(isVarArgs).hashCode();
+		result = 37 * result + Boolean.valueOf(includeSubtypes).hashCode();
+		result = 37 * result + Boolean.valueOf(isVarArgs).hashCode();
 		result = 37 * result + typeParameters.hashCode();
 		result = 37 * result + annotationPattern.hashCode();
 		return result;
@@ -284,7 +284,7 @@ public class ExactTypePattern extends TypePattern {
 
 	@Override
 	public String toString() {
-		StringBuffer buff = new StringBuffer();
+		StringBuilder buff = new StringBuilder();
 		if (annotationPattern != AnnotationTypePattern.ANY) {
 			buff.append('(');
 			buff.append(annotationPattern.toString());
@@ -322,7 +322,7 @@ public class ExactTypePattern extends TypePattern {
 			TypeVariableReference t = (TypeVariableReference) type;
 			String key = t.getTypeVariable().getName();
 			if (typeVariableMap.containsKey(key)) {
-				newType = (UnresolvedType) typeVariableMap.get(key);
+				newType = typeVariableMap.get(key);
 			}
 		} else if (type.isParameterizedType()) {
 			newType = w.resolve(type).parameterize(typeVariableMap);

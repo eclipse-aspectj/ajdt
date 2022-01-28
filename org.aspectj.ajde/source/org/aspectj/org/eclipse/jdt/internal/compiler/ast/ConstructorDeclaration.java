@@ -1,6 +1,6 @@
 // AspectJ
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -40,6 +40,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeReference.Annotatio
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.flow.*;
+import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.*;
@@ -80,7 +81,7 @@ public void analyseCode(ClassScope classScope, InitializationFlowContext initial
 		// https://bugs.eclipse.org/bugs/show_bug.cgi?id=270446, When the AST built is an abridged version
 		// we don't have all tree nodes we would otherwise expect. (see ASTParser.setFocalPosition)
 		if (this.constructorCall == null)
-			break checkUnused; 
+			break checkUnused;
 		// https://bugs.eclipse.org/bugs/show_bug.cgi?id=264991, Don't complain about this
 		// constructor being unused if the base class doesn't have a no-arg constructor.
 		// See that a seemingly unused constructor that chains to another constructor with a
@@ -104,7 +105,8 @@ public void analyseCode(ClassScope classScope, InitializationFlowContext initial
 			// otherwise default super constructor exists, so go ahead and complain unused.
 		}
 		// complain unused
-		this.scope.problemReporter().unusedPrivateConstructor(this);
+		if ((this.bits & ASTNode.IsImplicit) == 0)
+			this.scope.problemReporter().unusedPrivateConstructor(this);
 	}
 
 	// check constructor recursion, once all constructor got resolved
@@ -117,7 +119,7 @@ public void analyseCode(ClassScope classScope, InitializationFlowContext initial
 		for (int i = 0, length = this.typeParameters.length; i < length; ++i) {
 			TypeParameter typeParameter = this.typeParameters[i];
 			if ((typeParameter.binding.modifiers & ExtraCompilerModifiers.AccLocallyUsed) == 0) {
-				this.scope.problemReporter().unusedTypeParameter(typeParameter);						
+				this.scope.problemReporter().unusedTypeParameter(typeParameter);
 			}
 		}
 	}
@@ -137,7 +139,7 @@ public void analyseCode(ClassScope classScope, InitializationFlowContext initial
 
 		// anonymous constructor can gain extra thrown exceptions from unhandled ones
 		if (this.binding.declaringClass.isAnonymousType()) {
-			ArrayList computedExceptions = constructorContext.extendedExceptions;
+			List computedExceptions = constructorContext.extendedExceptions;
 			if (computedExceptions != null){
 				int size;
 				if ((size = computedExceptions.size()) > 0){
@@ -172,7 +174,8 @@ public void analyseCode(ClassScope classScope, InitializationFlowContext initial
 
 		// propagate to statements
 		if (this.statements != null) {
-			boolean enableSyntacticNullAnalysisForFields = this.scope.compilerOptions().enableSyntacticNullAnalysisForFields;
+			CompilerOptions compilerOptions = this.scope.compilerOptions();
+			boolean enableSyntacticNullAnalysisForFields = compilerOptions.enableSyntacticNullAnalysisForFields;
 			int complaintLevel = (nonStaticFieldInfoReachMode & FlowInfo.UNREACHABLE) == 0 ? Statement.NOT_COMPLAINED : Statement.COMPLAINED_FAKE_REACHABLE;
 			for (int i = 0, count = this.statements.length; i < count; i++) {
 				Statement stat = this.statements[i];
@@ -181,6 +184,9 @@ public void analyseCode(ClassScope classScope, InitializationFlowContext initial
 				}
 				if (enableSyntacticNullAnalysisForFields) {
 					constructorContext.expireNullCheckedFieldInfo();
+				}
+				if (compilerOptions.analyseResourceLeaks) {
+					FakedTrackingVariable.cleanUpUnassigned(this.scope, stat, flowInfo);
 				}
 			}
 		}
@@ -199,26 +205,8 @@ public void analyseCode(ClassScope classScope, InitializationFlowContext initial
 			&& (this.constructorCall.accessMode != ExplicitConstructorCall.This)) {
 			flowInfo = flowInfo.mergedWith(constructorContext.initsOnReturn);
 			FieldBinding[] fields = this.binding.declaringClass.fields();
-			for (int i = 0, count = fields.length; i < count; i++) {
-				FieldBinding field = fields[i];
-				if (!field.isStatic() && !flowInfo.isDefinitelyAssigned(field)) {
-					if (field.isFinal()) {
-						this.scope.problemReporter().uninitializedBlankFinalField(
-								field,
-								((this.bits & ASTNode.IsDefaultConstructor) != 0)
-									? (ASTNode) this.scope.referenceType().declarationOf(field.original())
-									: this);
-					} else if (field.isNonNull() || field.type.isFreeTypeVariable()) {
-						FieldDeclaration fieldDecl = this.scope.referenceType().declarationOf(field.original());
-						if (!isValueProvidedUsingAnnotation(fieldDecl))
-							this.scope.problemReporter().uninitializedNonNullField(
-								field,
-								((this.bits & ASTNode.IsDefaultConstructor) != 0) 
-									? (ASTNode) fieldDecl
-									: this);
-					}
-				}
-			}
+			checkAndGenerateFieldAssignment(initializerFlowContext, flowInfo, fields);
+			doFieldReachAnalysis(flowInfo, fields);
 		}
 		// check unreachable catch blocks
 		constructorContext.complainIfUnusedExceptionHandlers(this);
@@ -229,9 +217,34 @@ public void analyseCode(ClassScope classScope, InitializationFlowContext initial
 		this.ignoreFurtherInvestigation = true;
 	}
 }
+protected void doFieldReachAnalysis(FlowInfo flowInfo, FieldBinding[] fields) {
+	for (int i = 0, count = fields.length; i < count; i++) {
+		FieldBinding field = fields[i];
+		if (!field.isStatic() && !flowInfo.isDefinitelyAssigned(field)) {
+			if (field.isFinal()) {
+				this.scope.problemReporter().uninitializedBlankFinalField(
+						field,
+						((this.bits & ASTNode.IsDefaultConstructor) != 0)
+							? (ASTNode) this.scope.referenceType().declarationOf(field.original())
+							: this);
+			} else if (field.isNonNull() || field.type.isFreeTypeVariable()) {
+				FieldDeclaration fieldDecl = this.scope.referenceType().declarationOf(field.original());
+				if (!isValueProvidedUsingAnnotation(fieldDecl))
+					this.scope.problemReporter().uninitializedNonNullField(
+						field,
+						((this.bits & ASTNode.IsDefaultConstructor) != 0)
+							? (ASTNode) fieldDecl
+							: this);
+			}
+		}
+	}
+}
 
+protected void checkAndGenerateFieldAssignment(FlowContext flowContext, FlowInfo flowInfo, FieldBinding[] fields) {
+	return;
+}
 boolean isValueProvidedUsingAnnotation(FieldDeclaration fieldDecl) {
-	// a member field annotated with @Inject is considered to be initialized by the injector 
+	// a member field annotated with @Inject is considered to be initialized by the injector
 	if (fieldDecl.annotations != null) {
 		int length = fieldDecl.annotations.length;
 		for (int i = 0; i < length; i++) {
@@ -457,7 +470,7 @@ private void internalGenerateCode(ClassScope classScope, ClassFile classFile) {
 		codeStream.exitUserScope(this.scope);
 		codeStream.recordPositionsFrom(0, this.bodyEnd > 0 ? this.bodyEnd : this.sourceStart);
 		try {
-			classFile.completeCodeAttribute(codeAttributeOffset);
+			classFile.completeCodeAttribute(codeAttributeOffset, this.scope);
 		} catch(NegativeArraySizeException e) {
 			throw new AbortMethod(this.scope.referenceCompilationUnit().compilationResult, null);
 		}
@@ -469,6 +482,41 @@ private void internalGenerateCode(ClassScope classScope, ClassFile classFile) {
 		}
 	}
 	classFile.completeMethodInfo(this.binding, methodAttributeOffset, attributeNumber);
+}
+
+@Override
+protected AnnotationBinding[][] getPropagatedRecordComponentAnnotations() {
+
+	if ((this.bits & (ASTNode.IsCanonicalConstructor | ASTNode.IsImplicit)) == 0)
+		return null;
+	if (this.binding == null)
+		return null;
+	AnnotationBinding[][] paramAnnotations = null;
+	ReferenceBinding declaringClass = this.binding.declaringClass;
+	if (declaringClass instanceof SourceTypeBinding) {
+		assert declaringClass.isRecord();
+		RecordComponentBinding[] rcbs = ((SourceTypeBinding) declaringClass).components();
+		for (int i = 0, length = rcbs.length; i < length; i++) {
+			RecordComponentBinding rcb = rcbs[i];
+			RecordComponent recordComponent = rcb.sourceRecordComponent();
+			long rcMask = TagBits.AnnotationForParameter | TagBits.AnnotationForTypeUse;
+			List<AnnotationBinding> relevantAnnotationBindings = new ArrayList<>();
+			Annotation[] relevantAnnotations = ASTNode.getRelevantAnnotations(recordComponent.annotations, rcMask, relevantAnnotationBindings);
+			if (relevantAnnotations != null) {
+				if (paramAnnotations == null) {
+					paramAnnotations = new AnnotationBinding[length][];
+					for (int j=0; j<i; j++) {
+						paramAnnotations[j] = Binding.NO_ANNOTATIONS;
+					}
+				}
+				this.binding.tagBits |= TagBits.HasParameterAnnotations;
+				paramAnnotations[i] = relevantAnnotationBindings.toArray(new AnnotationBinding[0]);
+			} else if (paramAnnotations != null) {
+				paramAnnotations[i] = Binding.NO_ANNOTATIONS;
+			}
+		}
+	}
+	return paramAnnotations;
 }
 
 @Override
@@ -485,6 +533,11 @@ public void getAllAnnotationContexts(int targetType, List allAnnotationContexts)
 @Override
 public boolean isConstructor() {
 	return true;
+}
+
+@Override
+public boolean isCanonicalConstructor() {
+	return (this.bits & ASTNode.IsCanonicalConstructor) != 0;
 }
 
 @Override
@@ -541,7 +594,7 @@ public void parseStatements(Parser parser, CompilationUnitDeclaration unit) {
 		return;
 	}
 	parser.parse(this, unit, false);
-
+	this.containsSwitchWithTry = parser.switchWithTry;
 }
 
 @Override
@@ -566,7 +619,8 @@ public StringBuffer printBody(int indent, StringBuffer output) {
 public void resolveJavadoc() {
 	if (this.binding == null || this.javadoc != null) {
 		super.resolveJavadoc();
-	} else if ((this.bits & ASTNode.IsDefaultConstructor) == 0) {
+	} else if ((this.bits & ASTNode.IsDefaultConstructor) == 0 ) {
+		if((this.bits & ASTNode.IsImplicit) != 0 ) return;
 		if (this.binding.declaringClass != null && !this.binding.declaringClass.isLocalType()) {
 			// Set javadoc visibility
 			int javadocVisibility = this.binding.modifiers & ExtraCompilerModifiers.AccVisibilityMASK;
@@ -607,7 +661,14 @@ public void resolveStatements() {
 				this.scope.problemReporter().cannotUseSuperInJavaLangObject(this.constructorCall);
 			}
 			this.constructorCall = null;
-		} else {
+		} else if (sourceType.isRecord() &&
+				!(this instanceof CompactConstructorDeclaration) && // compact constr should be marked as canonical?
+				(this.binding != null && (this.binding.tagBits & TagBits.IsCanonicalConstructor) == 0) &&
+				this.constructorCall.accessMode != ExplicitConstructorCall.This) {
+			this.scope.problemReporter().recordMissingExplicitConstructorCallInNonCanonicalConstructor(this);
+			this.constructorCall = null;
+		}
+		else {
 			this.constructorCall.resolve(this.scope);
 		}
 	}

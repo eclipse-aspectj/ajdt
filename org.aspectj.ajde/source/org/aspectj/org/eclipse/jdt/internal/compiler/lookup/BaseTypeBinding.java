@@ -17,8 +17,6 @@
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
 
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeIds;
-
 public class BaseTypeBinding extends TypeBinding {
 
 	public static final int[] CONVERSIONS;
@@ -26,17 +24,17 @@ public class BaseTypeBinding extends TypeBinding {
 	public static final int WIDENING = 2;
 	public static final int NARROWING = 4;
 	public static final int MAX_CONVERSIONS = 16*16; // well-known x well-known
-	
+
 	static {
 		CONVERSIONS	 = initializeConversions();
 	}
-	
+
 	public static final int[] initializeConversions(){
 		// fromType   destType --> conversion
 		//  0000   0000       				0000
 
 		int[] table  = new int[MAX_CONVERSIONS];
-		
+
 		table[TypeIds.Boolean2Boolean] = IDENTITY;
 
 		table[TypeIds.Byte2Byte] 		= IDENTITY;
@@ -94,7 +92,7 @@ public class BaseTypeBinding extends TypeBinding {
 		table[TypeIds.Double2Long] 	= NARROWING;
 		table[TypeIds.Double2Float] 	= NARROWING;
 		table[TypeIds.Double2Double]= IDENTITY;
-		
+
 		return table;
 	}
 	/**
@@ -106,8 +104,8 @@ public class BaseTypeBinding extends TypeBinding {
 	 */
 	public static final boolean isNarrowing(int left, int right) {
 		int right2left = right + (left<<4);
-		return right2left >= 0 
-						&& right2left < MAX_CONVERSIONS 
+		return right2left >= 0
+						&& right2left < MAX_CONVERSIONS
 						&& (CONVERSIONS[right2left] & (IDENTITY|NARROWING)) != 0;
 	}
 
@@ -120,11 +118,11 @@ public class BaseTypeBinding extends TypeBinding {
 	 */
 	public static final boolean isWidening(int left, int right) {
 		int right2left = right + (left<<4);
-		return right2left >= 0 
-						&& right2left < MAX_CONVERSIONS 
+		return right2left >= 0
+						&& right2left < MAX_CONVERSIONS
 						&& (CONVERSIONS[right2left] & (IDENTITY|WIDENING)) != 0;
 	}
-	
+
 	public char[] simpleName;
 
 	private char[] constantPoolName;
@@ -156,13 +154,13 @@ public class BaseTypeBinding extends TypeBinding {
 	public TypeBinding clone(TypeBinding enclosingType) {
 		return new BaseTypeBinding(this.id, this.simpleName, this.constantPoolName);
 	}
-	
+
 	@Override
 	public PackageBinding getPackage() {
 
 		return null;
 	}
-	
+
 	/* Answer true if the receiver type can be assigned to the argument type (right)
 	*/
 	@Override
@@ -170,13 +168,13 @@ public class BaseTypeBinding extends TypeBinding {
 		if (equalsEquals(this, right))
 			return true;
 		int right2left = this.id + (right.id<<4);
-		if (right2left >= 0 
-				&& right2left < MAX_CONVERSIONS 
+		if (right2left >= 0
+				&& right2left < MAX_CONVERSIONS
 				&& (CONVERSIONS[right2left] & (IDENTITY|WIDENING)) != 0)
 			return true;
 		return this == TypeBinding.NULL && !right.isBaseType();
 	}
-	
+
 	@Override
 	public void setTypeAnnotations(AnnotationBinding[] annotations, boolean evalNullAnnotations) {
 		super.setTypeAnnotations(annotations, false); // never set nullTagBits on base types

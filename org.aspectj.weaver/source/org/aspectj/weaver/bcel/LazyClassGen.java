@@ -1,13 +1,13 @@
 /* *******************************************************************
  * Copyright (c) 2002-2010 Contributors
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     PARC                 initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     PARC                 initial implementation
  *     Andy Clement  6Jul05 generics - signature attribute
  *     Abraham Nevado
  * ******************************************************************/
@@ -83,7 +83,7 @@ public final class LazyClassGen {
 
 	private static final Type[] ARRAY_7STRING_INT = new Type[] { Type.STRING, Type.STRING, Type.STRING, Type.STRING, Type.STRING,
 			Type.STRING, Type.STRING, Type.INT };
-	
+
 	private static final Type[] ARRAY_8STRING_INT = new Type[] { Type.STRING, Type.STRING, Type.STRING, Type.STRING, Type.STRING,
 			Type.STRING, Type.STRING, Type.STRING, Type.INT };
 
@@ -94,19 +94,19 @@ public final class LazyClassGen {
 	private static final Type[] PARAMSIGNATURE_MAKESJP_CONSTRUCTOR = new Type[] {
 			Type.STRING, Type.INT, Type.CLASS, Type.CLASS_ARRAY, Type.STRING_ARRAY, Type.CLASS_ARRAY, Type.INT
 	};
-	
+
 	private static final Type[] PARAMSIGNATURE_MAKESJP_CATCHCLAUSE = new Type[] {
 			Type.STRING, Type.CLASS, Type.CLASS, Type.STRING, Type.INT
 	};
-	
+
 	private static final Type[] PARAMSIGNATURE_MAKESJP_FIELD = new Type[] {
 			Type.STRING, Type.INT, Type.STRING, Type.CLASS, Type.CLASS, Type.INT
 	};
-	
+
 	private static final Type[] PARAMSIGNATURE_MAKESJP_INITIALIZER = new Type[] {
 			Type.STRING, Type.INT, Type.CLASS, Type.INT
 	};
-	
+
 	private static final Type[] PARAMSIGNATURE_MAKESJP_MONITOR = new Type[] {
 			Type.STRING, Type.CLASS, Type.INT
 	};
@@ -115,10 +115,10 @@ public final class LazyClassGen {
 			Type.STRING, Type.INT, Type.STRING, Type.CLASS, Type.CLASS_ARRAY, Type.STRING_ARRAY,
 			Type.CLASS_ARRAY, Type.CLASS, Type.INT
 	};
-	
-	
-	
-	
+
+
+
+
 
 	private static final int ACC_SYNTHETIC = 0x1000;
 
@@ -126,7 +126,7 @@ public final class LazyClassGen {
 
 	int highestLineNumber = 0; // ---- JSR 45 info
 
-	private final SortedMap<String, InlinedSourceFileInfo> inlinedFiles = new TreeMap<String, InlinedSourceFileInfo>();
+	private final SortedMap<String, InlinedSourceFileInfo> inlinedFiles = new TreeMap<>();
 
 	private boolean regenerateGenericSignatureAttribute = false;
 
@@ -136,10 +136,10 @@ public final class LazyClassGen {
 	private final World world;
 	private final String packageName = null;
 
-	private final List<BcelField> fields = new ArrayList<BcelField>();
-	private final List<LazyMethodGen> methodGens = new ArrayList<LazyMethodGen>();
-	private final List<LazyClassGen> classGens = new ArrayList<LazyClassGen>();
-	private final List<AnnotationGen> annotations = new ArrayList<AnnotationGen>();
+	private final List<BcelField> fields = new ArrayList<>();
+	private final List<LazyMethodGen> methodGens = new ArrayList<>();
+	private final List<LazyClassGen> classGens = new ArrayList<>();
+	private final List<AnnotationGen> annotations = new ArrayList<>();
 	private int childCounter = 0;
 
 	private final InstructionFactory fact;
@@ -280,7 +280,7 @@ public final class LazyClassGen {
 	}
 
 	public String getNewGeneratedNameTag() {
-		return new Integer(childCounter++).toString();
+		return Integer.toString(childCounter++);
 	}
 
 	// ----
@@ -293,16 +293,16 @@ public final class LazyClassGen {
 		regenerateGenericSignatureAttribute = true;
 		this.world = world;
 	}
-	
+
 	public void setMajorMinor(int major, int minor) {
 		myGen.setMajor(major);
 		myGen.setMinor(minor);
 	}
-	
+
 	public int getMajor() {
 		return myGen.getMajor();
 	}
-	
+
 	public int getMinor() {
 		return myGen.getMinor();
 	}
@@ -331,8 +331,7 @@ public final class LazyClassGen {
 			hasSerialVersionUIDField = hasSerialVersionUIDField(getType());
 
 			ResolvedMember[] methods = getType().getDeclaredMethods();
-			for (int i = 0; i < methods.length; i++) {
-				ResolvedMember method = methods[i];
+			for (ResolvedMember method : methods) {
 				if (method.getName().equals("<clinit>")) {
 					if (method.getKind() != Member.STATIC_INITIALIZATION) {
 						throw new RuntimeException("qui?");
@@ -358,8 +357,8 @@ public final class LazyClassGen {
 		}
 
 		ResolvedMember[] methods = myType.getDeclaredMethods();
-		for (int i = 0; i < methods.length; i++) {
-			addMethodGen(new LazyMethodGen((BcelMethod) methods[i], this));
+		for (ResolvedMember method : methods) {
+			addMethodGen(new LazyMethodGen((BcelMethod) method, this));
 		}
 
 		// Method[] methods = myGen.getMethods();
@@ -368,16 +367,15 @@ public final class LazyClassGen {
 		// }
 
 		ResolvedMember[] fields = myType.getDeclaredFields();
-		for (int i = 0; i < fields.length; i++) {
-			this.fields.add((BcelField) fields[i]);
+		for (ResolvedMember field : fields) {
+			this.fields.add((BcelField) field);
 		}
 	}
 
 	public static boolean hasSerialVersionUIDField(ResolvedType type) {
 
 		ResolvedMember[] fields = type.getDeclaredFields();
-		for (int i = 0; i < fields.length; i++) {
-			ResolvedMember field = fields[i];
+		for (ResolvedMember field : fields) {
 			if (field.getName().equals("serialVersionUID") && Modifier.isStatic(field.getModifiers())
 					&& field.getType().equals(UnresolvedType.LONG)) {
 				return true;
@@ -488,17 +486,17 @@ public final class LazyClassGen {
 	public List<BcelField> getFieldGens() {
 		return fields;
 	}
-	
+
 	public boolean fieldExists(String name) {
-//		Field[] allFields = myGen.getFields();
-//		if (allFields!=null) { 
-//			for (int i=0;i<allFields.length;i++) {
-//				Field f = allFields[i];
-//				if (f.getName().equals(name)) {
-//					return f;
-//				}
-//			}
-//		}
+		//		Field[] allFields = myGen.getFields();
+		//		if (allFields!=null) {
+		//			for (int i=0;i<allFields.length;i++) {
+		//				Field f = allFields[i];
+		//				if (f.getName().equals(name)) {
+		//					return f;
+		//				}
+		//			}
+		//		}
 		for (BcelField f: fields) {
 			if (f.getName().equals(name)) {
 				return true;
@@ -646,15 +644,13 @@ public final class LazyClassGen {
 		if (!needAttribute) {
 			if (myType != null) {
 				ResolvedType[] interfaceRTXs = myType.getDeclaredInterfaces();
-				for (int i = 0; i < interfaceRTXs.length; i++) {
-					ResolvedType typeX = interfaceRTXs[i];
+				for (ResolvedType typeX : interfaceRTXs) {
 					if (typeX.isGenericType() || typeX.isParameterizedType()) {
 						needAttribute = true;
 					}
 				}
 				if (extraSuperInterfaces != null) {
-					for (int i = 0; i < extraSuperInterfaces.length; i++) {
-						ResolvedType interfaceType = extraSuperInterfaces[i];
+					for (ResolvedType interfaceType : extraSuperInterfaces) {
 						if (interfaceType.isGenericType() || interfaceType.isParameterizedType()) {
 							needAttribute = true;
 						}
@@ -679,14 +675,13 @@ public final class LazyClassGen {
 		}
 
 		if (needAttribute) {
-			StringBuffer signature = new StringBuffer();
+			StringBuilder signature = new StringBuilder();
 			// first, the type variables...
 			if (myType != null) {
 				TypeVariable[] tVars = myType.getTypeVariables();
 				if (tVars.length > 0) {
 					signature.append("<");
-					for (int i = 0; i < tVars.length; i++) {
-						TypeVariable variable = tVars[i];
+					for (TypeVariable variable : tVars) {
 						signature.append(variable.getSignatureForAttribute());
 					}
 					signature.append(">");
@@ -697,13 +692,13 @@ public final class LazyClassGen {
 			signature.append(supersig);
 			if (myType != null) {
 				ResolvedType[] interfaceRTXs = myType.getDeclaredInterfaces();
-				for (int i = 0; i < interfaceRTXs.length; i++) {
-					String s = interfaceRTXs[i].getSignatureForAttribute();
+				for (ResolvedType interfaceRTX : interfaceRTXs) {
+					String s = interfaceRTX.getSignatureForAttribute();
 					signature.append(s);
 				}
 				if (extraSuperInterfaces != null) {
-					for (int i = 0; i < extraSuperInterfaces.length; i++) {
-						String s = extraSuperInterfaces[i].getSignatureForAttribute();
+					for (ResolvedType extraSuperInterface : extraSuperInterfaces) {
+						String s = extraSuperInterface.getSignatureForAttribute();
 						signature.append(s);
 					}
 				}
@@ -725,7 +720,7 @@ public final class LazyClassGen {
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	private void reportClassTooBigProblem() {
 		// PR 59208
@@ -759,8 +754,12 @@ public final class LazyClassGen {
 		// are required (unless turning off the verifier)
 		if ((myGen.getMajor() == Constants.MAJOR_1_6 && world.shouldGenerateStackMaps()) || myGen.getMajor() > Constants.MAJOR_1_6) {
 			if (!AsmDetector.isAsmAround) {
-				throw new BCException("Unable to find Asm for stackmap generation (Looking for 'aj.org.objectweb.asm.ClassReader'). Stackmap generation for woven code is required to avoid verify errors on a Java 1.7 or higher runtime");
-			};
+				throw new BCException(
+					"Unable to find ASM classes (" + AsmDetector.CLASS_READER + ", " + AsmDetector.CLASS_VISITOR + ") " +
+						"for stackmap generation. Stackmap generation for woven code is required to avoid verify errors " +
+						"on a Java 1.7 or higher runtime."
+				);
+			}
 			wovenClassFileData = StackMapAdder.addStackMaps(world, wovenClassFileData);
 		}
 
@@ -823,7 +822,7 @@ public final class LazyClassGen {
 
 	// non-recursive, may be a bug, ha ha.
 	private List<LazyClassGen> getClassGens() {
-		List<LazyClassGen> ret = new ArrayList<LazyClassGen>();
+		List<LazyClassGen> ret = new ArrayList<>();
 		ret.add(this);
 		ret.addAll(classGens);
 		return ret;
@@ -833,7 +832,7 @@ public final class LazyClassGen {
 		if (classGens.isEmpty()) {
 			return Collections.emptyList();
 		}
-		List<UnwovenClassFile.ChildClass> ret = new ArrayList<UnwovenClassFile.ChildClass>();
+		List<UnwovenClassFile.ChildClass> ret = new ArrayList<>();
 		for (LazyClassGen clazz : classGens) {
 			byte[] bytes = clazz.getJavaClass(world).getBytes();
 			String name = clazz.getName();
@@ -905,9 +904,9 @@ public final class LazyClassGen {
 			myType.printWackyStuff(out);
 		}
 		Field[] fields = myGen.getFields();
-		for (int i = 0, len = fields.length; i < len; i++) {
+		for (Field field : fields) {
 			out.print("  ");
-			out.println(fields[i]);
+			out.println(field);
 		}
 		List<LazyMethodGen> methodGens = getMethodGens();
 		for (Iterator<LazyMethodGen> iter = methodGens.iterator(); iter.hasNext();) {
@@ -991,7 +990,7 @@ public final class LazyClassGen {
 				return gen;
 			}
 		}
-		LazyMethodGen clinit = new LazyMethodGen(Modifier.STATIC, Type.VOID, "<clinit>", new Type[0], NO_STRINGS, this);
+		LazyMethodGen clinit = new LazyMethodGen(Modifier.STATIC, Type.VOID, "<clinit>", Type.NO_ARGS, NO_STRINGS, this);
 		clinit.getBody().insert(InstructionConstants.RETURN);
 		methodGens.add(clinit);
 		return clinit;
@@ -1002,7 +1001,7 @@ public final class LazyClassGen {
 	 * called from the static initializer. Maintaining this separation enables overweaving to ignore join points added due to
 	 * earlier weaves. If the ajc$preClinit method cannot be found, it is created and a call to it is placed in the real static
 	 * initializer (the call is placed at the start of the static initializer).
-	 * 
+	 *
 	 * @return the LazyMethodGen representing the ajc$ clinit
 	 */
 	public LazyMethodGen getAjcPreClinit() {
@@ -1018,14 +1017,22 @@ public final class LazyClassGen {
 				NameMangler.AJC_PRE_CLINIT_NAME, Type.NO_ARGS, NO_STRINGS, this);
 		ajcPreClinit.getBody().insert(InstructionConstants.RETURN);
 		methodGens.add(ajcPreClinit);
-		getStaticInitializer().getBody().insert(Utility.createInvoke(fact, ajcPreClinit));
+		InstructionList clinitBody = getStaticInitializer().getBody();
+		clinitBody.insert(Utility.createInvoke(fact, ajcPreClinit));
+		if (serialVersionUIDRequiresInitialization) {
+			InstructionList il = new InstructionList();
+			il.append(InstructionFactory.PUSH(getConstantPool(), calculatedSerialVersionUID));
+			il.append(getFactory().createFieldAccess(getClassName(), "serialVersionUID", BasicType.LONG,
+					Constants.PUTSTATIC));
+			clinitBody.insert(il);
+		}
 		return ajcPreClinit;
 	}
 
 	/**
 	 * factory method for building multiple extended clinit methods. Constructs a new clinit method that invokes the previous one
 	 * and then returns it. The index is used as a name suffix.
-	 * 
+	 *
 	 * @param previousPreClinit
 	 * @param i
 	 */
@@ -1041,8 +1048,8 @@ public final class LazyClassGen {
 	//
 
 	// reflective thisJoinPoint support
-	private Map<BcelShadow, Field> tjpFields = new HashMap<BcelShadow, Field>();
-	Map<CacheKey, Field> annotationCachingFieldCache = new HashMap<CacheKey, Field>();
+	private Map<BcelShadow, Field> tjpFields = new HashMap<>();
+	Map<CacheKey, Field> annotationCachingFieldCache = new HashMap<>();
 	private int tjpFieldsCounter = -1; // -1 means not yet initialized
 	private int annoFieldsCounter = 0;
 	public static final ObjectType proceedingTjpType = new ObjectType("org.aspectj.lang.ProceedingJoinPoint");
@@ -1063,7 +1070,7 @@ public final class LazyClassGen {
 		}
 
 		int modifiers = Modifier.STATIC;
-		
+
 		// J9: Can't always be final on Java 9 because it is set outside of clinit
 		// But must be final in interface
 		if (shadow.getEnclosingClass().isInterface()) {
@@ -1134,7 +1141,7 @@ public final class LazyClassGen {
 	/**
 	 * Create a field in the type containing the shadow where the annotation retrieved during binding can be stored - for later fast
 	 * access.
-	 * 
+	 *
 	 * @param shadow the shadow at which the @annotation result is being cached
 	 * @return a field
 	 */
@@ -1207,27 +1214,8 @@ public final class LazyClassGen {
 		if (tjpFields.size() == 0 && !serialVersionUIDRequiresInitialization) {
 			return;
 		}
-		InstructionList[] il = null;
 
-		if (tjpFields.size() > 0) {
-			il = initializeAllTjps();
-		}
-
-		if (serialVersionUIDRequiresInitialization) {
-			InstructionList[] ilSVUID = new InstructionList[1];
-			ilSVUID[0] = new InstructionList();
-			ilSVUID[0].append(InstructionFactory.PUSH(getConstantPool(), calculatedSerialVersionUID));
-			ilSVUID[0].append(getFactory().createFieldAccess(getClassName(), "serialVersionUID", BasicType.LONG,
-					Constants.PUTSTATIC));
-			if (il == null) {
-				il = ilSVUID;
-			} else {
-				InstructionList[] newIl = new InstructionList[il.length + ilSVUID.length];
-				System.arraycopy(il, 0, newIl, 0, il.length);
-				System.arraycopy(ilSVUID, 0, newIl, il.length, ilSVUID.length);
-				il = newIl;
-			}
-		}
+		InstructionList[] il = initializeAllTjps();
 
 		LazyMethodGen prevMethod;
 		LazyMethodGen nextMethod = null;
@@ -1270,13 +1258,13 @@ public final class LazyClassGen {
 	}
 
 	private InstructionList[] initializeAllTjps() {
-		Vector<InstructionList> lists = new Vector<InstructionList>();
+		Vector<InstructionList> lists = new Vector<>();
 
 		InstructionList list = initInstructionList();
 		lists.add(list);
 
-		List<Map.Entry<BcelShadow, Field>> entries = new ArrayList<Map.Entry<BcelShadow, Field>>(tjpFields.entrySet());
-		Collections.sort(entries, new Comparator<Map.Entry<BcelShadow, Field>>() {
+		List<Map.Entry<BcelShadow, Field>> entries = new ArrayList<>(tjpFields.entrySet());
+		entries.sort(new Comparator<Map.Entry<BcelShadow, Field>>() {
 			@Override
 			public int compare(Map.Entry<BcelShadow, Field> a, Map.Entry<BcelShadow, Field> b) {
 				return (a.getValue()).getName().compareTo((b.getValue()).getName());
@@ -1284,8 +1272,7 @@ public final class LazyClassGen {
 		});
 
 		long estimatedSize = 0;
-		for (Iterator<Map.Entry<BcelShadow, Field>> i = entries.iterator(); i.hasNext();) {
-			Map.Entry<BcelShadow, Field> entry = i.next();
+		for (Map.Entry<BcelShadow, Field> entry : entries) {
 			if (estimatedSize > Constants.MAX_CODE_SIZE) {
 				estimatedSize = 0;
 				list = initInstructionList();
@@ -1494,10 +1481,10 @@ public final class LazyClassGen {
 		}
 		return b.toString();
 	}
-	
+
 	/**
 	 * Generate optimal joinpoint initialization code.
-	 * 
+	 *
 	 * As of version 1.9.1 the runtime includes new factory methods for joinpoints that take classes, not strings
 	 * and using them requires different code generation. Using these instead of the old ones means we can avoid
 	 * deferred classloading for these types. By using the LDC instruction that loads classes, it also means
@@ -1519,7 +1506,7 @@ public final class LazyClassGen {
 			pushClasses(list, sig.getExceptions(w));
 			pushClass(list, sig.getReturnType());
 			pushInt(list, shadow.getSourceLine());
-			list.append(fact.createInvoke(factoryType.getClassName(), factoryMethod, field.getType(), 
+			list.append(fact.createInvoke(factoryType.getClassName(), factoryMethod, field.getType(),
 					PARAMSIGNATURE_MAKESJP_METHOD, Constants.INVOKEVIRTUAL));
 		} else if (sig.getKind().equals(Member.CONSTRUCTOR)) {
 			if (w.isJoinpointArrayConstructionEnabled() && sig.getDeclaringType().isArray()) {
@@ -1536,7 +1523,7 @@ public final class LazyClassGen {
 				pushClasses(list, sig.getExceptions(w));
 			}
 			pushInt(list, shadow.getSourceLine());
-			list.append(fact.createInvoke(factoryType.getClassName(), factoryMethod, field.getType(), 
+			list.append(fact.createInvoke(factoryType.getClassName(), factoryMethod, field.getType(),
 					PARAMSIGNATURE_MAKESJP_CONSTRUCTOR, Constants.INVOKEVIRTUAL));
 		} else if (sig.getKind().equals(Member.HANDLER)) {
 			pushClass(list, sig.getDeclaringType());
@@ -1548,7 +1535,7 @@ public final class LazyClassGen {
 			}
 			pushString(list, pname);
 			pushInt(list, shadow.getSourceLine());
-			list.append(fact.createInvoke(factoryType.getClassName(), factoryMethod, field.getType(), 
+			list.append(fact.createInvoke(factoryType.getClassName(), factoryMethod, field.getType(),
 					PARAMSIGNATURE_MAKESJP_CATCHCLAUSE, Constants.INVOKEVIRTUAL));
 		} else if (sig.getKind().equals(Member.FIELD)) {
 			pushInt(list, sig.getModifiers(w));
@@ -1561,23 +1548,23 @@ public final class LazyClassGen {
 			pushClass(list, dType);
 			pushClass(list, sig.getReturnType());
 			pushInt(list,shadow.getSourceLine());
-			list.append(fact.createInvoke(factoryType.getClassName(), factoryMethod, field.getType(), 
+			list.append(fact.createInvoke(factoryType.getClassName(), factoryMethod, field.getType(),
 					PARAMSIGNATURE_MAKESJP_FIELD, Constants.INVOKEVIRTUAL));
 		} else if (sig.getKind().equals(Member.STATIC_INITIALIZATION)) {
 			pushInt(list, sig.getModifiers(w));
 			pushClass(list, sig.getDeclaringType());
 			pushInt(list, shadow.getSourceLine());
-			list.append(fact.createInvoke(factoryType.getClassName(), factoryMethod, field.getType(), 
+			list.append(fact.createInvoke(factoryType.getClassName(), factoryMethod, field.getType(),
 					PARAMSIGNATURE_MAKESJP_INITIALIZER, Constants.INVOKEVIRTUAL));
 		} else if (sig.getKind().equals(Member.MONITORENTER)) {
 			pushClass(list, sig.getDeclaringType());
 			pushInt(list, shadow.getSourceLine());
-			list.append(fact.createInvoke(factoryType.getClassName(), factoryMethod, field.getType(), 
+			list.append(fact.createInvoke(factoryType.getClassName(), factoryMethod, field.getType(),
 					PARAMSIGNATURE_MAKESJP_MONITOR, Constants.INVOKEVIRTUAL));
 		} else if (sig.getKind().equals(Member.MONITOREXIT)) {
 			pushClass(list, sig.getDeclaringType());
 			pushInt(list, shadow.getSourceLine());
-			list.append(fact.createInvoke(factoryType.getClassName(), factoryMethod, field.getType(), 
+			list.append(fact.createInvoke(factoryType.getClassName(), factoryMethod, field.getType(),
 					PARAMSIGNATURE_MAKESJP_MONITOR, Constants.INVOKEVIRTUAL));
 		} else if (sig.getKind().equals(Member.ADVICE)) {
 			pushInt(list, sig.getModifiers(w));
@@ -1588,7 +1575,7 @@ public final class LazyClassGen {
 			pushClasses(list, sig.getExceptions(w));
 			pushClass(list, sig.getReturnType());
 			pushInt(list, shadow.getSourceLine());
-			list.append(fact.createInvoke(factoryType.getClassName(), factoryMethod, field.getType(), 
+			list.append(fact.createInvoke(factoryType.getClassName(), factoryMethod, field.getType(),
 					PARAMSIGNATURE_MAKESJP_ADVICE, Constants.INVOKEVIRTUAL));
 		} else {
 			throw new IllegalStateException("not sure what to do: "+shadow);
@@ -1662,7 +1649,7 @@ public final class LazyClassGen {
 	private final void pushString(InstructionList list, String string) {
 		list.append(InstructionFactory.PUSH(cp, string));
 	}
-	
+
 	private final void pushInt(InstructionList list, int value) {
 		list.append(InstructionFactory.PUSH(cp, value));
 	}
@@ -1685,7 +1672,7 @@ public final class LazyClassGen {
 			}
 		}
 	}
-	
+
 	protected String makeLdcClassString(UnresolvedType type) {
 		if (type.isVoid() || type.isPrimitiveType()) {
 			return null;
@@ -1790,8 +1777,8 @@ public final class LazyClassGen {
 	}
 
 	private boolean hasSyntheticAttribute(List<Attribute> attributes) {
-		for (int i = 0; i < attributes.size(); i++) {
-			if ((attributes.get(i)).getName().equals("Synthetic")) {
+		for (Attribute attribute : attributes) {
+			if (attribute.getName().equals("Synthetic")) {
 				return true;
 			}
 		}
@@ -1850,8 +1837,7 @@ public final class LazyClassGen {
 		if (agens == null) {
 			return false;
 		}
-		for (int i = 0; i < agens.length; i++) {
-			AnnotationGen gen = agens[i];
+		for (AnnotationGen gen : agens) {
 			if (t.equals(UnresolvedType.forSignature(gen.getTypeSignature()))) {
 				return true;
 			}
@@ -1867,15 +1853,15 @@ public final class LazyClassGen {
 			annotations.add(new AnnotationGen(a, getConstantPool(), true));
 		}
 	}
-	
+
 	public void addAttribute(AjAttribute attribute) {
 		myGen.addAttribute(Utility.bcelAttribute(attribute, getConstantPool()));
 	}
-	
+
 	public void addAttribute(Attribute attribute) {
 		myGen.addAttribute(attribute);
 	}
-	
+
 	public Collection<Attribute> getAttributes() {
 		return myGen.getAttributes();
 	}
@@ -1895,11 +1881,11 @@ public final class LazyClassGen {
 		}
 
 		ResolvedType[] interfaces = aType.getDeclaredInterfaces();
-		for (int i = 0; i < interfaces.length; i++) {
-			if (interfaces[i].isMissing()) {
+		for (ResolvedType anInterface : interfaces) {
+			if (anInterface.isMissing()) {
 				continue;
 			}
-			if (implementsSerializable(interfaces[i])) {
+			if (implementsSerializable(anInterface)) {
 				return true;
 			}
 		}

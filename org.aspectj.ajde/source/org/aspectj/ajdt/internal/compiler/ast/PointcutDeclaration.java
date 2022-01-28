@@ -1,19 +1,18 @@
 /* *******************************************************************
  * Copyright (c) 2002 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
- *     PARC     initial implementation 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
+ *     PARC     initial implementation
  * ******************************************************************/
 
 package org.aspectj.ajdt.internal.compiler.ast;
 
 import java.lang.reflect.Modifier;
-import java.util.Iterator;
 
 import org.aspectj.ajdt.internal.compiler.lookup.EclipseFactory;
 import org.aspectj.ajdt.internal.core.builder.EclipseSourceContext;
@@ -26,11 +25,9 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclarat
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.AnnotationBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ClassScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ExtraCompilerModifiers;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TagBits;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.Parser;
@@ -41,11 +38,11 @@ import org.aspectj.weaver.patterns.Pointcut;
 
 /**
  * pointcut [declaredModifiers] [declaredName]([arguments]): [pointcutDesignator];
- * 
+ *
  * <p>
  * No method will actually be generated for this node but an attribute will be added to the enclosing class.
  * </p>
- * 
+ *
  * @author Jim Hugunin
  */
 public class PointcutDeclaration extends AjMethodDeclaration {
@@ -119,7 +116,7 @@ public class PointcutDeclaration extends AjMethodDeclaration {
 
 	/**
 	 * Called from the AtAspectJVisitor to create the @Pointcut annotation (and corresponding method) for this pointcut
-	 * 
+	 *
 	 */
 	public void addAtAspectJAnnotations() {
 		String argNames = buildArgNameRepresentation();
@@ -139,7 +136,7 @@ public class PointcutDeclaration extends AjMethodDeclaration {
 
 	public String getPointcutText() {
 		String text = getPointcut().toString();
-		if (text.indexOf("BindingTypePattern") == -1)
+		if (!text.contains("BindingTypePattern"))
 			return text;
 		// has been wrecked by resolution, try to reconstruct from tokens
 		if (pointcutDesignator != null) {
@@ -149,7 +146,7 @@ public class PointcutDeclaration extends AjMethodDeclaration {
 	}
 
 	private String buildArgNameRepresentation() {
-		StringBuffer args = new StringBuffer();
+		StringBuilder args = new StringBuilder();
 		if (this.arguments != null) {
 			for (int i = 0; i < this.arguments.length; i++) {
 				if (i != 0)
@@ -165,7 +162,7 @@ public class PointcutDeclaration extends AjMethodDeclaration {
 		generateSyntheticPointcutMethod = true;
 		// mangleSelector = false;
 	}
-	
+
 	private static char[] ASPECT_CHARS = "Lorg/aspectj/lang/annotation/Aspect;".toCharArray();
 
 	public void resolve(ClassScope upperScope) {
@@ -174,7 +171,7 @@ public class PointcutDeclaration extends AjMethodDeclaration {
 		if (binding != null) {
 			binding.tagBits -= TagBits.AnnotationResolved;
 			resolveAnnotations(scope, this.annotations, this.binding);
-			
+
 			TypeDeclaration typeDec = upperScope.referenceContext;
 			if (Modifier.isAbstract(this.declaredModifiers)) {
 				if (!(typeDec instanceof AspectDeclaration)) {
@@ -182,7 +179,7 @@ public class PointcutDeclaration extends AjMethodDeclaration {
 						typeDec.scope.problemReporter().signalError(sourceStart, sourceEnd,
 								"The abstract pointcut " + new String(declaredName) + " can only be defined in an aspect");
 						ignoreFurtherInvestigation = true;
-						return;					
+						return;
 					}
 				}
 			}
@@ -224,7 +221,7 @@ public class PointcutDeclaration extends AjMethodDeclaration {
 			return resolvedPointcutDeclaration;
 		if (binding == null) {
 		    // other errors exist that will be reported separately
-			return null;  
+			return null;
 		}
 		// System.out.println("pc: " + getPointcut() + ", " + getPointcut().state);
 		ReferenceBinding declaringClass = binding.declaringClass;
@@ -268,8 +265,8 @@ public class PointcutDeclaration extends AjMethodDeclaration {
 	 * is added. So, this method adds the attribute if someone else hasn't already.
 	 */
 	private void addVersionAttributeIfNecessary(ClassFile classFile) {
-		for (Iterator iter = classFile.extraAttributes.iterator(); iter.hasNext();) {
-			EclipseAttributeAdapter element = (EclipseAttributeAdapter) iter.next();
+		for (Object o : classFile.extraAttributes) {
+			EclipseAttributeAdapter element = (EclipseAttributeAdapter) o;
 			if (CharOperation.equals(element.getNameChars(), weaverVersionChars))
 				return;
 		}
@@ -288,7 +285,7 @@ public class PointcutDeclaration extends AjMethodDeclaration {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration#printBody(int, java.lang.StringBuffer)
 	 */
 	public StringBuffer printBody(int indent, StringBuffer output) {

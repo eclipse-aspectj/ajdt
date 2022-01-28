@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -10,7 +10,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Stephan Herrmann - Contributions for 
+ *     Stephan Herrmann - Contributions for
  *     							bug 319201 - [null] no warning when unboxing SingleNameReference causes NPE
  *     							bug 349326 - [1.7] new warning for missing try-with-resources
  *								bug 345305 - [compiler][null] Compiler misidentifies a case of "variable can only be null"
@@ -82,7 +82,7 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 	if (isConditionOptimizedTrue) {
 		elseFlowInfo.setReachMode(FlowInfo.UNREACHABLE_OR_DEAD);
 	}
-	if (((flowInfo.tagBits & FlowInfo.UNREACHABLE) == 0) && 
+	if (((flowInfo.tagBits & FlowInfo.UNREACHABLE) == 0) &&
 			((thenFlowInfo.tagBits & FlowInfo.UNREACHABLE) != 0)) {
 		// Mark then block as unreachable
 		// No need if the whole if-else construct itself lies in unreachable code
@@ -106,6 +106,7 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 				this.bits &= ~ASTNode.IsThenStatementUnreachable;
 			}
 		}
+		this.condition.updateFlowOnBooleanResult(thenFlowInfo, true);
 		thenFlowInfo = this.thenStatement.analyseCode(currentScope, flowContext, thenFlowInfo);
 		if (!(this.thenStatement instanceof Block))
 			flowContext.expireNullCheckedFieldInfo();
@@ -136,6 +137,7 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 				this.bits &= ~ASTNode.IsElseStatementUnreachable;
 			}
 		}
+		this.condition.updateFlowOnBooleanResult(elseFlowInfo, false);
 		elseFlowInfo = this.elseStatement.analyseCode(currentScope, flowContext, elseFlowInfo);
 		if (!(this.elseStatement instanceof Block))
 			flowContext.expireNullCheckedFieldInfo();
@@ -156,7 +158,6 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 	flowContext.conditionalLevel--;
 	return mergedInfo;
 }
-
 /**
  * If code generation
  *
@@ -215,7 +216,7 @@ public void generateCode(BlockScope currentScope, CodeStream codeStream) {
 			// May loose some local variable initializations : affecting the local variable attributes
 			if (this.elseInitStateIndex != -1) {
 				codeStream.removeNotDefinitelyAssignedVariables(
-					currentScope,
+						currentScope,
 					this.elseInitStateIndex);
 				codeStream.addDefinitelyAssignedVariables(currentScope, this.elseInitStateIndex);
 			}
@@ -245,7 +246,16 @@ public void generateCode(BlockScope currentScope, CodeStream codeStream) {
 		this.elseStatement.generateCode(currentScope, codeStream);
 	} else {
 		// generate condition side-effects
-		this.condition.generateCode(currentScope, codeStream, false);
+		if (this.condition.containsPatternVariable()) {
+			this.condition.generateOptimizedBoolean(
+				currentScope,
+				codeStream,
+				endifLabel,
+				null,
+				cst == Constant.NotAConstant);
+		} else {
+			this.condition.generateCode(currentScope, codeStream, false);
+		}
 		codeStream.recordPositionsFrom(pc, this.sourceStart);
 	}
 	// May loose some local variable initializations : affecting the local variable attributes
@@ -274,15 +284,43 @@ public StringBuffer printStatement(int indent, StringBuffer output) {
 	}
 	return output;
 }
-
-@Override
-public void resolve(BlockScope scope) {
+private void resolveIfStatement(BlockScope scope) {
 	TypeBinding type = this.condition.resolveTypeExpecting(scope, TypeBinding.BOOLEAN);
 	this.condition.computeConversion(scope, type, type);
 	if (this.thenStatement != null)
 		this.thenStatement.resolve(scope);
 	if (this.elseStatement != null)
 		this.elseStatement.resolve(scope);
+}
+@Override
+public void resolve(BlockScope scope) {
+	if (containsPatternVariable()) {
+		this.condition.collectPatternVariablesToScope(null, scope);
+		LocalVariableBinding[] patternVariablesInTrueScope = this.condition.getPatternVariablesWhenTrue();
+		LocalVariableBinding[] patternVariablesInFalseScope = this.condition.getPatternVariablesWhenFalse();
+		TypeBinding type = this.condition.resolveTypeExpecting(scope, TypeBinding.BOOLEAN);
+		this.condition.computeConversion(scope, type, type);
+
+		if (this.thenStatement != null) {
+			this.thenStatement.resolveWithPatternVariablesInScope(patternVariablesInTrueScope, scope);
+		}
+		if (this.elseStatement != null) {
+			this.elseStatement.resolveWithPatternVariablesInScope(patternVariablesInFalseScope, scope);
+		}
+		if (this.thenStatement != null)
+			this.thenStatement.promotePatternVariablesIfApplicable(patternVariablesInFalseScope,
+				this.thenStatement::doesNotCompleteNormally);
+		if (this.elseStatement != null)
+			this.elseStatement.promotePatternVariablesIfApplicable(patternVariablesInTrueScope,
+					this.elseStatement::doesNotCompleteNormally);
+	} else {
+		resolveIfStatement(scope);
+	}
+}
+
+@Override
+public boolean containsPatternVariable() {
+	return this.condition.containsPatternVariable();
 }
 
 @Override
@@ -304,5 +342,15 @@ public boolean doesNotCompleteNormally() {
 @Override
 public boolean completesByContinue() {
 	return this.thenStatement != null && this.thenStatement.completesByContinue() || this.elseStatement != null && this.elseStatement.completesByContinue();
+}
+@Override
+public boolean canCompleteNormally() {
+	return ((this.thenStatement == null || this.thenStatement.canCompleteNormally()) ||
+		(this.elseStatement == null || this.elseStatement.canCompleteNormally()));
+}
+@Override
+public boolean continueCompletes() {
+	return this.thenStatement != null && this.thenStatement.continueCompletes() ||
+			this.elseStatement != null && this.elseStatement.continueCompletes();
 }
 }

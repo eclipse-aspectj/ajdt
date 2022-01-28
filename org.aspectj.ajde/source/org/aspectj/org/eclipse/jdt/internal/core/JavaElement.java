@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -46,10 +46,8 @@ import org.aspectj.org.eclipse.jdt.core.IClasspathEntry;
 import org.aspectj.org.eclipse.jdt.core.ICompilationUnit;
 import org.aspectj.org.eclipse.jdt.core.IField;
 import org.aspectj.org.eclipse.jdt.core.IJavaElement;
-import org.aspectj.org.eclipse.jdt.core.IJavaModel;
 import org.aspectj.org.eclipse.jdt.core.IJavaModelStatus;
 import org.aspectj.org.eclipse.jdt.core.IJavaModelStatusConstants;
-import org.aspectj.org.eclipse.jdt.core.IJavaProject;
 import org.aspectj.org.eclipse.jdt.core.IMember;
 import org.aspectj.org.eclipse.jdt.core.IOpenable;
 import org.aspectj.org.eclipse.jdt.core.IPackageFragmentRoot;
@@ -101,34 +99,37 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 	public static final char JEM_LAMBDA_METHOD = '&';
 	public static final char JEM_STRING = '"';
 	public static final char JEM_MODULE = '`';
-	
+
 	/**
 	 * Before ')', '&' and '"' became the newest additions as delimiters, the former two
-	 * were allowed as part of element attributes and possibly stored. Trying to recreate 
-	 * elements from such memento would cause undesirable results. Consider the following 
+	 * were allowed as part of element attributes and possibly stored. Trying to recreate
+	 * elements from such memento would cause undesirable results. Consider the following
 	 * valid project name: (abc)
 	 * If we were to use ')' alone as the delimiter and decode the above name, the memento
-	 * would be wrongly identified to contain a lambda expression.  
+	 * would be wrongly identified to contain a lambda expression.
 	 *
-	 * In order to differentiate delimiters from characters that are part of element attributes, 
-	 * the following escape character is being introduced and all the new delimiters must 
+	 * In order to differentiate delimiters from characters that are part of element attributes,
+	 * the following escape character is being introduced and all the new delimiters must
 	 * be escaped with this. So, a lambda expression would be written as: "=)..."
-	 * 
+	 *
 	 * @see JavaElement#appendEscapedDelimiter(StringBuffer, char)
 	 */
 	public static final char JEM_DELIMITER_ESCAPE = JEM_JAVAPROJECT;
-	
+
 
 	/**
 	 * This element's parent, or <code>null</code> if this
 	 * element does not have a parent.
 	 */
-	protected JavaElement parent;
+	private JavaElement parent;
+
+	/* cached result */
+	private JavaProject project;
 
 	protected static final String[] NO_STRINGS = new String[0];
 	protected static final JavaElement[] NO_ELEMENTS = new JavaElement[0];
 	protected static final Object NO_INFO = new Object();
-	
+
 	private static Set<String> invalidURLs = null;
 	private static Set<String> validURLs = null;
 
@@ -143,7 +144,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 	 *
 	 */
 	protected JavaElement(JavaElement parent) throws IllegalArgumentException {
-		this.parent = parent;
+		this.setParent(parent);
 	}
 	/**
 	 * @see IOpenable
@@ -181,7 +182,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 		// assume instanceof check is done in subclass
 		JavaElement other = (JavaElement) o;
 		return getElementName().equals(other.getElementName()) &&
-				this.parent.equals(other.parent);
+				this.parent.equals(other.getParent());
 	}
 	/**
 	 * @see #JEM_DELIMITER_ESCAPE
@@ -197,6 +198,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 		for (int i = 0, length = mementoName.length(); i < length; i++) {
 			char character = mementoName.charAt(i);
 			switch (character) {
+				case JEM_MODULE:
 				case JEM_ESCAPE:
 				case JEM_COUNT:
 				case JEM_JAVAPROJECT:
@@ -363,7 +365,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 		return buff.toString();
 	}
 	protected void getHandleMemento(StringBuffer buff) {
-		((JavaElement)getParent()).getHandleMemento(buff);
+		getParent().getHandleMemento(buff);
 		buff.append(getHandleMementoDelimiter());
 		escapeMementoName(buff, getElementName());
 	}
@@ -376,24 +378,16 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 	 * @see IJavaElement
 	 */
 	@Override
-	public IJavaModel getJavaModel() {
-		IJavaElement current = this;
-		do {
-			if (current instanceof IJavaModel) return (IJavaModel) current;
-		} while ((current = current.getParent()) != null);
-		return null;
+	public JavaModel getJavaModel() {
+		return getJavaProject().getJavaModel();
 	}
 
 	/**
 	 * @see IJavaElement
 	 */
 	@Override
-	public IJavaProject getJavaProject() {
-		IJavaElement current = this;
-		do {
-			if (current instanceof IJavaProject) return (IJavaProject) current;
-		} while ((current = current.getParent()) != null);
-		return null;
+	public JavaProject getJavaProject() {
+		return this.project;
 	}
 
 	@Override
@@ -413,19 +407,26 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 	 * @see IJavaElement
 	 */
 	@Override
-	public IJavaElement getParent() {
+	public JavaElement getParent() {
 		return this.parent;
 	}
 
+	protected void setParent(JavaElement parent) {
+		// invalidate caches:
+		this.project = parent==null?null:parent.getJavaProject();
+		// now the real task:
+		this.parent = parent;
+	}
+
 	@Override
-	public IJavaElement getPrimaryElement() {
+	public JavaElement getPrimaryElement() {
 		return getPrimaryElement(true);
 	}
 	/*
 	 * Returns the primary element. If checkOwner, and the cu owner is primary,
 	 * return this element.
 	 */
-	public IJavaElement getPrimaryElement(boolean checkOwner) {
+	public JavaElement getPrimaryElement(boolean checkOwner) {
 		return this;
 	}
 	@Override
@@ -446,7 +447,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 			for (int i = children.length-1; i >= 0; i--) {
 				IJavaElement aChild = children[i];
 				if (aChild instanceof SourceRefElement) {
-					SourceRefElement child = (SourceRefElement) children[i];
+					SourceRefElement child = (SourceRefElement) aChild;
 					ISourceRange range = child.getSourceRange();
 					int start = range.getOffset();
 					int end = start + range.getLength();
@@ -487,7 +488,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 	 * SourceMapper.
 	 */
 	public SourceMapper getSourceMapper() {
-		return ((JavaElement)getParent()).getSourceMapper();
+		return getParent().getSourceMapper();
 	}
 
 	@Override
@@ -597,13 +598,22 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 			if (info == null) {
 				info = newElements.get(this);
 			}
+			// Bug 548456: check if some concurrent call already added the info to the manager, do not throw an exception if so
+			if (info == null) {
+				info = manager.getInfo(this);
+				if (info != null) {
+					return info;
+				}
+			}
 			if (info == null) { // a source ref element could not be opened
 				// close the buffer that was opened for the openable parent
-			    // close only the openable's buffer (see https://bugs.eclipse.org/bugs/show_bug.cgi?id=62854)
-			    Openable openable = (Openable) getOpenable();
-			    if (newElements.containsKey(openable)) {
-			        openable.closeBuffer();
-			    }
+				Openable openable = (Openable) getOpenable();
+				// Bug 62854: close only the openable's buffer
+				if (newElements.containsKey(openable)
+						// Bug 526116: do not close current working copy, which can impact save actions
+						&& !(openable instanceof ICompilationUnit && ((ICompilationUnit) openable).isWorkingCopy())) {
+					openable.closeBuffer();
+				}
 				throw newNotPresentException();
 			}
 			if (!hadTemporaryCache) {
@@ -628,7 +638,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 		return this;
 	}
 	protected String tabString(int tab) {
-		StringBuffer buffer = new StringBuffer();
+		StringBuilder buffer = new StringBuilder();
 		for (int i = tab; i > 0; i--)
 			buffer.append("  "); //$NON-NLS-1$
 		return buffer.toString();
@@ -679,7 +689,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 	 *  Debugging purposes
 	 */
 	protected void toStringAncestors(StringBuffer buffer) {
-		JavaElement parentElement = (JavaElement)getParent();
+		JavaElement parentElement = getParent();
 		if (parentElement != null && parentElement.getParent() != null) {
 			buffer.append(" [in "); //$NON-NLS-1$
 			parentElement.toStringInfo(0, buffer, NO_INFO, false/*don't show resolved info*/);
@@ -742,7 +752,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 			catch(JavaModelException jme) {
 				// Proceed with raw classpath
 			}
-			
+
 			entry= root.getRawClasspathEntry();
 			switch (entry.getEntryKind()) {
 				case IClasspathEntry.CPE_LIBRARY:
@@ -750,7 +760,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 					return getLibraryJavadocLocation(entry);
 				default:
 					return null;
-			}			
+			}
 		}
 		return null;
 	}
@@ -808,15 +818,15 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 		}
 		return false;
 	}
-	
+
 	/*
-	 * This method caches a list of good and bad Javadoc locations in the current eclipse session. 
+	 * This method caches a list of good and bad Javadoc locations in the current eclipse session.
 	 */
 	protected void validateAndCache(URL baseLoc, FileNotFoundException e) throws JavaModelException {
 		String url = baseLoc.toString();
 		if (validURLs != null && validURLs.contains(url)) return;
-		
-		if (invalidURLs != null && invalidURLs.contains(url)) 
+
+		if (invalidURLs != null && invalidURLs.contains(url))
 				throw new JavaModelException(e, IJavaModelStatusConstants.CANNOT_RETRIEVE_ATTACHED_JAVADOC);
 
 		InputStream input = null;
@@ -828,7 +838,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 			}
 			validURLs.add(url);
 		} catch (Exception e1) {
-			if (invalidURLs == null) { 
+			if (invalidURLs == null) {
 				invalidURLs = new HashSet<String>(1);
 			}
 			invalidURLs.add(url);
@@ -878,7 +888,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 			stream = new BufferedInputStream(connection.getInputStream());
 
 			String encoding = connection.getContentEncoding();
-			byte[] contents = org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.getInputStreamAsByteArray(stream, connection.getContentLength());
+			byte[] contents = org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.getInputStreamAsByteArray(stream);
 			if (encoding == null) {
 				int index = getIndexOf(contents, META_START, 0, -1);
 				if (index != -1) {
@@ -915,10 +925,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 					return new String(contents);
 				}
 			}
-		} catch (IllegalArgumentException e) {
-			// https://bugs.eclipse.org/bugs/show_bug.cgi?id=304316
-			return null;
-		} catch (NullPointerException e) {
+		} catch (IllegalArgumentException | NullPointerException e) {
 			// https://bugs.eclipse.org/bugs/show_bug.cgi?id=304316
 			return null;
 		} catch (SocketTimeoutException e) {
@@ -928,15 +935,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 		} catch (FileNotFoundException e) {
 			// https://bugs.eclipse.org/bugs/show_bug.cgi?id=403154
 			validateAndCache(baseLoc, e);
-		} catch (SocketException e) {
-			// see bug https://bugs.eclipse.org/bugs/show_bug.cgi?id=247845 &
-			// https://bugs.eclipse.org/bugs/show_bug.cgi?id=400060
-			throw new JavaModelException(e, IJavaModelStatusConstants.CANNOT_RETRIEVE_ATTACHED_JAVADOC);
-		} catch (UnknownHostException e) {
-			// see bug https://bugs.eclipse.org/bugs/show_bug.cgi?id=247845 &
-			// https://bugs.eclipse.org/bugs/show_bug.cgi?id=400060
-			throw new JavaModelException(e, IJavaModelStatusConstants.CANNOT_RETRIEVE_ATTACHED_JAVADOC);
-		} catch (ProtocolException e) {
+		} catch (SocketException | UnknownHostException | ProtocolException e) {
 			// see bug https://bugs.eclipse.org/bugs/show_bug.cgi?id=247845 &
 			// https://bugs.eclipse.org/bugs/show_bug.cgi?id=400060
 			throw new JavaModelException(e, IJavaModelStatusConstants.CANNOT_RETRIEVE_ATTACHED_JAVADOC);
@@ -956,9 +955,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 			if (connection2 != null) {
 				try {
 					connection2.getJarFile().close();
-				} catch(IOException e) {
-					// ignore
-				} catch(IllegalStateException e) {
+				} catch(IOException | IllegalStateException e) {
 					/*
 					 * ignore. Can happen in case the stream.close() did close the jar file
 					 * see https://bugs.eclipse.org/bugs/show_bug.cgi?id=140750

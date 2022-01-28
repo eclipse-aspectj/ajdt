@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2020 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -90,7 +90,7 @@ public class CopyResourceElementsOperation extends MultiOperation implements Suf
 		initializeASTParser();
 	}
 	private void initializeASTParser() {
-		this.parser = ASTParser.newParser(AST.JLS11);
+		this.parser = ASTParser.newParser(getLatestASTLevel());
 	}
 	/**
 	 * Returns the children of <code>source</code> which are affected by this operation.
@@ -279,7 +279,7 @@ public class CopyResourceElementsOperation extends MultiOperation implements Suf
 	 */
 	protected void prepareDeltas(IJavaElement sourceElement, IJavaElement destinationElement, boolean isMove, boolean overWriteCU) {
 		if (Util.isExcluded(sourceElement) || Util.isExcluded(destinationElement)) return;
-		
+
 		IJavaProject destProject = destinationElement.getJavaProject();
 		if (isMove) {
 			IJavaProject sourceProject = sourceElement.getJavaProject();
@@ -374,7 +374,7 @@ public class CopyResourceElementsOperation extends MultiOperation implements Suf
 			// register the correct change deltas
 			boolean contentChanged = this.force && destFile.exists();
 			prepareDeltas(source, destCU, isMove(), contentChanged);
-			
+
 			if (newCUName != null) {
 				//the main type has been renamed
 				String oldName = Util.getNameWithoutJavaLikeExtension(source.getElementName());
@@ -474,7 +474,7 @@ public class CopyResourceElementsOperation extends MultiOperation implements Suf
 					}
 				}
 			}
-			boolean containsReadOnlySubPackageFragments = createNeededPackageFragments((IContainer) source.parent.resource(), root, newFragName, shouldMoveFolder);
+			boolean containsReadOnlySubPackageFragments = createNeededPackageFragments((IContainer) source.getParent().resource(), root, newFragName, shouldMoveFolder);
 			boolean sourceIsReadOnly = Util.isReadOnly(srcFolder);
 
 			// Process resources
@@ -558,7 +558,7 @@ public class CopyResourceElementsOperation extends MultiOperation implements Suf
 			if (isMove()) {
 				// delete remaining files in this package (.class file in the case where Proj=src=bin)
 				// in case of a copy
-				updateReadOnlyPackageFragmentsForMove((IContainer) source.parent.resource(), root, newFragName, sourceIsReadOnly);
+				updateReadOnlyPackageFragmentsForMove((IContainer) source.getParent().resource(), root, newFragName, sourceIsReadOnly);
 				if (srcFolder.exists()) {
 					IResource[] remaining = srcFolder.members();
 					for (int i = 0, length = remaining.length; i < length; i++) {
@@ -579,7 +579,7 @@ public class CopyResourceElementsOperation extends MultiOperation implements Suf
 					if (destPath.isPrefixOf(srcFolder.getFullPath())) {
 						rootResource = newFrag.resource();
 					} else {
-						rootResource =  source.parent.resource();
+						rootResource =  source.getParent().resource();
 					}
 
 					// delete recursively empty folders
@@ -587,7 +587,7 @@ public class CopyResourceElementsOperation extends MultiOperation implements Suf
 				}
 			} else if (containsReadOnlySubPackageFragments) {
 				// in case of a copy
-				updateReadOnlyPackageFragmentsForCopy((IContainer) source.parent.resource(), root, newFragName);
+				updateReadOnlyPackageFragmentsForCopy((IContainer) source.getParent().resource(), root, newFragName);
 			}
 			// workaround for bug https://bugs.eclipse.org/bugs/show_bug.cgi?id=24505
 			if (isEmpty && isMove() && !(Util.isExcluded(source) || Util.isExcluded(newFrag))) {

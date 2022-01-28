@@ -2,9 +2,9 @@
  * Copyright (c) 2005 Contributors.
  * All rights reserved.
  * This program and the accompanying materials are made available
- * under the terms of the Eclipse Public License v1.0
+ * under the terms of the Eclipse Public License v 2.0
  * which accompanies this distribution and is available at
- * http://eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
  *
  * Contributors:
  *   Alexandre Vasseur         initial implementation
@@ -18,8 +18,8 @@ import java.util.Map;
 
 /**
  * A POJO that contains raw strings from the XML (sort of XMLBean for our simple LTW DTD)
- * 
- * @author <a href="mailto:alex AT gnilux DOT com">Alexandre Vasseur</a>
+ *
+ * @author Alexandre Vasseur (alex AT gnilux DOT com)
  */
 public class Definition {
 
@@ -48,15 +48,15 @@ public class Definition {
 		weaverOptions = new StringBuffer();
 		dumpBefore = false;
 		perClassloaderDumpDir = false;
-		dumpPatterns = new ArrayList<String>();
-		includePatterns = new ArrayList<String>();
-		excludePatterns = new ArrayList<String>();
-		aspectClassNames = new ArrayList<String>();
-		aspectExcludePatterns = new ArrayList<String>();
-		aspectIncludePatterns = new ArrayList<String>();
-		concreteAspects = new ArrayList<Definition.ConcreteAspect>();
-		scopedAspects = new HashMap<String, String>();
-		requiredTypesForAspects = new HashMap<String, String>();
+		dumpPatterns = new ArrayList<>();
+		includePatterns = new ArrayList<>();
+		excludePatterns = new ArrayList<>();
+		aspectClassNames = new ArrayList<>();
+		aspectExcludePatterns = new ArrayList<>();
+		aspectIncludePatterns = new ArrayList<>();
+		concreteAspects = new ArrayList<>();
+		scopedAspects = new HashMap<>();
+		requiredTypesForAspects = new HashMap<>();
 	}
 
 	public String getWeaverOptions() {
@@ -135,10 +135,10 @@ public class Definition {
 				this.extend = extend;
 			}
 			this.precedence = precedence;
-			this.pointcuts = new ArrayList<Definition.Pointcut>();
-			this.declareAnnotations = new ArrayList<Definition.DeclareAnnotation>();
-			this.pointcutsAndAdvice = new ArrayList<Definition.PointcutAndAdvice>();
-			this.deows = new ArrayList<Definition.DeclareErrorOrWarning>();
+			this.pointcuts = new ArrayList<>();
+			this.declareAnnotations = new ArrayList<>();
+			this.pointcutsAndAdvice = new ArrayList<>();
+			this.deows = new ArrayList<>();
 			this.perclause = perclause;
 		}
 	}
@@ -156,16 +156,16 @@ public class Definition {
 	public enum AdviceKind {
 		Before, After, AfterReturning, AfterThrowing, Around;
 	}
-	
+
 	public enum DeclareAnnotationKind {
 		Method, Field, Type;
 	}
-	
+
 	public static class DeclareAnnotation {
 		public final DeclareAnnotationKind declareAnnotationKind;
 		public final String pattern;
 		public final String annotation;
-		
+
 		public DeclareAnnotation(DeclareAnnotationKind kind, String pattern, String annotation) {
 			this.declareAnnotationKind = kind;
 			this.pattern = pattern;

@@ -1,18 +1,18 @@
 /* *******************************************************************
- * Copyright (c) 1999-2001 Xerox Corporation, 
+ * Copyright (c) 1999-2001 Xerox Corporation,
  *               2002 Palo Alto Research Center, Incorporated (PARC).
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- *  
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
  * ******************************************************************/
 package org.aspectj.util;
 
 /**
  * Encapsulate generic signature parsing
- * 
+ *
  * @author Adrian Colyer
  * @author Andy Clement
  */
@@ -27,18 +27,18 @@ public class GenericSignature {
 		public ClassTypeSignature[] superInterfaceSignatures = ClassTypeSignature.NONE;
 
 		public String toString() {
-			StringBuffer ret = new StringBuffer();
+			StringBuilder ret = new StringBuilder();
 			ret.append(formalTypeParameters.toString());
 			ret.append(superclassSignature.toString());
-			for (int i = 0; i < superInterfaceSignatures.length; i++) {
-				ret.append(superInterfaceSignatures[i].toString());
+			for (ClassTypeSignature superInterfaceSignature : superInterfaceSignatures) {
+				ret.append(superInterfaceSignature.toString());
 			}
 			return ret.toString();
 		}
 	}
 
 	public static class MethodTypeSignature {
-		public FormalTypeParameter[] formalTypeParameters = new FormalTypeParameter[0];
+		public FormalTypeParameter[] formalTypeParameters = FormalTypeParameter.NONE;
 		public TypeSignature[] parameters = new TypeSignature[0];
 		public TypeSignature returnType;
 		public FieldTypeSignature[] throwsSignatures = new FieldTypeSignature[0];
@@ -52,23 +52,23 @@ public class GenericSignature {
 		}
 
 		public String toString() {
-			StringBuffer sb = new StringBuffer();
+			StringBuilder sb = new StringBuilder();
 			if (formalTypeParameters.length > 0) {
 				sb.append("<");
-				for (int i = 0; i < formalTypeParameters.length; i++) {
-					sb.append(formalTypeParameters[i].toString());
+				for (FormalTypeParameter formalTypeParameter : formalTypeParameters) {
+					sb.append(formalTypeParameter.toString());
 				}
 				sb.append(">");
 			}
 			sb.append("(");
-			for (int i = 0; i < parameters.length; i++) {
-				sb.append(parameters[i].toString());
+			for (TypeSignature parameter : parameters) {
+				sb.append(parameter.toString());
 			}
 			sb.append(")");
 			sb.append(returnType.toString());
-			for (int i = 0; i < throwsSignatures.length; i++) {
+			for (FieldTypeSignature throwsSignature : throwsSignatures) {
 				sb.append("^");
-				sb.append(throwsSignatures[i].toString());
+				sb.append(throwsSignature.toString());
 			}
 			return sb.toString();
 		}
@@ -84,14 +84,14 @@ public class GenericSignature {
 		public FieldTypeSignature[] interfaceBounds;
 
 		public String toString() {
-			StringBuffer ret = new StringBuffer();
+			StringBuilder ret = new StringBuilder();
 			ret.append("T");
 			ret.append(identifier);
 			ret.append(":");
 			ret.append(classBound.toString());
-			for (int i = 0; i < interfaceBounds.length; i++) {
+			for (FieldTypeSignature interfaceBound : interfaceBounds) {
 				ret.append(":");
-				ret.append(interfaceBounds[i].toString());
+				ret.append(interfaceBound.toString());
 			}
 			return ret.toString();
 		}
@@ -208,12 +208,12 @@ public class GenericSignature {
 		}
 
 		public String toString() {
-			StringBuffer sb = new StringBuffer();
+			StringBuilder sb = new StringBuilder();
 			sb.append(identifier);
 			if (typeArguments.length > 0) {
 				sb.append("<");
-				for (int i = 0; i < typeArguments.length; i++) {
-					sb.append(typeArguments[i].toString());
+				for (TypeArgument typeArgument : typeArguments) {
+					sb.append(typeArgument.toString());
 				}
 				sb.append(">");
 			}
@@ -240,7 +240,7 @@ public class GenericSignature {
 		public String toString() {
 			if (isWildcard)
 				return "*";
-			StringBuffer sb = new StringBuffer();
+			StringBuilder sb = new StringBuilder();
 			if (isPlus)
 				sb.append("+");
 			if (isMinus)

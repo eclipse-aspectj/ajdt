@@ -1,12 +1,12 @@
 /* *******************************************************************
  * Copyright (c) 2005 Contributors.
- * All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: 
+ * All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v 2.0
+ * which accompanies this distribution and is available at
+ * https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+ *
+ * Contributors:
  *   Adrian Colyer			Initial implementation
  * ******************************************************************/
 package org.aspectj.weaver.reflect;
@@ -18,7 +18,6 @@ import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
-import org.aspectj.util.LangUtil;
 import org.aspectj.weaver.ReferenceType;
 import org.aspectj.weaver.ResolvedMember;
 import org.aspectj.weaver.ResolvedMemberImpl;
@@ -35,26 +34,22 @@ public class ReflectionBasedReferenceTypeDelegateFactory {
 	public static ReflectionBasedReferenceTypeDelegate createDelegate(ReferenceType forReferenceType, World inWorld,
 			ClassLoader usingClassLoader) {
 		try {
-			Class c = Class.forName(forReferenceType.getName(), false, usingClassLoader);
-			if (LangUtil.is15VMOrGreater()) {
-				ReflectionBasedReferenceTypeDelegate rbrtd = create15Delegate(forReferenceType, c, usingClassLoader, inWorld);
-				if (rbrtd != null) {
-					return rbrtd; // can be null if we didn't find the class the delegate logic loads
-				}
+			Class<?> c = Class.forName(forReferenceType.getName(), false, usingClassLoader);
+			ReflectionBasedReferenceTypeDelegate rbrtd = create15Delegate(forReferenceType, c, usingClassLoader, inWorld);
+			if (rbrtd != null) {
+				return rbrtd; // can be null if we didn't find the class the delegate logic loads
 			}
 			return new ReflectionBasedReferenceTypeDelegate(c, usingClassLoader, inWorld, forReferenceType);
 		} catch (ClassNotFoundException cnfEx) {
 			return null;
 		}
 	}
-	
+
 	public static ReflectionBasedReferenceTypeDelegate createDelegate(ReferenceType forReferenceType, World inWorld,
 			Class<?> clazz) {
-		if (LangUtil.is15VMOrGreater()) {
-			ReflectionBasedReferenceTypeDelegate rbrtd = create15Delegate(forReferenceType, clazz, clazz.getClassLoader(), inWorld);
-			if (rbrtd != null) {
-				return rbrtd; // can be null if we didn't find the class the delegate logic loads
-			}
+		ReflectionBasedReferenceTypeDelegate rbrtd = create15Delegate(forReferenceType, clazz, clazz.getClassLoader(), inWorld);
+		if (rbrtd != null) {
+			return rbrtd; // can be null if we didn't find the class the delegate logic loads
 		}
 		return new ReflectionBasedReferenceTypeDelegate(clazz, clazz.getClassLoader(), inWorld, forReferenceType);
 	}
@@ -62,7 +57,7 @@ public class ReflectionBasedReferenceTypeDelegateFactory {
 	public static ReflectionBasedReferenceTypeDelegate create14Delegate(ReferenceType forReferenceType, World inWorld,
 			ClassLoader usingClassLoader) {
 		try {
-			Class c = Class.forName(forReferenceType.getName(), false, usingClassLoader);
+			Class<?> c = Class.forName(forReferenceType.getName(), false, usingClassLoader);
 			return new ReflectionBasedReferenceTypeDelegate(c, usingClassLoader, inWorld, forReferenceType);
 		} catch (ClassNotFoundException cnfEx) {
 			return null;
@@ -73,8 +68,8 @@ public class ReflectionBasedReferenceTypeDelegateFactory {
 	private static ReflectionBasedReferenceTypeDelegate create15Delegate(ReferenceType forReferenceType, Class forClass,
 			ClassLoader usingClassLoader, World inWorld) {
 		try {
-			Class delegateClass = Class.forName("org.aspectj.weaver.reflect.Java15ReflectionBasedReferenceTypeDelegate");
-			ReflectionBasedReferenceTypeDelegate ret = (ReflectionBasedReferenceTypeDelegate) delegateClass.newInstance();
+			Class<?> delegateClass = Class.forName("org.aspectj.weaver.reflect.Java15ReflectionBasedReferenceTypeDelegate");
+			ReflectionBasedReferenceTypeDelegate ret = (ReflectionBasedReferenceTypeDelegate) delegateClass.getDeclaredConstructor().newInstance();
 			ret.initialize(forReferenceType, forClass, usingClassLoader, inWorld);
 			return ret;
 		} catch (ClassNotFoundException cnfEx) {
@@ -86,41 +81,45 @@ public class ReflectionBasedReferenceTypeDelegateFactory {
 		} catch (IllegalAccessException illAccEx) {
 			throw new IllegalStateException("Attempted to create Java 1.5 reflection based delegate but IllegalAccessException: "
 					+ illAccEx + " occured");
+		} catch (NoSuchMethodException nsMethEx) {
+			throw new IllegalStateException("Attempted to create Java 1.5 reflection based delegate but NoSuchMethodException: "
+					+ nsMethEx + " occured");
+		} catch (InvocationTargetException invTargEx) {
+			throw new IllegalStateException("Attempted to create Java 1.5 reflection based delegate but InvocationTargetException: "
+					+ invTargEx + " occured");
 		}
 	}
 
 	private static GenericSignatureInformationProvider createGenericSignatureProvider(World inWorld) {
-		if (LangUtil.is15VMOrGreater()) {
-			try {
-				Class providerClass = Class.forName("org.aspectj.weaver.reflect.Java15GenericSignatureInformationProvider");
-				Constructor cons = providerClass.getConstructor(new Class[] { World.class });
-				GenericSignatureInformationProvider ret = (GenericSignatureInformationProvider) cons
-						.newInstance(new Object[] { inWorld });
-				return ret;
-			} catch (ClassNotFoundException cnfEx) {
-				// drop through and create a 14 provider...
-				// throw new
-				// IllegalStateException("Attempted to create Java 1.5 generic signature provider but org.aspectj.weaver.reflect.Java15GenericSignatureInformationProvider was not found on classpath");
-			} catch (NoSuchMethodException nsmEx) {
-				throw new IllegalStateException("Attempted to create Java 1.5 generic signature provider but: " + nsmEx
-						+ " occured");
-			} catch (InstantiationException insEx) {
-				throw new IllegalStateException("Attempted to create Java 1.5 generic signature provider but: " + insEx
-						+ " occured");
-			} catch (InvocationTargetException invEx) {
-				throw new IllegalStateException("Attempted to create Java 1.5 generic signature provider but: " + invEx
-						+ " occured");
-			} catch (IllegalAccessException illAcc) {
-				throw new IllegalStateException("Attempted to create Java 1.5 generic signature provider but: " + illAcc
-						+ " occured");
-			}
+		try {
+			Class<?> providerClass = Class.forName("org.aspectj.weaver.reflect.Java15GenericSignatureInformationProvider");
+			Constructor<?> cons = providerClass.getConstructor(new Class[] { World.class });
+			GenericSignatureInformationProvider ret = (GenericSignatureInformationProvider) cons
+					.newInstance(new Object[] { inWorld });
+			return ret;
+		} catch (ClassNotFoundException cnfEx) {
+			// drop through and create a 14 provider...
+			// throw new
+			// IllegalStateException("Attempted to create Java 1.5 generic signature provider but org.aspectj.weaver.reflect.Java15GenericSignatureInformationProvider was not found on classpath");
+		} catch (NoSuchMethodException nsmEx) {
+			throw new IllegalStateException("Attempted to create Java 1.5 generic signature provider but: " + nsmEx
+					+ " occured");
+		} catch (InstantiationException insEx) {
+			throw new IllegalStateException("Attempted to create Java 1.5 generic signature provider but: " + insEx
+					+ " occured");
+		} catch (InvocationTargetException invEx) {
+			throw new IllegalStateException("Attempted to create Java 1.5 generic signature provider but: " + invEx
+					+ " occured");
+		} catch (IllegalAccessException illAcc) {
+			throw new IllegalStateException("Attempted to create Java 1.5 generic signature provider but: " + illAcc
+					+ " occured");
 		}
 		return new Java14GenericSignatureInformationProvider();
 	}
 
 	/**
 	 * convert a java.lang.reflect.Member into a resolved member in the world
-	 * 
+	 *
 	 * @param reflectMember
 	 * @param inWorld
 	 * @return
@@ -161,8 +160,8 @@ public class ReflectionBasedReferenceTypeDelegateFactory {
 
 	public static ResolvedMember createStaticInitMember(Class forType, World inWorld) {
 		return new ResolvedMemberImpl(org.aspectj.weaver.Member.STATIC_INITIALIZATION, toResolvedType(forType,
-				(IReflectionWorld) inWorld), Modifier.STATIC, UnresolvedType.VOID, "<clinit>", new UnresolvedType[0],
-				new UnresolvedType[0]);
+				(IReflectionWorld) inWorld), Modifier.STATIC, UnresolvedType.VOID, "<clinit>", UnresolvedType.NONE,
+				UnresolvedType.NONE);
 	}
 
 	public static ResolvedMember createResolvedConstructor(Constructor aConstructor, World inWorld) {
@@ -182,7 +181,7 @@ public class ReflectionBasedReferenceTypeDelegateFactory {
 	public static ResolvedMember createResolvedField(Field aField, World inWorld) {
 		ReflectionBasedResolvedMemberImpl ret = new ReflectionBasedResolvedMemberImpl(org.aspectj.weaver.Member.FIELD,
 				toResolvedType(aField.getDeclaringClass(), (IReflectionWorld) inWorld), aField.getModifiers(), toResolvedType(
-						aField.getType(), (IReflectionWorld) inWorld), aField.getName(), new UnresolvedType[0], aField);
+						aField.getType(), (IReflectionWorld) inWorld), aField.getName(), UnresolvedType.NONE, aField);
 		if (inWorld instanceof IReflectionWorld) {
 			ret.setAnnotationFinder(((IReflectionWorld) inWorld).getAnnotationFinder());
 		}
@@ -205,7 +204,7 @@ public class ReflectionBasedReferenceTypeDelegateFactory {
 		}
 	}
 
-	private static ResolvedType toResolvedType(Class aClass, IReflectionWorld aWorld) {
+	private static ResolvedType toResolvedType(Class<?> aClass, IReflectionWorld aWorld) {
 		return aWorld.resolve(aClass);
 	}
 

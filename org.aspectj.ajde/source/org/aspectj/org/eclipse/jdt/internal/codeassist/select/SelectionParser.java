@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -7,10 +7,10 @@
  * https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Jesper Steen Møller <jesper@selskabet.org> - contributions for:	
+ *     Jesper Steen Møller <jesper@selskabet.org> - contributions for:
  *         Bug 531046: [10] ICodeAssist#codeSelect support for 'var'
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.codeassist.select;
@@ -40,7 +40,9 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclarat
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ExplicitConstructorCall;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.FieldReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.GuardedPattern;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ImportReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.InstanceOfExpression;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.LambdaExpression;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.LocalDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.MarkerAnnotation;
@@ -50,6 +52,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ModuleDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ModuleReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.NameReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.NormalAnnotation;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Pattern;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.QualifiedAllocationExpression;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Reference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ReferenceExpression;
@@ -61,6 +64,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.SuperReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.SwitchStatement;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ThisReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypePattern;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit;
@@ -77,7 +81,7 @@ public class SelectionParser extends AssistParser {
 	protected static final int SELECTION_OR_ASSIST_PARSER = ASSIST_PARSER + SELECTION_PARSER;
 
 	// KIND : all values known by SelectionParser are between 1025 and 1549
-	protected static final int K_BETWEEN_CASE_AND_COLON = SELECTION_PARSER + 1; // whether we are inside a block
+	protected static final int K_BETWEEN_CASE_AND_COLONORARROW = SELECTION_PARSER + 1; // whether we are inside a block
 	protected static final int K_INSIDE_RETURN_STATEMENT = SELECTION_PARSER + 2; // whether we are between the keyword 'return' and the end of a return statement
 	protected static final int K_CAST_STATEMENT = SELECTION_PARSER + 3; // whether we are between ')' and the end of a cast statement
 
@@ -111,7 +115,6 @@ protected void attachOrphanCompletionNode(){
 		ASTNode orphan = this.assistNode;
 		this.isOrphanCompletionNode = false;
 
-
 		/* if in context of a type, then persists the identifier into a fake field return type */
 		if (this.currentElement instanceof RecoveredType){
 			RecoveredType recoveredType = (RecoveredType)this.currentElement;
@@ -125,7 +128,7 @@ protected void attachOrphanCompletionNode(){
 			}
 		}
 
-		if (orphan instanceof Expression) {
+		if (orphan instanceof Expression && ((Expression) orphan).isTrulyExpression()) {
 			buildMoreCompletionContext((Expression)orphan);
 		} else {
 			if (lastIndexOfElement(K_LAMBDA_EXPRESSION_DELIMITER) < 0) { // lambdas are recovered up to the containing expression statement and will carry along the assist node anyways.
@@ -142,6 +145,35 @@ protected void attachOrphanCompletionNode(){
 			this.currentToken = 0; // given we are not on an eof, we do not want side effects caused by looked-ahead token
 		}
 	}
+	// if casestatement and not orphan, then add switch statement as assist node parent
+	if (this.expressionPtr > 0 && this.assistNodeParent == null) {
+		if (this.astPtr >= 0) {
+			if (this.astStack[this.astPtr] instanceof CaseStatement) {
+				// add switch statement as assistNodeParent
+				Expression expression = this.expressionStack[this.expressionPtr];
+				SwitchStatement switchStatement = new SwitchStatement();
+				switchStatement.expression = this.expressionStack[this.expressionPtr - 1];
+				if (this.astLengthPtr > -1 && this.astPtr > -1) {
+					int length = this.astLengthStack[this.astLengthPtr];
+					int newAstPtr = this.astPtr - length;
+					ASTNode firstNode = this.astStack[newAstPtr + 1];
+					if (length != 0 && firstNode.sourceStart > switchStatement.expression.sourceEnd) {
+						switchStatement.statements = new Statement[length + 1];
+						System.arraycopy(this.astStack, newAstPtr + 1, switchStatement.statements, 0, length);
+					}
+
+				}
+				CaseStatement caseStatement = new CaseStatement(expression, expression.sourceStart,
+						expression.sourceEnd);
+				if (switchStatement.statements == null) {
+					switchStatement.statements = new Statement[] { caseStatement };
+				} else {
+					switchStatement.statements[switchStatement.statements.length - 1] = caseStatement;
+				}
+				this.assistNodeParent = switchStatement;
+			}
+		}
+	}
 }
 private void buildMoreCompletionContext(Expression expression) {
 	ASTNode parentNode = null;
@@ -150,7 +182,7 @@ private void buildMoreCompletionContext(Expression expression) {
 	if(kind != 0) {
 		int info = topKnownElementInfo(SELECTION_OR_ASSIST_PARSER);
 		nextElement : switch (kind) {
-			case K_BETWEEN_CASE_AND_COLON :
+			case K_BETWEEN_CASE_AND_COLONORARROW :
 				if(this.expressionPtr > 0) {
 					SwitchStatement switchStatement = new SwitchStatement();
 					switchStatement.expression = this.expressionStack[this.expressionPtr - 1];
@@ -168,6 +200,12 @@ private void buildMoreCompletionContext(Expression expression) {
 								length);
 						}
 					}
+					if(this.astPtr >=0) {
+						if( this.astStack[this.astPtr] instanceof TypePattern && expression instanceof NameReference) {
+							expression = new GuardedPattern((Pattern)this.astStack[this.astPtr], expression);
+						}
+					}
+
 					CaseStatement caseStatement = new CaseStatement(expression, expression.sourceStart, expression.sourceEnd);
 					if(switchStatement.statements == null) {
 						switchStatement.statements = new Statement[]{caseStatement};
@@ -567,7 +605,7 @@ protected void consumeEnterAnonymousClassBody(boolean qualified) {
 			0,
 			argumentLength);
 	}
-	
+
 	if (qualified) {
 		this.expressionLengthPtr--;
 		alloc.enclosingInstance = this.expressionStack[this.expressionPtr--];
@@ -588,7 +626,7 @@ protected void consumeEnterAnonymousClassBody(boolean qualified) {
 		this.lastIgnoredToken = -1;
 		if (isIndirectlyInsideLambdaExpression())
 			this.ignoreNextOpeningBrace = true;
-		else 
+		else
 			this.currentToken = 0; // opening brace already taken into account.
 		this.hasReportedError = true;
 	}
@@ -601,7 +639,7 @@ protected void consumeEnterAnonymousClassBody(boolean qualified) {
 		this.currentElement = this.currentElement.add(anonymousType, 0);
 		if (isIndirectlyInsideLambdaExpression())
 			this.ignoreNextOpeningBrace = true;
-		else 
+		else
 			this.currentToken = 0; // opening brace already taken into account.
 		this.lastIgnoredToken = -1;
 	}
@@ -677,14 +715,6 @@ protected void consumeFieldAccess(boolean isSuperAccess) {
 protected void consumeFormalParameter(boolean isVarArgs) {
 	if (this.indexOfAssistIdentifier() < 0) {
 		super.consumeFormalParameter(isVarArgs);
-		if((!this.diet || this.dietInt != 0) && this.astPtr > -1) {
-			Argument argument = (Argument) this.astStack[this.astPtr];
-			if(argument.type == this.assistNode) {
-				this.isOrphanCompletionNode = true;
-				this.restartRecovery	= true;	// force to restart in recovery mode
-				this.lastIgnoredToken = -1;
-			}
-		}
 	} else {
 		boolean isReceiver = this.intStack[this.intPtr--] == 0;
 	    if (isReceiver) {
@@ -708,15 +738,15 @@ protected void consumeFormalParameter(boolean isVarArgs) {
 					varArgsAnnotations = new Annotation[length],
 					0,
 					length);
-			} 
+			}
 		}
 		int firstDimensions = this.intStack[this.intPtr--];
 		TypeReference type = getTypeReference(firstDimensions);
 
 		if (isVarArgs || extendedDimensions != 0) {
 			if (isVarArgs) {
-				type = augmentTypeWithAdditionalDimensions(type, 1, varArgsAnnotations != null ? new Annotation[][] { varArgsAnnotations } : null, true);	
-			} 
+				type = augmentTypeWithAdditionalDimensions(type, 1, varArgsAnnotations != null ? new Annotation[][] { varArgsAnnotations } : null, true);
+			}
 			if (extendedDimensions != 0) { // combination illegal.
 				type = augmentTypeWithAdditionalDimensions(type, extendedDimensions, annotationsOnExtendedDimensions, false);
 			}
@@ -791,6 +821,14 @@ protected void consumeInsideCastExpressionWithQualifiedGenerics() {
 protected void consumeInstanceOfExpression() {
 	if (indexOfAssistIdentifier() < 0) {
 		super.consumeInstanceOfExpression();
+		int length = this.expressionLengthPtr >= 0 ?
+				this.expressionLengthStack[this.expressionLengthPtr] : 0;
+		if (length > 0) {
+			InstanceOfExpression exp = (InstanceOfExpression) this.expressionStack[this.expressionPtr];
+			if (exp.elementVariable != null) {
+				pushOnAstStack(exp.elementVariable);
+			}
+		}
 	} else {
 		getTypeReference(this.intStack[this.intPtr--]);
 		this.isOrphanCompletionNode = true;
@@ -800,7 +838,33 @@ protected void consumeInstanceOfExpression() {
 }
 @Override
 protected void consumeInstanceOfExpressionWithName() {
-	if (indexOfAssistIdentifier() < 0) {
+	int length = this.patternLengthPtr >= 0 ?
+			this.patternLengthStack[this.patternLengthPtr--] : 0;
+	if (length > 0) {
+		Pattern pattern = (Pattern) this.patternStack[this.patternPtr--];
+		pushOnExpressionStack(getUnspecifiedReferenceOptimized());
+		if (this.expressionStack[this.expressionPtr] != this.assistNode) {
+			// Push only when the selection node is not the expression of this
+			// pattern matching instanceof expression
+			LocalDeclaration patternVariableIntroduced = pattern.getPatternVariableIntroduced();
+			if (patternVariableIntroduced != null) {
+				// filter out patternVariableIntroduced based on current selection if there is an assist node
+				if (this.assistNode == null || (this.selectionStart <= patternVariableIntroduced.sourceStart
+						&& this.selectionEnd >= patternVariableIntroduced.sourceEnd)) {
+					pushOnAstStack(patternVariableIntroduced);
+				}
+			}
+			if ((this.selectionStart >= pattern.sourceStart)
+					&&  (this.selectionEnd <= pattern.sourceEnd)) {
+				this.restartRecovery	= true;
+				this.lastIgnoredToken = -1;
+			}
+		} else if (indexOfAssistIdentifier() >= 0) {
+			this.isOrphanCompletionNode = true;
+			this.restartRecovery = true;
+			this.lastIgnoredToken = -1;
+		}
+	} else if (indexOfAssistIdentifier() < 0) {
 		super.consumeInstanceOfExpressionWithName();
 	} else {
 		getTypeReference(this.intStack[this.intPtr--]);
@@ -1250,11 +1314,26 @@ protected void consumeToken(int token) {
 	if (isInsideMethod() || isInsideFieldInitialization()) {
 		switch (token) {
 			case TokenNamecase :
-				pushOnElementStack(K_BETWEEN_CASE_AND_COLON);
+				pushOnElementStack(K_BETWEEN_CASE_AND_COLONORARROW);
 				break;
+			case TokenNameCOMMA :
+				switch (topKnownElementKind(SELECTION_OR_ASSIST_PARSER)) {
+					// for multi constant case stmt
+					// case MONDAY, FRIDAY
+					// if there's a comma, ignore the previous expression (constant)
+					// Which doesn't matter for the next constant
+					case K_BETWEEN_CASE_AND_COLONORARROW:
+						this.expressionPtr--;
+						this.expressionLengthStack[this.expressionLengthPtr]--;
+				}
+				break;
+			case TokenNameARROW:
+				// TODO: Uncomment the line below
+				//if (this.options.sourceLevel < ClassFileConstants.JDK13) break;
+				// else FALL-THROUGH
 			case TokenNameCOLON:
-				if(topKnownElementKind(SELECTION_OR_ASSIST_PARSER) == K_BETWEEN_CASE_AND_COLON) {
-					popElement(K_BETWEEN_CASE_AND_COLON);
+				if(topKnownElementKind(SELECTION_OR_ASSIST_PARSER) == K_BETWEEN_CASE_AND_COLONORARROW) {
+					popElement(K_BETWEEN_CASE_AND_COLONORARROW);
 				}
 				break;
 			case TokenNamereturn:
@@ -1505,7 +1584,7 @@ protected NameReference getUnspecifiedReferenceOptimized() {
 }
 @Override
 public void initializeScanner(){
-	this.scanner = new SelectionScanner(this.options.sourceLevel);
+	this.scanner = new SelectionScanner(this.options.sourceLevel, this.options.enablePreviewFeatures);
 }
 @Override
 public ReferenceExpression newReferenceExpression() {
@@ -1664,7 +1743,7 @@ protected Argument typeElidedArgument() {
 	char[] selector = this.identifierStack[this.identifierPtr];
 	if (selector != assistIdentifier()){
 		return super.typeElidedArgument();
-	}	
+	}
 	this.identifierLengthPtr--;
 	char[] identifierName = this.identifierStack[this.identifierPtr];
 	long namePositions = this.identifierPositionStack[this.identifierPtr--];

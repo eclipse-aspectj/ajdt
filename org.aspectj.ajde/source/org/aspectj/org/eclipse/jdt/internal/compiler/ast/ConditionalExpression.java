@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -7,7 +7,7 @@
  * https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephen Herrmann <stephan@cs.tu-berlin.de> -  Contributions for
@@ -33,6 +33,7 @@ package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
 import static org.aspectj.org.eclipse.jdt.internal.compiler.ast.ExpressionContext.*;
 
+import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
@@ -51,7 +52,7 @@ public class ConditionalExpression extends OperatorExpression implements IPolyEx
 	int trueInitStateIndex = -1;
 	int falseInitStateIndex = -1;
 	int mergedInitStateIndex = -1;
-	
+
 	// we compute and store the null status during analyseCode (https://bugs.eclipse.org/324178):
 	private int nullStatus = FlowInfo.UNKNOWN;
 	int ifFalseNullStatus;
@@ -96,6 +97,7 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext,
 			}
 		}
 		this.trueInitStateIndex = currentScope.methodScope().recordInitializationStates(trueFlowInfo);
+		this.condition.updateFlowOnBooleanResult(trueFlowInfo, true);
 		trueFlowInfo = this.valueIfTrue.analyseCode(currentScope, flowContext, trueFlowInfo);
 		this.valueIfTrue.checkNPEbyUnboxing(currentScope, flowContext, trueFlowInfo);
 
@@ -118,18 +120,19 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext,
 			}
 		}
 		this.falseInitStateIndex = currentScope.methodScope().recordInitializationStates(falseFlowInfo);
+		this.condition.updateFlowOnBooleanResult(falseFlowInfo, false);
 		falseFlowInfo = this.valueIfFalse.analyseCode(currentScope, flowContext, falseFlowInfo);
 		this.valueIfFalse.checkNPEbyUnboxing(currentScope, flowContext, falseFlowInfo);
 
 		flowContext.conditionalLevel--;
-		
+
 		// merge if-true & if-false initializations
 		FlowInfo mergedInfo;
 		if (isConditionOptimizedTrue){
 			mergedInfo = trueFlowInfo.addPotentialInitializationsFrom(falseFlowInfo);
 			if (this.ifTrueNullStatus != -1) {
 				this.nullStatus = this.ifTrueNullStatus;
-			} else { 
+			} else {
 				this.nullStatus = this.valueIfTrue.nullStatus(trueFlowInfo, flowContext);
 			}
 		} else if (isConditionOptimizedFalse) {
@@ -143,12 +146,12 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext,
 			// (2) For definite assignment analysis (JLS 16.1.5) of boolean conditional expressions of the form
 			//     "if (c1 ? expr1 : expr2) use(v);" we need to check whether any variable v will be definitely
 			//     assigned whenever the entire conditional expression evaluates to true (to reach the then branch).
-			//     I.e., we need to collect flowInfo *towards* the overall outcome true/false 
+			//     I.e., we need to collect flowInfo *towards* the overall outcome true/false
 			//     (regardless of the evaluation of the condition).
-			
+
 			// to support (1) use the infos of both branches originating from the condition for computing the nullStatus:
 			computeNullStatus(trueFlowInfo, falseFlowInfo, flowContext);
-			
+
 			// to support (2) we split the true/false branches according to their inner structure. Consider this:
 			// if (b ? false : (true && (v = false))) return v; -- ok
 			// - expr1 ("false") has no path towards true (mark as unreachable)
@@ -168,16 +171,16 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext,
 			UnconditionalFlowInfo trueFlowTowardsFalse = trueFlowInfo.initsWhenFalse().unconditionalInits();
 			UnconditionalFlowInfo falseFlowTowardsFalse = falseFlowInfo.initsWhenFalse().unconditionalInits();
 			if (isValueIfTrueOptimizedFalse) {
-				trueFlowTowardsTrue.setReachMode(FlowInfo.UNREACHABLE_OR_DEAD);				
+				trueFlowTowardsTrue.setReachMode(FlowInfo.UNREACHABLE_OR_DEAD);
 			}
 			if (isValueIfFalseOptimizedFalse) {
-				falseFlowTowardsTrue.setReachMode(FlowInfo.UNREACHABLE_OR_DEAD);	
+				falseFlowTowardsTrue.setReachMode(FlowInfo.UNREACHABLE_OR_DEAD);
 			}
 			if (isValueIfTrueOptimizedTrue) {
-				trueFlowTowardsFalse.setReachMode(FlowInfo.UNREACHABLE_OR_DEAD);	
+				trueFlowTowardsFalse.setReachMode(FlowInfo.UNREACHABLE_OR_DEAD);
 			}
 			if (isValueIfFalseOptimizedTrue) {
-				falseFlowTowardsFalse.setReachMode(FlowInfo.UNREACHABLE_OR_DEAD);	
+				falseFlowTowardsFalse.setReachMode(FlowInfo.UNREACHABLE_OR_DEAD);
 			}
 			mergedInfo =
 				FlowInfo.conditional(
@@ -187,7 +190,7 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext,
 		this.mergedInitStateIndex =
 			currentScope.methodScope().recordInitializationStates(mergedInfo);
 		mergedInfo.setReachMode(mode);
-		
+
 		return mergedInfo;
 	}
 
@@ -201,7 +204,7 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext,
 	}
 
 	private void computeNullStatus(FlowInfo trueBranchInfo, FlowInfo falseBranchInfo, FlowContext flowContext) {
-		// given that the condition cannot be optimized to a constant 
+		// given that the condition cannot be optimized to a constant
 		// we now merge the nullStatus from both branches:
 		if (this.ifTrueNullStatus == -1) { // has this status been pre-computed?
 			this.ifTrueNullStatus = this.valueIfTrue.nullStatus(trueBranchInfo, flowContext);
@@ -223,14 +226,8 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext,
 
 		// is there a chance of null (or non-null)? -> potentially null etc.
 		// https://bugs.eclipse.org/bugs/show_bug.cgi?id=133125
-		int status = 0;
 		int combinedStatus = this.ifTrueNullStatus|this.ifFalseNullStatus;
-		if ((combinedStatus & (FlowInfo.NULL|FlowInfo.POTENTIALLY_NULL)) != 0)
-			status |= FlowInfo.POTENTIALLY_NULL;
-		if ((combinedStatus & (FlowInfo.NON_NULL|FlowInfo.POTENTIALLY_NON_NULL)) != 0)
-			status |= FlowInfo.POTENTIALLY_NON_NULL;
-		if ((combinedStatus & (FlowInfo.UNKNOWN|FlowInfo.POTENTIALLY_UNKNOWN)) != 0)
-			status |= FlowInfo.POTENTIALLY_UNKNOWN;
+		int status = Expression.computeNullStatus(0, combinedStatus);
 		if (status > 0)
 			this.nullStatus = status;
 	}
@@ -257,8 +254,12 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext,
 			return;
 		}
 		Constant cst = this.condition.optimizedBooleanConstant();
+		if (cst == Constant.NotAConstant) {
+			cst = this.condition.optimizedNullComparisonConstant();
+		}
 		boolean needTruePart = !(cst != Constant.NotAConstant && cst.booleanValue() == false);
-		boolean needFalsePart = 	!(cst != Constant.NotAConstant && cst.booleanValue() == true);
+		boolean needFalsePart = !(cst != Constant.NotAConstant && cst.booleanValue() == true);
+
 		endifLabel = new BranchLabel(codeStream);
 
 		// Generate code for the condition
@@ -448,13 +449,80 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext,
 	}
 
 	@Override
+	public void addPatternVariables(BlockScope scope, CodeStream codeStream) {
+		this.condition.addPatternVariables(scope, codeStream);
+		this.valueIfTrue.addPatternVariables(scope, codeStream);
+		this.valueIfFalse.addPatternVariables(scope, codeStream);
+	}
+	@Override
+	public void collectPatternVariablesToScope(LocalVariableBinding[] variables, BlockScope scope) {
+		// Introduce preceding variables introduced into the scope if this expression is actually evaluated
+		this.condition.collectPatternVariablesToScope(variables, scope);
+		this.valueIfFalse.collectPatternVariablesToScope(variables, scope);
+		this.valueIfTrue.collectPatternVariablesToScope(variables, scope);
+		if (this.valueIfFalse.containsPatternVariable() && this.valueIfTrue.containsPatternVariable() ) {
+			LocalVariableBinding[] first = this.valueIfTrue.patternVarsWhenTrue;
+			LocalVariableBinding[] second = this.valueIfFalse.patternVarsWhenTrue;
+			if (first != null && second != null) {
+				for (LocalVariableBinding localVariableBinding : first) {
+					char[] name = localVariableBinding.name;
+					for (LocalVariableBinding localVariableBinding2 : second) {
+						if (CharOperation.equals(name, localVariableBinding2.name)) {
+							scope.problemReporter().illegalRedeclarationOfPatternVar(localVariableBinding2, localVariableBinding2.declaration);
+						}
+					}
+				}
+			}
+			first = this.valueIfTrue.patternVarsWhenFalse;
+			second = this.valueIfFalse.patternVarsWhenFalse;
+			if (first != null && second != null) {
+				for (LocalVariableBinding localVariableBinding : first) {
+					char[] name = localVariableBinding.name;
+					for (LocalVariableBinding localVariableBinding2 : second) {
+						if (CharOperation.equals(name, localVariableBinding2.name)) {
+							scope.problemReporter().illegalRedeclarationOfPatternVar(localVariableBinding2, localVariableBinding2.declaration);
+						}
+					}
+				}
+			}
+		}
+
+		if (!this.condition.containsPatternVariable()) {
+			return;
+		}
+		if (this.condition.getPatternVariableIntroduced() != null) {
+			char[] name = this.condition.getPatternVariableIntroduced().name;
+			LocalDeclaration localVar = this.valueIfTrue.getPatternVariableIntroduced();
+			if (localVar != null && CharOperation.equals(name, localVar.name)) {
+					scope.problemReporter().illegalRedeclarationOfPatternVar(localVar.binding, localVar);
+					return;
+			}
+			localVar = this.valueIfFalse.getPatternVariableIntroduced();
+			if (localVar != null && CharOperation.equals(name, localVar.name)) {
+				scope.problemReporter().illegalRedeclarationOfPatternVar(localVar.binding, localVar);
+				return;
+			}
+		}
+		this.condition.collectPatternVariablesToScope(this.patternVarsWhenTrue, scope);
+
+		variables = this.condition.getPatternVariablesWhenTrue();
+		this.valueIfTrue.addPatternVariablesWhenTrue(variables);
+		this.valueIfFalse.addPatternVariablesWhenFalse(variables);
+		this.valueIfTrue.collectPatternVariablesToScope(variables, scope);
+
+		variables = this.condition.getPatternVariablesWhenFalse();
+		this.valueIfTrue.addPatternVariablesWhenFalse(variables);
+		this.valueIfFalse.addPatternVariablesWhenTrue(variables);
+		this.valueIfFalse.collectPatternVariablesToScope(variables, scope);
+	}
+	@Override
 	public TypeBinding resolveType(BlockScope scope) {
 		// JLS3 15.25
 		LookupEnvironment env = scope.environment();
 		final long sourceLevel = scope.compilerOptions().sourceLevel;
 		boolean use15specifics = sourceLevel >= ClassFileConstants.JDK1_5;
 		this.use18specifics = sourceLevel >= ClassFileConstants.JDK1_8;
-		
+
 		if (this.use18specifics) {
 			if (this.expressionContext == ASSIGNMENT_CONTEXT || this.expressionContext == INVOCATION_CONTEXT) {
 				this.valueIfTrue.setExpressionContext(this.expressionContext);
@@ -463,10 +531,11 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext,
 				this.valueIfFalse.setExpectedType(this.expectedType);
 			}
 		}
-		
+
+		collectPatternVariablesToScope(null, scope);
+
 		if (this.constant != Constant.NotAConstant) {
 			this.constant = Constant.NotAConstant;
-
 			TypeBinding conditionType = this.condition.resolveTypeExpecting(scope, TypeBinding.BOOLEAN);
 			this.condition.computeConversion(scope, TypeBinding.BOOLEAN, conditionType);
 
@@ -483,14 +552,26 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext,
 				this.originalValueIfTrueType = this.valueIfTrue.resolveType(scope);
 			if (this.originalValueIfFalseType.kind() == Binding.POLY_TYPE)
 				this.originalValueIfFalseType = this.valueIfFalse.resolveType(scope);
-			
+
 			if (this.originalValueIfTrueType == null || !this.originalValueIfTrueType.isValidBinding())
 				return this.resolvedType = null;
 			if (this.originalValueIfFalseType == null || !this.originalValueIfFalseType.isValidBinding())
 				return this.resolvedType = null;
 		}
+		// Propagate the constant value from the valueIfTrue and valueIFFalse expression if it is possible
+		Constant condConstant, trueConstant, falseConstant;
+		if ((condConstant = this.condition.constant) != Constant.NotAConstant
+			&& (trueConstant = this.valueIfTrue.constant) != Constant.NotAConstant
+			&& (falseConstant = this.valueIfFalse.constant) != Constant.NotAConstant) {
+			// all terms are constant expression so we can propagate the constant
+			// from valueIFTrue or valueIfFalse to the receiver constant
+			this.constant = condConstant.booleanValue() ? trueConstant : falseConstant;
+		}
 		if (isPolyExpression()) {
 			if (this.expectedType == null || !this.expectedType.isProperType(true)) {
+				// We will be back here in case of a PolyTypeBinding. So, to enable
+				// further processing, set it back to default.
+				this.constant = Constant.NotAConstant;
 				return new PolyTypeBinding(this);
 			}
 			return this.resolvedType = computeConversions(scope, this.expectedType) ? this.expectedType : null;
@@ -533,15 +614,6 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext,
 						valueIfFalseType = unboxedIfFalseType;
 					}
 			}
-		}
-		// Propagate the constant value from the valueIfTrue and valueIFFalse expression if it is possible
-		Constant condConstant, trueConstant, falseConstant;
-		if ((condConstant = this.condition.constant) != Constant.NotAConstant
-			&& (trueConstant = this.valueIfTrue.constant) != Constant.NotAConstant
-			&& (falseConstant = this.valueIfFalse.constant) != Constant.NotAConstant) {
-			// all terms are constant expression so we can propagate the constant
-			// from valueIFTrue or valueIfFalse to the receiver constant
-			this.constant = condConstant.booleanValue() ? trueConstant : falseConstant;
 		}
 		if (TypeBinding.equalsEquals(valueIfTrueType, valueIfFalseType)) { // harmed the implicit conversion
 			this.valueIfTrue.computeConversion(scope, valueIfTrueType, this.originalValueIfTrueType);
@@ -722,7 +794,7 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext,
 	public void setExpectedType(TypeBinding expectedType) {
 		this.expectedType = expectedType;
 	}
-	
+
 	@Override
 	public void setExpressionContext(ExpressionContext context) {
 		this.expressionContext = context;
@@ -732,7 +804,7 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext,
 	public ExpressionContext getExpressionContext() {
 		return this.expressionContext;
 	}
-	
+
 	@Override
 	public Expression[] getPolyExpressions() {
 		Expression [] truePolys = this.valueIfTrue.getPolyExpressions();
@@ -749,65 +821,65 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext,
 
 	@Override
 	public boolean isPertinentToApplicability(TypeBinding targetType, MethodBinding method) {
-		return this.valueIfTrue.isPertinentToApplicability(targetType, method) 
+		return this.valueIfTrue.isPertinentToApplicability(targetType, method)
 				&& this.valueIfFalse.isPertinentToApplicability(targetType, method);
 	}
-	
+
 	@Override
 	public boolean isPotentiallyCompatibleWith(TypeBinding targetType, Scope scope) {
-		return this.valueIfTrue.isPotentiallyCompatibleWith(targetType, scope) 
+		return this.valueIfTrue.isPotentiallyCompatibleWith(targetType, scope)
 				&& this.valueIfFalse.isPotentiallyCompatibleWith(targetType, scope);
 	}
-	
+
 	@Override
 	public boolean isFunctionalType() {
 		return this.valueIfTrue.isFunctionalType() || this.valueIfFalse.isFunctionalType(); // Even if only one arm is functional type, this will require a functional interface target
 	}
-	
+
 	@Override
 	public boolean isPolyExpression() throws UnsupportedOperationException {
-		
+
 		if (!this.use18specifics)
 			return false;
-		
+
 		if (this.isPolyExpression)
 			return true;
 
 		if (this.expressionContext != ASSIGNMENT_CONTEXT && this.expressionContext != INVOCATION_CONTEXT)
 			return false;
-		
+
 		if (this.originalValueIfTrueType == null || this.originalValueIfFalseType == null) // resolution error.
 			return false;
-		
+
 		if (this.valueIfTrue.isPolyExpression() || this.valueIfFalse.isPolyExpression())
 			return true;
-		
+
 		// "... unless both operands produce primitives (or boxed primitives)":
 		if (this.originalValueIfTrueType.isBaseType() || (this.originalValueIfTrueType.id >= TypeIds.T_JavaLangByte && this.originalValueIfTrueType.id <= TypeIds.T_JavaLangBoolean)) {
 			if (this.originalValueIfFalseType.isBaseType() || (this.originalValueIfFalseType.id >= TypeIds.T_JavaLangByte && this.originalValueIfFalseType.id <= TypeIds.T_JavaLangBoolean))
 				return false;
 		}
-		
-		// clause around generic method's return type prior to instantiation needs double check. 
+
+		// clause around generic method's return type prior to instantiation needs double check.
 		return this.isPolyExpression = true;
 	}
-	
+
 	@Override
 	public boolean isCompatibleWith(TypeBinding left, Scope scope) {
 		return isPolyExpression() ? this.valueIfTrue.isCompatibleWith(left, scope) && this.valueIfFalse.isCompatibleWith(left, scope) :
 			super.isCompatibleWith(left, scope);
 	}
-	
+
 	@Override
 	public boolean isBoxingCompatibleWith(TypeBinding targetType, Scope scope) {
 		// Note: compatibility check may have failed in just one arm and we may have reached here.
-		return isPolyExpression() ? (this.valueIfTrue.isCompatibleWith(targetType, scope) || 
-				                     this.valueIfTrue.isBoxingCompatibleWith(targetType, scope)) && 
-				                    (this.valueIfFalse.isCompatibleWith(targetType, scope) || 
+		return isPolyExpression() ? (this.valueIfTrue.isCompatibleWith(targetType, scope) ||
+				                     this.valueIfTrue.isBoxingCompatibleWith(targetType, scope)) &&
+				                    (this.valueIfFalse.isCompatibleWith(targetType, scope) ||
 				                     this.valueIfFalse.isBoxingCompatibleWith(targetType, scope)) :
 			super.isBoxingCompatibleWith(targetType, scope);
-	}	
-	
+	}
+
 	@Override
 	public boolean sIsMoreSpecific(TypeBinding s, TypeBinding t, Scope scope) {
 		if (super.sIsMoreSpecific(s, t, scope))

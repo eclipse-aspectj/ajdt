@@ -1,6 +1,6 @@
 // ASPECTJ
 /*******************************************************************************
- * Copyright (c) 2000, 2018 IBM Corporation and others.
+ * Copyright (c) 2000, 2021 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -49,7 +49,7 @@
  *								Bug 426290 - [1.8][compiler] Inference + overloading => wrong method resolution ?
  *								Bug 427483 - [Java 8] Variables in lambdas sometimes can't be resolved
  *								Bug 427438 - [1.8][compiler] NPE at org.aspectj.org.eclipse.jdt.internal.compiler.ast.ConditionalExpression.generateCode(ConditionalExpression.java:280)
- *								Bug 426996 - [1.8][inference] try to avoid method Expression.unresolve()? 
+ *								Bug 426996 - [1.8][inference] try to avoid method Expression.unresolve()?
  *								Bug 428352 - [1.8][compiler] Resolution errors don't always surface
  *								Bug 429430 - [1.8] Lambdas and method reference infer wrong exception type with generics (RuntimeException instead of IOException)
  *								Bug 441734 - [1.8][inference] Generic method with nested parameterized type argument fails on method reference
@@ -57,7 +57,7 @@
  *								Bug 456487 - [1.8][null] @Nullable type variant of @NonNull-constrained type parameter causes grief
  *								Bug 407414 - [compiler][null] Incorrect warning on a primitive type being null
  *								Bug 472618 - [compiler][null] assertNotNull vs. Assert.assertNotNull
- *								Bug 470958 - [1.8] Unable to convert lambda 
+ *								Bug 470958 - [1.8] Unable to convert lambda
  *								Bug 410218 - Optional warning for arguments of "unexpected" types to Map#get(Object), Collection#remove(Object) et al.
  *     Jesper S Moller - Contributions for
  *								Bug 378674 - "The method can be declared as static" is wrong
@@ -70,9 +70,9 @@ package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 import static org.aspectj.org.eclipse.jdt.internal.compiler.ast.ExpressionContext.*;
 
 import java.util.HashMap;
+import java.util.function.BiConsumer;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
-import org.aspectj.org.eclipse.jdt.core.compiler.IProblem;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.CodeStream;
@@ -141,12 +141,15 @@ public class MessageSend extends Expression implements IPolyExpression, Invocati
 	private SimpleLookupTable/*<PGMB,InferenceContext18>*/ inferenceContexts;
 	private HashMap<TypeBinding, MethodBinding> solutionsPerTargetType;
 	private InferenceContext18 outerInferenceContext; // resolving within the context of an outer (lambda) inference?
-	
+
 	private boolean receiverIsType;
 	protected boolean argsContainCast;
 	public TypeBinding[] argumentTypes = Binding.NO_PARAMETERS;
 	public boolean argumentsHaveErrors = false;
-	
+
+	public FakedTrackingVariable closeTracker;
+
+	BiConsumer<FlowInfo, Boolean> flowUpdateOnBooleanResult; // we assume only one arg can be affected, hence no need for a list of updates
 
 @Override
 public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, FlowInfo flowInfo) {
@@ -154,6 +157,7 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 	boolean wasInsideAssert = ((flowContext.tagBits & FlowContext.HIDE_NULL_COMPARISON_WARNING) != 0);
 	flowInfo = this.receiver.analyseCode(currentScope, flowContext, flowInfo, nonStatic).unconditionalInits();
 
+	yieldQualifiedCheck(currentScope);
 	// recording the closing of AutoCloseable resources:
 	CompilerOptions compilerOptions = currentScope.compilerOptions();
 	boolean analyseResources = compilerOptions.analyseResourceLeaks;
@@ -168,7 +172,7 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 			for (int i=0; i<TypeConstants.closeMethods.length; i++) {
 				CloseMethodRecord record = TypeConstants.closeMethods[i];
 				if (CharOperation.equals(record.selector, this.selector)
-						&& CharOperation.equals(record.typeName, this.binding.declaringClass.compoundName)) 
+						&& CharOperation.equals(record.typeName, this.binding.declaringClass.compoundName))
 				{
 					int len = Math.min(record.numCloseableArgs, this.arguments.length);
 					for (int j=0; j<len; j++)
@@ -223,6 +227,18 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 				case NULL_ASSERTION:
 					flowInfo = analyseNullAssertion(currentScope, argument, flowContext, flowInfo, true);
 					break;
+				case ARG_NONNULL_IF_TRUE:
+					recordFlowUpdateOnResult(((SingleNameReference) argument).localVariableBinding(), true, false);
+					flowInfo = argument.analyseCode(currentScope, flowContext, flowInfo).unconditionalInits();
+					break;
+				case ARG_NONNULL_IF_TRUE_NEGATABLE:
+					recordFlowUpdateOnResult(((SingleNameReference) argument).localVariableBinding(), true, true);
+					flowInfo = argument.analyseCode(currentScope, flowContext, flowInfo).unconditionalInits();
+					break;
+				case ARG_NULL_IF_TRUE:
+					recordFlowUpdateOnResult(((SingleNameReference) argument).localVariableBinding(), false, true);
+					flowInfo = argument.analyseCode(currentScope, flowContext, flowInfo).unconditionalInits();
+					break;
 				default:
 					flowInfo = argument.analyseCode(currentScope, flowContext, flowInfo).unconditionalInits();
 			}
@@ -245,11 +261,39 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 		//               checkExceptionHandlers; consider protecting there instead of here;
 		//               NullReferenceTest#test0510
 	}
+	// after having analysed exceptions above start tracking newly allocated resource:
+	if (analyseResources && FakedTrackingVariable.isAnyCloseable(this.resolvedType))
+		flowInfo = FakedTrackingVariable.analyseCloseableAcquisition(currentScope, flowInfo, this);
+
 	manageSyntheticAccessIfNecessary(currentScope, flowInfo);
 	// account for pot. exceptions thrown by method execution
 	flowContext.recordAbruptExit();
 	flowContext.expireNullCheckedFieldInfo(); // no longer trust this info after any message send
 	return flowInfo;
+}
+public void recordFlowUpdateOnResult(LocalVariableBinding local, boolean nonNullIfTrue, boolean negatable) {
+	this.flowUpdateOnBooleanResult = (f, result) -> {
+		if (result || negatable) {
+			if (result == nonNullIfTrue)
+				f.markAsDefinitelyNonNull(local);
+			else
+				f.markAsDefinitelyNull(local);
+		}
+	};
+}
+@Override
+protected void updateFlowOnBooleanResult(FlowInfo flowInfo, boolean result) {
+	if (this.flowUpdateOnBooleanResult != null) {
+		this.flowUpdateOnBooleanResult.accept(flowInfo, result);
+	}
+}
+private void yieldQualifiedCheck(BlockScope currentScope) {
+	long sourceLevel = currentScope.compilerOptions().sourceLevel;
+	if (sourceLevel < ClassFileConstants.JDK14 || !this.receiverIsImplicitThis())
+		return;
+	if (!CharOperation.equals(this.selector, TypeConstants.YIELD))
+		return;
+	currentScope.problemReporter().switchExpressionsYieldUnqualifiedMethodError(this);
 }
 private void recordCallingClose(BlockScope currentScope, FlowContext flowContext, FlowInfo flowInfo, Expression closeTarget) {
 	FakedTrackingVariable trackingVariable = FakedTrackingVariable.getCloseTrackingVariable(closeTarget, flowInfo, flowContext);
@@ -263,79 +307,96 @@ private void recordCallingClose(BlockScope currentScope, FlowContext flowContext
 }
 
 // classification of well-known assertion utilities:
-private static final int TRUE_ASSERTION = 1;
-private static final int FALSE_ASSERTION = 2;
-private static final int NULL_ASSERTION = 3;
-private static final int NONNULL_ASSERTION = 4;
+private enum AssertUtil { NONE, TRUE_ASSERTION, FALSE_ASSERTION, NULL_ASSERTION, NONNULL_ASSERTION, ARG_NONNULL_IF_TRUE, ARG_NONNULL_IF_TRUE_NEGATABLE, ARG_NULL_IF_TRUE }
 
 // is the argument at the given position being checked by a well-known assertion utility?
 // if so answer what kind of assertion we are facing.
-private int detectAssertionUtility(int argumentIdx) {
+private AssertUtil detectAssertionUtility(int argumentIdx) {
 	TypeBinding[] parameters = this.binding.original().parameters;
 	if (argumentIdx < parameters.length) {
 		TypeBinding parameterType = parameters[argumentIdx];
 		TypeBinding declaringClass = this.binding.declaringClass;
 		if (declaringClass != null && parameterType != null) {
-			switch (declaringClass.id) {
+			switch (declaringClass.original().id) {
 				case TypeIds.T_OrgEclipseCoreRuntimeAssert:
 					if (parameterType.id == TypeIds.T_boolean)
-						return TRUE_ASSERTION;
+						return AssertUtil.TRUE_ASSERTION;
 					if (parameterType.id == TypeIds.T_JavaLangObject && CharOperation.equals(TypeConstants.IS_NOTNULL, this.selector))
-						return NONNULL_ASSERTION;
+						return AssertUtil.NONNULL_ASSERTION;
 					break;
 				case TypeIds.T_JunitFrameworkAssert:
 				case TypeIds.T_OrgJunitAssert:
+				case TypeIds.T_OrgJunitJupiterApiAssertions:
 					if (parameterType.id == TypeIds.T_boolean) {
 						if (CharOperation.equals(TypeConstants.ASSERT_TRUE, this.selector))
-							return TRUE_ASSERTION;
+							return AssertUtil.TRUE_ASSERTION;
 						if (CharOperation.equals(TypeConstants.ASSERT_FALSE, this.selector))
-							return FALSE_ASSERTION;
+							return AssertUtil.FALSE_ASSERTION;
 					} else if (parameterType.id == TypeIds.T_JavaLangObject) {
 						if (CharOperation.equals(TypeConstants.ASSERT_NOTNULL, this.selector))
-							return NONNULL_ASSERTION;
+							return AssertUtil.NONNULL_ASSERTION;
 						if (CharOperation.equals(TypeConstants.ASSERT_NULL, this.selector))
-							return NULL_ASSERTION;
+							return AssertUtil.NULL_ASSERTION;
 					}
 					break;
 				case TypeIds.T_OrgApacheCommonsLangValidate:
 					if (parameterType.id == TypeIds.T_boolean) {
 						if (CharOperation.equals(TypeConstants.IS_TRUE, this.selector))
-							return TRUE_ASSERTION;
+							return AssertUtil.TRUE_ASSERTION;
 					} else if (parameterType.id == TypeIds.T_JavaLangObject) {
 						if (CharOperation.equals(TypeConstants.NOT_NULL, this.selector))
-							return NONNULL_ASSERTION;
+							return AssertUtil.NONNULL_ASSERTION;
 					}
 					break;
 				case TypeIds.T_OrgApacheCommonsLang3Validate:
 					if (parameterType.id == TypeIds.T_boolean) {
 						if (CharOperation.equals(TypeConstants.IS_TRUE, this.selector))
-							return TRUE_ASSERTION;
+							return AssertUtil.TRUE_ASSERTION;
 					} else if (parameterType.isTypeVariable()) {
 						if (CharOperation.equals(TypeConstants.NOT_NULL, this.selector))
-							return NONNULL_ASSERTION;
+							return AssertUtil.NONNULL_ASSERTION;
 					}
 					break;
 				case TypeIds.T_ComGoogleCommonBasePreconditions:
 					if (parameterType.id == TypeIds.T_boolean) {
 						if (CharOperation.equals(TypeConstants.CHECK_ARGUMENT, this.selector)
 							|| CharOperation.equals(TypeConstants.CHECK_STATE, this.selector))
-							return TRUE_ASSERTION;
+							return AssertUtil.TRUE_ASSERTION;
 					} else if (parameterType.isTypeVariable()) {
 						if (CharOperation.equals(TypeConstants.CHECK_NOT_NULL, this.selector))
-							return NONNULL_ASSERTION;
+							return AssertUtil.NONNULL_ASSERTION;
 					}
-					break;					
+					break;
 				case TypeIds.T_JavaUtilObjects:
 					if (parameterType.isTypeVariable()) {
 						if (CharOperation.equals(TypeConstants.REQUIRE_NON_NULL, this.selector))
-							return NONNULL_ASSERTION;
+							return AssertUtil.NONNULL_ASSERTION;
 					}
-					break;					
+					if (this.arguments[argumentIdx] instanceof SingleNameReference) {
+						SingleNameReference nameRef = (SingleNameReference) this.arguments[argumentIdx];
+						if (nameRef.binding instanceof LocalVariableBinding) {
+							if (CharOperation.equals(TypeConstants.NON_NULL, this.selector))
+								return AssertUtil.ARG_NONNULL_IF_TRUE_NEGATABLE;
+							if (CharOperation.equals(TypeConstants.IS_NULL, this.selector))
+								return AssertUtil.ARG_NULL_IF_TRUE;
+						}
+					}
+					break;
+				case TypeIds.T_JavaLangClass:
+					if (CharOperation.equals(TypeConstants.IS_INSTANCE, this.selector)) {
+						if (this.arguments[argumentIdx] instanceof SingleNameReference) {
+							SingleNameReference nameRef = (SingleNameReference) this.arguments[argumentIdx];
+							if (nameRef.binding instanceof LocalVariableBinding)
+								return AssertUtil.ARG_NONNULL_IF_TRUE;
+						}
+					}
+					break;
 			}
 		}
 	}
-	return 0;
+	return AssertUtil.NONE;
 }
+
 private FlowInfo analyseBooleanAssertion(BlockScope currentScope, Expression argument,
 		FlowContext flowContext, FlowInfo flowInfo, boolean wasInsideAssert, boolean passOnTrue)
 {
@@ -373,7 +434,7 @@ private FlowInfo analyseBooleanAssertion(BlockScope currentScope, Expression arg
 		// if the code does reach ahead, it means the assert didn't cause an exit, and so
 		// the expression inside it shouldn't change the prior flowinfo
 		// viz. org.eclipse.core.runtime.Assert.isLegal(false && o != null)
-		
+
 		// keep the merge from the initial code for the definite assignment
 		// analysis, tweak the null part to influence nulls downstream
 		flowInfo = flowInfo.mergedWith(assertWhenFailInfo.nullInfoLessUnconditionalCopy()).
@@ -389,14 +450,14 @@ private FlowInfo analyseNullAssertion(BlockScope currentScope, Expression argume
 	flowInfo = argument.analyseCode(currentScope, flowContext, flowInfo).unconditionalInits();
 	LocalVariableBinding local = argument.localVariableBinding();
 	if (local != null) {// beyond this point the argument can only be null/nonnull
-		if (expectingNull) 
+		if (expectingNull)
 			flowInfo.markAsDefinitelyNull(local);
-		else 
+		else
 			flowInfo.markAsDefinitelyNonNull(local);
 	} else {
 		if (!expectingNull
-			&& argument instanceof Reference 
-			&& currentScope.compilerOptions().enableSyntacticNullAnalysisForFields) 
+			&& argument instanceof Reference
+			&& currentScope.compilerOptions().enableSyntacticNullAnalysisForFields)
 		{
 			FieldBinding field = ((Reference)argument).lastFieldBinding();
 			if (field != null && (field.type.tagBits & TagBits.IsBaseType) == 0) {
@@ -415,7 +476,7 @@ public boolean checkNPE(BlockScope scope, FlowContext flowContext, FlowInfo flow
 	int nullStatus = nullStatus(flowInfo, flowContext); // note that flowInfo is not used inside nullStatus(..)
 	if ((nullStatus & FlowInfo.POTENTIALLY_NULL) != 0) {
 		if(this.binding.returnType.isTypeVariable() && nullStatus == FlowInfo.FREE_TYPEVARIABLE && scope.environment().globalOptions.pessimisticNullAnalysisForFreeTypeVariablesEnabled) {
-			scope.problemReporter().methodReturnTypeFreeTypeVariableReference(this.binding, this);			
+			scope.problemReporter().methodReturnTypeFreeTypeVariableReference(this.binding, this);
 		} else {
 			scope.problemReporter().messageSendPotentialNullReference(this.binding, this);
 		}
@@ -441,7 +502,7 @@ public void computeConversion(Scope scope, TypeBinding runtimeTimeType, TypeBind
 		if (ArrayBinding.isArrayClone(this.actualReceiverType, this.binding)
 				&& runtimeTimeType.id != TypeIds.T_JavaLangObject
 				&& scope.compilerOptions().sourceLevel >= ClassFileConstants.JDK1_5) {
-					// from 1.5 source level on, array#clone() resolves to array type, but codegen to #clone()Object - thus require extra inserted cast
+			// from 1.5 source level on, array#clone() resolves to array type, but codegen to #clone()Object - thus require extra inserted cast
 			this.valueCast = runtimeTimeType;
 		} else if (originalType.leafComponentType().isTypeVariable()) {
 	    	TypeBinding targetType = (!compileTimeType.isBaseType() && runtimeTimeType.isBaseType())
@@ -499,7 +560,7 @@ public void generateCode(BlockScope currentScope, CodeStream codeStream, boolean
 		TypeBinding constantPoolDeclaringClass = CodeStream.getConstantPoolDeclaringClass(currentScope, codegenBinding, this.actualReceiverType, this.receiver.isImplicitThis());
 		if (isStatic){
 			codeStream.invoke(Opcodes.OPC_invokestatic, codegenBinding, constantPoolDeclaringClass, this.typeArguments);
-		} else if((this.receiver.isSuper()) || 
+		} else if((this.receiver.isSuper()) ||
 				(!currentScope.enclosingSourceType().isNestmateOf(this.binding.declaringClass) && codegenBinding.isPrivate())){
 			codeStream.invoke(Opcodes.OPC_invokespecial, codegenBinding, constantPoolDeclaringClass, this.typeArguments);
 		} else if (constantPoolDeclaringClass.isInterface()) { // interface or annotation type
@@ -513,7 +574,7 @@ public void generateCode(BlockScope currentScope, CodeStream codeStream, boolean
 		// AspectJ accessors.  For example: ajc$privMethod for accessing private
 		// methods on types from a privileged aspect.
 		if (syntheticAccessor.isStatic()) {
-			codeStream.invoke(Opcodes.OPC_invokestatic, this.syntheticAccessor, null /* default declaringClass */, this.typeArguments);
+		codeStream.invoke(Opcodes.OPC_invokestatic, this.syntheticAccessor, null /* default declaringClass */, this.typeArguments);
 		} else {
 			codeStream.invoke(Opcodes.OPC_invokevirtual, this.syntheticAccessor, null /* default declaringClass */, this.typeArguments);
 		}
@@ -566,7 +627,7 @@ public void manageSyntheticAccessIfNecessary(BlockScope currentScope, FlowInfo f
 		return;
 	}
 	//	End AspectJ Extension
-	
+
 	if ((flowInfo.tagBits & FlowInfo.UNREACHABLE_OR_DEAD) != 0)	return;
 
 	// if method from parameterized type got found, use the original method at codegen time
@@ -577,7 +638,7 @@ public void manageSyntheticAccessIfNecessary(BlockScope currentScope, FlowInfo f
 		// Ok, it is a private method call - check if this has been allowed through
 		// the compiler because of privilege?
 		IPrivilegedHandler iph = Scope.findPrivilegedHandler(currentScope.invocationType());
-		if (iph != null) { 
+		if (iph != null) {
 			// ??? Should getPriviligedAccessMethod() provide a flag to indicate
 			// if you *want* to build a new accessor or if you just want to see if
 			// one already exists?
@@ -586,9 +647,11 @@ public void manageSyntheticAccessIfNecessary(BlockScope currentScope, FlowInfo f
 			return;
 		}
 		// End AspectJ extension
-		
+
+		boolean useNesting = currentScope.enclosingSourceType().isNestmateOf(codegenBinding.declaringClass) &&
+				!(this.receiver instanceof QualifiedSuperReference);
 		// depth is set for both implicit and explicit access (see MethodBinding#canBeSeenBy)
-		if (!currentScope.enclosingSourceType().isNestmateOf(codegenBinding.declaringClass) &&
+		if (!useNesting &&
 				TypeBinding.notEquals(currentScope.enclosingSourceType(), codegenBinding.declaringClass)){
 			this.syntheticAccessor = ((SourceTypeBinding)codegenBinding.declaringClass).addSyntheticMethod(codegenBinding, false /* not super access there */);
 			currentScope.problemReporter().needToEmulateMethodAccess(codegenBinding, this);
@@ -596,7 +659,7 @@ public void manageSyntheticAccessIfNecessary(BlockScope currentScope, FlowInfo f
 		}
 
 	} else if (this.receiver instanceof QualifiedSuperReference) { 	// qualified super
-		if (this.actualReceiverType.isInterface()) 
+		if (this.actualReceiverType.isInterface())
 			return; // invoking an overridden default method, which is accessible/public by definition
 		// qualified super need emulation always
 		SourceTypeBinding destinationType = (SourceTypeBinding)(((QualifiedSuperReference)this.receiver).currentCompatibleType);
@@ -702,7 +765,7 @@ public StringBuffer printExpression(int indent, StringBuffer output){
 
 @Override
 public TypeBinding resolveType(BlockScope scope) {
-	// Answer the signature return type, answers PolyTypeBinding if a poly expression and there is no target type  
+	// Answer the signature return type, answers PolyTypeBinding if a poly expression and there is no target type
 	// Base type promotion
 	if (this.constant != Constant.NotAConstant) {
 		this.constant = Constant.NotAConstant;
@@ -717,18 +780,17 @@ public TypeBinding resolveType(BlockScope scope) {
 //	if (this.receiver.resolvedType != null)
 //		scope.problemReporter().genericInferenceError("Receiver was unexpectedly found resolved", this); //$NON-NLS-1$
 	// AspectJ Extension: End
-	this.actualReceiverType = this.receiver.resolveType(scope);
+		this.actualReceiverType = this.receiver.resolveType(scope);
 		if (this.actualReceiverType instanceof InferenceVariable) {
-			scope.referenceContext().tagAsHavingIgnoredMandatoryErrors(IProblem.UndefinedMethod);
-			return null; // not yet ready for resolving
+				return null; // not yet ready for resolving
 		}
-		this.receiverIsType = this.receiver instanceof NameReference && (((NameReference) this.receiver).bits & Binding.TYPE) != 0;
-	if (receiverCast && this.actualReceiverType != null) {
-		 // due to change of declaring class with receiver type, only identity cast should be notified
+		this.receiverIsType = this.receiver.isType();
+		if (receiverCast && this.actualReceiverType != null) {
+			// due to change of declaring class with receiver type, only identity cast should be notified
 			TypeBinding resolvedType2 = ((CastExpression)this.receiver).expression.resolvedType;
 			if (TypeBinding.equalsEquals(resolvedType2, this.actualReceiverType)) {
 				if (!scope.environment().usesNullTypeAnnotations() || !NullAnnotationMatching.analyse(this.actualReceiverType, resolvedType2, -1).isAnyMismatch()) {
-					scope.problemReporter().unnecessaryCast((CastExpression)this.receiver);
+					scope.problemReporter().unnecessaryCast((CastExpression) this.receiver);
 				}
 			}
 		}
@@ -762,7 +824,7 @@ public TypeBinding resolveType(BlockScope scope) {
 			this.argumentTypes = new TypeBinding[length];
 			for (int i = 0; i < length; i++){
 				Expression argument = this.arguments[i];
-				if (this.arguments[i].resolvedType != null) 
+				if (this.arguments[i].resolvedType != null)
 					scope.problemReporter().genericInferenceError("Argument was unexpectedly found resolved", this); //$NON-NLS-1$
 				if (argument instanceof CastExpression) {
 					argument.bits |= ASTNode.DisableUnnecessaryCastCheck; // will check later on
@@ -820,7 +882,7 @@ public TypeBinding resolveType(BlockScope scope) {
 	//		: scope.getMethod(this.actualReceiverType, this.selector, argumentTypes, this);
 	// resolveMethodBinding(scope, argumentTypes); // AspectJ Extension - moved to helper method
 	// End AspectJ Extension
-	
+
 	TypeBinding methodType = findMethodBinding(scope);
 	if (methodType != null && methodType.isPolyType()) {
 		this.resolvedType = this.binding.returnType.capture(scope, this.sourceStart, this.sourceEnd);
@@ -837,7 +899,7 @@ public TypeBinding resolveType(BlockScope scope) {
 			}
 		}
 		// https://bugs.eclipse.org/bugs/show_bug.cgi?id=245007 avoid secondary errors in case of
-		// missing super type for anonymous classes ... 
+		// missing super type for anonymous classes ...
 		ReferenceBinding declaringClass = this.binding.declaringClass;
 		boolean avoidSecondary = declaringClass != null &&
 								 declaringClass.isAnonymousType() &&
@@ -897,7 +959,7 @@ public TypeBinding resolveType(BlockScope scope) {
 			}
 		}
 	}
-	
+
 	if (((this.bits & ASTNode.InsideExpressionStatement) != 0)
 			&& this.binding.isPolymorphic()) {
 		// we only set the return type to be void if this method invocation is used inside an expression statement
@@ -930,7 +992,7 @@ public TypeBinding resolveType(BlockScope scope) {
 		if (this.binding.declaringClass.isInterface() && !((isTypeAccess() || this.receiver.isImplicitThis()) && TypeBinding.equalsEquals(this.binding.declaringClass, this.actualReceiverType))) {
 			scope.problemReporter().nonStaticOrAlienTypeReceiver(this, this.binding);
 		} else if (!(this.receiver.isImplicitThis() || this.receiver.isSuper() || this.receiverIsType)) {
-			scope.problemReporter().nonStaticAccessToStaticMethod(this, this.binding);
+		 	scope.problemReporter().nonStaticAccessToStaticMethod(this, this.binding);
 		}
 		if (!this.receiver.isImplicitThis() && TypeBinding.notEquals(this.binding.declaringClass, this.actualReceiverType)) {
 			scope.problemReporter().indirectAccessToStaticMethod(this, this.binding);
@@ -947,23 +1009,23 @@ public TypeBinding resolveType(BlockScope scope) {
 		}
 		// abstract private methods cannot occur nor abstract static............
 	}
-	if (isMethodUseDeprecated(this.binding, scope, true))
+	if (isMethodUseDeprecated(this.binding, scope, true, this))
 		scope.problemReporter().deprecatedMethod(this.binding, this);
 
-		TypeBinding returnType;
-		if ((this.bits & ASTNode.Unchecked) != 0 && this.genericTypeArguments == null) {
-			// https://bugs.eclipse.org/bugs/show_bug.cgi?id=277643, align with javac on JLS 15.12.2.6
-			returnType = this.binding.returnType;
-			if (returnType != null) {
-				returnType = scope.environment().convertToRawType(returnType.erasure(), true);
-			}
-		} else {
-			returnType = this.binding.returnType;
-			if (returnType != null) {
-				returnType = returnType.capture(scope, this.sourceStart, this.sourceEnd);
-			}
+	TypeBinding returnType;
+	if ((this.bits & ASTNode.Unchecked) != 0 && this.genericTypeArguments == null) {
+		// https://bugs.eclipse.org/bugs/show_bug.cgi?id=277643, align with javac on JLS 15.12.2.6
+		returnType = this.binding.returnType;
+		if (returnType != null) {
+			returnType = scope.environment().convertToRawType(returnType.erasure(), true);
 		}
-		this.resolvedType = returnType;
+	} else {
+		returnType = this.binding.returnType;
+		if (returnType != null) {
+			returnType = returnType.capture(scope, this.sourceStart, this.sourceEnd);
+		}
+	}
+	this.resolvedType = returnType;
 	if (this.receiver.isSuper() && compilerOptions.getSeverity(CompilerOptions.OverridingMethodWithoutSuperInvocation) != ProblemSeverities.Ignore) {
 		final ReferenceContext referenceContext = scope.methodScope().referenceContext;
 		if (referenceContext instanceof AbstractMethodDeclaration) {
@@ -993,13 +1055,13 @@ protected TypeBinding findMethodBinding(BlockScope scope) {
 	if (referenceContext instanceof LambdaExpression) {
 		this.outerInferenceContext = ((LambdaExpression) referenceContext).inferenceContext;
 	}
-	
+
 	if (this.expectedType != null && this.binding instanceof PolyParameterizedGenericMethodBinding) {
 		this.binding = this.solutionsPerTargetType.get(this.expectedType);
 	}
 	if (this.binding == null) { // first look up or a "cache miss" somehow.
-		this.binding = this.receiver.isImplicitThis() ? 
-				scope.getImplicitMethod(this.selector, this.argumentTypes, this) 
+		this.binding = this.receiver.isImplicitThis() ?
+				scope.getImplicitMethod(this.selector, this.argumentTypes, this)
 				: scope.getMethod(this.actualReceiverType, this.selector, this.argumentTypes, this);
 
 	    if (this.binding instanceof PolyParameterizedGenericMethodBinding) {
@@ -1007,7 +1069,7 @@ protected TypeBinding findMethodBinding(BlockScope scope) {
 		    return new PolyTypeBinding(this);
 	    }
 	}
-	resolvePolyExpressionArguments(this, this.binding, this.argumentTypes, scope);
+	this.binding = resolvePolyExpressionArguments(this, this.binding, this.argumentTypes, scope);
 	return this.binding.returnType;
 }
 
@@ -1039,7 +1101,7 @@ public void setExpressionContext(ExpressionContext context) {
 
 @Override
 public boolean isPolyExpression() {
-	
+
 	/* 15.12 has four requirements: 1) The invocation appears in an assignment context or an invocation context
        2) The invocation elides NonWildTypeArguments 3) the method to be invoked is a generic method (8.4.4).
        4) The return type of the method to be invoked mentions at least one of the method's type parameters.
@@ -1102,26 +1164,26 @@ public boolean isCompatibleWith(TypeBinding targetType, final Scope scope) {
 public boolean isPolyExpression(MethodBinding resolutionCandidate) {
 	if (this.expressionContext != ASSIGNMENT_CONTEXT && this.expressionContext != INVOCATION_CONTEXT)
 		return false;
-	
+
 	if (this.typeArguments != null && this.typeArguments.length > 0)
 		return false;
-	
+
 	if (this.constant != Constant.NotAConstant)
 		throw new UnsupportedOperationException("Unresolved MessageSend can't be queried if it is a polyexpression"); //$NON-NLS-1$
-	
+
 	if (resolutionCandidate != null) {
 		if (resolutionCandidate instanceof ParameterizedGenericMethodBinding) {
 			ParameterizedGenericMethodBinding pgmb = (ParameterizedGenericMethodBinding) resolutionCandidate;
 			if (pgmb.inferredReturnType)
 				return true; // if already determined
-		} 
+		}
 		if (resolutionCandidate.returnType != null) {
 			// resolution may have prematurely instantiated the generic method, we need the original, though:
 			MethodBinding candidateOriginal = resolutionCandidate.original();
 			return candidateOriginal.returnType.mentionsAny(candidateOriginal.typeVariables(), -1);
 		}
 	}
-	
+
 	return false;
 }
 
@@ -1220,14 +1282,23 @@ public InferenceContext18 freshInferenceContext(Scope scope) {
 public boolean isQualifiedSuper() {
 	return this.receiver.isQualifiedSuper();
 }
+@Override
+public int nameSourceStart() {
+	return (int) (this.nameSourcePosition >>> 32);
+}
+@Override
+public int nameSourceEnd() {
+	return (int) this.nameSourcePosition;
+}
+
 // AspectJ Extension
 protected void resolveMethodBinding(
 	BlockScope scope,
-	TypeBinding[] argumentTypes) {	
+	TypeBinding[] argumentTypes) {
 	this.binding = //this.codegenBinding =
 		receiver.isImplicitThis()
 			? scope.getImplicitMethod(selector, argumentTypes, this)
-			: scope.getMethod(this.actualReceiverType, selector, argumentTypes, this); 
+			: scope.getMethod(this.actualReceiverType, selector, argumentTypes, this);
 }
 // End AspectJ Extension
 }
