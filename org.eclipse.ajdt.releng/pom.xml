@@ -10,7 +10,7 @@
 
 	<artifactId>org.eclipse.ajdt.releng</artifactId>
 	<packaging>eclipse-repository</packaging>
-	
+
 	<properties>
 		<zip.name>ajdt-${platform.version}-${unqualifiedVersion}.${buildQualifier}</zip.name>
 	</properties>
@@ -114,25 +114,25 @@
 					<finalName>${zip.name}</finalName>
 				</configuration>
 			</plugin>
-			
+
 			<plugin>
 				<artifactId>maven-antrun-plugin</artifactId>
-				<version>1.7</version>
+				<version>3.0.0</version>
 				<executions>
 					<execution>
 						<phase>package</phase>
 						<configuration>
-							<tasks>
+							<target>
 								<propertyfile file="target/ajdt-zip.properties" comment="This properties file contains the location and name of the AJDT update site archive produced by the latest build">
 									<entry key="zip.name" value="${zip.name}.zip"/>
 								</propertyfile>
-							</tasks>
+							</target>
 						</configuration>
 						<goals>
 							<goal>run</goal>
 						</goals>
 					</execution>
-					
+
 					<execution>
 						<id>update-composite-update-site</id>
 						<phase>package</phase>
@@ -144,11 +144,11 @@
 								<copy file="dev-compositeArtifacts.xml" tofile="target/compositeArtifacts.xml"/>
 								<copy file="dev-compositeContent.xml" tofile="target/compositeContent.xml"/>
 								<copy file="p2.index" todir="target/"/>
-								
+
 								<tstamp>
 									<format property="repo.timestamp" pattern="yyMMddHHmmss"/>
 								</tstamp>
-		
+
 								<replace file="target/compositeArtifacts.xml" token="%TIMESTAMP%" value="${repo.timestamp}" summary="yes" />
 								<replace file="target/compositeArtifacts.xml" token="%BUILD-ID%" value="${zip.name}" summary="yes" />
 
@@ -163,9 +163,9 @@
 
 				</executions>
 			</plugin>
-			
-			
-			
+
+
+
 		</plugins>
 	</build>
 </project>
