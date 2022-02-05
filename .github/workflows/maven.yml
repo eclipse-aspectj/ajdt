@@ -62,11 +62,11 @@ jobs:
           mvn --batch-mode --version
 
       - name: Build + package (no tests)
-        run: mvn --errors --batch-mode -DskipTests -Pe421 clean verify
+        run: mvn --batch-mode -DskipTests -Pe421 clean verify
 
       - name: Run tests
         if: ${{ github.event.inputs.runTests == 'true' }}
         # UI tests need frame buffer on Linux
         uses: GabrielBB/xvfb-action@v1
         with:
-          run: mvn --errors --batch-mode -Pe421 verify
+          run: mvn --batch-mode --fail-at-end -Pe421 verify
