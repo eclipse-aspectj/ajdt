@@ -58,7 +58,6 @@
 
 					<testClass>org.eclipse.ajdt.ui.tests.AllAJDTUITests</testClass>
 
-					<testFailureIgnore>true</testFailureIgnore>
 					<dependencies>
 						<dependency>
 							<type>p2-installable-unit</type>

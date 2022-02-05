@@ -28,7 +28,6 @@
 
 					<testClass>org.eclipse.contribution.xref.core.tests.AllTests</testClass>
 
-					<testFailureIgnore>true</testFailureIgnore>-
 				</configuration>
 			</plugin>
 

@@ -28,8 +28,6 @@
 
 					<testClass>org.eclipse.contribution.weaving.jdt.tests.AllWeavingTests</testClass>
 
-					<testFailureIgnore>true</testFailureIgnore>
-
 					<dependencies>
 						<dependency>
 							<type>p2-installable-unit</type>
