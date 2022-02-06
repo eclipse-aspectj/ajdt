@@ -3,11 +3,16 @@ name: Build AJDT
 on:
   workflow_dispatch:
     inputs:
-      runTests:
-        type: boolean
-        description: Run tests
+      testMode:
+        type: choice
+        description: Test mode
         required: true
-        default: 'false'
+        default: 'skip tests'
+        options:
+          - 'skip tests'
+          - 'run tests'
+          - 'run more tests, fail at end'
+          - 'run all tests, ignore failures'
   push:
     branches:
       - '*'
@@ -61,12 +66,45 @@ jobs:
           java -version
           mvn --batch-mode --version
 
-      - name: Build + package (no tests)
-        run: mvn --batch-mode -DskipTests -Pe421 clean verify
+      # Always run build without tests first
 
-      - name: Run tests
-        if: ${{ github.event.inputs.runTests == 'true' }}
+      - name: Build + package (no tests)
+        run: mvn --batch-mode -Pe421 -DskipTests clean verify
+
+      # Then optionally run tests in one of 3 user-selected modes
+      # TODO: find a way to avoid duplication
+
+      - name: Run tests normally, fail normally
+        if: ${{ github.event.inputs.testMode == 'run tests' }}
         # UI tests need frame buffer on Linux
         uses: GabrielBB/xvfb-action@v1
         with:
-          run: mvn --batch-mode --fail-at-end -Pe421 verify
+          run: mvn --batch-mode -Pe421 verify
+
+      - name: Run more tests, fail at end
+        if: ${{ github.event.inputs.testMode == 'run more tests, fail at end' }}
+        # UI tests need frame buffer on Linux
+        uses: GabrielBB/xvfb-action@v1
+        with:
+          run: mvn --batch-mode -Pe421 --fail-at-end verify
+
+      - name: Run all tests, ignore failures
+        if: ${{ github.event.inputs.testMode == 'run all tests, ignore failures' }}
+        # UI tests need frame buffer on Linux
+        uses: GabrielBB/xvfb-action@v1
+        with:
+          run: mvn --batch-mode -Pe421 -Dmaven.test.failure.ignore=true verify
+
+      # No matter if a preceding test run failed or not, try to generate and upload a test report
+      # TODO: these steps should only happen if at least the build without tests passed, not always
+
+      - name: Generate aggregate test report
+        if: always()
+        run: mvn --batch-mode -Pe421 -Daggregate=true surefire-report:report-only
+
+      - name: Attach aggregate test report to build
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: surefire-report-${{ matrix.os }}-java${{ matrix.java }}
+          path: target/site/surefire-report.html
