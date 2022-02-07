@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2010 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Andrew Eisenberg - initial API and implementation
  *     Kris De Volder - minor changes to visibility modifiers
@@ -54,22 +54,22 @@ public abstract class AbstractAJDTRefactoringTest extends AJDTCoreTestCase {
         }
         p = createPackage("p", project);
     }
-    
+
     protected ICompilationUnit[] createUnits(String[] packages, String[] cuNames, String[] cuContents) throws CoreException {
         return super.createUnits(packages, cuNames, cuContents, project);
     }
-    
+
     protected ICompilationUnit createUnit(String pkg, String cuName, String cuContents) throws CoreException {
         return super.createUnit(pkg, cuName, cuContents, project);
     }
-    
+
     protected void assertContents(ICompilationUnit[] existingUnits, String[] expectedContents) throws JavaModelException {
         StringBuffer sb = new StringBuffer();
         for (int i = 0; i < existingUnits.length; i++) {
             if (expectedContents[i] != null) {
                 char[] contents = extractContents(existingUnits[i]);
-                
-                String actualContents = String.valueOf(contents);
+
+                String actualContents = String.valueOf(contents).replace("\r\n", "\n");
                 if (!actualContents.equals(expectedContents[i])) {
                     sb.append("\n-----EXPECTING-----\n");
                     sb.append(expectedContents[i]);
@@ -116,7 +116,7 @@ public abstract class AbstractAJDTRefactoringTest extends AJDTCoreTestCase {
         if (existingUnits instanceof AJCompilationUnit) {
             ((AJCompilationUnit) existingUnits).discardOriginalContentMode();
         }
-        String actualContents = String.valueOf(contents);
+        String actualContents = String.valueOf(contents).replace("\r\n", "\n");
         if (!actualContents.equals(expectedContents)) {
             sb.append("\n-----EXPECTING-----\n");
             sb.append(expectedContents);
@@ -127,7 +127,7 @@ public abstract class AbstractAJDTRefactoringTest extends AJDTCoreTestCase {
             fail("Refactoring produced unexpected results:" + sb.toString());
         }
     }
-    
+
     protected RefactoringStatus performRefactoring(Refactoring ref, boolean providesUndo, boolean performOnFail) throws Exception {
         // force updating of indexes
         super.buildProject(project);
@@ -152,7 +152,7 @@ public abstract class AbstractAJDTRefactoringTest extends AJDTCoreTestCase {
         return status;
     }
 
-    
+
     /**
      * Can ignore all errors that don't have anything to do with us.
      */
@@ -161,7 +161,7 @@ public abstract class AbstractAJDTRefactoringTest extends AJDTCoreTestCase {
         if (result.getSeverity() != RefactoringStatus.ERROR) {
             return result;
         }
-        
+
         RefactoringStatusEntry[] entries = result.getEntries();
         for (int i = 0; i < entries.length; i++) {
             // if this entries is known or it isn't an error,
@@ -178,16 +178,16 @@ public abstract class AbstractAJDTRefactoringTest extends AJDTCoreTestCase {
     private boolean checkStringForKnownErrors(String resultString) {
         return resultString.indexOf("Found potential matches") >= 0 ||
         resultString.indexOf("Method breakpoint participant") >= 0 ||
-        resultString.indexOf("Watchpoint participant") >= 0 || 
-        resultString.indexOf("Breakpoint participant") >= 0 || 
+        resultString.indexOf("Watchpoint participant") >= 0 ||
+        resultString.indexOf("Breakpoint participant") >= 0 ||
         resultString.indexOf("Launch configuration participant") >= 0;
     }
 
     protected void performDummySearch() throws Exception {
         performDummySearch(project);
     }
-    
-    
+
+
     protected final Refactoring createRefactoring(RefactoringDescriptor descriptor) throws CoreException {
         RefactoringStatus status= new RefactoringStatus();
         Refactoring refactoring= descriptor.createRefactoring(status);
@@ -201,7 +201,7 @@ public abstract class AbstractAJDTRefactoringTest extends AJDTCoreTestCase {
         undoManager.flush();
         return undoManager;
     }
-    
+
     protected void executePerformOperation(final PerformChangeOperation perform, IWorkspace workspace) throws CoreException {
         workspace.run(perform, new NullProgressMonitor());
     }

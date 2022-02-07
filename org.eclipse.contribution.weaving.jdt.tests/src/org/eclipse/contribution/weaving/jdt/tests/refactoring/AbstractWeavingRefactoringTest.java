@@ -38,7 +38,7 @@ public abstract class AbstractWeavingRefactoringTest extends WeavingTestCase {
         project = JavaCore.create(createPredefinedProject("DefaultEmptyProject"));
         p = createPackage("p", project);
     }
-    
+
     protected ICompilationUnit[] createUnits(String[] packages, String[] cuNames, String[] cuContents) throws CoreException {
         ICompilationUnit[] units = new ICompilationUnit[cuNames.length];
         for (int i = 0; i < units.length; i++) {
@@ -50,12 +50,12 @@ public abstract class AbstractWeavingRefactoringTest extends WeavingTestCase {
         assertNoProblems(project.getProject());
         return units;
     }
-    
+
     protected void assertContents(ICompilationUnit[] existingUnits, String[] expectedContents) {
         StringBuffer sb = new StringBuffer();
         for (int i = 0; i < existingUnits.length; i++) {
             char[] contents = ((CompilationUnit) existingUnits[i]).getContents();
-            String actualContents = String.valueOf(contents);
+            String actualContents = String.valueOf(contents).replace("\r\n", "\n");
             if (!actualContents.equals(expectedContents[i])) {
                 sb.append("\n-----EXPECTING-----\n");
                 sb.append(expectedContents[i]);
@@ -67,12 +67,12 @@ public abstract class AbstractWeavingRefactoringTest extends WeavingTestCase {
             fail("Refactoring produced unexpected results:" + sb.toString());
         }
     }
-    
+
     protected IField getFirstField(ICompilationUnit[] units)
             throws JavaModelException {
         return (IField) units[0].getTypes()[0].getChildren()[0];
     }
-    
+
     protected RefactoringStatus performRefactoring(Refactoring ref, boolean providesUndo, boolean performOnFail) throws Exception {
         // force updating of indexes
         super.buildProject(project);
@@ -97,7 +97,7 @@ public abstract class AbstractWeavingRefactoringTest extends WeavingTestCase {
         return status;
     }
 
-    
+
     /**
      * Can ignore all errors that don't have anything to do with us.
      */
@@ -106,7 +106,7 @@ public abstract class AbstractWeavingRefactoringTest extends WeavingTestCase {
         if (result.getSeverity() != RefactoringStatus.ERROR) {
             return result;
         }
-        
+
         RefactoringStatusEntry[] entries = result.getEntries();
         for (int i = 0; i < entries.length; i++) {
             // if this entries is known or it isn't an error,
@@ -123,16 +123,16 @@ public abstract class AbstractWeavingRefactoringTest extends WeavingTestCase {
     private boolean checkStringForKnownErrors(String resultString) {
         return resultString.indexOf("Found potential matches") >= 0 ||
         resultString.indexOf("Method breakpoint participant") >= 0 ||
-        resultString.indexOf("Watchpoint participant") >= 0 || 
-        resultString.indexOf("Breakpoint participant") >= 0 || 
+        resultString.indexOf("Watchpoint participant") >= 0 ||
+        resultString.indexOf("Breakpoint participant") >= 0 ||
         resultString.indexOf("Launch configuration participant") >= 0;
     }
 
     protected void performDummySearch() throws Exception {
         performDummySearch(p);
     }
-    
-    
+
+
     protected final Refactoring createRefactoring(RefactoringDescriptor descriptor) throws CoreException {
         RefactoringStatus status= new RefactoringStatus();
         Refactoring refactoring= descriptor.createRefactoring(status);
@@ -146,7 +146,7 @@ public abstract class AbstractWeavingRefactoringTest extends WeavingTestCase {
         undoManager.flush();
         return undoManager;
     }
-    
+
     protected void executePerformOperation(final PerformChangeOperation perform, IWorkspace workspace) throws CoreException {
         workspace.run(perform, new NullProgressMonitor());
     }

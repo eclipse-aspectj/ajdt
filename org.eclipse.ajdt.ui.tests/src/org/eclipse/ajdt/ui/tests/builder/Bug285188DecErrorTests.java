@@ -3,8 +3,8 @@
  * program and the accompanying materials are made available under the terms of
  * the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
- * 
- * Contributors: IBM Corporation - initial API and implementation 
+ *
+ * Contributors: IBM Corporation - initial API and implementation
  * 				 Helen Hawkins   - initial version
  *               Helen Hawkins   - updated for new ajde interface (bug 148190)
  ******************************************************************************/
@@ -27,29 +27,29 @@ import org.eclipse.core.runtime.CoreException;
  *
  */
 public class Bug285188DecErrorTests extends UITestCase {
-    
+
     public void testDeclareErrorOnMultipleProjects() throws Exception {
         /* IProject aspectProj = */createPredefinedProject("Bug285188");
         IProject javaProjB = createPredefinedProject("Bug285188b");
         IProject javaProjC = createPredefinedProject("Bug285188c");
         waitForJobsToComplete();
-        
+
         IFile class1 = javaProjB.getFile("src/Class.java");
         testMarker(class1);
         IFile class2 = javaProjC.getFile("src/Class2.java");
         testMarker(class2);
-        
+
     }
 
     private void testMarker(IFile clazz) throws CoreException {
         IMarker[] markers = clazz.findMarkers(IAJModelMarker.AJDT_PROBLEM_MARKER, true, IResource.DEPTH_INFINITE);
         assertEquals("Expecting to find one marker on " + clazz.getFullPath(), 1, markers.length);
-        
+
         int line = ((Integer) markers[0].getAttribute(IMarker.LINE_NUMBER)).intValue();
         assertEquals("Expecting maker to be on line 5", 5, line);
-        
-        String loc = (String) markers[0].getAttribute(AspectJUIPlugin.RELATED_LOCATIONS_ATTRIBUTE_PREFIX + 0);
-        assertTrue("Expecting location string to start with 'Bug285188/src/Aspect.aj:::3:::3:::0' but instead is '" + loc + "'", loc.endsWith("Bug285188/src/Aspect.aj:::3:::3:::0"));
+
+        String loc = ((String) markers[0].getAttribute(AspectJUIPlugin.RELATED_LOCATIONS_ATTRIBUTE_PREFIX + 0)).replace("\\", "/");
+        assertTrue("Expecting location string to end with 'Bug285188/src/Aspect.aj:::3:::3:::0' but instead is '" + loc + "'", loc.endsWith("Bug285188/src/Aspect.aj:::3:::3:::0"));
     }
 
 }

@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2010 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Kris De Volder - initial version
  *******************************************************************************/
@@ -34,9 +34,9 @@ import org.eclipse.ltk.core.refactoring.RefactoringStatusEntry;
  * @author kdvolder
  */
 public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
-	
+
 	/**
-	 * To remember positions of a "target marker". 
+	 * To remember positions of a "target marker".
 	 */
 	private static class Target {
 		public int cu;  // index of a compilation unit
@@ -57,13 +57,13 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
 	private static final String TAB_CHAR = DefaultCodeFormatterConstants.FORMATTER_TAB_CHAR;
 
 	private static final String TAB_SIZE = DefaultCodeFormatterConstants.FORMATTER_TAB_SIZE;
-	
+
 	private ICompilationUnit[] units;
 
 	private PullOutRefactoring refactoring;
 
 	private String[] expectedResults;
-	
+
 	private static class CU {
 		public String packName;
 		public String cuName;
@@ -87,25 +87,25 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
 		setJavaOption(TAB_CHAR, JavaCore.SPACE);
 		setJavaOption(TAB_SIZE, ""+4);
 	}
-		
+
 	private void setJavaOption(String name, String value) {
 		project.setOption(name, value);
 		assertEquals(value, project.getOption(name, true));
 	}
 
     private RefactoringStatus setupRefactoring(CU... cus) throws CoreException {
-    	
+
     	units = new ICompilationUnit[cus.length];
     	expectedResults = new String[cus.length];
     	refactoring = new PullOutRefactoring();
-    	
-    	List<Target> targets = new ArrayList<Target>(); 
-    	
+
+    	List<Target> targets = new ArrayList<Target>();
+
     	for (int i = 0; i < cus.length; i++) {
     		CU cu = cus[i];
     		int targetLoc = cu.initialContents.indexOf(TARGET_MARKER);
     		while (targetLoc>=0) {
-    			cu.initialContents = cu.initialContents.substring(0, targetLoc) 
+    			cu.initialContents = cu.initialContents.substring(0, targetLoc)
     							+ cu.initialContents.substring(targetLoc+TARGET_MARKER.length());
     			targets.add(new Target(i,targetLoc));
     			targetLoc = cu.initialContents.indexOf(TARGET_MARKER);
@@ -142,22 +142,22 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	setupRefactoring(
     			new CU("", "TestAspect.aj",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"public <***>aspect TestAspect {\n"+
     					"}",
     					//////////////////////////////////////////
     					// Expected
-    					"public aspect TestAspect {\n" + 
-    					"    // public static void main(String[] args) {\n" + 
-    					"//    new Clazz().m();\n" + 
-    					"// }\n" + 
-    					"    public void C.foo() {\n" + 
-    					"    }\n" + 
+    					"public aspect TestAspect {\n" +
+    					"    // public static void main(String[] args) {\n" +
+    					"//    new Clazz().m();\n" +
+    					"// }\n" +
+    					"    public void C.foo() {\n" +
+    					"    }\n" +
     					"}"
     			),
     			new CU("", "C.java",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"public class C {\n" +
     					"// public static void main(String[] args) {\n"+
     					"//    new Clazz().m();\n"+
@@ -183,7 +183,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	setupRefactoring(
     			new CU("pack", "TestAspect.aj",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package pack;\n" +
     					"public <***>aspect TestAspect {\n"+
     					"}",
@@ -204,7 +204,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     			),
     			new CU("claszes", "C.java",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package claszes;\n" +
     					"public class C {\n" +
     					"    //Weird\n" +
@@ -234,7 +234,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	refactoring.setAllowMakePublic(true);
     	performRefactoringAndCheck();
     }
-    
+
     /**
      * Test whether our test scaffolding sets up compilation units and refactoring targets correctly.
      * @throws Exception
@@ -243,7 +243,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	setupRefactoring(
     			new CU("", "TestAspect.aj",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"public <***>aspect TestAspect {\n"+
     					"}",
     					//////////////////////////////////////////
@@ -257,7 +257,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     			),
     			new CU("", "Klass.java",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"public class Klass {\n" +
     					"    public void <***>pullMe() {\n" +
     					"        System.out.println();\n" +
@@ -272,12 +272,12 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     					"}"
     			)
     	);
-    	
+
     	assertEquals("TestAspect", refactoring.getAspect().getElementName());
     	assertEquals("pullMe",     refactoring.getMembers()[0].getElementName());
     	assertEquals("pullMeToo",  refactoring.getMembers()[1].getElementName());
 	}
-    
+
     /**
      * Test a simple case that doesn't need to do anything except move the method
      */
@@ -285,7 +285,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	setupRefactoring(
     			new CU("", "TestAspect.aj",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"public <***>aspect TestAspect {\n"+
     					"}",
     					//////////////////////////////////////////
@@ -299,7 +299,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     			),
     			new CU("", "Klass.java",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"public class Klass {\n" +
     					"    public void <***>pullMe() {\n" +
     					"        System.out.println();\n" +
@@ -311,7 +311,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     					"}"
     			)
     	);
-    	
+
     	performRefactoringAndCheck();
 	}
 
@@ -339,7 +339,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	}
     	assertExpectedResults();
 	}
-	
+
 	private void assertNoExcessMessages(RefactoringStatus status,
 			String[] expectedMsgs) {
 		String unexpectedMsg = null;
@@ -352,7 +352,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     		for (RefactoringStatusEntry entry : status.getEntries()) {
 				allMessages += entry.getMessage()+"\n";
 			}
-    		fail("Unexpected message: "+unexpectedMsg+"\n"+ 
+    		fail("Unexpected message: "+unexpectedMsg+"\n"+
     			 "All messages: "+allMessages);
     	}
 	}
@@ -369,7 +369,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
 			assertNiceMessageIncluded(status, message);
 		}
 	}
-	
+
     private void assertNiceMessageIncluded(RefactoringStatus status, String message) {
     	boolean ok = false;
     	RefactoringStatusEntry[] entries = status.getEntries();
@@ -391,7 +391,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	setupRefactoring(
     			new CU("paspect", "TestAspect.aj",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package paspect;\n" +
     					"\n" +
     					"public <***>aspect TestAspect {\n"+
@@ -411,7 +411,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     			),
     			new CU("pclass", "Klass.java",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package pclass;\n" +
     					"\n" +
     					"public class Klass {\n" +
@@ -430,7 +430,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	performRefactoringAndCheck();
 	}
 
-    
+
     /**
      * When an aspect is privileged no problems with outgoing references should be reported.
      */
@@ -438,7 +438,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	setupRefactoring(
     			new CU("paspect", "TestAspect.aj",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package paspect;\n" +
     					"\n" +
     					"public privileged <***>aspect TestAspect {\n"+
@@ -458,7 +458,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     			),
     			new CU("pclass", "Klass.java",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package pclass;\n" +
     					"\n" +
     					"public class Klass {\n" +
@@ -482,16 +482,16 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	);
     	performRefactoringAndCheck();
     }
-    
+
     /**
-     * When the refactoring option, "make aspect priviliged" is enabled, no problems with outgoing references 
+     * When the refactoring option, "make aspect priviliged" is enabled, no problems with outgoing references
      * should be reported.
      */
     public void testMakePrivilegedAspect() throws Exception {
     	setupRefactoring(
     			new CU("paspect", "TestAspect.aj",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package paspect;\n" +
     					"\n" +
     					"public <***>aspect TestAspect {\n"+
@@ -511,7 +511,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     			),
     			new CU("pclass", "Klass.java",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package pclass;\n" +
     					"\n" +
     					"public class Klass {\n" +
@@ -536,17 +536,17 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	refactoring.setMakePrivileged(true);
     	performRefactoringAndCheck();
     }
-    
+
     /**
      * Making an already privileged aspect privileged shouldn't cause problems,
-     * just leave aspect privileged and not give any warnings about outgoing 
+     * just leave aspect privileged and not give any warnings about outgoing
      * references.
      */
     public void testMakePrivilegedPrivileged() throws Exception {
     	setupRefactoring(
     			new CU("paspect", "TestAspect.aj",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package paspect;\n" +
     					"\n" +
     					"public privileged <***>aspect TestAspect {\n"+
@@ -566,7 +566,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     			),
     			new CU("pclass", "Klass.java",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package pclass;\n" +
     					"\n" +
     					"public class Klass {\n" +
@@ -591,9 +591,9 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	refactoring.setMakePrivileged(true);
     	performRefactoringAndCheck();
     }
-    
+
     /**
-     * When an aspect is privileged no problems with outgoing references should be reported, even 
+     * When an aspect is privileged no problems with outgoing references should be reported, even
      * when those references are to nested types.
      * <p>
      * This test is disabled, it is failing because the created import statements for the
@@ -606,7 +606,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	setupRefactoring(
     			new CU("paspect", "TestAspect.aj",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package paspect;\n" +
     					"\n" +
     					"public privileged <***>aspect TestAspect {\n"+
@@ -632,7 +632,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     			),
     			new CU("pclass", "Klass.java",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package pclass;\n" +
     					"\n" +
     					"public class Klass {\n" +
@@ -665,7 +665,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	);
     	performRefactoringAndCheck();
     }
-    
+
     /**
      * A test with all three different types of imports: static, typebinding and fully qualified name (for
      * declaring type).
@@ -674,7 +674,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	setupRefactoring(
     			new CU("paspect", "TestAspect.aj",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package paspect;\n" +
     					"\n" +
     					"public <***>aspect TestAspect {\n"+
@@ -705,7 +705,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     			),
     			new CU("pclass", "Klass.java",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package pclass;\n" +
     					"\n" +
     					"import java.net.URI;\n" +
@@ -742,7 +742,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	);
     	performRefactoringAndCheck();
 	}
-    
+
     /**
      * Does this also work for fields?
      */
@@ -750,7 +750,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	setupRefactoring(
     			new CU("", "TestAspect.aj",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"public <***>aspect TestAspect {\n"+
     					"}",
     					//////////////////////////////////////////
@@ -762,7 +762,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     			),
     			new CU("", "Klass.java",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"public class Klass {\n" +
     					"    private int <***>field;\n" +
     					"}",
@@ -775,7 +775,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	refactoring.setMakePrivileged(true);
     	performRefactoringAndCheck();
 	}
-    
+
     /**
      * References to private fields should give status errors if aspect not privileged.
      */
@@ -783,7 +783,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	setupRefactoring(
     			new CU("paspect", "TestAspect.aj",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package paspect;\n" +
     					"\n" +
     					"public <***>aspect TestAspect {\n"+
@@ -803,7 +803,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     			),
     			new CU("pclass", "Klass.java",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package pclass;\n" +
     					"\n" +
     					"public class Klass {\n" +
@@ -833,7 +833,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	setupRefactoring(
     			new CU("paspect", "TestAspect.aj",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package paspect;\n" +
     					"\n" +
     					"public <***>aspect TestAspect {\n"+
@@ -853,7 +853,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     			),
     			new CU("pclass", "Klass.java",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package pclass;\n" +
     					"\n" +
     					"public class Klass {\n" +
@@ -879,16 +879,16 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     			"protected member 'prot'"
     	);
     }
-    
+
     /**
      * References to private fields should also status errors even when referenced
-     * in the simplified syntax (i.e. not <exp>.<field-name> but just <field-name>. 
+     * in the simplified syntax (i.e. not <exp>.<field-name> but just <field-name>.
      */
     public void testPrivateFieldReference2() throws Exception {
     	setupRefactoring(
     			new CU("paspect", "TestAspect.aj",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package paspect;\n" +
     					"\n" +
     					"public <***>aspect TestAspect {\n"+
@@ -908,7 +908,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     			),
     			new CU("pclass", "Klass.java",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package pclass;\n" +
     					"\n" +
     					"public class Klass {\n" +
@@ -933,13 +933,13 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
 
     /**
      * References to private fields should also status errors even when referenced
-     * in the simplified syntax (i.e. not <exp>.<field-name> but just <field-name>. 
+     * in the simplified syntax (i.e. not <exp>.<field-name> but just <field-name>.
      */
     public void testPrivateMethodReference() throws Exception {
     	setupRefactoring(
     			new CU("paspect", "TestAspect.aj",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package paspect;\n" +
     					"\n" +
     					"public <***>aspect TestAspect {\n"+
@@ -958,7 +958,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     			),
     			new CU("pclass", "Klass.java",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package pclass;\n" +
     					"\n" +
     					"public class Klass {\n" +
@@ -994,7 +994,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     public void testArrayPrivateTypeRef() throws Exception {
     	doTestPrivateTypeReference("Secret[]");
 	}
-    
+
     /**
      * References to private types should give status errors, even
      * when they are "hidden" inside more complex types.
@@ -1010,7 +1010,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	setupRefactoring(
     			new CU("paspect", "TestAspect.aj",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package paspect;\n" +
     					"\n" +
     					"import java.util.List;\n" +
@@ -1034,7 +1034,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     			),
     			new CU("pclass", "Klass.java",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package pclass;\n" +
     					"\n" +
     					"import java.util.List;\n" +
@@ -1060,12 +1060,12 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	);
     	performRefactoringAndCheck("private member 'Secret'");
     }
-    
+
     public void testGenericTypeParamUsed() throws Exception {
     	setupRefactoring(
     			new CU("paspect", "TestAspect.aj",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package paspect;\n" +
     					"\n" +
     					"public <***>aspect TestAspect {\n"+
@@ -1084,7 +1084,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     			),
     			new CU("pclass", "Klass.java",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package pclass;\n" +
     					"\n" +
     					"public class Klass<E> {\n" +
@@ -1102,12 +1102,12 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	);
     	performRefactoringAndCheck();
 	}
-    
+
     public void testMultipleGenericTypeParamUsed() throws Exception {
     	setupRefactoring(
     			new CU("paspect", "TestAspect.aj",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package paspect;\n" +
     					"\n" +
     					"public <***>aspect TestAspect {\n"+
@@ -1126,7 +1126,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     			),
     			new CU("pclass", "Klass.java",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package pclass;\n" +
     					"\n" +
     					"public class Klass<E, F> {\n" +
@@ -1152,7 +1152,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	setupRefactoring(
     			new CU("paspect", "TestAspect.aj",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package paspect;\n" +
     					"\n" +
     					"public <***>aspect TestAspect {\n"+
@@ -1188,7 +1188,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     			),
     			new CU("pclass", "Klass.java",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package pclass;\n" +
     					"\n" +
     					"import java.util.List;\n"+
@@ -1209,7 +1209,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     			),
     			new CU("pclass", "Idiot.java",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package pclass;\n" +
     					"\n" +
     					"import pclass.List;\n"+
@@ -1231,16 +1231,16 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	);
     	performRefactoringAndCheck();
     }
-    
+
     /**
-     * Do we handle also handle import name clahs ok if it is inside a 
+     * Do we handle also handle import name clahs ok if it is inside a
      * declaring type reference for the an ITD?
      */
     public void testImportNameCollisionInDeclaringTypeRef() throws Exception {
     	setupRefactoring(
     			new CU("paspect", "TestAspect.aj",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package paspect;\n" +
     					"\n" +
     					"import java.util.List;\n"+
@@ -1275,18 +1275,18 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	);
     	performRefactoringAndCheck();
     }
-    
+
     /**
      * When we pull a method that refers a private, this is ok if the private is
      * pulled as well!
-     * 
+     *
      * @throws Exception
      */
     public void testPullMultipleTargetsSimple() throws Exception {
     	setupRefactoring(
     			new CU("paspect", "TestAspect.aj",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package paspect;\n" +
     					"\n" +
     					"public <***>aspect TestAspect {\n"+
@@ -1306,7 +1306,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     			),
     			new CU("pclass", "Klass.java",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package pclass;\n" +
     					"\n" +
     					"public class Klass {\n" +
@@ -1325,18 +1325,18 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	);
     	performRefactoringAndCheck();
     }
-    
+
     /**
      * When we pull a method that refers a private, this is ok if the private is
      * pulled as well!
-     * 
+     *
      * @throws Exception
      */
     public void testPullMultipleTargetsCanPrivate() throws Exception {
     	setupRefactoring(
     			new CU("paspect", "TestAspect.aj",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package paspect;\n" +
     					"\n" +
     					"public <***>aspect TestAspect {\n"+
@@ -1356,7 +1356,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     			),
     			new CU("pclass", "Klass.java",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package pclass;\n" +
     					"\n" +
     					"public class Klass {\n" +
@@ -1375,7 +1375,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	);
     	performRefactoringAndCheck();
     }
-    
+
     /**
      * Pulling a private member out of its original context may break code that refers to it (if it
      * remains private in the aspect.
@@ -1384,7 +1384,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	setupRefactoring(
     			new CU("paspect", "TestAspect.aj",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package paspect;\n" +
     					"\n" +
     					"public <***>aspect TestAspect {\n"+
@@ -1401,7 +1401,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     			),
     			new CU("pclass", "Klass.java",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package pclass;\n" +
     					"\n" +
     					"public class Klass {\n" +
@@ -1423,16 +1423,16 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	);
     	performRefactoringAndCheck("moved private member 'secret' will not be accessible");
     }
-    
+
     /**
      * Pulling a protected member should provide warning that ajc doesn't support protected
-     * ITDs. 
+     * ITDs.
      */
     public void testPullProtected() throws Exception {
     	setupRefactoring(
     			new CU("paspect", "TestAspect.aj",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package paspect;\n" +
     					"\n" +
     					"public <***>aspect TestAspect {\n"+
@@ -1449,7 +1449,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     			),
     			new CU("pclass", "Klass.java",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package pclass;\n" +
     					"\n" +
     					"public class Klass {\n" +
@@ -1482,7 +1482,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	setupRefactoring(
     			new CU("paspect", "TestAspect.aj",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package paspect;\n" +
     					"\n" +
     					"public <***>aspect TestAspect {\n"+
@@ -1501,7 +1501,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     			),
     			new CU("pclass", "Klass.java",
     					/////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package pclass;\n" +
     					"\n" +
     					"public class Klass {\n" +
@@ -1531,7 +1531,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	setupRefactoring(
     			new CU("paspect", "TestAspect.aj",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package paspect;\n" +
     					"\n" +
     					"public <***>aspect TestAspect {\n"+
@@ -1556,7 +1556,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     			),
     			new CU("pclass", "Klass.java",
     					/////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package pclass;\n" +
     					"\n" +
     					"public class Klass {\n" +
@@ -1587,19 +1587,19 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	refactoring.setAllowMakePublic(true);
     	performRefactoringAndCheck("moved 'Klass' constructor has no this() call");
     }
-    
+
     /**
      * When pulling out constructors, in some cases the semantics of the
      * program might change, because the initialisers in the target class
      * will not be executed.
-     * 
+     *
      * See https://bugs.eclipse.org/bugs/show_bug.cgi?id=318936
      */
     public void testPullConstructorWithThisWarning() throws Exception {
     	setupRefactoring(
     			new CU("", "MyClass.java",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"public class MyClass {\n" +
     					"    private int countdown = 10;\n" +
     					"    private int step;\n" +
@@ -1616,7 +1616,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     			),
     			new CU("","TestAspect.aj",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"public privileged <***>aspect TestAspect {\n"+
     					"}",
     					//////////////////////////////////////////
@@ -1633,8 +1633,8 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     			"moved 'MyClass' constructor has no this() call"
     	);
 	}
-    
-    
+
+
     /**
      * Pulling a private member out of its original context may break code that refers to it (if it
      * remains private in the aspect.
@@ -1643,7 +1643,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	setupRefactoring(
     			new CU("paspect", "TestAspect.aj",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package paspect;\n" +
     					"\n" +
     					"public <***>aspect TestAspect {\n"+
@@ -1660,7 +1660,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     			),
     			new CU("pclass", "Klass.java",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package pclass;\n" +
     					"\n" +
     					"public class Klass {\n" +
@@ -1689,7 +1689,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	setupRefactoring(
     			new CU("paspect", "TestAspect.aj",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package paspect;\n" +
     					"\n" +
     					"public <***>aspect TestAspect {\n"+
@@ -1706,7 +1706,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     			),
     			new CU("pclass", "Klass.java",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package pclass;\n" +
     					"\n" +
     					"public class Klass {\n" +
@@ -1727,7 +1727,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	refactoring.setMakePrivileged(true);
     	performRefactoringAndCheck();
     }
-    
+
     /**
      * Pulling methods from aspects should also work.
      */
@@ -1735,7 +1735,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	setupRefactoring(
     			new CU("paspect", "TestAspect.aj",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package paspect;\n" +
     					"\n" +
     					"public <***>aspect TestAspect {\n"+
@@ -1752,7 +1752,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     			),
     			new CU("pclass", "OtherAspect.aj",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package pclass;\n" +
     					"\n" +
     					"public aspect OtherAspect {\n" +
@@ -1768,7 +1768,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	);
     	performRefactoringAndCheck();
     }
-    
+
     /**
      * When aspect and class are in same package, references to protected / default stuff
      * should not be checked.
@@ -1777,7 +1777,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	setupRefactoring(
     			new CU("samepack", "TestAspect.aj",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package samepack;\n" +
     					"\n" +
     					"public <***>aspect TestAspect {\n"+
@@ -1792,7 +1792,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     			),
     			new CU("samepack", "Klass.java",
     					/////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package samepack;\n" +
     					"\n" +
     					"public class Klass {\n" +
@@ -1814,7 +1814,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	);
     	performRefactoringAndCheck();
     }
-    
+
     /**
      * When aspect and class are in same compilation unit, refactoring should not break.
      */
@@ -1822,7 +1822,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	setupRefactoring(
     			new CU("samepack", "TestAspect.aj",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package samepack;\n" +
     					"\n" +
     					"public <***>aspect TestAspect {\n"+
@@ -1847,7 +1847,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	);
     	performRefactoringAndCheck();
     }
-    
+
     /**
      * We should also be able to pull a method from an aspect into itself (or at least
      * this should not crash the refactoring.
@@ -1856,33 +1856,33 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	setupRefactoring(
     			new CU("myspects", "MyAspect.aj",
     					//////////////////////////////////////////
-    					// Initial 
-    					"package myspects;\n" + 
-    					"\n" + 
-    					"import classzes.MyClass;\n" + 
-    					"\n" + 
-    					"public <***>aspect MyAspect {\n" + 
-    					"\n" + 
-    					"    public void <***>test() {}\n" + 
-    					"\n" + 
-    					"    public void MyClass.pullMe() {\n" + 
-    					"        System.out.println(\"Hi\");\n" + 
-    					"    }\n" + 
-    					"\n" + 
+    					// Initial
+    					"package myspects;\n" +
+    					"\n" +
+    					"import classzes.MyClass;\n" +
+    					"\n" +
+    					"public <***>aspect MyAspect {\n" +
+    					"\n" +
+    					"    public void <***>test() {}\n" +
+    					"\n" +
+    					"    public void MyClass.pullMe() {\n" +
+    					"        System.out.println(\"Hi\");\n" +
+    					"    }\n" +
+    					"\n" +
     					"}\n",
     					//////////////////////////////////////////
     					// Expected
-    					"package myspects;\n" + 
-    					"\n" + 
-    					"import classzes.MyClass;\n" + 
-    					"\n" + 
-    					"public aspect MyAspect {\n" + 
-    					"\n" + 
-    					"    public void MyClass.pullMe() {\n" + 
-    					"        System.out.println(\"Hi\");\n" + 
-    					"    }\n" + 
-    					"\n" + 
-    					"    public void MyAspect.test() {}\n" + 
+    					"package myspects;\n" +
+    					"\n" +
+    					"import classzes.MyClass;\n" +
+    					"\n" +
+    					"public aspect MyAspect {\n" +
+    					"\n" +
+    					"    public void MyClass.pullMe() {\n" +
+    					"        System.out.println(\"Hi\");\n" +
+    					"    }\n" +
+    					"\n" +
+    					"    public void MyAspect.test() {}\n" +
     					"}\n"
     			),
     			new CU("classzes", "MyClass.java",
@@ -1895,19 +1895,19 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	);
     	performRefactoringAndCheck();
     }
-    
+
     /**
      * What if a member for pulling was actually an ITD in another aspect?
      * We should detect this case and simply move the ITD to the other aspect.
      * We should not add another "AspectName." in front.
-     * We should rewrite imports for the target aspect just as if we pulled 
+     * We should rewrite imports for the target aspect just as if we pulled
      * out the ITD.
      */
     public void testPullITDMethod() throws Exception {
     	setupRefactoring(
     			new CU("fromaspect", "FromAspect.aj",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package fromaspect;\n" +
     					"\n" +
     					"import classes.MyClass;\n" +
@@ -1938,7 +1938,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     			),
     			new CU("toaspect", "ToAspect.aj",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package toaspect;\n" +
     					"\n" +
     					"public <***>aspect ToAspect {\n"+
@@ -1959,7 +1959,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	);
     	performRefactoringAndCheck();
     }
-        
+
     /**
      * If pulling ITDs works for ITDMethods it should also work for fields...
      */
@@ -1967,7 +1967,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	setupRefactoring(
     			new CU("fromaspect", "FromAspect.aj",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package fromaspect;\n" +
     					"\n" +
     					"import classes.MyClass;\n" +
@@ -1994,7 +1994,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     			),
     			new CU("toaspect", "ToAspect.aj",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package toaspect;\n" +
     					"\n" +
     					"public <***>aspect ToAspect {\n"+
@@ -2013,7 +2013,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	);
     	performRefactoringAndCheck();
     }
-    
+
     /**
      * If pulling ITDs works for ITDMethods it should also work for constructors...
      */
@@ -2021,7 +2021,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	setupRefactoring(
     			new CU("fromaspect", "FromAspect.aj",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package fromaspect;\n" +
     					"\n" +
     					"import classes.MyClass;\n" +
@@ -2048,7 +2048,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     			),
     			new CU("toaspect", "ToAspect.aj",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package toaspect;\n" +
     					"\n" +
     					"public <***>aspect ToAspect {\n"+
@@ -2067,7 +2067,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	);
     	performRefactoringAndCheck();
     }
-    
+
     /**
      * Pulling static stuff should work also
      */
@@ -2075,7 +2075,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	setupRefactoring(
     			new CU("paspect", "TestAspect.aj",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package paspect;\n" +
     					"\n" +
     					"public <***>aspect TestAspect {\n"+
@@ -2095,7 +2095,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     			),
     			new CU("pclass", "Klass.java",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package pclass;\n" +
     					"\n" +
     					"public class Klass {\n" +
@@ -2113,16 +2113,16 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	);
     	performRefactoringAndCheck();
     }
-        
+
     /**
-     * Pull interface methods (this test is currently failing, 
+     * Pull interface methods (this test is currently failing,
      * feature being tested not yet implemented)
      */
     public void _testPullVoidInterfaceMethod() throws Exception {
     	setupRefactoring(
     			new CU("paspect", "TestAspect.aj",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package paspect;\n" +
     					"\n" +
     					"public <***>aspect TestAspect {\n"+
@@ -2142,7 +2142,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     			),
     			new CU("pclass", "Intervace.java",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package pclass;\n" +
     					"\n" +
     					"public interface Intervace {\n" +
@@ -2162,7 +2162,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	refactoring.setGenerateAbstractMethodStubs(true);
     	performRefactoringAndCheck();
     }
-    
+
     /**
      * Pull interface methods, without the option to allow/convert abstract
      * methods should result in warning messages.
@@ -2171,7 +2171,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	setupRefactoring(
     			new CU("paspect", "TestAspect.aj",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package paspect;\n" +
     					"\n" +
     					"public <***>aspect TestAspect {\n"+
@@ -2191,7 +2191,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     			),
     			new CU("pclass", "Intervace.java",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package pclass;\n" +
     					"\n" +
     					"public interface Intervace {\n" +
@@ -2215,7 +2215,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     			"member 'pullMe4' is abstract"
     	);
     }
-    
+
     /**
      * Pull interface methods, *with* the option to allow/convert abstract
      * methods set should *not* result in warning messages and should create
@@ -2225,7 +2225,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	setupRefactoring(
     			new CU("paspect", "TestAspect.aj",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package paspect;\n" +
     					"\n" +
     					"public <***>aspect TestAspect {\n"+
@@ -2245,7 +2245,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     			),
     			new CU("pclass", "Intervace.java",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package pclass;\n" +
     					"\n" +
     					"public interface Intervace {\n" +
@@ -2265,7 +2265,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	refactoring.setGenerateAbstractMethodStubs(true);
     	performRefactoringAndCheck();
     }
-    
+
     /**
      * Pull abstract methods from an abstract class, *with* the option to allow/convert abstract
      * methods set should *not* result in warning messages and should create
@@ -2275,7 +2275,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	setupRefactoring(
     			new CU("paspect", "TestAspect.aj",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package paspect;\n" +
     					"\n" +
     					"public privileged <***>aspect TestAspect {\n"+
@@ -2296,7 +2296,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     			),
     			new CU("pclass", "MyClass.java",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package pclass;\n" +
     					"\n" +
     					"public abstract class MyClass {\n" +
@@ -2318,7 +2318,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	refactoring.setAllowDeleteProtected(true);
     	performRefactoringAndCheck();
     }
-    
+
     /**
      * Pull abstract methods from an abstract class, *without* the option to allow/convert abstract
      * methods set *should* result in warning messages and should *not* create
@@ -2328,7 +2328,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	setupRefactoring(
     			new CU("paspect", "TestAspect.aj",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package paspect;\n" +
     					"\n" +
     					"public privileged <***>aspect TestAspect {\n"+
@@ -2349,7 +2349,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     			),
     			new CU("pclass", "MyClass.java",
     					//////////////////////////////////////////
-    					// Initial 
+    					// Initial
     					"package pclass;\n" +
     					"\n" +
     					"public abstract class MyClass {\n" +
@@ -2376,12 +2376,12 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     			"member 'pullMe5' is abstract"
     	);
     }
-    
+
     /**
-     * Note: not using the assert method from superclass, because I prefer to use 
+     * Note: not using the assert method from superclass, because I prefer to use
      * assertEquals with Strings, which gives a nice comparison view in the
      * JUnit Eclipse View (easier to see diffs than in printed output).
-     * @throws JavaModelException 
+     * @throws JavaModelException
      */
 	private void assertExpectedResults() throws JavaModelException {
 		for (int i = 0; i < units.length; i++) {
@@ -2395,19 +2395,19 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
 			}
 			String actualContents = String.valueOf(contents);
 			// for a smoother testing experience let's ignore streams of newlines
-			assertEquals("CompilationUnit: "+units[i].getElementName(), 
-					simplifyText(expectedResults[i]), 
+			assertEquals("CompilationUnit: "+units[i].getElementName(),
+					simplifyText(expectedResults[i]),
 					simplifyText(actualContents));
 		}
 	}
-	
+
 	/**
 	 * To make comparison more likely to succeed with variations in spacing we use
 	 * this method ...
 	 */
 	private String simplifyText(String text) {
-		while (text.contains("\n\n"))
-			text = text.replace("\n\n", "\n");
-		return text;
+		return text
+			.replace("\r\n", "\n")     // dos2linux
+			.replaceAll("\n+", "\n");  // remove empty lines
 	}
 }
