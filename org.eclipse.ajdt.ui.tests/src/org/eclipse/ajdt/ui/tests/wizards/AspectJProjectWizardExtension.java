@@ -3,94 +3,97 @@
  * program and the accompanying materials are made available under the terms of
  * the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
- * 
- * Contributors: Ian McGrath - initial version
- * 	Sian January - updated when wizard was 
- * 		updated to new Java project wizard style (bug 78264)
+ *
+ * Contributors:
+ *   Ian McGrath  - initial version
+ *   Sian January - updated when wizard was updated to new Java project wizard
+ *                  style (bug 78264)
  ******************************************************************************/
 
 package org.eclipse.ajdt.ui.tests.wizards;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-
-import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.ui.wizards.AspectJProjectWizard;
+import org.eclipse.jdt.internal.ui.wizards.dialogfields.SelectionButtonDialogField;
 import org.eclipse.jdt.ui.wizards.NewJavaProjectWizardPageOne;
-import org.eclipse.jdt.ui.wizards.NewJavaProjectWizardPageTwo;
 import org.eclipse.swt.widgets.Composite;
 
+import java.lang.reflect.Field;
 
 public class AspectJProjectWizardExtension extends AspectJProjectWizard {
+  private String projectName;
 
-	private String projectDefaultName;
-	
-	/**
-	 * Used by the test suite to simulate user input to the dialog pages
-	 */
-	public AspectJProjectWizardExtension() {
-		super();
-	}
+  public AspectJProjectWizardExtension(String projectName) {
+    this.projectName = projectName;
+  }
 
-	public void setProjectDefaultName(String name) {
-		projectDefaultName = name;
-	}
-	
-	/**
-	 * Overridden to use JaveProjectWizardFirstPageExtension instead of JavaProjectWizardFirstPage 
-	 */
-	
-	public void addPages() {
-        fFirstPage= new NewJavaProjectWizardPageOne();
-		fFirstPage.setTitle(UIMessages.NewAspectJProject_CreateAnAspectJProject);
-		fFirstPage.setDescription(UIMessages.NewAspectJProject_CreateAnAspectJProjectDescription);
-        addPage(fFirstPage);
-        fSecondPage= new NewJavaProjectWizardPageTwo(fFirstPage);
-        fSecondPage.setTitle(UIMessages.NewAspectJProject_BuildSettings);
-        fSecondPage.setDescription(UIMessages.NewAspectJProject_BuildSettingsDescription);
-        addPage(fSecondPage);
+  /**
+   * Overridden to add simulated user input
+   */
+  public void createPageControls(Composite pageContainer) {
+    super.createPageControls(pageContainer);
+    fFirstPage.setProjectName(projectName);
+    useDefaultLocation();
+    useProjectFolderAsRoot();
+    doNotCreateModuleInfo();
+  }
+
+  protected void useDefaultLocation() {
+    SelectionButtonDialogField fUseDefaults;
+    try {
+      // Reflectively fetch: fFirstPage.fLocationGroup.fUseDefaults
+      Field field = NewJavaProjectWizardPageOne.class.getDeclaredField("fLocationGroup"); //$NON-NLS-1$
+      field.setAccessible(true);
+      Object fFirstPage = field.get(this.fFirstPage);
+      field = fFirstPage.getClass().getDeclaredField("fUseDefaults"); //$NON-NLS-1$
+      field.setAccessible(true);
+      fUseDefaults = (SelectionButtonDialogField) field.get(fFirstPage);
     }
-	
-	/**
-	 * Overridden to add simulated user input
-	 */
-	public void createPageControls(Composite pageContainer) {
-		super.createPageControls(pageContainer);
-		try {
-			fFirstPage.setProjectName(projectDefaultName);
+    catch (NoSuchFieldException | IllegalAccessException e) {
+      throw new RuntimeException("Could not select \"Use default location\" option", e);
+    }
 
-			// Following reflection code does this:
-			// fFirstPage.fLocationGroup.fWorkspaceRadio.setSelection(true);
-			Field f = NewJavaProjectWizardPageOne.class.getDeclaredField("fLocationGroup"); //$NON-NLS-1$
-			f.setAccessible(true);
-			Object o = f.get(fFirstPage);
-			f =o.getClass().getDeclaredField("fWorkspaceRadio"); //$NON-NLS-1$
-			f.setAccessible(true);
-			o = f.get(o);
-			Method m = o.getClass().getDeclaredMethod("setSelection",new Class[]{Boolean.TYPE}); //$NON-NLS-1$
-			m.setAccessible(true);
-			m.invoke(o,new Object[]{Boolean.TRUE});
-			
-			// Following reflection code does this:
-			// fFirstPage.fLayoutGroup.fStdRadio.setSelection(true);
-			f = NewJavaProjectWizardPageOne.class.getDeclaredField("fLayoutGroup"); //$NON-NLS-1$
-			f.setAccessible(true);
-			o = f.get(fFirstPage);
-			f = o.getClass().getDeclaredField("fStdRadio"); //$NON-NLS-1$
-			f.setAccessible(true);
-			o = f.get(o);
-			m = o.getClass().getDeclaredMethod("setSelection",new Class[]{Boolean.TYPE}); //$NON-NLS-1$
-			m.setAccessible(true);
-			m.invoke(o,new Object[]{Boolean.TRUE});
-			
-			
-		} catch (IllegalArgumentException e) {
-		} catch (SecurityException e) {
-		} catch (IllegalAccessException e) {
-		} catch (NoSuchFieldException e) {
-		} catch (NoSuchMethodException e) {
-		} catch (InvocationTargetException e) {
-		}	
-	}
+    fUseDefaults.setSelection(true);
+  }
+
+  protected void useProjectFolderAsRoot() {
+    SelectionButtonDialogField fStdRadio;
+    try {
+      // Reflectively fetch: fFirstPage.fLayoutGroup.fStdRadio
+      Field field = NewJavaProjectWizardPageOne.class.getDeclaredField("fLayoutGroup"); //$NON-NLS-1$
+      field.setAccessible(true);
+      Object fLayoutGroup = field.get(fFirstPage);
+      field = fLayoutGroup.getClass().getDeclaredField("fStdRadio"); //$NON-NLS-1$
+      field.setAccessible(true);
+      fStdRadio = (SelectionButtonDialogField) field.get(fLayoutGroup);
+    }
+    catch (NoSuchFieldException | IllegalAccessException e) {
+      throw new RuntimeException("Could not select \"Use project folder as root\" option", e);
+    }
+
+    fStdRadio.setSelection(true);
+  }
+
+  protected void doNotCreateModuleInfo() {
+    SelectionButtonDialogField fCreateModuleInfo;
+    try {
+      // Reflectively fetch: fFirstPage.fModuleGroup.fCreateModuleInfo
+      Field field = NewJavaProjectWizardPageOne.class.getDeclaredField("fModuleGroup"); //$NON-NLS-1$
+      field.setAccessible(true);
+      Object fModuleGroup = field.get(fFirstPage);
+      field = fModuleGroup.getClass().getDeclaredField("fCreateModuleInfo"); //$NON-NLS-1$
+      field.setAccessible(true);
+      fCreateModuleInfo = (SelectionButtonDialogField) field.get(fModuleGroup);
+    }
+    catch (NoSuchFieldException | IllegalAccessException e) {
+      throw new RuntimeException("Could not uncheck \"Create module-info.java\" option", e);
+    }
+
+    // Deactivate creation of module-info.java, because
+    //   a) AJDT is unprepared for JMS Java modules anyway (AJC is, though) -> TODO: fix
+    //   b) we want to avoid the pop-up dialogue asking about module name, which would make the test time out
+    //      because we are not handling the pop-up.
+    fCreateModuleInfo.setEnabled(true);
+    fCreateModuleInfo.setSelection(false);
+  }
+
 }
