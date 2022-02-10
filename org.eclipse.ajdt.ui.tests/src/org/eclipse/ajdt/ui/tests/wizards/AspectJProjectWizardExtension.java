@@ -32,27 +32,8 @@ public class AspectJProjectWizardExtension extends AspectJProjectWizard {
   public void createPageControls(Composite pageContainer) {
     super.createPageControls(pageContainer);
     fFirstPage.setProjectName(projectName);
-    useDefaultLocation();
     useProjectFolderAsRoot();
     doNotCreateModuleInfo();
-  }
-
-  protected void useDefaultLocation() {
-    SelectionButtonDialogField fUseDefaults;
-    try {
-      // Reflectively fetch: fFirstPage.fLocationGroup.fUseDefaults
-      Field field = NewJavaProjectWizardPageOne.class.getDeclaredField("fLocationGroup"); //$NON-NLS-1$
-      field.setAccessible(true);
-      Object fFirstPage = field.get(this.fFirstPage);
-      field = fFirstPage.getClass().getDeclaredField("fUseDefaults"); //$NON-NLS-1$
-      field.setAccessible(true);
-      fUseDefaults = (SelectionButtonDialogField) field.get(fFirstPage);
-    }
-    catch (NoSuchFieldException | IllegalAccessException e) {
-      throw new RuntimeException("Could not select \"Use default location\" option", e);
-    }
-
-    fUseDefaults.setSelection(true);
   }
 
   protected void useProjectFolderAsRoot() {
