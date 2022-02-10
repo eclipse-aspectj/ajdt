@@ -16,33 +16,33 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 
 /**
- * Tests bug 255332 that if there is a change to an aspect, then all classes it weaves into 
+ * Tests bug 255332 that if there is a change to an aspect, then all classes it weaves into
  * also have their model properly updated.
  * @author andrew
  *
  */
 public class Bug255332Test extends UITestCase {
-    
+
     IProject proj;
     IFile anAspectFile;
     IFile aClassFile;
-    
+
     protected void setUp() throws Exception {
         super.setUp();
         proj = createPredefinedProject("AutoBuildAspects-Bug255332");
-        
+
         anAspectFile = proj.getFile("src/a/AnAspect.aj");
         aClassFile = proj.getFile("src/b/AClass.java");
-        
+
 //        waitForJobsToComplete();
 //        proj.build(IncrementalProjectBuilder.AUTO_BUILD, null);
     }
 
-    
+
     public void testChangeAspectMeansChangeInClassMarkers() throws Exception {
         IMarker[] classMarkers;
         IMarker[] aspectMarkers;
-        
+
         classMarkers = aClassFile.findMarkers(IAJModelMarker.ADVICE_MARKER, true, IResource.DEPTH_INFINITE);
         assertEquals("Should start with 1 marker in the class file, but found " + classMarkers.length, 1, classMarkers.length); //$NON-NLS-1$
 
@@ -61,7 +61,7 @@ public class Bug255332Test extends UITestCase {
 
         // change back
         setContents(origContents);
-        
+
         classMarkers = aClassFile.findMarkers(IAJModelMarker.ADVICE_MARKER, true, IResource.DEPTH_INFINITE);
         assertEquals("Should have 1 marker in the class file after change, but found " + classMarkers.length, 1, classMarkers.length); //$NON-NLS-1$
 
@@ -77,18 +77,21 @@ public class Bug255332Test extends UITestCase {
         anAspectFile.refreshLocal(IResource.DEPTH_INFINITE, null);
         waitForJobsToComplete();
     }
-    
-    private String getContents(IFile javaFile) throws CoreException, IOException {
-        InputStream is = javaFile.getContents();
-        BufferedReader br = new BufferedReader(new InputStreamReader(is));
-        StringBuffer buffer= new StringBuffer();
-        char[] readBuffer= new char[2048];
-        int n= br.read(readBuffer);
-        while (n > 0) {
-            buffer.append(readBuffer, 0, n);
-            n= br.read(readBuffer);
+
+    private String getContents(IFile file) throws CoreException, IOException {
+        try (
+            InputStream is = file.getContents();
+            BufferedReader br = new BufferedReader(new InputStreamReader(is))
+        ) {
+            StringBuilder buffer = new StringBuilder();
+            char[] readBuffer = new char[2048];
+            int n = br.read(readBuffer);
+            while (n > 0) {
+                buffer.append(readBuffer, 0, n);
+                n = br.read(readBuffer);
+            }
+            return buffer.toString();
         }
-        return buffer.toString();
     }
 
 }

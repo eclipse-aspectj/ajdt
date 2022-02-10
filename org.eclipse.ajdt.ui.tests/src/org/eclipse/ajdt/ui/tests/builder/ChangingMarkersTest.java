@@ -50,25 +50,25 @@ public class ChangingMarkersTest extends UITestCase {
         IMarker[] adviceMarkers;
         IMarker[] declareMarkers;
         IMarker[] warningMarkers;
-        
+
         // advice markers
         adviceMarkers = javaFile.findMarkers(IAJModelMarker.ADVICE_MARKER, true, IResource.DEPTH_INFINITE);
         assertEquals("Didn't find correct number of advice markers in " + javaFile, 1, adviceMarkers.length); //$NON-NLS-1$
         adviceMarkers = ajFile.findMarkers(IAJModelMarker.SOURCE_ADVICE_MARKER, true, IResource.DEPTH_INFINITE);
         assertEquals("Didn't find correct number of advice markers in " + ajFile, 1, adviceMarkers.length); //$NON-NLS-1$
-        
+
         // declare markers---declare warning declarations sources markers are a declare marker
         declareMarkers = javaFile.findMarkers(IAJModelMarker.DECLARATION_MARKER, true, IResource.DEPTH_INFINITE);
         assertEquals("Didn't find correct number of declare markers in " + javaFile, 1, declareMarkers.length); //$NON-NLS-1$
         declareMarkers = ajFile.findMarkers(IAJModelMarker.DECLARATION_MARKER, true, IResource.DEPTH_INFINITE);
         assertEquals("Didn't find correct number of declare markers in " + ajFile, 3, declareMarkers.length); //$NON-NLS-1$
-        
+
         // warnings---declare warning declarations target markers are an ajdt problem marker
         warningMarkers = javaFile.findMarkers(IAJModelMarker.AJDT_PROBLEM_MARKER, true, IResource.DEPTH_INFINITE);
         assertEquals("Didn't find correct number of warning markers in " + javaFile, 1, warningMarkers.length); //$NON-NLS-1$
         warningMarkers = ajFile.findMarkers(IAJModelMarker.AJDT_PROBLEM_MARKER, true, IResource.DEPTH_INFINITE);
         assertEquals("Didn't find correct number of warning markers in " + ajFile, 0, warningMarkers.length); //$NON-NLS-1$
-        
+
         // change class so that none of them apply
         String origContents = getContents(javaFile);
         javaFile.setContents(new ReaderInputStream(new StringReader(
@@ -88,20 +88,20 @@ public class ChangingMarkersTest extends UITestCase {
         assertEquals("Didn't find correct number of advice markers in " + javaFile, 0, adviceMarkers.length); //$NON-NLS-1$
         adviceMarkers = ajFile.findMarkers(IAJModelMarker.SOURCE_ADVICE_MARKER, true, IResource.DEPTH_INFINITE);
         assertEquals("Didn't find correct number of advice markers in " + ajFile, 0, adviceMarkers.length); //$NON-NLS-1$
-        
+
         // declare markers---declare parents and ITD (2 markers in aspect, one marker in class)
         declareMarkers = javaFile.findMarkers(IAJModelMarker.DECLARATION_MARKER, true, IResource.DEPTH_INFINITE);
         assertEquals("Didn't find correct number of declare markers in " + javaFile, 1, declareMarkers.length); //$NON-NLS-1$
         declareMarkers = ajFile.findMarkers(IAJModelMarker.DECLARATION_MARKER, true, IResource.DEPTH_INFINITE);
         assertEquals("Didn't find correct number of declare markers in " + ajFile, 2, declareMarkers.length); //$NON-NLS-1$
-        
+
         // warnings---no warnings should be matched any more
         warningMarkers = javaFile.findMarkers(IAJModelMarker.AJDT_PROBLEM_MARKER, true, IResource.DEPTH_INFINITE);
         assertEquals("Didn't find correct number of warning markers in " + javaFile, 0, warningMarkers.length); //$NON-NLS-1$
         warningMarkers = ajFile.findMarkers(IAJModelMarker.AJDT_PROBLEM_MARKER, true, IResource.DEPTH_INFINITE);
         assertEquals("Didn't find correct number of warning markers in " + ajFile, 0, warningMarkers.length); //$NON-NLS-1$
-        
-        
+
+
         // change back
         javaFile.setContents(new ReaderInputStream(new StringReader(
                 origContents)), true, false, null);
@@ -119,13 +119,13 @@ public class ChangingMarkersTest extends UITestCase {
         assertEquals("Didn't find correct number of advice markers in " + javaFile, 1, adviceMarkers.length); //$NON-NLS-1$
         adviceMarkers = ajFile.findMarkers(IAJModelMarker.SOURCE_ADVICE_MARKER, true, IResource.DEPTH_INFINITE);
         assertEquals("Didn't find correct number of advice markers in " + ajFile, 1, adviceMarkers.length); //$NON-NLS-1$
-        
+
         // declare markers
         declareMarkers = javaFile.findMarkers(IAJModelMarker.DECLARATION_MARKER, true, IResource.DEPTH_INFINITE);
         assertEquals("Didn't find correct number of declare markers in " + javaFile, 1, declareMarkers.length); //$NON-NLS-1$
         declareMarkers = ajFile.findMarkers(IAJModelMarker.DECLARATION_MARKER, true, IResource.DEPTH_INFINITE);
         assertEquals("Didn't find correct number of declare markers in " + ajFile, 3, declareMarkers.length); //$NON-NLS-1$
-        
+
         // warnings
         warningMarkers = javaFile.findMarkers(IAJModelMarker.AJDT_PROBLEM_MARKER, true, IResource.DEPTH_INFINITE);
         for (int i = 0; i < warningMarkers.length; i++) {
@@ -141,16 +141,20 @@ public class ChangingMarkersTest extends UITestCase {
         assertEquals("Didn't find correct number of warning markers in " + ajFile, 0, warningMarkers.length); //$NON-NLS-1$
     }
 
-    private String getContents(IFile javaFile) throws CoreException, IOException {
-        InputStream is = javaFile.getContents();
-        BufferedReader br = new BufferedReader(new InputStreamReader(is));
-        StringBuffer buffer= new StringBuffer();
-        char[] readBuffer= new char[2048];
-        int n= br.read(readBuffer);
-        while (n > 0) {
-            buffer.append(readBuffer, 0, n);
-            n= br.read(readBuffer);
+    private String getContents(IFile file) throws CoreException, IOException {
+        try (
+            InputStream is = file.getContents();
+            BufferedReader br = new BufferedReader(new InputStreamReader(is))
+        ) {
+            StringBuilder buffer = new StringBuilder();
+            char[] readBuffer = new char[2048];
+            int n = br.read(readBuffer);
+            while (n > 0) {
+                buffer.append(readBuffer, 0, n);
+                n = br.read(readBuffer);
+            }
+            return buffer.toString();
         }
-        return buffer.toString();
     }
+
 }
