@@ -10,7 +10,7 @@
 
 	<groupId>org.aspectj.ajde</groupId>
 	<artifactId>org.aspectj.runtime</artifactId>
-	<version>1.9.8-SNAPSHOT</version>
+	<version>1.9.9-SNAPSHOT</version>
 	<packaging>eclipse-plugin</packaging>
 
 	<build>

@@ -165,9 +165,8 @@ public final class LazyClassGen {
 	}
 
 	void addInlinedSourceFileInfo(String fullpath, int highestLineNumber) {
-		Object o = inlinedFiles.get(fullpath);
-		if (o != null) {
-			InlinedSourceFileInfo info = (InlinedSourceFileInfo) o;
+		InlinedSourceFileInfo info = inlinedFiles.get(fullpath);
+		if (info != null) {
 			if (info.highestLineNumber < highestLineNumber) {
 				info.highestLineNumber = highestLineNumber;
 			}
@@ -757,10 +756,10 @@ public final class LazyClassGen {
 				throw new BCException(
 					"Unable to find ASM classes (" + AsmDetector.CLASS_READER + ", " + AsmDetector.CLASS_VISITOR + ") " +
 						"for stackmap generation. Stackmap generation for woven code is required to avoid verify errors " +
-						"on a Java 1.7 or higher runtime."
+						"on a Java 1.7 or higher runtime.", AsmDetector.reasonAsmIsMissing
 				);
 			}
-			wovenClassFileData = StackMapAdder.addStackMaps(world, wovenClassFileData);
+			wovenClassFileData = StackMapAdder.addStackMaps(world, myGen.getClassName(), wovenClassFileData);
 		}
 
 		WeaverStateInfo wsi = myType.getWeaverState();// getOrCreateWeaverStateInfo();

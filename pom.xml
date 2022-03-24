@@ -53,8 +53,8 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
-		<tycho-version>2.6.0</tycho-version>
-		<tycho-extras-version>2.6.0</tycho-extras-version>
+		<tycho-version>2.7.0</tycho-version>
+		<tycho-extras-version>2.7.0</tycho-extras-version>
 		<tycho.surefire.extra.vmargs></tycho.surefire.extra.vmargs>
 		<aspectj-maven-compiler-version>1.13.1</aspectj-maven-compiler-version>
 	</properties>
@@ -139,11 +139,6 @@
 			<id>e419</id>
 			<properties>
 				<platform.version>e419</platform.version>
-				<!--
-				Go here - download 4.X look at version of weaving hook!
-				https://download.eclipse.org/equinox/
-				<weaving.hook.version>1.3.0.v20210202-1256</weaving.hook.version>
-				-->
 				<weaving.hook.version>1.3.0.v20210202-1256</weaving.hook.version>
 			</properties>
 			<repositories>
@@ -159,10 +154,6 @@
 			<id>e421</id>
 			<properties>
 				<platform.version>e421</platform.version>
-				<!--
-				Go here - download 4.X look at version of weaving hook!
-				https://download.eclipse.org/equinox/
-				-->
 				<weaving.hook.version>1.3.0.v20210202-1256</weaving.hook.version>
 			</properties>
 			<repositories>
@@ -170,6 +161,25 @@
 					<id>2021-09-releases</id>
 					<layout>p2</layout>
 					<url>https://download.eclipse.org/releases/2021-09/</url>
+				</repository>
+			</repositories>
+		</profile>
+
+		<profile>
+			<id>e423</id>
+			<properties>
+				<platform.version>e423</platform.version>
+				<!--
+					Go to https://download.eclipse.org/equinox/. Either download the corresponding 4.x SDK release archive and
+					identify the weaving hook version, or check the online bundles list for org.eclipse.equinox.transforms.hook_*.
+				-->
+				<weaving.hook.version>1.3.100.v20211021-1418</weaving.hook.version>
+			</properties>
+			<repositories>
+				<repository>
+					<id>2022-03-releases</id>
+					<layout>p2</layout>
+					<url>https://download.eclipse.org/releases/2022-03/</url>
 				</repository>
 			</repositories>
 		</profile>

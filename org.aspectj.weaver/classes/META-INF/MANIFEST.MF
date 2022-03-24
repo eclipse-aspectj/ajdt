@@ -1,17 +1,17 @@
 Manifest-Version: 1.0
-Created-By: Apache Maven 3.8.1
+Created-By: Apache Maven 3.8.4
 Built-By: alexa
-Build-Jdk: 11.0.11
+Build-Jdk: 16
 Agent-Class: org.aspectj.weaver.loadtime.Agent
 Automatic-Module-Name: org.aspectj.weaver
 Can-Redefine-Classes: true
 Premain-Class: org.aspectj.weaver.loadtime.Agent
 
 Name: org/aspectj/weaver/
-Bundle-Version: 1.9.8-SNAPSHOT
-Implementation-Version: 1.9.8-SNAPSHOT
+Bundle-Version: 1.9.9
+Implementation-Version: 1.9.9
 Specification-Title: AspectJ Weaver Classes
-Specification-Version: 1.9.8-SNAPSHOT
+Specification-Version: 1.9.9
 Bundle-Copyright: (C) Copyright 1999-2001 Xerox Corporation, 2002 Palo A
  lto Research Center, Incorporated (PARC), 2003-2020 Contributors. All R
  ights Reserved
