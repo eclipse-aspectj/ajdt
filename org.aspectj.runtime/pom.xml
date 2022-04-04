@@ -15,6 +15,74 @@
 
 	<build>
 		<plugins>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-clean-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>clean-up-aspectj-content</id>
+						<phase>clean</phase>
+						<goals>
+							<goal>clean</goal>
+						</goals>
+						<configuration>
+							<filesets>
+								<fileset>
+									<directory>.</directory>
+									<includes>
+										<include>source</include>
+										<include>classes</include>
+									</includes>
+									<followSymlinks>false</followSymlinks>
+								</fileset>
+							</filesets>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>unpack-aspectj-content</id>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>unpack</goal>
+						</goals>
+						<configuration>
+							<artifactItems>
+								<artifactItem>
+									<groupId>org.aspectj</groupId>
+									<artifactId>aspectjrt</artifactId>
+									<version>${aspectj.version}</version>
+									<type>jar</type>
+									<overWrite>false</overWrite>
+									<outputDirectory>classes</outputDirectory>
+									<excludes>
+										${aspectj.exclude.meta-data}
+									</excludes>
+								</artifactItem>
+								<artifactItem>
+									<groupId>org.aspectj</groupId>
+									<artifactId>aspectjrt</artifactId>
+									<version>${aspectj.version}</version>
+									<type>java-source</type>
+									<classifier>sources</classifier>
+									<overWrite>false</overWrite>
+									<outputDirectory>source</outputDirectory>
+									<excludes>
+										${aspectj.exclude.meta-data}
+									</excludes>
+								</artifactItem>
+							</artifactItems>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
 			<plugin>
 				<groupId>org.eclipse.tycho</groupId>
 				<artifactId>tycho-packaging-plugin</artifactId>
