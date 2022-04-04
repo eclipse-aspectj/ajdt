@@ -57,6 +57,52 @@
 		<tycho-extras-version>2.7.0</tycho-extras-version>
 		<tycho.surefire.extra.vmargs></tycho.surefire.extra.vmargs>
 		<aspectj-maven-compiler-version>1.13.1</aspectj-maven-compiler-version>
+
+		<!-- AspectJ Core binaries + sources (tools, weaver, runtime) to include in AJDT -->
+		<aspectj.version>1.9.9.1</aspectj.version>
+
+		<aspectj.exclude.meta-data>
+			META-INF/**,
+			*.profile,
+			*.html,
+			*.properties,
+			.api_description,
+			.options,
+			plugin.xml,
+			profile.list,
+			aspectj_1_5_0.dtd,
+			org.eclipse.jdt.core-empty,
+			about_files/**,
+			ant_tasks/**
+		</aspectj.exclude.meta-data>
+		<aspectj.exclude.eclipse-osgi>
+			org/eclipse/**,
+			org/osgi/**
+		</aspectj.exclude.eclipse-osgi>
+		<aspectj.exclude.runtime>
+			org/aspectj/internal/**,
+			org/aspectj/runtime/**,
+			org/aspectj/lang/**
+		</aspectj.exclude.runtime>
+		<aspectj.exclude.weaver>
+			org/aspectj/asm/**,
+			org/aspectj/weaver/**,
+			org/aspectj/apache/**,
+			org/aspectj/bridge/**,
+			org/aspectj/util/**,
+			aj/**
+		</aspectj.exclude.weaver>
+		<!-- Exclude all AJDE classes except for org/aspectj/ajde/core -->
+		<aspectj.exclude.ajde>
+			org/aspectj/ajde/*,
+			org/aspectj/ajde/internal/**,
+			org/aspectj/ajde/resources/**,
+			org/aspectj/ajde/ui/**
+		</aspectj.exclude.ajde>
+		<aspectj.exclude.ajbrowser>
+			org/aspectj/tools/ajbrowser/**
+		</aspectj.exclude.ajbrowser>
+
 	</properties>
 
 	<profiles>
@@ -435,6 +481,17 @@
 						<Xlint>ignore</Xlint>
 						<deprecation>true</deprecation>
 					</configuration>
+				</plugin>
+
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-clean-plugin</artifactId>
+					<version>3.1.0</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-dependency-plugin</artifactId>
+					<version>3.3.0</version>
 				</plugin>
 
 			</plugins>
