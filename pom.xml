@@ -55,7 +55,7 @@
 		<maven.compiler.target>1.8</maven.compiler.target>
 		<tycho-version>2.7.0</tycho-version>
 		<tycho-extras-version>2.7.0</tycho-extras-version>
-		<tycho.surefire.extra.vmargs></tycho.surefire.extra.vmargs>
+		<tycho.surefire.extra.vmargs/>
 		<aspectj-maven-compiler-version>1.13.1</aspectj-maven-compiler-version>
 
 		<!-- AspectJ Core binaries + sources (tools, weaver, runtime) to include in AJDT -->
@@ -403,7 +403,6 @@
 				<configuration>
 					<resolver>p2</resolver>
 					<pomDependencies>consider</pomDependencies>
-					<ignoreTychoRepositories>true</ignoreTychoRepositories>
 					<environments>
 						<environment>
 							<os>macosx</os>
