@@ -19,3 +19,10 @@ idea-bundles/
 /org.aspectj.weaver/source/
 /org.aspectj.ajde/classes/
 /org.aspectj.ajde/source/
+
+# Tests + examples JARs
+# TODO: use 'target' subdirectories for storage
+/org.eclipse.ajdt.examples/ajdtExamples.jar
+/org.eclipse.contribution.weaving.jdt.tests/jdtweavingtests.jar
+/org.eclipse.contribution.xref.core.tests/xrefcoretests.jar
+/org.eclipse.contribution.xref.ui.tests/xrefuitests.jar
