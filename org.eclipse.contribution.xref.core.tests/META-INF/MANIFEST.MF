@@ -1,4 +1,5 @@
 Manifest-Version: 1.0
+Automatic-Module-Name: org.eclipse.contribution.xref.core.tests
 Bundle-ManifestVersion: 2
 Bundle-Name: %pluginName
 Bundle-SymbolicName: org.eclipse.contribution.xref.core.tests; singleton:=true
@@ -12,4 +13,4 @@ Require-Bundle: org.eclipse.contribution.xref.core,
  org.junit,
  org.eclipse.jdt.core
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-11

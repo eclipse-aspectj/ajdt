@@ -1,4 +1,5 @@
 Manifest-Version: 1.0
+Automatic-Module-Name: org.eclipse.contribution.visualiser
 Bundle-ManifestVersion: 2
 Bundle-Name: Visualiser Plug-in
 Bundle-SymbolicName: org.eclipse.contribution.visualiser; singleton:=true
@@ -33,5 +34,5 @@ Require-Bundle: org.eclipse.ui.workbench.texteditor,
  org.aspectj.runtime,
  org.eclipse.help
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: J2SE-1.4
+Bundle-RequiredExecutionEnvironment: JavaSE-11
 Eclipse-AspectBundle: finished

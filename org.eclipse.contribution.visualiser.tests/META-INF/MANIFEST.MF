@@ -1,4 +1,5 @@
 Manifest-Version: 1.0
+Automatic-Module-Name: org.eclipse.contribution.visualiser.tests
 Bundle-ManifestVersion: 2
 Bundle-Name: Visualser Tests
 Bundle-SymbolicName: org.eclipse.contribution.visualiser.tests;singleton:=true
@@ -9,5 +10,5 @@ Require-Bundle: org.eclipse.ui,
  org.junit,
  org.eclipse.contribution.visualiser,
  org.eclipse.core.runtime
-Bundle-RequiredExecutionEnvironment: J2SE-1.4
+Bundle-RequiredExecutionEnvironment: JavaSE-11
 Bundle-Vendor: Eclipse AspectJ Development Tools

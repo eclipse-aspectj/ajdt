@@ -1,4 +1,5 @@
 Manifest-Version: 1.0
+Automatic-Module-Name: org.aspectj.ajde
 Bundle-ManifestVersion: 2
 Bundle-Name: AspectJ
 Bundle-SymbolicName: org.aspectj.ajde; singleton:=true

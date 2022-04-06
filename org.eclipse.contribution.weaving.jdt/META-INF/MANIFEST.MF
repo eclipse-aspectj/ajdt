@@ -1,4 +1,5 @@
 Manifest-Version: 1.0
+Automatic-Module-Name: org.eclipse.contribution.weaving.jdt
 Bundle-ManifestVersion: 2
 Bundle-Name: JDT Weaving
 Bundle-SymbolicName: org.eclipse.contribution.weaving.jdt;singleton:=true
@@ -48,6 +49,6 @@ Eclipse-SupplementBundle: org.eclipse.jdt.core,
  org.eclipse.jdt.debug.ui,
  org.eclipse.jdt.debug,
  org.eclipse.jdt.groovy.core
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-11
 Bundle-Vendor: Eclipse AspectJ Development Tools
 Bundle-ActivationPolicy: lazy
