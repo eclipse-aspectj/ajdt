@@ -32,8 +32,8 @@
 								<fileset>
 									<directory>.</directory>
 									<includes>
-										<include>source</include>
-										<include>classes</include>
+										<include>source/**</include>
+										<include>classes/**</include>
 									</includes>
 									<followSymlinks>false</followSymlinks>
 								</fileset>
