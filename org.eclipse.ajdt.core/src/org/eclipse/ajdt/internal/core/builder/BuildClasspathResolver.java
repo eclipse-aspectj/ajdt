@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -38,7 +38,7 @@ public class BuildClasspathResolver {
 
 	ClasspathMultiDirectory[] sourceLocations;
 	ClasspathLocation[] binaryLocations;
-	
+
     // AspectJ Change Begin
 	/**
 	 * Resolve the classpath of the given project into a string
@@ -51,12 +51,12 @@ public class BuildClasspathResolver {
 			} catch (CoreException e) {
 			}
 		}
-		
-		StringBuffer classpath = new StringBuffer();
-		for (int i = 0; i < binaryLocations.length; i++) {
-			classpath.append(binaryLocations[i].toOSString());
-			classpath.append(File.pathSeparator);
-		}
+
+		StringBuilder classpath = new StringBuilder();
+    for (ClasspathLocation binaryLocation : binaryLocations) {
+      classpath.append(binaryLocation.toOSString());
+      classpath.append(File.pathSeparator);
+    }
 		return classpath.toString();
 	}
 	// AspectJ Change End
@@ -94,127 +94,138 @@ public class BuildClasspathResolver {
 			int severity = JavaCore.ERROR.equals(javaProject.getOption(JavaCore.CORE_CIRCULAR_CLASSPATH, true))
 				? IMarker.SEVERITY_ERROR
 				: IMarker.SEVERITY_WARNING;
-			if (severity != ((Integer) cycleMarker.getAttribute(IMarker.SEVERITY)).intValue())
+			if (severity != (Integer) cycleMarker.getAttribute(IMarker.SEVERITY))
 				cycleMarker.setAttribute(IMarker.SEVERITY, severity);
 		}
 
 		IClasspathEntry[] classpathEntries = javaProject.getExpandedClasspath();
-		ArrayList sLocations = new ArrayList(classpathEntries.length);
-		ArrayList bLocations = new ArrayList(classpathEntries.length);
-		nextEntry : for (int i = 0, l = classpathEntries.length; i < l; i++) {
-			ClasspathEntry entry = (ClasspathEntry) classpathEntries[i];
-			IPath path = entry.getPath();
-			Object target = JavaModel.getTarget(path, true);
-			if (target == null) continue nextEntry;
+		ArrayList<ClasspathLocation> sLocations = new ArrayList<>(classpathEntries.length);
+		ArrayList<ClasspathLocation> bLocations = new ArrayList<>(classpathEntries.length);
+		nextEntry :
+    for (IClasspathEntry classpathEntry : classpathEntries) {
+      ClasspathEntry entry = (ClasspathEntry) classpathEntry;
+      IPath path = entry.getPath();
+      Object target = JavaModel.getTarget(path, true);
+      if (target == null)
+        continue nextEntry;
 
-			switch(entry.getEntryKind()) {
-				case IClasspathEntry.CPE_SOURCE :
-					if (!(target instanceof IContainer)) continue nextEntry;
-					IPath outputPath = entry.getOutputLocation() != null 
-						? entry.getOutputLocation() 
-						: javaProject.getOutputLocation();
-					IContainer outputFolder;
-					if (outputPath.segmentCount() == 1) {
-						outputFolder = javaProject.getProject();
-					} else {
-						outputFolder = root.getFolder(outputPath);
-						// AspectJ Change Begin
-						// This method can be executing on the wrong thread, where createFolder() will hang, so don't do it!
-						// if (!outputFolder.exists())
-						//	 createFolder(outputFolder);
-						// AspectJ Change End
-					}
-					sLocations.add(
-						ClasspathLocation.forSourceFolder((IContainer) target, outputFolder, entry.fullInclusionPatternChars(), entry.fullExclusionPatternChars()));
-					continue nextEntry;
+      switch (entry.getEntryKind()) {
+        case IClasspathEntry.CPE_SOURCE:
+          if (!(target instanceof IContainer))
+            continue nextEntry;
+          IPath outputPath = entry.getOutputLocation() != null
+            ? entry.getOutputLocation()
+            : javaProject.getOutputLocation();
+          IContainer outputFolder;
+          if (outputPath.segmentCount() == 1) {
+            outputFolder = javaProject.getProject();
+          }
+          else {
+            outputFolder = root.getFolder(outputPath);
+            // AspectJ Change Begin
+            // This method can be executing on the wrong thread, where createFolder() will hang, so don't do it!
+            // if (!outputFolder.exists())
+            //	 createFolder(outputFolder);
+            // AspectJ Change End
+          }
+          sLocations.add(
+            ClasspathLocation.forSourceFolder((IContainer) target, outputFolder, entry.fullInclusionPatternChars(), entry.fullExclusionPatternChars()));
+          continue nextEntry;
 
-				case IClasspathEntry.CPE_PROJECT :
-					if (!(target instanceof IProject)) continue nextEntry;
-					IProject prereqProject = (IProject) target;
-					if (!JavaProject.hasJavaNature(prereqProject)) continue nextEntry; // if project doesn't have java nature or is not accessible
+        case IClasspathEntry.CPE_PROJECT:
+          if (!(target instanceof IProject))
+            continue nextEntry;
+          IProject prereqProject = (IProject) target;
+          if (!JavaProject.hasJavaNature(prereqProject))
+            continue nextEntry; // if project doesn't have java nature or is not accessible
 
-					JavaProject prereqJavaProject = (JavaProject) JavaCore.create(prereqProject);
-					IClasspathEntry[] prereqClasspathEntries = prereqJavaProject.getRawClasspath();
-					ArrayList seen = new ArrayList();
-					nextPrereqEntry: for (int j = 0, m = prereqClasspathEntries.length; j < m; j++) {
-						IClasspathEntry prereqEntry = prereqClasspathEntries[j];
-						if (prereqEntry.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
-							Object prereqTarget = JavaModel.getTarget(prereqEntry.getPath(), true);
-							if (!(prereqTarget instanceof IContainer)) continue nextPrereqEntry;
-							IPath prereqOutputPath = prereqEntry.getOutputLocation() != null 
-								? prereqEntry.getOutputLocation() 
-								: prereqJavaProject.getOutputLocation();
-							IContainer binaryFolder = prereqOutputPath.segmentCount() == 1
-								? (IContainer) prereqProject
-								: (IContainer) root.getFolder(prereqOutputPath);
-							if (binaryFolder.exists() && !seen.contains(binaryFolder)) {
-								seen.add(binaryFolder);
-								ClasspathLocation bLocation = 
-									ClasspathLocation.forBinaryFolder(
-											binaryFolder, 
-											true, 
-											entry.getAccessRuleSet());
-								bLocations.add(bLocation);
-								if (binaryLocationsPerProject != null) { // normal builder mode
-									ClasspathLocation[] existingLocations = (ClasspathLocation[]) binaryLocationsPerProject.get(prereqProject);
-									if (existingLocations == null) {
-										existingLocations = new ClasspathLocation[] {bLocation};
-									} else {
-										int size = existingLocations.length;
-										System.arraycopy(existingLocations, 0, existingLocations = new ClasspathLocation[size + 1], 0, size);
-										existingLocations[size] = bLocation;
-									}
-									binaryLocationsPerProject.put(prereqProject, existingLocations);
-								}
-							}
-						}
-					}
-					continue nextEntry;
+          JavaProject prereqJavaProject = (JavaProject) JavaCore.create(prereqProject);
+          IClasspathEntry[] prereqClasspathEntries = prereqJavaProject.getRawClasspath();
+          ArrayList<IContainer> seen = new ArrayList<>();
+          nextPrereqEntry:
+          for (IClasspathEntry prereqEntry : prereqClasspathEntries) {
+            if (prereqEntry.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
+              Object prereqTarget = JavaModel.getTarget(prereqEntry.getPath(), true);
+              if (!(prereqTarget instanceof IContainer))
+                continue nextPrereqEntry;
+              IPath prereqOutputPath = prereqEntry.getOutputLocation() != null
+                ? prereqEntry.getOutputLocation()
+                : prereqJavaProject.getOutputLocation();
+              IContainer binaryFolder = prereqOutputPath.segmentCount() == 1
+                ? prereqProject
+                : root.getFolder(prereqOutputPath);
+              if (binaryFolder.exists() && !seen.contains(binaryFolder)) {
+                seen.add(binaryFolder);
+                ClasspathLocation bLocation =
+                  ClasspathLocation.forBinaryFolder(
+                    binaryFolder,
+                    true,
+                    entry.getAccessRuleSet());
+                bLocations.add(bLocation);
+                if (binaryLocationsPerProject != null) { // normal builder mode
+                  ClasspathLocation[] existingLocations = (ClasspathLocation[]) binaryLocationsPerProject.get(prereqProject);
+                  if (existingLocations == null) {
+                    existingLocations = new ClasspathLocation[] { bLocation };
+                  }
+                  else {
+                    int size = existingLocations.length;
+                    System.arraycopy(existingLocations, 0, existingLocations = new ClasspathLocation[size + 1], 0, size);
+                    existingLocations[size] = bLocation;
+                  }
+                  binaryLocationsPerProject.put(prereqProject, existingLocations);
+                }
+              }
+            }
+          }
+          continue nextEntry;
 
-				case IClasspathEntry.CPE_LIBRARY :
-					if (target instanceof IResource) {
-						IResource resource = (IResource) target;
-						ClasspathLocation bLocation = null;
-						if (resource instanceof IFile) {
-							if (!(org.eclipse.jdt.internal.compiler.util.Util.isPotentialZipArchive(path.lastSegment())))
-								continue nextEntry;
-                            AccessRuleSet accessRuleSet = JavaCore.IGNORE.equals(javaProject.getOption(JavaCore.COMPILER_PB_FORBIDDEN_REFERENCE, true))
-																				? null
-																				: entry.getAccessRuleSet();
-							bLocation = ClasspathLocation.forLibrary((IFile) resource, accessRuleSet);
-						} else if (resource instanceof IContainer) {
-                            AccessRuleSet accessRuleSet = JavaCore.IGNORE.equals(javaProject.getOption(JavaCore.COMPILER_PB_FORBIDDEN_REFERENCE, true))
-																				? null
-																				: entry.getAccessRuleSet();
-							bLocation = ClasspathLocation.forBinaryFolder((IContainer) target, false, accessRuleSet);	 // is library folder not output folder
-						}
-						bLocations.add(bLocation);
-						if (binaryLocationsPerProject != null) { // normal builder mode
-							IProject p = resource.getProject(); // can be the project being built
-							ClasspathLocation[] existingLocations = (ClasspathLocation[]) binaryLocationsPerProject.get(p);
-							if (existingLocations == null) {
-								existingLocations = new ClasspathLocation[] {bLocation};
-							} else {
-								int size = existingLocations.length;
-								System.arraycopy(existingLocations, 0, existingLocations = new ClasspathLocation[size + 1], 0, size);
-								existingLocations[size] = bLocation;
-							}
-							binaryLocationsPerProject.put(p, existingLocations);
-						}
-					} else if (target instanceof File) {
-						if (!(org.eclipse.jdt.internal.compiler.util.Util.isPotentialZipArchive(path.lastSegment())))
-							continue nextEntry;
-                        AccessRuleSet accessRuleSet = JavaCore.IGNORE.equals(javaProject.getOption(JavaCore.COMPILER_PB_FORBIDDEN_REFERENCE, true))
-																			? null
-																			: entry.getAccessRuleSet();
-						bLocations.add(ClasspathLocation.forLibrary(path.toString(), accessRuleSet));
-					}
-					continue nextEntry;
-			}
-		}
+        case IClasspathEntry.CPE_LIBRARY:
+          if (target instanceof IResource) {
+            IResource resource = (IResource) target;
+            ClasspathLocation bLocation = null;
+            if (resource instanceof IFile) {
+              if (!(org.eclipse.jdt.internal.compiler.util.Util.isPotentialZipArchive(path.lastSegment())))
+                continue nextEntry;
+              AccessRuleSet accessRuleSet = JavaCore.IGNORE.equals(javaProject.getOption(JavaCore.COMPILER_PB_FORBIDDEN_REFERENCE, true))
+                ? null
+                : entry.getAccessRuleSet();
+              bLocation = ClasspathLocation.forLibrary((IFile) resource, accessRuleSet);
+            }
+            else if (resource instanceof IContainer) {
+              AccessRuleSet accessRuleSet = JavaCore.IGNORE.equals(javaProject.getOption(JavaCore.COMPILER_PB_FORBIDDEN_REFERENCE, true))
+                ? null
+                : entry.getAccessRuleSet();
+              bLocation = ClasspathLocation.forBinaryFolder((IContainer) target, false, accessRuleSet);   // is library folder not output folder
+            }
+            bLocations.add(bLocation);
+            if (binaryLocationsPerProject != null) { // normal builder mode
+              IProject p = resource.getProject(); // can be the project being built
+              ClasspathLocation[] existingLocations = (ClasspathLocation[]) binaryLocationsPerProject.get(p);
+              if (existingLocations == null) {
+                existingLocations = new ClasspathLocation[] { bLocation };
+              }
+              else {
+                int size = existingLocations.length;
+                System.arraycopy(existingLocations, 0, existingLocations = new ClasspathLocation[size + 1], 0, size);
+                existingLocations[size] = bLocation;
+              }
+              binaryLocationsPerProject.put(p, existingLocations);
+            }
+          }
+          else if (target instanceof File) {
+            if (!(org.eclipse.jdt.internal.compiler.util.Util.isPotentialZipArchive(path.lastSegment())))
+              continue nextEntry;
+            AccessRuleSet accessRuleSet = JavaCore.IGNORE.equals(javaProject.getOption(JavaCore.COMPILER_PB_FORBIDDEN_REFERENCE, true))
+              ? null
+              : entry.getAccessRuleSet();
+            bLocations.add(ClasspathLocation.forLibrary(path.toString(), accessRuleSet));
+          }
+          continue nextEntry;
+      }
+    }
 
 		// now split the classpath locations... place the output folders ahead of the other .class file folders & jars
-		ArrayList outputFolders = new ArrayList(1);
+		ArrayList<ClasspathMultiDirectory> outputFolders = new ArrayList<>(1);
 		this.sourceLocations = new ClasspathMultiDirectory[sLocations.size()];
 		if (!sLocations.isEmpty()) {
 			sLocations.toArray(this.sourceLocations);
@@ -232,9 +243,9 @@ public class BuildClasspathResolver {
 				outputFolders.add(md);
 
 				// also tag each source folder whose output folder is an independent folder & is not also a source folder
-				for (int j = 0, m = sourceLocations.length; j < m; j++)
-					if (outputPath.equals(sourceLocations[j].sourceFolder.getFullPath()))
-						continue next;
+        for (ClasspathMultiDirectory sourceLocation : sourceLocations)
+          if (outputPath.equals(sourceLocation.sourceFolder.getFullPath()))
+            continue next;
 				md.hasIndependentOutputFolder = true;
 			}
 		}
@@ -242,10 +253,10 @@ public class BuildClasspathResolver {
 		// combine the output folders with the binary folders & jars... place the output folders before other .class file folders & jars
 		this.binaryLocations = new ClasspathLocation[outputFolders.size() + bLocations.size()];
 		int index = 0;
-		for (int i = 0, l = outputFolders.size(); i < l; i++)
-			this.binaryLocations[index++] = (ClasspathLocation) outputFolders.get(i);
-		for (int i = 0, l = bLocations.size(); i < l; i++)
-			this.binaryLocations[index++] = (ClasspathLocation) bLocations.get(i);
+    for (ClasspathMultiDirectory outputFolder : outputFolders)
+      this.binaryLocations[index++] = outputFolder;
+    for (ClasspathLocation bLocation : bLocations)
+      this.binaryLocations[index++] = bLocation;
 	}
 
 	// AspectJ Change Begin

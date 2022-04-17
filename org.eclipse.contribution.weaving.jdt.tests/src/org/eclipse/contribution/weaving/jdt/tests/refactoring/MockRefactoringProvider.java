@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2010 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Andrew Eisenberg - initial API and implementation
  *******************************************************************************/
@@ -22,20 +22,19 @@ import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.eclipse.jdt.internal.corext.refactoring.util.RefactoringASTParser;
 import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
 
 /**
- * 
+ *
  * @author Andrew Eisenberg
  * @created Aug 13, 2010
  */
 public class MockRefactoringProvider implements IRefactoringProvider {
-    
+
     Boolean checkResults = null;
-    
+
     Boolean createASTForRefactoring = null;
-    
+
     Boolean createSourceConvertedAST = null;
 
     public boolean isInterestingElement(IJavaElement element) {
@@ -51,7 +50,7 @@ public class MockRefactoringProvider implements IRefactoringProvider {
         checkResults = Boolean.valueOf(!(unit instanceof MockCompilationUnit));
         return !(unit instanceof MockCompilationUnit);
     }
-    
+
     void reset() {
         checkResults = null;
         createASTForRefactoring = null;

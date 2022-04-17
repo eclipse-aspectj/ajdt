@@ -41,7 +41,7 @@ import java.awt.event.KeyListener;
 
 class Display  extends Canvas {
 
-    private static Vector DISPLAYS = new Vector(2);
+    private static Vector<? extends spacewar.Display> DISPLAYS = new Vector<spacewar.Display>(2);
     private static Vector PLAYERS  = new Vector(2);
     private static Pilot  pilot1, pilot2;
 
@@ -140,9 +140,9 @@ class Display  extends Canvas {
          * aspects that tie themselves in.
          */
         after () returning (Player player): call(Player+.new(..)) {
-            Enumeration elements = DISPLAYS.elements();
+            Enumeration<? extends spacewar.Display> elements = DISPLAYS.elements();
             while ( elements.hasMoreElements() ) {
-                Display display = (Display)elements.nextElement();
+                Display display = elements.nextElement();
                 display.addKeyListener(player);
             }
         }
@@ -156,9 +156,9 @@ class Display  extends Canvas {
         }
 
         after() returning : call(void Game.clockTick()) {
-            Enumeration elements = DISPLAYS.elements();
+            Enumeration<? extends spacewar.Display> elements = DISPLAYS.elements();
             while ( elements.hasMoreElements() ) {
-                Display display = (Display)elements.nextElement();
+                Display display = elements.nextElement();
                 display.repaint();
             }
         }

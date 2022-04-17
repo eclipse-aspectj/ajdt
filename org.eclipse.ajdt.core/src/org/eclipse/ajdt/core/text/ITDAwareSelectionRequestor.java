@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2009 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Andrew Eisenberg - initial API and implementation
  *******************************************************************************/
@@ -41,32 +41,32 @@ import org.eclipse.jdt.internal.codeassist.ISelectionRequestor;
 /**
  * @author Andrew Eisenberg
  * @created Apr 28, 2009
- * 
+ *
  * A selection requestor that knows about ITDs.
  */
 public class ITDAwareSelectionRequestor implements ISelectionRequestor {
-    
+
     private AJProjectModelFacade model;
     private ICompilationUnit currentUnit;
     private Set<IJavaElement> accepted;
-    
+
     private ArrayList<Replacement> replacements;
     private IJavaProject javaProject;
-    
+
     public ITDAwareSelectionRequestor(AJProjectModelFacade model, ICompilationUnit currentUnit) {
         this.model = model;
         this.currentUnit = currentUnit;
-        this.accepted = new HashSet<IJavaElement>();
+        this.accepted = new HashSet<>();
     }
 
     public void setReplacements(ArrayList<Replacement> replacements) {
         this.replacements = replacements;
     }
-    
+
     public void acceptError(CategorizedProblem error) {
         // can ignore
     }
-    
+
     public void acceptField(char[] declaringTypePackageName,
             char[] declaringTypeName, char[] name, boolean isDeclaration,
             char[] uniqueKey, int start, int end) {
@@ -83,7 +83,7 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
                     return;
                 }
             }
-            
+
             // if we are selecting inside of an ITD and the field being matched is a regular field, we find it here.
             IntertypeElement itd = maybeGetITD(start);
             if (itd != null) {
@@ -93,7 +93,7 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
                     return;
                 }
             }
-            
+
             // now check to see if we actually found a field in an ITIT
             IJavaElement parent = targetType.getParent();
             if (parent.getElementType() == IJavaElement.TYPE) {
@@ -178,7 +178,7 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
             if (targetType == null) {
                 return;
             }
-            
+
             String[] simpleParameterSigs;
             if (parameterSignatures != null) {
                 simpleParameterSigs = new String[parameterSignatures.length];
@@ -188,7 +188,7 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
             } else {
                 simpleParameterSigs = null;
             }
-        
+
             List<IJavaElement> itds = ensureModel(targetType).getRelationshipsForElement(targetType, AJRelationshipManager.ASPECT_DECLARATIONS);
             for (IJavaElement elt : itds) {
                 if (matchedMethod(elt, selector, simpleParameterSigs)) {
@@ -196,7 +196,7 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
                     return;
                 }
             }
-            
+
             IntertypeElement itd = maybeGetITD(start);
             String selectorStr = String.valueOf(selector);
             if (itd != null && !isDeclaration) {
@@ -207,9 +207,9 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
                     return;
                 }
             }
-            
+
             // still need to determine if the ITD declaration itself is being selected
-            
+
             // now check to see if we actually found a method in an ITIT
             IJavaElement parent = targetType.getParent();
             if (parent.getElementType() == IJavaElement.TYPE) {
@@ -256,15 +256,15 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
             IntertypeElement itd = maybeGetITD(origStart);
             if (itd != null) {
                 // find out if we are selecting the target type name part of an itd
-                // itd.getNameRange() returns the range of the name, but excludes the target type.  Must subtract from there.  
+                // itd.getNameRange() returns the range of the name, but excludes the target type.  Must subtract from there.
                 // Make assumption that there are no spaces
                 // or comments between '.' and the rest of the name
                 ISourceRange nameRange = itd.getNameRange();
-                
+
                 String itdName = itd.getElementName();
                 int typeNameLength = Math.max(itdName.lastIndexOf('.'), 0);
                 String typeName = itdName.substring(0, typeNameLength);
-                
+
                 int typeNameStart;
                 if (itd.getAJKind() == Kind.INTER_TYPE_CONSTRUCTOR) {
                     typeNameStart = nameRange.getOffset();
@@ -279,7 +279,7 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
                     }
                 }
             } else {
-            
+
                 // now check to see if we actually found an ITIT
                 IType targetType = findType(packageName, annotationName);
                 if (targetType != null) {
@@ -297,7 +297,7 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
         } catch (JavaModelException e) {
         }
     }
-    
+
     private boolean contained(int selStart, int selEnd, int typeNameStart,
             int typeNameEnd) {
         return selStart >= typeNameStart && selEnd <= typeNameEnd;
@@ -318,7 +318,7 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
 
     private boolean matchedField(IJavaElement elt, char[] name) throws JavaModelException {
         if (elt instanceof IntertypeElement) {
-            IntertypeElementInfo info = (IntertypeElementInfo) 
+            IntertypeElementInfo info = (IntertypeElementInfo)
             ((IntertypeElement) elt).getElementInfo();
             if (info.getAJKind() == Kind.INTER_TYPE_FIELD) {
                 if (extractName(elt.getElementName()).equals(new String(name))) {
@@ -328,30 +328,30 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
         }
         return false;
     }
-    
-    
-    // This method checks to see if the selected method matches the 
+
+
+    // This method checks to see if the selected method matches the
     // method we are searching for.  However, we take some shortcuts here.
     // Rather than looking at qualified, resolved type signatures of both methods
-    // we look at the simple type names of all paramters.  The reason for this 
+    // we look at the simple type names of all paramters.  The reason for this
     // is that the parameters on the elt argument may be unresolved (ie- simple names)
     // whereas the paramter signatures passed in may be resolved (ie- fully qualified).
     // Thus, there could be a match that wouldn't be found.
     // The solution is to compare simple names only.  The danger is that there might be false
-    // positives with the match, but they would be rare and not particularly worrisome if 
+    // positives with the match, but they would be rare and not particularly worrisome if
     // they exist.
-    private boolean matchedMethod(IJavaElement elt, char[] selector, 
+    private boolean matchedMethod(IJavaElement elt, char[] selector,
             String[] simpleParameterSigs) throws JavaModelException {
         if (elt instanceof IntertypeElement) {
             IntertypeElement itd = (IntertypeElement) elt;
-            IntertypeElementInfo info = (IntertypeElementInfo) 
+            IntertypeElementInfo info = (IntertypeElementInfo)
             ((IntertypeElement) elt).getElementInfo();
             if (info.getAJKind() == Kind.INTER_TYPE_METHOD ||
                     info.getAJKind() == Kind.INTER_TYPE_CONSTRUCTOR) {
                 if (extractName(elt.getElementName()).equals(String.valueOf(selector))) {
                     String[] itdParameterSigs = itd.getParameterTypes();
                     if (itdParameterSigs == null || simpleParameterSigs == null) {
-                        return (itdParameterSigs == null || itdParameterSigs.length == 0) && 
+                        return (itdParameterSigs == null || itdParameterSigs.length == 0) &&
                                (simpleParameterSigs == null || simpleParameterSigs.length == 0);
                     }
                     if (itdParameterSigs.length == simpleParameterSigs.length) {
@@ -367,7 +367,7 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
      * Since we can't resolved unresolved type signatures coming from source
      * files, we only compare the simple names of the types.  99% of the time,
      * this is sufficient.
-     *  
+     *
      * @param simpleParameterSigs
      * @param itdParameterSigs
      */
@@ -383,7 +383,7 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
         }
         return true;
     }
-    
+
     private String toSimpleName(String signature) {
         String simple = Signature.getSignatureSimpleName(signature);
         int typeParamIndex = simple.indexOf('<');
@@ -396,12 +396,12 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
         }
         return simple;
     }
-    
+
 
 
     private String toQualifiedName(char[] declaringTypePackageName,
             char[] declaringTypeName) {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append(declaringTypePackageName);
         if (sb.length() > 0) {
             sb.append(".");
@@ -411,7 +411,7 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
     }
 
     private String extractName(String name) {
-        
+
         String[] split = name.split("\\.");
         if (split.length <= 1) {
             return name;
@@ -434,7 +434,7 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
 
 	public void acceptModule(char[] arg0, char[] arg1, int arg2, int arg3) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
     /**
@@ -449,18 +449,18 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
 //        String qual = Signature.getSignatureQualifier(signature);
 //        String[] typeParams = Signature.getTypeArguments(signature);
 //        int arrayCount = Signature.getArrayCount(signature);
-//        
+//
 //        String fullyQual = qual != null && qual.length() > 0 ? qual + '.' + simple : simple;
 //        try {
 //            String[][] resolvedArr = type.resolveType(fullyQual);
 //            if (resolvedArr != null && resolvedArr.length > 0) {
-//                String resolved = (resolvedArr[0][0].length() > 0) ? 
-//                        resolvedArr[0][0] + "." + resolvedArr[0][1] : resolvedArr[0][1]; 
+//                String resolved = (resolvedArr[0][0].length() > 0) ?
+//                        resolvedArr[0][0] + "." + resolvedArr[0][1] : resolvedArr[0][1];
 //                String newSig = Signature.createTypeSignature(resolved, true);
 //                if (arrayCount > 0) {
 //                    newSig = Signature.createArraySignature(newSig, arrayCount);
 //                }
-//                
+//
 //                // uggh...don't know if this will work
 //                if (typeParams != null && typeParams.length > 0) {
 //                    newSig = newSig.substring(0, newSig.length()-1) + "<";
@@ -474,7 +474,7 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
 //            }
 //        } catch (JavaModelException e) {
 //        }
-//        
+//
 //        // couldn't resolve
 //        return signature;
 //    }

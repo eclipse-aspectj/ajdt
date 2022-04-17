@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2005 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman  - initial version
@@ -39,7 +39,6 @@ import org.eclipse.ajdt.core.tests.codeconversion.AspectsConvertingParserTest;
 import org.eclipse.ajdt.core.tests.codeconversion.Bug279974Tests;
 import org.eclipse.ajdt.core.tests.codeconversion.CodeCheckerTest;
 import org.eclipse.ajdt.core.tests.codeselect.AbstractITDAwareCodeSelectionTests;
-import org.eclipse.ajdt.core.tests.dom.rewrite.ASTRewritingPointcutDeclTest;
 import org.eclipse.ajdt.core.tests.javaelements.AJCompilationUnitManagerTest;
 import org.eclipse.ajdt.core.tests.javaelements.AJCompilationUnitTest;
 import org.eclipse.ajdt.core.tests.javaelements.AspectElementTests;
@@ -107,11 +106,11 @@ public class AllCoreTests {
 	public static Test suite() throws Exception {
 	    // attempt to avoid deadlock by early loading of JavaCore.
 	    JavaCore.initializeAfterLoad(null);
-	    
+
 	    AspectJPlugin.getDefault().setHeadless(true);
-	    
+
 	    // ensure that the UI plugin is not going to start
-        Bundle ajdtui = 
+        Bundle ajdtui =
             Platform.getBundle("org.eclipse.ajdt.ui");
         if (ajdtui != null) {
             ajdtui.stop(Bundle.STOP_TRANSIENT);
@@ -121,13 +120,13 @@ public class AllCoreTests {
 
 		suite.addTest(new TestSuite(AJCoreTest.class));
 		suite.addTest(new TestSuite(AJCoreTestJava5.class));
-		
-		
+
+
 		suite.addTest(new TestSuite(AJPropertiesTest.class));
 		suite.addTest(new TestSuite(BuildConfigTest.class));
 		suite.addTest(new TestSuite(CoreUtilsTest.class));
 		suite.addTest(new TestSuite(ProjectDeletionTest.class));
-		
+
 		// code conversion tests
 		suite.addTest(new TestSuite(AspectsConvertingParserTest.class));
 		suite.addTest(new TestSuite(AspectsConvertingParserTest2.class));
@@ -165,7 +164,7 @@ public class AllCoreTests {
         suite.addTest(new TestSuite(CoreCompilerConfigurationTests2.class));
         suite.addTest(new TestSuite(CoreCompilerFactoryTests.class));
         suite.addTest(new TestSuite(Bug270325Tests.class));
-		
+
 // TODO: two tests are failing here !!!
         suite.addTest(new TestSuite(Bug273770Tests.class));
 
@@ -205,7 +204,7 @@ public class AllCoreTests {
 
 // TODO mysteriously failing on build server
         suite.addTest(new TestSuite(ProblemFinderTests15.class));
-		
+
         suite.addTest(new TestSuite(ProblemFinderTests16.class));
         suite.addTest(new TestSuite(Bug273691Reconciling.class));
         suite.addTest(new TestSuite(GenericProblemFinderTests.class));
@@ -219,14 +218,14 @@ public class AllCoreTests {
 		// AST tests
 // TODO work out what is wrong with these, removing for 4.5/4.6 builds for now
 //		suite.addTest(new TestSuite(ASTRewritingPointcutDeclTest.class));
-		
+
 		// refactoring tests
 		suite.addTest(new TestSuite(AspectRenameRefactoringTests.class));
 		suite.addTest(new TestSuite(ITDRenameParticipantRefactoringTest.class));
 		suite.addTest(new TestSuite(FindITDGettersAndSettersTest.class));
 		suite.addTest(new TestSuite(MoveCURefactoringTests.class));
 		suite.addTest(new TestSuite(RenamePackageRefactoringTests.class));
-		
+
 		// search tests
 		suite.addTest(new TestSuite(ITDAwareSearchTests.class));
 		suite.addTest(new TestSuite(ITDAwarePolymorphicSearchTests.class));

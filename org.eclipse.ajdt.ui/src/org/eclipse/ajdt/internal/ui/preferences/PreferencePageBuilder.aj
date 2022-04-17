@@ -3,8 +3,8 @@
  * program and the accompanying materials are made available under the terms of
  * the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
- * 
- * Contributors: IBM Corporation - initial API and implementation 
+ *
+ * Contributors: IBM Corporation - initial API and implementation
  *               Helen Hawkins   - iniital version
  ******************************************************************************/
 package org.eclipse.ajdt.internal.ui.preferences;
@@ -36,7 +36,7 @@ import org.eclipse.ui.IWorkbenchPropertyPage;
 /**
  * This aspect handles the building of projects whenever OK is pressed on any of
  * the AspectJ project preference pages.
- * 
+ *
  * @author hawkinsh
  */
 aspect PreferencePageBuilder {
@@ -72,12 +72,12 @@ aspect PreferencePageBuilder {
 
     declare parents: PathBlock implements AJDTPathBlockPage;
 
-    pointcut interestingPage(): 
+    pointcut interestingPage():
         within(AspectJProjectPropertiesPage) ||
         within(AJCompilerPreferencePage);
 
     // interested in when the AJDT property page is created
-    pointcut creationOfAnInterestingPage(IWorkbenchPropertyPage page) : 
+    pointcut creationOfAnInterestingPage(IWorkbenchPropertyPage page) :
         (execution(protected Control createContents(Composite)))
         && interestingPage() && this(page);
 
@@ -116,16 +116,16 @@ aspect PreferencePageBuilder {
     pointcut setSelection(Button button, boolean val,
             IWorkbenchPropertyPage page):
         call(* setSelection(boolean)) && args(val) && target(button) && this(page);
-    
+
     // remember the first value put into the buttons
     before(Button b, boolean val, IWorkbenchPropertyPage page):
-            setSelection(b,val,page) && interestingPage() { 
-        
+            setSelection(b,val,page) && interestingPage() {
+
         // check to see if this button is ignored
         if (AJCompilerPreferencePage.NO_BUILD_ON_CHANGE.equals(b.getData(AJCompilerPreferencePage.NO_BUILD_ON_CHANGE))) {
             return;
         }
-        
+
         if (!buttonOriginalValues.containsKey(page)) {
             Map buttonValues = new HashMap();
             buttonValues.put(b, new Boolean(val));
@@ -178,7 +178,7 @@ aspect PreferencePageBuilder {
 
     //    pointcut setButtonSelection(SelectionButtonDialogField button, boolean value, IWorkbenchPropertyPage page) :
     //        call(* setSelection(boolean)) && args(value) && target(button) && this(page);
-    //    
+    //
     //    // remember the first value put into the SelectionButtonDialogFields
     //    before(SelectionButtonDialogField button, boolean value, IWorkbenchPropertyPage page) :
     //        setButtonSelection(button,value,page) && interestingPage() {
@@ -189,9 +189,9 @@ aspect PreferencePageBuilder {
     //        } else {
     //            Map buttonValues = (Map)selectionButtonOriginalValues.get(page);
     //            if (!buttonValues.containsKey(button)) {
-    //                buttonValues.put(button, new Boolean(value)); 
+    //                buttonValues.put(button, new Boolean(value));
     //            }
-    //        }    
+    //        }
     //    }
 
     pointcut setElements(TreeListDialogField dialogField, List elements,
@@ -207,7 +207,7 @@ aspect PreferencePageBuilder {
         // We need to associate the TreeListDialogField with the related IWorkbenchPropertyPage object
         // rather than the related AJDTPathBlockPage (so we can check if the contents
         // of the TreeListDialogField more easily in settingsHaveChanged(IWorkbenchPropertyPage)).
-        // We therefore iterate through the active pages.       
+        // We therefore iterate through the active pages.
         for (Iterator iter = activePages.iterator(); iter.hasNext();) {
             IWorkbenchPropertyPage ajdtPage = (IWorkbenchPropertyPage) iter
                     .next();
@@ -380,7 +380,7 @@ aspect PreferencePageBuilder {
         }
     }
 
-    pointcut pageCompleting(IWorkbenchPropertyPage page) : 
+    pointcut pageCompleting(IWorkbenchPropertyPage page) :
         (execution(boolean performOk()) || execution(void performApply())) && interestingPage() && this(page);
 
     // performOk not running because of performApply
@@ -423,7 +423,7 @@ aspect PreferencePageBuilder {
             IWorkbenchPropertyPage page) :
         call(* open()) && target(dialog) && this(page);
 
-    after(MessageDialog dialog, IWorkbenchPropertyPage page) returning : 
+    after(MessageDialog dialog, IWorkbenchPropertyPage page) returning :
         openingMessageDialog(dialog,page) && within(AJCompilerPreferencePage) {
         if (!((AJCompilerPreferencePage) page).isTesting()) {
             if (dialog.getReturnCode() == 0) {

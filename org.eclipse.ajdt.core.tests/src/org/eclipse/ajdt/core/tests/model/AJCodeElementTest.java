@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2005 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Helen Hawkins   - iniital version
@@ -34,11 +34,11 @@ import org.eclipse.jdt.internal.core.JavaElement;
  *
  */
 public class AJCodeElementTest extends AJDTCoreTestCase {
-	
+
 	IProject project;
 	AJCodeElement[] ajCodeElements;
 	AJProjectModelFacade model;
-	
+
 	/*
 	 * @see TestCase#setUp()
 	 */
@@ -47,16 +47,16 @@ public class AJCodeElementTest extends AJDTCoreTestCase {
 		project = createPredefinedProject("AJProject83082"); //$NON-NLS-1$
 
 		model = AJProjectModelFactory.getInstance().getModelForProject(project);
-		
+
 		IFolder src = project.getFolder("src"); //$NON-NLS-1$
 		IFolder wpstest = src.getFolder("wpstest"); //$NON-NLS-1$
 		IFolder aspectjPackage = wpstest.getFolder("aspectj"); //$NON-NLS-1$
 		IFile main = aspectjPackage.getFile("Main.java"); //$NON-NLS-1$
 
 		AsmManager asm = AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project.getProject()).getModel();
-		Map annotationsMap = asm.getInlineAnnotations(main.getRawLocation().toOSString(),true, true);
+		Map<? extends Integer, ? extends List<IProgramElement>> annotationsMap = asm.getInlineAnnotations(main.getRawLocation().toOSString(),true, true);
 		ajCodeElements = createAJCodeElements(annotationsMap);
-		
+
 	}
 
 	public void testHashCode() {
@@ -64,7 +64,7 @@ public class AJCodeElementTest extends AJDTCoreTestCase {
 		int hash1 = ajCodeElements[0].hashCode();
 		int hash2 = ajCodeElements[0].hashCode();
 		assertTrue("through the normal running of a program, the hashcodes must always return the same int", //$NON-NLS-1$
-		        hash1 == hash2); 
+		        hash1 == hash2);
 
 		// if A and B are objects such that A.equals(B) then A.hashCode() == B.hashCode()
 		IJavaElement parent = ajCodeElements[0].getParent();
@@ -73,12 +73,12 @@ public class AJCodeElementTest extends AJDTCoreTestCase {
 		assertTrue("these should be equal according to equals method", ajCodeElements[0].equals(newAJCE)); //$NON-NLS-1$
 		assertTrue("if A and B are objects such that A.equals(B) then A.hashCode() == B.hashCode()", //$NON-NLS-1$
 				newAJCE.hashCode() == ajCodeElements[0].hashCode());
-		
+
 		// if A and B are objects such that !(A.equals(B)) then less confusing if A.hashCode() != B.hashCode()
 		assertFalse("these should not be equal according to the equals method",ajCodeElements[0].equals(ajCodeElements[1])); //$NON-NLS-1$
 		assertTrue("if A and B are objects such that !(A.equals(B)) then less confusing if A.hashCode() != B.hashCode()", //$NON-NLS-1$
 				ajCodeElements[0].hashCode() != ajCodeElements[1].hashCode());
-		
+
 	}
 
 	/*
@@ -90,15 +90,15 @@ public class AJCodeElementTest extends AJDTCoreTestCase {
 		AJCodeElement a1 = new AJCodeElement((JavaElement) parent, name);
 		AJCodeElement a2 = new AJCodeElement((JavaElement) parent, name);
 		AJCodeElement a3 = ajCodeElements[0];
-		
+
 		// equals must be reflexive: x.equals(x) == true (always)
 		assertTrue("x.equals(x) == true (always)", a1.equals(a1)); //$NON-NLS-1$
-		
+
 		// equals must be symmetric: x.equals(y) == true <==> y.equals(x) == true
 		// (way to test this is if x.equals(y) == false ==> y.equals(x) == false)
 		assertTrue("equals must be symmetric",!(a3.equals(ajCodeElements[1]) && ajCodeElements[1].equals(a3))); //$NON-NLS-1$
-				
-		// equals must be transitive: for all x,y,z, if x.equals(y) == true and y.equals(z) == true 
+
+		// equals must be transitive: for all x,y,z, if x.equals(y) == true and y.equals(z) == true
 		// ==> x.equals(z) == true
 		assertTrue("equals must be transitive",a1.equals(a2) && a2.equals(a3) && a1.equals(a3) ); //$NON-NLS-1$
 
@@ -110,7 +110,7 @@ public class AJCodeElementTest extends AJDTCoreTestCase {
 		boolean b1 = a1.equals(ajCodeElements[1]);
 		boolean b2 = a1.equals(ajCodeElements[1]);
 		assertFalse("equals must be consistent", b1 && b2); //$NON-NLS-1$
-		
+
 		// for any non-null reference value x, x.equals(null) must return false
 		assertNotNull("shouldn't be null",a1); //$NON-NLS-1$
 		assertFalse("for any non-null reference value x, x.equals(null) must return false",a1.equals(null)); //$NON-NLS-1$
@@ -120,36 +120,36 @@ public class AJCodeElementTest extends AJDTCoreTestCase {
 	 * @param model
 	 * @return
 	 */
-	private AJCodeElement[] createAJCodeElements(Map annotationsMap) {
+	private AJCodeElement[] createAJCodeElements(Map<? extends Object, ? extends List<? extends IProgramElement>> annotationsMap) {
 		AJCodeElement[] arrayOfajce = new AJCodeElement[2];
-		Set keys = annotationsMap.keySet();
-		for (Iterator it = keys.iterator(); it.hasNext();) {
+		Set<? extends Object> keys = annotationsMap.keySet();
+		for (Iterator<? extends Object> it = keys.iterator(); it.hasNext();) {
 			Object key = it.next();
-			List annotations = (List) annotationsMap.get(key);
-			for (Iterator it2 = annotations.iterator(); it2.hasNext();) {
-				IProgramElement node = (IProgramElement) it2.next();
+			List<? extends IProgramElement> annotations = annotationsMap.get(key);
+			for (Iterator<? extends IProgramElement> it2 = annotations.iterator(); it2.hasNext();) {
+				IProgramElement node = it2.next();
 				if (node.getHandleIdentifier()
 						.equals("=AJProject83082/src<wpstest.aspectj{Main.java[Main~main~\\[QString;?method-call(void java.io.PrintStream.println(java.lang.String))")  //$NON-NLS-1$
 					) {
-					
+
 					IJavaElement ije = model.programElementToJavaElement(node);
 					if (ije instanceof AJCodeElement) {
 						arrayOfajce[0] = (AJCodeElement) ije;
-					}					
+					}
 				} else if (node.getHandleIdentifier()
 						.equals("=AJProject83082/src<wpstest.aspectj{Main.java[Main~main~\\[QString;?method-call(void java.io.PrintStream.println(java.lang.String))!2")  //$NON-NLS-1$
 					) {
-					
+
 					IJavaElement ije = model.programElementToJavaElement(node);
 					if (ije instanceof AJCodeElement) {
 						arrayOfajce[1] = (AJCodeElement) ije;
-					}					
+					}
 				}
 			}
-		}				
+		}
 		return arrayOfajce;
 	}
 
 
-	
+
 }

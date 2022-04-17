@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2005 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman  - initial version
@@ -13,7 +13,6 @@
 package org.eclipse.ajdt.core.tests.model;
 
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -45,7 +44,7 @@ public class AJModelTest2 extends AJDTCoreTestCase {
 	 * Tests for a injar/binary relationship for an element advised by advice in
 	 * another project (by adding that project's bin directory to the
 	 * aspectpath)
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	public void testAspectPathDirWeaving() throws Exception {
@@ -53,7 +52,7 @@ public class AJModelTest2 extends AJDTCoreTestCase {
 		IProject weaveMeProject = createPredefinedProject("WeaveMe"); //$NON-NLS-1$
 		this.waitForIndexes();
 		AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForProject(weaveMeProject);
-        
+
 		AJRelationshipType[] rels = new AJRelationshipType[] { AJRelationshipManager.ADVISED_BY };
 		List<IRelationship> allRels = model.getRelationshipsForProject(rels);
 		boolean gotBinaryAdvice = false;
@@ -76,7 +75,7 @@ public class AJModelTest2 extends AJDTCoreTestCase {
 	/**
 	 * Tests for the existence of a particular "advised by" relationship with a
 	 * runtime test, and one without.
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	public void testHasRuntimeTest() throws Exception {
@@ -109,11 +108,11 @@ public class AJModelTest2 extends AJDTCoreTestCase {
 				"Didn't find \"bar\" element advised by around advice with a runtime test", //$NON-NLS-1$
 				gotAroundAdviceWithRuntimeTest);
 	}
-	
-	   
+
+
     /**
      * Tests that the backwards compatibility of Using AJModel works properly
-     * 
+     *
      * This uses the old style of AJModel.
      * The AJModel api will go away in the future
      * @throws Exception
@@ -123,8 +122,8 @@ public class AJModelTest2 extends AJDTCoreTestCase {
         IProject project = createPredefinedProject("ITDTesting"); //$NON-NLS-1$
         IJavaProject jProject = JavaCore.create(project);
         project.build(IncrementalProjectBuilder.CLEAN_BUILD, null);
-        
-        
+
+
         IType demo = jProject.findType("test.Demo");
         IType myAspect = jProject.findType("test.MyAspect");
         IType otherClass = jProject.findType("test.OtherClass");
@@ -133,11 +132,11 @@ public class AJModelTest2 extends AJDTCoreTestCase {
         Set<IMethod> demoSet = getDeclaredMethods(demo);
         Set<IMethod> myAspectSet = getDeclaredMethods(myAspect);
         Set<IMethod> otherClassSet = getDeclaredMethods(otherClass);
-        
+
         assertEquals("Project hasn't been built, so no relationships should have been found.", 0, demoSet.size());
         assertEquals("Project hasn't been built, so no relationships should have been found.", 0, myAspectSet.size());
         assertEquals("Project hasn't been built, so no relationships should have been found.", 0, otherClassSet.size());
-        
+
         Utils.setAutobuilding(true);
         waitForAutoBuild();
 
@@ -145,7 +144,7 @@ public class AJModelTest2 extends AJDTCoreTestCase {
         demoSet = getDeclaredMethods(demo);
         myAspectSet = getDeclaredMethods(myAspect);
         otherClassSet = getDeclaredMethods(otherClass);
-        
+
         assertEquals("ITDs have not been found.", 5, demoSet.size());
         assertEquals("Shouldn't have any ITDs", 0, myAspectSet.size());
         assertEquals("Shouldn't have any ITDs.", 0, otherClassSet.size());
@@ -153,7 +152,7 @@ public class AJModelTest2 extends AJDTCoreTestCase {
 
     @SuppressWarnings("deprecation")
     public static Set<IMethod> getDeclaredMethods(IType type) throws JavaModelException {
-        Set<IMethod> methods = new HashSet<IMethod>();
+        Set<IMethod> methods = new HashSet<>();
         AJRelationshipType[] types = new AJRelationshipType[] { AJRelationshipManager.DECLARED_ON };
         List<AJRelationship> rels = AJModel.getInstance().getAllRelationships(
                 type.getResource().getProject(), types);

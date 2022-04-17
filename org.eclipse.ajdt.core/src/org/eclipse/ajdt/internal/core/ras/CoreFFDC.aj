@@ -1,14 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     	IBM Corporation - initial API and implementation
  * 		Matthew Webster - initial version
- *      Helen Hawkins   - updated for new ajde interface (bug 148190) 
+ *      Helen Hawkins   - updated for new ajde interface (bug 148190)
  *******************************************************************************/
 package org.eclipse.ajdt.internal.core.ras;
 
@@ -30,7 +30,7 @@ public aspect CoreFFDC extends PluginFFDC {
 		&& !within(NoFFDC+)
 		// see pr225785
 		&& !withincode(* org.eclipse.ajdt.core.parserbridge.AJSourceElementParser.parseTypeMemberDeclarations(ISourceType,ICompilationUnit,int,int,boolean));
-		
+
     protected String getPluginId () {
     	return AspectJPlugin.PLUGIN_ID;
     }
@@ -38,9 +38,9 @@ public aspect CoreFFDC extends PluginFFDC {
     protected void log (IStatus status) {
     	AspectJPlugin.getDefault().getLog().log(status);
     }
-	
+
     /* XXX Move to FFDC/PluginFFDC when 78615 fixed */
-    declare warning : call(void Throwable.printStackTrace(..)) 
+    declare warning : call(void Throwable.printStackTrace(..))
     	&& !within(CoreBuildMessageHandler):
     	"Don't dump stack trace"; //$NON-NLS-1$
 }

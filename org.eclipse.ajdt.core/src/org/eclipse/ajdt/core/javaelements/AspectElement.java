@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Luzius Meisser - initial implementation
  *******************************************************************************/
@@ -44,7 +44,7 @@ public class AspectElement extends SourceType implements IAspectJElement {
      * \ Overview of Ascii table, characters used in handle element encoding:
      * (try to maintain this table whenever making changes to the JEM_XXX
      * constants!)
-     * 
+     *
      * 33 21 U+0021 ! JEM_COUNT 34 22 U+0022 " JEM_POINTCUT 35 23 U+0023 #
      * JEM_IMPORTDECLARATION 36 24 U+0024 $ occurs inside special identifiers 37
      * 25 U+0025 % JEM_PACKAGEDECLARATION 38 26 U+0026 & JEM_ADVICE 39 27 U+0027
@@ -53,18 +53,18 @@ public class AspectElement extends SourceType implements IAspectJElement {
      * signatures cannot use 44 2C U+002C , JEM_ITD_FIELD 45 2D U+002D - Used in
      * type signatures cannot use 46 2E U+002E . occurs in fully qualified names
      * 47 2F U+002F / JEM_PACKAGEFRAGMENTROOT
-     * 
+     *
      * 58 3A U+003A : ? unused ? used in type signatures (not sure if this is
      * important or not) 59 3B U+003B ; Terminator for parameter (I think), in
      * any case I've seen it in handles 60 3C U+003C < JEM_PACKAGEFRAGMENT Used
      * in type signatures, but apparently not a big deal 61 3D U+003D =
      * JEM_JAVAPROJECT 62 3E U+003E > Used in type signatures 63 3F U+003F ?
      * JEM_CODEELEMENT 64 40 U+0040 @ JEM_LOCALVARIABLE
-     * 
+     *
      * 91 5B U+005B [ JEM_TYPE 92 5C U+005C \ JEM_ESCAPE 93 5D U+005D ]
      * JEM_TYPE_PARAMETER 94 5E U+005E ^ JEM_FIELD 95 5F U+005F _ occurs in
      * identifiers 96 60 U+0060 ` JEM_DECLARE
-     * 
+     *
      * 123 7B U+007B { JEM_COMPILATIONUNIT 124 7C U+007C | JEM_INITIALIZER 125
      * 7D U+007D } JEM_ANNOTATION 126 7E U+007E ~ JEM_METHOD \
      *******************************************************************************/
@@ -133,7 +133,7 @@ public class AspectElement extends SourceType implements IAspectJElement {
      * Returns the pointcuts declared by this type. If this is a source type,
      * the results are listed in the order in which they appear in the source,
      * otherwise, the results are in no particular order.
-     * 
+     *
      * @exception JavaModelException
      *                if this element does not exist or if an exception occurs
      *                while accessing its corresponding resource.
@@ -142,12 +142,12 @@ public class AspectElement extends SourceType implements IAspectJElement {
     public PointcutElement[] getPointcuts() throws JavaModelException {
         // pointcuts appear as methods
         IMethod[] methods = getMethods();
-        List list = new ArrayList();
-        for (int i = 0; i < methods.length; i++) {
-            if (methods[i] instanceof PointcutElement) {
-                list.add(methods[i]);
-            }
+        List<IMethod> list = new ArrayList<>();
+      for (IMethod method : methods) {
+        if (method instanceof PointcutElement) {
+          list.add(method);
         }
+      }
         PointcutElement[] array = new PointcutElement[list.size()];
         list.toArray(array);
         return array;
@@ -157,7 +157,7 @@ public class AspectElement extends SourceType implements IAspectJElement {
      * Returns the advice elements declared by this type. If this is a source
      * type, the results are listed in the order in which they appear in the
      * source, otherwise, the results are in no particular order.
-     * 
+     *
      * @exception JavaModelException
      *                if this element does not exist or if an exception occurs
      *                while accessing its corresponding resource.
@@ -166,12 +166,12 @@ public class AspectElement extends SourceType implements IAspectJElement {
     public AdviceElement[] getAdvice() throws JavaModelException {
         // advice statements appear as methods
         IMethod[] methods = getMethods();
-        List list = new ArrayList();
-        for (int i = 0; i < methods.length; i++) {
-            if (methods[i] instanceof AdviceElement) {
-                list.add(methods[i]);
-            }
+        List<IMethod> list = new ArrayList<>();
+      for (IMethod method : methods) {
+        if (method instanceof AdviceElement) {
+          list.add(method);
         }
+      }
         AdviceElement[] array = new AdviceElement[list.size()];
         list.toArray(array);
         return array;
@@ -181,7 +181,7 @@ public class AspectElement extends SourceType implements IAspectJElement {
      * Returns the declare elements declared by this type. If this is a source
      * type, the results are listed in the order in which they appear in the
      * source, otherwise, the results are in no particular order.
-     * 
+     *
      * @exception JavaModelException
      *                if this element does not exist or if an exception occurs
      *                while accessing its corresponding resource.
@@ -190,12 +190,12 @@ public class AspectElement extends SourceType implements IAspectJElement {
     public DeclareElement[] getDeclares() throws JavaModelException {
         // declare statements appear as methods
         IMethod[] methods = getMethods();
-        List list = new ArrayList();
-        for (int i = 0; i < methods.length; i++) {
-            if (methods[i] instanceof DeclareElement) {
-                list.add(methods[i]);
-            }
+        List<IMethod> list = new ArrayList<>();
+      for (IMethod method : methods) {
+        if (method instanceof DeclareElement) {
+          list.add(method);
         }
+      }
         DeclareElement[] array = new DeclareElement[list.size()];
         list.toArray(array);
         return array;
@@ -205,7 +205,7 @@ public class AspectElement extends SourceType implements IAspectJElement {
      * Returns the declare elements declared by this type. If this is a source
      * type, the results are listed in the order in which they appear in the
      * source, otherwise, the results are in no particular order.
-     * 
+     *
      * @exception JavaModelException
      *                if this element does not exist or if an exception occurs
      *                while accessing its corresponding resource.
@@ -214,12 +214,12 @@ public class AspectElement extends SourceType implements IAspectJElement {
     public IntertypeElement[] getITDs() throws JavaModelException {
         // ITDs statements appear as methods
         IMethod[] methods = getMethods();
-        List list = new ArrayList();
-        for (int i = 0; i < methods.length; i++) {
-            if (methods[i] instanceof IntertypeElement) {
-                list.add(methods[i]);
-            }
+        List<IMethod> list = new ArrayList<>();
+      for (IMethod method : methods) {
+        if (method instanceof IntertypeElement) {
+          list.add(method);
         }
+      }
         IntertypeElement[] array = new IntertypeElement[list.size()];
         list.toArray(array);
         return array;
@@ -229,7 +229,7 @@ public class AspectElement extends SourceType implements IAspectJElement {
      * Returns all aspect member elements declared in this type. If this is a
      * source type, the results are listed in the order in which they appear in
      * the source, otherwise, the results are in no particular order.
-     * 
+     *
      * @return the Aspect member elements declared by this type
      * @throws JavaModelException
      *             if this element does not exist or if an exception occurs
@@ -238,12 +238,12 @@ public class AspectElement extends SourceType implements IAspectJElement {
     public IAspectJElement[] getAllAspectMemberElements()
             throws JavaModelException {
         IJavaElement[] allChildren = getChildren();
-        List list = new ArrayList();
-        for (int i = 0; i < allChildren.length; i++) {
-            if (allChildren[i] instanceof IAspectJElement) {
-                list.add(allChildren[i]);
-            }
+        List<IJavaElement> list = new ArrayList<>();
+      for (IJavaElement allChild : allChildren) {
+        if (allChild instanceof IAspectJElement) {
+          list.add(allChild);
         }
+      }
         IAspectJElement[] array = new IAspectJElement[list.size()];
         list.toArray(array);
         return array;
@@ -270,7 +270,7 @@ public class AspectElement extends SourceType implements IAspectJElement {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.eclipse.ajdt.javamodel.javaelements.IAspectJElement#getAJModifiers()
      */
@@ -281,10 +281,10 @@ public class AspectElement extends SourceType implements IAspectJElement {
 
     public boolean isPrivileged() throws JavaModelException {
         Object info = getElementInfo();
-        return info instanceof AspectElementInfo ? ((AspectElementInfo) info)
-                .isPrivileged() : false;
+        return info instanceof AspectElementInfo && ((AspectElementInfo) info)
+          .isPrivileged();
     }
-    
+
     @Override
     public IMethod getMethod(String selector, String[] parameterTypeSignatures) {
         int dollarIdx = selector.indexOf('$');
@@ -295,11 +295,11 @@ public class AspectElement extends SourceType implements IAspectJElement {
         }
         return super.getMethod(selector, parameterTypeSignatures);
     }
-    
+
     public IntertypeElement getITDMethod(String selector, String[] parameterTypeSignatures) {
         return IntertypeElement.create(JEM_ITD_METHOD, this, selector, parameterTypeSignatures);
     }
-    
+
     @Override
     public IField getField(String fieldName) {
         int dollarIdx = fieldName.indexOf('$');
@@ -317,7 +317,7 @@ public class AspectElement extends SourceType implements IAspectJElement {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.eclipse.ajdt.javamodel.javaelements.IAspectJElement#getAJExtraInformation
      * ()
@@ -337,7 +337,7 @@ public class AspectElement extends SourceType implements IAspectJElement {
     /*
      * Derived from JEM_METHOD clause in SourceType Added support for advice,
      * ITDs, and declare statements
-     * 
+     *
      * @see JavaElement
      */
     public IJavaElement getHandleFromMemento(String token,
@@ -348,7 +348,7 @@ public class AspectElement extends SourceType implements IAspectJElement {
                 return this;
             String name = memento.nextToken();
 
-            ArrayList params = new ArrayList();
+            ArrayList<String> params = new ArrayList<>();
             nextParam: while (memento.hasMoreTokens()) {
                 token = memento.nextToken();
                 switch (token.charAt(0)) {
@@ -361,7 +361,7 @@ public class AspectElement extends SourceType implements IAspectJElement {
                         if (!memento.hasMoreTokens())
                             return this;
                         String param = memento.nextToken();
-                        StringBuffer buffer = new StringBuffer();
+                        StringBuilder buffer = new StringBuilder();
                         while (param.length() == 1
                                 && Signature.C_ARRAY == param.charAt(0)) { // backward
                                                                            // compatible
@@ -373,7 +373,7 @@ public class AspectElement extends SourceType implements IAspectJElement {
                                 return this;
                             param = memento.nextToken();
                         }
-                        params.add(buffer.toString() + param);
+                        params.add(buffer + param);
                         token = null;
                         break;
                     default:
@@ -392,7 +392,7 @@ public class AspectElement extends SourceType implements IAspectJElement {
             }
         } else if (token.charAt(0) == AspectElement.JEM_ITD_METHOD) {
             String name = memento.nextToken();
-            ArrayList<String> params = new ArrayList<String>();
+            ArrayList<String> params = new ArrayList<>();
             nextParam: while (memento.hasMoreTokens()) {
                 token = memento.nextToken();
                 switch (token.charAt(0)) {
@@ -403,7 +403,7 @@ public class AspectElement extends SourceType implements IAspectJElement {
                         if (!memento.hasMoreTokens())
                             return this;
                         String param = memento.nextToken();
-                        StringBuffer buffer = new StringBuffer();
+                        StringBuilder buffer = new StringBuilder();
                         while (param.length() == 1
                                 && Signature.C_ARRAY == param.charAt(0)) { // backward
                                                                            // compatible
@@ -415,7 +415,7 @@ public class AspectElement extends SourceType implements IAspectJElement {
                                 return this;
                             param = memento.nextToken();
                         }
-                        params.add(buffer.toString() + param);
+                        params.add(buffer + param);
                         break;
                     default:
                         break nextParam;
@@ -443,7 +443,7 @@ public class AspectElement extends SourceType implements IAspectJElement {
             }
         } else if (token.charAt(0) == AspectElement.JEM_DECLARE) {
             String name = memento.nextToken();
-            ArrayList params = new ArrayList();
+            ArrayList<String> params = new ArrayList<>();
             nextParam: while (memento.hasMoreTokens()) {
                 token = memento.nextToken();
                 switch (token.charAt(0)) {
@@ -454,7 +454,7 @@ public class AspectElement extends SourceType implements IAspectJElement {
                         if (!memento.hasMoreTokens())
                             return this;
                         String param = memento.nextToken();
-                        StringBuffer buffer = new StringBuffer();
+                        StringBuilder buffer = new StringBuilder();
                         while (param.length() == 1
                                 && Signature.C_ARRAY == param.charAt(0)) { // backward
                                                                            // compatible
@@ -466,7 +466,7 @@ public class AspectElement extends SourceType implements IAspectJElement {
                                 return this;
                             param = memento.nextToken();
                         }
-                        params.add(buffer.toString() + param);
+                        params.add(buffer + param);
                         break;
                     default:
                         break nextParam;
@@ -482,7 +482,7 @@ public class AspectElement extends SourceType implements IAspectJElement {
             return itd.getHandleFromMemento(memento, workingCopyOwner);
         } else if (token.charAt(0) == AspectElement.JEM_POINTCUT) {
             String name = memento.nextToken();
-            ArrayList params = new ArrayList();
+            ArrayList<String> params = new ArrayList<>();
             nextParam: while (memento.hasMoreTokens()) {
                 token = memento.nextToken();
                 switch (token.charAt(0)) {
@@ -493,7 +493,7 @@ public class AspectElement extends SourceType implements IAspectJElement {
                         if (!memento.hasMoreTokens())
                             return this;
                         String param = memento.nextToken();
-                        StringBuffer buffer = new StringBuffer();
+                        StringBuilder buffer = new StringBuilder();
                         while (param.length() == 1
                                 && Signature.C_ARRAY == param.charAt(0)) { // backward
                                                                            // compatible
@@ -505,7 +505,7 @@ public class AspectElement extends SourceType implements IAspectJElement {
                                 return this;
                             param = memento.nextToken();
                         }
-                        params.add(buffer.toString() + param);
+                        params.add(buffer + param);
                         break;
                     default:
                         break nextParam;
@@ -521,7 +521,7 @@ public class AspectElement extends SourceType implements IAspectJElement {
             // .class or .java file
             // cannot get the JavaElementInfo otherwise
             String name = memento.nextToken();
-            ArrayList params = new ArrayList();
+            ArrayList<String> params = new ArrayList<>();
             nextParam: while (memento.hasMoreTokens()) {
                 token = memento.nextToken();
                 switch (token.charAt(0)) {
@@ -533,7 +533,7 @@ public class AspectElement extends SourceType implements IAspectJElement {
                         if (!memento.hasMoreTokens())
                             return this;
                         String param = memento.nextToken();
-                        StringBuffer buffer = new StringBuffer();
+                        StringBuilder buffer = new StringBuilder();
                         while (param.length() == 1
                                 && Signature.C_ARRAY == param.charAt(0)) { // backward
                                                                            // compatible
@@ -545,7 +545,7 @@ public class AspectElement extends SourceType implements IAspectJElement {
                                 return this;
                             param = memento.nextToken();
                         }
-                        params.add(buffer.toString() + param);
+                        params.add(buffer + param);
                         break;
                     default:
                         break nextParam;
@@ -583,7 +583,7 @@ public class AspectElement extends SourceType implements IAspectJElement {
                 typeName = ""; //$NON-NLS-1$
                 token = null;
             }
-            JavaElement type = (JavaElement) getAspect(typeName);
+            JavaElement type = getAspect(typeName);
             if (token == null) {
                 return type.getHandleFromMemento(memento, workingCopyOwner);
             } else {
@@ -604,8 +604,8 @@ public class AspectElement extends SourceType implements IAspectJElement {
                 modfiersField.setAccessible(true);
             }
             return modfiersField.getInt(ipe);
-        } catch (SecurityException e) {} catch (IllegalArgumentException e) {} catch (NoSuchFieldException e) {} catch (IllegalAccessException e) {}
-        return -1;
+        } catch (SecurityException | IllegalArgumentException | NoSuchFieldException | IllegalAccessException ignored) {}
+      return -1;
     }
 
 }

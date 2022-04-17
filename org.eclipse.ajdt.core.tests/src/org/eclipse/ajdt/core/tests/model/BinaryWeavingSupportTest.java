@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman  - initial version
@@ -25,7 +25,7 @@ import org.eclipse.jdt.core.IJavaElement;
 
 
 /**
- * testing a class that is no longer being used.  keep but, can 
+ * testing a class that is no longer being used.  keep but, can
  * probably delete the commented out methods
  */
 public class BinaryWeavingSupportTest extends AJDTCoreTestCase {
@@ -134,30 +134,30 @@ public class BinaryWeavingSupportTest extends AJDTCoreTestCase {
 	public void testAspectPathDirWeaving() throws Exception {
 		/*IProject libProject = */createPredefinedProject("MyAspectLibrary2"); //$NON-NLS-1$
 //		AJProjectModelFacade libModel = AJProjectModelFactory.getInstance().getModelForProject(libProject);
-        
+
 		IProject weaveMeProject = createPredefinedProject("WeaveMe2"); //$NON-NLS-1$
         AJProjectModelFacade weaveMeModel = AJProjectModelFactory.getInstance().getModelForProject(weaveMeProject);
-        
+
         AJRelationshipType[] rels = new AJRelationshipType[] { AJRelationshipManager.ADVISED_BY };
-		List allRels = weaveMeModel.getRelationshipsForProject(rels);
+		List<IRelationship> allRels = weaveMeModel.getRelationshipsForProject(rels);
 		IJavaElement mainEl = null;
-		for (Iterator iter = allRels.iterator(); (mainEl == null)
-				&& iter.hasNext();) {
-			IRelationship rel = (IRelationship) iter.next();
+		for (Iterator<IRelationship> iter = allRels.iterator(); (mainEl == null)
+                                                            && iter.hasNext();) {
+			IRelationship rel = iter.next();
 			IJavaElement source = weaveMeModel.programElementToJavaElement(rel.getSourceHandle());
 			if (source.getElementName().equals("main")) { //$NON-NLS-1$
 				mainEl = source;
 			}
 		}
 		assertNotNull("Didn't find element for advised main method", mainEl); //$NON-NLS-1$
-		List related = weaveMeModel.getRelationshipsForElement(
+		List<IJavaElement> related = weaveMeModel.getRelationshipsForElement(
 		        mainEl, AJRelationshipManager.ADVISED_BY);
 		assertNotNull("getRelatedElements returned null", related); //$NON-NLS-1$
 		boolean found1 = false;
 		boolean found2 = false;
 		boolean found3 = false;
-		for (Iterator iter = related.iterator(); iter.hasNext();) {
-			IJavaElement el = (IJavaElement) iter.next();
+		for (Iterator<IJavaElement> iter = related.iterator(); iter.hasNext();) {
+			IJavaElement el = iter.next();
 			String elName = el.getElementName();
 			String resName = el.getResource().getName();
 			if (elName.equals("before")) { //$NON-NLS-1$
@@ -238,16 +238,16 @@ public class BinaryWeavingSupportTest extends AJDTCoreTestCase {
 		AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForProject(project);
 
 		AJRelationshipType[] rels = new AJRelationshipType[] { AJRelationshipManager.ADVISED_BY };
-		List allRels = model.getRelationshipsForProject(rels);
+		List<IRelationship> allRels = model.getRelationshipsForProject(rels);
 		boolean found1 = false;
 		boolean found2 = false;
 		boolean found3 = false;
-		for (Iterator iter = allRels.iterator(); iter.hasNext();) {
-			IRelationship rel = (IRelationship) iter.next();
+		for (Iterator<IRelationship> iter = allRels.iterator(); iter.hasNext();) {
+			IRelationship rel = iter.next();
 			String sourceName = model.programElementToJavaElement(rel.getSourceHandle()).getElementName();
 			if (sourceName.equals("Sample")) { //$NON-NLS-1$
-			    for (Iterator targetIter = rel.getTargets().iterator(); targetIter.hasNext(); ) {
-			        IJavaElement targetElt = model.programElementToJavaElement((String) targetIter.next());
+			    for (Iterator<String> targetIter = rel.getTargets().iterator(); targetIter.hasNext(); ) {
+			        IJavaElement targetElt = model.programElementToJavaElement(targetIter.next());
     				if ((targetElt.getElementName().equals("afterReturning")) //$NON-NLS-1$
     						&& (targetElt.getParent().getElementName().equals("AbstractBeanConfigurerAspect"))) { //$NON-NLS-1$
     					found1 = true;
@@ -259,8 +259,8 @@ public class BinaryWeavingSupportTest extends AJDTCoreTestCase {
     				}
 			    }
 			} else if (sourceName.equals("main")) { //$NON-NLS-1$
-			    for (Iterator targetIter = rel.getTargets().iterator(); targetIter.hasNext(); ) {
-			        IJavaElement targetElt = model.programElementToJavaElement((String) targetIter.next());
+			    for (Iterator<String> targetIter = rel.getTargets().iterator(); targetIter.hasNext(); ) {
+			        IJavaElement targetElt = model.programElementToJavaElement(targetIter.next());
 	                if ((targetElt.getElementName().equals("before")) //$NON-NLS-1$
 	                        && (targetElt.getParent().getElementName()
 								.equals("AnnotationBeanConfigurerAspect"))) { //$NON-NLS-1$

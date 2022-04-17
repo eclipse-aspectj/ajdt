@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2010 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Kris De Volder, Andrew Eisenberg - initial implementation
  *******************************************************************************/
@@ -26,7 +26,7 @@ import org.eclipse.jdt.internal.core.SourceConstructorWithChildrenInfo;
 import org.eclipse.jdt.internal.core.SourceMethod;
 import org.eclipse.jdt.internal.core.SourceMethodWithChildrenInfo;
 
-public class MethodIntertypeElement extends IntertypeElement 
+public class MethodIntertypeElement extends IntertypeElement
 /* implements IMethod (already implemented by AspectJMemberElement */
 {
 
@@ -50,17 +50,17 @@ public class MethodIntertypeElement extends IntertypeElement
 //      }
         return result;
     }
-    
+
     public IMember createMockDeclaration(IType parent) {
         try {
             final IntertypeElementInfo info = (IntertypeElementInfo) getElementInfo();
             boolean isConstructor = info.getAJKind() == IProgramElement.Kind.INTER_TYPE_CONSTRUCTOR;
             boolean isMethod = info.getAJKind() == IProgramElement.Kind.INTER_TYPE_METHOD;
-            
+
             if (isConstructor) {
                 IMethod itd = new SourceMethod(
-                        (JavaElement) parent, 
-                        parent.getElementName(), 
+                        (JavaElement) parent,
+                        parent.getElementName(),
                         this.getQualifiedParameterTypes()) {
                     protected Object createElementInfo() {
                         /* AJDT 1.7 */
@@ -83,8 +83,8 @@ public class MethodIntertypeElement extends IntertypeElement
                 return itd;
             } else if (isMethod) {
                 IMethod itd = new SourceMethod(
-                        (JavaElement) parent, 
-                        getTargetName(), 
+                        (JavaElement) parent,
+                        getTargetName(),
                         this.getQualifiedParameterTypes()) {
                     protected Object createElementInfo() {
                         /* AJDT 1.7 */
@@ -111,7 +111,7 @@ public class MethodIntertypeElement extends IntertypeElement
         }
         return null;
     }
-    
+
     /* AJDT 1.7 */
     private static class ITDSourceMethodElementInfo extends SourceMethodWithChildrenInfo implements IIntertypeInfo {
 
@@ -130,7 +130,7 @@ public class MethodIntertypeElement extends IntertypeElement
         protected void setReturnType(char[] type) {
             super.setReturnType(type);
         }
-        
+
         public void setArguments(ILocalVariable[] arguments) {
             this.arguments = arguments;
         }
@@ -139,9 +139,9 @@ public class MethodIntertypeElement extends IntertypeElement
             if (min == null) {
                 super.setArgumentNames(null);
             } else {
-                List<char[]> newNames; 
-                int minValue = min.intValue();
-                newNames = new ArrayList<char[]>(minValue);
+                List<char[]> newNames;
+                int minValue = min;
+                newNames = new ArrayList<>(minValue);
                 for (int i = 0; i < minValue; i++) {
                     if (names != null && i < names.length) {
                         newNames.add(names[i]);
@@ -149,11 +149,11 @@ public class MethodIntertypeElement extends IntertypeElement
                         newNames.add(("arg" + i).toCharArray());
                     }
                 }
-                super.setArgumentNames((char[][]) 
+                super.setArgumentNames((char[][])
                         newNames.toArray(new char[newNames.size()][]));
             }
         }
-        
+
         public void setTypeParameters(ITypeParameter[] typeParameters) {
             this.typeParameters = typeParameters;
         }
@@ -182,9 +182,9 @@ public class MethodIntertypeElement extends IntertypeElement
         protected void setSourceRangeStart(int start) {
             super.setSourceRangeStart(start);
         }
-        
+
     }
-    
+
                         /* AJDT 1.7 */
    private static class ITDSourceConstructorElementInfo extends SourceConstructorWithChildrenInfo implements IIntertypeInfo {
 
@@ -199,7 +199,7 @@ public class MethodIntertypeElement extends IntertypeElement
         public IntertypeElement getOriginal() {
             return original;
         }
-        
+
         public void setArguments(ILocalVariable[] arguments) {
             this.arguments = arguments;
         }
@@ -212,9 +212,9 @@ public class MethodIntertypeElement extends IntertypeElement
             if (min == null) {
                 super.setArgumentNames(null);
             } else {
-                List<char[]> newNames; 
-                int minValue = min.intValue();
-                newNames = new ArrayList<char[]>(minValue);
+                List<char[]> newNames;
+                int minValue = min;
+                newNames = new ArrayList<>(minValue);
                 for (int i = 0; i < minValue; i++) {
                     if (names != null && i < names.length) {
                         newNames.add(names[i]);
@@ -222,7 +222,7 @@ public class MethodIntertypeElement extends IntertypeElement
                         newNames.add(("arg" + i).toCharArray());
                     }
                 }
-                super.setArgumentNames((char[][]) 
+                super.setArgumentNames((char[][])
                         newNames.toArray(new char[newNames.size()][]));
             }
         }

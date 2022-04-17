@@ -1,7 +1,7 @@
 package org.eclipse.ajdt.core.codeconversion;
 
 import java.lang.reflect.Field;
- 
+
 import org.eclipse.ajdt.core.AspectJCore;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.ITDAwareSourceTypeInfo;
@@ -33,15 +33,15 @@ public class ITDAwareNameEnvironment extends
             throws JavaModelException {
         super(project, owner, monitor);
     }
-    
+
     public ITDAwareNameEnvironment(JavaProject project, org.eclipse.jdt.core.ICompilationUnit[] workingCopies) throws JavaModelException {
-        this(project, workingCopies == null || workingCopies.length == 0 ? 
-                DefaultWorkingCopyOwner.PRIMARY : workingCopies[0].getOwner(), 
+        this(project, workingCopies == null || workingCopies.length == 0 ?
+                DefaultWorkingCopyOwner.PRIMARY : workingCopies[0].getOwner(),
                 null);
     }
 
 
-    
+
 
     protected NameEnvironmentAnswer find(String typeName, String packageName) {
         if (packageName == null)
@@ -66,10 +66,10 @@ public class ITDAwareNameEnvironment extends
                     SourceType sourceType = (SourceType) answer.type;
                     SourceTypeElementInfo sourceTypeInfo;
                     IType[] types;
-                    
+
                     try {
                         sourceType = maybeConvertToAspectType(sourceType);
-                        
+
                         // retrieve the requested type
                         sourceTypeInfo = (SourceTypeElementInfo) sourceType.getElementInfo();
                         // find all siblings (other types declared at top level in same unit, since may be used for name resolution)
@@ -79,26 +79,26 @@ public class ITDAwareNameEnvironment extends
                         // try to recreate as AspectElement.
                         // This will only work if the type is a top-level aspect
                         String ajHandle = sourceType.getHandleIdentifier();
-                        
+
                         // Bug 283468--ensure that pacakge-info does not cause problems
                         // rethrow so that we return null
                         if (!sourceType.exists()) {
                             throw e;
                         }
-                        
+
                         sourceType = ((SourceType) AspectJCore.create(
                                 AspectJCore.convertToAspectHandle(ajHandle, sourceType)));
                         sourceTypeInfo = (SourceTypeElementInfo) sourceType.getElementInfo();
                         types = ((CompilationUnit) sourceType.getParent()).getTypes();
                     }
-                    
+
                     ISourceType topLevelType = sourceTypeInfo;
                     while (topLevelType.getEnclosingType() != null) {
                         topLevelType = topLevelType.getEnclosingType();
                     }
-                    
+
                     ISourceType[] sourceTypes = new ISourceType[Math.max(types.length, 1)];
-                    
+
                     // in the resulting collection, ensure the requested type is the first one
                     ITDAwareSourceTypeInfo newInfo = new ITDAwareSourceTypeInfo(sourceTypeInfo, sourceType); // AspectJ Change
                     sourceTypes[0] = newInfo;
@@ -107,7 +107,7 @@ public class ITDAwareNameEnvironment extends
                         ISourceType otherType =
                             (ISourceType) ((JavaElement) types[i]).getElementInfo();
                         if (!otherType.equals(topLevelType) && index < length) { // check that the index is in bounds (see https://bugs.eclipse.org/bugs/show_bug.cgi?id=62861)
-                            ITDAwareSourceTypeInfo newOtherInfo = 
+                            ITDAwareSourceTypeInfo newOtherInfo =
                                     new ITDAwareSourceTypeInfo(otherType, (SourceType) types[i]); // AspectJ Change
                             sourceTypes[index++] = newOtherInfo; // AspectJ Change
                         }
@@ -130,18 +130,15 @@ public class ITDAwareNameEnvironment extends
                 restrictionField.setAccessible(true);
             }
             return (AccessRestriction) restrictionField.get(answer);
-        } catch (IllegalArgumentException e) {
-        } catch (IllegalAccessException e) {
-        } catch (SecurityException e) {
-        } catch (NoSuchFieldException e) {
+        } catch (IllegalArgumentException | NoSuchFieldException | SecurityException | IllegalAccessException e) {
         }
-        return null;
+      return null;
     }
-    
+
     public void setUnitToSkip(ICompilationUnit unit) {
         this.unitToSkip = unit;
     }
-    
+
     // checks to see if this is really an aspect
     private SourceType maybeConvertToAspectType(SourceType type) throws JavaModelException {
         org.eclipse.jdt.core.ICompilationUnit unit = type.getCompilationUnit();
@@ -150,7 +147,7 @@ public class ITDAwareNameEnvironment extends
         }
         return type;
     }
-    
+
     /**
      * For diagnostic purposes
      */

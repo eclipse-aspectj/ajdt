@@ -12,12 +12,10 @@ about the software, its performance or its conformity to any specification.
 
 package observer;
 
-import java.util.Vector;
-
 aspect SubjectObserverProtocolImpl extends SubjectObserverProtocol {
 
     declare parents: Button implements Subject;
-    public Object Button.getData() { return this; }
+    public observer.SubjectObserverProtocolImpl Button.getData() { return this; }
 
     declare parents: ColorLabel implements Observer;
     public void    ColorLabel.update() {

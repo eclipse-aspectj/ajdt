@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2009 IBM Corporation, SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Andrew Eisenberg - initial API and implementation
  *******************************************************************************/
@@ -17,8 +17,6 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.core.dom.ASTNode;
-import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
-import org.eclipse.jdt.core.dom.ClassInstanceCreation;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.Name;
 import org.eclipse.jdt.core.dom.ParameterizedType;
@@ -28,7 +26,6 @@ import org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.jdt.core.dom.SimpleType;
 import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.internal.corext.fix.IProposableFix;
-import org.eclipse.jdt.internal.corext.fix.PotentialProgrammingProblemsFix;
 import org.eclipse.jdt.internal.corext.fix.PotentialProgrammingProblemsFixCore;
 import org.eclipse.jdt.internal.corext.fix.SerialVersionDefaultOperationCore;
 import org.eclipse.jdt.internal.ui.text.correction.SerialVersionSubProcessor;
@@ -44,7 +41,7 @@ import org.eclipse.jdt.ui.text.java.IProblemLocation;
  * {@link org.eclipse.jdt.internal.corext.fix.PotentialProgrammingProblemsFix}
  */
 public class AJSerialVersionSubProcessor extends PotentialProgrammingProblemsFixCore {
-    
+
     protected AJSerialVersionSubProcessor(String name,
             CompilationUnit compilationUnit,
             CompilationUnitRewriteOperation[] fixRewriteOperations) {
@@ -53,7 +50,7 @@ public class AJSerialVersionSubProcessor extends PotentialProgrammingProblemsFix
 
     /**
      * Determines the serial version quickfix proposals.
-     * 
+     *
      * from SerialVersionSubProcessor
      *
      * @param context
@@ -75,32 +72,32 @@ public class AJSerialVersionSubProcessor extends PotentialProgrammingProblemsFix
             proposals.add(new SerialVersionSubProcessor.SerialVersionProposal(fixes[1], 9, context, false));
         }
     }
-    
+
     /**
      * from PotentialProgrammingProblemsFix
      */
     public static IProposableFix[] createMissingSerialVersionFixes(CompilationUnit compilationUnit, IProblemLocation problem) {
         if (problem.getProblemId() != IProblem.MissingSerialVersion)
             return null;
-        
+
         final ICompilationUnit unit= (ICompilationUnit)compilationUnit.getJavaElement();
         if (unit == null)
             return null;
-        
+
         final SimpleName simpleName= getSelectedName(compilationUnit, problem);
         if (simpleName == null)
             return null;
-        
+
         ASTNode declaringNode= getDeclarationNode(simpleName);
         if (declaringNode == null)
             return null;
-        
+
         SerialVersionDefaultOperationCore defop= new SerialVersionDefaultOperationCore(unit, new ASTNode[] {declaringNode});
         IProposableFix fix1= new AJSerialVersionSubProcessor("Add default serial version ID (AspectJ)", compilationUnit, new CompilationUnitRewriteOperation[] {defop});
-        
+
         AJSerialVersionHashOperation hashop= new AJSerialVersionHashOperation(unit, new ASTNode[] {declaringNode});
         IProposableFix fix2= new AJSerialVersionSubProcessor("Add generated serial version ID (AspectJ)", compilationUnit, new CompilationUnitRewriteOperation[] {hashop});
-    
+
         return new IProposableFix[] {fix1, fix2};
     }
 
@@ -111,7 +108,7 @@ public class AJSerialVersionSubProcessor extends PotentialProgrammingProblemsFix
         final ASTNode selection= problem.getCoveredNode(compilationUnit);
         if (selection == null)
             return null;
-        
+
         Name name= null;
         if (selection instanceof SimpleType) {
             final SimpleType type= (SimpleType) selection;
@@ -128,19 +125,19 @@ public class AJSerialVersionSubProcessor extends PotentialProgrammingProblemsFix
         }
         if (name == null)
             return null;
-        
+
         if (name.isSimpleName()) {
             return (SimpleName)name;
         } else {
             return ((QualifiedName)name).getName();
         }
     }
-    
+
     /**
      * from PotentialProgrammingProblemsFix
      */
     /*
-    private static ASTNode getDeclarationNode(SimpleName name) {        
+    private static ASTNode getDeclarationNode(SimpleName name) {
         ASTNode parent= name.getParent();
         if (!(parent instanceof AbstractTypeDeclaration)) {
 

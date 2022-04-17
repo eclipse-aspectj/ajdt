@@ -1,19 +1,18 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2005 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Sian January - copied to AJDT 
+ *     Sian January - copied to AJDT
  *******************************************************************************/
 package org.eclipse.ajdt.core.reconcile;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 import org.eclipse.ajdt.core.AJLog;
@@ -53,19 +52,19 @@ import org.eclipse.jdt.internal.core.util.Util;
 public class AJReconcileWorkingCopyOperation extends
 		ReconcileWorkingCopyOperation {
 
-    
+
     public static boolean PERF = false;
 
     public int astLevel;
     public boolean resolveBindings;
-    public HashMap problems;
+    public HashMap<String, CategorizedProblem[]> problems;
     public int reconcileFlags;
     WorkingCopyOwner workingCopyOwner;
     public org.eclipse.jdt.core.dom.CompilationUnit ast;
     public JavaElementDeltaBuilder deltaBuilder;
     public boolean requestorIsActive;
-    
-	
+
+
 	/**
 	 * @param workingCopy
 	 * @param creatAST
@@ -88,17 +87,17 @@ public class AJReconcileWorkingCopyOperation extends
 	 */
 	protected void executeOperation() throws JavaModelException {
 	    checkCanceled();
-	    
-	
+
+
 	    try {
 	        beginTask(Messages.element_reconciling, 2);
-	        
+
 	        CompilationUnit workingCopy = getWorkingCopy();
 	        boolean wasConsistent = workingCopy.isConsistent();
-	        
+
 	        // check is problem requestor is active
             IProblemRequestor problemRequestor = workingCopy.getPerWorkingCopyInfo();
-            if (problemRequestor != null) 
+            if (problemRequestor != null)
                 problemRequestor =  ((JavaModelManager.PerWorkingCopyInfo)problemRequestor).getProblemRequestor();
             boolean defaultRequestorIsActive = problemRequestor != null && problemRequestor.isActive();
             IProblemRequestor ownerProblemRequestor = this.workingCopyOwner.getProblemRequestor(workingCopy);
@@ -142,7 +141,7 @@ public class AJReconcileWorkingCopyOperation extends
             done();
         }
 	}
-	
+
     // AspectJ Change Begin
 	// nasty hack: the delta field of JavaElementDeltaBuilder is not visible
 	// as we're in a different package, so we must access it via reflection
@@ -153,16 +152,13 @@ public class AJReconcileWorkingCopyOperation extends
 			deltaField.setAccessible(true);
 			Object o = deltaField.get(deltaBuilder);
 			return (JavaElementDelta)o;
-		} catch (SecurityException e) {
-		} catch (NoSuchFieldException e) {
-		} catch (IllegalArgumentException e) {
-		} catch (IllegalAccessException e) {
+		} catch (SecurityException | IllegalAccessException | IllegalArgumentException | NoSuchFieldException e) {
 		}
-		return null;
+    return null;
 	}
     // AspectJ Change End
-	
-	
+
+
 	   /**
      * Report working copy problems to a given requestor.
      *
@@ -172,26 +168,26 @@ public class AJReconcileWorkingCopyOperation extends
     private void reportProblems(CompilationUnit workingCopy, IProblemRequestor problemRequestor) {
         try {
             problemRequestor.beginReporting();
-            for (Iterator iteraror = this.problems.values().iterator(); iteraror.hasNext();) {
-                CategorizedProblem[] categorizedProblems = (CategorizedProblem[]) iteraror.next();
-                if (categorizedProblems == null) continue;
-                for (int i = 0, length = categorizedProblems.length; i < length; i++) {
-                    CategorizedProblem problem = categorizedProblems[i];
-                    if (JavaModelManager.VERBOSE) {
-                        AJLog.log(AJLog.PARSER, "PROBLEM FOUND while reconciling : " + //$NON-NLS-1$
-                                problem.getMessage());
-                    }
-                    if (this.progressMonitor != null && this.progressMonitor.isCanceled()) break;
-                    problemRequestor.acceptProblem(problem);
-                }
+          for (CategorizedProblem[] categorizedProblems : this.problems.values()) {
+            if (categorizedProblems == null)
+              continue;
+            for (CategorizedProblem problem : categorizedProblems) {
+              if (JavaModelManager.VERBOSE) {
+                AJLog.log(AJLog.PARSER, "PROBLEM FOUND while reconciling : " + //$NON-NLS-1$
+                                        problem.getMessage());
+              }
+              if (this.progressMonitor != null && this.progressMonitor.isCanceled())
+                break;
+              problemRequestor.acceptProblem(problem);
             }
+          }
         } finally {
             problemRequestor.endReporting();
         }
     }
 
 
-	
+
 	/**
 	 * Returns the working copy this operation is working on.
 	 */
@@ -205,8 +201,8 @@ public class AJReconcileWorkingCopyOperation extends
 		return true;
 	}
 
-	
-	
+
+
 	/*
      * Makes the given working copy consistent, computes the delta and computes an AST if needed.
      * Returns the AST.
@@ -214,7 +210,7 @@ public class AJReconcileWorkingCopyOperation extends
     public org.eclipse.jdt.core.dom.CompilationUnit makeConsistent(CompilationUnit workingCopy) throws JavaModelException {
         if (!workingCopy.isConsistent()) {
             // make working copy consistent
-            if (this.problems == null) this.problems = new HashMap();
+            if (this.problems == null) this.problems = new HashMap<>();
             this.resolveBindings = this.requestorIsActive;
             this.ast = workingCopy.makeConsistent(this.astLevel, this.resolveBindings, reconcileFlags, this.problems, this.progressMonitor);
             this.deltaBuilder.buildDeltas();
@@ -222,9 +218,9 @@ public class AJReconcileWorkingCopyOperation extends
                 this.deltaBuilder.delta.changedAST(this.ast);
             return this.ast;
         }
-        if (this.ast != null) 
+        if (this.ast != null)
             return this.ast; // no need to recompute AST if known already
-        
+
         CompilationUnitDeclaration unit = null;
         try {
             JavaModelManager.getJavaModelManager().abortOnMissingSource.set(Boolean.TRUE);
@@ -235,11 +231,11 @@ public class AJReconcileWorkingCopyOperation extends
                 source = workingCopy.cloneCachingContents();
             }
             // find problems if needed
-            if (JavaProject.hasJavaNature(workingCopy.getJavaProject().getProject()) 
+            if (JavaProject.hasJavaNature(workingCopy.getJavaProject().getProject())
                     && (this.reconcileFlags & ICompilationUnit.FORCE_PROBLEM_DETECTION) != 0) {
                 this.resolveBindings = this.requestorIsActive;
                 if (this.problems == null)
-                    this.problems = new HashMap();
+                    this.problems = new HashMap<>();
                 unit =
                     AJCompilationUnitProblemFinder.processAJ(
                         source,
@@ -250,11 +246,11 @@ public class AJReconcileWorkingCopyOperation extends
                         this.progressMonitor);
                 if (this.progressMonitor != null) this.progressMonitor.worked(1);
             }
-            
+
             // create AST if needed
-            if (this.astLevel != ICompilationUnit.NO_AST 
+            if (this.astLevel != ICompilationUnit.NO_AST
                     && unit !=null/*unit is null if working copy is consistent && (problem detection not forced || non-Java project) -> don't create AST as per API*/) {
-                Map options = workingCopy.getJavaProject().getOptions(true);
+                Map<String, String> options = workingCopy.getJavaProject().getOptions(true);
                 // convert AST
                 this.ast =
                     AST.convertCompilationUnit(
@@ -286,35 +282,37 @@ public class AJReconcileWorkingCopyOperation extends
         }
         return this.ast;
     }
-    
+
     private void notifyParticipants(final CompilationUnit workingCopy) {
         IJavaProject javaProject = getWorkingCopy().getJavaProject();
         CompilationParticipant[] participants = JavaModelManager.getJavaModelManager().compilationParticipants.getCompilationParticipants(javaProject);
         if (participants == null) return;
 
         final ReconcileContext context = new ReconcileContext(this, workingCopy); // AspectJ change
-        for (int i = 0, length = participants.length; i < length; i++) {
-            final CompilationParticipant participant = participants[i];
-            SafeRunner.run(new ISafeRunnable() {
-                public void handleException(Throwable exception) {
-                    if (exception instanceof Error) {
-                        throw (Error) exception; // errors are not supposed to be caught
-                    } else if (exception instanceof OperationCanceledException)
-                        throw (OperationCanceledException) exception;
-                    else if (exception instanceof UnsupportedOperationException) {
-                        // might want to disable participant as it tried to modify the buffer of the working copy being reconciled
-                        Util.log(exception, "Reconcile participant attempted to modify the buffer of the working copy being reconciled"); //$NON-NLS-1$
-                    } else
-                        Util.log(exception, "Exception occurred in reconcile participant"); //$NON-NLS-1$
-                }
-                public void run() throws Exception {
-                    participant.reconcile(context);
-                }
-            });
-        }
+      for (final CompilationParticipant participant : participants) {
+        SafeRunner.run(new ISafeRunnable() {
+          public void handleException(Throwable exception) {
+            if (exception instanceof Error) {
+              throw (Error) exception; // errors are not supposed to be caught
+            }
+            else if (exception instanceof OperationCanceledException)
+              throw (OperationCanceledException) exception;
+            else if (exception instanceof UnsupportedOperationException) {
+              // might want to disable participant as it tried to modify the buffer of the working copy being reconciled
+              Util.log(exception, "Reconcile participant attempted to modify the buffer of the working copy being reconciled"); //$NON-NLS-1$
+            }
+            else
+              Util.log(exception, "Exception occurred in reconcile participant"); //$NON-NLS-1$
+          }
+
+          public void run() throws Exception {
+            participant.reconcile(context);
+          }
+        });
+      }
     }
 
-	
+
 	protected IJavaModelStatus verify() {
 		IJavaModelStatus status = super.verify();
 		if (!status.isOK()) {
@@ -326,6 +324,6 @@ public class AJReconcileWorkingCopyOperation extends
 		}
 		return status;
 	}
-	
+
 
 }

@@ -66,20 +66,20 @@ import org.eclipse.text.edits.TextEditGroup;
 public class ITDAccessorRenameParticipant extends RenameParticipant {
 
     private IField field;
-    
+
     private AJCompilationUnit aspectDeclaringGetter;
     private AJCompilationUnit aspectDeclaringSetter;
 
     private boolean useIsForBooleanGetter = false;
-    
+
     /**
      * Although I don't like referring to Roo from
      * within AJDT, we need a way to disable the renaming of
-     * the Aspect that declares the ITDs since Roo will 
+     * the Aspect that declares the ITDs since Roo will
      * automatically regenerate these files anyway.
      */
     private boolean disableITDUpdatingForRoo;
-    
+
     @Override
     public RefactoringStatus checkConditions(IProgressMonitor pm,
             CheckConditionsContext context) throws OperationCanceledException {
@@ -109,13 +109,13 @@ public class ITDAccessorRenameParticipant extends RenameParticipant {
         boolean shouldRenameGetter = shouldRename(true);
         boolean shouldRenameSetter = shouldRename(false);
         boolean shouldRenamePrivateField = shouldRenamePrivateField();
-        
+
 
         if (! shouldRenameGetter && ! shouldRenameSetter && ! shouldRenamePrivateField) {
             return null;
         }
-        
-        
+
+
         IType declaring = field.getDeclaringType();
         AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(declaring);
         if (model.hasModel()) {
@@ -133,7 +133,7 @@ public class ITDAccessorRenameParticipant extends RenameParticipant {
             if (getter == null && setter == null) {
                 return null;
             }
-            
+
             // do a search for the getter
             List<SearchMatch> getterReferences;
             if (getter != null) {
@@ -148,7 +148,7 @@ public class ITDAccessorRenameParticipant extends RenameParticipant {
             } else {
                 setterReferences = Collections.emptyList();
             }
-            
+
             // now look for private field references in Aspects
             List<SearchMatch> privateFieldReferences;
             if (shouldRenamePrivateField) {
@@ -166,7 +166,7 @@ public class ITDAccessorRenameParticipant extends RenameParticipant {
             if (change.getChildren().length > 0) {
                 return change;
             }
-            
+
         }
         return null;
     }
@@ -213,12 +213,12 @@ public class ITDAccessorRenameParticipant extends RenameParticipant {
         if (disableITDUpdatingForRoo && unit != null && (unit.equals(aspectDeclaringGetter) || unit.equals(aspectDeclaringSetter))) {
             return;
         }
-        
+
         CompilationUnitChange existingChange = findOrCreateChange(
                 enclosingElement, finalChange);
         TextEditChangeGroup[] groups = existingChange.getTextEditChangeGroups();
         TextEdit occurrenceEdit = new ReplaceEdit(offset, length, newName);
-        
+
         boolean isOverlapping = false;
         for (TextEditChangeGroup group : groups) {
             if (group.getTextEdits()[0].covers(occurrenceEdit)) {
@@ -231,7 +231,7 @@ public class ITDAccessorRenameParticipant extends RenameParticipant {
             return;
         }
         existingChange.addEdit(occurrenceEdit);
-        existingChange.addChangeGroup(new TextEditChangeGroup(existingChange, 
+        existingChange.addChangeGroup(new TextEditChangeGroup(existingChange,
                 new TextEditGroup("Update ITD accessor occurrence", occurrenceEdit)));
 
     }
@@ -244,7 +244,7 @@ public class ITDAccessorRenameParticipant extends RenameParticipant {
             // check to see if change exists from some other part of the refactoring
             existingChange = (CompilationUnitChange) textChange;
         } else {
-            
+
             // check to see if we have already touched this file
             Change[] children = finalChange.getChildren();
             for (Change change : children) {
@@ -256,8 +256,8 @@ public class ITDAccessorRenameParticipant extends RenameParticipant {
                 }
             }
         }
-        
-        
+
+
         if (existingChange == null) {
             // nope...must create a new change
             existingChange = new CompilationUnitChange("ITD accessor renamings for " + accessor.getCompilationUnit().getElementName(), accessor.getCompilationUnit());
@@ -274,23 +274,23 @@ public class ITDAccessorRenameParticipant extends RenameParticipant {
         try {
             scope.add(accessor.getJavaProject());
             CollectingSearchRequestor requestor = new CollectingSearchRequestor();
-            engine.search(pattern, new SearchParticipant[] { SearchEngine.getDefaultSearchParticipant() }, 
+            engine.search(pattern, new SearchParticipant[] { SearchEngine.getDefaultSearchParticipant() },
                     scope, requestor, new NullProgressMonitor());
             return requestor.getResults();
-        } catch (JavaModelException e) {
-        } catch (CoreException e) {
+        }
+        catch (CoreException e) {
         }
 
-        return Collections.emptyList();
+      return Collections.emptyList();
     }
 
     private boolean isSetter(IJavaElement elt) throws JavaModelException {
-        if (elt instanceof IntertypeElement && 
+        if (elt instanceof IntertypeElement &&
                 elt.getElementName().endsWith("." + getOldSetterName())) {
             IntertypeElement itd = (IntertypeElement) elt;
             String[] parameterTypes = itd.getParameterTypes();
             if (itd.getAJKind() == Kind.INTER_TYPE_METHOD &&
-                    parameterTypes != null && 
+                    parameterTypes != null &&
                     parameterTypes.length == 1 &&
                     parameterTypes[0].equals(field.getTypeSignature()) &&
                     itd.getReturnType().equals(Signature.SIG_VOID)) {
@@ -303,10 +303,10 @@ public class ITDAccessorRenameParticipant extends RenameParticipant {
     private boolean isGetter(IJavaElement elt) throws JavaModelException {
         boolean nameMatch = false;
         boolean isFound = false;
-        if (elt instanceof IntertypeElement && 
+        if (elt instanceof IntertypeElement &&
                 elt.getElementName().endsWith("." + getOldGetterName(false))) {
             nameMatch = true;
-        } else if (elt instanceof IntertypeElement && 
+        } else if (elt instanceof IntertypeElement &&
                 elt.getElementName().endsWith("." + getOldGetterName(true))) {
             nameMatch = true;
         }
@@ -315,7 +315,7 @@ public class ITDAccessorRenameParticipant extends RenameParticipant {
             IntertypeElement itd = (IntertypeElement) elt;
             String[] parameterTypes = itd.getParameterTypes();
             if (itd.getAJKind() == Kind.INTER_TYPE_METHOD &&
-                    (parameterTypes == null || 
+                    (parameterTypes == null ||
                      parameterTypes.length == 0) &&
                     itd.getReturnType().equals(field.getTypeSignature())) {
                  return true;
@@ -323,7 +323,7 @@ public class ITDAccessorRenameParticipant extends RenameParticipant {
         }
         return false;
     }
-    
+
     private String getNewSetterName() {
         return accessorName("set", getArguments().getNewName());
     }
@@ -341,12 +341,12 @@ public class ITDAccessorRenameParticipant extends RenameParticipant {
         return prefix + Character.toUpperCase(name.charAt(0)) + name.substring(1);
     }
 
-    /** 
-     * Privileged aspects can see private fields.  But, they 
+    /**
+     * Privileged aspects can see private fields.  But, they
      * are not renamed in the RenameFieldProcessor, so must check
      * here to see if we need to do extra logic to rename in an
      * aspect
-     * @throws JavaModelException 
+     * @throws JavaModelException
      */
     private boolean shouldRenamePrivateField() throws JavaModelException {
         return Flags.isPrivate(field.getFlags());
@@ -373,7 +373,7 @@ public class ITDAccessorRenameParticipant extends RenameParticipant {
                 if (fRenameSetterField == null) {
                     fRenameSetterField = processor.getClass().getDeclaredField("fRenameSetter");
                     fRenameSetterField.setAccessible(true);
-                } 
+                }
                 thisField = fRenameSetterField;
             }
             return thisField.getBoolean(processor);
@@ -382,13 +382,13 @@ public class ITDAccessorRenameParticipant extends RenameParticipant {
         return false;
     }
 
-    
+
     /**
      * if this is a roo project and roo is installed in the system.
      */
     private boolean shouldDisableITDUpdatingForRoo() {
         try {
-            return field.getJavaProject().getProject().hasNature("com.springsource.sts.roo.core.nature") && 
+            return field.getJavaProject().getProject().hasNature("com.springsource.sts.roo.core.nature") &&
                 (
                         Platform.getBundle("com.springsource.sts.roo.core") != null ||
                         Platform.getBundle("rg.springframework.ide.eclipse.roo.core") != null

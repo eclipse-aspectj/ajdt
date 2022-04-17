@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Helen Hawkins   - iniital version
@@ -27,7 +27,7 @@ import org.eclipse.core.runtime.Status;
 /**
  * Registry for all cross reference providers extending the
  * org.eclipse.contribution.xref.providers extension point.
- * 
+ *
  */
 public class XReferenceProviderManager implements NoFFDC {
 
@@ -35,7 +35,7 @@ public class XReferenceProviderManager implements NoFFDC {
 	private List<XReferenceProviderDefinition> providerList;
 	private static final String PROVIDERS_EXTENSION_POINT =
 		"org.eclipse.contribution.xref.core.providers"; //$NON-NLS-1$
-	
+
 	// Identifies to the Provider which View requires its attention, (Inplace or View) (BUG 95724)
 	private boolean isInplace;
 
@@ -50,11 +50,11 @@ public class XReferenceProviderManager implements NoFFDC {
 		}
 		return theManager;
 	}
-	
+
 	public void setIsInplace(boolean isInplace) {
 		this.isInplace = isInplace;
 	}
-	
+
 	public boolean getIsInplace() {
 		return isInplace;
 	}
@@ -62,7 +62,7 @@ public class XReferenceProviderManager implements NoFFDC {
 	/**
 	 * @param Object o
 	 * @return list of providers for o from the list of
-	 * registered providers for the extension point 
+	 * registered providers for the extension point
 	 * org.eclipse.contribution.xref.providers
 	 */
 	public List<IXReferenceProvider> getProvidersFor(IAdaptable o) {
@@ -113,8 +113,8 @@ public class XReferenceProviderManager implements NoFFDC {
 	}
 
 	private boolean providesReferencesFor(
-		Object o,
-		XReferenceProviderDefinition element) {
+    IAdaptable o,
+    XReferenceProviderDefinition element) {
 		if (!element.isEnabled()) {
 			return false;
 		}

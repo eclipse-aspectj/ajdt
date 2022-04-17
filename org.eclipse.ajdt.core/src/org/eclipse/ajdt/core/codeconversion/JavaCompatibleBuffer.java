@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Luzius Meisser - initial implementation
  *******************************************************************************/
@@ -26,7 +26,7 @@ import org.eclipse.jdt.core.JavaModelException;
  * reads contents from a fake buffer.
  * Purpose: to make jdt operations like "organize imports" produce reasonable
  *   results for .aj files.
- * 
+ *
  * @author Luzius Meisser
  *
  */
@@ -34,19 +34,19 @@ public class JavaCompatibleBuffer implements IBuffer, IBufferChangedListener{
 
     private IBuffer realBuffer;
     private IBuffer fakeBuffer;
-    
-    private ArrayList insertionTable;
-    
+
+    private ArrayList<AspectsConvertingParser.Replacement> insertionTable;
+
     private boolean upToDate = false;
     private ConversionOptions conversionOptions = ConversionOptions.STANDARD;
-    
+
     public JavaCompatibleBuffer(IBuffer real, IBuffer fake){
         realBuffer = real;
         fakeBuffer = fake;
         real.addBufferChangedListener(this);
-        
+
     }
-    
+
     public void reinitialize(IBuffer buf){
         if (buf != realBuffer){
             realBuffer = buf;
@@ -54,14 +54,14 @@ public class JavaCompatibleBuffer implements IBuffer, IBufferChangedListener{
             upToDate = false;
         }
     }
-    
+
     public IBuffer getRealBuffer() {
         return realBuffer;
     }
 
     public void close() {
     }
-    
+
     public char getChar(int position) {
         ensureUpToDate();
         return fakeBuffer.getChar(position);
@@ -145,13 +145,13 @@ public class JavaCompatibleBuffer implements IBuffer, IBufferChangedListener{
     public void setContents(String contents) {
         realBuffer.setContents(contents);
     }
-    
+
     private void ensureUpToDate(){
         if (!upToDate) {
-            
+
             fakeBuffer.setContents((char[])realBuffer.getCharacters().clone());
             AspectsConvertingParser conv = new AspectsConvertingParser((char[])realBuffer.getCharacters().clone());
-            
+
             IOpenable owner = getOwner();
             if (owner instanceof ICompilationUnit) {
                 conv.setUnit((ICompilationUnit) owner);
@@ -159,20 +159,20 @@ public class JavaCompatibleBuffer implements IBuffer, IBufferChangedListener{
             insertionTable = conv.convert(conversionOptions);
             fakeBuffer.setContents(conv.content);
             upToDate = true;
-            
+
         }
     }
-    
+
     public int translatePositionToReal(int pos){
         this.ensureUpToDate();
         return AspectsConvertingParser.translatePositionToBeforeChanges(pos, insertionTable);
     }
-    
+
     public int translatePositionToFake(int pos){
         this.ensureUpToDate();
         return AspectsConvertingParser.translatePositionToAfterChanges(pos, insertionTable);
     }
-    
+
     /* (non-Javadoc)
      * @see org.eclipse.jdt.core.IBufferChangedListener#bufferChanged(org.eclipse.jdt.core.BufferChangedEvent)
      */
@@ -181,17 +181,17 @@ public class JavaCompatibleBuffer implements IBuffer, IBufferChangedListener{
             fakeBuffer.close();
         upToDate = false;
     }
-    
+
     public ConversionOptions getConversionOptions() {
         return conversionOptions;
     }
-    
+
     public void setConversionOptions(ConversionOptions conversionOptions) {
         this.conversionOptions = conversionOptions;
         upToDate = false;
     }
-    
-    public ArrayList getInsertionTable() {
+
+    public ArrayList<AspectsConvertingParser.Replacement> getInsertionTable() {
         ensureUpToDate();
         return insertionTable;
     }

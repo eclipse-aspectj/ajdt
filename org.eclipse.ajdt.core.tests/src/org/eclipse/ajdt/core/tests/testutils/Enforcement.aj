@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman  - initial version
@@ -24,7 +24,7 @@ public aspect Enforcement {
 	declare error: execution(* TestCase+.*(..)) && !execution(* AJDTCoreTestCase+.*(..)):
 		"All test classes should extend AJDTCoreTestCase"; //$NON-NLS-1$
 
-	declare error: call(* AJDTCoreTestCase.deleteProject(..)) 
+	declare error: call(* AJDTCoreTestCase.deleteProject(..))
 	    && !within(AJDTCoreTestCase)
         && !within(AJModelPersistenceTest) // this test needs to call delete
 		&& !within(ProjectDeletionTest)  // this test is specifically about project deletion

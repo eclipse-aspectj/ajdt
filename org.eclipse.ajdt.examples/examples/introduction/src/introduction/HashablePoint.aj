@@ -28,7 +28,7 @@ public aspect HashablePoint {
    }
 
    public static void main(String[] args) {
-      Hashtable h = new Hashtable();
+      Hashtable<Object, String> h = new Hashtable<Object, String>();
       Point p1 = new Point();
 
       p1.setRectangular(10, 10);

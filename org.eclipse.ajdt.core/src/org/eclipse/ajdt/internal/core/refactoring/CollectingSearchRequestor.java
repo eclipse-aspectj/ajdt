@@ -18,7 +18,7 @@ import org.eclipse.jdt.core.search.SearchRequestor;
  * Collects the results returned by a <code>SearchEngine</code>.
  * If a {@link ReferencesInBinaryContext} is passed, matches that are
  * inside a binary element are not collected (but added to the context if they are accurate).
- * 
+ *
  * Copied from org.eclipse.jdt.internal.corext.refactoring.CollectingSearchRequestor
  */
 public class CollectingSearchRequestor extends SearchRequestor {
@@ -30,7 +30,7 @@ public class CollectingSearchRequestor extends SearchRequestor {
 	}
 
 	public CollectingSearchRequestor(ReferencesInBinaryContext binaryRefs) {
-		fFound= new ArrayList<SearchMatch>();
+		fFound= new ArrayList<>();
 		fBinaryRefs= binaryRefs;
 	}
 
@@ -103,5 +103,3 @@ public class CollectingSearchRequestor extends SearchRequestor {
 		return fFound;
 	}
 }
-
-

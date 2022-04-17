@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Luzius Meisser - initial implementation
  *******************************************************************************/
@@ -31,7 +31,7 @@ public class AJCompilationUnitInfo extends ASTHolderCUInfo {
         } catch (NoSuchFieldException e) {
         }
 	}
-	
+
     private static Field resolveBindingsField;
     static {
         try {
@@ -40,7 +40,7 @@ public class AJCompilationUnitInfo extends ASTHolderCUInfo {
         } catch (NoSuchFieldException e) {
         }
     }
-	
+
     private static Field reconcileFlagsField;
     static {
         try {
@@ -49,7 +49,7 @@ public class AJCompilationUnitInfo extends ASTHolderCUInfo {
         } catch (NoSuchFieldException e) {
         }
     }
-    
+
     private static Field problemsField;
     static {
         try {
@@ -68,69 +68,59 @@ public class AJCompilationUnitInfo extends ASTHolderCUInfo {
         }
     }
 
-    
+
     /**
-     * This field should be set only from within a synchronized block in 
+     * This field should be set only from within a synchronized block in
      * AJCompilationUnit.  If > 0, then original content mode, if <= 0 then
      * only show the transformed source
      */
     int originalContentMode = 0;
 
-    
+
     public void setTimestamp(long stamp){
         this.timestamp = stamp;
     }
-    
+
 
     public int getASTLevel() {
 	    try {
             return astLevelField.getInt(this);
-        } catch (SecurityException e) {
-        } catch (IllegalArgumentException e) {
-        } catch (IllegalAccessException e) {
+        } catch (SecurityException | IllegalAccessException | IllegalArgumentException e) {
         }
-        return ICompilationUnit.NO_AST;
+      return ICompilationUnit.NO_AST;
 	}
-	
-	
+
+
     public boolean doResolveBindings() {
         try {
             return resolveBindingsField.getBoolean(this);
-        } catch (SecurityException e) {
-        } catch (IllegalArgumentException e) {
-        } catch (IllegalAccessException e) {
+        } catch (SecurityException | IllegalAccessException | IllegalArgumentException e) {
         }
-        return false;
+      return false;
 	}
-	
+
     public int getReconcileFlags() {
         try {
             return reconcileFlagsField.getInt(this);
-        } catch (SecurityException e) {
-        } catch (IllegalArgumentException e) {
-        } catch (IllegalAccessException e) {
+        } catch (SecurityException | IllegalAccessException | IllegalArgumentException e) {
         }
-        return ICompilationUnit.NO_AST;
+      return ICompilationUnit.NO_AST;
 	}
-	
-    
+
+
     @SuppressWarnings("rawtypes")
     public HashMap getProblems() {
         try {
             return (HashMap) problemsField.get(this);
-        } catch (SecurityException e) {
-        } catch (IllegalArgumentException e) {
-        } catch (IllegalAccessException e) {
+        } catch (SecurityException | IllegalAccessException | IllegalArgumentException e) {
         }
-        return null;
+      return null;
     }
-    
+
     public void setAST(CompilationUnit cu) {
         try {
             astField.set(this, cu);
-        } catch (SecurityException e) {
-        } catch (IllegalArgumentException e) {
-        } catch (IllegalAccessException e) {
+        } catch (SecurityException | IllegalAccessException | IllegalArgumentException e) {
         }
 
     }

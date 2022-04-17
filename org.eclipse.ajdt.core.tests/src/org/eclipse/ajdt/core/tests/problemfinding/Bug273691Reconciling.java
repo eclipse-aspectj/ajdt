@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2009 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *      Andrew Eisenberg - Initial implementation
  *******************************************************************************/
@@ -12,7 +12,6 @@ package org.eclipse.ajdt.core.tests.problemfinding;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.ajdt.core.AspectJCore;
@@ -34,10 +33,10 @@ import org.eclipse.jdt.internal.core.DefaultWorkingCopyOwner;
 
 /**
  * Tests AJCompilationUnitProblemFinder and ITDAwareness
- * 
- * Tests that TypeName.class is correctly 
+ *
+ * Tests that TypeName.class is correctly
  * handled by the AspectsConvertingParser
- * 
+ *
  * @author andrew
  *
  */
@@ -48,12 +47,12 @@ public class Bug273691Reconciling extends AJDTCoreTestCase {
         super.setUp();
         proj = createPredefinedProject("Bug273691"); //$NON-NLS-1$
         joinBackgroudActivities();
-        
+
         IFolder src = proj.getFolder("src");
-        
+
         IResourceVisitor visitor = new IResourceVisitor() {
             public boolean visit(IResource resource) throws CoreException {
-                if (resource.getType() == IResource.FILE && 
+                if (resource.getType() == IResource.FILE &&
                         (resource.getName().endsWith("java") ||
                                 resource.getName().endsWith("aj"))) {
                     allCUnits.add(createUnit((IFile) resource));
@@ -62,16 +61,16 @@ public class Bug273691Reconciling extends AJDTCoreTestCase {
             }
         };
         src.accept(visitor);
-        
+
         joinBackgroudActivities();
         setAutobuilding(false);
-        
+
     }
-    
+
     private ICompilationUnit createUnit(IFile file) {
         return (ICompilationUnit) AspectJCore.create(file);
     }
-    
+
     protected void tearDown() throws Exception {
         super.tearDown();
         setAutobuilding(true);
@@ -86,7 +85,7 @@ public class Bug273691Reconciling extends AJDTCoreTestCase {
             fail(sb.toString());
         }
     }
-    
+
     private String problemFind(ICompilationUnit unit) throws Exception {
         HashMap problems = doFind(unit);
         MockProblemRequestor.filterAllWarningProblems(problems);
@@ -100,17 +99,17 @@ public class Bug273691Reconciling extends AJDTCoreTestCase {
             throws JavaModelException {
         HashMap problems = new HashMap();
         if (unit instanceof AJCompilationUnit) {
-            AJCompilationUnitProblemFinder.processAJ((AJCompilationUnit) unit, 
-                    AJWorkingCopyOwner.INSTANCE, problems, true, 
+            AJCompilationUnitProblemFinder.processAJ((AJCompilationUnit) unit,
+                    AJWorkingCopyOwner.INSTANCE, problems, true,
                     ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
         } else {
             // Requires JDT Weaving
             CompilationUnitProblemFinder.process((CompilationUnit) unit, null,
-                    DefaultWorkingCopyOwner.PRIMARY, problems, true, 
+                    DefaultWorkingCopyOwner.PRIMARY, problems, true,
                     ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
         }
         return problems;
     }
 
-    
+
 }

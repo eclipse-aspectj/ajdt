@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2009 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Andrew Eisenberg - initial API and implementation
  *******************************************************************************/
@@ -33,28 +33,28 @@ import org.osgi.service.prefs.BackingStoreException;
  * Manages the aop.xml preferences for a project
  */
 public class AopXmlPreferences {
-    
+
     public final static String AOP_XML_FILES_FOR_PROJECT = "org.eclipse.ajdt.aopxml";
-    
+
 
     private final IEclipsePreferences projectNode;
     public AopXmlPreferences(IProject project) {
         IScopeContext projectScope = new ProjectScope(project);
         projectNode = projectScope.getNode(AspectJPlugin.UI_PLUGIN_ID);
     }
-    
+
     public void setAopXmlFiles(IPath[] paths) {
         if (paths != null && paths.length > 0) {
-            StringBuffer sb = new StringBuffer();
-            for (int i = 0; i < paths.length; i++) {
-                String pathName = paths[i].toPortableString();
-                if (pathName.endsWith(".xml")) {
-                    if (sb.length() > 0) {
-                        sb.append(File.pathSeparatorChar);
-                    }
-                    sb.append(pathName);
-                }
+            StringBuilder sb = new StringBuilder();
+          for (IPath path : paths) {
+            String pathName = path.toPortableString();
+            if (pathName.endsWith(".xml")) {
+              if (sb.length() > 0) {
+                sb.append(File.pathSeparatorChar);
+              }
+              sb.append(pathName);
             }
+          }
             projectNode.put(AOP_XML_FILES_FOR_PROJECT, sb.toString());
         } else {
             projectNode.remove(AOP_XML_FILES_FOR_PROJECT);
@@ -64,7 +64,7 @@ public class AopXmlPreferences {
         } catch (BackingStoreException e) {
         }
     }
-    
+
     public IPath[] getAopXmlFiles() {
         String pathStr = projectNode.get(AOP_XML_FILES_FOR_PROJECT, null);
         if (pathStr == null || pathStr.length() == 0) {
@@ -77,11 +77,11 @@ public class AopXmlPreferences {
         }
         return paths;
     }
-    
+
     public String getAopXmlFilesAsStrings() {
         IPath[] paths = getAopXmlFiles();
         IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         for (int i = 0; i < paths.length; i++) {
             IFile file = root.getFile(paths[i]);
             sb.append(file.getLocation().toOSString());
@@ -94,17 +94,18 @@ public class AopXmlPreferences {
     public List<String> getAopXmlFilesAsListOfStrings() {
         IPath[] paths = getAopXmlFiles();
         IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
-        List<String> strings = new ArrayList<String>(paths.length);
-        for (int i = 0; i < paths.length; i++) {
-            try {
-                IFile file = root.getFile(paths[i]);
-                if (file != null && file.getLocation() != null) {
-                    strings.add(file.getLocation().toOSString());
-                }
-            } catch (Exception e) {
-                // print the error and continue
-            }
+        List<String> strings = new ArrayList<>(paths.length);
+      for (IPath path : paths) {
+        try {
+          IFile file = root.getFile(path);
+          if (file != null && file.getLocation() != null) {
+            strings.add(file.getLocation().toOSString());
+          }
         }
+        catch (Exception e) {
+          // print the error and continue
+        }
+      }
         return strings;
     }
 
@@ -114,11 +115,11 @@ public class AopXmlPreferences {
         }
         IPath path = file.getFullPath();
         IPath[] paths = getAopXmlFiles();
-        for (int i = 0; i < paths.length; i++) {
-            if (paths[i].equals(path)) {
-                return true;
-            }
+      for (IPath iPath : paths) {
+        if (iPath.equals(path)) {
+          return true;
         }
+      }
         return false;
     }
 }

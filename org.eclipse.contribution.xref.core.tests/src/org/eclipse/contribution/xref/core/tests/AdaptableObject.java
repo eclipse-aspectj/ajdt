@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2010 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Andrew Eisenberg   - iniital version
  *******************************************************************************/
@@ -13,14 +13,14 @@ package org.eclipse.contribution.xref.core.tests;
 import org.eclipse.core.runtime.IAdaptable;
 
 /**
- * 
+ *
  * @author Andrew Eisenberg
  * @created Dec 5, 2010
  */
 public class AdaptableObject implements IAdaptable {
-    
-    private final Object o;
-    
+
+    private final String o;
+
     public AdaptableObject() {
         this.o = "";
     }
@@ -35,7 +35,7 @@ public class AdaptableObject implements IAdaptable {
         return null;
     }
 
-    public Object getObject() {
+    public java.io.Serializable getObject() {
         return o;
     }
 

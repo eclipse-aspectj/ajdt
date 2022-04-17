@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman - initial version
@@ -14,9 +14,9 @@ package org.eclipse.ajdt.core;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.runtime.CoreException;
 
 public class AJProperties {
@@ -28,19 +28,19 @@ public class AJProperties {
 	 * @param project
 	 * @return a list of IFiles
 	 */
-	public static List /*IFile*/ getAJPropertiesFiles(IProject project) {
-		final List files = new ArrayList();
+	public static List<IFile> getAJPropertiesFiles(IProject project) {
+		final List<IFile> files = new ArrayList<>();
 		try {
-			project.accept(new IResourceVisitor() {
-				public boolean visit(IResource res) {
-					if (res.getType() == IResource.FILE
-					        && res.getFileExtension() != null
-							&& (res.getFileExtension().equals(EXTENSION))) {
-						files.add(res);
-					}
-					return true;
-				}
-			});
+			project.accept(res -> {
+        if (
+          res.getType() == IResource.FILE &&
+          res.getFileExtension() != null &&
+          res.getFileExtension().equals(EXTENSION)
+        ) {
+          files.add((IFile) res);
+        }
+        return true;
+      });
 		} catch (CoreException e) {
 		}
 		return files;

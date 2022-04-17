@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2010 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Andrew Eisenberg - initial API and implementation
  *******************************************************************************/
@@ -44,25 +44,25 @@ import org.eclipse.jdt.internal.core.search.matching.MethodPattern;
  *
  */
 public class ITDReferenceVisitor extends AjASTVisitor {
-    
+
     /**
      * keeps track of currently seen variables that
      * would override direct (ie- non-this) references
      * of ITD variables
      */
-    class Scope {
+    static class Scope {
         private Set<String> varNames;
         final Scope parent;
-        
+
         public Scope(Scope parent) {
             this.parent = parent;
-            this.varNames = new HashSet<String>();
+            this.varNames = new HashSet<>();
         }
 
         void addVariableName(String name) {
             varNames.add(name);
         }
-        
+
         boolean isVarInScope(String name) {
             if (varNames.contains(name)) {
                 return true;
@@ -71,18 +71,18 @@ public class ITDReferenceVisitor extends AjASTVisitor {
             }
         }
     }
-    
+
     private Scope currentScope;
     private IntertypeElement itd;
     private FieldPattern fieldPattern;
     private MethodPattern methodPattern;
     private SearchParticipant participant;
     private List<SearchMatch> definitiveMatches;
-    
-    // these are matches that we know about, but 
+
+    // these are matches that we know about, but
     // may have arlready been reported by the requestor
     private List<SearchMatch> tentativeMatches;
-    
+
     public ITDReferenceVisitor(IntertypeElement itd, SearchPattern pattern, SearchParticipant participant) {
         this.itd = itd;
         if (pattern instanceof MethodPattern) {
@@ -91,11 +91,11 @@ public class ITDReferenceVisitor extends AjASTVisitor {
         if (pattern instanceof FieldPattern) {
             this.fieldPattern = (FieldPattern) pattern;
         }
-        this.definitiveMatches = new LinkedList<SearchMatch>();
-        this.tentativeMatches = new LinkedList<SearchMatch>();
+        this.definitiveMatches = new LinkedList<>();
+        this.tentativeMatches = new LinkedList<>();
         this.participant = participant;
     }
-    
+
     public boolean visit(InterTypeMethodDeclaration node) {
         currentScope = new Scope(null);
         return true;
@@ -113,7 +113,7 @@ public class ITDReferenceVisitor extends AjASTVisitor {
             return false;
         }
         // need to be careful here in that
-        // there are many situations where 
+        // there are many situations where
         // we don't want to visit this.
         String identifier = node.getIdentifier();
         if (! currentScope.isVarInScope(identifier)) {
@@ -135,13 +135,13 @@ public class ITDReferenceVisitor extends AjASTVisitor {
 
     @Override
     public boolean visit(FieldAccess node) {
-        if (node.getExpression() != null && 
+        if (node.getExpression() != null &&
                 node.getExpression().getNodeType() == ASTNode.THIS_EXPRESSION) {
             checkFieldPattern(node.getName());
         }
         return false;
     }
-    
+
 
     @Override
     public boolean visit(MethodInvocation node) {
@@ -157,13 +157,13 @@ public class ITDReferenceVisitor extends AjASTVisitor {
         }
         return false;
     }
-    
+
     @Override
     public boolean visit(Block node) {
         currentScope = new Scope(currentScope);
         return super.visit(node);
     }
-    
+
     @Override
     public void endVisit(Block node) {
         currentScope = currentScope.parent;
@@ -174,7 +174,7 @@ public class ITDReferenceVisitor extends AjASTVisitor {
         itdNode.accept(this);
         return definitiveMatches;
     }
-    
+
     /**
      * Get matches that we know about, but may have already been reported.
      * Not currently being used...
@@ -182,7 +182,7 @@ public class ITDReferenceVisitor extends AjASTVisitor {
     public List<SearchMatch> getTentativeMatches() {
         return tentativeMatches;
     }
-    
+
     @SuppressWarnings("unchecked")
     private void checkMethodPattern(MethodRef node) {
         if (methodPattern != null) {
@@ -197,10 +197,10 @@ public class ITDReferenceVisitor extends AjASTVisitor {
                         }
                     }
                 }
-                definitiveMatches.add(new MethodReferenceMatch(itd, 
-                        SearchMatch.A_ACCURATE, 
-                        node.getName().getStartPosition(), 
-                        node.getName().getLength(), false, false, false, 
+                definitiveMatches.add(new MethodReferenceMatch(itd,
+                        SearchMatch.A_ACCURATE,
+                        node.getName().getStartPosition(),
+                        node.getName().getLength(), false, false, false,
                         true, participant, itd.getResource()));
             }
         }
@@ -212,13 +212,13 @@ public class ITDReferenceVisitor extends AjASTVisitor {
                 if (node.getExpression() == null || node.getExpression().getNodeType() == ASTNode.THIS_EXPRESSION) {
                     // only match on number of parameters
                     if (node.arguments().size() == methodPattern.parameterCount) {
-                        // avoid double reporting.  These are already 
+                        // avoid double reporting.  These are already
                         // reported by standard searching
                         // so, add to tentative matches instead.
-                        tentativeMatches.add(new MethodReferenceMatch(itd, 
-                                SearchMatch.A_ACCURATE, 
-                                node.getStartPosition(), 
-                                node.getLength(), false, false, false, 
+                        tentativeMatches.add(new MethodReferenceMatch(itd,
+                                SearchMatch.A_ACCURATE,
+                                node.getStartPosition(),
+                                node.getLength(), false, false, false,
                                 true, participant, itd.getResource()));
                     }
                 }
@@ -227,12 +227,12 @@ public class ITDReferenceVisitor extends AjASTVisitor {
     }
 
     private void checkFieldPattern(SimpleName name) {
-        boolean isWrite = (name.getParent().getNodeType() == ASTNode.ASSIGNMENT && 
+        boolean isWrite = (name.getParent().getNodeType() == ASTNode.ASSIGNMENT &&
                 ((Assignment) name.getParent()).getLeftHandSide() == name);
 
         if (fieldPattern != null && String.valueOf(fieldPattern.getIndexKey()).equals(name.getIdentifier())) {
-            definitiveMatches.add(new FieldReferenceMatch(itd, SearchMatch.A_ACCURATE, name.getStartPosition(), name.getLength(), !isWrite, 
-                    isWrite, name.getParent().getNodeType() == ASTNode.MEMBER_REF, 
+            definitiveMatches.add(new FieldReferenceMatch(itd, SearchMatch.A_ACCURATE, name.getStartPosition(), name.getLength(), !isWrite,
+                    isWrite, name.getParent().getNodeType() == ASTNode.MEMBER_REF,
                     participant, itd.getResource()));
         }
     }

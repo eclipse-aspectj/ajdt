@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Tal Lev-Ami - added package cache for zip files
@@ -36,7 +36,7 @@ public class ClasspathJar extends ClasspathLocation {
 		long lastModified;
 		long fileSize;
 		SimpleSet packageSet;
-		
+
 		PackageCacheEntry(long lastModified, long fileSize, SimpleSet packageSet) {
 			this.lastModified = lastModified;
 			this.fileSize = fileSize;
@@ -62,8 +62,8 @@ public class ClasspathJar extends ClasspathLocation {
 
 		SimpleSet packageSet = new SimpleSet(41);
 		packageSet.add(""); //$NON-NLS-1$
-		nextEntry : for (Enumeration e = zipFile.entries(); e.hasMoreElements(); ) {
-			String fileName = ((ZipEntry) e.nextElement()).getName();
+		nextEntry : for (Enumeration<? extends ZipEntry> e = zipFile.entries(); e.hasMoreElements(); ) {
+			String fileName = (e.nextElement()).getName();
 
 			// add the package name & all of its parent packages
 			int last = fileName.lastIndexOf('/');
@@ -137,7 +137,7 @@ public class ClasspathJar extends ClasspathLocation {
 			if (this.accessRuleSet == null || !this.accessRuleSet.equals(jar.accessRuleSet))
 				return false;
 		return this.zipFilename.equals(((ClasspathJar) o).zipFilename);
-	} 
+	}
 
 	public NameEnvironmentAnswer findClass(String binaryFileName, String qualifiedPackageName, String qualifiedBinaryFileName) {
 		if (!isPackage(qualifiedPackageName)) return null; // most common case
@@ -181,7 +181,7 @@ public class ClasspathJar extends ClasspathLocation {
 	public String toString() {
 		return "Classpath jar file " + zipFilename; //$NON-NLS-1$
 	}
-		
+
 //AspectJ Change Begin
 /* (non-Javadoc)
  * @see org.eclipse.ajdt.internal.ui.ajde.ClasspathLocation#toOSString()

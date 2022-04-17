@@ -26,7 +26,6 @@ import org.eclipse.jdt.core.IMemberValuePair;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.ISourceReference;
-import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeParameter;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.Signature;
@@ -107,10 +106,10 @@ protected void getHandleMemento(StringBuffer buff) {
     char delimiter = getHandleMementoDelimiter();
     buff.append(delimiter);
     escapeMementoName(buff, getElementName());
-    for (int i = 0; i < this.fParameterTypes.length; i++) {
-        buff.append(delimiter);
-        escapeMementoName(buff, this.fParameterTypes[i]);
-    }
+  for (String fParameterType : this.fParameterTypes) {
+    buff.append(delimiter);
+    escapeMementoName(buff, fParameterType);
+  }
     if (this.occurrenceCount > 1) {
         buff.append(JEM_COUNT);
         buff.append(this.occurrenceCount);
@@ -214,9 +213,9 @@ public String getSignature() throws JavaModelException {
  */
 public int hashCode() {
    int hash = super.hashCode();
-	for (int i = 0, length = fParameterTypes.length; i < length; i++) {
-	    hash = Util.combineHashCodes(hash, fParameterTypes[i].hashCode());
-	}
+  for (String fParameterType : fParameterTypes) {
+    hash = Util.combineHashCodes(hash, fParameterType.hashCode());
+  }
 	return hash;
 }
 /**

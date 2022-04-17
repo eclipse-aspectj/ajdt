@@ -1,11 +1,11 @@
 /********************************************************************
- * Copyright (c) 2007 Contributors. All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: IBM Corporation - initial API and implementation 
+ * Copyright (c) 2007 Contributors. All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution and is available at
+ * http://eclipse.org/legal/epl-v10.html
+ *
+ * Contributors: IBM Corporation - initial API and implementation
  * 				 Helen Hawkins   - initial version (bug 148190)
  *******************************************************************/
 package org.eclipse.ajdt.internal.core.ajde;
@@ -19,14 +19,14 @@ import org.eclipse.core.resources.IProject;
 /**
  * ICompilerFactory implementation which returns AjCompilers with
  * core implementations of the required interfaces.
- * 
+ *
  * This class is only used if ajdt.ui plugin is not available
- * 
- */ 
+ *
+ */
 public class CoreCompilerFactory implements ICompilerFactory {
 
-	private Map<IProject, AjCompiler> compilerMap = new HashMap<IProject, AjCompiler>();
-	
+	private Map<IProject, AjCompiler> compilerMap = new HashMap<>();
+
 	/**
 	 * If have already created an AjCompiler for the given project
 	 * return that one, otherwise create a new one.
@@ -61,7 +61,7 @@ public class CoreCompilerFactory implements ICompilerFactory {
             compilerMap.remove(project);
         }
 	}
-	
+
 	/**
 	 * Return true if have already created an AjCompiler for the
 	 * given project, false otherwise.

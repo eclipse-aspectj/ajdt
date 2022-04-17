@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2010 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Andrew Eisenberg - initial API and implementation
  *******************************************************************************/
@@ -50,13 +50,13 @@ import org.eclipse.jdt.internal.core.search.matching.PossibleMatch;
 import org.eclipse.jdt.internal.core.search.matching.TypeReferencePattern;
 
 /**
- * 
+ *
  * @author Andrew Eisenberg
  * @created Mar 8, 2010
  */
 public class AJDTSearchProvider implements ISearchProvider {
-    
-    
+
+
     public IntertypeElement findITDGetter(IField field) {
         return findITDAccessor(field, true);
     }
@@ -64,16 +64,16 @@ public class AJDTSearchProvider implements ISearchProvider {
     public IntertypeElement findITDSetter(IField field) {
         return findITDAccessor(field, false);
     }
-    
+
     private IntertypeElement findITDAccessor(IField field, boolean getter) {
         AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(field);
         List<IJavaElement> rels = model.getRelationshipsForElement(field.getDeclaringType(), AJRelationshipManager.ASPECT_DECLARATIONS);
         for (IJavaElement elt : rels) {
             if (elt instanceof IntertypeElement) {
                 IntertypeElement itd = (IntertypeElement) elt;
-                if (isAccessorITDName(itd.getElementName(), 
-                        field.getElementName(), 
-                        field.getDeclaringType().getElementName(), 
+                if (isAccessorITDName(itd.getElementName(),
+                        field.getElementName(),
+                        field.getDeclaringType().getElementName(),
                         field.getDeclaringType().getFullyQualifiedName(),
                         getter) &&
                         checkParameters(itd, field, getter) &&
@@ -84,12 +84,12 @@ public class AJDTSearchProvider implements ISearchProvider {
         }
         return null;
     }
-    
+
     private boolean checkReturnType(IntertypeElement itd, IField field,
             boolean getter) {
         try {
             if (getter) {
-                    return itd.getReturnType().equals(field.getTypeSignature()) || 
+                    return itd.getReturnType().equals(field.getTypeSignature()) ||
                         field.getTypeSignature().equals(String.valueOf(itd.getQualifiedReturnType()));
             } else {
                 return itd.getReturnType().equals(Signature.SIG_VOID);
@@ -103,7 +103,7 @@ public class AJDTSearchProvider implements ISearchProvider {
             boolean getter) {
         String[] parameterTypes = itd.getParameterTypes();
         if (getter) {
-            return parameterTypes == null || 
+            return parameterTypes == null ||
                     parameterTypes.length == 0;
         } else {
             try {
@@ -136,7 +136,7 @@ public class AJDTSearchProvider implements ISearchProvider {
             prefix = "is";
         }
         String suffix = prefix + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
-        String accessorName = declaringTypeName + "." + suffix; 
+        String accessorName = declaringTypeName + "." + suffix;
         if (itdName.equals(accessorName)) {
             return true;
         }
@@ -176,7 +176,7 @@ public class AJDTSearchProvider implements ISearchProvider {
         return orig;
     }
 
-    
+
     private IntertypeElement findMatchingITD(AspectElement parent,
             IMethod possibleTest, String itdName) throws JavaModelException {
         IntertypeElement[] allITDs = parent.getITDs();
@@ -191,7 +191,7 @@ public class AJDTSearchProvider implements ISearchProvider {
     /**
      * convert ITD matches into the target types
      * Or ignore otherwise
-     * @throws JavaModelException 
+     * @throws JavaModelException
      */
     public IJavaElement filterJUnit4TestMatch(IJavaElement possibleTest) throws JavaModelException {
         // the results are returned as ResolvedSourceMethod, not an ITD
@@ -220,18 +220,18 @@ public class AJDTSearchProvider implements ISearchProvider {
             ((AJCompilationUnit) match.openable).requestOriginalContentMode();
         }
         if (pattern instanceof OrPattern) {
-            extraMatches = new ArrayList<SearchMatch>();
+            extraMatches = new ArrayList<>();
             SearchPattern[] patterns = (SearchPattern[]) ReflectionUtils.getPrivateField(OrPattern.class, "patterns", (OrPattern) pattern);
             for (SearchPattern orPattern : patterns) {
                 extraMatches.addAll(findExtraMatches(match, orPattern, resolver));
             }
         } else {
-            IExtraMatchFinder finder = getExtraMatchFinder(match, pattern);
+            IExtraMatchFinder<SearchPattern> finder = (IExtraMatchFinder<SearchPattern>) getExtraMatchFinder(match, pattern);
             extraMatches = finder.findExtraMatches(match, pattern, resolver);
         }
         return extraMatches;
     }
-    
+
     public void matchProcessed(PossibleMatch match) {
         if (match.openable instanceof AJCompilationUnit) {
             // in this callback, we know that the matches have been processed.
@@ -242,7 +242,7 @@ public class AJDTSearchProvider implements ISearchProvider {
             }
         }
     }
-    
+
     /**
      * @param pattern
      * @return
@@ -278,8 +278,8 @@ public class AJDTSearchProvider implements ISearchProvider {
                 }
             } catch (JavaModelException e) {
             }
-            
-            // couldn't get the buffer for some reason, but we should still 
+
+            // couldn't get the buffer for some reason, but we should still
             // return the converted contents as this is better than returning the original contents
             return ((AJCompilationUnit) elt).getContents();
         } else {

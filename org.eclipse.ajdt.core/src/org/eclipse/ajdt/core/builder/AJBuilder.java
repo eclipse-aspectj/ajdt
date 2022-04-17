@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2002, 2010 IBM Corporation, SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Adrian Colyer, Andy Clement, Tracy Gardner - initial version
@@ -18,12 +18,10 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -85,8 +83,6 @@ import org.eclipse.jdt.internal.core.ClasspathEntry;
 import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.jdt.internal.core.builder.CompilationParticipantResult;
-import org.eclipse.jdt.internal.core.builder.NameEnvironment;
-import org.eclipse.jdt.internal.core.builder.SourceFile;
 import org.eclipse.jdt.internal.core.builder.State;
 import org.eclipse.jdt.internal.core.util.Messages;
 import org.eclipse.jdt.internal.core.util.Util;
@@ -94,41 +90,41 @@ import org.eclipse.osgi.util.NLS;
 import org.osgi.service.prefs.BackingStoreException;
 
 /**
- * 
+ *
  */
 public class AJBuilder extends IncrementalProjectBuilder {
 
     private static IStateListener isl = null;
-     
-    private static List<IAJBuildListener> buildListeners = new ArrayList<IAJBuildListener>();
+
+    private static List<IAJBuildListener> buildListeners = new ArrayList<>();
 
     /**
-     * keeps track of the last workbench preference 
+     * keeps track of the last workbench preference
      * (for workaround for bug 73435)
      */
     private String lastWorkbenchPreference = JavaCore.ABORT;
 
     public AJBuilder() {
     }
-    
+
     /* (non-Javadoc)
      * @see org.eclipse.core.resources.IncrementalProjectBuilder#build(int, java.util.Map, org.eclipse.core.runtime.IProgressMonitor)
      */
     protected IProject[] build(int kind, Map args, IProgressMonitor progressMonitor) throws CoreException {
         IProject project = getProject();
         AjCompiler compiler = AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project);
-        
+
         CoreCompilerConfiguration compilerConfig = (CoreCompilerConfiguration)
                 compiler.getCompilerConfiguration();
 
         // 100 ticks for the compiler, 1 for the pre-build actions, 1 for the post-build actions
         progressMonitor.beginTask(CoreMessages.builder_taskname, 102);
-        
+
         AJLog.logStart(TimerLogEvent.TIME_IN_BUILD);
         AJLog.logStart("Pre compile");
         AJLog.log(AJLog.BUILDER,"==========================================================================================="); //$NON-NLS-1$
         AJLog.log(AJLog.BUILDER,"Build kind = " + buildKindString(kind)); //$NON-NLS-1$
-                
+
         IProject[] requiredProjects = getRequiredProjects(project,true);
 
         // perform all pre-build actions
@@ -143,7 +139,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
         }
         AJLog.log(AJLog.BUILDER,"Project=" //$NON-NLS-1$
                 + project.getName() + ", kind of build requested=" + mode); //$NON-NLS-1$
-        
+
         // bug 270554 augment the aspect path with builder arguments
         augmentAspectPath(project, args);
 
@@ -155,7 +151,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
             progressMonitor.done();
             return requiredProjects;
         }
-        
+
         // workaround for bug 73435
         IProject[] dependingProjects = getDependingProjects(project);
         IJavaProject javaProject = JavaCore.create(project);
@@ -163,15 +159,15 @@ public class AJBuilder extends IncrementalProjectBuilder {
             updateJavaCompilerPreferences(dependingProjects);
         }
         // end of workaround
-        
+
         AJLog.logStart("Flush included source file cache");
         // Flush the list of included source files stored for this project
         BuildConfig.flushIncludedSourceFileCache(project);
         AJLog.logEnd(AJLog.BUILDER, "Flush included source file cache");
-        
+
         AJLog.logStart("Check delta");
         // Check the delta - we only want to proceed if something relevant
-        // in this project has changed (a .java file, a .aj file or a 
+        // in this project has changed (a .java file, a .aj file or a
         // .lst file)
         IResourceDelta delta = getDelta(getProject());
         // copy over any new resources (bug 78579)
@@ -183,20 +179,20 @@ public class AJBuilder extends IncrementalProjectBuilder {
         if (kind != FULL_BUILD) {
             AJLog.logStart("Look for source/resource changes");
             if (!hasChangesAndMark(delta, project)) {
-                
+
                 AJLog.log(AJLog.BUILDER,"build: Examined delta - no source file or classpath changes for project "  //$NON-NLS-1$
                                 + project.getName() );
-                
+
                 // if the source files of any projects which the current
                 // project depends on have changed, then need
-                // also to build the current project                
+                // also to build the current project
                 boolean continueToBuild = false;
                 for (int i = 0; !continueToBuild && i < requiredProjects.length; i++) {
                     IResourceDelta otherProjDelta = getDelta(requiredProjects[i]);
                     continueToBuild = otherProjDelta != null &&
                                      (hasChangesAndMark(otherProjDelta, requiredProjects[i]));
                 }
-                
+
                 // no changes found!  end the compilation.
                 if (!continueToBuild) {
                     // bug 107027
@@ -207,7 +203,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
                     AJLog.log(AJLog.BUILDER, "No source/resource changes found, exiting build");
                     AJLog.logEnd(AJLog.BUILDER, TimerLogEvent.TIME_IN_BUILD);
                     progressMonitor.done();
-                    return requiredProjects;                        
+                    return requiredProjects;
                 }
             }
             AJLog.logEnd(AJLog.BUILDER, "Look for source/resource changes");
@@ -216,33 +212,33 @@ public class AJBuilder extends IncrementalProjectBuilder {
         migrateToRTContainerIfNecessary(javaProject);
 
         IAJCompilerMonitor compilerMonitor = (IAJCompilerMonitor) compiler.getBuildProgressMonitor();
-        
-        
-        // Bug 43711 must do a clean and rebuild if we can't 
+
+
+        // Bug 43711 must do a clean and rebuild if we can't
         // find a buildConfig file from a previous compilation
         if (kind == FULL_BUILD ||
             !hasValidPreviousBuildConfig(compiler.getId())) {
-            
+
             cleanOutputFolders(javaProject,false);
-            AJProjectModelFactory.getInstance().removeModelForProject(project);         
+            AJProjectModelFactory.getInstance().removeModelForProject(project);
             copyResources(javaProject);
-            
+
         } else {
             // doing an incremental build
             if (AspectJCorePreferences.isIncrementalCompilationOptimizationsEnabled()) {
                 // Bug 245566:
-                // facilitate incremental compilation by checking 
+                // facilitate incremental compilation by checking
                 // classpath for projects that have changed since the last build
                 long timestamp = getLastBuildTimeStamp(compiler);
                 compilerConfig.setClasspathElementsWithModifiedContents(getChangedRequiredProjects(timestamp));
             }
         }
-        
-        // bug 270335 -- if output locations have changed, then 
+
+        // bug 270335 -- if output locations have changed, then
         // need a new output location manager.
         compilerConfig.flushOutputLocationManagerIfNecessary(kind);
         compilerConfig.buildStarting();
-        
+
         compilerMonitor.prepare(new SubProgressMonitor(progressMonitor,100));
 
         AJLog.log(AJLog.BUILDER_CLASSPATH,"Classpath = " + compilerConfig.getClasspath()); //$NON-NLS-1$
@@ -261,27 +257,27 @@ public class AJBuilder extends IncrementalProjectBuilder {
         // ----------------------------------------
 
         doRefreshAfterBuild(project, dependingProjects, javaProject);
-        
+
         // do the cleanup
         // bug 107027
         compilerConfig.flushClasspathCache();
-        
-        
+
+
         postBuild(kind, false, participants, compiler);
         progressMonitor.worked(1);
         progressMonitor.done();
-        
+
         AJLog.logEnd(AJLog.BUILDER, TimerLogEvent.TIME_IN_BUILD);
         return requiredProjects;
     }
 
     /**
      * Performs post build actions including calling listeners and handling compilation participants
-     * 
+     *
      * returns any extra problems to be applied for this build
      */
     private void postBuild(int kind, boolean noSourceChanges, CompilationParticipant[] participants, AjCompiler compiler) {
-        
+
         final IJavaProject javaProject = JavaCore.create(getProject());
         Map<IFile, List<CategorizedProblem>> newProblems = Collections.emptyMap();
 
@@ -335,23 +331,23 @@ public class AJBuilder extends IncrementalProjectBuilder {
                 }
 
                 // extra problems and new dependencies
-                newProblems = new HashMap<IFile, List<CategorizedProblem>>();
-                for (int i = 0; i < results.length; i++) {
-                    AJCompilationParticipantResult result = (AJCompilationParticipantResult) results[i];
-                    // Bug 349963---why is result null?
-                    if (result == null) {
-                        continue;
-                    }
-                    List<CategorizedProblem> problems = result.getProblems();
-                    if (problems != null) {
-                        newProblems.put(result.getFile(), problems);
-                    }
-                    
-                    String[] dependencies = result.getDependencies();
-                    if (dependencies != null && dependencies.length > 0) {
-                        compiler.addDependencies(result.getFile().getLocation().toFile(), dependencies);
-                    }
+                newProblems = new HashMap<>();
+              for (BuildContext buildContext : results) {
+                AJCompilationParticipantResult result = (AJCompilationParticipantResult) buildContext;
+                // Bug 349963---why is result null?
+                if (result == null) {
+                  continue;
                 }
+                List<CategorizedProblem> problems = result.getProblems();
+                if (problems != null) {
+                  newProblems.put(result.getFile(), problems);
+                }
+
+                String[] dependencies = result.getDependencies();
+                if (dependencies != null && dependencies.length > 0) {
+                  compiler.addDependencies(result.getFile().getLocation().toFile(), dependencies);
+                }
+              }
             }
         }
         postCallListeners(kind, noSourceChanges, newProblems);
@@ -367,21 +363,21 @@ public class AJBuilder extends IncrementalProjectBuilder {
         File[] allCompiled = compilerConfig.getCompiledSourceFiles();
         BuildContext[] results = new BuildContext[allCompiled.length];
         boolean errorFound = false;
-        
+
         // create the name environment only so that we can get the ClasspathMultiDirectories
         for (int i = 0; i < results.length; i++) {
             IFile ifile = findWorkspaceFile(allCompiled[i], compilerConfig.getFileCache());
-            
+
             if (ifile != null) {
                 results[i] = new AJCompilationParticipantResult(ifile);
             } else {
                 errorFound = true;
             }
         }
-        
+
         if (errorFound) {
             // there is a null value in the array. must squash the array
-            List<BuildContext> resultsList = new ArrayList<BuildContext>(results.length);
+            List<BuildContext> resultsList = new ArrayList<>(results.length);
             for (BuildContext buildContext : results) {
                 if (buildContext != null) {
                     resultsList.add(buildContext);
@@ -418,14 +414,14 @@ public class AJBuilder extends IncrementalProjectBuilder {
             IProject[] requiredProjects, CoreCompilerConfiguration compilerConfig) {
         // must call this after checking whether a full build has been requested,
         // otherwise the listeners are called with a different build kind than
-        // is actually carried out. In the case of the ui, then this means that 
+        // is actually carried out. In the case of the ui, then this means that
         // the markers may not be cleared properly.
         preCallListeners(kind, project, requiredProjects);
-        
+
         // now calculate compilation participants
         return calculateParticipants(project);
     }
-    
+
     /**
      * Calculates the {@link CompilationParticipant}s for project.  Returns null
      * if none are registered
@@ -470,22 +466,22 @@ public class AJBuilder extends IncrementalProjectBuilder {
                 toAugmentArr[i] = toAugmentArr[i].trim();
             }
             AspectJCorePreferences.augmentAspectPath(project, toAugmentArr);
-            
+
             try {
                 IProjectDescription desc = project.getDescription();
                 ICommand[] commands = desc.getBuildSpec();
-                for (int i = 0; i < commands.length; i++) {
-                    if (commands[i].getBuilderName().equals(AspectJPlugin.ID_BUILDER)) {
-                        Map oldArgs = commands[i].getArguments();
-                        oldArgs.remove("aspectPath");
-                        commands[i].setArguments(oldArgs);
-                        break;
-                    }
+              for (ICommand command : commands) {
+                if (command.getBuilderName().equals(AspectJPlugin.ID_BUILDER)) {
+                  Map<String, String> oldArgs = command.getArguments();
+                  oldArgs.remove("aspectPath");
+                  command.setArguments(oldArgs);
+                  break;
                 }
+              }
                 desc.setBuildSpec(commands);
                 project.setDescription(desc, null);
             } catch (CoreException e) {
-                
+
             }
             AJLog.logEnd(AJLog.BUILDER, "Augmenting aspect path with args from builder");
 
@@ -508,40 +504,40 @@ public class AJBuilder extends IncrementalProjectBuilder {
             AJLog.log(AJLog.BUILDER,
                     "build: Abort due to missing inpath/aspectpath/classpath entries"); //$NON-NLS-1$
             AJLog.logEnd(AJLog.BUILDER, TimerLogEvent.TIME_IN_BUILD);
-            removeProblemsAndTasksFor(project); 
+            removeProblemsAndTasksFor(project);
             // make this the only problem for this project
-            markProject(project, Messages.bind(Messages.build_prereqProjectHasClasspathProblems, 
+            markProject(project, Messages.bind(Messages.build_prereqProjectHasClasspathProblems,
                     project.getName()));
-            
-            
+
+
             // Bug 288395---log all problem markers to the AJDT Event log
-            IMarker[] markers = ResourcesPlugin.getWorkspace().getRoot().findMarkers(IJavaModelMarker.BUILDPATH_PROBLEM_MARKER, 
+            IMarker[] markers = ResourcesPlugin.getWorkspace().getRoot().findMarkers(IJavaModelMarker.BUILDPATH_PROBLEM_MARKER,
                     false, IResource.DEPTH_INFINITE);
             if (markers.length > 0) {
                 AJLog.log("Bug 288395---logging build path problems, found " + markers.length);
-                for (int i = 0; i < markers.length; i++) {
-                    AJLog.log("  " + markers[i].getResource().getFullPath() + " : " + markers[i].getAttribute(IMarker.MESSAGE, "<no message>"));
-                }
+              for (IMarker marker : markers) {
+                AJLog.log("  " + marker.getResource().getFullPath() + " : " + marker.getAttribute(IMarker.MESSAGE, "<no message>"));
+              }
             }
-            
-            markers = ResourcesPlugin.getWorkspace().getRoot().findMarkers(IJavaModelMarker.CYCLE_DETECTED, 
+
+            markers = ResourcesPlugin.getWorkspace().getRoot().findMarkers(IJavaModelMarker.CYCLE_DETECTED,
                     false, IResource.DEPTH_INFINITE);
             if (markers.length > 0) {
                 AJLog.log("Bug 288395---logging build path cycles, found " + markers.length);
-                for (int i = 0; i < markers.length; i++) {
-                    AJLog.log("  " + markers[i].getResource().getFullPath() + " : " + markers[i].getAttribute(IMarker.MESSAGE, "<no message>"));
-                }
+              for (IMarker marker : markers) {
+                AJLog.log("  " + marker.getResource().getFullPath() + " : " + marker.getAttribute(IMarker.MESSAGE, "<no message>"));
+              }
             }
-            
-            markers = ResourcesPlugin.getWorkspace().getRoot().findMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, 
+
+            markers = ResourcesPlugin.getWorkspace().getRoot().findMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER,
                     false, IResource.DEPTH_INFINITE);
             if (markers.length > 0) {
                 AJLog.log("Bug 288395---logging build path problems, found " + markers.length);
-                for (int i = 0; i < markers.length; i++) {
-                    AJLog.log("  " + markers[i].getResource().getFullPath() + " : " + markers[i].getAttribute(IMarker.MESSAGE, "<no message>"));
-                }
+              for (IMarker marker : markers) {
+                AJLog.log("  " + marker.getResource().getFullPath() + " : " + marker.getAttribute(IMarker.MESSAGE, "<no message>"));
+              }
             }
-            
+
             return false;
         }
         return true;
@@ -574,117 +570,113 @@ public class AJBuilder extends IncrementalProjectBuilder {
     /**
      * returns a list of fully qualified names of entries on the classpath
      * that have been rebuilt since last build
+     *
      * @return
      */
-    private List /*String*/ getChangedRequiredProjects(long lastBuildTimestamp) {
+    private List<String> getChangedRequiredProjects(long lastBuildTimestamp) {
         try {
             // first find all the projects that have changed since last build
             IProject[] projectsOnClasspath = getRequiredProjects(getProject(), true);
-            List /*IProject*/ changedProjects = new ArrayList();
-            for (int i = 0; i < projectsOnClasspath.length; i++) {
-                IProject project = projectsOnClasspath[i];
-    
-                // get timestamp of last build for this project
-                long otherTimestamp = -1;
-                if (AspectJPlugin.isAJProject(project)) {
-                    AjCompiler compiler = AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project);
-                    otherTimestamp = getLastBuildTimeStamp(compiler);
-                } else if (project.hasNature(JavaCore.NATURE_ID)) {
-                    Object s = JavaModelManager.getJavaModelManager().getLastBuiltState(project, null);
-                    if (s != null && s instanceof State) {
-                        State state = (State) s;
-                        // need to use reflection to get at the last build time
-                        otherTimestamp = getLastBuildTime(state);
-                    }
-                } else {
-                    otherTimestamp = -1;
-                }
-                if (lastBuildTimestamp <= otherTimestamp) {
-                    changedProjects.add(project);
-                }
+            List<IProject> changedProjects = new ArrayList<>();
+          for (IProject project : projectsOnClasspath) {
+            // get timestamp of last build for this project
+            long otherTimestamp = -1;
+            if (AspectJPlugin.isAJProject(project)) {
+              AjCompiler compiler = AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project);
+              otherTimestamp = getLastBuildTimeStamp(compiler);
             }
-            List /*String*/ changedEntries = new ArrayList();
-            Set /*String*/ noDups = new HashSet();  // used to ensure there are no dups
-            
+            else if (project.hasNature(JavaCore.NATURE_ID)) {
+              Object s = JavaModelManager.getJavaModelManager().getLastBuiltState(project, null);
+              if (s != null && s instanceof State) {
+                State state = (State) s;
+                // need to use reflection to get at the last build time
+                otherTimestamp = getLastBuildTime(state);
+              }
+            }
+            else {
+              otherTimestamp = -1;
+            }
+            if (lastBuildTimestamp <= otherTimestamp) {
+              changedProjects.add(project);
+            }
+          }
+            List<String> changedEntries = new ArrayList<>();
+            Set<String> noDups = new HashSet<>();  // used to ensure there are no dups
+
             // now that we have all the projects, need to find out what they contribute to
             // this project's path.  could be itself, a jar, or a class folder
             if (changedProjects.size() > 0) {
                 IClasspathEntry[] thisClasspath = JavaCore.create(getProject()).getResolvedClasspath(true);
-                for (Iterator projIter = changedProjects.iterator(); projIter
-                        .hasNext();) {
-                    IProject changedProject = (IProject) projIter.next();
-                    for (int i = 0; i < thisClasspath.length; i++) {
-                        IClasspathEntry classpathEntry = thisClasspath[i];
-                        switch (classpathEntry.getEntryKind()) {
-                        case IClasspathEntry.CPE_PROJECT:
-                            if (changedProject.getFullPath().equals(classpathEntry.getPath())) {
-                                // resolve project and add all entries
-                                List toAdd = listOfClassPathEntriesToListOfString(AspectJCorePreferences.resolveDependentProjectClasspath(
-                                        classpathEntry, changedProject));
-                                for (Iterator pathIter = toAdd.iterator(); pathIter
-                                        .hasNext();) {
-                                    String pathStr = (String) pathIter.next();
-                                    if (! noDups.contains(pathStr)) {
-                                        changedEntries.add(pathStr);
-                                        noDups.add(pathStr);
-                                    }
-                                }
-                            }
-                            break;
-                        case IClasspathEntry.CPE_LIBRARY:
-                            if (changedProject.getFullPath().isPrefixOf(classpathEntry.getPath())) {
-                                // only add if this path exists
-                                IWorkspaceRoot root = getProject().getWorkspace().getRoot();
-                                IFile onPath = root.getFile(classpathEntry.getPath());
-                                if (onPath.exists() || 
-                                        root.getFolder(onPath.getFullPath()).exists()) {  // may be a folder
-                                    String pathStr = onPath.getLocation().toPortableString();
-                                    if (! noDups.contains(pathStr)) {
-                                        changedEntries.add(pathStr);
-                                        noDups.add(pathStr);
-                                    }
-                                }
-                            }
+              for (IProject changedProject : changedProjects) {
+                for (IClasspathEntry classpathEntry : thisClasspath) {
+                  switch (classpathEntry.getEntryKind()) {
+                    case IClasspathEntry.CPE_PROJECT:
+                      if (changedProject.getFullPath().equals(classpathEntry.getPath())) {
+                        // resolve project and add all entries
+                        List<String> toAdd = listOfClassPathEntriesToListOfString(AspectJCorePreferences.resolveDependentProjectClasspath(
+                          classpathEntry, changedProject));
+                        for (String pathStr : toAdd) {
+                          if (!noDups.contains(pathStr)) {
+                            changedEntries.add(pathStr);
+                            noDups.add(pathStr);
+                          }
                         }
-                    }
+                      }
+                      break;
+                    case IClasspathEntry.CPE_LIBRARY:
+                      if (changedProject.getFullPath().isPrefixOf(classpathEntry.getPath())) {
+                        // only add if this path exists
+                        IWorkspaceRoot root = getProject().getWorkspace().getRoot();
+                        IFile onPath = root.getFile(classpathEntry.getPath());
+                        if (onPath.exists() ||
+                            root.getFolder(onPath.getFullPath()).exists())
+                        {  // may be a folder
+                          String pathStr = onPath.getLocation().toPortableString();
+                          if (!noDups.contains(pathStr)) {
+                            changedEntries.add(pathStr);
+                            noDups.add(pathStr);
+                          }
+                        }
+                      }
+                  }
                 }
-            }            
+              }
+            }
             // if all else went well, also add the inpath to the list of changed projects.
             // Adding the inpath always is just a conservative estimate of what has changed.
-            // 
-            // For Java projects, we only know the last structural build time.  Usually this is 
-            // fine, but if the Java project is on the inpath, then we care about the last 
-            // build of any kind, which we can't be sure of.  
+            //
+            // For Java projects, we only know the last structural build time.  Usually this is
+            // fine, but if the Java project is on the inpath, then we care about the last
+            // build of any kind, which we can't be sure of.
             // (Actually, we need to know this for Aspect path projects, but aspectj can give us
             // precise time of the last build.
-            // 
+            //
             // So, as a conservative estimate, put all inpath entries onto the list.
-            Set inPathFiles = CoreCompilerConfiguration.getCompilerConfigurationForProject(getProject()).getInpath();
+            Set<File> inPathFiles = CoreCompilerConfiguration.getCompilerConfigurationForProject(getProject()).getInpath();
             if (inPathFiles != null) {
-                for (Iterator fileIter = inPathFiles.iterator(); fileIter.hasNext();) {
-                    File inpathFile = (File) fileIter.next();
-                    Path path = new Path(inpathFile.getAbsolutePath());
-                    String pathStr = path.toPortableString();
-                    if (! noDups.contains(pathStr)) {
-                        changedEntries.add(pathStr);
-                        noDups.add(pathStr);
-                    }
+              for (File inpathFile : inPathFiles) {
+                Path path = new Path(inpathFile.getAbsolutePath());
+                String pathStr = path.toPortableString();
+                if (!noDups.contains(pathStr)) {
+                  changedEntries.add(pathStr);
+                  noDups.add(pathStr);
                 }
-            }            
+              }
+            }
             return changedEntries;
         } catch (Exception e) {
             // something went wrong.
             // return null to imply everything's changed
-            AspectJPlugin.getDefault().getLog().log(new Status(IStatus.ERROR, AspectJPlugin.PLUGIN_ID, 
+            AspectJPlugin.getDefault().getLog().log(new Status(IStatus.ERROR, AspectJPlugin.PLUGIN_ID,
                     "Error determining list of entries on classpath that have changed.", e));
             return null;
         }
     }
-    
+
     private List<String> listOfClassPathEntriesToListOfString(
             List<IClasspathEntry> entries) {
         IWorkspaceRoot root = getProject().getWorkspace().getRoot();
-        List<String> strings = new ArrayList<String>(entries.size());
+        List<String> strings = new ArrayList<>(entries.size());
         for (IClasspathEntry entry : entries) {
             IPath path = entry.getPath();
             boolean exists;
@@ -703,7 +695,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
                 onPath = root.getProject(path.makeRelative().toOSString());
                 exists = onPath.exists();
             }
-            
+
             if (exists) {
                 strings.add(onPath.getLocation().toPortableString());
             }
@@ -733,7 +725,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
                 IFile file = project.getFile(outjarStr);
                 file.refreshLocal(IResource.DEPTH_ZERO, null);
             }
-            
+
             String inpathOutFolderStr = AspectJCorePreferences.getProjectInpathOutFolder(project);
             if (inpathOutFolderStr != null && inpathOutFolderStr.length() > 0) {
                 // bug 269999 doesn't seem like inpath out folders are refreshed on write
@@ -753,12 +745,12 @@ public class AJBuilder extends IncrementalProjectBuilder {
     /**
      * Check the inpath and aspect path entries exist. Creates problem markers
      * for missing entries
-     * 
+     *
      * @param project
      * @return false if there are missing entries
      */
     private boolean validateInpathAspectPath(IProject project) {
-        CoreCompilerConfiguration compilerConfig = (CoreCompilerConfiguration) 
+        CoreCompilerConfiguration compilerConfig = (CoreCompilerConfiguration)
             AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project).
             getCompilerConfiguration();
         boolean success = true;
@@ -788,31 +780,31 @@ public class AJBuilder extends IncrementalProjectBuilder {
         }
         return success;
     }
-    
+
 
     private boolean isClasspathBroken(IClasspathEntry[] classpath, IProject p) throws CoreException {
-        IMarker[] markers = p.findMarkers(IJavaModelMarker.BUILDPATH_PROBLEM_MARKER, 
+        IMarker[] markers = p.findMarkers(IJavaModelMarker.BUILDPATH_PROBLEM_MARKER,
                 false, IResource.DEPTH_ZERO);
-        for (int i = 0, l = markers.length; i < l; i++) {
-            if (markers[i].getAttribute(IMarker.SEVERITY, -1) == IMarker.SEVERITY_ERROR) {
-                return true;
-            }
+      for (IMarker marker : markers) {
+        if (marker.getAttribute(IMarker.SEVERITY, -1) == IMarker.SEVERITY_ERROR) {
+          return true;
         }
+      }
         return false;
     }
 
-    
+
     private void markProject(IProject project, String errorMessage) {
         try {
             IMarker errorMarker = project.createMarker(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER);
-            errorMarker.setAttribute(IMarker.MESSAGE, errorMessage); 
+            errorMarker.setAttribute(IMarker.MESSAGE, errorMessage);
             errorMarker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
         } catch (CoreException e) {
             AJLog.log(AJLog.BUILDER,"build: Problem occured creating the error marker for project " //$NON-NLS-1$
                             + project.getName() + ": " + e); //$NON-NLS-1$
         }
     }
-    
+
     /**
      * This is taken straight from the JavaBuilder - and is what is returned
      * from the build method
@@ -826,32 +818,31 @@ public class AJBuilder extends IncrementalProjectBuilder {
         if (javaProject == null || workspaceRoot == null)
             return new IProject[0];
 
-        ArrayList<IProject> projects = new ArrayList<IProject>();
+        ArrayList<IProject> projects = new ArrayList<>();
         try {
             IClasspathEntry[] entries = javaProject.getExpandedClasspath();
-            for (int i = 0, l = entries.length; i < l; i++) {
-                IClasspathEntry entry = entries[i];
-                IPath path = entry.getPath();
-                IProject p = null;
-                switch (entry.getEntryKind()) {
-                case IClasspathEntry.CPE_PROJECT:
-                    // missing projects are considered too
-                    p = workspaceRoot.getProject(path.lastSegment());
-                    break;
-                case IClasspathEntry.CPE_LIBRARY:
-                    if (includeBinaryPrerequisites && path.segmentCount() > 1) {
-                        // some binary resources on the class path can come from
-                        // projects that are not included in the project
-                        // references
-                        IResource resource = workspaceRoot.findMember(path
-                                .segment(0));
-                        if (resource instanceof IProject)
-                            p = (IProject) resource;
-                    }
+          for (IClasspathEntry entry : entries) {
+            IPath path = entry.getPath();
+            IProject p = null;
+            switch (entry.getEntryKind()) {
+              case IClasspathEntry.CPE_PROJECT:
+                // missing projects are considered too
+                p = workspaceRoot.getProject(path.lastSegment());
+                break;
+              case IClasspathEntry.CPE_LIBRARY:
+                if (includeBinaryPrerequisites && path.segmentCount() > 1) {
+                  // some binary resources on the class path can come from
+                  // projects that are not included in the project
+                  // references
+                  IResource resource = workspaceRoot.findMember(path
+                    .segment(0));
+                  if (resource instanceof IProject)
+                    p = (IProject) resource;
                 }
-                if (p != null && !projects.contains(p))
-                    projects.add(p);
             }
+            if (p != null && !projects.contains(p))
+              projects.add(p);
+          }
         } catch (JavaModelException e) {
             return new IProject[0];
         }
@@ -879,145 +870,145 @@ public class AJBuilder extends IncrementalProjectBuilder {
         }
         return dependingProjects;
     }
-    
+
     /**
      * Returns the CPE_SOURCE classpath entries for the given IJavaProject
-     * 
+     *
      * @param IJavaProject
      */
     private IClasspathEntry[] getSrcClasspathEntry(IJavaProject javaProject) throws JavaModelException {
-        List<IClasspathEntry> srcEntries = new ArrayList<IClasspathEntry>();
+        List<IClasspathEntry> srcEntries = new ArrayList<>();
         if (javaProject == null) {
             return new IClasspathEntry[0];
         }
         IClasspathEntry[] cpEntry = javaProject.getRawClasspath();
-        for (int j = 0; j < cpEntry.length; j++) {
-            IClasspathEntry entry = cpEntry[j];
-            if (entry.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
-                srcEntries.add(entry);
-            }
-        }   
+      for (IClasspathEntry entry : cpEntry) {
+        if (entry.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
+          srcEntries.add(entry);
+        }
+      }
         return (IClasspathEntry[]) srcEntries.toArray(new IClasspathEntry[srcEntries.size()]);
     }
 
     /**
      * Copies over all non-excluded resources into the out folders.
-     * 
+     *
      * Called during a full build
-     * 
+     *
      * @param javaProject
      */
     private void copyResources(IJavaProject project) throws CoreException {
         IClasspathEntry[] srcEntries = getSrcClasspathEntry(project);
 
-        for (int i = 0, l = srcEntries.length; i < l; i++) {
-            IClasspathEntry srcEntry = srcEntries[i];
-            IPath srcPath = srcEntry.getPath().removeFirstSegments(1);
-            IPath outPath = srcEntry.getOutputLocation();
-            if (outPath == null) {
-               outPath = project.getOutputLocation();
-            }
-            outPath = outPath.removeFirstSegments(1);
-            if (!srcPath.equals(outPath)) {
-                final char[][] inclusionPatterns = ((ClasspathEntry) srcEntry)
-                        .fullInclusionPatternChars();
-                final char[][] exclusionPatterns = ((ClasspathEntry) srcEntry)
-                        .fullExclusionPatternChars();
-        
-                final IContainer srcContainer = getContainerForGivenPath(srcPath,project.getProject());
-                if (!srcContainer.exists()) {
-                    continue;
-                }
-                final int segmentsToRemove = srcContainer.getLocation().segmentCount();
-                final IContainer outContainer = getContainerForGivenPath(outPath,project.getProject());
-                if (outContainer.getType() == IResource.FOLDER && (! outContainer.exists())) {
-                    // also ensure parent folders exist
-                    createFolder(outPath, getProject(), false);
-                }
-                IResourceVisitor copyVisitor = new IResourceVisitor() {
-                    public boolean visit(IResource resource) throws CoreException {
-                        if (Util.isExcluded(resource, inclusionPatterns, exclusionPatterns)) {
-                            return false;
-                        } else if (resource.getType() == IResource.PROJECT) {
-                            return true;
-                        }
-                        
-                        if (resource.getType() == IResource.FOLDER || !isSourceFile(resource)) {
-                            // refresh to ensure that resource has not been deleted from file system
-                            resource.refreshLocal(IResource.DEPTH_ZERO, null);
-    
-                            if (resource.exists()) {
-                                switch (resource.getType()) {
-                                case IResource.FOLDER:
-                                    // ensure folder exists and is derived
-                                    IPath outPath = resource.getLocation().removeFirstSegments(segmentsToRemove);
-                                    IFolder outFolder = (IFolder) createFolder(outPath, outContainer, true);
-                                    
-                                    // outfolder itself should not be derived
-                                    if (outFolder.equals(outContainer)) {
-                                        outFolder.setDerived(false, null);
-                                    }
-                                    break;
-        
-                                case IResource.FILE:
-                                    // if this is not a CU, then copy over and mark as derived
-                                    if (! isSourceFile(resource)) {
-                                        outPath = resource.getLocation().removeFirstSegments(segmentsToRemove);
-                                        IFile outFile = outContainer.getFile(outPath);
-                                        // check to make sure that resource has not been deleted from the file
-                                        // system without a refresh
-                                        if (!outFile.exists()) {
-                                            try {
-                                                resource.copy(outFile.getFullPath(), IResource.DERIVED | IResource.FORCE, null);
-                                                Util.setReadOnly(outFile, false);
-                                            } catch (ResourceException e) {
-                                                resource.refreshLocal(IResource.DEPTH_ZERO, null);
-                                                if (resource.exists()) {
-                                                    // probably hit https://bugs.eclipse.org/bugs/show_bug.cgi?id=331036
-                                                    // We just checked to see if the outfile exists, but we get this exception
-                                                    // anyway.  It might be that it has not been refreshed.
-                                                    if (e.getStatus().getCode() == IResourceStatus.FAILED_WRITE_LOCAL) {
-                                                        AJLog.log(AJLog.BUILDER, "Could not write to resource '" + resource + "'.  " +
-                                                        		"It probbly already exists on disk.  Try a clean build.");
-                                                        outFile.refreshLocal(IResource.DEPTH_ZERO, null);
-                                                    } else {
-                                                        throw e;
-                                                    }
-                                                } else {
-                                                    // resource was deleted in the middle of the build.  Can safely ignore this
-                                                }
-                                            }
-                                        }
-                                    }
-                                    break;
-                                }
-                                return true;
-                            }
-                        }
-                        return false;
-                    }
-                };
-                
-                srcContainer.accept(copyVisitor);
-                
-            }
+      for (IClasspathEntry srcEntry : srcEntries) {
+        IPath srcPath = srcEntry.getPath().removeFirstSegments(1);
+        IPath outPath = srcEntry.getOutputLocation();
+        if (outPath == null) {
+          outPath = project.getOutputLocation();
         }
+        outPath = outPath.removeFirstSegments(1);
+        if (!srcPath.equals(outPath)) {
+          final char[][] inclusionPatterns = ((ClasspathEntry) srcEntry)
+            .fullInclusionPatternChars();
+          final char[][] exclusionPatterns = ((ClasspathEntry) srcEntry)
+            .fullExclusionPatternChars();
+
+          final IContainer srcContainer = getContainerForGivenPath(srcPath, project.getProject());
+          if (!srcContainer.exists()) {
+            continue;
+          }
+          final int segmentsToRemove = srcContainer.getLocation().segmentCount();
+          final IContainer outContainer = getContainerForGivenPath(outPath, project.getProject());
+          if (outContainer.getType() == IResource.FOLDER && (!outContainer.exists())) {
+            // also ensure parent folders exist
+            createFolder(outPath, getProject(), false);
+          }
+          IResourceVisitor copyVisitor = resource -> {
+            if (Util.isExcluded(resource, inclusionPatterns, exclusionPatterns)) {
+              return false;
+            }
+            else if (resource.getType() == IResource.PROJECT) {
+              return true;
+            }
+
+            if (resource.getType() == IResource.FOLDER || !isSourceFile(resource)) {
+              // refresh to ensure that resource has not been deleted from file system
+              resource.refreshLocal(IResource.DEPTH_ZERO, null);
+
+              if (resource.exists()) {
+                switch (resource.getType()) {
+                  case IResource.FOLDER:
+                    // ensure folder exists and is derived
+                    IPath outPath1 = resource.getLocation().removeFirstSegments(segmentsToRemove);
+                    IFolder outFolder = (IFolder) createFolder(outPath1, outContainer, true);
+
+                    // outfolder itself should not be derived
+                    if (outFolder.equals(outContainer)) {
+                      outFolder.setDerived(false, null);
+                    }
+                    break;
+
+                  case IResource.FILE:
+                    // if this is not a CU, then copy over and mark as derived
+                    if (!isSourceFile(resource)) {
+                      outPath1 = resource.getLocation().removeFirstSegments(segmentsToRemove);
+                      IFile outFile = outContainer.getFile(outPath1);
+                      // check to make sure that resource has not been deleted from the file
+                      // system without a refresh
+                      if (!outFile.exists()) {
+                        try {
+                          resource.copy(outFile.getFullPath(), IResource.DERIVED | IResource.FORCE, null);
+                          Util.setReadOnly(outFile, false);
+                        }
+                        catch (ResourceException e) {
+                          resource.refreshLocal(IResource.DEPTH_ZERO, null);
+                          if (resource.exists()) {
+                            // probably hit https://bugs.eclipse.org/bugs/show_bug.cgi?id=331036
+                            // We just checked to see if the outfile exists, but we get this exception
+                            // anyway.  It might be that it has not been refreshed.
+                            if (e.getStatus().getCode() == IResourceStatus.FAILED_WRITE_LOCAL) {
+                              AJLog.log(AJLog.BUILDER, "Could not write to resource '" + resource + "'.  " +
+                                                       "It probbly already exists on disk.  Try a clean build.");
+                              outFile.refreshLocal(IResource.DEPTH_ZERO, null);
+                            }
+                            else {
+                              throw e;
+                            }
+                          }
+                          else {
+                            // resource was deleted in the middle of the build.  Can safely ignore this
+                          }
+                        }
+                      }
+                    }
+                    break;
+                }
+                return true;
+              }
+            }
+            return false;
+          };
+
+          srcContainer.accept(copyVisitor);
+
+        }
+      }
     }
-    
+
     boolean isSourceFile(IResource resource) {
         String extension = resource.getFileExtension();
         return extension != null && (
                 extension.equals("java") ||
                 extension.equals("aj"));
     }
-    
-    
+
+
 
     /**
      * Copies non-src resources to the output directory (bug 78579). The main
-     * part of this method was taken from 
+     * part of this method was taken from
      * {@link org.eclipse.jdt.internal.core.builder.IncrementalImageBuilder.findSourceFiles(IResourceDelta)}
-     * 
+     *
      * @param IJavaProject - the project which is being built
      * @param IResourceDelta - the projects delta
      * @throws CoreException
@@ -1025,59 +1016,60 @@ public class AJBuilder extends IncrementalProjectBuilder {
     private boolean copyResources(IJavaProject project, IResourceDelta delta) throws CoreException {
         IClasspathEntry[] srcEntries = getSrcClasspathEntry(project);
 
-        for (int i = 0, l = srcEntries.length; i < l; i++) {
-            IClasspathEntry srcEntry = srcEntries[i];
-            IPath srcPath = srcEntry.getPath().removeFirstSegments(1);
-            IContainer srcContainer = getContainerForGivenPath(srcPath,project.getProject());
+      for (IClasspathEntry srcEntry : srcEntries) {
+        IPath srcPath = srcEntry.getPath().removeFirstSegments(1);
+        IContainer srcContainer = getContainerForGivenPath(srcPath, project.getProject());
 
-            // handle case where project root is a source folder
-            if (srcContainer.equals(project.getProject())) {
-                int segmentCount = delta.getFullPath().segmentCount();
-                IResourceDelta[] children = delta.getAffectedChildren();
-                for (int j = 0, m = children.length; j < m; j++) {
-                    if (!isExcludedFromProject(project,children[j].getFullPath(),srcEntries)) {
-                        copyResources(project, children[j], srcEntry, segmentCount);
-                    }
-                }
-            } else {
-                IPath projectRelativePath = srcEntry.getPath().removeFirstSegments(1);
-                projectRelativePath.makeRelative();
-                
-                IResourceDelta sourceDelta = delta.findMember(projectRelativePath);
-                if (sourceDelta != null) {
-                    if (sourceDelta.getKind() == IResourceDelta.REMOVED) {
-                        return false; // removed source folder should not make it here, but handle anyways (ADDED is supported)
-                    }
-                    int segmentCount = sourceDelta.getFullPath().segmentCount();
-                    IResourceDelta[] children = sourceDelta.getAffectedChildren();
-                    try {
-                        for (int j = 0, m = children.length; j < m; j++) {
-                            copyResources(project, children[j], srcEntry, segmentCount);
-                        }
-                    } catch (ResourceException e) {
-                        // catch the case that a package has been renamed and collides on disk with an as-yet-to-be-deleted package
-                        if (e.getStatus().getCode() == IResourceStatus.CASE_VARIANT_EXISTS) {
-                            return false;
-                        }
-                        throw e; // rethrow
-                    }
-                }
+        // handle case where project root is a source folder
+        if (srcContainer.equals(project.getProject())) {
+          int segmentCount = delta.getFullPath().segmentCount();
+          IResourceDelta[] children = delta.getAffectedChildren();
+          for (IResourceDelta child : children) {
+            if (!isExcludedFromProject(project, child.getFullPath(), srcEntries)) {
+              copyResources(project, child, srcEntry, segmentCount);
             }
+          }
         }
+        else {
+          IPath projectRelativePath = srcEntry.getPath().removeFirstSegments(1);
+          projectRelativePath.makeRelative();
+
+          IResourceDelta sourceDelta = delta.findMember(projectRelativePath);
+          if (sourceDelta != null) {
+            if (sourceDelta.getKind() == IResourceDelta.REMOVED) {
+              return false; // removed source folder should not make it here, but handle anyways (ADDED is supported)
+            }
+            int segmentCount = sourceDelta.getFullPath().segmentCount();
+            IResourceDelta[] children = sourceDelta.getAffectedChildren();
+            try {
+              for (IResourceDelta child : children) {
+                copyResources(project, child, srcEntry, segmentCount);
+              }
+            }
+            catch (ResourceException e) {
+              // catch the case that a package has been renamed and collides on disk with an as-yet-to-be-deleted package
+              if (e.getStatus().getCode() == IResourceStatus.CASE_VARIANT_EXISTS) {
+                return false;
+              }
+              throw e; // rethrow
+            }
+          }
+        }
+      }
         return true;
     }
 
-    
+
     /**
      * Copies non-src resources to the output directory (bug 78579). The main
-     * part of this method was taken from 
+     * part of this method was taken from
      * org.eclipse.jdt.internal.core.builder.IncrementalImageBuilder.findSourceFiles(IResourceDelta,ClasspathMultiDirectory,int)
-     * 
+     *
      * @param IJavaProject - the project which is being built
      * @param IResourceDelta - the projects delta
      * @param IClasspathEntry - the src entry on the classpath
      * @param int - the segment count
-     * 
+     *
      * @throws CoreException
      */
     private void copyResources(IJavaProject javaProject, IResourceDelta sourceDelta, IClasspathEntry srcEntry, int segmentCount) throws CoreException {
@@ -1090,18 +1082,18 @@ public class AJBuilder extends IncrementalProjectBuilder {
         if (Util.isExcluded(resource, inclusionPatterns, exclusionPatterns)) {
             return;
         }
-        
+
         IPath outputPath = srcEntry.getOutputLocation();
         if (outputPath == null) {
             outputPath = javaProject.getOutputLocation();
         }
-        outputPath = outputPath.removeFirstSegments(1).makeRelative();   
+        outputPath = outputPath.removeFirstSegments(1).makeRelative();
 
-        IContainer outputFolder = getContainerForGivenPath(outputPath,javaProject.getProject());        
+        IContainer outputFolder = getContainerForGivenPath(outputPath,javaProject.getProject());
         IContainer srcContainer = getContainerForGivenPath(srcEntry.getPath().removeFirstSegments(1),javaProject.getProject());
 
         IPath deltaPath = resource.getFullPath().removeFirstSegments(segmentCount);
-        
+
         switch(resource.getType()) {
             case IResource.FOLDER :
                 IContainer folderToRefresh = outputFolder.getFolder(deltaPath);
@@ -1111,31 +1103,31 @@ public class AJBuilder extends IncrementalProjectBuilder {
                         // fall through & collect all the resource files
                     case IResourceDelta.CHANGED :
                         IResourceDelta[] children = sourceDelta.getAffectedChildren();
-                        for (int i = 0, l = children.length; i < l; i++) {
-                            copyResources(javaProject, children[i], srcEntry, segmentCount);
-                        }
+                      for (IResourceDelta child : children) {
+                        copyResources(javaProject, child, srcEntry, segmentCount);
+                      }
                         break;
-                        
+
                     case IResourceDelta.REMOVED :
                         IClasspathEntry[] srcEntries = getSrcClasspathEntry(javaProject);
                         if (srcEntries.length > 1) {
-                            for (int i = 0, l = srcEntries.length; i < l; i++) {
-                                IPath srcPath = srcEntries[i].getPath().removeFirstSegments(1);
-                                IFolder srcFolder = javaProject.getProject().getFolder(srcPath);
-                                if (srcFolder.getFolder(deltaPath).exists()) {
-                                    // only a package fragment was removed, same as removing multiple source files
-                                    // ensure package exists in the output folder
-                                    // ADE---wait...why are we doing this???  why not just delete and be done with it?
-                                    // not going to change this because I don't know the ramifications.
-                                    createFolder(deltaPath, outputFolder, true); 
-                                    IResourceDelta[] removedChildren = sourceDelta.getAffectedChildren();
-                                    for (int j = 0, m = removedChildren.length; j < m; j++) {
-                                        copyResources(javaProject,removedChildren[j], srcEntry, segmentCount);
-                                    }
-                                    folderToRefresh.refreshLocal(IResource.DEPTH_ZERO, null);
-                                    return;
-                                }
+                          for (IClasspathEntry entry : srcEntries) {
+                            IPath srcPath = entry.getPath().removeFirstSegments(1);
+                            IFolder srcFolder = javaProject.getProject().getFolder(srcPath);
+                            if (srcFolder.getFolder(deltaPath).exists()) {
+                              // only a package fragment was removed, same as removing multiple source files
+                              // ensure package exists in the output folder
+                              // ADE---wait...why are we doing this???  why not just delete and be done with it?
+                              // not going to change this because I don't know the ramifications.
+                              createFolder(deltaPath, outputFolder, true);
+                              IResourceDelta[] removedChildren = sourceDelta.getAffectedChildren();
+                              for (IResourceDelta removedChild : removedChildren) {
+                                copyResources(javaProject, removedChild, srcEntry, segmentCount);
+                              }
+                              folderToRefresh.refreshLocal(IResource.DEPTH_ZERO, null);
+                              return;
                             }
+                          }
                         }
                         IFolder removedPackageFolder = outputFolder.getFolder(deltaPath);
                         if (removedPackageFolder.exists()) {
@@ -1145,19 +1137,19 @@ public class AJBuilder extends IncrementalProjectBuilder {
                 } // switch(sourceDelta.getKind())
                 folderToRefresh.refreshLocal(IResource.DEPTH_ZERO, null);
                 break;
-                
+
             case IResource.FILE :
                 // only do something if the output folder is different to the src folder
                 if (!outputFolder.equals(srcContainer)) {
                     // copy all resource deltas to the output folder
                     if (deltaPath == null) return;
                     // don't want to copy over .aj or .java files
-                    if (deltaPath.getFileExtension() != null 
+                    if (deltaPath.getFileExtension() != null
                             && (deltaPath.getFileExtension().equals("aj") //$NON-NLS-1$
                                     || deltaPath.getFileExtension().equals("java"))) { //$NON-NLS-1$
                         break;
                     }
-                    
+
                     IResource fileToRefresh = outputFolder.getFile(deltaPath);
                     switch (sourceDelta.getKind()) {
                         case IResourceDelta.ADDED :
@@ -1166,7 +1158,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
                                 fileToRefresh.delete(IResource.FORCE, null);
                             }
                             AJLog.log(AJLog.BUILDER,"Copying added file " + deltaPath);//$NON-NLS-1$
-                            createFolder(deltaPath.removeLastSegments(1), outputFolder, true); 
+                            createFolder(deltaPath.removeLastSegments(1), outputFolder, true);
                             resource.copy(fileToRefresh.getFullPath(), IResource.FORCE | IResource.DERIVED, null);
                             Util.setReadOnly(fileToRefresh, false); // just in case the original was read only
                             fileToRefresh.refreshLocal(IResource.DEPTH_ZERO,null);
@@ -1199,16 +1191,16 @@ public class AJBuilder extends IncrementalProjectBuilder {
                             resource.copy(fileToRefresh.getFullPath(), IResource.FORCE | IResource.DERIVED, null);
                             Util.setReadOnly(fileToRefresh, false); // just in case the original was read only
                             break;
-                    }                   
+                    }
                     fileToRefresh.refreshLocal(IResource.DEPTH_ZERO,null);
                 }  // switch (sourceDelta.getKind())
                 break;
         }  // switch(resource.getType())
     }
-    
+
     /**
      * Returns the IContainer for the given path in the given project
-     * 
+     *
      * @param path
      * @param project
      * @return
@@ -1216,7 +1208,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
     private IContainer getContainerForGivenPath(IPath path, IProject project) {
         if (path.toOSString().equals("")) { //$NON-NLS-1$
             return project;
-        }   
+        }
         return project.getFolder(path);
     }
 
@@ -1247,21 +1239,23 @@ public class AJBuilder extends IncrementalProjectBuilder {
         // answer whether the folder should be ignored when walking the project as a source folder
         if (childPath.segmentCount() > 2) return false; // is a subfolder of a package
 
-        for (int j = 0, k = srcEntries.length; j < k; j++) {
-            IPath outputPath = srcEntries[j].getOutputLocation();
-            if (outputPath == null) {
-                outputPath = javaProject.getOutputLocation();
-            }
-            outputPath = outputPath.removeFirstSegments(1).makeRelative();        
-            if (childPath.equals(getContainerForGivenPath(outputPath,javaProject.getProject()).getFullPath())) return true;
-            
-            IPath srcPath = srcEntries[j].getPath().removeFirstSegments(1);
-            if (childPath.equals(getContainerForGivenPath(srcPath,javaProject.getProject()).getFullPath())) return true;
+      for (IClasspathEntry srcEntry : srcEntries) {
+        IPath outputPath = srcEntry.getOutputLocation();
+        if (outputPath == null) {
+          outputPath = javaProject.getOutputLocation();
         }
+        outputPath = outputPath.removeFirstSegments(1).makeRelative();
+        if (childPath.equals(getContainerForGivenPath(outputPath, javaProject.getProject()).getFullPath()))
+          return true;
+
+        IPath srcPath = srcEntry.getPath().removeFirstSegments(1);
+        if (childPath.equals(getContainerForGivenPath(srcPath, javaProject.getProject()).getFullPath()))
+          return true;
+      }
         // skip default output folder which may not be used by any source folder
         return childPath.equals(javaProject.getOutputLocation());
     }
-    
+
     /**
      * Tidies up the output folder before a build. JDT does this by going
      * through the source and deleting the relevant .class files. That works ok
@@ -1272,7 +1266,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
      * resources that might be in the output directory - but I can't delete
      * everything because some people have the output directory set to the top
      * level of their project.
-     * 
+     *
      * There is a subtlety with linked folders being used as output folders, but
      * it does work, I added an AJDTUtils helper method which attempts IPath
      * dereferencing. if the IPath is a 'linked folder' then the helper method
@@ -1286,21 +1280,21 @@ public class AJBuilder extends IncrementalProjectBuilder {
         if (deleteAll) {
             int numberDeleted = 0;
             IPath[] paths = CoreUtils.getOutputFolders(project);
-            for (int i = 0; i < paths.length; i++) {
-                numberDeleted += cleanFolder(project, paths[i], refresh);
-            }
-            
+          for (IPath path : paths) {
+            numberDeleted += cleanFolder(project, path, refresh);
+          }
+
             // clean inpath out folder
             String inpathOut = AspectJCorePreferences.getProjectInpathOutFolder(project.getProject());
             if (inpathOut != null && !inpathOut.equals("")) { //$NON-NLS-1$
                 IPath inpathOutfolder = new Path(inpathOut);
                 numberDeleted += cleanFolder(project, inpathOutfolder, refresh);
             }
-            
+
             AJLog.log(AJLog.BUILDER,"Builder: Tidied output folder(s), removed class files and derived resources"); //$NON-NLS-1$
         }
     }
-    
+
     private int cleanFolder(IJavaProject project, IPath outputFolder, boolean refresh) throws CoreException {
         IResource outputResource;
         if (outputFolder.segmentCount() == 1) {
@@ -1315,14 +1309,14 @@ public class AJBuilder extends IncrementalProjectBuilder {
         }
 
         int numberDeleted = wipeFiles(outputResource); //$NON-NLS-1$
-        
-        
+
+
         if (refresh) {
             outputResource.refreshLocal(IResource.DEPTH_INFINITE, null);
         }
         return numberDeleted;
     }
-    
+
     public static void cleanAJFilesFromOutputFolder(
             IPath workspaceRelativeOutputPath) throws CoreException {
         IFolder out = ResourcesPlugin.getWorkspace().getRoot().getFolder(
@@ -1336,12 +1330,12 @@ public class AJBuilder extends IncrementalProjectBuilder {
                 + (out.isLinked() ? " (Linked output folder from " //$NON-NLS-1$
                         + workspaceRelativeOutputPath.toOSString() + ")" : "")); //$NON-NLS-1$ //$NON-NLS-2$
     }
-    
+
     /**
      * Recursively calling function. Given some set of files (which might be
      * dirs) it deletes any files with the given extension from the filesystem and then for any
      * directories, recursively calls itself.
-     * 
+     *
      * BUG 101489---also delete files marked as derived
      * BUG 253528---all folders below the output folder are marked as derived.
      * so entire out folder is wiped.
@@ -1352,10 +1346,10 @@ public class AJBuilder extends IncrementalProjectBuilder {
             public boolean visit(IResource resource) throws CoreException {
                 if (resource.isDerived()) {
                     try {
-                        // non-class file 
+                        // non-class file
                         resource.delete(true, null);
                         // num deleted will not include counts from children of deleted folders
-                        numDeleted++;   
+                        numDeleted++;
                     } catch(ResourceException e) {
                     }
                     return false;
@@ -1363,8 +1357,8 @@ public class AJBuilder extends IncrementalProjectBuilder {
                 // continue visit to children
                 return true;
             }
-        };
-        WipeResources visitor = new WipeResources();
+        }
+      WipeResources visitor = new WipeResources();
         try {
             outputResource.accept(visitor);
         } catch (CoreException e) {
@@ -1373,7 +1367,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
     }
 
     /**
-     * Delete all files in the output folder with a certain 
+     * Delete all files in the output folder with a certain
      * file extension
      */
     private static int wipeFilesOfKind(IResource outputResource,
@@ -1401,15 +1395,14 @@ public class AJBuilder extends IncrementalProjectBuilder {
                 return true;
             }
         }
-        ;
-        WipeResources visitor = new WipeResources();
+      WipeResources visitor = new WipeResources();
         try {
             outputResource.accept(visitor);
         } catch (CoreException e) {}
         return visitor.numDeleted;
      }
 
-    
+
     /**
      * This is the workaround discussed in bug 73435 for the case when projects are
      * checked out from CVS, the AJ projects have no valid build state and projects
@@ -1417,75 +1410,82 @@ public class AJBuilder extends IncrementalProjectBuilder {
      */
     private void updateJavaCompilerPreferences(IProject[] dependingProjects) {
         boolean setWorkbenchPref = false;
-        for (int i = 0; i < dependingProjects.length; i++) {
-            IProject dependingProject = dependingProjects[i];
-            try {
-                // Skip over any dependents that are themselves
-                // AspectJ projects
-                if (AspectJPlugin.isAJProject(dependingProject)) {
-                    continue;
-                }
-                
-                // Only update dependent projects that have Java natures.
-                // These could be ordinary Java projects or if we running inside
-                // other Eclipse-based tools, they could be J2EE projects like dynamic
-                // web projects.
-                // Note that if the project does not have a Java nature then
-                // the JavaCore.create() call appears to return a null. 
-                if (dependingProject.hasNature(JavaCore.NATURE_ID)) {
-                    JavaProject jp = (JavaProject)JavaCore.create(dependingProject);
-                    // Bug 91131 - In Eclipse 3.1 need to use IEclipsePreferences
-                    IEclipsePreferences projectPreferences = jp.getEclipsePreferences();
-                    String[] keys = projectPreferences.keys();
+      for (IProject dependingProject : dependingProjects) {
+        try {
+          // Skip over any dependents that are themselves
+          // AspectJ projects
+          if (AspectJPlugin.isAJProject(dependingProject)) {
+            continue;
+          }
 
-                    if (keys.length == 0 && !setWorkbenchPref) {
-                        Hashtable options = JavaCore.getOptions();
-                        String workbenchSetting = (String)options.get(JavaCore.CORE_JAVA_BUILD_INVALID_CLASSPATH);
-                        if (lastWorkbenchPreference.equals(JavaCore.ABORT) 
-                                && workbenchSetting.equals(JavaCore.IGNORE)) {
-                            lastWorkbenchPreference = JavaCore.IGNORE;
-                        } else if (lastWorkbenchPreference.equals(JavaCore.ABORT) 
-                                && workbenchSetting.equals(JavaCore.ABORT)){
-                            if (!setWorkbenchPref) {
-                                options.put(JavaCore.CORE_JAVA_BUILD_INVALID_CLASSPATH,JavaCore.IGNORE);
-                                JavaCore.setOptions(options);   
-                                setWorkbenchPref = true;    
-                                lastWorkbenchPreference = JavaCore.IGNORE;
-                            }
-                        } else if (lastWorkbenchPreference.equals(JavaCore.IGNORE) 
-                                && workbenchSetting.equals(JavaCore.ABORT)){
-                            if (!setWorkbenchPref) {
-                                options.put(JavaCore.CORE_JAVA_BUILD_INVALID_CLASSPATH,JavaCore.IGNORE);
-                                JavaCore.setOptions(options);   
-                                setWorkbenchPref = true;
-                            } else {
-                                lastWorkbenchPreference = JavaCore.ABORT;
-                            }
-                        }
-                    } else if (keys.length > 0 && usingProjectBuildingOptions(keys)) {
-                        projectPreferences.put(JavaCore.CORE_JAVA_BUILD_INVALID_CLASSPATH, JavaCore.IGNORE);
-                        try {
-                            projectPreferences.flush();
-                        } catch (BackingStoreException e) {
-                            // problem with pref store - quietly ignore
-                        }
-                        lastWorkbenchPreference = (String)JavaCore.getOptions().get(JavaCore.CORE_JAVA_BUILD_INVALID_CLASSPATH);
-                    }
-                }// end if dependent has a Java nature
-            } catch (CoreException e) {
-            } catch (BackingStoreException e) {
+          // Only update dependent projects that have Java natures.
+          // These could be ordinary Java projects or if we running inside
+          // other Eclipse-based tools, they could be J2EE projects like dynamic
+          // web projects.
+          // Note that if the project does not have a Java nature then
+          // the JavaCore.create() call appears to return a null.
+          if (dependingProject.hasNature(JavaCore.NATURE_ID)) {
+            JavaProject jp = (JavaProject) JavaCore.create(dependingProject);
+            // Bug 91131 - In Eclipse 3.1 need to use IEclipsePreferences
+            IEclipsePreferences projectPreferences = jp.getEclipsePreferences();
+            String[] keys = projectPreferences.keys();
+
+            if (keys.length == 0 && !setWorkbenchPref) {
+              Hashtable<String, String> options = JavaCore.getOptions();
+              String workbenchSetting = options.get(JavaCore.CORE_JAVA_BUILD_INVALID_CLASSPATH);
+              if (lastWorkbenchPreference.equals(JavaCore.ABORT)
+                  && workbenchSetting.equals(JavaCore.IGNORE))
+              {
+                lastWorkbenchPreference = JavaCore.IGNORE;
+              }
+              else if (lastWorkbenchPreference.equals(JavaCore.ABORT)
+                       && workbenchSetting.equals(JavaCore.ABORT))
+              {
+                if (!setWorkbenchPref) {
+                  options.put(JavaCore.CORE_JAVA_BUILD_INVALID_CLASSPATH, JavaCore.IGNORE);
+                  JavaCore.setOptions(options);
+                  setWorkbenchPref = true;
+                  lastWorkbenchPreference = JavaCore.IGNORE;
+                }
+              }
+              else if (lastWorkbenchPreference.equals(JavaCore.IGNORE)
+                       && workbenchSetting.equals(JavaCore.ABORT))
+              {
+                if (!setWorkbenchPref) {
+                  options.put(JavaCore.CORE_JAVA_BUILD_INVALID_CLASSPATH, JavaCore.IGNORE);
+                  JavaCore.setOptions(options);
+                  setWorkbenchPref = true;
+                }
+                else {
+                  lastWorkbenchPreference = JavaCore.ABORT;
+                }
+              }
             }
-        }       
+            else if (keys.length > 0 && usingProjectBuildingOptions(keys)) {
+              projectPreferences.put(JavaCore.CORE_JAVA_BUILD_INVALID_CLASSPATH, JavaCore.IGNORE);
+              try {
+                projectPreferences.flush();
+              }
+              catch (BackingStoreException e) {
+                // problem with pref store - quietly ignore
+              }
+              lastWorkbenchPreference = (String) JavaCore.getOptions().get(JavaCore.CORE_JAVA_BUILD_INVALID_CLASSPATH);
+            }
+          }// end if dependent has a Java nature
+        }
+        catch (CoreException | BackingStoreException e) {
+        }
+      }
     }
-    
+
     /**
-     * Bug 91131 - Checking to see if the user has selected to use project 
-     * setting for building. Unfortunately, there is no way of checking 
-     * whether the user has selected to use project settings other than to 
+     * Bug 91131 - Checking to see if the user has selected to use project
+     * setting for building. Unfortunately, there is no way of checking
+     * whether the user has selected to use project settings other than to
      * see whether the options contained on the building page are in the
      * IEclipsePreferences. There is also the need for this extra check,
-     * rather than just whether there are any IEclipsePreferences, 
-     * in Eclipse 3.1 because there are several property pages for the 
+     * rather than just whether there are any IEclipsePreferences,
+     * in Eclipse 3.1 because there are several property pages for the
      * different compiler options.
      */
     private boolean usingProjectBuildingOptions(String[] keys) {
@@ -1499,8 +1499,8 @@ public class AJBuilder extends IncrementalProjectBuilder {
                 || listOfKeys.contains(JavaCore.CORE_INCOMPLETE_CLASSPATH)
                 || listOfKeys.contains(JavaCore.CORE_INCOMPATIBLE_JDK_LEVEL));
     }
-    
-    
+
+
     public static void addAJBuildListener(IAJBuildListener listener) {
         // bug 281687 --- synchronize access to listener list
         synchronized (buildListeners) {
@@ -1534,7 +1534,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
             }
         }
     }
-    
+
     private void preCallListeners(int kind, IProject project, IProject[] requiredProjects) {
         // bug 281687 --- synchronize access to listener list
         synchronized (buildListeners) {
@@ -1543,7 +1543,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
             }
         }
     }
-    
+
     private void postCallListeners(int kind, boolean noSourceChanges, Map<IFile, List<CategorizedProblem>> newProblems) {
         // bug 281687 --- synchronize access to listener list
         synchronized (buildListeners) {
@@ -1552,7 +1552,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
             }
         }
     }
-    
+
     private void postCleanCallListeners() {
         // bug 281687 --- synchronize access to listener list
         synchronized (buildListeners) {
@@ -1561,7 +1561,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
             }
         }
     }
-    
+
     /* (non-Javadoc)
      * @see org.eclipse.core.resources.IncrementalProjectBuilder#clean(org.eclipse.core.runtime.IProgressMonitor)
      */
@@ -1572,8 +1572,8 @@ public class AJBuilder extends IncrementalProjectBuilder {
         // from the factory
         AspectJPlugin.getDefault().getCompilerFactory().removeCompilerForProject(project);
         AJProjectModelFactory.getInstance().removeModelForProject(project);
-        
-        
+
+
         // handle participants
         final IJavaProject javaProject = JavaCore.create(project);
         CompilationParticipant[] participants = JavaModelManager.getJavaModelManager().compilationParticipants.getCompilationParticipants(javaProject);
@@ -1599,24 +1599,24 @@ public class AJBuilder extends IncrementalProjectBuilder {
             }
         }
 
-        
+
         removeProblemsAndTasksFor(project);
         // clean the output folders and do a refresh if not
         // automatically building (so that output dir reflects the
         // changes)
         cleanOutputFolders(JavaCore.create(project),
                 !AspectJPlugin.getWorkspace().getDescription().isAutoBuilding());
-        
-        
+
+
         postCleanCallListeners();
     }
-    
+
     private void removeProblemsAndTasksFor(IResource resource) {
         try {
             if (resource != null && resource.exists()) {
                 resource.deleteMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, true, IResource.DEPTH_INFINITE);
                 resource.deleteMarkers(IJavaModelMarker.TASK_MARKER, false, IResource.DEPTH_INFINITE);
-                
+
                 // now removed markers from compilation participants
                 HashSet<String> managedMarkers = JavaModelManager.getJavaModelManager().compilationParticipants.managedMarkerTypes();
                 for (String managedMarker : managedMarkers) {
@@ -1629,10 +1629,10 @@ public class AJBuilder extends IncrementalProjectBuilder {
             AJLog.log(AJLog.BUILDER,"Removed problems and tasks for project "+resource.getName()); //$NON-NLS-1$
         }
     }
-    
+
     /**
      * Looks for changes of any relevant kind in this project and marks them in
-     * the compiler configuration 
+     * the compiler configuration
      */
     public boolean hasChangesAndMark(IResourceDelta delta, IProject project) {
         AJLog.logStart("Looking for and marking configuration changes in " + project.getName());
@@ -1642,15 +1642,15 @@ public class AJBuilder extends IncrementalProjectBuilder {
         hasChanges |= manifestChanged(delta, compilerConfiguration);
         hasChanges |= projectSpecificSettingsChanged(delta, compilerConfiguration);
         AJLog.logEnd(AJLog.BUILDER, "Looking for and marking configuration changes in " + project.getName());
-        AJLog.log(AJLog.BUILDER, "\tConfiguration changes found: " + hasChanges);  
+        AJLog.log(AJLog.BUILDER, "\tConfiguration changes found: " + hasChanges);
         return hasChanges;
     }
-    
+
     private boolean projectSpecificSettingsChanged(IResourceDelta delta, CoreCompilerConfiguration compilerConfiguration) {
         IResourceDelta settingsDelta = delta.findMember(new Path(".settings"));
         // assume that if something in this folder has changed, then
         // it is a project specific setting
-        if (settingsDelta != null && 
+        if (settingsDelta != null &&
                    settingsDelta.getAffectedChildren().length > 0) {
             compilerConfiguration.configurationChanged(
                     CompilerConfigurationChangeFlags.JAVAOPTIONS_CHANGED |
@@ -1668,7 +1668,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
             compilerConfiguration.configurationChanged(
                 CompilerConfigurationChangeFlags.CLASSPATH_CHANGED |
                 CompilerConfigurationChangeFlags.ASPECTPATH_CHANGED |
-                CompilerConfigurationChangeFlags.INPATH_CHANGED | 
+                CompilerConfigurationChangeFlags.INPATH_CHANGED |
                 CompilerConfigurationChangeFlags.OUTPUTDESTINATIONS_CHANGED);
             return true;
         } else {
@@ -1677,7 +1677,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
     }
 
     private boolean manifestChanged(IResourceDelta delta, CoreCompilerConfiguration compilerConfiguration) {
-        // we make an assumption here that the project actually cares about 
+        // we make an assumption here that the project actually cares about
         // the manifest file (ie- it is a plugin project or an OSGi project
         if (delta.findMember(new Path("META-INF/MANIFEST.MF")) != null) {
             compilerConfiguration.configurationChanged(
@@ -1697,19 +1697,19 @@ public class AJBuilder extends IncrementalProjectBuilder {
      */
     private boolean sourceFilesChanged(IResourceDelta delta, IProject project, CoreCompilerConfiguration compilerConfiguration) {
         if (delta != null && delta.getAffectedChildren().length != 0) {
-            
+
             Set<IFile> includedFileNames = BuildConfig.getIncludedSourceFilesSet(project);
 
-            IJavaProject javaProject = JavaCore.create(project);        
+            IJavaProject javaProject = JavaCore.create(project);
             if (javaProject == null) {
                 return true;
-            }           
+            }
             try {
                 SourceFilesChangedVisitor visitor = new SourceFilesChangedVisitor(project, includedFileNames);
                 delta.accept(visitor);
-                
+
                 if (visitor.hasChanges()) {
-                    AJLog.log(AJLog.BUILDER,"build: Examined delta - " + visitor.getNumberChanged() + //$NON-NLS-1$ 
+                    AJLog.log(AJLog.BUILDER,"build: Examined delta - " + visitor.getNumberChanged() + //$NON-NLS-1$
                             " changed, " + visitor.getNumberAdded() + " added, and " + //$NON-NLS-1$ //$NON-NLS-2$
                             visitor.getNumberRemoved() + " deleted source files in " //$NON-NLS-1$
                             + "required project " + project.getName() ); //$NON-NLS-1$
@@ -1719,20 +1719,20 @@ public class AJBuilder extends IncrementalProjectBuilder {
                 }
             } catch (CoreException e) {
                 AspectJPlugin.getDefault().getLog().log(
-                        new Status(IStatus.ERROR, 
+                        new Status(IStatus.ERROR,
                                 AspectJPlugin.PLUGIN_ID, "Error finding source file changes", e));
             }
         }
         return false;
     }
-    
+
     private static class SourceFilesChangedVisitor implements IResourceDeltaVisitor {
         private final Set<IFile> includedFileNames;
         private final CoreCompilerConfiguration compilerConfiguration;
         private int numberChanged;
         private int numberAdded;
         private int numberRemoved;
-        
+
         private SourceFilesChangedVisitor(IProject affectedProject,
                 Set<IFile> includedFileNames) {
             this.includedFileNames = includedFileNames;
@@ -1750,11 +1750,11 @@ public class AJBuilder extends IncrementalProjectBuilder {
 
             if (delta.getResource().getType() == IResource.FILE) {
                 if (CoreUtils.ASPECTJ_SOURCE_FILTER.accept(resname)) {
-                        
+
                     switch (delta.getKind()) {
                     case IResourceDelta.REMOVED:
                     case IResourceDelta.REMOVED_PHANTOM:
-                        // don't check to see if these files are on the list of included 
+                        // don't check to see if these files are on the list of included
                         // files because they have already been removed and we won't find
                         // them on the list.
                         // be conservative and set the flag regardless.
@@ -1781,7 +1781,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
                 }
                 return false;
             } else {
-                // want to fully traverse this delta if not 
+                // want to fully traverse this delta if not
                 // a leaf node
                 return true;
             }
@@ -1795,12 +1795,12 @@ public class AJBuilder extends IncrementalProjectBuilder {
         public int getNumberRemoved() {
             return numberRemoved;
         }
-        
+
         public boolean hasChanges() {
             return numberAdded + numberChanged + numberRemoved > 0;
         }
     }
-    
+
     public static void addStateListener() {
         if (isl == null) {
             // Uses secret API in state to get callbacks on useful events
@@ -1815,8 +1815,8 @@ public class AJBuilder extends IncrementalProjectBuilder {
                 }
 
                 public void buildSuccessful(boolean wasFull) {
-                    AJLog.log(AJLog.COMPILER,"AspectJ reports build successful, build was: " + //$NON-NLS-1$ 
-                            (wasFull ? "FULL" : "INCREMENTAL")); //$NON-NLS-1$ //$NON-NLS-2$ 
+                    AJLog.log(AJLog.COMPILER,"AspectJ reports build successful, build was: " + //$NON-NLS-1$
+                            (wasFull ? "FULL" : "INCREMENTAL")); //$NON-NLS-1$ //$NON-NLS-2$
                 }
 
                 public void detectedAspectDeleted(File f) {
@@ -1832,11 +1832,11 @@ public class AJBuilder extends IncrementalProjectBuilder {
         }
         AjState.stateListener = isl;
     }
-    
+
     public static void removeStateListener() {
         AjState.stateListener = null;
     }
-    
+
     private void migrateToRTContainerIfNecessary(IJavaProject javaProject) {
         if (!AspectJRTInitializer.hasBeenUsed) {
             // if the old ASPECTJRT_LIB var hasn't been initialized

@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Sian January    - initial version
@@ -35,10 +35,10 @@ import org.eclipse.jdt.core.JavaCore;
 
 public class BuildConfigurationTest2 extends AJDTCoreTestCase {
 
-	
+
 	public void testExcludeAllWithNoPackages() throws Exception {
-		IProject project = createPredefinedProject("WithoutSourceFolder"); //$NON-NLS-1$		
-		waitForAutoBuild();	
+		IProject project = createPredefinedProject("WithoutSourceFolder"); //$NON-NLS-1$
+		waitForAutoBuild();
 		checkIncluded(project, 2);
 		IFile propertiesFile = project.getFile("none.ajproperties"); //$NON-NLS-1$
 		propertiesFile.create(new ReaderInputStream(new StringReader("src.includes = /\n" + //$NON-NLS-1$
@@ -47,21 +47,21 @@ public class BuildConfigurationTest2 extends AJDTCoreTestCase {
 		waitForAutoBuild();
 		assertNotNull(propertiesFile);
 		assertTrue(propertiesFile.exists());
-		
+
 		BuildConfigurationUtils.applyBuildConfiguration(propertiesFile);
 		waitForAutoBuild();
-		checkIncluded(project, 0);	
-		
+		checkIncluded(project, 0);
+
 		IFile newPropertiesFile = project.getFile("none2.ajproperties"); //$NON-NLS-1$
 		BuildConfigurationUtils.saveBuildConfiguration(newPropertiesFile);
 		newPropertiesFile.refreshLocal(1, null);
 		waitForAutoBuild();
 		compareFiles(propertiesFile, newPropertiesFile);
 	}
-	
+
 	public void testExcludeAllWithPackages() throws Exception {
-		IProject project = createPredefinedProject("Figures Demo"); //$NON-NLS-1$		
-		waitForAutoBuild();	
+		IProject project = createPredefinedProject("Figures Demo"); //$NON-NLS-1$
+		waitForAutoBuild();
 		checkIncluded(project, 13);
 		IFile propertiesFile = project.getFile("none.ajproperties"); //$NON-NLS-1$
 		propertiesFile.create(new ReaderInputStream(new StringReader("src.includes = /\n" + //$NON-NLS-1$
@@ -69,63 +69,63 @@ public class BuildConfigurationTest2 extends AJDTCoreTestCase {
 		waitForAutoBuild();
 		assertNotNull(propertiesFile);
 		assertTrue(propertiesFile.exists());
-		
+
 		BuildConfigurationUtils.applyBuildConfiguration(propertiesFile);
 		waitForAutoBuild();
-		checkIncluded(project, 0);	
-		
+		checkIncluded(project, 0);
+
 		IFile newPropertiesFile = project.getFile("none2.ajproperties"); //$NON-NLS-1$
 		BuildConfigurationUtils.saveBuildConfiguration(newPropertiesFile);
 		newPropertiesFile.refreshLocal(1, null);
 		waitForAutoBuild();
-		
+
 		compareFiles(propertiesFile, newPropertiesFile);
 	}
-	
+
 	public void testExcludeSomeWithPackages() throws Exception {
-		IProject project = createPredefinedProject("Figures Demo"); //$NON-NLS-1$		
-		waitForAutoBuild();	
+		IProject project = createPredefinedProject("Figures Demo"); //$NON-NLS-1$
+		waitForAutoBuild();
 		checkIncluded(project, 13);
 		IFile propertiesFile = project.getFile("build.ajproperties"); //$NON-NLS-1$
 		assertNotNull(propertiesFile);
 		assertTrue(propertiesFile.exists());
-		
+
 		BuildConfigurationUtils.applyBuildConfiguration(propertiesFile);
 		waitForAutoBuild();
-		checkIncluded(project, 12);	
-		
+		checkIncluded(project, 12);
+
 		IFile newPropertiesFile = project.getFile("build2.ajproperties"); //$NON-NLS-1$
 		BuildConfigurationUtils.saveBuildConfiguration(newPropertiesFile);
 		newPropertiesFile.refreshLocal(1, null);
 		waitForAutoBuild();
-		
+
 		compareFiles(propertiesFile, newPropertiesFile);
 	}
 
 	private void checkIncluded(IProject project, int numFiles) throws Exception {
 		Set<IFile> included = BuildConfig.getIncludedSourceFiles(project);
 		assertEquals(numFiles, included.size());
-		
-		for (Iterator includedIter = included.iterator(); includedIter.hasNext();) {
-            IFile file = (IFile) includedIter.next();
+
+		for (Iterator<IFile> includedIter = included.iterator(); includedIter.hasNext();) {
+            IFile file = includedIter.next();
             checkModel(file);
         }
 	}
-	
+
     private void checkModel(IFile file) throws Exception {
         AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForProject(file.getProject());
         IJavaElement unit = JavaCore.create(file);
         if (model.hasProgramElement(unit)) {
-            List accumulatedErrors = HandleTestUtils.checkJavaHandle(unit.getHandleIdentifier(), model);
+            List<String> accumulatedErrors = HandleTestUtils.checkJavaHandle(unit.getHandleIdentifier(), model);
             IProgramElement ipe = model.javaElementToProgramElement(unit);
             HandleTestUtils.checkAJHandle(ipe.getHandleIdentifier(), model);
-            
+
             if (accumulatedErrors.size() > 0) {
                 StringBuffer sb = new StringBuffer();
                 sb.append("Found errors in comparing elements:\n");
-                for (Iterator iterator = accumulatedErrors.iterator(); iterator
+                for (Iterator<String> iterator = accumulatedErrors.iterator(); iterator
                 .hasNext();) {
-                    String msg = (String) iterator.next();
+                    String msg = iterator.next();
                     sb.append(msg + "\n");
                 }
                 fail(sb.toString());
@@ -145,7 +145,7 @@ public class BuildConfigurationTest2 extends AJDTCoreTestCase {
 			while(line1 != null && line2 != null) {
 				assertEquals(line1.trim(), line2.trim());
 				line1 = br.readLine();
-				line2 = br2.readLine();				
+				line2 = br2.readLine();
 			}
 		} finally {
 			if(br != null) {

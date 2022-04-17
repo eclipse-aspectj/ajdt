@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Luzius Meisser - initial implementation
  *******************************************************************************/
@@ -21,16 +21,16 @@ import org.eclipse.jdt.internal.core.JavaElement;
  * @author Luzius Meisser
  */
 public class AdviceElement extends AspectJMemberElement implements IAspectJElement, NoFFDC {
-	
+
 	public AdviceElement(JavaElement parent, String name, String[] parameterTypes) {
 		super(parent, name, parameterTypes);
 	}
-	
+
 	/**
 	 */
 	public String readableName() {
 
-		StringBuffer buffer = new StringBuffer(super.readableName());
+		StringBuilder buffer = new StringBuilder(super.readableName());
 		buffer.append('(');
 		String[] parameterTypes = this.getParameterTypes();
 		int length;
@@ -45,7 +45,7 @@ public class AdviceElement extends AspectJMemberElement implements IAspectJEleme
 		buffer.append(')');
 		return buffer.toString();
 	}
-	
+
 	protected void toStringName(StringBuffer buffer) {
 		buffer.append(getElementName());
 		buffer.append('(');
@@ -65,19 +65,19 @@ public class AdviceElement extends AspectJMemberElement implements IAspectJEleme
 			buffer.append(this.occurrenceCount);
 		}
 	}
-		
+
 	/**
 	 * @see JavaElement#getHandleMemento()
 	 */
 	protected char getHandleMementoDelimiter() {
 		return AspectElement.JEM_ADVICE;
 	}
-	
+
 	protected Object createElementInfo() {
 	    try {
     	    IProgramElement ipe = AJProjectModelFactory.getInstance().getModelForJavaElement(this)
     	            .javaElementToProgramElement(this);
-    	    
+
     	    AdviceElementInfo info = new AdviceElementInfo();
     	    info.setAJExtraInfo(ipe.getExtraInfo());
     	    info.setName(name.toCharArray());
@@ -87,7 +87,7 @@ public class AdviceElement extends AspectJMemberElement implements IAspectJEleme
             info.setSourceRangeStart(sourceLocation.getOffset());
             info.setNameSourceStart(sourceLocation.getOffset());
             info.setNameSourceEnd(sourceLocation.getOffset() + ipe.getName().length());
-	    
+
     	    return info;
 	    } catch (Exception e) {
 	        // can fail for any of a number of reasons.
@@ -95,14 +95,14 @@ public class AdviceElement extends AspectJMemberElement implements IAspectJEleme
 	        return null;
 	    }
 	}
-	
+
 //   public String getHandleIdentifier() {
 //       try {
-//           return super.getHandleIdentifier() + 
+//           return super.getHandleIdentifier() +
 //               (occurrenceCount > 1 ? "!" + occurrenceCount : "") +
 //               AspectElement.JEM_EXTRA_INFO + ((AdviceElementInfo) getElementInfo()).getSourceRange().getOffset();
 //       } catch (JavaModelException e) {
-//           return super.getHandleIdentifier() + 
+//           return super.getHandleIdentifier() +
 //           (occurrenceCount > 1 ? "!" + occurrenceCount : "");
 //       }
 //    }

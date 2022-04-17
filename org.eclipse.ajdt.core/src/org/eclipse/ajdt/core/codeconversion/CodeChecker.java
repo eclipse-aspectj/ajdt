@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2005 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman - initial version
@@ -12,7 +12,6 @@
 package org.eclipse.ajdt.core.codeconversion;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 
@@ -26,7 +25,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IPath;
 
 /**
- *  
+ *
  */
 public class CodeChecker {
 
@@ -34,7 +33,7 @@ public class CodeChecker {
 	 * Determines whether the given file contains any AspectJ-specific syntax,
 	 * such as an aspect, an inner aspect inside a class, or just a pointcut
 	 * inside a class.
-	 * 
+	 *
 	 * @param file
 	 * @return
 	 */
@@ -80,11 +79,11 @@ public class CodeChecker {
 					false);
 			parser.parse(sourceUnit, result);
 			return parser.containsAspectJSyntax();
-		} catch (FileNotFoundException e) {
-		} catch (IOException e) {
 		}
+    catch (IOException e) {
+    }
 
-		return false;
+    return false;
 	}
 
 }

@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman - initial version
@@ -65,7 +65,7 @@ import org.eclipse.ui.dialogs.SelectionStatusDialog;
  * to our copy of NewTypeWizardPage.
  */
 privileged aspect AJNewTypeWizardPage {
-    
+
     public static int NewTypeWizardPage.F_PRIVILEGED = 0x8000;
 
     private static int NewTypeWizardPage.PRIVILEGED_INDEX = 3;
@@ -74,12 +74,12 @@ privileged aspect AJNewTypeWizardPage {
 
     int around() : execution(int NewTypeWizardPage.getModifiers()) {
         int mdf = proceed();
-        if (((NewTypeWizardPage)thisJoinPoint.getThis()).fOtherMdfButtons.isSelected(NewTypeWizardPage.PRIVILEGED_INDEX)) { 
+        if (((NewTypeWizardPage)thisJoinPoint.getThis()).fOtherMdfButtons.isSelected(NewTypeWizardPage.PRIVILEGED_INDEX)) {
             mdf+= NewTypeWizardPage.F_PRIVILEGED;
         }
         return mdf;
     }
-    
+
     String around(int modifiers) : call(String Flags.toString(..))
         && args(modifiers) && withincode(String NewTypeWizardPage.constructTypeStub(..)) {
         String s = proceed(modifiers);
@@ -91,33 +91,33 @@ privileged aspect AJNewTypeWizardPage {
         }
         return s;
     }
-    
+
     after(int modifiers) : execution(* NewTypeWizardPage.setModifiers(..))
         && args(modifiers, ..) {
-        if ((modifiers & NewTypeWizardPage.F_PRIVILEGED) != 0) {    
+        if ((modifiers & NewTypeWizardPage.F_PRIVILEGED) != 0) {
             NewTypeWizardPage page = (NewTypeWizardPage)thisJoinPoint.getThis();
             page.fOtherMdfButtons.setSelection(NewTypeWizardPage.PRIVILEGED_INDEX, true);
         }
     }
-            
+
     after(String label) : call(* *.setLabelText(..)) && args(label) && within(NewTypeWizardPage) {
         if (label.equals(NewWizardMessages.NewTypeWizardPage_superclass_label)) {
             NewTypeWizardPage page = (NewTypeWizardPage)thisJoinPoint.getThis();
-            page.fSuperClassDialogField.setLabelText(UIMessages.NewAspectCreationWizardPage_supertype_label); 
+            page.fSuperClassDialogField.setLabelText(UIMessages.NewAspectCreationWizardPage_supertype_label);
         }
     }
-    
+
     after() : set(* NewTypeWizardPage.fOtherMdfButtons) && within(NewTypeWizardPage) {
         NewTypeWizardPage page = (NewTypeWizardPage)thisJoinPoint.getThis();
         String[] buttonNames= new String[] {
-            NewWizardMessages.NewTypeWizardPage_modifiers_abstract, 
+            NewWizardMessages.NewTypeWizardPage_modifiers_abstract,
             NewWizardMessages.NewTypeWizardPage_modifiers_final,
             NewWizardMessages.NewTypeWizardPage_modifiers_static,
             "privileged" //$NON-NLS-1$
         };
         page.fOtherMdfButtons = new SelectionButtonDialogFieldGroup(SWT.CHECK, buttonNames, 4);
     }
-    
+
     IType around() : execution(* NewTypeWizardPage.chooseSuperClass(..)) {
         NewTypeWizardPage page = (NewTypeWizardPage) thisJoinPoint.getThis();
         IPackageFragmentRoot root = page.getPackageFragmentRoot();
@@ -139,7 +139,7 @@ privileged aspect AJNewTypeWizardPage {
         }
         return null;
     }
-    
+
     after(String fieldName) : execution(* NewTypeWizardPage.handleFieldChanged(..))
         && args(fieldName) && within(NewTypeWizardPage) {
         if (fieldName.equals(NewTypeWizardPage.ENCLOSINGSELECTION)) {
@@ -151,14 +151,14 @@ privileged aspect AJNewTypeWizardPage {
             }
         }
     }
-        
+
     after(StringBuffer buf) : call(* writeSuperInterfaces(..)) && args(buf, ..)
         && withincode(String NewTypeWizardPage.constructTypeStub(..)) {
         if (thisJoinPoint.getThis() instanceof NewAspectWizardPage) {
             ((NewAspectWizardPage)thisJoinPoint.getThis()).writePerClause(buf);
         }
     }
-    
+
     Object around(String txt) : call(* StringBuffer.append(..)) && args(txt)
         && withincode(String NewTypeWizardPage.constructTypeStub(..)) {
         if (txt.equals("class ")) { //$NON-NLS-1$
@@ -166,7 +166,7 @@ privileged aspect AJNewTypeWizardPage {
         }
         return proceed(txt);
     }
-    
+
     private IFile NewTypeWizardPage.createNewFile(String sourceFolder, String packName) {
         IPath path = new Path(sourceFolder);
         IWorkspaceRoot workspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
@@ -200,7 +200,7 @@ privileged aspect AJNewTypeWizardPage {
         IFile newfile = workspaceRoot.getFile(newpath);
         return newfile;
     }
-    
+
 
     IResource around() : execution(*  NewTypeWizardPage.getModifiedResource()) {
         NewTypeWizardPage page = (NewTypeWizardPage) thisJoinPoint.getThis();
@@ -213,42 +213,42 @@ privileged aspect AJNewTypeWizardPage {
         }
         return null;
     }
-    
+
     private void NewTypeWizardPage.createAJType(IProgressMonitor monitor) throws CoreException, InterruptedException {
         if (monitor == null) {
             monitor= new NullProgressMonitor();
         }
 
-        monitor.beginTask(NewWizardMessages.NewTypeWizardPage_operationdesc, 8); 
-        
+        monitor.beginTask(NewWizardMessages.NewTypeWizardPage_operationdesc, 8);
+
         IPackageFragmentRoot root= getPackageFragmentRoot();
         IPackageFragment pack= getPackageFragment();
         if (pack == null) {
             pack= root.getPackageFragment(""); //$NON-NLS-1$
         }
-        
+
         if (!pack.exists()) {
             String packName= pack.getElementName();
             pack= root.createPackageFragment(packName, true, new SubProgressMonitor(monitor, 1));
         } else {
             monitor.worked(1);
         }
-        
+
         boolean needsSave;
         ICompilationUnit connectedCU= null;
         fCreatedFile = null; // AspectJ change
-        try {   
+        try {
             String typeName= getTypeNameWithoutParameters();
-            
+
             boolean isInnerClass= isEnclosingTypeSelected();
-        
+
             IType createdType;
             ImportsManager imports;
             int indent= 0;
 
             Set /* String (import names) */ existingImports;
-            
-            String lineDelimiter= null; 
+
+            String lineDelimiter= null;
             if (!isInnerClass) {
                 lineDelimiter= StubUtility.getLineDelimiterUsed(pack.getJavaProject());
 
@@ -258,59 +258,59 @@ privileged aspect AJNewTypeWizardPage {
                 fCreatedFile.create(is, false, monitor);
                 AJCompilationUnit parentCU = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(fCreatedFile);
                 // AspectJ change end
-                
+
                 //String cuName= getCompilationUnitName(typeName);
                 //ICompilationUnit parentCU= pack.createCompilationUnit(cuName, "", false, new SubProgressMonitor(monitor, 2)); //$NON-NLS-1$
                 // create a working copy with a new owner
-                
+
                 needsSave= true;
                 parentCU.becomeWorkingCopy(new SubProgressMonitor(monitor, 1)); // cu is now a (primary) working copy
                 connectedCU= parentCU;
-                
+
                 IBuffer buffer= parentCU.getBuffer();
-                
+
                 String cuContent= constructCUContent(parentCU, constructSimpleTypeStub(), lineDelimiter);
                 buffer.setContents(cuContent);
-                
+
                 CompilationUnit astRoot= createASTForImports(parentCU);
                 existingImports= getExistingImports(astRoot);
-                            
+
                 imports= new ImportsManager(astRoot);
                 // add an import that will be removed again. Having this import solves 14661
                 imports.addImport(JavaModelUtil.concatenateName(pack.getElementName(), typeName));
-                
+
                 String typeContent= constructTypeStub(parentCU, imports, lineDelimiter);
-                
+
                 AbstractTypeDeclaration typeNode= (AbstractTypeDeclaration) astRoot.types().get(0);
                 int start= ((ASTNode) typeNode.modifiers().get(0)).getStartPosition();
                 int end= typeNode.getStartPosition() + typeNode.getLength();
-                
+
                 buffer.replace(start, end - start, typeContent);
-                
+
                 createdType= parentCU.getType(typeName);
             } else {
                 IType enclosingType= getEnclosingType();
-                
+
                 ICompilationUnit parentCU= enclosingType.getCompilationUnit();
-                
+
                 needsSave= !parentCU.isWorkingCopy();
                 parentCU.becomeWorkingCopy(new SubProgressMonitor(monitor, 1)); // cu is now for sure (primary) a working copy
                 connectedCU= parentCU;
-                
+
                 CompilationUnit astRoot= createASTForImports(parentCU);
                 imports= new ImportsManager(astRoot);
                 existingImports= getExistingImports(astRoot);
 
-    
+
                 // add imports that will be removed again. Having the imports solves 14661
                 IType[] topLevelTypes= parentCU.getTypes();
                 for (int i= 0; i < topLevelTypes.length; i++) {
                     imports.addImport(topLevelTypes[i].getFullyQualifiedName('.'));
                 }
-                
+
                 lineDelimiter= StubUtility.getLineDelimiterUsed(enclosingType);
                 StringBuffer content= new StringBuffer();
-                
+
                 String comment= getTypeComment(parentCU, lineDelimiter);
                 if (comment != null) {
                     content.append(comment);
@@ -333,7 +333,7 @@ privileged aspect AJNewTypeWizardPage {
                     IJavaElement[] elems= enclosingType.getChildren();
                     sibling = elems.length > 0 ? elems[0] : null;
                 }
-                
+
 //              // AspectJ change begin
 //              int ind = content.indexOf("aspect"); //$NON-NLS-1$
 //              if (ind != -1) {
@@ -342,57 +342,57 @@ privileged aspect AJNewTypeWizardPage {
 //              }
 //              // AspectJ change end
                 createdType= enclosingType.createType(content.toString(), sibling, false, new SubProgressMonitor(monitor, 2));
-            
+
                 indent= StubUtility.getIndentUsed(enclosingType) + 1;
             }
             if (monitor.isCanceled()) {
                 throw new InterruptedException();
             }
-            
+
             // add imports for superclass/interfaces, so types can be resolved correctly
-            
+
             // AspectJ change begin
-            AJCompilationUnit cu= (AJCompilationUnit) createdType.getCompilationUnit(); 
+            AJCompilationUnit cu= (AJCompilationUnit) createdType.getCompilationUnit();
             cu.requestOriginalContentMode();
             // AspectJ change end
 
             if (!isInnerClass) { // AspectJ change
                 imports.create(false, new SubProgressMonitor(monitor, 1));
             }
-            
+
             JavaModelUtil.reconcile(cu);
 
             if (monitor.isCanceled()) {
                 throw new InterruptedException();
             }
-            
+
             // set up again
             CompilationUnit astRoot= createASTForImports(imports.getCompilationUnit());
             imports= new ImportsManager(astRoot);
-            
+
             // AspectJ change begin
             cu.discardOriginalContentMode();
             // AspectJ change end
-            
+
             createTypeMembers(createdType, imports, new SubProgressMonitor(monitor, 1));
             // AspectJ change begin
             cu.requestOriginalContentMode();
             // AspectJ change end
-    
+
             // add imports
             if (!isInnerClass) { // AspectJ change
                 imports.create(false, new SubProgressMonitor(monitor, 1));
             }
-            
+
             removeUnusedImports(cu, existingImports, false);
-            
+
             JavaModelUtil.reconcile(cu);
-            
+
             ISourceRange range= createdType.getSourceRange();
-            
+
             IBuffer buf= cu.getBuffer();
             String originalContent= buf.getText(range.getOffset(), range.getLength());
-            
+
 //          // AspectJ change begin
 //          String repl = originalContent;
 //          int ind = originalContent.indexOf("aspect"); //$NON-NLS-1$
@@ -425,7 +425,7 @@ privileged aspect AJNewTypeWizardPage {
             } else {
                 monitor.worked(1);
             }
-        
+
             // AspectJ change begin
             if (cu instanceof AJCompilationUnit) {
                 ((AJCompilationUnit)cu).discardOriginalContentMode();
@@ -438,8 +438,8 @@ privileged aspect AJNewTypeWizardPage {
             monitor.done();
         }
     }
-        
-    void around(IProgressMonitor monitor) throws CoreException, InterruptedException : execution(void NewTypeWizardPage.createType(..)) && args(monitor) {      
+
+    void around(IProgressMonitor monitor) throws CoreException, InterruptedException : execution(void NewTypeWizardPage.createType(..)) && args(monitor) {
         NewTypeWizardPage page = (NewTypeWizardPage) thisJoinPoint.getThis();
         page.createAJType(monitor);
     }

@@ -1,11 +1,11 @@
 /********************************************************************
- * Copyright (c) 2007 Contributors. All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: IBM Corporation - initial API and implementation 
+ * Copyright (c) 2007 Contributors. All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution and is available at
+ * http://eclipse.org/legal/epl-v10.html
+ *
+ * Contributors: IBM Corporation - initial API and implementation
  * 				 Helen Hawkins   - initial version (bug 148190)
  *******************************************************************/
 package org.eclipse.ajdt.internal.ui.ajde;
@@ -34,7 +34,6 @@ import org.eclipse.ajdt.internal.ui.editor.AspectJEditor;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.ui.tracing.DebugTracing;
-import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.IAJModelMarker;
 import org.eclipse.core.resources.IContainer;
@@ -62,7 +61,7 @@ import org.eclipse.jdt.internal.core.JavaModelManager;
 public class UIMessageHandler implements IBuildMessageHandler {
 
 	// --------------- impl on top of IMessageHandler ----------
-    
+
     /**
      * resources that were affected by the compilation.
      */
@@ -81,17 +80,17 @@ public class UIMessageHandler implements IBuildMessageHandler {
 
 	public UIMessageHandler(IProject project) {
         ignoring = new ArrayList<Kind>();
-        
+
         if (!AspectJPreferences.getBooleanPrefValue(project, AspectJPreferences.OPTION_verbose)) {
             ignore(IMessage.INFO);
         }
         if (!AspectJPreferences.getShowWeaveMessagesOption(project)) {
         	ignore(IMessage.WEAVEINFO);
 		}
-	}	
+	}
 
 	public boolean handleMessage(IMessage message) {
-        IMessage.Kind kind = message.getKind(); 
+        IMessage.Kind kind = message.getKind();
         if (kind == IMessage.ABORT || message.getThrown() != null) {
         	// an exception has been thrown by AspectJ, therefore
         	// want to create an error dialog containing the information
@@ -117,13 +116,13 @@ public class UIMessageHandler implements IBuildMessageHandler {
 			} else {
 			    AJLog.log(AJLog.COMPILER_MESSAGES,message.getMessage());
 			}
-			problems.add(new ProblemTracker(message.getMessage(), 
-					message.getSourceLocation(), 
-					message.getKind(), 
-					message.getDeclared(), 
-					message.getExtraSourceLocations(), 
-					message.getID(), 
-					message.getSourceStart(), 
+			problems.add(new ProblemTracker(message.getMessage(),
+					message.getSourceLocation(),
+					message.getKind(),
+					message.getDeclared(),
+					message.getExtraSourceLocations(),
+					message.getID(),
+					message.getSourceStart(),
 					message.getSourceEnd(),
 					message.getThrown()));
 		}
@@ -139,19 +138,19 @@ public class UIMessageHandler implements IBuildMessageHandler {
 	public boolean isIgnoring(Kind kind) {
 		return ((null != kind) && (ignoring.contains(kind)));
 	}
-	
+
 	public void ignore(Kind kind) {
 	    if ((null != kind) && (!ignoring.contains(kind))) {
 	        ignoring.add(kind);
-	    }	
+	    }
 	}
-	
+
 	// --------------- impl on top of IMessageHandler ----------
-	
+
     protected void addAffectedResource(IResource res) {
     	affectedResources.add(res);
     }
-	
+
     /**
      * Inner class used to track problems found during compilation Values of -1
      * are used to indicate no line or column number available.
@@ -168,7 +167,7 @@ public class UIMessageHandler implements IBuildMessageHandler {
         public int id;
         public int start;
         public int end;
-        
+
         public ProblemTracker(String m, ISourceLocation l, IMessage.Kind k) {
             this(m, l, k, false, null, -1, -1, -1,null);
         }
@@ -187,7 +186,7 @@ public class UIMessageHandler implements IBuildMessageHandler {
             this.thrown = thrown;
         }
     }
-    
+
     public List<ProblemTracker> getErrors() {
     	List<ProblemTracker> errors = new ArrayList<ProblemTracker>();
     	for (Iterator<ProblemTracker> iter = problems.iterator(); iter.hasNext();) {
@@ -198,7 +197,7 @@ public class UIMessageHandler implements IBuildMessageHandler {
 		}
     	return errors;
     }
-    
+
     /**
      * Callable from anywhere in the plugin, will put any unreported problems
      * onto the task bar. This is currently used by the model builder for build
@@ -212,7 +211,7 @@ public class UIMessageHandler implements IBuildMessageHandler {
             showMessages(project);
         }
     }
-    
+
     private void showMessages(final IProject project) {
 
         // THIS MUST STAY IN A SEPARATE THREAD - This is because we need
@@ -222,7 +221,7 @@ public class UIMessageHandler implements IBuildMessageHandler {
             public void run(IProgressMonitor monitor) {
 
                 try {
-                	
+
                     Iterator<IResource> affectedResourceIterator = affectedResources
                             .iterator();
                     AJLog.log(AJLog.COMPILER,"Types affected during build = "+affectedResources.size()); //$NON-NLS-1$
@@ -302,7 +301,7 @@ public class UIMessageHandler implements IBuildMessageHandler {
                             }
                             if(marker != null) {
 	                            setSeverity(marker, p.kind);
-	                            
+
 	                            if ((p.extraLocs != null) && (p.extraLocs.size() > 0)) { // multiple
 																							// part
 																							// message
@@ -323,7 +322,7 @@ public class UIMessageHandler implements IBuildMessageHandler {
 	                                          +(relCount++),attrData.toString());
 	                                }
 	                            }
-	                            
+
 	                            setMessage(marker, p.message);
                             }
                         } catch (CoreException re) {
@@ -340,7 +339,7 @@ public class UIMessageHandler implements IBuildMessageHandler {
                 } catch (CoreException e) {
                 	AJDTErrorHandler.handleAJDTError(
                             UIMessages.CompilerTaskListManager_Error_creating_marker, e);
-                }                
+                }
             }
         };
 
@@ -358,15 +357,15 @@ public class UIMessageHandler implements IBuildMessageHandler {
 	        }
 	    }
     }
-    
+
     private void clearMessages() {
         affectedResources.clear();
         problems.clear();
     }
-    
+
     /**
      * Try to map a source location in a project to an IResource
-     * 
+     *
      * @param sloc
      *            the source location
      * @param project
@@ -407,7 +406,7 @@ public class UIMessageHandler implements IBuildMessageHandler {
 
         return resource;
     }
-    
+
     private IResource tryToFindResource(String fileName, IProject project) {
         IResource ret = null;
         String toFind = fileName.replace('\\', '/');
@@ -420,10 +419,10 @@ public class UIMessageHandler implements IBuildMessageHandler {
                 if (cpEntry.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
                     IPath sourcePath = cpEntry.getPath();
                     // remove the first segment because the findMember call
-                    // following always adds it back in under the covers (doh!) 
+                    // following always adds it back in under the covers (doh!)
                     // and we end up with two first segments otherwise!
                     sourcePath = sourcePath.removeFirstSegments(1);
-                    
+
                     IResource memberResource = project.findMember(sourcePath);
                     if (memberResource != null) {
                         IResource[] srcContainer = new IResource[] { memberResource };
@@ -470,7 +469,7 @@ public class UIMessageHandler implements IBuildMessageHandler {
         }
         return ret;
     }
-    
+
     /**
      * returns -1 if problem is not a task and the tasks priority otherwise
      * takes case sensitivity into account though this does not seem to
@@ -515,7 +514,7 @@ public class UIMessageHandler implements IBuildMessageHandler {
         }
         return -1;
     }
-    
+
     private int getPrioritiyFlag(String prio) {
         if (prio.equals("NORMAL")) //$NON-NLS-1$
             return IMarker.PRIORITY_NORMAL;
@@ -523,7 +522,7 @@ public class UIMessageHandler implements IBuildMessageHandler {
             return IMarker.PRIORITY_HIGH;
         return IMarker.PRIORITY_LOW;
     }
-    
+
     private void addOtherProjectMarker(IProject p, IMarker m) {
         if (!otherProjectMarkers.containsKey(p.getName())) {
             otherProjectMarkers.put(p.getName(), new ArrayList<IMarker>());
@@ -535,7 +534,7 @@ public class UIMessageHandler implements IBuildMessageHandler {
     /**
      * Sets the given marker to have hte appropriate severity, according to the
      * kind.
-     * 
+     *
      * @param marker
      *            the marker to set the message for
      * @param kind
@@ -556,11 +555,11 @@ public class UIMessageHandler implements IBuildMessageHandler {
         }
 
     }
-    
+
     private final static int MAX_MESSAGE_LENGTH = (int) Math.pow(2, 16);
     /**
      * Sets the given marker to have the appropriate message.
-     * 
+     *
      * @param marker
      *            the marker to set the message for
      * @param message
@@ -595,14 +594,14 @@ public class UIMessageHandler implements IBuildMessageHandler {
         }
         marker.setAttribute(IMarker.MESSAGE, message);
     }
-    
+
     // -------------- other AJDT things -------------------
 
 
     protected void setLastBuildType(boolean wasFullBuild) {
     	lastBuildWasFull = wasFullBuild;
     }
-    
+
     /**
      * clear problems made from a previous compilation stage, but
      * keep any project markers.
@@ -615,7 +614,7 @@ public class UIMessageHandler implements IBuildMessageHandler {
             }
         }
     }
-    
+
     public static void clearOtherProjectMarkers(IProject p) {
 		List<?> l = (List<?>) otherProjectMarkers.get(p.getName());
 		if (l != null) {

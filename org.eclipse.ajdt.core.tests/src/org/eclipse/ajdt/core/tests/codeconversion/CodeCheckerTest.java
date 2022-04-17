@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2005 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman  - initial version
@@ -28,13 +28,13 @@ public class CodeCheckerTest extends AJDTCoreTestCase {
 	/**
 	 * Check that CodeChecker.containsAspectJConstructs() returns true for every
 	 * type in the given list, and false for everything else.
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	public void testContainsAspectJConstructs() throws Exception {
 		IProject project = createPredefinedProject("Spacewar Example"); //$NON-NLS-1$
 
-		final List trueList = new ArrayList();
+		final List<String> trueList = new ArrayList<>();
 		trueList.add("Ship"); // pointcut in a class //$NON-NLS-1$
 		trueList.add("RegistrySynchronization"); // aspect //$NON-NLS-1$
 		trueList.add("Registry"); // inner aspect in a class //$NON-NLS-1$
@@ -82,7 +82,7 @@ public class CodeCheckerTest extends AJDTCoreTestCase {
 	 * Check that CodeChecker.containsAspectJConstructs() returns false for all
 	 * the given source files, despite them containing "pointcut" and "aspect"
 	 * used as identifiers (instead of keywords)
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	public void testContainsAspectJConstructs2() throws Exception {

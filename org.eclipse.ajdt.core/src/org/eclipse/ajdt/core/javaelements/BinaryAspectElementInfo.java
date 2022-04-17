@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2009, 2014 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Andrew Eisenberg - initial API and implementation
  *******************************************************************************/
@@ -23,7 +23,6 @@ import org.eclipse.jdt.internal.compiler.env.IBinaryField;
 import org.eclipse.jdt.internal.compiler.env.IBinaryMethod;
 import org.eclipse.jdt.internal.compiler.env.IBinaryNestedType;
 import org.eclipse.jdt.internal.compiler.env.IBinaryType;
-import org.eclipse.jdt.internal.core.BinaryType;
 
 /**
  * @author Andrew Eisenberg
@@ -31,7 +30,7 @@ import org.eclipse.jdt.internal.core.BinaryType;
  *
  */
 public class BinaryAspectElementInfo /*extends ClassFileReader*/ implements IBinaryType {
-    
+
     private char[] fileName;
     private char[] typeName;
     private char[] genericSignature;
@@ -40,13 +39,13 @@ public class BinaryAspectElementInfo /*extends ClassFileReader*/ implements IBin
 
     public BinaryAspectElementInfo(char[] typeName) {
         this.typeName = typeName;
-        
+
         fileName = new char[0];
         genericSignature = new char[0];
         superName = new char[0];
         interfaceNames = new char[0][];
     }
-    
+
     public BinaryAspectElementInfo(IProgramElement elt) {
         try {
             fileName = elt.getSourceLocation().getSourceFile().getName().toCharArray();
@@ -54,7 +53,7 @@ public class BinaryAspectElementInfo /*extends ClassFileReader*/ implements IBin
             fileName = new char[0];
         }
         typeName = elt.getName().toCharArray();
-        
+
         genericSignature = new char[0];
         superName = new char[0];
         interfaceNames = new char[0][];
@@ -140,7 +139,7 @@ public class BinaryAspectElementInfo /*extends ClassFileReader*/ implements IBin
     public char[] getEnclosingMethod() {
         return null;
     }
-    
+
     public IBinaryTypeAnnotation[] getTypeAnnotations() {
        return null;
     }

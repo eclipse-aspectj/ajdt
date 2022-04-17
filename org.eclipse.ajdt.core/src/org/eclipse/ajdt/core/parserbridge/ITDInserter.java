@@ -3,7 +3,7 @@
  * program and the accompanying materials are made available under the terms of
  * the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *      Andrew Eisenberg - Initial implementation
  *******************************************************************************/
@@ -64,26 +64,26 @@ import org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
  * Inserts ITD information into a TypeDeclaration so that
  * when reconciling occurs introduced methods, fields, and constructors
  * can be found.
- * 
- * This class works by mocking up the ITDs in the type declaration including 
- * altering the type hierarchy.  
- * 
+ *
+ * This class works by mocking up the ITDs in the type declaration including
+ * altering the type hierarchy.
+ *
  * This mocking up occurs after parsing, but before binding.  The mocked up elements
  * are then used as part of the type binding.
- * 
+ *
  * The mocked up elements are then removed after the compilation is finished because
  * the compilation results are used elsewhere.
- * 
+ *
  * This class is a visitor.  It visits a compilation unit and augments all types
  * with ITDs.
- * 
+ *
  * See Bug 255848
- * 
+ *
  * @author andrew
  * @created Nov 26, 2008
  */
 public class ITDInserter extends ASTVisitor {
-    
+
     private static class OrigContents {
         AbstractMethodDeclaration[] methods;
         FieldDeclaration[] fields;
@@ -91,7 +91,7 @@ public class ITDInserter extends ASTVisitor {
         TypeReference[] superInterfaces;
         TypeDeclaration[] memberTypes;
     }
-    
+
     private static class ITDTypeConverter extends TypeConverter {
         public ITDTypeConverter(ProblemReporter reporter) {
             super(reporter, Signature.C_DOT);
@@ -105,23 +105,23 @@ public class ITDInserter extends ASTVisitor {
     }
 
     private final ICompilationUnit unit;
-    
+
     private final LookupEnvironment env;
 
 
-    private Map<TypeDeclaration, OrigContents> origMap = new HashMap<TypeDeclaration, OrigContents>();
+    private Map<TypeDeclaration, OrigContents> origMap = new HashMap<>();
 
     private final ITDTypeConverter typeConverter;
 
     private AJProjectModelFacade model;
-    
+
     public ITDInserter(ICompilationUnit unit, LookupEnvironment env, ProblemReporter reporter) {
         this.unit = unit;
         typeConverter = new ITDTypeConverter(reporter);
         model = AJProjectModelFactory.getInstance().getModelForJavaElement(unit);
         this.env = env;
     }
-    
+
     @Override
 	public boolean visit(TypeDeclaration type, BlockScope blockScope) {
         augmentType(type);
@@ -137,23 +137,23 @@ public class ITDInserter extends ASTVisitor {
         augmentType(memberType);
         return true;
     }
-    
+
     /**
      * augments a type with ITD info
      */
     private void augmentType(TypeDeclaration type) {
-        
+
         OrigContents orig = new OrigContents();
         orig.methods = type.methods;
         orig.fields = type.fields;
         orig.superClass = type.superclass;
         orig.superInterfaces = type.superInterfaces;
         orig.memberTypes = type.memberTypes;
-        
+
         try {
-            List<FieldDeclaration> itdFields = new LinkedList<FieldDeclaration>();
-            List<AbstractMethodDeclaration> itdMethods = new LinkedList<AbstractMethodDeclaration>();
-            List<TypeDeclaration> itits = new LinkedList<TypeDeclaration>();
+            List<FieldDeclaration> itdFields = new LinkedList<>();
+            List<AbstractMethodDeclaration> itdMethods = new LinkedList<>();
+            List<TypeDeclaration> itits = new LinkedList<>();
             IType handle = getHandle(type);
 
             List<IProgramElement> ipes = getITDs(handle);
@@ -169,7 +169,7 @@ public class ITDInserter extends ASTVisitor {
                             itdMethods.add(createMethod(elt, type, handle));
                         }
                     }
-                    
+
                 } else if (elt.getKind() == IProgramElement.Kind.INTER_TYPE_CONSTRUCTOR) {
                     if(elt.getAccessibility() != IProgramElement.Accessibility.PRIVATE) {
                         itdMethods.add(createConstructor(elt, type));
@@ -199,8 +199,8 @@ public class ITDInserter extends ASTVisitor {
                     Map<String, List<String>> parentsMap = elt.getDeclareParentsMap();
                     if (parentsMap != null && type.binding != null && type.binding.compoundName != null) {
                         List<String> parents = parentsMap.get(String.valueOf(CharOperation.concatWith(type.binding.compoundName, '.')));
-                        List<String> interfacesToAdd = new LinkedList<String>();
-                        for (String parent : parents) { 
+                        List<String> interfacesToAdd = new LinkedList<>();
+                        for (String parent : parents) {
                             try {
                                 IType parentElt = unit.getJavaProject().findType(parent, (IProgressMonitor) null);
                                 if (parentElt != null && parentElt.isClass()) {
@@ -214,10 +214,10 @@ public class ITDInserter extends ASTVisitor {
                     }
                 }
             }
-            
+
             if (ipes.size() > 0) {
                 origMap.put(type, orig);
-                
+
                 // now add the ITDs into the declaration
                 if (itdFields.size() > 0) {
                     int numFields = type.fields == null ? 0 : type.fields.length;
@@ -259,37 +259,37 @@ public class ITDInserter extends ASTVisitor {
             revertType(type, orig);
         }
     }
-    
-    
+
+
     /**
      * Adds all children field and methods to this ITIT
      * @param ititAST
-     * @param elt the AspectJ element that knows about children 
+     * @param elt the AspectJ element that knows about children
      */
     private void populateITIT(TypeDeclaration ititAST, IProgramElement elt) {
-        List<FieldDeclaration> fields = new LinkedList<FieldDeclaration>();
-        List<FieldBinding> fieldBindings = new LinkedList<FieldBinding>();
-        List<AbstractMethodDeclaration> methods = new LinkedList<AbstractMethodDeclaration>();
-        List<MethodBinding> methodBindings = new LinkedList<MethodBinding>();
-        
+        List<FieldDeclaration> fields = new LinkedList<>();
+        List<FieldBinding> fieldBindings = new LinkedList<>();
+        List<AbstractMethodDeclaration> methods = new LinkedList<>();
+        List<MethodBinding> methodBindings = new LinkedList<>();
+
         for (IProgramElement child : elt.getChildren()) {
             if (child.getKind() == IProgramElement.Kind.FIELD) {
                 FieldDeclaration field = createField(child, ititAST);
                 fields.add(field);
-                fieldBindings.add(new FieldBinding(field, getReturnTypeBinding(child.getCorrespondingTypeSignature().toCharArray(), 
+                fieldBindings.add(new FieldBinding(field, getReturnTypeBinding(child.getCorrespondingTypeSignature().toCharArray(),
                         ititAST.binding), field.modifiers, ititAST.binding));
             } else if (child.getKind() == IProgramElement.Kind.METHOD) {
                 MethodDeclaration method = createMethod(child, ititAST, null);
                 methods.add(method);
-                methodBindings.add(new MethodBinding(method.modifiers, method.selector, 
-                        getReturnTypeBinding(child.getCorrespondingTypeSignature().toCharArray(), ititAST.binding), 
+                methodBindings.add(new MethodBinding(method.modifiers, method.selector,
+                        getReturnTypeBinding(child.getCorrespondingTypeSignature().toCharArray(), ititAST.binding),
                         getParameterBindings(elt, ititAST.binding), new ReferenceBinding[0], ititAST.binding));
             }
         }
         ititAST.fields = fields.toArray(new FieldDeclaration[0]);
         ititAST.methods = methods.toArray(new MethodDeclaration[0]);
-        
-        
+
+
         // figure out how to make type bindings and figure out method bindings
         ititAST.binding.setFields(fieldBindings.toArray(new FieldBinding[0]));
     }
@@ -307,7 +307,7 @@ public class ITDInserter extends ASTVisitor {
         return paramBindings;
     }
 
-    
+
     private boolean isClass(IProgramElement elt) throws JavaModelException {
         List<String> parentTypes = elt.getParentTypes();
         if (parentTypes != null && parentTypes.size() > 0) {
@@ -320,25 +320,25 @@ public class ITDInserter extends ASTVisitor {
                 if (parentType != null) {
                     return parentType.isClass();
                 }
-            } 
+            }
         }
         // don't really know
         return false;
     }
-    
+
     /**
      * Ask the oracle for the type binding with the given name
      * @param child
      * @return
      */
     protected TypeBinding getReturnTypeBinding(char[] typeName, TypeBinding ititBinding) {
-        TypeBinding typeBinding = env.getTypeFromTypeSignature(new SignatureWrapper(typeName), 
+        TypeBinding typeBinding = env.getTypeFromTypeSignature(new SignatureWrapper(typeName),
                 new TypeVariableBinding[0], (ReferenceBinding) ititBinding, new char[0][][],TypeAnnotationWalker.EMPTY_ANNOTATION_WALKER);
             typeBinding = BinaryTypeBinding.resolveType(typeBinding, env, false);
         return typeBinding;
     }
 
-    
+
 
     private TypeDeclaration createITIT(String name, TypeDeclaration enclosing) {
         TypeDeclaration decl = new TypeDeclaration(enclosing.compilationResult);
@@ -354,7 +354,7 @@ public class ITDInserter extends ASTVisitor {
         decl.binding.memberTypes = new ReferenceBinding[0];
         decl.modifiers = Flags.AccPublic | Flags.AccStatic;
         decl.binding.modifiers = decl.modifiers;
-        
+
         // also set the bindings, but may have to unset them as well.
         ReferenceBinding[] newBindings = new ReferenceBinding[enclosing.binding.memberTypes.length+1];
         System.arraycopy(enclosing.binding.memberTypes, 0, newBindings, 0, enclosing.binding.memberTypes.length);
@@ -371,20 +371,20 @@ public class ITDInserter extends ASTVisitor {
         decl.modifiers = field.getRawModifiers();
         return decl;
     }
-    
+
     private MethodDeclaration createMethod(IProgramElement method, TypeDeclaration type, IType handle) {
         MethodDeclaration decl = new MethodDeclaration(type.compilationResult);
         decl.scope = new MethodScope(type.scope, decl, true);
-        
+
         String[] split = method.getName().split("\\.");
         decl.selector = split[split.length-1].toCharArray();
         decl.modifiers = method.getRawModifiers();
-        
 
-        
+
+
         decl.returnType = createTypeReference(method.getCorrespondingType(true));
         decl.modifiers = method.getRawModifiers();
-        Argument[] args = method.getParameterTypes() != null ? 
+        Argument[] args = method.getParameterTypes() != null ?
                 new Argument[method.getParameterTypes().size()] :
                     new Argument[0];
         try {
@@ -400,12 +400,12 @@ public class ITDInserter extends ASTVisitor {
                 }
                 sig = new ErasedTypeSignature(method.getCorrespondingTypeSignature(), params);
             }
-            
+
             List<String> pNames = method.getParameterNames();
             // bug 270123... no parameter names if coming in from a jar and
             // not build with debug info...mock it up.
             if (pNames == null || pNames.size() != args.length) {
-                pNames = new ArrayList<String>(args.length);
+                pNames = new ArrayList<>(args.length);
                 for (int i = 0; i < args.length; i++) {
                     pNames.add("args" + i);
                 }
@@ -416,7 +416,7 @@ public class ITDInserter extends ASTVisitor {
                         createTypeReference(Signature.getElementType(sig.paramTypes[i])),
                         0);
             }
-            
+
             decl.returnType = createTypeReferenceFromSignature(sig.returnTypeSig);
             decl.typeParameters = createTypeParameters(sig.typeParameters);
         } catch (Exception e) {
@@ -426,7 +426,7 @@ public class ITDInserter extends ASTVisitor {
             // bug 270123... no parameter names if coming in from a jar and
             // not build with debug info...mock it up.
             if (pNames == null || pNames.size() != args.length) {
-                pNames = new ArrayList<String>(args.length);
+                pNames = new ArrayList<>(args.length);
                 for (int i = 0; i < args.length; i++) {
                     pNames.add("args" + i);
                 }
@@ -441,7 +441,7 @@ public class ITDInserter extends ASTVisitor {
         decl.arguments = args;
         return decl;
     }
-    
+
     /**
      * @param typeParameters
      * @return
@@ -468,7 +468,7 @@ public class ITDInserter extends ASTVisitor {
         decl.scope = new MethodScope(type.scope, decl, true);
         decl.selector = constructor.getName().split("\\.")[1].toCharArray();
         decl.modifiers = constructor.getRawModifiers();
-        Argument[] args = constructor.getParameterTypes() != null ? 
+        Argument[] args = constructor.getParameterTypes() != null ?
                 new Argument[constructor.getParameterTypes().size()] :
                     new Argument[0];
 
@@ -476,12 +476,12 @@ public class ITDInserter extends ASTVisitor {
         // bug 270123, bug 334328... no parameter names if coming in from a jar and
         // not build with debug info...mock it up.
         if (pNames == null || pNames.size() != args.length) {
-            pNames = new ArrayList<String>(args.length);
+            pNames = new ArrayList<>(args.length);
             for (int i = 0; i < args.length; i++) {
                 pNames.add("args" + i);
             }
         }
-         
+
        for (int i = 0; i < args.length; i++) {
             args[i] = new Argument(pNames.get(i).toCharArray(),
                     0,
@@ -491,13 +491,13 @@ public class ITDInserter extends ASTVisitor {
         decl.arguments = args;
         return decl;
     }
-    
+
     private void addSuperClass(IProgramElement ipe, TypeDeclaration decl) {
         List<String> types = ipe.getParentTypes();
         if (types == null || types.size() < 1) return;
-        
+
         String typeName = types.get(0);
-        addSuperClass(typeName, decl); 
+        addSuperClass(typeName, decl);
     }
 
     private void addSuperClass(String newSuper, TypeDeclaration decl) {
@@ -506,7 +506,7 @@ public class ITDInserter extends ASTVisitor {
             decl.binding.superclass = createTypeBinding(newSuper);
         }
     }
-    
+
     private ReferenceBinding createTypeBinding(String newSuper) {
         int genericsIndex = newSuper.indexOf("<");
         if (genericsIndex > 0) {
@@ -519,7 +519,7 @@ public class ITDInserter extends ASTVisitor {
     private void addSuperInterfaces(IProgramElement ipe, TypeDeclaration decl) {
         List<String> newInterfaces = ipe.getParentTypes();
         if (newInterfaces != null) {
-            List<String> copy = new ArrayList<String>(newInterfaces.size());
+            List<String> copy = new ArrayList<>(newInterfaces.size());
             for (String newInterface : newInterfaces) {
                 copy.add(newInterface.replace('$', '.'));
             }
@@ -537,7 +537,7 @@ public class ITDInserter extends ASTVisitor {
             int superInterfacesNum = decl.superInterfaces == null ? 0 : decl.superInterfaces.length;
 
             // remove duplicates
-            List<TypeReference> newReferences = new ArrayList<TypeReference>(newInterfaces.size());
+            List<TypeReference> newReferences = new ArrayList<>(newInterfaces.size());
             for (Iterator<String> iterator = newInterfaces.iterator(); iterator
                     .hasNext();) {
                 String newInterface = iterator.next();
@@ -554,8 +554,8 @@ public class ITDInserter extends ASTVisitor {
                     newReferences.add(reference);
                 }
             }
-            
-            
+
+
             // add the ast
             TypeReference[] refs = new TypeReference[superInterfacesNum + newReferences.size()];
             if (superInterfacesNum > 0) {
@@ -565,14 +565,14 @@ public class ITDInserter extends ASTVisitor {
                 refs[i + superInterfacesNum] = newReferences.get(i);
             }
             decl.superInterfaces = refs;
-            
+
             // now do the bindings
             if (decl.binding != null && decl.binding.superInterfaces != null) {
                 superInterfacesNum = decl.binding.superInterfaces.length;
             } else {
                 superInterfacesNum = 0;
             }
-            
+
             ReferenceBinding[] refBindings = new ReferenceBinding[superInterfacesNum + newInterfaces.size()];
             if (superInterfacesNum > 0) {
                 System.arraycopy(decl.binding.superInterfaces, 0, refBindings, 0, decl.binding.superInterfaces.length);
@@ -585,7 +585,7 @@ public class ITDInserter extends ASTVisitor {
             }
         }
     }
-    
+
 
     // Do it this way in order to ensure that Aspects are returned as AspectElements
     private IType getHandle(TypeDeclaration decl) {
@@ -608,35 +608,37 @@ public class ITDInserter extends ASTVisitor {
         // this type does not exist, but create a mock one anyway
         return unit.getType(typeName);
     }
-    
-    private IType getHandleFromChild(String typeName, IParent parent) 
+
+    private IType getHandleFromChild(String typeName, IParent parent)
             throws JavaModelException {
         IJavaElement[] children = parent.getChildren();
-        for (int i = 0; i < children.length; i++) {
-            if ((children[i].getElementType() == IJavaElement.TYPE) &&
-                    typeName.equals(children[i].getElementName())) {
-                return (IType) children[i];
-            }
+      for (IJavaElement iJavaElement : children) {
+        if ((iJavaElement.getElementType() == IJavaElement.TYPE) &&
+            typeName.equals(iJavaElement.getElementName()))
+        {
+          return (IType) iJavaElement;
         }
-        for (int i = 0; i < children.length; i++) {
-            if (children[i].getElementType() == IJavaElement.TYPE ||
-                    children[i].getElementType() == IJavaElement.METHOD) {
-                IType type = getHandleFromChild(typeName, (IParent) children[i]);
-                if (type != null) {
-                    return type;
-                }
-            }
+      }
+      for (IJavaElement child : children) {
+        if (child.getElementType() == IJavaElement.TYPE ||
+            child.getElementType() == IJavaElement.METHOD)
+        {
+          IType type = getHandleFromChild(typeName, (IParent) child);
+          if (type != null) {
+            return type;
+          }
         }
+      }
         return null;
     }
-    
+
     private List<IProgramElement> getITDs(IType handle) {
         if (model.hasModel()) {
             if (model.hasProgramElement(handle)) {
                 List<IJavaElement> rels = model
                         .getRelationshipsForElement(handle,
                                 AJRelationshipManager.ASPECT_DECLARATIONS);
-                List<IProgramElement> elts = new ArrayList<IProgramElement>();
+                List<IProgramElement> elts = new ArrayList<>();
                 for (IJavaElement je : rels) {
                     IProgramElement declareElt = model
                             .javaElementToProgramElement(je);
@@ -647,7 +649,7 @@ public class ITDInserter extends ASTVisitor {
         }
         return Collections.emptyList();
     }
-    
+
     private TypeReference createTypeReferenceFromSignature(String origTypeSig) {
         return typeConverter.createTypeReference(origTypeSig);
     }
@@ -658,11 +660,11 @@ public class ITDInserter extends ASTVisitor {
         }
         // can't use the binary name
         origTypeName = origTypeName.replace('$', '.');
-        
+
         return typeConverter.createTypeReference(origTypeName.toCharArray());
     }
 
-    
+
     /**
      * replaces type declarations with their original contents after the compilation is
      * complete

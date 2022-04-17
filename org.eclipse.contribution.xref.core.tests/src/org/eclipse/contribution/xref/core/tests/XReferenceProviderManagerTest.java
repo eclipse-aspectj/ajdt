@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Helen Hawkins   - iniital version
@@ -22,7 +22,7 @@ import junit.framework.TestCase;
 
 /**
  * @author hawkinsh
- *  
+ *
  */
 public class XReferenceProviderManagerTest extends TestCase {
 
@@ -62,11 +62,11 @@ public class XReferenceProviderManagerTest extends TestCase {
 	public void testGetRegisteredProviders() {
 		XReferenceProviderManager manager =
 			XReferenceProviderManager.getManager();
-		List providers = manager.getRegisteredProviders();
+		List<? extends XReferenceProviderDefinition> providers = manager.getRegisteredProviders();
 		// know should have 3 providers registered:
 		// TestProvider (in core.test), TestXRefProvider (in ui.test)
 		// and TestXRefProviderWithEntities (in ui.test),
-		// check that all three are actually registered 
+		// check that all three are actually registered
 		// (note haven't hard coded in that expect exactly 3 providers
 		// to cope with the case where there are others)
 		assertTrue(containsProvider(providers, "My Label")); //$NON-NLS-1$
@@ -80,19 +80,19 @@ public class XReferenceProviderManagerTest extends TestCase {
 		//assertTrue(ProviderExceptionLoggingTest.exceptionLoggedOnRegistration);
 	}
 
-	private boolean containsProvider(List providers, String label) {
+	private boolean containsProvider(List<? extends XReferenceProviderDefinition> providers, String label) {
 		boolean contains = false;
-		Iterator itor = providers.iterator();
+		Iterator<? extends XReferenceProviderDefinition> itor = providers.iterator();
 		while (itor.hasNext()) {
 			XReferenceProviderDefinition xrdef =
-				(XReferenceProviderDefinition) itor.next();
+        itor.next();
 			if (xrdef.getLabel().compareTo(label) == 0) {
 				contains = true;
 			}
 		}
 		return contains;
 	}
-	
+
 	public void testSettingOfIsInplace() {
 		XReferenceProviderManager manager =
 			XReferenceProviderManager.getManager();

@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2009 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Andrew Eisenberg - initial API and implementation
  *******************************************************************************/
@@ -26,52 +26,47 @@ import org.eclipse.jdt.internal.compiler.SourceElementParser;
 import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.eclipse.jdt.internal.compiler.env.ISourceType;
 import org.eclipse.jdt.internal.core.CompilationUnit;
-import org.eclipse.jdt.internal.core.CompilationUnitProblemFinder;
-import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.jdt.internal.core.Openable;
 import org.eclipse.jdt.internal.core.SearchableEnvironment;
-import org.eclipse.jdt.internal.core.hierarchy.HierarchyBuilder;
-import org.eclipse.jdt.internal.core.hierarchy.HierarchyResolver;
-import org.eclipse.jdt.internal.core.hierarchy.TypeHierarchy;
 
 /**
  * Aspect to add ITD awareness to various kinds of searches in the IDE
  * This aspect swaps out a SearchableEnvironment with an ITDAwareNameEnvironment
- * 
+ *
  * See bug 256312 for an explanation of this aspect
- * 
+ *
  * @author andrew
  * @created Nov 22, 2008
  *
  */
 public aspect ITDAwarenessAspect {
-    
+
     /**
      * This will be null if AJDT is not installed (ie- JDT Weaving installed, but no AJDT)
      * Made public for testing purposes only.
      */
     public NameEnvironmentAdapter nameEnvironmentAdapter = NameEnvironmentAdapter.getInstance();
-    
-    
+
+
     /********************************************
-     * This section deals with ensuring the focus type has its 
+     * This section deals with ensuring the focus type has its
      * super types properly created
      */
-    
+
     /**
      * This pointcut grabs all calls to the getting of the element info
      * for source types that occur within the HierarchyResolver.
-     * 
+     *
      * Need to convert all SourceTypeInfos into ITDAwareSourceTypeInfos
      * when they occur in the HierarchyResolver
      */
     pointcut typeHierachySourceTypeInfoCreation(IJavaElement element) :
         call(public Object JavaElement+.getElementInfo()) && target(element) &&
         within(HierarchyResolver);
-    
-    /** 
+
+    /**
      * Capture all creations of source type element infos
      * and convert them into ITD aware source type element infos
      */
@@ -89,12 +84,12 @@ public aspect ITDAwarenessAspect {
     /********************************************
      * This section deals with ensuring that all other types
      * have their super types properly created
-     * 
+     *
      * Note that *sub* types are not properly found.
-     * 
+     *
      * The reason is that sub types are found through the indexer.
      * The indexer does not index declare parents relationships
-     * 
+     *
      * Don't do subtypes for now.
      */
 
@@ -103,7 +98,7 @@ public aspect ITDAwarenessAspect {
      * when we are finding type hierarchies
      */
     SearchableEnvironment around(JavaProject project,
-            ICompilationUnit[] workingCopies) : 
+            ICompilationUnit[] workingCopies) :
                 interestingSearchableEnvironmentCreation(project, workingCopies) {
         if (nameEnvironmentAdapter.getProvider() != null && isInWeavable(workingCopies)) {
             try {
@@ -117,7 +112,7 @@ public aspect ITDAwarenessAspect {
         }
         return proceed(project, workingCopies);
     }
-    
+
     private boolean isInWeavable(ICompilationUnit[] workingCopies) {
         if (workingCopies != null && nameEnvironmentAdapter.getProvider() != null) {
             for (int i = 0; i < workingCopies.length; i++) {
@@ -129,22 +124,22 @@ public aspect ITDAwarenessAspect {
         }
         return false;
     }
-    
+
     /**
      * The creation of a SearchableEnvironment
      */
     pointcut searchableEnvironmentCreation(JavaProject project,
-            ICompilationUnit[] workingCopies) : 
+            ICompilationUnit[] workingCopies) :
                 call(SearchableEnvironment.new(JavaProject,
-                        ICompilationUnit[])) && args(project, workingCopies); 
-                        
-    
+                        ICompilationUnit[])) && args(project, workingCopies);
+
+
     /**
      * Only certain SearchableEnvironment creations are interesting
      * This pointcut determines which ones they are.
      */
     pointcut interestingSearchableEnvironmentCreation(JavaProject project,
-            ICompilationUnit[] workingCopies) : 
+            ICompilationUnit[] workingCopies) :
                 searchableEnvironmentCreation(JavaProject, ICompilationUnit[]) &&
                 (
                         cflow(typeHierarchyCreation()) || // creation of type hierarchies
@@ -154,18 +149,18 @@ public aspect ITDAwarenessAspect {
      * The creation of a type hierarchy
      */
     pointcut typeHierarchyCreation() : execution(public HierarchyBuilder.new(TypeHierarchy));
-    
+
     /**
      * the computation of a type hierarchy
      */
     pointcut typeHierarchyComputing() : execution(protected void TypeHierarchy.compute());
 
-    
+
     SearchableEnvironment around(JavaProject project,
             WorkingCopyOwner owner) : interestingSearchableEnvironmentCreation2(project, owner) {
         if (nameEnvironmentAdapter.getProvider() != null && WeavableProjectListener.getInstance().isWeavableProject(project.getProject())) {
             try {
-                SearchableEnvironment newEnvironment = nameEnvironmentAdapter.getProvider().getNameEnvironment(project, 
+                SearchableEnvironment newEnvironment = nameEnvironmentAdapter.getProvider().getNameEnvironment(project,
                         owner == null ? null : JavaModelManager.getJavaModelManager().getWorkingCopies(owner, true/*add primary WCs*/));
                 if (newEnvironment != null) {
                     return newEnvironment;
@@ -173,37 +168,36 @@ public aspect ITDAwarenessAspect {
             } catch (RuntimeException e) {
                 JDTWeavingPlugin.logException(e);
             }
-        }            
+        }
         return proceed(project, owner);
     }
 
-    
+
     /**
      * Only certain SearchableEnvironment creations are interesting
      * This pointcut determines which ones they are.
      */
     pointcut interestingSearchableEnvironmentCreation2(JavaProject project,
-            WorkingCopyOwner workingCopyOwner) : 
+            WorkingCopyOwner workingCopyOwner) :
                 searchableEnvironmentCreation2(JavaProject, WorkingCopyOwner) &&
-                (
-                        cflow(codeSelect())  // open type action
-                ) && args(project, workingCopyOwner);
-            
+                cflow(codeSelect()) && // open type action
+                args(project, workingCopyOwner);
+
     // alternate creation of searchble environment
     pointcut searchableEnvironmentCreation2(JavaProject project,
-            WorkingCopyOwner workingCopyOwner) : 
+            WorkingCopyOwner workingCopyOwner) :
                 call(SearchableEnvironment.new(JavaProject,
-                        WorkingCopyOwner)) && args(project, workingCopyOwner); 
-    
+                        WorkingCopyOwner)) && args(project, workingCopyOwner);
+
     /**
      * for determining hyperlinks and open action
      * Also used for ITD hyperlinking
      */
-    pointcut codeSelect() : 
+    pointcut codeSelect() :
         execution(protected IJavaElement[] Openable.codeSelect(org.eclipse.jdt.internal.compiler.env.ICompilationUnit,int,int,WorkingCopyOwner) throws JavaModelException);
-    
+
     /********************************************
-     * This section handles reconciling of java CompilationUnits. 
+     * This section handles reconciling of java CompilationUnits.
      * Ensure that the Java compilation unit is reconciled with an AJReconcileWorkingCopyOperation
      * so that ITDs are properly ignored.
      */
@@ -219,10 +213,10 @@ public aspect ITDAwarenessAspect {
             IProgressMonitor monitor) : execution(public static CompilationUnitDeclaration CompilationUnitProblemFinder.process(CompilationUnit, SourceElementParser, WorkingCopyOwner, HashMap, boolean, int, IProgressMonitor)) &&
             args(unitElement, parser, workingCopyOwner, problems, creatingAST, reconcileFlags, monitor);
 
-    
+
     @SuppressWarnings("unchecked")
     CompilationUnitDeclaration around(
-            CompilationUnit unitElement, 
+            CompilationUnit unitElement,
             SourceElementParser parser,
             WorkingCopyOwner workingCopyOwner,
             HashMap problems,
@@ -243,15 +237,15 @@ public aspect ITDAwarenessAspect {
         }
         return proceed(unitElement, parser, workingCopyOwner, problems, creatingAST, reconcileFlags, monitor);
     }
-            
-            
+
+
     /*********************************
      * This section handles ITD aware content assist in Java files
-     * 
+     *
      * Hmmmm...maybe want to promote this one to its own package because other plugins may
      * want to add their own way of doing completions for Java files
      */
-            
+
     /**
      * This will be null if AJDT is not installed (ie- JDT Weaving installed, but no AJDT)
      * Made public for testing purposes only.
@@ -262,26 +256,26 @@ public aspect ITDAwarenessAspect {
             org.eclipse.jdt.internal.compiler.env.ICompilationUnit unitToSkip,
             int position, CompletionRequestor requestor,
             WorkingCopyOwner owner,
-            ITypeRoot typeRoot, Openable target, IProgressMonitor monitor /* AJDT 1.7 */) : 
+            ITypeRoot typeRoot, Openable target, IProgressMonitor monitor /* AJDT 1.7 */) :
         execution(protected void Openable.codeComplete(
                 org.eclipse.jdt.internal.compiler.env.ICompilationUnit,
                 org.eclipse.jdt.internal.compiler.env.ICompilationUnit,
                 int, CompletionRequestor,
                 WorkingCopyOwner,
                 ITypeRoot, IProgressMonitor)) &&  /* AJDT 1.7 */
-                within(Openable) && this(target) && 
+                within(Openable) && this(target) &&
                 args(cu, unitToSkip, position, requestor, owner, typeRoot, monitor);  /* AJDT 1.7 */
-    
+
     void around(org.eclipse.jdt.internal.compiler.env.ICompilationUnit cu,
             org.eclipse.jdt.internal.compiler.env.ICompilationUnit unitToSkip,
             int position, CompletionRequestor requestor,
             WorkingCopyOwner owner,
             ITypeRoot typeRoot, Openable target, IProgressMonitor monitor) :  /* AJDT 1.7 */
                 codeCompleteInJavaFile(cu, unitToSkip, position, requestor, owner, typeRoot, target, monitor) {
-        
+
         boolean result = false;
-        if (contentAssistAdapter.getProvider() != null && nameEnvironmentAdapter.getProvider() != null && 
-                (cu instanceof CompilationUnit) && 
+        if (contentAssistAdapter.getProvider() != null && nameEnvironmentAdapter.getProvider() != null &&
+                (cu instanceof CompilationUnit) &&
                 nameEnvironmentAdapter.getProvider().shouldFindProblems((CompilationUnit) cu)) {
             try {
                 result = contentAssistAdapter.getProvider().doContentAssist(cu, unitToSkip, position, requestor, owner, typeRoot, target, monitor); /* AJDT 1.7 */
@@ -289,25 +283,25 @@ public aspect ITDAwarenessAspect {
                 JDTWeavingPlugin.logException(e);
                 result = false;
             }
-        }            
+        }
         if (!result) {
             proceed(cu, unitToSkip, position, requestor, owner, typeRoot, target, monitor);  /* AJDT 1.7 */
         }
     }
     /**
-     * 
+     *
      * used for ITD hyperlinking
      */
-    pointcut codeSelectWithArgs(CompilationUnit unit, int offset, int length) : 
+    pointcut codeSelectWithArgs(CompilationUnit unit, int offset, int length) :
         execution(public IJavaElement[] CompilationUnit.codeSelect(int,int) throws JavaModelException) &&
         this(unit) && args(offset, length);
 
-    
+
     /**
-     * Performs codeSelect operations with ITDAwareness.  This will allow things 
+     * Performs codeSelect operations with ITDAwareness.  This will allow things
      * like Hovers and OpenDeclaration to work as exepcted with ITDs.
      */
-    IJavaElement[] around(CompilationUnit unit, int offset, int length) : 
+    IJavaElement[] around(CompilationUnit unit, int offset, int length) :
             codeSelectWithArgs(unit, offset, length) {
         IJavaElement[] result = proceed(unit, offset, length);
         if (contentAssistAdapter.getProvider() != null && nameEnvironmentAdapter.getProvider() != null &&

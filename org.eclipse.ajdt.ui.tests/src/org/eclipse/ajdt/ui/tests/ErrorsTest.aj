@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2005 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Sian January  - initial version
@@ -26,15 +26,15 @@ import org.eclipse.ui.internal.views.log.LogView;
  * Aspect that causes tests to fail if they add errors to the error log
  */
 public aspect ErrorsTest {
-	
-	
+
+
 	pointcut uiTestRun() : execution(public void UITestCase+.test*())
 		&& !execution(void org.eclipse.ajdt.ui.tests.ajde.UIMessageHandlerTest.testHandleAbortWithMessageAndThrowable())
 		&& !execution(void org.eclipse.ajdt.ui.tests.ajde.UIMessageHandlerTest.testHandleErrorWithMessageAndThrowable())
 		&& !execution(void org.eclipse.ajdt.ui.tests.ajde.AJDTErrorHandlerTest.testHandleAJDTErrorWithMessage())
 		&& !execution(void org.eclipse.ajdt.ui.tests.ajde.AJDTErrorHandlerTest.testHandleAJDTErrorWithMessageAndTitle())
 	 	&& !this(PluginFFDCTest);
-	
+
 	void around(): uiTestRun() {
 		IViewPart view = null;
 		LogView logView = null;
@@ -78,6 +78,6 @@ public aspect ErrorsTest {
 			TestCase.fail("Exception occurred when accessing the log view"); //$NON-NLS-1$
 		}
 	}
-	
+
 
 }

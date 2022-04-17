@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2008 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *      SpringSource
  *      Andrew Eisenberg (initial implementation)
@@ -31,12 +31,12 @@ import org.eclipse.jdt.internal.corext.fix.CleanUpRefactoring;
 import org.eclipse.jdt.internal.corext.fix.CleanUpRefactoring.CleanUpChange;
 
 public privileged aspect SourceTransformerAspect {
-    
-    pointcut settingSource(char[] sourceString) : 
+
+    pointcut settingSource(char[] sourceString) :
             execution(public final void Scanner+.setSource(char[])) &&
             args(sourceString);
-    
-    pointcut startingParse(ICompilationUnit sourceUnit) : 
+
+    pointcut startingParse(ICompilationUnit sourceUnit) :
         execution(public CompilationUnitDeclaration parse(
                 ICompilationUnit, CompilationResult)) &&
                 args(sourceUnit, ..);
@@ -44,12 +44,12 @@ public privileged aspect SourceTransformerAspect {
     /**
      * Captures setting the source of a Scanner just before a parse is starting.
      * Transforms the source to something that is Java-compatible before sending it
-     * to the scanner 
+     * to the scanner
      */
-    void around(char[] sourceString, ICompilationUnit sourceUnit) : settingSource(sourceString) && 
+    void around(char[] sourceString, ICompilationUnit sourceUnit) : settingSource(sourceString) &&
             cflowbelow(startingParse(sourceUnit)) {
         // See bug 265586
-        // ignore BasicCompilationUnit because they are used for 
+        // ignore BasicCompilationUnit because they are used for
         // mocking up binary code
         // not sure if this should stay
         // this means that binary aspects look transformed, but they also don't have structure
@@ -68,23 +68,23 @@ public privileged aspect SourceTransformerAspect {
         }
         proceed(sourceString, sourceUnit);
     }
-    
+
     /**
      * Captures executions of {@link SourceMapper#mapSource(IType, char[], IBinaryType)}.
      * This method is used to map a binary file to its attached source code.
-     * 
+     *
      * This will help make the outline view for binary files appropriately view Java-like
      * structure.
      */
-    pointcut mappingSource(IType type, char[] contents, IBinaryType info) : 
-        execution(public void SourceMapper.mapSource(IType, char[], IBinaryType)) && 
+    pointcut mappingSource(IType type, char[] contents, IBinaryType info) :
+        execution(public void SourceMapper.mapSource(IType, char[], IBinaryType)) &&
         args(type, contents, info);
-    
-    void around(IType type, char[] contents, IBinaryType info) : 
+
+    void around(IType type, char[] contents, IBinaryType info) :
             mappingSource(type, contents, info) {
         char[] newContents = contents;
         if (isInterestingProject(type) && newContents != null) {
-        
+
             String extension = getExtension(type, info);
             ISourceTransformer transformer = SourceTransformerRegistry.getInstance().getSelector(extension);
             if (transformer != null) {
@@ -97,16 +97,16 @@ public privileged aspect SourceTransformerAspect {
         }
         proceed(type, newContents, info);
     }
-    
+
     /**
      * Captures calls to code formatting and other cleanUps when executed from outside of an AJEditor
      */
-    pointcut gettingBufferForCleanUp(org.eclipse.jdt.core.ICompilationUnit unit) : 
-        cflow(execution(public static CleanUpChange CleanUpRefactoring.calculateChange(..))) && 
-        call(public IBuffer org.eclipse.jdt.core.ICompilationUnit.getBuffer()) && 
+    pointcut gettingBufferForCleanUp(org.eclipse.jdt.core.ICompilationUnit unit) :
+        cflow(execution(public static CleanUpChange CleanUpRefactoring.calculateChange(..))) &&
+        call(public IBuffer org.eclipse.jdt.core.ICompilationUnit.getBuffer()) &&
         !cflow(adviceexecution()) && target(unit);
-    
-    
+
+
     /**
      * Need to make sure that all cleanups access the actual contents, nothing translated
      */
@@ -125,21 +125,21 @@ public privileged aspect SourceTransformerAspect {
         }
         return proceed(unit);
     }
-    
-    
+
+
     //////////////////////////////////////////////
     // Extend indexing
     //////////////////////////////////////////////
     pointcut indexingSourceDocument() : call(public SourceIndexerRequestor.new(SourceIndexer))  &&
         // prevent infinite recursion when the transformer decides to return a SourceIndexerRequestor
         !cflowbelow(execution(public SourceIndexerRequestor ISourceTransformer.createIndexerRequestor(SourceIndexer)));
-    
+
     SourceIndexerRequestor around(SourceIndexer indexer) : indexingSourceDocument() && args(indexer) {
         SearchDocument document = indexer.document;
         String extension = getExtension(document.getPath().toCharArray());
         ISourceTransformer transformer = SourceTransformerRegistry.getInstance().getSelector(extension);
-        
-        // unfortunately, we do not have access to an IJavaElement here, 
+
+        // unfortunately, we do not have access to an IJavaElement here,
         // so we can't weed out uninteresting projects.
         if (transformer != null) {
             try {
@@ -150,8 +150,8 @@ public privileged aspect SourceTransformerAspect {
         }
         return proceed(indexer);
     }
-    
-    
+
+
     private String getExtension(IType type, IBinaryType info) {
         String fName = null;
         if (type != null && type instanceof BinaryType) {
@@ -167,7 +167,7 @@ public privileged aspect SourceTransformerAspect {
         }
         return "";  //$NON-NLS-1$
     }
-    
+
     private String getExtension(char[] sourceName) {
         int extensionIndex = sourceName.length - 1;
         while (extensionIndex >= 0) {
@@ -180,7 +180,7 @@ public privileged aspect SourceTransformerAspect {
         }
         return "";  //$NON-NLS-1$
     }
-    
+
     private boolean isInterestingProject(IJavaElement elt) {
         return elt != null &&
                 WeavableProjectListener.getInstance().isInWeavableProject(elt);

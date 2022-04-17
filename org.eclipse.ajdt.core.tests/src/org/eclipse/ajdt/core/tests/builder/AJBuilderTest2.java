@@ -3,8 +3,8 @@
  * program and the accompanying materials are made available under the terms of
  * the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
- * 
- * Contributors: IBM Corporation - initial API and implementation 
+ *
+ * Contributors: IBM Corporation - initial API and implementation
  * 				 Helen Hawkins   - iniital version
  ******************************************************************************/
 package org.eclipse.ajdt.core.tests.builder;
@@ -60,18 +60,18 @@ public class AJBuilderTest2 extends AJDTCoreTestCase {
 		TestLogger testLog = new TestLogger();
 		AspectJPlugin.getDefault().setAJLogger(testLog);
 		javaProject.setOutputLocation(newOutput, null);
-		
+
 		joinBackgroudActivities();
-		
+
 		assertNotSame(
 				"should have set output directory to new place", origOutput, newOutput); //$NON-NLS-1$
 
-		List log = testLog.getMostRecentEntries(3);
+		List<String> log = testLog.getMostRecentEntries(3);
 		// print log to the screen for test case development purposes
 		testLog.printLog();
 
 		assertTrue(
-				"output dir has changed so should have spent time in AJDE", testLog.containsMessage("Total time spent in AJDE")); //$NON-NLS-1$ //$NON-NLS-2$  
+				"output dir has changed so should have spent time in AJDE", testLog.containsMessage("Total time spent in AJDE")); //$NON-NLS-1$ //$NON-NLS-2$
 		assertTrue(
 				"output dir has changed so should have spent time in AJBuilder.build()", testLog.containsMessage("Total time spent in AJBuilder.build()")); //$NON-NLS-1$ //$NON-NLS-2$
 
@@ -91,7 +91,7 @@ public class AJBuilderTest2 extends AJDTCoreTestCase {
 		IJavaProject javaProject = JavaCore.create(project);
 		IClasspathEntry[] origClasspath = javaProject.getRawClasspath();
 
-		
+
 		TestLogger testLog = new TestLogger();
 		AspectJPlugin.getDefault().setAJLogger(testLog);
 		// add a library to the classpath
@@ -103,7 +103,7 @@ public class AJBuilderTest2 extends AJDTCoreTestCase {
 				"library should have been added to classpath", projectHasLibraryOnClasspath(javaProject, "testJar.jar")); //$NON-NLS-1$ //$NON-NLS-2$
 
 		// check that a build has in fact occured
-		List log = testLog.getMostRecentEntries(3);
+		List<String> log = testLog.getMostRecentEntries(3);
 		// print log to the screen for test case development purposes
 		testLog.printLog();
 
@@ -140,14 +140,14 @@ public class AJBuilderTest2 extends AJDTCoreTestCase {
 				"project bug91420 should have a project dependency on project bug101481", //$NON-NLS-1$
 				projectHasProjectDependency(javaProject, project2));
 
-		List log = testLog.getMostRecentEntries(3);
+		List<String> log = testLog.getMostRecentEntries(3);
 		// print log to the screen for test case development purposes
 		testLog.printLog();
 
 		assertTrue(
-				"classpath has changed (new project dependency) so should have spent time in AJDE", testLog.containsMessage("Total time spent in AJDE")); //$NON-NLS-1$ //$NON-NLS-2$  
+				"classpath has changed (new project dependency) so should have spent time in AJDE", testLog.containsMessage("Total time spent in AJDE")); //$NON-NLS-1$ //$NON-NLS-2$
 		assertTrue(
-				"classpath has changed (new project dependency) so should have spent time in AJBuilder.build()", testLog.containsMessage("Total time spent in AJBuilder.build()")); //$NON-NLS-1$ //$NON-NLS-2$ 
+				"classpath has changed (new project dependency) so should have spent time in AJBuilder.build()", testLog.containsMessage("Total time spent in AJBuilder.build()")); //$NON-NLS-1$ //$NON-NLS-2$
 
 		// reset the changes
 		javaProject.setRawClasspath(origClasspath, null);
@@ -155,12 +155,12 @@ public class AJBuilderTest2 extends AJDTCoreTestCase {
 		assertFalse("project dependencies should have been removed", //$NON-NLS-1$
 				projectHasProjectDependency(javaProject, project2));
 	}
-	
+
 	   /**
      * Test for bug 101489 - if there are compilation errors in the compiled
      * class files then the resources (.txt files etc.) are not copied over to
      * the output directory. This is a problem when a full build happens.
-     * 
+     *
      * NOTE - this isn't actually fixed yet......
      */
     public void testBug101489() throws Exception {
@@ -188,7 +188,7 @@ public class AJBuilderTest2 extends AJDTCoreTestCase {
             project.refreshLocal(IResource.DEPTH_INFINITE,null);
             project.refreshLocal(IResource.DEPTH_INFINITE,null);
             joinBackgroudActivities();
-            
+
             assertNotNull("src folder should not be null", src); //$NON-NLS-1$
             assertNotNull("package pack should not be null", pack); //$NON-NLS-1$
             assertNotNull("newFile.txt should not be null", textFile); //$NON-NLS-1$
@@ -207,21 +207,21 @@ public class AJBuilderTest2 extends AJDTCoreTestCase {
                 binPack.create(true, true, null);
             }
             IFile binTextFile = binPack.getFile("newFile.txt"); //$NON-NLS-1$
-            
+
             assertTrue("bin directory should contain txt file", //$NON-NLS-1$
                     outputDirContainsFile(project, "pack", "newFile.txt")); //$NON-NLS-1$ //$NON-NLS-2$
             assertTrue("newFile.txt should exist in the output directory", //$NON-NLS-1$
                     binTextFile.exists());
-            
+
             // Test starts here.....
-            
+
             // turn autobuilding off
             Utils.setAutobuilding(false);
             assertFalse("autobuilding should be set to false", Utils //$NON-NLS-1$
                     .isAutobuilding());
             assertFalse("project should have no errors", testLog //$NON-NLS-1$
                     .containsMessage("error"));  //$NON-NLS-1$
-            
+
             StringBuffer origContents = new StringBuffer("package pack; "); //$NON-NLS-1$
             origContents.append(System.getProperty("line.separator")); //$NON-NLS-1$
             origContents.append("public class C {}"); //$NON-NLS-1$
@@ -238,7 +238,7 @@ public class AJBuilderTest2 extends AJDTCoreTestCase {
             c.setContents(new ReaderInputStream(sr), IResource.FORCE, null);
             sr.close();
             waitForAutoRefresh();
-            
+
             // force a clean build (which should clear the output
             // directory)
             project.build(IncrementalProjectBuilder.CLEAN_BUILD, null);

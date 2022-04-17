@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman - initial version
@@ -31,7 +31,7 @@ import org.eclipse.jdt.core.JavaModelException;
 public class ClasspathModifier {
 	/**
 	 * Find out whether the <code>IResource</code> excluded or not.
-	 * 
+	 *
 	 * @param resource
 	 *            the resource to be checked
 	 * @param project
@@ -57,11 +57,11 @@ public class ClasspathModifier {
 	/**
 	 * Find out whether one of the <code>IResource</code>'s parents
 	 * is excluded.
-	 * 
+	 *
 	 * @param resource check the resources parents whether they are
 	 * excluded or not
 	 * @param project the Java project
-	 * @return <code>true</code> if there is an excluded parent, 
+	 * @return <code>true</code> if there is an excluded parent,
 	 * <code>false</code> otherwise
 	 * @throws JavaModelException
 	 */
@@ -87,7 +87,7 @@ public class ClasspathModifier {
 	/**
 	 * Get the source folder of a given <code>IResource</code> element,
 	 * starting with the resource's parent.
-	 * 
+	 *
 	 * @param resource
 	 *            the resource to get the fragment root from
 	 * @param project
@@ -125,7 +125,7 @@ public class ClasspathModifier {
 	 * Returns a string corresponding to the <code>path</code> with the
 	 * <code>rootPath<code>'s number of segments
 	 * removed
-	 * 
+	 *
 	 * @param path path to remove segments
 	 * @param rootPath provides the number of segments to
 	 * be removed
@@ -139,7 +139,7 @@ public class ClasspathModifier {
 	/**
 	 * Add a '/' at the end of the name if it does not end with '.java', or
 	 * other Java-like extension.
-	 * 
+	 *
 	 * @param name
 	 *            append '/' at the end if necessary
 	 * @return modified string
@@ -155,7 +155,7 @@ public class ClasspathModifier {
 
 	/**
 	 * Find out whether the provided path equals to one in the array.
-	 * 
+	 *
 	 * @param path
 	 *            path to find an equivalent for
 	 * @param paths
@@ -169,10 +169,10 @@ public class ClasspathModifier {
 			return false;
 		if (path.getFileExtension() == null)
 			path = new Path(completeName(path.toString()));
-		for (int i = 0; i < paths.length; i++) {
-			if (paths[i].equals(path))
-				return true;
-		}
+    for (IPath iPath : paths) {
+      if (iPath.equals(path))
+        return true;
+    }
 		return false;
 	}
 

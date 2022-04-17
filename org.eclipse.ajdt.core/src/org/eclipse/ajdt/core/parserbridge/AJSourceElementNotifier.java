@@ -55,7 +55,7 @@ import org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
 import org.eclipse.jdt.internal.compiler.util.HashtableOfObjectToInt;
 
 /**
- * AspectJ changes marked with 
+ * AspectJ changes marked with
  * // AspectJ change
  * @author andrew
  *
@@ -65,10 +65,10 @@ public class AJSourceElementNotifier {
 	 * An ast visitor that visits local type declarations.
 	 */
 	public class LocalDeclarationVisitor extends ASTVisitor {
-		ArrayList declaringTypes;
+		ArrayList<TypeDeclaration> declaringTypes;
 		public void pushDeclaringType(TypeDeclaration declaringType) {
 			if (this.declaringTypes == null) {
-				this.declaringTypes = new ArrayList();
+				this.declaringTypes = new ArrayList<>();
 			}
 			this.declaringTypes.add(declaringType);
 		}
@@ -79,7 +79,7 @@ public class AJSourceElementNotifier {
 			if (this.declaringTypes == null) return null;
 			int size = this.declaringTypes.size();
 			if (size == 0) return null;
-			return (TypeDeclaration) this.declaringTypes.get(size-1);
+			return this.declaringTypes.get(size - 1);
 		}
 		public boolean visit(TypeDeclaration typeDeclaration, BlockScope scope) {
 			notifySourceElementRequestor(typeDeclaration, true, peekDeclaringType());
@@ -88,22 +88,22 @@ public class AJSourceElementNotifier {
 		public boolean visit(TypeDeclaration typeDeclaration, ClassScope scope) {
 			notifySourceElementRequestor(typeDeclaration, true, peekDeclaringType());
 			return false; // don't visit members as this was done during notifySourceElementRequestor(...)
-		}	
+		}
 	}
-	
+
 	AJCompilationUnitStructureRequestor requestor; // AspectJ change
 	boolean reportReferenceInfo;
 	char[][] typeNames;
 	char[][] superTypeNames;
 	int nestedTypeIndex;
 	LocalDeclarationVisitor localDeclarationVisitor = null;
-	
+
 	HashtableOfObjectToInt sourceEnds;
-	Map nodesToCategories;
-	
+  Map<? extends ASTNode, ? extends char[][]> nodesToCategories;
+
 	int initialPosition;
 	int eofPosition;
-	
+
 public AJSourceElementNotifier(AJCompilationUnitStructureRequestor requestor, boolean reportLocalDeclarations) { // AspectJ Change
 	this.requestor = requestor;
 	if (reportLocalDeclarations) {
@@ -121,7 +121,7 @@ protected char[][][] getArguments(Argument[] arguments) {
 		argumentTypes[i] = CharOperation.concatWith(arguments[i].type.getParameterizedTypeName(), '.');
 		argumentNames[i] = arguments[i].name;
 	}
-	
+
 	return new char[][][] {argumentTypes, argumentNames};
 }
 protected char[][] getInterfaceNames(TypeDeclaration typeDeclaration) {
@@ -144,8 +144,8 @@ protected char[][] getInterfaceNames(TypeDeclaration typeDeclaration) {
 	}
 	if (superInterfaces != null) {
 		for (int i = 0; i < superInterfacesLength; i++) {
-			interfaceNames[i] = 
-				CharOperation.concatWith(superInterfaces[i].getParameterizedTypeName(), '.'); 
+			interfaceNames[i] =
+				CharOperation.concatWith(superInterfaces[i].getParameterizedTypeName(), '.');
 		}
 	}
 	return interfaceNames;
@@ -161,8 +161,8 @@ protected char[][] getThrownExceptions(AbstractMethodDeclaration methodDeclarati
 		int thrownExceptionLength = thrownExceptions.length;
 		thrownExceptionTypes = new char[thrownExceptionLength][];
 		for (int i = 0; i < thrownExceptionLength; i++) {
-			thrownExceptionTypes[i] = 
-				CharOperation.concatWith(thrownExceptions[i].getParameterizedTypeName(), '.'); 
+			thrownExceptionTypes[i] =
+				CharOperation.concatWith(thrownExceptions[i].getParameterizedTypeName(), '.');
 		}
 	}
 	return thrownExceptionTypes;
@@ -177,8 +177,8 @@ protected char[][] getTypeParameterBounds(TypeParameter typeParameter) {
 			char[][] boundNames = new char[otherBoundsLength+1][];
 			boundNames[0] = CharOperation.concatWith(firstBound.getParameterizedTypeName(), '.');
 			for (int j = 0; j < otherBoundsLength; j++) {
-				boundNames[j+1] = 
-					CharOperation.concatWith(otherBounds[j].getParameterizedTypeName(), '.'); 
+				boundNames[j+1] =
+					CharOperation.concatWith(otherBounds[j].getParameterizedTypeName(), '.');
 			}
 			typeParameterBounds = boundNames;
 		} else {
@@ -187,7 +187,7 @@ protected char[][] getTypeParameterBounds(TypeParameter typeParameter) {
 	} else {
 		typeParameterBounds = CharOperation.NO_CHAR_CHAR;
 	}
-	
+
 	return typeParameterBounds;
 }
 private ISourceElementRequestor.TypeParameterInfo[] getTypeParameterInfos(TypeParameter[] typeParameters) {
@@ -214,12 +214,11 @@ private ISourceElementRequestor.TypeParameterInfo[] getTypeParameterInfos(TypePa
  */
 private boolean hasDeprecatedAnnotation(Annotation[] annotations) {
 	if (annotations != null) {
-		for (int i = 0, length = annotations.length; i < length; i++) {
-			Annotation annotation = annotations[i];
-			if (CharOperation.equals(annotation.type.getLastToken(), TypeConstants.JAVA_LANG_DEPRECATED[2])) {
-				return true;
-			}
-		}
+    for (Annotation annotation : annotations) {
+      if (CharOperation.equals(annotation.type.getLastToken(), TypeConstants.JAVA_LANG_DEPRECATED[2])) {
+        return true;
+      }
+    }
 	}
 	return false;
 }
@@ -229,7 +228,7 @@ private boolean hasDeprecatedAnnotation(Annotation[] annotations) {
 protected void notifySourceElementRequestor(AbstractMethodDeclaration methodDeclaration) {
 
 	// range check
-	boolean isInRange = 
+	boolean isInRange =
 				initialPosition <= methodDeclaration.declarationSourceStart
 				&& eofPosition >= methodDeclaration.declarationSourceEnd;
 
@@ -247,21 +246,21 @@ protected void notifySourceElementRequestor(AbstractMethodDeclaration methodDecl
 					case ExplicitConstructorCall.This :
 						requestor.acceptConstructorReference(
 							typeNames[nestedTypeIndex-1],
-							constructorCall.arguments == null ? 0 : constructorCall.arguments.length, 
+							constructorCall.arguments == null ? 0 : constructorCall.arguments.length,
 							constructorCall.sourceStart);
 						break;
 					case ExplicitConstructorCall.Super :
-					case ExplicitConstructorCall.ImplicitSuper :					
+					case ExplicitConstructorCall.ImplicitSuper :
 						requestor.acceptConstructorReference(
 							superTypeNames[nestedTypeIndex-1],
-							constructorCall.arguments == null ? 0 : constructorCall.arguments.length, 
+							constructorCall.arguments == null ? 0 : constructorCall.arguments.length,
 							constructorCall.sourceStart);
 						break;
 				}
 			}
-		}	
-		return;	
-	}	
+		}
+		return;
+	}
 	char[][] argumentTypes = null;
 	char[][] argumentNames = null;
 	boolean isVarArgs = false;
@@ -270,7 +269,7 @@ protected void notifySourceElementRequestor(AbstractMethodDeclaration methodDecl
 		char[][][] argumentTypesAndNames = this.getArguments(arguments);
 		argumentTypes = argumentTypesAndNames[0];
 		argumentNames = argumentTypesAndNames[1];
-		
+
 		isVarArgs = arguments[arguments.length-1].isVarArgs();
 	}
 	char[][] thrownExceptionTypes = getThrownExceptions(methodDeclaration);
@@ -282,10 +281,10 @@ protected void notifySourceElementRequestor(AbstractMethodDeclaration methodDecl
 			int currentModifiers = methodDeclaration.modifiers;
 			if (isVarArgs)
 				currentModifiers |= ClassFileConstants.AccVarargs;
-			
-			// remember deprecation so as to not lose it below
+
+			// remember deprecation to not lose it below
 			boolean deprecated = (currentModifiers & ClassFileConstants.AccDeprecated) != 0 || hasDeprecatedAnnotation(methodDeclaration.annotations);
-			
+
 			ISourceElementRequestor.MethodInfo methodInfo = new ISourceElementRequestor.MethodInfo();
 			methodInfo.isConstructor = true;
 			methodInfo.declarationStart = methodDeclaration.declarationSourceStart;
@@ -297,7 +296,7 @@ protected void notifySourceElementRequestor(AbstractMethodDeclaration methodDecl
 			methodInfo.parameterNames = argumentNames;
 			methodInfo.exceptionTypes = thrownExceptionTypes;
 			methodInfo.typeParameters = getTypeParameterInfos(methodDeclaration.typeParameters());
-			methodInfo.categories = (char[][]) this.nodesToCategories.get(methodDeclaration);
+			methodInfo.categories = this.nodesToCategories.get(methodDeclaration);
 			methodInfo.annotations = methodDeclaration.annotations;
 			methodInfo.node = methodDeclaration;
 			requestor.enterConstructor(methodInfo);
@@ -310,14 +309,14 @@ protected void notifySourceElementRequestor(AbstractMethodDeclaration methodDecl
 					case ExplicitConstructorCall.This :
 						requestor.acceptConstructorReference(
 							typeNames[nestedTypeIndex-1],
-							constructorCall.arguments == null ? 0 : constructorCall.arguments.length, 
+							constructorCall.arguments == null ? 0 : constructorCall.arguments.length,
 							constructorCall.sourceStart);
 						break;
 					case ExplicitConstructorCall.Super :
 					case ExplicitConstructorCall.ImplicitSuper :
 						requestor.acceptConstructorReference(
 							superTypeNames[nestedTypeIndex-1],
-							constructorCall.arguments == null ? 0 : constructorCall.arguments.length, 
+							constructorCall.arguments == null ? 0 : constructorCall.arguments.length,
 							constructorCall.sourceStart);
 						break;
 				}
@@ -330,7 +329,7 @@ protected void notifySourceElementRequestor(AbstractMethodDeclaration methodDecl
 		return;
 	}
 	selectorSourceEnd = this.sourceEnds.get(methodDeclaration);
-	
+
 	// AspectJ Change Begin
 	// recreate source locations for Pointcuts and Advice
 	org.aspectj.org.eclipse.jdt.internal.compiler.ast.MethodDeclaration ajmDec = new org.aspectj.org.eclipse.jdt.internal.compiler.ast.MethodDeclaration(new org.aspectj.org.eclipse.jdt.internal.compiler.CompilationResult(methodDeclaration.compilationResult.fileName, methodDeclaration.compilationResult.unitIndex, methodDeclaration.compilationResult.totalUnitsKnown, 500));
@@ -338,7 +337,7 @@ protected void notifySourceElementRequestor(AbstractMethodDeclaration methodDecl
 		selectorSourceEnd = methodDeclaration.sourceStart + methodDeclaration.selector.length - 1;
 	}
 	if (ajmDec instanceof AdviceDeclaration) {
-		selectorSourceEnd = methodDeclaration.sourceStart + ((AdviceDeclaration) ajmDec).kind.getName().length() - 1; 
+		selectorSourceEnd = methodDeclaration.sourceStart + ((AdviceDeclaration) ajmDec).kind.getName().length() - 1;
 	}
 	// AspectJ Change End
 
@@ -346,10 +345,10 @@ protected void notifySourceElementRequestor(AbstractMethodDeclaration methodDecl
 		int currentModifiers = methodDeclaration.modifiers;
 		if (isVarArgs)
 			currentModifiers |= ClassFileConstants.AccVarargs;
-		
+
 		// remember deprecation so as to not lose it below
-		boolean deprecated = (currentModifiers & ClassFileConstants.AccDeprecated) != 0 || hasDeprecatedAnnotation(methodDeclaration.annotations);	
-			
+		boolean deprecated = (currentModifiers & ClassFileConstants.AccDeprecated) != 0 || hasDeprecatedAnnotation(methodDeclaration.annotations);
+
 		TypeReference returnType = methodDeclaration instanceof MethodDeclaration
 			? ((MethodDeclaration) methodDeclaration).returnType
 			: null;
@@ -365,12 +364,12 @@ protected void notifySourceElementRequestor(AbstractMethodDeclaration methodDecl
 		methodInfo.parameterNames = argumentNames;
 		methodInfo.exceptionTypes = thrownExceptionTypes;
 		methodInfo.typeParameters = getTypeParameterInfos(methodDeclaration.typeParameters());
-		methodInfo.categories = (char[][]) this.nodesToCategories.get(methodDeclaration);
+		methodInfo.categories = this.nodesToCategories.get(methodDeclaration);
 		methodInfo.annotations = methodDeclaration.annotations;
 		methodInfo.node = methodDeclaration;
 		requestor.enterMethod(methodInfo);
-	}		
-		
+	}
+
 	this.visitIfNeeded(methodDeclaration);
 
 	if (isInRange) {
@@ -381,7 +380,7 @@ protected void notifySourceElementRequestor(AbstractMethodDeclaration methodDecl
 				requestor.exitMethod(methodDeclaration.declarationSourceEnd, expression);
 				return;
 			}
-		} 
+		}
 		requestor.exitMethod(methodDeclaration.declarationSourceEnd, (org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression) null);
 	}
 }
@@ -390,26 +389,26 @@ protected void notifySourceElementRequestor(AbstractMethodDeclaration methodDecl
  * Update the bodyStart of the corresponding parse node
  */
 public void notifySourceElementRequestor(
-		CompilationUnitDeclaration parsedUnit,
-		int sourceStart,
-		int sourceEnd,
-		boolean reportReference,
-		HashtableOfObjectToInt sourceEndsMap,
-		Map nodesToCategoriesMap) {
-	
+  CompilationUnitDeclaration parsedUnit,
+  int sourceStart,
+  int sourceEnd,
+  boolean reportReference,
+  HashtableOfObjectToInt sourceEndsMap,
+  Map<? extends ASTNode, ? extends char[][]> nodesToCategoriesMap) {
+
 	this.initialPosition = sourceStart;
 	this.eofPosition = sourceEnd;
-	
+
 	this.reportReferenceInfo = reportReference;
 	this.sourceEnds = sourceEndsMap;
 	this.nodesToCategories = nodesToCategoriesMap;
-	
+
 	try {
 		// range check
-		boolean isInRange = 
+		boolean isInRange =
 					initialPosition <= parsedUnit.sourceStart
 					&& eofPosition >= parsedUnit.sourceEnd;
-		
+
 		// collect the top level ast nodes
 		int length = 0;
 		ASTNode[] nodes = null;
@@ -419,8 +418,8 @@ public void notifySourceElementRequestor(
 		ImportReference currentPackage = parsedUnit.currentPackage;
 		ImportReference[] imports = parsedUnit.imports;
 		TypeDeclaration[] types = parsedUnit.types;
-		length = 
-			(currentPackage == null ? 0 : 1) 
+		length =
+			(currentPackage == null ? 0 : 1)
 			+ (imports == null ? 0 : imports.length)
 			+ (types == null ? 0 : types.length);
 		nodes = new ASTNode[length];
@@ -429,16 +428,16 @@ public void notifySourceElementRequestor(
 			nodes[index++] = currentPackage;
 		}
 		if (imports != null) {
-			for (int i = 0, max = imports.length; i < max; i++) {
-				nodes[index++] = imports[i];
-			}
+      for (ImportReference anImport : imports) {
+        nodes[index++] = anImport;
+      }
 		}
 		if (types != null) {
-			for (int i = 0, max = types.length; i < max; i++) {
-				nodes[index++] = types[i];
-			}
+      for (TypeDeclaration type : types) {
+        nodes[index++] = type;
+      }
 		}
-		
+
 		// notify the nodes in the syntactical order
 		if (length > 0) {
 			quickSort(nodes, 0, length-1);
@@ -456,7 +455,7 @@ public void notifySourceElementRequestor(
 				}
 			}
 		}
-		
+
 		if (isInRange) {
 			requestor.exitCompilationUnit(parsedUnit.sourceEnd);
 		}
@@ -469,9 +468,9 @@ public void notifySourceElementRequestor(
 * Update the bodyStart of the corresponding parse node
 */
 protected void notifySourceElementRequestor(FieldDeclaration fieldDeclaration, TypeDeclaration declaringType) {
-	
+
 	// range check
-	boolean isInRange = 
+	boolean isInRange =
 				initialPosition <= fieldDeclaration.declarationSourceStart
 				&& eofPosition >= fieldDeclaration.declarationSourceEnd;
 
@@ -483,7 +482,7 @@ protected void notifySourceElementRequestor(FieldDeclaration fieldDeclaration, T
 					AllocationExpression alloc = (AllocationExpression) fieldDeclaration.initialization;
 					requestor.acceptConstructorReference(
 						declaringType.name,
-						alloc.arguments == null ? 0 : alloc.arguments.length, 
+						alloc.arguments == null ? 0 : alloc.arguments.length,
 						alloc.sourceStart);
 				}
 			}
@@ -496,10 +495,10 @@ protected void notifySourceElementRequestor(FieldDeclaration fieldDeclaration, T
 			}
 			if (isInRange) {
 				int currentModifiers = fieldDeclaration.modifiers;
-				
+
 				// remember deprecation so as to not lose it below
-				boolean deprecated = (currentModifiers & ClassFileConstants.AccDeprecated) != 0 || hasDeprecatedAnnotation(fieldDeclaration.annotations);	
-			
+				boolean deprecated = (currentModifiers & ClassFileConstants.AccDeprecated) != 0 || hasDeprecatedAnnotation(fieldDeclaration.annotations);
+
 				char[] typeName = null;
 				if (fieldDeclaration.type == null) {
 					// enum constant
@@ -516,7 +515,7 @@ protected void notifySourceElementRequestor(FieldDeclaration fieldDeclaration, T
 				fieldInfo.type = typeName;
 				fieldInfo.nameSourceStart = fieldDeclaration.sourceStart;
 				fieldInfo.nameSourceEnd = fieldDeclaration.sourceEnd;
-				fieldInfo.categories = (char[][]) this.nodesToCategories.get(fieldDeclaration);
+				fieldInfo.categories = this.nodesToCategories.get(fieldDeclaration);
 				fieldInfo.annotations = fieldDeclaration.annotations;
 				fieldInfo.node = fieldDeclaration;
 				requestor.enterField(fieldInfo);
@@ -525,7 +524,7 @@ protected void notifySourceElementRequestor(FieldDeclaration fieldDeclaration, T
 			if (isInRange){
 				requestor.exitField(
 					// filter out initializations that are not a constant (simple check)
-					(fieldDeclaration.initialization == null 
+					(fieldDeclaration.initialization == null
 							|| fieldDeclaration.initialization instanceof ArrayInitializer
 							|| fieldDeclaration.initialization instanceof AllocationExpression
 							|| fieldDeclaration.initialization instanceof ArrayAllocationExpression
@@ -533,9 +532,9 @@ protected void notifySourceElementRequestor(FieldDeclaration fieldDeclaration, T
 							|| fieldDeclaration.initialization instanceof ClassLiteralAccess
 							|| fieldDeclaration.initialization instanceof MessageSend
 							|| fieldDeclaration.initialization instanceof ArrayReference
-							|| fieldDeclaration.initialization instanceof ThisReference) ? 
-						-1 :  
-						fieldDeclaration.initialization.sourceStart, 
+							|| fieldDeclaration.initialization instanceof ThisReference) ?
+						-1 :
+						fieldDeclaration.initialization.sourceStart,
 					fieldEndPosition,
 					fieldDeclaration.declarationSourceEnd);
 			}
@@ -544,7 +543,7 @@ protected void notifySourceElementRequestor(FieldDeclaration fieldDeclaration, T
 			if (isInRange){
 				requestor.enterInitializer(
 					fieldDeclaration.declarationSourceStart,
-					fieldDeclaration.modifiers); 
+					fieldDeclaration.modifiers);
 			}
 			this.visitIfNeeded((Initializer)fieldDeclaration);
 			if (isInRange){
@@ -554,41 +553,41 @@ protected void notifySourceElementRequestor(FieldDeclaration fieldDeclaration, T
 	}
 }
 protected void notifySourceElementRequestor(
-	ImportReference importReference, 
+	ImportReference importReference,
 	boolean isPackage) {
 	if (isPackage) {
-		requestor.acceptPackage(importReference); 
+		requestor.acceptPackage(importReference);
 	} else {
 		requestor.acceptImport(
-			importReference.declarationSourceStart, 
-			importReference.declarationSourceEnd, 
-			importReference.tokens, 
+			importReference.declarationSourceStart,
+			importReference.declarationSourceEnd,
+			importReference.tokens,
 			(importReference.bits & ASTNode.OnDemand) != 0,
-			importReference.modifiers); 
+			importReference.modifiers);
 	}
 }
 protected void notifySourceElementRequestor(TypeDeclaration typeDeclaration, boolean notifyTypePresence, TypeDeclaration declaringType) {
-	
+
 	if (CharOperation.equals(TypeConstants.PACKAGE_INFO_NAME, typeDeclaration.name)) return;
 
     //	AspectJ change begin
 	boolean isAspect = false;
-	org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration ajtypeDeclaration = 
+	org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration ajtypeDeclaration =
 	    new org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration(
 	        new org.aspectj.org.eclipse.jdt.internal.compiler.CompilationResult(
-	                typeDeclaration.compilationResult.fileName, typeDeclaration.compilationResult.unitIndex, 
+	                typeDeclaration.compilationResult.fileName, typeDeclaration.compilationResult.unitIndex,
 	                typeDeclaration.compilationResult.totalUnitsKnown, 500));
 	if (ajtypeDeclaration instanceof AspectDeclaration) {
 		isAspect = true;
 	}
     //	AspectJ change end
 
-	
+
 	// range check
-	boolean isInRange = 
+	boolean isInRange =
 		initialPosition <= typeDeclaration.declarationSourceStart
 		&& eofPosition >= typeDeclaration.declarationSourceEnd;
-	
+
 	FieldDeclaration[] fields = typeDeclaration.fields;
 	AbstractMethodDeclaration[] methods = typeDeclaration.methods;
 	TypeDeclaration[] memberTypes = typeDeclaration.memberTypes;
@@ -598,17 +597,17 @@ protected void notifySourceElementRequestor(TypeDeclaration typeDeclaration, boo
 	int fieldIndex = 0;
 	int methodIndex = 0;
 	int memberTypeIndex = 0;
-	
+
 	if (notifyTypePresence){
 		char[][] interfaceNames = getInterfaceNames(typeDeclaration);
 		int kind = TypeDeclaration.kind(typeDeclaration.modifiers);
 		char[] implicitSuperclassName = TypeConstants.CharArray_JAVA_LANG_OBJECT;
 		if (isInRange) {
 			int currentModifiers = typeDeclaration.modifiers;
-			
-			// remember deprecation so as to not lose it below
-			boolean deprecated = (currentModifiers & ClassFileConstants.AccDeprecated) != 0 || hasDeprecatedAnnotation(typeDeclaration.annotations);	
-			
+
+			// remember deprecation to not lose it below
+			boolean deprecated = (currentModifiers & ClassFileConstants.AccDeprecated) != 0 || hasDeprecatedAnnotation(typeDeclaration.annotations);
+
 			boolean isEnumInit = typeDeclaration.allocation != null && typeDeclaration.allocation.enumConstant != null;
 			char[] superclassName;
 			if (isEnumInit) {
@@ -632,7 +631,7 @@ protected void notifySourceElementRequestor(TypeDeclaration typeDeclaration, boo
 			typeInfo.superclass = superclassName;
 			typeInfo.superinterfaces = interfaceNames;
 			typeInfo.typeParameters = getTypeParameterInfos(typeDeclaration.typeParameters);
-			typeInfo.categories = (char[][]) this.nodesToCategories.get(typeDeclaration);
+			typeInfo.categories = this.nodesToCategories.get(typeDeclaration);
 			typeInfo.secondary = typeDeclaration.isSecondary();
 			typeInfo.anonymousMember = typeDeclaration.allocation != null && typeDeclaration.allocation.enclosingInstance != null;
 			typeInfo.annotations = typeDeclaration.annotations;
@@ -668,7 +667,7 @@ protected void notifySourceElementRequestor(TypeDeclaration typeDeclaration, boo
 		FieldDeclaration nextFieldDeclaration = null;
 		AbstractMethodDeclaration nextMethodDeclaration = null;
 		TypeDeclaration nextMemberDeclaration = null;
-		
+
 		int position = Integer.MAX_VALUE;
 		int nextDeclarationType = -1;
 		if (fieldIndex < fieldCounter) {
@@ -746,7 +745,7 @@ private void reset() {
 	typeNames = new char[4][];
 	superTypeNames = new char[4][];
 	nestedTypeIndex = 0;
-	
+
 	this.sourceEnds = null;
 }
 private int sourceEnd(TypeDeclaration typeDeclaration) {
@@ -760,7 +759,7 @@ private int sourceEnd(TypeDeclaration typeDeclaration) {
 	}
 }
 private void visitIfNeeded(AbstractMethodDeclaration method) {
-	if (this.localDeclarationVisitor != null 
+	if (this.localDeclarationVisitor != null
 		&& (method.bits & ASTNode.HasLocalType) != 0) {
 			if (method instanceof ConstructorDeclaration) {
 				ConstructorDeclaration constructorDeclaration = (ConstructorDeclaration) method;
@@ -777,7 +776,7 @@ private void visitIfNeeded(AbstractMethodDeclaration method) {
 }
 
 private void visitIfNeeded(FieldDeclaration field, TypeDeclaration declaringType) {
-	if (this.localDeclarationVisitor != null 
+	if (this.localDeclarationVisitor != null
 		&& (field.bits & ASTNode.HasLocalType) != 0) {
 			if (field.initialization != null) {
 				try {
@@ -791,7 +790,7 @@ private void visitIfNeeded(FieldDeclaration field, TypeDeclaration declaringType
 }
 
 private void visitIfNeeded(Initializer initializer) {
-	if (this.localDeclarationVisitor != null 
+	if (this.localDeclarationVisitor != null
 		&& (initializer.bits & ASTNode.HasLocalType) != 0) {
 			if (initializer.block != null) {
 				initializer.block.traverse(this.localDeclarationVisitor, null);

@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2005 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Sian January  - initial version
@@ -15,7 +15,6 @@ package org.eclipse.ajdt.internal.launching;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -50,32 +49,32 @@ import org.eclipse.jdt.launching.VMRunnerConfiguration;
 import org.eclipse.osgi.util.NLS;
 import org.osgi.framework.Version;
 
-public class LTWApplicationLaunchConfigurationDelegate 
+public class LTWApplicationLaunchConfigurationDelegate
 		extends JavaLaunchDelegate {
-	
+
 	private static final String classLoaderOption = "-Djava.system.class.loader"; //$NON-NLS-1$
 	private static final String ajClasspathOption = "-Daj.class.path"; //$NON-NLS-1$
-	
+
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.debug.core.model.ILaunchConfigurationDelegate#launch(org.eclipse.debug.core.ILaunchConfiguration, java.lang.String, org.eclipse.debug.core.ILaunch, org.eclipse.core.runtime.IProgressMonitor)
 	 */
 	public void launch(ILaunchConfiguration configuration, String mode, ILaunch launch, IProgressMonitor monitor) throws CoreException {
-		
+
 		if (monitor == null) {
 			monitor = new NullProgressMonitor();
 		}
-		
+
 		monitor.beginTask(NLS.bind("{0}...", new String[]{configuration.getName()}), 3); //$NON-NLS-1$
 		// check for cancellation
 		if (monitor.isCanceled()) {
 			return;
 		}
-		
+
 		generateAOPConfigFiles(configuration);
-		
+
 		monitor.subTask(LaunchingMessages.JavaLocalApplicationLaunchConfigurationDelegate_Verifying_launch_attributes____1);
-						
+
 		String mainTypeName = verifyMainTypeName(configuration);
 		IVMRunner runner = getVMRunner(configuration, mode);
 		boolean isJava5OrLater = isJava5OrLater(configuration);
@@ -85,10 +84,10 @@ public class LTWApplicationLaunchConfigurationDelegate
 		if (workingDir != null) {
 			workingDirName = workingDir.getAbsolutePath();
 		}
-		
+
 		// Environment variables
 		String[] envp= getEnvironment(configuration);
-		
+
 		// Classpath
 		String[] classpath = getClasspath(configuration);
 
@@ -106,11 +105,11 @@ public class LTWApplicationLaunchConfigurationDelegate
 		String vmArgs = getVMArguments(configuration);
 		vmArgs = addExtraVMArgs(vmArgs, classpath, ltwClasspath[0], isJava5OrLater);  // weaver is always first entry in ltwclassath arroy
 		ExecutionArguments execArgs = new ExecutionArguments(vmArgs, pgmArgs);
-		
+
 		// VM-specific attributes
 		Map<String, Object> vmAttributesMap = getVMSpecificAttributesMap(configuration);
-		
-		
+
+
 		// Create VM config
 		VMRunnerConfiguration runConfig = new VMRunnerConfiguration(mainTypeName, ltwClasspath);
 		runConfig.setProgramArguments(execArgs.getProgramArgumentsArray());
@@ -121,31 +120,31 @@ public class LTWApplicationLaunchConfigurationDelegate
 
 		// Bootpath
 		runConfig.setBootClassPath(getBootpath(configuration));
-		
+
 		// check for cancellation
 		if (monitor.isCanceled()) {
 			return;
-		}		
-		
+		}
+
 		// stop in main
 		prepareStopInMain(configuration);
-		
+
 		// done the verification phase
 		monitor.worked(1);
-		
+
 		monitor.subTask(LaunchingMessages.JavaLocalApplicationLaunchConfigurationDelegate_Creating_source_locator____2);
 		// set the default source locator if required
 		setDefaultSourceLocator(launch, configuration);
-		monitor.worked(1);		
-		
+		monitor.worked(1);
+
 		// Launch the configuration - 1 unit of work
 		runner.run(runConfig, launch, monitor);
-		
+
 		// check for cancellation
 		if (monitor.isCanceled()) {
 			return;
-		}	
-		
+		}
+
 		monitor.done();
 	}
 
@@ -196,7 +195,7 @@ public class LTWApplicationLaunchConfigurationDelegate
 			IProject project = AspectJPlugin.getWorkspace().getRoot()
 					.getProject(projectName);
 			if(project.isOpen() && project.hasNature(AspectJPlugin.ID_NATURE)) {
-				LTWUtils.generateLTWConfigFile(JavaCore.create(project));				
+				LTWUtils.generateLTWConfigFile(JavaCore.create(project));
 			}
 		}
 	}
@@ -228,7 +227,7 @@ public class LTWApplicationLaunchConfigurationDelegate
 		}
 		return (String[]) userEntries.toArray(new String[userEntries.size()]);
 	}
-	
+
 	/**
 	 * Get the load time weaving aspectpath from the given configuration
 	 * @param configuration
@@ -274,23 +273,23 @@ public class LTWApplicationLaunchConfigurationDelegate
 	private String addExtraVMArgs(String vmArgs, String[] ajClasspath, String pathToWeaver, boolean isJava5OrLater) {
 		StringBuffer sb = new StringBuffer(vmArgs);
 		if (!isJava5OrLater) {
-    		sb.append(' '); 
+    		sb.append(' ');
     		sb.append(classLoaderOption);
-    		sb.append('='); 
+    		sb.append('=');
     		sb.append("org.aspectj.weaver.loadtime.WeavingURLClassLoader"); //$NON-NLS-1$
 		}
-		sb.append(' '); 
+		sb.append(' ');
 		sb.append(ajClasspathOption);
-		sb.append('='); 
-		sb.append('\"'); 
+		sb.append('=');
+		sb.append('\"');
 		for (int i = 0; i < ajClasspath.length; i++) {
 			if(i != 0) {
-				sb.append(File.pathSeparator); 
+				sb.append(File.pathSeparator);
 			}
-			sb.append(ajClasspath[i]);			
+			sb.append(ajClasspath[i]);
 		}
-		sb.append('\"'); 
-		
+		sb.append('\"');
+
 		if (isJava5OrLater) {
 		    sb.append(" \"-javaagent:" + pathToWeaver + "\"");
 		}

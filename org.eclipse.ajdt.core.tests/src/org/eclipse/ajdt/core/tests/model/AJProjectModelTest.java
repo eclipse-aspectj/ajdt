@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2005 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Helen Hawkins   - initial version
@@ -37,13 +37,13 @@ import org.eclipse.jdt.core.IJavaElement;
 
 /**
  * Project model tests
- * 
+ *
  */
 public class AJProjectModelTest extends AJDTCoreTestCase {
 
 	IProject project;
 	AJProjectModelFacade model;
-	
+
 	AJCodeElement[] ajCodeElements;
 
 	private static final int LINE1 = 23;
@@ -65,7 +65,7 @@ public class AJProjectModelTest extends AJDTCoreTestCase {
 		IFile main = aspectjPackage.getFile("Main.java"); //$NON-NLS-1$
 
 		AsmManager asm = AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project.getProject()).getModel();
-		Map annotationsMap = asm.getInlineAnnotations(
+		Map<? extends Integer, ? extends List<IProgramElement>> annotationsMap = asm.getInlineAnnotations(
 				main.getRawLocation().toOSString(), true, true);
 		ajCodeElements = createAJCodeElements(annotationsMap);
 	}
@@ -81,10 +81,10 @@ public class AJProjectModelTest extends AJDTCoreTestCase {
 	   model = AJProjectModelFactory.getInstance().getModelForProject(project);
        assertFalse("Should not have a model if the project has not been built", model.hasModel());
        project.build(IncrementalProjectBuilder.FULL_BUILD, null);
-       
+
        // no longer automatically disposing of project models when they get stale.
 //       assertTrue("Model should have been disposed if the project has been built", model.isDisposed());
-       
+
        // get a new model that is not disposed
        model = AJProjectModelFactory.getInstance().getModelForProject(project);
        assertTrue("Should have a model if the project has been built", model.hasModel());
@@ -112,16 +112,16 @@ public class AJProjectModelTest extends AJDTCoreTestCase {
 
 	public void testGetAllRelationships() {
 		AJRelationshipType[] rels = new AJRelationshipType[] { AJRelationshipManager.ADVISES };
-        List allRels = model.getRelationshipsForProject(rels);
+        List<IRelationship> allRels = model.getRelationshipsForProject(rels);
 
 		IJavaElement je1 = ajCodeElements[0];
 		IJavaElement je2 = ajCodeElements[1];
 		int advisedCount1 = 0;
 		int advisedCount2 = 0;
-		for (Iterator iter = allRels.iterator(); iter.hasNext();) {
-			IRelationship rel = (IRelationship) iter.next();
-			for (Iterator targetIter = rel.getTargets().iterator(); targetIter.hasNext();) {
-                String ipeHandle = (String) targetIter.next();
+		for (Iterator<IRelationship> iter = allRels.iterator(); iter.hasNext();) {
+			IRelationship rel = iter.next();
+			for (Iterator<String> targetIter = rel.getTargets().iterator(); targetIter.hasNext();) {
+                String ipeHandle = targetIter.next();
                 IJavaElement target = model.programElementToJavaElement(ipeHandle);
                 if (target.equals(je1)) {
                     advisedCount1++;
@@ -142,14 +142,14 @@ public class AJProjectModelTest extends AJDTCoreTestCase {
 		}
 	}
 
-	private AJCodeElement[] createAJCodeElements(Map annotationsMap) {
+	private AJCodeElement[] createAJCodeElements(Map<? extends Object, ? extends List<? extends IProgramElement>> annotationsMap) {
 		AJCodeElement[] arrayOfajce = new AJCodeElement[2];
-		Set keys = annotationsMap.keySet();
-		for (Iterator it = keys.iterator(); it.hasNext();) {
+		Set<? extends Object> keys = annotationsMap.keySet();
+		for (Iterator<? extends Object> it = keys.iterator(); it.hasNext();) {
 			Object key = it.next();
-			List annotations = (List) annotationsMap.get(key);
-			for (Iterator it2 = annotations.iterator(); it2.hasNext();) {
-				IProgramElement node = (IProgramElement) it2.next();
+			List<? extends IProgramElement> annotations = annotationsMap.get(key);
+			for (Iterator<? extends IProgramElement> it2 = annotations.iterator(); it2.hasNext();) {
+				IProgramElement node = it2.next();
 				ISourceLocation sl = node.getSourceLocation();
 				if (node
 						.toLinkLabelString(false)

@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2010 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Andrew Eisenberg - changes for AJDT 2.0
  *******************************************************************************/
@@ -17,8 +17,6 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IAnnotatable;
 import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.IMember;
-import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IParent;
 import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.jdt.core.JavaCore;
@@ -29,12 +27,12 @@ import org.eclipse.jdt.core.compiler.CharOperation;
 import org.eclipse.jdt.internal.core.util.Util;
 
 /**
- * 
+ *
  * @author Andrew Eisenberg
  * @created Oct 18, 2010
  */
 public class AJCompilationParticipantResult extends BuildContext {
-    
+
     private final IFile file;
     private char[] contents;
 
@@ -56,7 +54,7 @@ public class AJCompilationParticipantResult extends BuildContext {
 
         return this.contents;
     }
-    
+
     @Override
     public IFile getFile() {
         return file;
@@ -93,23 +91,23 @@ public class AJCompilationParticipantResult extends BuildContext {
         if (length == 0) return;
 
         if (problems == null) {
-            problems = new ArrayList<CategorizedProblem>(length);
+            problems = new ArrayList<>(length);
         }
-        for (int i = 0; i < length; i++) {
-            problems.add(newProblems[i]);
-        }
+      for (CategorizedProblem newProblem : newProblems) {
+        problems.add(newProblem);
+      }
     }
-    
+
     public List<CategorizedProblem> getProblems() {
         return problems;
     }
-    
+
     public String[] getDependencies() {
         return dependencies;
     }
-    
+
     private Boolean hasAnnotationsCache = null;
-    
+
     @Override
     public boolean hasAnnotations() {
         if (hasAnnotationsCache == null) {
@@ -125,9 +123,9 @@ public class AJCompilationParticipantResult extends BuildContext {
             } catch (JavaModelException e) {
                 hasAnnotationsCache = false;
             }
-            
+
         }
-        
+
         return hasAnnotationsCache;
     }
 

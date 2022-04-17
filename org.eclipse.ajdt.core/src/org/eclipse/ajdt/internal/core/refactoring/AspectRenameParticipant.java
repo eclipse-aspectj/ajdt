@@ -73,7 +73,7 @@ public class AspectRenameParticipant extends RenameParticipant {
         IProject project = fType.getResource().getProject();
         AJLog.log("Rename type references in aspects from " + oldName + " to " + newName); //$NON-NLS-1$ //$NON-NLS-2$
         AJLog.log("qualified name: " + fType.getFullyQualifiedName()); //$NON-NLS-1$
-        
+
         // use the AJCompilationUnitManager because we need all Aspects in the project
         // this is less than ideal because the CUs from the manager have children
         // whose parent pointers don't point to the CU Manager.
@@ -84,7 +84,7 @@ public class AspectRenameParticipant extends RenameParticipant {
             if (!targetTypeIsAccessible(ajcu)) {
                 continue;
             }
-            
+
             AJLog.log("Looking for type references for " + oldName + " in " + ajcu.getElementName()); //$NON-NLS-1$ //$NON-NLS-2$
             TextEdit[] edits = renameAspectSpecificReferences(ajcu, newName);
 
@@ -94,7 +94,7 @@ public class AspectRenameParticipant extends RenameParticipant {
                 TextEditChangeGroup[] groups = change.getTextEditChangeGroups();
                 middle:
                 for (TextEdit typeRenameEdit : edits) {
-                    
+
                     // before adding an edit, must check to see if it already exists
                     for (TextEditChangeGroup group : groups) {
                         for (TextEdit existingEdit : group.getTextEdits()) {
@@ -104,7 +104,7 @@ public class AspectRenameParticipant extends RenameParticipant {
                             }
                         }
                     }
-                    change.addChangeGroup(new TextEditChangeGroup(change, 
+                    change.addChangeGroup(new TextEditChangeGroup(change,
                             new TextEditGroup("Update type reference in aspect", typeRenameEdit)));
                     change.addEdit(typeRenameEdit);
                 }
@@ -120,7 +120,7 @@ public class AspectRenameParticipant extends RenameParticipant {
     }
 
     /**
-     * Finds or creates a {@link CompilationUnitChange} for the given AJCU.  
+     * Finds or creates a {@link CompilationUnitChange} for the given AJCU.
      * This change may already exist if this AJCU has been changed by the JDT
      * rename refactoring.
      */
@@ -132,7 +132,7 @@ public class AspectRenameParticipant extends RenameParticipant {
             // change exists from some other part of the refactoring
             existingChange = (CompilationUnitChange) textChange;
         } else {
-            
+
             // check to see if we have already touched this file
             Change[] children = finalChange.getChildren();
             for (Change change : children) {
@@ -160,29 +160,29 @@ public class AspectRenameParticipant extends RenameParticipant {
     }
 
     private TextEdit[] renameAspectSpecificReferences(AJCompilationUnit ajcu, final String newName) throws JavaModelException {
-        List<TextEdit> editList = new ArrayList<TextEdit>();
+        List<TextEdit> editList = new ArrayList<>();
         String name = fType.getElementName();
         IType[] types = ajcu.getTypes();
 
-        for (int i = 0; i < types.length; i++) {
-            if (types[i] instanceof AspectElement) {
-                ReplaceEdit[] aspectChanges = searchForReferenceInPointcut(
-                        (AspectElement) types[i], name, newName);
-                if (aspectChanges.length == 0) {
-                    continue;
-                }
-                editList.addAll(Arrays.asList(aspectChanges));
-            }
+      for (IType type : types) {
+        if (type instanceof AspectElement) {
+          ReplaceEdit[] aspectChanges = searchForReferenceInPointcut(
+            (AspectElement) type, name, newName);
+          if (aspectChanges.length == 0) {
+            continue;
+          }
+          editList.addAll(Arrays.asList(aspectChanges));
         }
+      }
         return (TextEdit[]) editList.toArray(new TextEdit[editList.size()]);
     }
 
     private ReplaceEdit[] searchForReferenceInPointcut(AspectElement aspect, String name, String newName)
             throws JavaModelException {
-        // get the containing CU explicitly because the one from the AJCUManager 
+        // get the containing CU explicitly because the one from the AJCUManager
         // does not have proper children.
         AJCompilationUnit ajcu = (AJCompilationUnit) aspect.getCompilationUnit();
-        List<ReplaceEdit> replaceEdits = new ArrayList<ReplaceEdit>();
+        List<ReplaceEdit> replaceEdits = new ArrayList<>();
         IAspectJElement[] elementsToSearch = aspect.getAllAspectMemberElements();
         for (IAspectJElement element : elementsToSearch) {
             if (element instanceof ISourceReference) {
@@ -193,7 +193,7 @@ public class AspectRenameParticipant extends RenameParticipant {
                 if (src == null) {
                     // this ajcu is likely closed or disposed
                     continue;
-                } 
+                }
                 Map<String, List<Integer>> map = PointcutUtilities.findAllIdentifiers(src);
                 if (map != null) {
                     for (Map.Entry<String, List<Integer>> entry : map.entrySet()) {
@@ -210,7 +210,7 @@ public class AspectRenameParticipant extends RenameParticipant {
         return (ReplaceEdit[]) replaceEdits.toArray(new ReplaceEdit[0]);
     }
 
-    
+
     /**
      * Determine if the renamed type is accessible in this ajcu
      */

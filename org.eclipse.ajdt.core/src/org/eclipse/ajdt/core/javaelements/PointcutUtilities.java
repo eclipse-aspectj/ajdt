@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2005, 2010 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman  - initial version
@@ -39,7 +39,7 @@ public class PointcutUtilities {
 	 * Returns the index of the first occurrence of the given character in the
 	 * source string, between the start offset and the limit. Returns -1 if the
 	 * character is not found in the defined range.
-	 * 
+	 *
 	 * @param source
 	 * @param offset
 	 * @param limit
@@ -58,7 +58,7 @@ public class PointcutUtilities {
 
 	/**
 	 * Selects the identifier at the given offset
-	 * 
+	 *
 	 * @param source
 	 * @param offset
 	 * @return
@@ -82,7 +82,7 @@ public class PointcutUtilities {
 		String s = source.substring(start + 1, end);
 		return s;
 	}
-	
+
 	// returns a map of id strings to a list of offsets
 	public static Map<String, List<Integer>> findAllIdentifiers(String source) {
 	    if (source == null) {
@@ -90,11 +90,11 @@ public class PointcutUtilities {
 	        return Collections.emptyMap();
 	    }
 		int pos = findNextChar(source, 0, source.length()-1, ':');
-		
+
 		boolean lookingForStart = true;
 		boolean done = false;
 		int start = 0;
-		Map<String, List<Integer>> idMap = new HashMap<String, List<Integer>>();
+		Map<String, List<Integer>> idMap = new HashMap<>();
 		int i = pos+1;
 		while (!done && i < source.length()) {
 			char c = source.charAt(i);
@@ -109,41 +109,33 @@ public class PointcutUtilities {
 				if (!Character.isJavaIdentifierPart(c)) {
 					String id = source.substring(start,i);
 					if (!isAjPointcutKeyword(id)) {
-						List<Integer> offsetList = idMap.get(id);
-						if (offsetList==null) {
-							offsetList = new ArrayList<Integer>();
-							idMap.put(id, offsetList);
-						}
-						offsetList.add(new Integer(start));
+            List<Integer> offsetList = idMap.computeIfAbsent(id, k -> new ArrayList<>());
+            offsetList.add(start);
 					}
 					lookingForStart = true;
 				}
 			}
 			i++;
 		}
-		
+
 		if (!lookingForStart) {
 		    // still have one more piece to do
             String id = source.substring(start,i);
             if (!isAjPointcutKeyword(id)) {
-                List<Integer> offsetList = idMap.get(id);
-                if (offsetList==null) {
-                    offsetList = new ArrayList<Integer>();
-                    idMap.put(id, offsetList);
-                }
-                offsetList.add(new Integer(start));
+              List<Integer> offsetList = idMap.computeIfAbsent(id, k -> new ArrayList<>());
+              offsetList.add(start);
             }
 		}
-		
+
 		return idMap;
 	}
-	
+
 	/**
 	 * Given an AspectJ compilation unit and an offset, determine whether that
 	 * offset occurs within the definition of a pointcut, or the pointcut
 	 * section of an advice element. If so, the full source of the compilation
 	 * unit is required, otherwise null is returned.
-	 * 
+	 *
 	 * @param ajcu
 	 * @param offset
 	 * @return
@@ -187,7 +179,7 @@ public class PointcutUtilities {
 	/**
 	 * Return a pointcut in the given aspect with the given aspect, if there is
 	 * one, otherwise return null/
-	 * 
+	 *
 	 * @param aspect
 	 * @param name
 	 * @return
@@ -196,11 +188,11 @@ public class PointcutUtilities {
 	public static PointcutElement findPointcutInAspect(AspectElement aspect,
 			String name) throws JavaModelException {
 		PointcutElement[] pointcuts = aspect.getPointcuts();
-		for (int i = 0; i < pointcuts.length; i++) {
-			if (name.equals(pointcuts[i].getElementName())) {
-				return pointcuts[i];
-			}
-		}
+    for (PointcutElement pointcut : pointcuts) {
+      if (name.equals(pointcut.getElementName())) {
+        return pointcut;
+      }
+    }
 		return null;
 	}
 
@@ -209,7 +201,7 @@ public class PointcutUtilities {
 	 * attempt to resolve that name as a pointcut refered to by the given
 	 * pointcut or advice. If a matching pointcut is not resolved, null is
 	 * returned.
-	 * 
+	 *
 	 * @param el
 	 * @param name
 	 * @return
@@ -233,15 +225,16 @@ public class PointcutUtilities {
 							res[0][0] + "." + res[0][1]); //$NON-NLS-1$
 					if (type != null) {
 						IMethod[] methods = type.getMethods();
-						for (int i = 0; i < methods.length; i++) {
-							if (pcName.equals(methods[i].getElementName())) {
-								// make sure the method is really a pointcut
-								if ("Qpointcut;".equals(methods[i] //$NON-NLS-1$
-										.getReturnType())) {
-									return methods[i];
-								}
-							}
-						}
+            for (IMethod method : methods) {
+              if (pcName.equals(method.getElementName())) {
+                // make sure the method is really a pointcut
+                if ("Qpointcut;".equals(method //$NON-NLS-1$
+                  .getReturnType()))
+                {
+                  return method;
+                }
+              }
+            }
 					}
 				}
 			}
@@ -259,17 +252,17 @@ public class PointcutUtilities {
 				List<AJCompilationUnit> cus = AJCompilationUnitManager.INSTANCE.getCachedCUs(aspect.getJavaProject().getProject());
 				for (AJCompilationUnit ajcu : cus) {
 					IType[] types = ajcu.getTypes();
-					for (int i = 0; i < types.length; i++) {
-						if (types[i].getElementName().equals(superName)) {
-							if (types[i] instanceof AspectElement) {
-								pc = PointcutUtilities.findPointcutInAspect(
-										(AspectElement) types[i], name);
-								if (pc != null) {
-									return pc;
-								}
-							}
-						}
-					}
+          for (IType type : types) {
+            if (type.getElementName().equals(superName)) {
+              if (type instanceof AspectElement) {
+                pc = PointcutUtilities.findPointcutInAspect(
+                  (AspectElement) type, name);
+                if (pc != null) {
+                  return pc;
+                }
+              }
+            }
+          }
 				}
 			}
 
@@ -289,7 +282,7 @@ public class PointcutUtilities {
 	/**
 	 * Utility method which returns true if the given string is a keyword that
 	 * can appear in a pointcut definition.
-	 * 
+	 *
 	 * @param word
 	 * @return
 	 */
@@ -321,16 +314,16 @@ public class PointcutUtilities {
             // something's wrong here...don't continue indexing the declare
             return null;
         }
-        // sometimes the source end is too far past the ';' and sometimes it is way before, 
+        // sometimes the source end is too far past the ';' and sometimes it is way before,
         // but we need to find the entire declaration, so use the below to ensure that
         // we know where the ';' is.
         char[] declareBody = CharOperation.subarray(contents, declarationStart, CharOperation.indexOf(';', contents, sourceEnd-1)+1);
         declareBody[declareBody.length-1] = ';';  // ensure ends with semi-colon
-        ajParser.setSource(declareBody); 
+        ajParser.setSource(declareBody);
         ajParser.setKind(ASTParser.K_CLASS_BODY_DECLARATIONS);
         ajParser.setCompilerOptions(JavaCore.getOptions());
         ASTNode node = ajParser.createAST(null);
-        if (node instanceof TypeDeclaration && ((TypeDeclaration) node).bodyDeclarations().size() == 1 && 
+        if (node instanceof TypeDeclaration && ((TypeDeclaration) node).bodyDeclarations().size() == 1 &&
                 ((TypeDeclaration) node).bodyDeclarations().get(0) instanceof BodyDeclaration) {
             return (BodyDeclaration) ((TypeDeclaration) node).bodyDeclarations().get(0);
         } else {

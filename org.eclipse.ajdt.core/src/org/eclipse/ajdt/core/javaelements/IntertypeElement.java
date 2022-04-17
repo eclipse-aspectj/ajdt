@@ -1,14 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2004, 2010 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Luzius Meisser - initial implementation
  *     Kris De Volder, Andrew Eisenberg - Refactoring: make abstract and
- *                                        split of subclasses for IField and IMethod 
+ *                                        split of subclasses for IField and IMethod
  *                                        interfaces
  *******************************************************************************/
 package org.eclipse.ajdt.core.javaelements;
@@ -56,8 +56,8 @@ public abstract class IntertypeElement extends AspectJMemberElement {
     private IType targetTypeCache = null;
 
     /**
-     * Factory method to create an intertypeElement. 
-     * @param jemDelimter Should be one of the JEM_ITD_FIELD or JEM_ITD_METHOD (see {@link AspectElement}) 
+     * Factory method to create an intertypeElement.
+     * @param jemDelimter Should be one of the JEM_ITD_FIELD or JEM_ITD_METHOD (see {@link AspectElement})
      */
     public static IntertypeElement create(char jemDelimeter, JavaElement parent,
            String name, String[] parameters) {
@@ -70,29 +70,29 @@ public abstract class IntertypeElement extends AspectJMemberElement {
         }
         else throw new IllegalArgumentException("jemDelimeter should be one of JEM_ITD_FIELD or JEM_ITD_METHOD");
     }
-    
+
     public char getJemDelimeter() {
         return getHandleMementoDelimiter();
     }
-    
+
     public static char getJemDelimter(InterTypeDeclaration decl) {
-        if (decl instanceof InterTypeFieldDeclaration) 
+        if (decl instanceof InterTypeFieldDeclaration)
             return JEM_ITD_FIELD;
         else /* constructor or method */
             return JEM_ITD_METHOD;
     }
-    
+
     protected IntertypeElement(JavaElement parent, String name, String[] parameterTypes) {
         super(parent, name, parameterTypes);
     }
-    
+
     public char[] getTargetType() throws JavaModelException{
         return ((IntertypeElementInfo)getElementInfo()).getTargetType();
     }
-    
+
     protected Object createElementInfo() {
         IntertypeElementInfo info = new IntertypeElementInfo();
-        
+
         IProject project = this.getJavaProject().getProject();
         IProgramElement ipe = AJProjectModelFactory.getInstance().getModelForProject(project).javaElementToProgramElement(this);
         if (ipe != IHierarchy.NO_STRUCTURE) {
@@ -108,7 +108,7 @@ public abstract class IntertypeElement extends AspectJMemberElement {
             info.setSourceRangeStart(sourceLocation.getOffset());
             info.setNameSourceStart(sourceLocation.getOffset());  // This is wrong
             info.setNameSourceEnd(sourceLocation.getOffset() + ipe.getName().length());  // also wrong
-            
+
             info.setConstructor(info.getAJKind() == IProgramElement.Kind.INTER_TYPE_CONSTRUCTOR);
             char[][] argumentNames = CoreUtils.listStringsToCharArrays(ipe.getParameterNames());
             char[][] argumentTypeNames = CoreUtils.listCharsToCharArrays(ipe.getParameterTypes());
@@ -120,29 +120,29 @@ public abstract class IntertypeElement extends AspectJMemberElement {
             		argumentNames[i] = ("arg" + i).toCharArray();
                 }
             }
-            
+
             info.setArgumentNames(argumentNames);
             info.setArgumentTypeNames(argumentTypeNames);
             info.setReturnType(ipe.getCorrespondingType(false).toCharArray());
             info.setQualifiedReturnType(ipe.getCorrespondingType(true).toCharArray());
 
             info.setTypeParameters(createTypeParameters(project));
-            
+
             if (argumentNames != null && argumentNames.length > 0) {
                 ILocalVariable[] arguments = new ILocalVariable[argumentNames.length];
                 for (int i = 0; i < argumentNames.length; i++) {
-                    arguments[i] = new LocalVariable(this, String.valueOf(argumentNames[i]), 
+                    arguments[i] = new LocalVariable(this, String.valueOf(argumentNames[i]),
                             // sloc is not correct, but it is close enough
-                            sourceLocation.getOffset(), 
-                            sourceLocation.getOffset()+1, 
-                            sourceLocation.getOffset(), 
-                            sourceLocation.getOffset()+1, 
-                            String.valueOf(argumentTypeNames[i]), 
+                            sourceLocation.getOffset(),
+                            sourceLocation.getOffset()+1,
+                            sourceLocation.getOffset(),
+                            sourceLocation.getOffset()+1,
+                            String.valueOf(argumentTypeNames[i]),
                             new Annotation[0], Flags.AccDefault, true);
                 }
                 info.setArguments(arguments);
             }
-            
+
         } else {
             // no successful build yet, we don't know the contents
             info.setName(name.toCharArray());
@@ -165,7 +165,7 @@ public abstract class IntertypeElement extends AspectJMemberElement {
         }
         return iTypeParameters;
     }
-    
+
     @Override
     public ISourceRange getJavadocRange() throws JavaModelException {
         if (getParent() instanceof BinaryAspectElement) {
@@ -173,7 +173,7 @@ public abstract class IntertypeElement extends AspectJMemberElement {
         }
         return super.getJavadocRange();
     }
-    
+
     /**
      * override this cached info because it was before we had a successful build
      */
@@ -199,9 +199,9 @@ public abstract class IntertypeElement extends AspectJMemberElement {
 
     /* AJDT 1.7 */
     protected Integer getParamNum() {
-        return new Integer(IntertypeElement.this.getQualifiedParameterTypes().length);
+        return IntertypeElement.this.getQualifiedParameterTypes().length;
     }
-    /** 
+    /**
      * may return null if target type is not found
      * @return
      */
@@ -209,7 +209,7 @@ public abstract class IntertypeElement extends AspectJMemberElement {
         if (targetTypeCache == null) {
             AJProjectModelFacade model = AJProjectModelFactory
                 .getInstance().getModelForJavaElement(this);
-            
+
             // either the relationships are a single class declaration
             // or this is an interface with one or more class declarations
             List<IJavaElement> rels = model.getRelationshipsForElement(this,
@@ -231,9 +231,9 @@ public abstract class IntertypeElement extends AspectJMemberElement {
         }
         return targetTypeCache;
     }
-    
+
     /**
-     * Shortcut for {@link #createMockDeclaration(IType)} when 
+     * Shortcut for {@link #createMockDeclaration(IType)} when
      * the target type is not known in advance
      */
     public IMember createMockDeclaration() {
@@ -244,19 +244,19 @@ public abstract class IntertypeElement extends AspectJMemberElement {
             return null;
         }
     }
-    
+
     /**
-     * note that we set the accessibility to public because the modifiers 
+     * note that we set the accessibility to public because the modifiers
      * apply to the ITD element, not the target declaration.
      * We are purposely being too liberal with the modifiers so that
      * we don't get accessibility problems when an ITD is declared private
      * and is used in the Aspect CU that declares it.
-     * 
+     *
      * @param parent the type that this element declares on
      * @return a mock element representing the element that was introduced
      */
     public abstract IMember createMockDeclaration(IType parent);
-    
+
     public ISourceRange getTargetTypeSourceRange() throws JavaModelException {
         IntertypeElementInfo info = (IntertypeElementInfo) getElementInfo();
         return info.getTargetTypeSourceRange();
@@ -274,7 +274,7 @@ public abstract class IntertypeElement extends AspectJMemberElement {
         int dotIndex = name.lastIndexOf('.');
         return dotIndex > 0 ? name.substring(0, dotIndex) : name;
     }
-    
+
     public String[] getQualifiedParameterTypes() {
         IProgramElement ipe = AJProjectModelFactory.getInstance().getModelForJavaElement(this).javaElementToProgramElement(this);
         if (ipe != IHierarchy.NO_STRUCTURE) {
@@ -283,13 +283,13 @@ public abstract class IntertypeElement extends AspectJMemberElement {
             return getParameterTypes();
         }
     }
-    
+
     char[] getQualifiedReturnTypeName(IntertypeElementInfo info) {
         char[] returnType = info.getQualifiedReturnType();
         if (returnType != null) {
             return returnType;
         }
-        
+
         IProgramElement ipe = AJProjectModelFactory.getInstance().getModelForJavaElement(this).javaElementToProgramElement(this);
         if (ipe != IHierarchy.NO_STRUCTURE) {
             return ipe.getCorrespondingType(true).toCharArray();

@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman - initial version
@@ -35,7 +35,7 @@ import org.eclipse.jdt.internal.core.JavaProject;
 import org.osgi.framework.Bundle;
 
 /**
- * 
+ *
  * @author mchapman
  */
 public class CoreUtils {
@@ -49,9 +49,9 @@ public class CoreUtils {
 	 * Computed classpath to aspectjrt.jar
 	 */
 	private static String aspectjrtPath = null;
-	
+
     private static String aspectjrtSourcePath = null;
-    
+
     private static boolean sourceCheckDone = false;
     private static boolean rtCheckDone = false;
 
@@ -62,28 +62,22 @@ public class CoreUtils {
 		return project.getLocation().toOSString();
 	}
 
-	public static interface FilenameFilter {
-		public boolean accept(String name);
+	public interface FilenameFilter {
+		boolean accept(String name);
 	}
 
-	public static final FilenameFilter ASPECTJ_SOURCE_ONLY_FILTER = new FilenameFilter() {
-		public boolean accept(String name) {
-			return (name.endsWith(".aj")); //$NON-NLS-1$
-		}
-	};
-	
-	public static final FilenameFilter ASPECTJ_SOURCE_FILTER = new FilenameFilter() {
-		public boolean accept(String name) {
-			return (name.endsWith(".java") || name.endsWith(".aj"));  //$NON-NLS-1$ //$NON-NLS-2$
-		}
-	};
+	public static final FilenameFilter ASPECTJ_SOURCE_ONLY_FILTER = name -> {
+    return (name.endsWith(".aj")); //$NON-NLS-1$
+  };
 
-	public static final FilenameFilter RESOURCE_FILTER = new FilenameFilter() {
-		public boolean accept(String name) {
-			return !(name.endsWith(".java") || name.endsWith(".aj") || name  //$NON-NLS-1$ //$NON-NLS-2$
-					.endsWith(".class")); //$NON-NLS-1$
-		}
-	};
+	public static final FilenameFilter ASPECTJ_SOURCE_FILTER = name -> {
+    return (name.endsWith(".java") || name.endsWith(".aj"));  //$NON-NLS-1$ //$NON-NLS-2$
+  };
+
+	public static final FilenameFilter RESOURCE_FILTER = name -> {
+    return !(name.endsWith(".java") || name.endsWith(".aj") || name  //$NON-NLS-1$ //$NON-NLS-2$
+        .endsWith(".class")); //$NON-NLS-1$
+  };
 
 	/**
 	 * Get the aspectjrt.jar classpath entry. This is usually in
@@ -94,17 +88,17 @@ public class CoreUtils {
 		    rtCheckDone = true;
 		    aspectjrtPath = internalGetPath(AspectJPlugin.RUNTIME_PLUGIN_ID, false);
 		    if (aspectjrtPath == null) {
-    		    AspectJPlugin.getDefault().getLog().log(new Status(IStatus.ERROR, AspectJPlugin.PLUGIN_ID, 
+    		    AspectJPlugin.getDefault().getLog().log(new Status(IStatus.ERROR, AspectJPlugin.PLUGIN_ID,
     		            "Could not find AspectJ runtime."));
 		    }
 		}
 		return aspectjrtPath;
 	}
-	
+
 	private static String internalGetPath(String bundleId, boolean useSource) {
         Bundle bundle = Platform
                 .getBundle(bundleId);
-    
+
         if (bundle != null) {
             URL installLoc = bundle.getEntry("/"); //$NON-NLS-1$
             URL resolved = null;
@@ -153,7 +147,7 @@ public class CoreUtils {
 	 * Get all projects within the workspace who have a dependency on the given
 	 * project - this can either be a class folder dependency or on a library
 	 * which the project exports.
-	 * 
+	 *
 	 * @param IProject
 	 *            project
 	 * @return List of two IProject[] where the first is all the class folder
@@ -161,57 +155,58 @@ public class CoreUtils {
 	 *         dependent projects
 	 */
 	public static List<IProject[]> getDependingProjects(IProject project) {
-		List<IProject[]> projects = new ArrayList<IProject[]>();
+		List<IProject[]> projects = new ArrayList<>();
 
 		IProject[] projectsInWorkspace = AspectJPlugin.getWorkspace()
 				.getRoot().getProjects();
 		List<IPath> outputLocationPaths = getOutputLocationPaths(project);
 		IClasspathEntry[] exportedEntries = getExportedEntries(project);
-		List<IProject> classFolderDependingProjects = new ArrayList<IProject>();
-		List<IProject> exportedLibraryDependingProjects = new ArrayList<IProject>();
+		List<IProject> classFolderDependingProjects = new ArrayList<>();
+		List<IProject> exportedLibraryDependingProjects = new ArrayList<>();
 
-		workThroughProjects: for (int i = 0; i < projectsInWorkspace.length; i++) {
-			if (projectsInWorkspace[i].equals(project)
-					|| !(projectsInWorkspace[i].isOpen()))
-				continue workThroughProjects;
-			try {
-				if (projectsInWorkspace[i].hasNature(JavaCore.NATURE_ID)) {
-					JavaProject javaProject = (JavaProject) JavaCore
-							.create(projectsInWorkspace[i]);
-					if (javaProject == null)
-						continue workThroughProjects;
+		workThroughProjects:
+    for (IProject iProject : projectsInWorkspace) {
+      if (iProject.equals(project)
+          || !(iProject.isOpen()))
+        continue workThroughProjects;
+      try {
+        if (iProject.hasNature(JavaCore.NATURE_ID)) {
+          JavaProject javaProject = (JavaProject) JavaCore
+            .create(iProject);
+          if (javaProject == null)
+            continue workThroughProjects;
 
-					try {
-						IClasspathEntry[] cpEntry = javaProject
-								.getRawClasspath();
-						for (int j = 0; j < cpEntry.length; j++) {
-							IClasspathEntry entry = cpEntry[j];
-							if (entry.getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
-								for (Iterator<IPath> iter = outputLocationPaths
-										.iterator(); iter.hasNext();) {
-									IPath path = iter.next();
-									if (entry.getPath().equals(path)) {
-										classFolderDependingProjects
-												.add(projectsInWorkspace[i]);
-										continue workThroughProjects;
-									}
-								}
-								for (int k = 0; k < exportedEntries.length; k++) {
-									if (entry.getPath().equals(
-											exportedEntries[k].getPath())) {
-										exportedLibraryDependingProjects
-												.add(projectsInWorkspace[i]);
-									}
-								}
-							}
-						}
-					} catch (JavaModelException e) {
-						continue workThroughProjects;
-					}
-				}
-			} catch (CoreException e) {
-			}
-		}
+          try {
+            IClasspathEntry[] cpEntry = javaProject
+              .getRawClasspath();
+            for (IClasspathEntry entry : cpEntry) {
+              if (entry.getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
+                for (IPath path : outputLocationPaths) {
+                  if (entry.getPath().equals(path)) {
+                    classFolderDependingProjects
+                      .add(iProject);
+                    continue workThroughProjects;
+                  }
+                }
+                for (IClasspathEntry exportedEntry : exportedEntries) {
+                  if (entry.getPath().equals(
+                    exportedEntry.getPath()))
+                  {
+                    exportedLibraryDependingProjects
+                      .add(iProject);
+                  }
+                }
+              }
+            }
+          }
+          catch (JavaModelException e) {
+            continue workThroughProjects;
+          }
+        }
+      }
+      catch (CoreException e) {
+      }
+    }
 		projects.add(0, classFolderDependingProjects
 				.toArray(new IProject[] {}));
 		projects.add(1, exportedLibraryDependingProjects
@@ -220,7 +215,7 @@ public class CoreUtils {
 	}
 
 	private static IClasspathEntry[] getExportedEntries(IProject project) {
-		List<IClasspathEntry> exportedEntries = new ArrayList<IClasspathEntry>();
+		List<IClasspathEntry> exportedEntries = new ArrayList<>();
 
 		IJavaProject javaProject = JavaCore.create(project);
 		if (javaProject == null) {
@@ -229,17 +224,16 @@ public class CoreUtils {
 
 		try {
 			IClasspathEntry[] cpEntry = javaProject.getRawClasspath();
-			for (int j = 0; j < cpEntry.length; j++) {
-				IClasspathEntry entry = cpEntry[j];
-				if (entry.isExported()) {
-					// we don't want to export it in the new classpath.
-					if (entry.getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
-						IClasspathEntry nonExportedEntry = JavaCore
-								.newLibraryEntry(entry.getPath(), null, null);
-						exportedEntries.add(nonExportedEntry);
-					}
-				}
-			}
+      for (IClasspathEntry entry : cpEntry) {
+        if (entry.isExported()) {
+          // we don't want to export it in the new classpath.
+          if (entry.getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
+            IClasspathEntry nonExportedEntry = JavaCore
+              .newLibraryEntry(entry.getPath(), null, null);
+            exportedEntries.add(nonExportedEntry);
+          }
+        }
+      }
 		} catch (JavaModelException e) {
 		}
 		return (IClasspathEntry[]) exportedEntries
@@ -248,12 +242,12 @@ public class CoreUtils {
 
 	/**
 	 * Get the output locations for the project
-	 * 
+	 *
 	 * @param project
 	 * @return list of IPath objects
 	 */
 	public static List<IPath> getOutputLocationPaths(IProject project) {
-		List<IPath> outputLocations = new ArrayList<IPath>();
+		List<IPath> outputLocations = new ArrayList<>();
 		IJavaProject javaProject = JavaCore.create(project);
 		if (javaProject == null)
 			return outputLocations;
@@ -267,15 +261,14 @@ public class CoreUtils {
 			// up.
 			// Needs testing.......
 			IClasspathEntry[] cpEntry = javaProject.getRawClasspath();
-			for (int j = 0; j < cpEntry.length; j++) {
-				IClasspathEntry entry = cpEntry[j];
-				int contentKind = entry.getContentKind();
-				if (contentKind == ClasspathEntry.K_OUTPUT) {
-					if (entry.getOutputLocation() != null) {
-						outputLocations.add(entry.getOutputLocation());
-					}
-				}
-			}
+      for (IClasspathEntry entry : cpEntry) {
+        int contentKind = entry.getContentKind();
+        if (contentKind == ClasspathEntry.K_OUTPUT) {
+          if (entry.getOutputLocation() != null) {
+            outputLocations.add(entry.getOutputLocation());
+          }
+        }
+      }
 			// If we haven't added anything from reading the .classpath
 			// file, then use the default output location
 			if (outputLocations.size() == 0) {
@@ -285,26 +278,26 @@ public class CoreUtils {
 		}
 		return outputLocations;
 	}
-	
+
 	public static IPath[] getOutputFolders(IJavaProject project) throws CoreException {
-		List<IPath> paths = new ArrayList<IPath>();
+		List<IPath> paths = new ArrayList<>();
 		paths.add(project.getOutputLocation());
 		IClasspathEntry[] cpe = project.getRawClasspath();
-		for (int i = 0; i < cpe.length; i++) {
-			if (cpe[i].getEntryKind() == IClasspathEntry.CPE_SOURCE) {
-				IPath output = cpe[i].getOutputLocation();
-				if (output != null) {
-					paths.add(output);
-				}
-			}
-		}
+    for (IClasspathEntry iClasspathEntry : cpe) {
+      if (iClasspathEntry.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
+        IPath output = iClasspathEntry.getOutputLocation();
+        if (output != null) {
+          paths.add(output);
+        }
+      }
+    }
 		return (IPath[])paths.toArray(new IPath[paths.size()]);
 	}
-	
+
 	   public static boolean isAJProject(IProject project) {
-	        if((project!=null) && project.isOpen()) {           
+	        if((project!=null) && project.isOpen()) {
 	            try {
-	                if (project.hasNature(ID_NATURE)) { 
+	                if (project.hasNature(ID_NATURE)) {
 	                    return true;
 	                }
 	            } catch (CoreException e) {
@@ -314,9 +307,9 @@ public class CoreUtils {
 	    }
 
     /**
-     * Converts an AspectJ style signature in chars to 
+     * Converts an AspectJ style signature in chars to
      * a Java style signature as an array of String
-     * 
+     *
      * Replace the 'P' for parameterized to 'L' for resolved
      */
     public static String[] listAJSigToJavaSig(List<char[]> chars) {
@@ -341,7 +334,7 @@ public class CoreUtils {
                             case '<':
                                 wasLessThan = true;
                                 break;
-                                
+
                             case '/':
                                 c[i] = '.';
     	                        wasLessThan = false;
@@ -349,7 +342,7 @@ public class CoreUtils {
                         }
                     }
                 }
-                
+
                 result[index] = new String(c);
             }
             return result;

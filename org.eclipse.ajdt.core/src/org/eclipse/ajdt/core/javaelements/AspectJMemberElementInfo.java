@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Luzius Meisser - initial implementation
  *******************************************************************************/
@@ -30,14 +30,14 @@ public class AspectJMemberElementInfo extends SourceMethodElementInfo implements
 
 	protected Kind kind;
 	protected Accessibility accessibility;
-	protected List modifiers;
+	protected List<Modifiers> modifiers;
 	protected ExtraInformation extra;
-	
+
 	private char[] name;
 	private char[] returnType;
 	private boolean isConstructor;
 	private char[][] argumentTypeNames;
-	
+
 	public Kind getAJKind() {
 		return kind;
 	}
@@ -57,7 +57,7 @@ public class AspectJMemberElementInfo extends SourceMethodElementInfo implements
 	public void setAJAccessibility(Accessibility accessibility) {
 		this.accessibility = accessibility;
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.ajdt.javamodel.javaelements.IAspectJElementInfo#setModifiers(java.util.List)
 	 */
@@ -70,7 +70,7 @@ public class AspectJMemberElementInfo extends SourceMethodElementInfo implements
 	public List<Modifiers> getAJModifiers() {
 		return modifiers;
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.ajdt.javamodel.javaelements.IAspectJElementInfo#getAJExtraInfo()
 	 */
@@ -83,14 +83,14 @@ public class AspectJMemberElementInfo extends SourceMethodElementInfo implements
 	public void setAJExtraInfo(ExtraInformation extra) {
 		this.extra = extra;
 	}
-	
+
 	public void setArgumentTypeNames(char[][] types) {
 		this.argumentTypeNames = types;
 	}
 	public void setConstructor(boolean isConstructor) {
 		this.isConstructor = isConstructor;
 	}
-	
+
 	// make public
 	public void setExceptionTypeNames(char[][] types) {
 		this.exceptionTypes = types;
@@ -106,7 +106,7 @@ public class AspectJMemberElementInfo extends SourceMethodElementInfo implements
 	    }
 		this.returnType = type;
 	}
-	
+
     // make public
 	public void setArgumentNames(char[][] names) {
 	    this.argumentNames = names;
@@ -131,12 +131,12 @@ public class AspectJMemberElementInfo extends SourceMethodElementInfo implements
 		/* AJDT 1.7 */
 		sourceRangeEnd = end;
 	}
-	
+
 	public void setSourceRangeStart(int start) {
 		/* AJDT 1.7 */
 		sourceRangeStart = start;
 	}
-	
+
 	public void setFlags(int flags) {
 		this.flags = flags;
 	}
@@ -160,23 +160,23 @@ public class AspectJMemberElementInfo extends SourceMethodElementInfo implements
 	public void setNameSourceStart(int start) {
 		this.nameStart= start;
 	}
-	
+
 	public char[][] getArgumentTypeNames() {
         return argumentTypeNames;
     }
-		
+
 	public boolean isConstructor() {
 		return isConstructor;
 	}
-	
+
 	public boolean isAnnotationMethod() {
 		return false;
 	}
-	
+
 	public char[] getReturnTypeName() {
 		return returnType;
-	}	
-	
+	}
+
 	public void setAnnotations(IAnnotation[] annotations) {
 	    if (annotations == null) {
 	        this.annotations = Annotation.NO_ANNOTATIONS;
@@ -184,15 +184,15 @@ public class AspectJMemberElementInfo extends SourceMethodElementInfo implements
 	        this.annotations = annotations;
 	    }
 	}
-	
+
 	public void setArguments(ILocalVariable[] arguments) {
 	    this.arguments = arguments;
 	}
-	
+
 	public ILocalVariable[] getArguments() {
 	    return super.arguments;
 	}
-	
+
 	/* AJDT 1.7 */
 	protected IJavaElement[] children;
 	public IJavaElement[] getChildren() {
@@ -202,5 +202,5 @@ public class AspectJMemberElementInfo extends SourceMethodElementInfo implements
         this.children = children;
     }
 	/* AJDT 1.7 end */
-	
+
 }

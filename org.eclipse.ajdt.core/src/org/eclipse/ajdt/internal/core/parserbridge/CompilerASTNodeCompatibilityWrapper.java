@@ -1,6 +1,6 @@
 /*
  * Copyright 2011 SpringSource, a division of VMware, Inc
- * 
+ *
  * andrew - Initial API and implementation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,7 +31,7 @@ import org.eclipse.jdt.internal.compiler.ast.TrueLiteral;
 
 /**
  * Changes to the constructors of several compiler AST nodes has occurred between 3.7.0 and 3.7.1.
- * We need to use reflection to create these objects so that AJDT can be compatible with both older and newer 
+ * We need to use reflection to create these objects so that AJDT can be compatible with both older and newer
  * versions of JDT.
  * @author Andrew Eisenberg
  * @created Sep 23, 2011
@@ -41,31 +41,31 @@ public class CompilerASTNodeCompatibilityWrapper implements NoFFDC {
     public static TrueLiteral createJDTTrueLiteral(org.aspectj.org.eclipse.jdt.internal.compiler.ast.TrueLiteral ajdtLiteral) throws IllegalArgumentException, SecurityException, IllegalAccessException, InvocationTargetException, ClassNotFoundException, InstantiationException, NoSuchMethodException {
         return new TrueLiteral(ajdtLiteral.sourceStart, ajdtLiteral.sourceEnd);
     }
-    
+
     public static FalseLiteral createJDTFalseLiteral(org.aspectj.org.eclipse.jdt.internal.compiler.ast.FalseLiteral ajdtLiteral) throws IllegalArgumentException, SecurityException, IllegalAccessException, InvocationTargetException, ClassNotFoundException, InstantiationException, NoSuchMethodException {
         return new FalseLiteral(ajdtLiteral.sourceStart, ajdtLiteral.sourceEnd);
     }
-    
+
     public static NullLiteral createJDTNullLiteral(org.aspectj.org.eclipse.jdt.internal.compiler.ast.NullLiteral ajdtLiteral) throws IllegalArgumentException, SecurityException, IllegalAccessException, InvocationTargetException, ClassNotFoundException, InstantiationException, NoSuchMethodException {
         return new NullLiteral(ajdtLiteral.sourceStart, ajdtLiteral.sourceEnd);
     }
-    
+
     public static IntLiteral createJDTIntLiteral(org.aspectj.org.eclipse.jdt.internal.compiler.ast.IntLiteral ajdtLiteral) throws IllegalArgumentException, SecurityException, IllegalAccessException, InvocationTargetException, ClassNotFoundException, InstantiationException, NoSuchMethodException {
         return (IntLiteral) buildLiteral(ajdtLiteral.source(), ajdtLiteral.sourceStart, ajdtLiteral.sourceEnd, true);
     }
-    
+
     public static IntLiteral createJDTIntLiteralMinValue(org.aspectj.org.eclipse.jdt.internal.compiler.ast.IntLiteralMinValue ajdtLiteral) throws IllegalArgumentException, SecurityException, IllegalAccessException, InvocationTargetException, ClassNotFoundException, InstantiationException, NoSuchMethodException {
         return (IntLiteral) buildLiteral(ajdtLiteral.source(), ajdtLiteral.sourceStart, ajdtLiteral.sourceEnd, true);
     }
-    
+
     public static LongLiteral createJDTLongLiteral(org.aspectj.org.eclipse.jdt.internal.compiler.ast.LongLiteral ajdtLiteral) throws IllegalArgumentException, SecurityException, IllegalAccessException, InvocationTargetException, ClassNotFoundException, InstantiationException, NoSuchMethodException {
         return (LongLiteral) buildLiteral(ajdtLiteral.source(), ajdtLiteral.sourceStart, ajdtLiteral.sourceEnd, false);
     }
-    
+
     public static LongLiteral createJDTLongLiteralMinValue(org.aspectj.org.eclipse.jdt.internal.compiler.ast.LongLiteralMinValue ajdtLiteral) throws IllegalArgumentException, SecurityException, IllegalAccessException, InvocationTargetException, ClassNotFoundException, InstantiationException, NoSuchMethodException {
         return (LongLiteral) buildLiteral(ajdtLiteral.source(), ajdtLiteral.sourceStart, ajdtLiteral.sourceEnd, false);
     }
-    
+
     private static NumberLiteral buildLiteral(char[] source, int sourceStart, int sourceEnd, boolean isInt) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException, ClassNotFoundException, InstantiationException, SecurityException, NoSuchMethodException {
         // first try to get the buildXXXLiteral method. if it doesn't exist, then assume
         // that we are on 3.7.
@@ -96,7 +96,7 @@ public class CompilerASTNodeCompatibilityWrapper implements NoFFDC {
                 longLiteralConstructorChecked = true;
             }
         }
-        
+
         @SuppressWarnings("unchecked")
         Class<? extends NumberLiteral> clazz = (Class<? extends NumberLiteral>) Class.forName("org.eclipse.jdt.internal.compiler.ast." + (isInt ? "Int" : "Long") + "Literal");
         Constructor<? extends NumberLiteral> cons = clazz.getConstructor(char[].class, int.class, int.class);
@@ -132,24 +132,22 @@ public class CompilerASTNodeCompatibilityWrapper implements NoFFDC {
             } else {
                 buildLongLiteralCached = buildXXXMethod;
             }
-        } catch (SecurityException e) {
-            buildXXXMethod = null;
-        } catch (NoSuchMethodException e) {
+        } catch (SecurityException | NoSuchMethodException e) {
             buildXXXMethod = null;
         }
-        return buildXXXMethod;
+      return buildXXXMethod;
     }
-    
+
     private static boolean buildLongLiteralChecked = false;
     private static boolean buildIntLiteralChecked = false;
-    
+
     private static Method buildLongLiteralCached = null;
     private static Method buildIntLiteralCached = null;
-    
+
     private static boolean longLiteralConstructorChecked = false;
     private static boolean intLiteralConstructorChecked = false;
-    
+
     private static Constructor<? extends NumberLiteral>  longLiteralConstructorCached = null;
     private static Constructor<? extends NumberLiteral>  intLiteralConstructorCached = null;
-    
+
 }

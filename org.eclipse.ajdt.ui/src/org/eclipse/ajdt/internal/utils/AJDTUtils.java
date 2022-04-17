@@ -7,7 +7,7 @@
  Contributors:
  Adrian Colyer, Andy Clement, Tracy Gardner - initial version
  Julie Waterhouse - added code to popup AJDTPrefConfigWizard - August 3, 2003
- Julie Waterhouse - removed method calls for new aspect and AspectJ project.  
+ Julie Waterhouse - removed method calls for new aspect and AspectJ project.
  This functionality has moved to the plugin.xml. - August 13, 2003.
  Helen Hawkins - updated for new ajde interface (bug 148190)
  ...
@@ -16,7 +16,6 @@ package org.eclipse.ajdt.internal.utils;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -25,7 +24,6 @@ import java.util.List;
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.asm.IProgramElement.Modifiers;
 import org.aspectj.bridge.IMessage;
-import org.aspectj.weaver.ShadowMunger;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.CoreUtils;
@@ -43,14 +41,12 @@ import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.pde.internal.core.AJDTWorkspaceModelManager;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.IAJModelMarker;
-import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -107,7 +103,7 @@ public class AJDTUtils {
     private static Job refreshJob;
 
     private static int previousExecutionTime;
-    
+
     /**
      * Return the fully-qualifed native OS path of the workspace. e.g.
      * D:\eclipse\workspace
@@ -159,7 +155,7 @@ public class AJDTUtils {
 
     /**
      * Adds the AspectJ Nature to the project
-     * 
+     *
      * @param project
      * @param prompt whether to prompt the user, or go with the defaults
      * @throws CoreException
@@ -180,10 +176,10 @@ public class AJDTUtils {
         } catch (InterruptedException e) {
         }
     }
-    
+
     private static void internal_addAspectJNature(IProject project, boolean prompt) throws CoreException {
         checkOutputFoldersForAJFiles(project);
-        
+
         // add the AspectJ Nature
         IProjectDescription description = project.getDescription();
         String[] prevNatures = description.getNatureIds();
@@ -196,7 +192,7 @@ public class AJDTUtils {
         // Bugzilla 62625
         // Bugzilla 93532 - just add plugin dependency if there is a plugin.xml file
         // Bugzilla 137922 - also consider bundles without a plugin.xml
-        if (project.hasNature(PDE.PLUGIN_NATURE) 
+        if (project.hasNature(PDE.PLUGIN_NATURE)
                 && (hasPluginManifest(project)
                         || hasBundleManifest(project))) {
             // Dealing with a plugin project. In that case the
@@ -209,12 +205,12 @@ public class AJDTUtils {
             // Checks if the plugin already has the plugin dependency
             // before adding it, this avoids duplication
             if (!hasAJPluginDependency(project)) {
-                
+
                 // Bugzilla 97080
-                // Must close manifest editor after we are done with it 
+                // Must close manifest editor after we are done with it
                 // if it is not already open
                 boolean manifestEditorAlreadyOpen = isManifestEditorOpen(project);
-                
+
                 ManifestEditor manEd = getAndPrepareToChangePDEModel(project);
                 addAJPluginDependency(manEd, prompt);
                 if (!manifestEditorAlreadyOpen) {
@@ -229,22 +225,22 @@ public class AJDTUtils {
 
         // bug 129553: include any excluded .aj files
         includeAJfiles(project,prompt);
-        
+
         //crete compilation units for .aj files
         AJCompilationUnitManager.INSTANCE.initCompilationUnits(project);
 
         if (prompt) {
             checkMyEclipseNature(project);
         }
-        
+
         // Bug 354413
         // ensure that the state object is deleted for this project otherwise it can contribute to stale searches
         removeJDTState(project);
-        
+
         refreshPackageExplorer();
     }
-    
-    
+
+
     private static void removeJDTState(IProject project) {
         // delete cached
         PerProjectInfo info = JavaModelManager.getJavaModelManager().getPerProjectInfo(project, false);
@@ -258,11 +254,11 @@ public class AJDTUtils {
         if (file.exists()) {
             file.delete();
         }
-        
+
     }
 
     /*
-     * checks to see if the manifest editor for 
+     * checks to see if the manifest editor for
      * the given project is open
      */
     private static boolean isManifestEditorOpen(IProject project) {
@@ -291,7 +287,7 @@ public class AJDTUtils {
     private static boolean hasBundleManifest(IProject project) {
         return project.exists(new Path("META-INF/MANIFEST.MF")); //$NON-NLS-1$
     }
-    
+
     private static boolean hasPluginManifest(IProject project) {
         return project.exists(new Path("plugin.xml")); //$NON-NLS-1$
     }
@@ -332,10 +328,10 @@ public class AJDTUtils {
                 IPath outputPath = iterator.next();
                 if(outputPath.equals(path)) {
                     iterator.remove();
-                }               
+                }
             }
         }
-        boolean ajFilesFound = false; 
+        boolean ajFilesFound = false;
         if(!defaultOutputLocationIsSrcFolder) {
             IFolder folder = project.getWorkspace().getRoot().getFolder(defaultOutputLocation);
             ajFilesFound = containsAJFiles(folder);
@@ -345,7 +341,7 @@ public class AJDTUtils {
                 IFolder folder = project.getWorkspace().getRoot().getFolder(outputPath);
                 ajFilesFound = ajFilesFound || containsAJFiles(folder);
             }
-        }   
+        }
         if(ajFilesFound) {
             IWorkbenchWindow window = AspectJUIPlugin.getDefault()
                 .getWorkbench().getActiveWorkbenchWindow();
@@ -376,7 +372,7 @@ public class AJDTUtils {
         } else if (resource instanceof IFolder && ((IFolder)resource).exists()) {
             IResource[] members;
             try {
-                members = ((IFolder)resource).members();            
+                members = ((IFolder)resource).members();
                 for (int i = 0; i < members.length; i++) {
                     if(containsAJFiles(members[i])) {
                         return true;
@@ -391,7 +387,7 @@ public class AJDTUtils {
      * (Bug 71540) Detect if user is working with MyEclipse plugin and if yes,
      * pop up a message box that tells to add aspectjrt.jar to the classpath of
      * application server where the project gets deployed to.
-     * 
+     *
      * @param The
      *            project to be checked.
      */
@@ -554,7 +550,7 @@ public class AJDTUtils {
      * should switch to the PDE dependency management page before changing the
      * dependencies to avoid update inconsistencies across the pages. To do this
      * use the AJDTUtils.prepareToChangePDEModel(IProject) method.
-     * 
+     *
      * @param project
      * @return
      */
@@ -611,10 +607,10 @@ public class AJDTUtils {
         return manEd;
     }
 
-    
+
     /**
      * Removes the AspectJ Nature from an existing AspectJ project.
-     * 
+     *
      * @param project
      * @throws CoreException
      */
@@ -625,7 +621,7 @@ public class AJDTUtils {
         deleteUpdateMarkers.doDeleteOnly(true);
         deleteUpdateMarkers.setPriority(Job.BUILD);
         deleteUpdateMarkers.schedule();
-        
+
         // bug 129553: exclude .aj files so that the java builder doesnt try to
         // compile them
         excludeAJfiles(project);
@@ -637,7 +633,7 @@ public class AJDTUtils {
 
         /* Clear any warnings and errors from the Tasks window BUG-FIX#40344 */
         AJDTUtils.clearProjectMarkers(project, true);
-        
+
         // remove the AspectJ Nature
         IProjectDescription description = project.getDescription();
         String[] prevNatures = description.getNatureIds();
@@ -661,20 +657,20 @@ public class AJDTUtils {
         }// end for
         description.setNatureIds(newNatures);
         project.setDescription(description, null);
-        
+
         // Bugzilla 62625
         // Bugzilla 93532 - just remove plugin dependency if there is a plugin.xml file
         // Bugzilla 137922 - also consider bundles without a plugin.xml
-        if (project.hasNature(PDE.PLUGIN_NATURE) 
+        if (project.hasNature(PDE.PLUGIN_NATURE)
                 && (hasPluginManifest(project)
                         || hasBundleManifest(project))) {
             // Bugzilla 72007
             // Checks if it was ajdt that added the ajde dependancy and removes
             // it if it was
             if (hasAJPluginDependency(project)) {
-                
+
                 // Bugzilla 97080
-                // Must close manifest editor after we are done with it 
+                // Must close manifest editor after we are done with it
                 // if it is not already open
                 boolean manifestEditorAlreadyOpen = isManifestEditorOpen(project);
                 ManifestEditor manEd = getAndPrepareToChangePDEModel(project);
@@ -682,7 +678,7 @@ public class AJDTUtils {
                 if (!manifestEditorAlreadyOpen) {
                     manEd.close(true);
                 }
-                    
+
             }
         } else {
             IWorkbenchWindow window = AspectJUIPlugin.getDefault().getWorkbench()
@@ -694,10 +690,10 @@ public class AJDTUtils {
                 AspectJUIPlugin.removeAjrtFromBuildPath(project);
             }
         }
-        
+
         AspectJPlugin.getDefault().getCompilerFactory().removeCompilerForProject(project);
         AJProjectModelFactory.getInstance().removeModelForProject(project);
-        
+
         removeMarkerOnReferencingProjects(project);
 
         //Ensures the project icon refreshes
@@ -754,7 +750,7 @@ public class AJDTUtils {
         } catch (JavaModelException e) {
         }
     }
-    
+
     private static void excludeAJfiles(IProject project) {
         IJavaProject jp = JavaCore.create(project);
         try {
@@ -810,7 +806,7 @@ public class AJDTUtils {
         } catch (JavaModelException e) {
         }
     }
-    
+
     // Bugzilla 72007
     // This method checks whether the project already has
     // org.aspectj.runtime imported. Returns true if it does.
@@ -856,7 +852,7 @@ public class AJDTUtils {
         if ((AspectJPreferences.askPDEAutoRemoveImport() && confirmAutoRemoveImport(window, true))
                 || (AspectJPreferences.doPDEAutoRemoveImport())) {
 
-    
+
             if (manEd != null) {
                 IPluginModel model = (IPluginModel) manEd.getAggregateModel();
                 try {
@@ -907,7 +903,7 @@ public class AJDTUtils {
         manifestFile.refreshLocal(IResource.DEPTH_INFINITE,
                 new NullProgressMonitor());
     }
-    
+
     /**
      * @param current
      */
@@ -959,7 +955,7 @@ public class AJDTUtils {
     /**
      * Prompts the user for whether to auto import aspectj runtime plugin when
      * giving aspectj nature to PDE project.
-     * 
+     *
      * @return <code>true</code> if it's OK to import, <code>false</code>
      *         otherwise
      */
@@ -990,12 +986,12 @@ public class AJDTUtils {
     }
 
     /**
-     * Prompts the user for whether to automatically remove the AspectJ runtime plug-in 
+     * Prompts the user for whether to automatically remove the AspectJ runtime plug-in
      * dependency when removing AspectJ nature from a PDE project.
-     * 
+     *
      * @param window the workbench windo that the doalog box will be modal on
      * @param pde whether or not to use pde related messages (bug 170043)
-     * 
+     *
      * @return <code>true</code> if it's OK to import, <code>false</code>
      *         otherwise
      */
@@ -1026,7 +1022,7 @@ public class AJDTUtils {
         }// end if
         return result == 0;
     }
-    
+
     /**
      * Decorate icon based on modifiers, errors etc. Possible decorations are:
      * abstract, final, synchronized, static, runnable, warning, error,
@@ -1135,7 +1131,7 @@ public class AJDTUtils {
         }
         return enclosingTypes;
     }
-    
+
     /**
      * Get a new filename for the given project.  Returns the name without the file extension.
      * @param project
@@ -1144,7 +1140,7 @@ public class AJDTUtils {
      * @return a string that is NOT the name of a current file in the project
      */
     public static String getFreeFileName(IProject project, String defaultFileName,
-            String extension) { 
+            String extension) {
         int counter = 0;
         if(project != null) {
             boolean foundFreeName = false;
@@ -1160,9 +1156,9 @@ public class AJDTUtils {
         }
         return counter==0 ? defaultFileName : defaultFileName+counter;
     }
-    
+
     /**
-     * Clear all problem markers for the given project. If recurse is false 
+     * Clear all problem markers for the given project. If recurse is false
      * then only the markers on the top level resource (the project) are removed.
      */
     public static void clearProjectMarkers(IProject project, boolean recurse) {
@@ -1190,7 +1186,7 @@ public class AJDTUtils {
     }
 
     /**
-     * converts an absolute path name to a binary aspect to 
+     * converts an absolute path name to a binary aspect to
      * the fully qualified name of that aspect.
      */
     public static String extractQualifiedName(String filepath) {

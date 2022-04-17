@@ -84,9 +84,9 @@ class Registry {
 
     SpaceObject[] getObjects() {
         SpaceObject[] allObjects = new SpaceObject[table.size()];
-        Enumeration elements = table.elements();
+        Enumeration<? extends SpaceObject> elements = table.elements();
         for(int i = 0; elements.hasMoreElements(); i++) {
-            allObjects[i] = (SpaceObject)(elements.nextElement());
+            allObjects[i] = (elements.nextElement());
         }
         return allObjects;
     }
@@ -98,7 +98,7 @@ class Registry {
         //
         Ship[]  arrayOfShips;
         Vector vectorOfShips = new Vector();
-        Enumeration elements = table.elements();
+        Enumeration<? extends Object> elements = table.elements();
         while (elements.hasMoreElements()) {
             Object object = elements.nextElement();
             if (object instanceof Ship) {
@@ -117,10 +117,9 @@ class Registry {
     // The protocol for clockTick is that it automatically cascades.
     //
     void clockTick() {
-        Enumeration elements = table.elements();
+        Enumeration<? extends SpaceObject> elements = table.elements();
         while (elements.hasMoreElements()) {
-            ((SpaceObject)elements.nextElement()).clockTick();
+            (elements.nextElement()).clockTick();
         }
     }
 }
-

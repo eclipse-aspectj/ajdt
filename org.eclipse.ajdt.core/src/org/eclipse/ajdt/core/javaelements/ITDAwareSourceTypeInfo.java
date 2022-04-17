@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2008, 2010 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Andrew Eisenberg - initial implementation
  *******************************************************************************/
@@ -44,13 +44,13 @@ import org.eclipse.jdt.internal.core.SourceType;
 import org.eclipse.jdt.internal.core.SourceTypeElementInfo;
 
 /**
- * This class provides element info for SourceTypes that know about 
+ * This class provides element info for SourceTypes that know about
  * which inter-type declarations are declared on them.
- * 
+ *
  * @author andrew
  */
 public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
-    
+
     private final static class ITDAwareSourceType extends SourceType {
         final ITDAwareSourceTypeInfo info;
         private ITDAwareSourceType(JavaElement parent, String name, ITDAwareSourceTypeInfo info) {
@@ -156,7 +156,7 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
         private final SourceMethod orig;
         private final char[] fullTypeName;
         private ITITSourceMethodInfo thisInfo;
-        
+
         protected ITITMethod(SourceMethod orig, char[] fullTypeName, String[] parameterTypes) {
             super((JavaElement) orig.getParent(), orig.getElementName(), parameterTypes);
             this.orig = orig;
@@ -185,20 +185,20 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
             return thisInfo;
         }
 
-        
+
     }
     private final class ITITField extends SourceField {
 
         private final SourceField orig;
         private final char[] fullTypeName;
         private ITITSourceFieldElementInfo thisInfo;
-        
+
         protected ITITField(SourceField orig, char[] fullTypeName) {
             super((JavaElement) orig.getParent(), orig.getElementName());
             this.orig = orig;
             this.fullTypeName = fullTypeName;
         }
-        
+
         @Override
         public Object getElementInfo() {
             if (thisInfo != null) {
@@ -218,8 +218,8 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
             return thisInfo;
         }
     }
-    
-    class ITITSourceMethodInfo extends SourceMethodInfo {
+
+    static class ITITSourceMethodInfo extends SourceMethodInfo {
 
         @Override
         protected void setReturnType(char[] type) {
@@ -255,13 +255,13 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
         protected void setSourceRangeStart(int start) {
             super.setSourceRangeStart(start);
         }
-        
+
         protected void setArguments(ILocalVariable[] arguments) {
             this.arguments = arguments;
         }
     }
-    
-    class ITITSourceFieldElementInfo extends SourceFieldElementInfo {
+
+    static class ITITSourceFieldElementInfo extends SourceFieldElementInfo {
 
         @Override
         protected void setTypeName(char[] typeName) {
@@ -292,9 +292,9 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
         protected void setSourceRangeStart(int start) {
             super.setSourceRangeStart(start);
         }
-        
+
     }
-    
+
 
     public ITDAwareSourceTypeInfo(SourceType type) throws JavaModelException {
         this((ISourceType) type.getElementInfo(), type);
@@ -318,14 +318,14 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
             }
         } catch (JavaModelException e) {
         }
-        
+
         IJavaElement[] children = augmentChildrenAndHierarchy(type);
         if (children != null) {
             this.setChildren(children);
         }
-        
+
         try {
-            // this ensures that itd aware content assist 
+            // this ensures that itd aware content assist
             // still works when there are large numbers ofannotations
             Object info = ((JavaElement) handle.getCompilationUnit()).getElementInfo();
             if (info != null && info instanceof CompilationUnitElementInfo) {
@@ -350,13 +350,13 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
                         newChildren[i] = createITDAwareType(innerType, innerInfo);
                         hasChanges = true;
                         continue;
-                    } 
+                    }
                 }
                 newChildren[i] = origChildren[i];
             }
-            
-            
-            
+
+
+
             List<IJavaElement> augmentedChildren = getITDs(type);
             if (type instanceof AspectElement) {
                 augmentedChildren.add(createAspectOf((AspectElement) this.handle));
@@ -378,13 +378,13 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
             return null;
         }
     }
-    
+
     private List<IJavaElement> getITDs(SourceType type) throws JavaModelException {
         AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(type);
         if (model.hasModel()) {
-            List<IJavaElement> itds = new ArrayList<IJavaElement>();
+            List<IJavaElement> itds = new ArrayList<>();
             List<IJavaElement> rels = model.getRelationshipsForElement(type, AJRelationshipManager.ASPECT_DECLARATIONS);
-            
+
             List<IMethod> childMethods = null;
 
             for (IJavaElement ije : rels) {
@@ -392,26 +392,26 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
                     IntertypeElement elt = (IntertypeElement) ije;
                     IMember member = elt.createMockDeclaration(type);
                     // null if the ITD doesn't exist in the AspectJ hierarchy
-                    // will happen if the Java side has partial compilation 
+                    // will happen if the Java side has partial compilation
                     // and aspectj side does not
                     if (member != null) {
-                        
+
                         // should not add this ITD if it is a duplicate
                         // of another ITD
                         if (!isAlreadyAnITD(itds, member)) {
                             continue;
                         }
-                        
+
                         itds.add(member);
 
                         // additional processing for interfaces
                         if (handle.isInterface()) {
-                            
+
                             if (member.getElementType() == IJavaElement.FIELD) {
                                 // Bug 262969
                                 // Interfaces can't have fields, so ignore
                                 // Reconciling errors occur if an ITD field is
-                                // referenced outside of the aspect that declares them, 
+                                // referenced outside of the aspect that declares them,
                                 // but only if the declared type of the object is an interface.
                                 itds.remove(member);
                             } else if (member.getElementType() == IJavaElement.METHOD) {
@@ -432,14 +432,14 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
                     }
                 } else if (ije instanceof DeclareElement) {
                     DeclareElement elt = (DeclareElement) ije;
-                    
-                    // use createElementInfo, not getElementInfo because 
+
+                    // use createElementInfo, not getElementInfo because
                     // we don't want it cached
                     DeclareElementInfo info = (DeclareElementInfo) elt.createElementInfo();
                     if (info == null || info.getAJKind() != Kind.DECLARE_PARENTS) {
                         continue;
                     }
-                    
+
                     char[][] newSupers = info.getTypes();
                     augmentHierarchy(newSupers);
                 } else if (ije instanceof AspectElement || ije instanceof BinaryAspectElement) {
@@ -455,8 +455,8 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
                 }
             }
             return itds;
-        } 
-        return new LinkedList<IJavaElement>();
+        }
+        return new LinkedList<>();
     }
 
     private void augmentHierarchy(List<String> newSupers) {
@@ -497,7 +497,7 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
 
     private boolean isAlreadyAnITD(List<IJavaElement> itds, IMember member) {
         boolean shouldAdd = true;
-        
+
         if (member.getElementType() == IJavaElement.FIELD) {
             for (IJavaElement itdElt : itds) {
                 if (itdElt instanceof IField) {
@@ -523,14 +523,14 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
         return shouldAdd;
     }
 
-    
+
     /**
-     * create the aspectOf method for 
+     * create the aspectOf method for
      */
     private SourceMethod createAspectOf(AspectElement parent) {
         return new SourceMethod(
-                (JavaElement) parent, 
-                "aspectOf", 
+                (JavaElement) parent,
+                "aspectOf",
                 new String[0]) {
             protected Object createElementInfo() {
                 return new SourceMethodInfo() {
@@ -538,7 +538,7 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
                     public int getModifiers() {
                         return Flags.AccPublic | Flags.AccStatic;
                     }
-                    
+
                     @Override
                     public char[] getReturnTypeName() {
                         return parent.getElementName().toCharArray();
@@ -551,11 +551,11 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
         };
 
     }
-    
+
     private SourceMethod createHasAspect(AspectElement parent) {
         return new SourceMethod(
-                (JavaElement) parent, 
-                "hasAspect", 
+                (JavaElement) parent,
+                "hasAspect",
                 new String[0]) {
             protected Object createElementInfo() {
                 return new SourceMethodInfo() {
@@ -563,7 +563,7 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
                     public int getModifiers() {
                         return Flags.AccPublic | Flags.AccStatic;
                     }
-                    
+
                     @Override
                     public char[] getReturnTypeName() {
                         return "boolean".toCharArray();
@@ -578,8 +578,8 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
     }
     private SourceMethod createGetWithinTypeName(AspectElement parent) {
         return new SourceMethod(
-                (JavaElement) parent, 
-                "getWithinTypeName", 
+                (JavaElement) parent,
+                "getWithinTypeName",
                 new String[0]) {
             protected Object createElementInfo() {
                 return new SourceMethodInfo() {
@@ -587,7 +587,7 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
                     public int getModifiers() {
                         return Flags.AccPublic;
                     }
-                    
+
                     @Override
                     public char[] getReturnTypeName() {
                         return "String".toCharArray();
@@ -598,9 +598,9 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
                 return true;
             }
         };
-        
+
     }
-    
+
     /**
      * True if a class false if an interface or doesn't exist
      * @param qualifiedName
@@ -618,7 +618,7 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
             return false;
         }
     }
-    
+
     private SourceType createITDAwareType(SourceType type, ITDAwareSourceTypeInfo info) {
         if (type instanceof AspectElement) {
             return new ITDAwareAspectType((JavaElement) type.getParent(), type.getElementName(), info);
@@ -626,14 +626,14 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
             return new ITDAwareSourceType((JavaElement) type.getParent(), type.getElementName(), info);
         }
     }
-    
+
     public IJavaElement[] getChildren() {
         return super.getChildren();
     }
-    
+
                         /* AJDT 1.7 */
     public void setChildren(IJavaElement[] children) {
         this.children = children;
     }
-    
+
 }

@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2007 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Common Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/cpl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Helen Hawkins   - iniital version (bug 148190)
@@ -17,13 +17,9 @@ import org.aspectj.bridge.IMessage;
 import org.aspectj.bridge.Message;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.ui.ajde.AJDTErrorHandler;
-import org.eclipse.ajdt.internal.ui.ajde.UIMessageHandler;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.tests.UITestCase;
-import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.jdt.core.IJavaModelMarker;
 
 /**
  * Tests the ErrorHandler class
@@ -146,37 +142,37 @@ public class UIMessageHandlerTest extends UITestCase {
 		assertTrue("by default should be ignoring 'WEAVEINFO' messages but " + //$NON-NLS-1$
 				"are not", handler.isIgnoring(IMessage.WEAVEINFO)); //$NON-NLS-1$
 	}
-	
+
 	public void testShowWeaveInfoMessagesAreNotIgnoredAfterWorkbenchPreferenceSet() throws Exception {
 		IProject project = createPredefinedProject("Bean Example"); //$NON-NLS-1$
 		IBuildMessageHandler handler = AspectJPlugin.getDefault()
 				.getCompilerFactory().getCompilerForProject(project).getMessageHandler();
-		
-		AspectJPreferences.setShowWeaveMessagesOption(project,true);	
+
+		AspectJPreferences.setShowWeaveMessagesOption(project,true);
 		assertFalse("should not be ignoring 'WEAVEINFO' messages but " + //$NON-NLS-1$
 				"still are", handler.isIgnoring(IMessage.WEAVEINFO)); //$NON-NLS-1$
-		
-		AspectJPreferences.setShowWeaveMessagesOption(project,false);	
+
+		AspectJPreferences.setShowWeaveMessagesOption(project,false);
 		assertTrue("by default should be ignoring 'WEAVEINFO' messages but " + //$NON-NLS-1$
-				"are not", handler.isIgnoring(IMessage.WEAVEINFO)); //$NON-NLS-1$		
+				"are not", handler.isIgnoring(IMessage.WEAVEINFO)); //$NON-NLS-1$
 	}
-	
+
 	public void testShowWeaveInfoMessagesAreNotIgnoredAfterProjectPreferenceSet() throws Exception {
 		IProject project = createPredefinedProject("Bean Example"); //$NON-NLS-1$
 		IBuildMessageHandler handler = AspectJPlugin.getDefault()
 				.getCompilerFactory().getCompilerForProject(project).getMessageHandler();
-		
+
 		AspectJPreferences.setUsingProjectSettings(project, true);
-		
-		AspectJPreferences.setShowWeaveMessagesOption(project,true);	
+
+		AspectJPreferences.setShowWeaveMessagesOption(project,true);
 		assertFalse("should not be ignoring 'WEAVEINFO' messages but " + //$NON-NLS-1$
 				"still are", handler.isIgnoring(IMessage.WEAVEINFO)); //$NON-NLS-1$
-		
-		AspectJPreferences.setShowWeaveMessagesOption(project,false);	
+
+		AspectJPreferences.setShowWeaveMessagesOption(project,false);
 		assertTrue("by default should be ignoring 'WEAVEINFO' messages but " + //$NON-NLS-1$
-				"are not", handler.isIgnoring(IMessage.WEAVEINFO)); //$NON-NLS-1$		
+				"are not", handler.isIgnoring(IMessage.WEAVEINFO)); //$NON-NLS-1$
 	}
-	
+
 	// set whether or not to show weaveinfo messages before the UIMessageHandler is created
 	// - not sure if in reality can ever get into this state but need to make sure that
 	// the UIMessageHandler honours any pre-set settings
@@ -189,9 +185,9 @@ public class UIMessageHandlerTest extends UITestCase {
 		IBuildMessageHandler handler = AspectJPlugin.getDefault()
 			.getCompilerFactory().getCompilerForProject(project).getMessageHandler();
 		assertFalse("should not be ignoring 'WEAVEINFO' messages but " + //$NON-NLS-1$
-				"still are", handler.isIgnoring(IMessage.WEAVEINFO)); //$NON-NLS-1$	
+				"still are", handler.isIgnoring(IMessage.WEAVEINFO)); //$NON-NLS-1$
 	}
-	
+
 	// set whether or not to show weaveinfo messages before the UIMessageHandler is created
 	// - not sure if in reality can ever get into this state but need to make sure that
 	// the UIMessageHandler honours any pre-set settings
@@ -204,9 +200,9 @@ public class UIMessageHandlerTest extends UITestCase {
 		IBuildMessageHandler handler = AspectJPlugin.getDefault()
 			.getCompilerFactory().getCompilerForProject(project).getMessageHandler();
 		assertFalse("should not be ignoring 'WEAVEINFO' messages but " + //$NON-NLS-1$
-				"still are", handler.isIgnoring(IMessage.WEAVEINFO)); //$NON-NLS-1$	
+				"still are", handler.isIgnoring(IMessage.WEAVEINFO)); //$NON-NLS-1$
 	}
-	
+
 	// set whether or not to show weaveinfo messages before the UIMessageHandler is created
 	// - not sure if in reality can ever get into this state but need to make sure that
 	// the UIMessageHandler honours any pre-set settings
@@ -220,7 +216,7 @@ public class UIMessageHandlerTest extends UITestCase {
 		IBuildMessageHandler handler = AspectJPlugin.getDefault()
 			.getCompilerFactory().getCompilerForProject(project).getMessageHandler();
 		assertFalse("should not be ignoring 'WEAVEINFO' messages but " + //$NON-NLS-1$
-				"still are", handler.isIgnoring(IMessage.WEAVEINFO)); //$NON-NLS-1$	
+				"still are", handler.isIgnoring(IMessage.WEAVEINFO)); //$NON-NLS-1$
 	}
 
 	// set whether or not to show weaveinfo messages before the UIMessageHandler is created
@@ -236,6 +232,6 @@ public class UIMessageHandlerTest extends UITestCase {
 		IBuildMessageHandler handler = AspectJPlugin.getDefault()
 			.getCompilerFactory().getCompilerForProject(project).getMessageHandler();
 		assertFalse("should not be ignoring 'WEAVEINFO' messages but " + //$NON-NLS-1$
-				"still are", handler.isIgnoring(IMessage.WEAVEINFO)); //$NON-NLS-1$	
+				"still are", handler.isIgnoring(IMessage.WEAVEINFO)); //$NON-NLS-1$
 	}
 }

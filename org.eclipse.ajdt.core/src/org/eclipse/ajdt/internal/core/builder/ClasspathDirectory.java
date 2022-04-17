@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -59,12 +59,11 @@ class ClasspathDirectory extends ClasspathLocation {
 				IResource[] members = ((IContainer) container).members();
 				dirList = new String[members.length];
 				int index = 0;
-				for (int i = 0, l = members.length; i < l; i++) {
-					IResource m = members[i];
-					if (m.getType() == IResource.FILE && org.eclipse.jdt.internal.compiler.util.Util.isClassFileName(m.getName()))
-						// add exclusion pattern check here if we want to hide .class files
-						dirList[index++] = m.getName();
-				}
+        for (IResource m : members) {
+          if (m.getType() == IResource.FILE && org.eclipse.jdt.internal.compiler.util.Util.isClassFileName(m.getName()))
+            // add exclusion pattern check here if we want to hide .class files
+            dirList[index++] = m.getName();
+        }
 				if (index < dirList.length)
 					System.arraycopy(dirList, 0, dirList = new String[index], 0, index);
 				directoryCache.put(qualifiedPackageName, dirList);
@@ -86,8 +85,8 @@ class ClasspathDirectory extends ClasspathLocation {
 				return true;
 		return false;
 	}
-	
-	
+
+
 	public int hashCode() {
 	    int num1 = accessRuleSet == null ? 0 : accessRuleSet.hashCode();
 	    int num2 = binaryFolder == null ? 0 : binaryFolder.hashCode();
@@ -103,7 +102,7 @@ class ClasspathDirectory extends ClasspathLocation {
 			if (this.accessRuleSet == null || !this.accessRuleSet.equals(dir.accessRuleSet))
 				return false;
 		return this.binaryFolder.equals(dir.binaryFolder);
-	} 
+	}
 
 	public NameEnvironmentAnswer findClass(String binaryFileName, String qualifiedPackageName, String qualifiedBinaryFileName) {
 		if (!doesFileExist(binaryFileName, qualifiedPackageName)) return null; // most common case

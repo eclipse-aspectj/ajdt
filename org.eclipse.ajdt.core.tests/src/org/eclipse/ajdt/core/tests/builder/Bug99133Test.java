@@ -3,8 +3,8 @@
  * program and the accompanying materials are made available under the terms of
  * the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
- * 
- * Contributors: IBM Corporation - initial API and implementation 
+ *
+ * Contributors: IBM Corporation - initial API and implementation
  * 				 Helen Hawkins   - iniital version
  ******************************************************************************/
 package org.eclipse.ajdt.core.tests.builder;
@@ -33,16 +33,16 @@ import org.eclipse.jdt.core.JavaModelException;
 /**
  * Bug 99133 - if A depends on B, and you make a change to
  * B such that A should notice, A was not being built
- * 
+ *
  * This test has been known to fail intermittently due to the timing checks in AjState.
- * 
+ *
  * The tests in this testcase are different scenarios around this.
  */
 public class Bug99133Test extends AJDTCoreTestCase {
-	
+
 	IProject pA,pB;
 	TestLogger testLog;
-	
+
 	/*
 	 * @see TestCase#setUp()
 	 */
@@ -55,7 +55,7 @@ public class Bug99133Test extends AJDTCoreTestCase {
 		testLog = new TestLogger();
 		AspectJPlugin.getDefault().setAJLogger(testLog);
 	}
-	
+
 	/*
 	 * @see TestCase#tearDown()
 	 */
@@ -64,7 +64,7 @@ public class Bug99133Test extends AJDTCoreTestCase {
 		AspectJPlugin.getDefault().setAJLogger(null);
 		testLog = null;
 	}
-	
+
     public void testBug84214() throws Exception {
         // Adds 2 errors to the log when the dependency is removed.
         checkForJDTBug84214(pA,pB);
@@ -73,17 +73,17 @@ public class Bug99133Test extends AJDTCoreTestCase {
 
 	/**
 	 * A depends on B and in particular calls a method in B
-	 * and that method body changes. Ultimately, no build of project A should 
-	 * occur. However, AJDT can't tell whether to build or not and so we 
+	 * and that method body changes. Ultimately, no build of project A should
+	 * occur. However, AJDT can't tell whether to build or not and so we
 	 * pass it down to the compiler. The compiler then uses A's incremental
-	 * state to say that nothing has structurely changed and 
-	 * returns quickly. 
+	 * state to say that nothing has structurely changed and
+	 * returns quickly.
 	 * (both A and B are AJ projects)
 	 */
 	public void testBug99133a() throws Exception {
 	    testLog.clearLog();
-	    
-		// change the contents of the method m1() in 
+
+		// change the contents of the method m1() in
 		// bug99133b\src\p\C1.java to include a sysout call
 		IFile c1 = getFile(pB,"p","C1.java"); //$NON-NLS-1$ //$NON-NLS-2$
 		BufferedReader br1 = new BufferedReader(new InputStreamReader(c1.getContents()));
@@ -106,13 +106,13 @@ public class Bug99133Test extends AJDTCoreTestCase {
 		c1.setContents(new ReaderInputStream(reader1), true, true, null);
         waitForAutoBuild();
         waitForAutoBuild();
-        
+
 		assertEquals("two more builds should have occured", //$NON-NLS-1$
 				2, testLog.getNumberOfBuildsRun());
-		
+
 		// At the moment, can at least check that the build of the
 		// dependent project is an incremental build.
-		List buildLogB = testLog.getPreviousBuildEntry(2);
+		List<String> buildLogB = testLog.getPreviousBuildEntry(2);
 		boolean incB = listContainsString(buildLogB,
 				"AspectJ reports build successful, build was: INCREMENTAL"); //$NON-NLS-1$
 		boolean fullB = listContainsString(buildLogB,
@@ -124,8 +124,8 @@ public class Bug99133Test extends AJDTCoreTestCase {
 				+ "should cause an incremental build of project bug99133b " //$NON-NLS-1$
 				+ ": (did a full build instead:" + fullB+")"); //$NON-NLS-1$ //$NON-NLS-2$
 		}
-		
-		List buildLogA = testLog.getPreviousBuildEntry(1);
+
+		List<String> buildLogA = testLog.getPreviousBuildEntry(1);
 		boolean incA = listContainsString(buildLogA,
 				"AspectJ reports build successful, build was: INCREMENTAL"); //$NON-NLS-1$
 		boolean fullA = listContainsString(buildLogA,
@@ -142,8 +142,8 @@ public class Bug99133Test extends AJDTCoreTestCase {
 	/**
 	 * A depends on B and in particular calls a method in B
 	 * and the signature of that method changes. Then an
-	 * incremental build of project B and a full build of project A 
-	 * should occurr (both A and B are AJ projects). 
+	 * incremental build of project B and a full build of project A
+	 * should occurr (both A and B are AJ projects).
 	 */
 //	public void testBug99133b() throws Exception {
 //		//change the return type of the method m1() in bug99133b\src\p\C1.java
@@ -175,7 +175,7 @@ public class Bug99133Test extends AJDTCoreTestCase {
 //		assertEquals("two more builds should have occured", //$NON-NLS-1$
 //				numberOfBuilds + 2,
 //				testLog.getNumberOfBuildsRun());
-//	
+//
 //		List buildLogB = testLog.getPreviousBuildEntry(2);
 //		boolean incB = listContainsString(buildLogB,
 //				"AspectJ reports build successful, build was: INCREMENTAL"); //$NON-NLS-1$
@@ -188,7 +188,7 @@ public class Bug99133Test extends AJDTCoreTestCase {
 //				+ "should cause an incremental build of project bug99133b " //$NON-NLS-1$
 //				+ ": (did a full build instead:" + fullB+")"); //$NON-NLS-1$ //$NON-NLS-2$
 //		}
-//		
+//
 //		List buildLogA = testLog.getPreviousBuildEntry(1);
 //		boolean incA = listContainsString(buildLogA,
 //				"AspectJ reports build successful, build was: INCREMENTAL"); //$NON-NLS-1$
@@ -205,11 +205,11 @@ public class Bug99133Test extends AJDTCoreTestCase {
 
 	/**
 	 * A depends on B and in particular calls a method in B.
-	 * The method body of a method not referenced in A changes. 
+	 * The method body of a method not referenced in A changes.
 	 */
 	public void testBug99133c() throws Exception {
 	    testLog.clearLog();
-		// change the contents of the method m1() in 
+		// change the contents of the method m1() in
 		// bug99133b\src\p\C1.java to include a sysout call
 		IFile c1 = getFile(pB,"p","C1.java"); //$NON-NLS-1$ //$NON-NLS-2$
 		BufferedReader br1 = new BufferedReader(new InputStreamReader(c1.getContents()));
@@ -231,13 +231,13 @@ public class Bug99133Test extends AJDTCoreTestCase {
 		StringReader reader1 = new StringReader(sb1.toString());
 		c1.setContents(new ReaderInputStream(reader1), true, true, null);
 		waitForAutoBuild();
-		
+
 		assertEquals("two more builds should have occured", //$NON-NLS-1$
 				2, testLog.getNumberOfBuildsRun());
 
 		// At the moment, can at least check that the build is an
 		// incremental build.
-		List buildLogB = testLog.getPreviousBuildEntry(2);
+		List<String> buildLogB = testLog.getPreviousBuildEntry(2);
 		boolean incB = listContainsString(buildLogB,
 				"AspectJ reports build successful, build was: INCREMENTAL"); //$NON-NLS-1$
 		boolean fullB = listContainsString(buildLogB,
@@ -249,8 +249,8 @@ public class Bug99133Test extends AJDTCoreTestCase {
 				+ "should cause an incremental build of project bug99133b " //$NON-NLS-1$
 				+ ": (did a full build instead:" + fullB+")"); //$NON-NLS-1$ //$NON-NLS-2$
 		}
-		
-		List buildLogA = testLog.getPreviousBuildEntry(1);
+
+		List<String> buildLogA = testLog.getPreviousBuildEntry(1);
 		boolean incA = listContainsString(buildLogA,
 				"AspectJ reports build successful, build was: INCREMENTAL"); //$NON-NLS-1$
 		boolean fullA = listContainsString(buildLogA,
@@ -302,7 +302,7 @@ public class Bug99133Test extends AJDTCoreTestCase {
 //		assertEquals("two more builds should have occured", //$NON-NLS-1$
 //				numberOfBuilds + 2,
 //				testLog.getNumberOfBuildsRun());
-//		
+//
 //		List buildLogB = testLog.getPreviousBuildEntry(2);
 //		boolean incB = listContainsString(buildLogB,
 //				"AspectJ reports build successful, build was: INCREMENTAL"); //$NON-NLS-1$
@@ -315,7 +315,7 @@ public class Bug99133Test extends AJDTCoreTestCase {
 //				+ "should cause an incremental build of project bug99133b " //$NON-NLS-1$
 //				+ ": (did a full build instead:" + fullB+")"); //$NON-NLS-1$ //$NON-NLS-2$
 //		}
-//		
+//
 //		List buildLogA = testLog.getPreviousBuildEntry(1);
 //		boolean incA = listContainsString(buildLogA,
 //				"AspectJ reports build successful, build was: INCREMENTAL"); //$NON-NLS-1$
@@ -333,7 +333,7 @@ public class Bug99133Test extends AJDTCoreTestCase {
 //
 //	/**
 //	 * A depends on B and in particular calls a method in B.
-//	 * A new method is added to a class in B. 
+//	 * A new method is added to a class in B.
 //	 * Then an incremental build of project B and a full build
 //	 * of project A should occurr. (both A and B are AJ projects)
 //	 */
@@ -367,7 +367,7 @@ public class Bug99133Test extends AJDTCoreTestCase {
 //		assertEquals("two more builds should have occured", //$NON-NLS-1$
 //				numberOfBuilds + 2,
 //				testLog.getNumberOfBuildsRun());
-//		
+//
 //		List buildLogB = testLog.getPreviousBuildEntry(2);
 //		boolean incB = listContainsString(buildLogB,
 //				"AspectJ reports build successful, build was: INCREMENTAL"); //$NON-NLS-1$
@@ -380,7 +380,7 @@ public class Bug99133Test extends AJDTCoreTestCase {
 //				+ "should cause an incremental build of project bug99133b " //$NON-NLS-1$
 //				+ ": (did a full build instead:" + fullB+")"); //$NON-NLS-1$ //$NON-NLS-2$
 //		}
-//		
+//
 //		List buildLogA = testLog.getPreviousBuildEntry(1);
 //		boolean incA = listContainsString(buildLogA,
 //				"AspectJ reports build successful, build was: INCREMENTAL"); //$NON-NLS-1$
@@ -395,8 +395,8 @@ public class Bug99133Test extends AJDTCoreTestCase {
 //		}
 //
 //	}
-	
-	
+
+
 	private void addProjectDependency(IProject project, IProject projectDependedOn) throws JavaModelException {
 		IJavaProject javaProject = JavaCore.create(project);
 		IClasspathEntry[] originalCP = javaProject.getRawClasspath();
@@ -408,11 +408,11 @@ public class Bug99133Test extends AJDTCoreTestCase {
 		javaProject.setRawClasspath(newCP, null);
 		waitForAutoBuild();
 	}
-	
+
 	private void removeProjectDependency(IProject project, IProject projectDependedOn) throws JavaModelException {
 		IJavaProject javaProject = JavaCore.create(project);
 		IClasspathEntry[] cpEntry = javaProject.getRawClasspath();
-		List newEntries = new ArrayList();
+		List<IClasspathEntry> newEntries = new ArrayList<>();
 
 		for (int j = 0; j < cpEntry.length; j++) {
 			IClasspathEntry entry = cpEntry[j];
@@ -430,7 +430,7 @@ public class Bug99133Test extends AJDTCoreTestCase {
 				.toArray(new IClasspathEntry[newEntries.size()]);
 		javaProject.setRawClasspath(newCP, null);
 	}
-	
+
 	private IFile getFile(IProject project, String packageName, String fileName) throws CoreException {
 		IFolder src = project.getFolder("src"); //$NON-NLS-1$
 		if (!src.exists()) {
@@ -440,7 +440,7 @@ public class Bug99133Test extends AJDTCoreTestCase {
 		if (!pack.exists()) {
 			pack.create(true, true, null);
 		}
-		
+
 		assertNotNull("src folder should not be null", src); //$NON-NLS-1$
 		assertNotNull("package pack should not be null", pack); //$NON-NLS-1$
 
@@ -449,13 +449,13 @@ public class Bug99133Test extends AJDTCoreTestCase {
 		assertTrue(fileName + " should exist", f.exists()); //$NON-NLS-1$
 		return f;
 	}
-	
+
 	/**
 	 * There is JDT bug 84214 - sometimes project dependencies don't
 	 * get picked up properly. Therefore, to work around this, if
 	 * remove, then re-add the project dependency.
-	 * 
-	 * @throws JavaModelException 
+	 *
+	 * @throws JavaModelException
 	 */
 	private void checkForJDTBug84214(IProject projectWhichShouldHaveDependency, IProject projectDependedOn) throws JavaModelException {
 		if (projectDependedOn.getReferencingProjects().length == 0) {
@@ -463,20 +463,20 @@ public class Bug99133Test extends AJDTCoreTestCase {
 			addProjectDependency(projectWhichShouldHaveDependency,projectDependedOn);
 		}
 		assertEquals(" " + projectDependedOn  + " should have "  //$NON-NLS-1$ //$NON-NLS-2$
-				+ projectWhichShouldHaveDependency 
+				+ projectWhichShouldHaveDependency
 				+ " as it's list of referencing projects - if not, see JDT bug 84214", //$NON-NLS-1$
 				1, projectDependedOn.getReferencingProjects().length);
 	}
-	
-	
-	private boolean listContainsString(List l, String msg) {
-        for (Iterator iter = l.iterator(); iter.hasNext();) {
-            String logEntry = (String) iter.next();
+
+
+	private boolean listContainsString(List<String> l, String msg) {
+        for (Iterator<String> iter = l.iterator(); iter.hasNext();) {
+            String logEntry = iter.next();
             if (logEntry.indexOf(msg) != -1) {
                 return true;
             }
         }
         return false;
 	}
-	
+
 }

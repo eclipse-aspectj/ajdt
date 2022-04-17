@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2010 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Andrew Eisenberg - initial API and implementation
  *******************************************************************************/
@@ -42,7 +42,7 @@ import org.eclipse.jdt.internal.core.search.matching.PossibleMatch;
 /**
  * Contains common logic for {@link ExtraPackageReferenceFinder} and
  * {@link ExtraTypeReferenceFinder}
- * 
+ *
  * @author Andrew Eisenberg
  * @created Aug 30, 2010
  */
@@ -63,7 +63,7 @@ abstract public class AbstractExtraReferenceFinder<T extends SearchPattern> {
         // first look for matches inside of ITDs (ie- the target type)
         List<IAspectJElement> allItds = getRelevantChildren(unit);
 
-        List<SearchMatch> matches = new ArrayList<SearchMatch>(allItds.size());
+        List<SearchMatch> matches = new ArrayList<>(allItds.size());
         // check each ITD's target type to see if it is a match
         for (IAspectJElement elt : allItds) {
             if (elt instanceof IntertypeElement) {
@@ -85,7 +85,7 @@ abstract public class AbstractExtraReferenceFinder<T extends SearchPattern> {
     protected List<IAspectJElement> getRelevantChildren(IParent parent)
             throws JavaModelException {
         IJavaElement[] children = parent.getChildren();
-        List<IAspectJElement> allItds = new LinkedList<IAspectJElement>();
+        List<IAspectJElement> allItds = new LinkedList<>();
 
         for (IJavaElement elt : children) {
             if (elt instanceof IntertypeElement
@@ -98,12 +98,12 @@ abstract public class AbstractExtraReferenceFinder<T extends SearchPattern> {
         return allItds;
     }
 
-    
+
     protected List<SearchMatch> findDeclareMatches(DeclareElement decl, SearchParticipant participant, T pattern) throws JavaModelException {
         AJCompilationUnit unit = ((AJCompilationUnit) decl.getCompilationUnit());
         // should already be in original content mode, but do this any way just in case.
         char[] contents = null;
-        try { 
+        try {
             unit.requestOriginalContentMode();
             contents = unit.getContents();
         } finally {
@@ -121,16 +121,16 @@ abstract public class AbstractExtraReferenceFinder<T extends SearchPattern> {
         }
         return Collections.emptyList();
     }
-    
+
     abstract protected DeclareVisitor createDeclareVisitor(char[] contents, DeclareElement decl, SearchParticipant participant, T pattern) throws JavaModelException;
-    
+
     abstract protected boolean isMatch(IntertypeElement itd, T pattern)
             throws JavaModelException;
 
     abstract protected SearchMatch createITDMatch(IntertypeElement itd,
             SearchParticipant participant) throws JavaModelException;
-    
-    abstract class DeclareVisitor extends AjASTVisitor {
+
+    abstract static class DeclareVisitor extends AjASTVisitor {
         private final List<SearchMatch> accumulatedMatches;
         private final char[] fileContents;
 
@@ -139,13 +139,13 @@ abstract public class AbstractExtraReferenceFinder<T extends SearchPattern> {
         protected final DeclareElement decl;
 
         public DeclareVisitor(SearchParticipant participant, DeclareElement decl, char[] fileContents) throws JavaModelException {
-            this.accumulatedMatches = new ArrayList<SearchMatch>();
+            this.accumulatedMatches = new ArrayList<>();
             this.decl = decl;
             ISourceRange sourceRange = decl.getSourceRange();
             if (sourceRange != null) {
                 this.offset = sourceRange.getOffset();
             } else {
-                throw new JavaModelException(new JavaModelStatus(IJavaModelStatusConstants.NO_LOCAL_CONTENTS, 
+                throw new JavaModelException(new JavaModelStatus(IJavaModelStatusConstants.NO_LOCAL_CONTENTS,
                         "No source range available for " + decl.getElementName() + " " + decl.getParent().getElementName()));
             }
             this.fileContents = fileContents;
@@ -154,11 +154,11 @@ abstract public class AbstractExtraReferenceFinder<T extends SearchPattern> {
         List<SearchMatch> getAccumulatedMatches() {
             return accumulatedMatches;
         }
-        
+
         protected void acceptMatch(SearchMatch match) {
             accumulatedMatches.add(match);
         }
-        
+
         /**
          * A type pattern is complex if it is more than just a type name
          * It will have more than just Java identifier characters
@@ -176,7 +176,7 @@ abstract public class AbstractExtraReferenceFinder<T extends SearchPattern> {
         }
 
         abstract protected void findMatchesInComplexPattern(PatternNode node);
-        
+
         protected String findQualifier(String actualPatternText, int matchLoc) {
             int patternEnd = matchLoc - 1;
             int patternStart = patternEnd;
@@ -201,6 +201,6 @@ abstract public class AbstractExtraReferenceFinder<T extends SearchPattern> {
         protected String getActualText(PatternNode node) {
             return String.valueOf(CharOperation.subarray(fileContents, offset + node.getStartPosition(), offset + node.getStartPosition() + node.getLength()));
         }
-        
+
     }
 }

@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Helen Hawkins   - iniital version
@@ -14,8 +14,6 @@ package org.eclipse.ajdt.ui.tests.utils;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-
-import junit.framework.AssertionFailedError;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.BuildConfig;
@@ -41,7 +39,7 @@ import org.eclipse.pde.internal.ui.editor.plugin.ManifestEditor;
 
 /**
  * @author hawkinsh
- * 
+ *
  */
 public class AJDTUtilsTest extends UITestCase {
 
@@ -99,7 +97,7 @@ public class AJDTUtilsTest extends UITestCase {
 //                }
 //            }
 //        };
-//        
+//
 //        int numTries = 0;
 //        while (true) {
 //            try {
@@ -143,12 +141,12 @@ public class AJDTUtilsTest extends UITestCase {
 				AspectJPlugin.isAJProject(testPluginProject.getProject()));
 		resetPluginEnvironment();
 	}
-	
+
 	public void testAddAndRemoveAspectJNature() throws CoreException {
 		IProject testProject = createPredefinedProject("project.java.Y"); //$NON-NLS-1$
 		IJavaProject jY = JavaCore.create(testProject);
 		waitForJobsToComplete();
-		
+
 		assertFalse("Java project should not have AspectJ Nature", //$NON-NLS-1$
 				AspectJPlugin.isAJProject(testProject.getProject()));
 		assertFalse("Build path shouldn't contain aspectjrt.jar", //$NON-NLS-1$
@@ -163,7 +161,7 @@ public class AJDTUtilsTest extends UITestCase {
 				AspectJPlugin.isAJProject(testProject.getProject()));
 		assertFalse("Build path shouldn't contain aspectjrt.jar",hasAjrtOnBuildPath(jY)); //$NON-NLS-1$
 	}
-	
+
 	/**
 	 * Tests fix for 129553: removing aj nature should exclude .aj files
 	 * @throws CoreException
@@ -172,7 +170,7 @@ public class AJDTUtilsTest extends UITestCase {
 		IProject project = createPredefinedProject("MultipleSourceFoldersWithAspects"); //$NON-NLS-1$
 		assertTrue("Project should have AspectJ Nature", //$NON-NLS-1$
 				AspectJPlugin.isAJProject(project.getProject()));
-		
+
 		IResource a1 = project.findMember("src/pack/A1.aj"); //$NON-NLS-1$
 		assertNotNull("Couldn't find A1.aj",a1); //$NON-NLS-1$
 		IResource class1 = project.findMember("src/Class1.java"); //$NON-NLS-1$
@@ -183,25 +181,25 @@ public class AJDTUtilsTest extends UITestCase {
 		assertNotNull("Couldn't find A2.aj",a2); //$NON-NLS-1$
 		IResource class3 = project.findMember("src2/pack/Class3.java"); //$NON-NLS-1$
 		assertNotNull("Couldn't find Class3.java",class3); //$NON-NLS-1$
-		
+
 		// everything should be included
 		assertTrue("A1.aj should be included",BuildConfig.isIncluded(a1)); //$NON-NLS-1$
 		assertTrue("Class1.java should be included",BuildConfig.isIncluded(class1)); //$NON-NLS-1$
 		assertTrue("Class2.java should be included",BuildConfig.isIncluded(class2)); //$NON-NLS-1$
 		assertTrue("A2.aj should be included",BuildConfig.isIncluded(a2)); //$NON-NLS-1$
 		assertTrue("Class3.java should be included",BuildConfig.isIncluded(class3)); //$NON-NLS-1$
-		
+
 		AspectJUIPlugin.convertFromAspectJProject(project.getProject());
-		
+
 		// removing nature should exclude .aj files
 		assertFalse("A1.aj should be excluded",BuildConfig.isIncluded(a1)); //$NON-NLS-1$
 		assertTrue("Class1.java should be included",BuildConfig.isIncluded(class1)); //$NON-NLS-1$
 		assertTrue("Class2.java should be included",BuildConfig.isIncluded(class2)); //$NON-NLS-1$
 		assertFalse("A2.aj should be excluded",BuildConfig.isIncluded(a2)); //$NON-NLS-1$
 		assertTrue("Class3.java should be included",BuildConfig.isIncluded(class3)); //$NON-NLS-1$
-		
+
 		AspectJUIPlugin.convertToAspectJProject(project.getProject());
-		
+
 		// everything should now be included again
 		assertTrue("A1.aj should be included",BuildConfig.isIncluded(a1)); //$NON-NLS-1$
 		assertTrue("Class1.java should be included",BuildConfig.isIncluded(class1)); //$NON-NLS-1$
@@ -209,7 +207,7 @@ public class AJDTUtilsTest extends UITestCase {
 		assertTrue("A2.aj should be included",BuildConfig.isIncluded(a2)); //$NON-NLS-1$
 		assertTrue("Class3.java should be included",BuildConfig.isIncluded(class3)); //$NON-NLS-1$
 	}
-	
+
 	/**
 	 * Tests fix for 129553: removing aj nature should exclude .aj files
 	 * @throws CoreException
@@ -218,36 +216,36 @@ public class AJDTUtilsTest extends UITestCase {
 		IProject project = createPredefinedProject("WithoutSourceFolder"); //$NON-NLS-1$
 		assertTrue("Project should have AspectJ Nature", //$NON-NLS-1$
 				AspectJPlugin.isAJProject(project.getProject()));
-		
+
 		IResource a = project.findMember("A.aj"); //$NON-NLS-1$
 		assertNotNull("Couldn't find A.aj",a); //$NON-NLS-1$
 		IResource c = project.findMember("C.java"); //$NON-NLS-1$
 		assertNotNull("Couldn't find C.java",c); //$NON-NLS-1$
-		
+
 		AspectJUIPlugin.convertFromAspectJProject(project.getProject());
-		
+
 		// removing nature should exclude .aj files
 		assertFalse("A.aj should be excluded",BuildConfig.isIncluded(a)); //$NON-NLS-1$
 		assertTrue("C.java should be included",BuildConfig.isIncluded(c)); //$NON-NLS-1$
 
 		AspectJUIPlugin.convertToAspectJProject(project.getProject());
-		
+
 		// everything should now be included again
 		assertTrue("A.aj should be included",BuildConfig.isIncluded(a)); //$NON-NLS-1$
 		assertTrue("C.java should be included",BuildConfig.isIncluded(c)); //$NON-NLS-1$
-	}	
-	
+	}
+
 	/**
 	 * Test for bug 93532 - NPE when add aspectj nature to a plugin project
 	 * which doesn't have a plugin.xml file.
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	public void testBug93532() throws Exception {
 		IProject testProject = createPredefinedProject("bug93532"); //$NON-NLS-1$
 		IJavaProject jY = JavaCore.create(testProject);
 		waitForJobsToComplete();
-		
+
 		assertFalse("Java project should not have AspectJ Nature", //$NON-NLS-1$
 				AspectJPlugin.isAJProject(testProject.getProject()));
 		assertFalse("Build path shouldn't contain aspectjrt.jar", //$NON-NLS-1$
@@ -268,14 +266,14 @@ public class AJDTUtilsTest extends UITestCase {
 //	/**
 //	 * This tests whether you get back the manifest editor for the project you
 //	 * require.
-//	 * 
+//	 *
 //	 */
 //	public void testGetPDEManifestEditor() throws Exception {
 //		setUpPluginEnvironment();
 //		// know that the plugin id of this is HelloWorld
 //		IProject projectA1 = createPredefinedProject("Hello World Java Plugin"); //$NON-NLS-1$
 //		waitForJobsToComplete();
-//		
+//
 //		// know that the plugin id for this is PluginWithView
 //		IProject projectA2 = createPredefinedProject("PluginWithView"); //$NON-NLS-1$
 //		waitForJobsToComplete();
@@ -289,7 +287,7 @@ public class AJDTUtilsTest extends UITestCase {
 //		resetPluginEnvironment();
 //	}
 
-	// Do not delete this test - if we ever change the way we deal with 
+	// Do not delete this test - if we ever change the way we deal with
 	// project dependencies, then need this test
 	// We now longer change project dependencies in this way, so test removed
 //	public void testChangeProjectToClassDependencies() throws Exception {
@@ -419,7 +417,7 @@ public class AJDTUtilsTest extends UITestCase {
 		}
 
 	}
-	
+
 	/* bug 82258 */
 	public void testCaseInsensitiveDriveLetters() throws Exception {
 		IProject project = createPredefinedProject("Hello World Project"); //$NON-NLS-1$

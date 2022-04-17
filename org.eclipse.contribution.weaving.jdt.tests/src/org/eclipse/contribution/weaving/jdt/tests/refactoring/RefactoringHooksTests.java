@@ -21,7 +21,6 @@ import org.eclipse.contribution.weaving.jdt.tests.MockCompilationUnit;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.LocalVariable;
@@ -34,7 +33,7 @@ import org.eclipse.ltk.core.refactoring.participants.CheckConditionsContext;
 import org.eclipse.ltk.core.refactoring.participants.ResourceChangeChecker;
 
 /**
- * 
+ *
  * @author Andrew Eisenberg
  * @created Aug 13, 2010
  */
@@ -42,22 +41,22 @@ public class RefactoringHooksTests extends AbstractWeavingRefactoringTest {
 
     private IRefactoringProvider orig;
     private MockRefactoringProvider mock = new MockRefactoringProvider();
-    
+
     @Override
     protected void setUp() throws Exception {
         super.setUp();
         orig = RefactoringAdapter.getInstance().getProvider();
         RefactoringAdapter.getInstance().setProvider(mock);
     }
-    
+
     @Override
     public void tearDown() throws Exception {
         super.tearDown();
         RefactoringAdapter.getInstance().setProvider(orig);
         mock.reset();
     }
-    
-    
+
+
     public void testCreateSourceConvertedAST1() throws Exception {
         checkRenameLocalRefactoring("Something.mock");
         assertNotNull("Create Source Converted AST advice not executed", mock.createSourceConvertedAST);
@@ -102,12 +101,12 @@ public class RefactoringHooksTests extends AbstractWeavingRefactoringTest {
         String toRefactor = "9 + 8";
         ICompilationUnit unit = createCompilationUnitAndPackage("", "Something.mock", source, project);
         assertTrue("Weaving not set up properly", unit instanceof MockCompilationUnit);
-        
+
         ExtractTempRefactoring refactoring = new ExtractTempRefactoring(unit, source.indexOf(toRefactor), toRefactor.length());
         refactoring.setTempName("xx");
         RefactoringStatus status = super.performRefactoring(refactoring, true, false);
         assertTrue("Refactoring should not have failed", status.isOK());
-        
+
         assertNotNull("Check results advice not executed", mock.checkResults);
         assertFalse("Check results should be false", mock.checkResults);
     }
@@ -119,12 +118,12 @@ public class RefactoringHooksTests extends AbstractWeavingRefactoringTest {
         String source = "package p; \n class Something { \nvoid f() { int x = 9 + 8; } }";
         String toRefactor = "9 + 8";
         ICompilationUnit unit = createCompilationUnitAndPackage("p", "Something.java", source, project);
-        
+
         ExtractTempRefactoring refactoring = new ExtractTempRefactoring(unit, source.indexOf(toRefactor), toRefactor.length());
         refactoring.setTempName("xx");
         RefactoringStatus status = super.performRefactoring(refactoring, true, false);
         assertTrue("Refactoring should not have failed", status.isOK());
-        
+
         assertNotNull("Check results advice not executed", mock.checkResults);
         assertTrue("Check results should be true", mock.checkResults);
     }
@@ -137,12 +136,12 @@ public class RefactoringHooksTests extends AbstractWeavingRefactoringTest {
         String toRefactor = "9 + 8";
         ICompilationUnit unit = createCompilationUnitAndPackage("", "Something.mock", source, project);
         assertTrue("Weaving not set up properly", unit instanceof MockCompilationUnit);
-        
+
         ExtractConstantRefactoring refactoring = new ExtractConstantRefactoring(unit, source.indexOf(toRefactor), toRefactor.length());
         refactoring.setConstantName("xx");
         RefactoringStatus status = super.performRefactoring(refactoring, true, false);
         assertTrue("Refactoring should not have failed", status.isOK());
-        
+
         assertNotNull("Check results advice not executed", mock.checkResults);
         assertFalse("Check results should be false", mock.checkResults);
     }
@@ -154,12 +153,12 @@ public class RefactoringHooksTests extends AbstractWeavingRefactoringTest {
         String source = "package p; \n class Something { \nvoid f() { int x = 9 + 8; } }";
         String toRefactor = "9 + 8";
         ICompilationUnit unit = createCompilationUnitAndPackage("p", "Something.java", source, project);
-        
+
         ExtractConstantRefactoring refactoring = new ExtractConstantRefactoring(unit, source.indexOf(toRefactor), toRefactor.length());
         refactoring.setConstantName("xx");
         RefactoringStatus status = super.performRefactoring(refactoring, true, false);
         assertTrue("Refactoring should not have failed", status.isOK());
-        
+
         assertNotNull("Check results advice not executed", mock.checkResults);
         assertTrue("Check results should be true", mock.checkResults);
     }
@@ -172,12 +171,12 @@ public class RefactoringHooksTests extends AbstractWeavingRefactoringTest {
         String toRefactor = "x";
         ICompilationUnit unit = createCompilationUnitAndPackage("", "Something.mock", source, project);
         assertTrue("Weaving not set up properly", unit instanceof MockCompilationUnit);
-        
+
         PromoteTempToFieldRefactoring refactoring = new PromoteTempToFieldRefactoring(unit, source.indexOf(toRefactor), toRefactor.length());
         refactoring.setFieldName("xx");
         RefactoringStatus status = super.performRefactoring(refactoring, true, false);
         assertTrue("Refactoring should not have failed", status.isOK());
-        
+
         assertNotNull("Create AST For refactoring advice not executed", mock.createASTForRefactoring);
         assertFalse("Create AST For refactoring should be false", mock.createASTForRefactoring);
     }
@@ -189,12 +188,12 @@ public class RefactoringHooksTests extends AbstractWeavingRefactoringTest {
         String source = "package p; \n class Something { \nvoid f() { int x = 9 + 8; } }";
         String toRefactor = "x";
         ICompilationUnit unit = createCompilationUnitAndPackage("p", "Something.java", source, project);
-        
+
         PromoteTempToFieldRefactoring refactoring = new PromoteTempToFieldRefactoring(unit, source.indexOf(toRefactor), toRefactor.length());
         refactoring.setFieldName("xx");
         RefactoringStatus status = super.performRefactoring(refactoring, true, false);
         assertTrue("Refactoring should not have failed", status.isOK());
-        
+
         assertNotNull("Create AST For refactoring advice not executed", mock.createASTForRefactoring);
         assertTrue("Create AST For refactoring should be true", mock.createASTForRefactoring);
     }

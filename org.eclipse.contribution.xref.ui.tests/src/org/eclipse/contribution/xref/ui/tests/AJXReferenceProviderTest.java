@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Ben Dalziel     - initial version
@@ -27,23 +27,23 @@ public class AJXReferenceProviderTest extends TestCase {
 	 */
 	protected void setUp() throws Exception {
 		XReferenceProviderManager manager = XReferenceProviderManager.getManager();
-		List providers = manager.getRegisteredProviders();
-		for (Iterator iter = providers.iterator(); iter.hasNext();) {
-            XReferenceProviderDefinition element = (XReferenceProviderDefinition) iter.next();
+		List<XReferenceProviderDefinition> providers = manager.getRegisteredProviders();
+		for (Iterator<XReferenceProviderDefinition> iter = providers.iterator(); iter.hasNext();) {
+            XReferenceProviderDefinition element = iter.next();
             if (element.getProvider().getProviderDescription().equals("Provides AspectJ crosscutting structure references")) { //$NON-NLS-1$
             	providerDef = element;
             }
         }
 		if (providerDef == null) {
-			providerDef = (XReferenceProviderDefinition)providers.get(0);
-            
+			providerDef = providers.get(0);
+
         }
 	}
-	
-	public void setAndGetCheckedFilters(List listToSet, String identifier) {
-		List /* String */ checkedListReturned = new ArrayList();
-		providerDef.getProvider().setCheckedFilters(listToSet);	
-		checkedListReturned = providerDef.getProvider().getFilterCheckedList();		
+
+	public void setAndGetCheckedFilters(List<String> listToSet, String identifier) {
+		List<String> checkedListReturned = new ArrayList<>();
+		providerDef.getProvider().setCheckedFilters(listToSet);
+		checkedListReturned = providerDef.getProvider().getFilterCheckedList();
 		assertTrue("Returned List, (" + identifier + ") size Expected <" + listToSet.size() + "> Actual <" + checkedListReturned.size() + ">", checkedListReturned.size() == listToSet.size()); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 		if (listToSet.size() != 0) {
 			for (int i = 0; i < listToSet.size(); i++) {
@@ -51,11 +51,11 @@ public class AJXReferenceProviderTest extends TestCase {
 			}
 		}
 	}
-	
-	public void setAndGetCheckedInplaceFilters(List listToSet, String identifier) {
-		List /* String */ checkedListReturned = new ArrayList();
-		providerDef.getProvider().setCheckedInplaceFilters(listToSet);	
-		checkedListReturned = providerDef.getProvider().getFilterCheckedInplaceList();		
+
+	public void setAndGetCheckedInplaceFilters(List<String> listToSet, String identifier) {
+		List<String> checkedListReturned = new ArrayList<>();
+		providerDef.getProvider().setCheckedInplaceFilters(listToSet);
+		checkedListReturned = providerDef.getProvider().getFilterCheckedInplaceList();
 		assertTrue("Returned List, (" + identifier + ") size Expected <" + listToSet.size() + "> Actual <" + checkedListReturned.size() + ">", checkedListReturned.size() == listToSet.size()); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 		if (listToSet.size() != 0) {
 			for (int i = 0; i < listToSet.size(); i++) {
@@ -65,29 +65,29 @@ public class AJXReferenceProviderTest extends TestCase {
 	}
 
 	public void testSetCheckedFilters() {
-				
-		// Valid List (String) checkedList 
-		List /* String */ checkedListToSetString = new ArrayList();
+
+		// Valid List (String) checkedList
+		List<String> checkedListToSetString = new ArrayList<>();
 		checkedListToSetString.add("advises"); //$NON-NLS-1$
 		setAndGetCheckedFilters(checkedListToSetString, "Valid String"); //$NON-NLS-1$
 		setAndGetCheckedInplaceFilters(checkedListToSetString, "Valid String"); //$NON-NLS-1$
-		
-		// Valid List (String) checkedList 
-		List /* String */ checkedListToSetStrings = new ArrayList();
+
+		// Valid List (String) checkedList
+		List<String> checkedListToSetStrings = new ArrayList<>();
 		checkedListToSetStrings.add("declared on"); //$NON-NLS-1$
 		checkedListToSetStrings.add("matched by"); //$NON-NLS-1$
 		setAndGetCheckedFilters(checkedListToSetStrings, "Two Valid Strings"); //$NON-NLS-1$
 		setAndGetCheckedInplaceFilters(checkedListToSetStrings, "Two Valid Strings"); //$NON-NLS-1$
-		
+
 		// Valid List (String) checkedList, (not in populatingList of provider but could be in populatingList of another provider, so accept it)
-		List /* String */ checkedListToSetStringX = new ArrayList();
+		List<String> checkedListToSetStringX = new ArrayList<>();
 		checkedListToSetStringX.add("NOT IN POPULATING LIST"); //$NON-NLS-1$
 		setAndGetCheckedFilters(checkedListToSetStringX, "Not in populatingList"); //$NON-NLS-1$
 		setAndGetCheckedInplaceFilters(checkedListToSetStringX, "Not in populatingList"); //$NON-NLS-1$
-		
+
 		// This will also reset the checked lists to be empty
-		// Valid List (empty) checkedList 
-		List /* String */ checkedListToSetEmpty = new ArrayList();
+		// Valid List (empty) checkedList
+		List<String> checkedListToSetEmpty = new ArrayList<>();
 		setAndGetCheckedFilters(checkedListToSetEmpty, "Empty List"); //$NON-NLS-1$
 		setAndGetCheckedInplaceFilters(checkedListToSetEmpty, "Empty List"); //$NON-NLS-1$
 	}

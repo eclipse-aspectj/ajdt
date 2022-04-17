@@ -62,7 +62,6 @@ import org.eclipse.jdt.core.compiler.CharOperation;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.internal.codeassist.CompletionEngine;
 import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
-import org.eclipse.jdt.internal.compiler.parser.Scanner;
 import org.eclipse.jdt.internal.core.BecomeWorkingCopyOperation;
 import org.eclipse.jdt.internal.core.BufferManager;
 import org.eclipse.jdt.internal.core.CompilationUnit;
@@ -251,13 +250,13 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 	public IType findAspectType(String typeName) {
 	    try {
             IJavaElement[] children = getChildren();
-            for (int i = 0; i < children.length; i++) {
-                if (children[i].getElementType() == TYPE) {
-                    if (children[i].getElementName().equals(typeName)) {
-                        return (IType) children[i];  // might be an aspect
-                    }
-                }
+        for (IJavaElement child : children) {
+          if (child.getElementType() == TYPE) {
+            if (child.getElementName().equals(typeName)) {
+              return (IType) child;  // might be an aspect
             }
+          }
+        }
         } catch (JavaModelException e) {
             AspectJPlugin.getDefault().getLog().log(e.getStatus());
         }
@@ -317,7 +316,7 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
                 AspectJPlugin.isAJProject(project.getProject());
         org.aspectj.org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory problemFactory =
             new org.aspectj.org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory();
-        Map options = project == null ? JavaCore.getOptions() : project.getOptions(true);
+        Map<String, String> options = project == null ? JavaCore.getOptions() : project.getOptions(true);
         if (!computeProblems) {
             // disable task tags checking to speed up parsing
             options.put(JavaCore.COMPILER_TASK_TAGS, ""); //$NON-NLS-1$
@@ -543,13 +542,7 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
                     throw new JavaModelException(e1, IJavaModelStatusConstants.CORE_EXCEPTION);
                 }
             }
-        } catch (SecurityException e) {
-            throw new JavaModelException(e, IJavaModelStatusConstants.CORE_EXCEPTION);
-        } catch (IllegalArgumentException e) {
-            throw new JavaModelException(e, IJavaModelStatusConstants.CORE_EXCEPTION);
-        } catch (IllegalAccessException e) {
-            throw new JavaModelException(e, IJavaModelStatusConstants.CORE_EXCEPTION);
-        } catch (InvocationTargetException e) {
+        } catch (SecurityException | InvocationTargetException | IllegalAccessException | IllegalArgumentException e) {
             throw new JavaModelException(e, IJavaModelStatusConstants.CORE_EXCEPTION);
         }
     }
@@ -571,13 +564,7 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
                     throw new JavaModelException(e1, IJavaModelStatusConstants.CORE_EXCEPTION);
                 }
             }
-        } catch (SecurityException e) {
-            throw new JavaModelException(e, IJavaModelStatusConstants.CORE_EXCEPTION);
-        } catch (IllegalArgumentException e) {
-            throw new JavaModelException(e, IJavaModelStatusConstants.CORE_EXCEPTION);
-        } catch (IllegalAccessException e) {
-            throw new JavaModelException(e, IJavaModelStatusConstants.CORE_EXCEPTION);
-        } catch (InvocationTargetException e) {
+        } catch (SecurityException | InvocationTargetException | IllegalAccessException | IllegalArgumentException e) {
             throw new JavaModelException(e, IJavaModelStatusConstants.CORE_EXCEPTION);
         }
     }
@@ -622,15 +609,16 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 	 */
 	public IType[] getAllAspects() throws JavaModelException {
 	    IType[] allTypes = getAllTypes();
-	    List aspects = new ArrayList(allTypes.length);
+	    List<IType> aspects = new ArrayList<>(allTypes.length);
 	    AJProjectModelFacade model = null;
-	    for (int i = 0; i < allTypes.length; i++) {
-	        if (allTypes[i] instanceof AspectElement) {
-	            aspects.add(allTypes[i]);
-	        } else {
-	            // bug 270396---annotations are not stored in the model
-	            // this method always returns an empty array
-	            // ask the AspectJ model instead
+    for (IType allType : allTypes) {
+      if (allType instanceof AspectElement) {
+        aspects.add(allType);
+      }
+      else {
+        // bug 270396---annotations are not stored in the model
+        // this method always returns an empty array
+        // ask the AspectJ model instead
 //	            IAnnotation[] annotations = allTypes[i].getAnnotations();
 //	            for (int j = 0; j < annotations.length; j++) {
 //	                String annName = annotations[j].getElementName();
@@ -643,15 +631,15 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 //                        break;
 //                    }
 //                }
-	            if (model == null) {
-	                model = AJProjectModelFactory.getInstance().getModelForJavaElement(this);
-	            }
-	            IProgramElement maybeAspect = model.javaElementToProgramElement(allTypes[i]);
-	            if (maybeAspect.getKind() == IProgramElement.Kind.ASPECT) {
-	                aspects.add(allTypes[i]);
-	            }
-	        }
+        if (model == null) {
+          model = AJProjectModelFactory.getInstance().getModelForJavaElement(this);
         }
+        IProgramElement maybeAspect = model.javaElementToProgramElement(allType);
+        if (maybeAspect.getKind() == IProgramElement.Kind.ASPECT) {
+          aspects.add(allType);
+        }
+      }
+    }
 	    return (IType[]) aspects.toArray(new IType[aspects.size()]);
 	}
 
@@ -913,24 +901,15 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 	private JavaElement getType(JavaElement type, String typeName) {
 	    try {
     		try {
-    			Constructor cons = SourceType.class.getDeclaredConstructor(new Class[]{JavaElement.class,String.class});
+    			Constructor<SourceType> cons = SourceType.class.getDeclaredConstructor(new Class[]{JavaElement.class,String.class});
     			cons.setAccessible(true);
-    			Object obj = cons.newInstance(new Object[]{type,typeName});
-    			return (JavaElement)obj;
-    		} catch (SecurityException e) {
+    			org.eclipse.jdt.internal.core.NamedMember obj = cons.newInstance(new Object[]{type,typeName});
+    			return obj;
+    		} catch (SecurityException | InvocationTargetException | IllegalAccessException | InstantiationException |
+                 IllegalArgumentException | NoSuchMethodException e) {
     		    throw new JavaModelException(e, IJavaModelStatusConstants.CORE_EXCEPTION);
-    		} catch (NoSuchMethodException e) {
-                throw new JavaModelException(e, IJavaModelStatusConstants.CORE_EXCEPTION);
-    		} catch (IllegalArgumentException e) {
-                throw new JavaModelException(e, IJavaModelStatusConstants.CORE_EXCEPTION);
-    		} catch (InstantiationException e) {
-                throw new JavaModelException(e, IJavaModelStatusConstants.CORE_EXCEPTION);
-    		} catch (IllegalAccessException e) {
-                throw new JavaModelException(e, IJavaModelStatusConstants.CORE_EXCEPTION);
-    		} catch (InvocationTargetException e) {
-                throw new JavaModelException(e, IJavaModelStatusConstants.CORE_EXCEPTION);
     		}
-	    } catch (JavaModelException jme) {
+      } catch (JavaModelException jme) {
             AspectJPlugin.getDefault().getLog().log(jme.getStatus());
 	    }
 		return null;
@@ -986,7 +965,7 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 		if (!(type instanceof AspectElement)
 				&& (token.charAt(0) == AspectElement.JEM_POINTCUT)) {
 			String name = memento.nextToken();
-			ArrayList params = new ArrayList();
+			ArrayList<String> params = new ArrayList<>();
 			nextParam: while (memento.hasMoreTokens()) {
 				token = memento.nextToken();
 				switch (token.charAt(0)) {
@@ -996,13 +975,13 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 					case AspectElement.JEM_POINTCUT:
 						if (!memento.hasMoreTokens()) return this;
 						String param = memento.nextToken();
-						StringBuffer buffer = new StringBuffer();
+						StringBuilder buffer = new StringBuilder();
 						while (param.length() == 1 && Signature.C_ARRAY == param.charAt(0)) { // backward compatible with 3.0 mementos
 							buffer.append(Signature.C_ARRAY);
 							if (!memento.hasMoreTokens()) return this;
 							param = memento.nextToken();
 						}
-						params.add(buffer.toString() + param);
+						params.add(buffer + param);
 						break;
 					default:
 						break nextParam;

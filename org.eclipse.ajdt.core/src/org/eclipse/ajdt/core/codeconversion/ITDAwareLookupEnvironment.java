@@ -17,33 +17,33 @@ import org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment;
 import org.eclipse.jdt.internal.core.search.matching.PossibleMatch;
 
 public class ITDAwareLookupEnvironment extends LookupEnvironment {
-    
+
     private List<ITDInserter> cusToRevert;
-    
+
     private boolean insertITDs = true;
-    
+
     public ITDAwareLookupEnvironment(LookupEnvironment wrapper, INameEnvironment nameEnvironment) {
         super(wrapper.typeRequestor, wrapper.globalOptions, wrapper.problemReporter, nameEnvironment);
     }
-    
-    
+
+
     public void completeTypeBindings() {
         // before completing type bindings, add ITD info to each type
-        // only insert ITDs for the source types that we are parsing, 
+        // only insert ITDs for the source types that we are parsing,
         // not the types grabbed by the LookupEnvironment
         if (insertITDs) {
-            cusToRevert = new LinkedList<ITDInserter>();
+            cusToRevert = new LinkedList<>();
             CompilationUnitDeclaration[] units = getUnits();
-            for (int i = 0; i < units.length; i++) {
-                if (units[i] != null) {
-                  ICompilationUnit cunit = findCU(units[i]);
-                  if (cunit != null) {
-                      ITDInserter visitor = new ITDInserter(cunit, this, this.problemReporter);
-                      units[i].traverse(visitor, units[i].scope);
-                      cusToRevert.add(visitor);
-                  }
-                }
+          for (CompilationUnitDeclaration unit : units) {
+            if (unit != null) {
+              ICompilationUnit cunit = findCU(unit);
+              if (cunit != null) {
+                ITDInserter visitor = new ITDInserter(cunit, this, this.problemReporter);
+                unit.traverse(visitor, unit.scope);
+                cusToRevert.add(visitor);
+              }
             }
+          }
         }
         // only insert ITDs for the units we are compiling directly
         // all others will have ITDs inserted by the ITDAwareCancelableNameEnvironment
@@ -51,7 +51,7 @@ public class ITDAwareLookupEnvironment extends LookupEnvironment {
         insertITDs = false;
         super.completeTypeBindings();
     }
-    
+
     private ICompilationUnit findCU(CompilationUnitDeclaration unit) {
         String fileName = new String(unit.getFileName());
         IPath path = new Path(fileName);
@@ -61,11 +61,11 @@ public class ITDAwareLookupEnvironment extends LookupEnvironment {
         } else {
             // we might be part of a PossibleMatch, which doesn't include the path part of the file name
             // get the full file name a different way.
-            if (unit.compilationResult.compilationUnit instanceof PossibleMatch && 
+            if (unit.compilationResult.compilationUnit instanceof PossibleMatch &&
                     ((PossibleMatch) unit.compilationResult.compilationUnit).openable instanceof ICompilationUnit) {
                 return (ICompilationUnit) ((PossibleMatch) unit.compilationResult.compilationUnit).openable;
             }
-        } 
+        }
         return null;
     }
 
@@ -73,7 +73,7 @@ public class ITDAwareLookupEnvironment extends LookupEnvironment {
     private CompilationUnitDeclaration[] getUnits() {
         return (CompilationUnitDeclaration[]) ReflectionUtils.getPrivateField(LookupEnvironment.class, "units", this);
     }
-    
+
     /**
      * remove the inserted ITDs from these compilation units
      */

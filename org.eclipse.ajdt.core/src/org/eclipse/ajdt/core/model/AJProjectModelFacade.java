@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2008, 2010 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *      SpringSource
  *      Andrew Eisenberg (initial implementation)
@@ -74,27 +74,27 @@ import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.JavaModelManager;
 
 /**
- * 
+ *
  * @created Sep 8, 2008
  *
  * This class is a facade for the AspectJ compiler structure model and relationship
  * map.
- * <p> 
- * One object of this class exists for each AspectJ project.  
- * It is created during a full build and lasts until a clean build or
- * another full build is performed.  
  * <p>
- * Objects of this class should be instantiated using the 
+ * One object of this class exists for each AspectJ project.
+ * It is created during a full build and lasts until a clean build or
+ * another full build is performed.
+ * <p>
+ * Objects of this class should be instantiated using the
  * {@link AJProjectModelFactory} class.
  */
 public class AJProjectModelFacade {
-    
+
     public final static IJavaElement ERROR_JAVA_ELEMENT = new CompilationUnit(null, "ERROR_JAVA_ELEMENT", null);
-    
+
     private static class ProjectModelBuildListener implements IAJBuildListener {
-        private Set<IProject> beingBuilt = new HashSet<IProject>();
-        private Set<IProject> beingCleaned = new HashSet<IProject>();
-        
+        private Set<IProject> beingBuilt = new HashSet<>();
+        private Set<IProject> beingCleaned = new HashSet<>();
+
         public synchronized void postAJBuild(int kind, IProject project,
                 boolean noSourceChanges,  Map<IFile, List<CategorizedProblem>> newProblems) {
             beingBuilt.remove(project);
@@ -115,35 +115,35 @@ public class AJProjectModelFacade {
 
         public void addAdviceListener(IAdviceChangedListener adviceListener) { }
         public void removeAdviceListener(IAdviceChangedListener adviceListener) { }
-        
-        
+
+
         synchronized boolean isCurrentlyBuilding(IProject project) {
             return beingBuilt.contains(project) || beingCleaned.contains(project);
         }
     }
-    
+
 
     /**
      * The aspectj program hierarchy
      */
     IHierarchy structureModel;
-    
+
     /**
      * stores crosscutting relationships between structure elements
      */
     IRelationshipMap relationshipMap;
-    
+
     /**
      * the java project that this project model is associated with
      */
     private final IProject project;
-    
+
     boolean isInitialized;
-    
+
     boolean disposed;
-    
+
     private static ProjectModelBuildListener buildListener = new ProjectModelBuildListener();
-    
+
     /**
      * creates a new project model facade for this project
      */
@@ -152,15 +152,15 @@ public class AJProjectModelFacade {
         this.disposed = false;
         this.isInitialized = false;
     }
-    
+
     public static void installListener() {
         AJBuilder.addAJBuildListener(buildListener);
     }
-    
+
 
     /**
      * grabs the structure and relationships for this project
-     * <p> 
+     * <p>
      * called by the before advice in EnsureInitialized aspect
      */
     synchronized void init() {
@@ -177,16 +177,16 @@ public class AJProjectModelFacade {
         } else {
             // can't initialize...building
         }
-    }    
+    }
 
     /**
      * @return true if the AspectJ project model has been found.  false otherwise.
      */
     public boolean hasModel() {
-        return isInitialized && !disposed && 
+        return isInitialized && !disposed &&
                 !buildListener.isCurrentlyBuilding(project);
     }
-    
+
     /**
      * @param handle an AspectJ program element handle
      * @return a program element for the handle, or an empty element
@@ -198,13 +198,13 @@ public class AJProjectModelFacade {
             return ipe;
         } else {
             // occurs when the handles are not working properly
-//            AspectJPlugin.getDefault().getLog().log(new Status(IStatus.WARNING, AspectJPlugin.PLUGIN_ID, 
-//                    "Could not find the AspectJ program element for handle: " + 
+//            AspectJPlugin.getDefault().getLog().log(new Status(IStatus.WARNING, AspectJPlugin.PLUGIN_ID,
+//                    "Could not find the AspectJ program element for handle: " +
 //                    handle, new RuntimeException()));
             return IHierarchy.NO_STRUCTURE;
         }
     }
-    
+
     /**
      * @return the 1-based line number for the given java element
      */
@@ -245,7 +245,7 @@ public class AJProjectModelFacade {
             return IHierarchy.NO_STRUCTURE;
         }
         String ajHandle = je.getHandleIdentifier();
-        
+
         boolean isBinary = false;
         if (isBinaryHandle(ajHandle) || je.isReadOnly()) {
             ajHandle = convertToAspectJBinaryHandle(ajHandle, false);
@@ -254,7 +254,7 @@ public class AJProjectModelFacade {
             ajHandle = convertToAspectJBinaryHandle(ajHandle, true);
             isBinary = true;
         }
-        
+
         // check to see if we need to replace { (compilation unit) with * (aj compilation unit)
         // if using cuprovider, then aj compilation units have {, but needs to change to *
         ICompilationUnit cu =  null;
@@ -267,7 +267,7 @@ public class AJProjectModelFacade {
             }
         } else if (je instanceof AJCodeElement) {
             cu = ((AJCodeElement) je).getCompilationUnit();
-            // get the occurence count 
+            // get the occurence count
             int count = ((AJCodeElement) je).occurrenceCount;
             // need the first bang after the last close paren
             int lastParen = ajHandle.lastIndexOf(')');
@@ -280,7 +280,7 @@ public class AJProjectModelFacade {
                     ajHandle += "" + JavaElement.JEM_COUNT + count;
                 }
             }
-            
+
         } else if (je instanceof ILocalVariable) {
             IOpenable openable = ((ILocalVariable) je).getOpenable();
             cu = openable instanceof ICompilationUnit ?
@@ -288,18 +288,18 @@ public class AJProjectModelFacade {
         } else if (je instanceof ImportDeclaration) {
             cu = ((ImportDeclaration) je).getCompilationUnit();
         } else if (je instanceof ImportContainer) {
-            cu = ((ImportContainer) je).getCompilationUnit();  
+            cu = ((ImportContainer) je).getCompilationUnit();
         } else if (je instanceof ICompilationUnit) {
             cu = (ICompilationUnit) je;
         }
         if (cu != null) {
             IResource resource = cu.getResource();
             if (resource != null && resource.exists() && CoreUtils.ASPECTJ_SOURCE_ONLY_FILTER.accept(resource.getName())) {
-                ajHandle = ajHandle.replaceFirst("" + JavaElement.JEM_ESCAPE + JavaElement.JEM_COMPILATIONUNIT, 
+                ajHandle = ajHandle.replaceFirst("" + JavaElement.JEM_ESCAPE + JavaElement.JEM_COMPILATIONUNIT,
                         Character.toString(AspectElement.JEM_ASPECT_CU));
             }
         }
-        
+
         IProgramElement ipe = structureModel.findElementForHandleOrCreate(ajHandle, false);
         if (ipe == null) {
             if (isBinary) {
@@ -308,7 +308,7 @@ public class AJProjectModelFacade {
                 // problem will be if this is an aspect contained in a class or vice versa
                 ajHandle = ajHandle.replace(JavaElement.JEM_TYPE, AspectElement.JEM_ASPECT_TYPE);
                 ipe = structureModel.findElementForHandleOrCreate(ajHandle, false);
-            } 
+            }
             if (ipe == null) {
                 // occurs when the handles are not working properly
                 return IHierarchy.NO_STRUCTURE;
@@ -336,12 +336,12 @@ public class AJProjectModelFacade {
     public boolean hasProgramElement(IJavaElement je) {
         return IHierarchy.NO_STRUCTURE != javaElementToProgramElement(je);
     }
-    
-    
+
+
     private String convertToAspectJBinaryHandle(String ajHandle, boolean isSourceFromDependingProject) {
         int packageIndex = ajHandle.indexOf(JavaElement.JEM_PACKAGEFRAGMENT);
         String newHandle = "" + JavaElement.JEM_JAVAPROJECT + project.getName() + JavaElement.JEM_PACKAGEFRAGMENTROOT + "binaries" + ajHandle.substring(packageIndex);
-        
+
         if (isSourceFromDependingProject) {
             // also must convert from a source unit to a binary unit
             newHandle = newHandle.replace(".aj'", ".class'");
@@ -351,7 +351,7 @@ public class AJProjectModelFacade {
                 newHandle = newHandle.replace(AspectElement.JEM_ASPECT_CU, JavaElement.JEM_CLASSFILE);
             }
         }
-        
+
         return newHandle;
     }
 
@@ -369,18 +369,18 @@ public class AJProjectModelFacade {
     public IJavaElement programElementToJavaElement(IProgramElement ipe) {
         return programElementToJavaElement(ipe.getHandleIdentifier());
     }
-    
+
     public IJavaElement programElementToJavaElement(String ajHandle) {
-        // check to see if this is a spurious handle. 
+        // check to see if this is a spurious handle.
         // For ITDs, the aspectj compiler generates program elements before the
         // rest of the program is in place, and they therfore have no parent.
         // They should not exist and we can ignore them.
         if (ajHandle.length() == 0 || ajHandle.charAt(0) != JavaElement.JEM_JAVAPROJECT) {
             return ERROR_JAVA_ELEMENT;
         }
-        
+
         String jHandle = ajHandle;
-        
+
         // are we dealing with something inside of a classfile?
         // if so, then we have to handle it specially
         // because we want to convert this into a source reference if possible
@@ -394,7 +394,7 @@ public class AJProjectModelFacade {
         // if using cuprovider, then we don not use the '*' for Aspect compilation units,
         // it uses the '{' of Java Compilation Units
         if (AspectJPlugin.USING_CU_PROVIDER) {
-            jHandle = jHandle.replaceFirst("" + JavaElement.JEM_ESCAPE + AspectElement.JEM_ASPECT_CU, 
+            jHandle = jHandle.replaceFirst("" + JavaElement.JEM_ESCAPE + AspectElement.JEM_ASPECT_CU,
                     Character.toString(JavaElement.JEM_COMPILATIONUNIT));
         }
 
@@ -419,12 +419,12 @@ public class AJProjectModelFacade {
                 jHandle += "" + JavaElement.JEM_COUNT + count;
             }
         }
-        
+
         // add escapes to various sundries
         jHandle = jHandle.replaceFirst("declare @", "declare \\\\@"); // declare declarations
         jHandle = jHandle.replaceFirst("\\.\\*", ".\\\\*");  // on demand imports
         jHandle = jHandle.replaceAll("\\*>", "\\\\*>");  // wild card type parameters
-        
+
         IJavaElement je = AspectJCore.create(jHandle);
         if (je == null) {
             // occurs when the handles are not working properly
@@ -452,18 +452,18 @@ public class AJProjectModelFacade {
         } else {
             // Bug 274558 ADE HACK...handles are not always right for aspects on aspect path
             // sometimes the source handle is used, bug should be binary handle
-            if (ajHandle.indexOf("/binaries<") != -1) {
+            if (ajHandle.contains("/binaries<")) {
                 doIt = true;
             }
         }
         return doIt;
     }
-    
+
     /**
-     * Inner type for passing around a bunch of useful information for constructing 
+     * Inner type for passing around a bunch of useful information for constructing
      * binary handles
      */
-    private class HandleInfo {
+    private static class HandleInfo {
         public HandleInfo(String origAJHandle, String simpleName, String packageName, String qualName, String restHandle, boolean isFile, boolean isType, boolean isInAspect) {
             this.origAJHandle = origAJHandle;
             this.simpleName = simpleName;
@@ -482,7 +482,7 @@ public class AJProjectModelFacade {
         final boolean isFile;
         final boolean isType;
         final boolean isInAspect;
-        
+
         boolean isPackageFragment() {
             return !(isFile || isType || isInAspect);
         }
@@ -491,21 +491,21 @@ public class AJProjectModelFacade {
         }
     }
 
-    
+
     /**
-     * In this method, we are not sure we can do better than 
-     * finding the Class file or compilation unit, even if 
+     * In this method, we are not sure we can do better than
+     * finding the Class file or compilation unit, even if
      * more information is supplied in the handle.
      * We do our best effort
      */
     private IJavaElement getElementFromClassFile(String jHandle) {
         HandleInfo handleInfo = qualifiedNameFromBinaryHandle(jHandle);
         if (handleInfo == null) {
-            AspectJPlugin.getDefault().getLog().log(new Status(IStatus.WARNING, 
+            AspectJPlugin.getDefault().getLog().log(new Status(IStatus.WARNING,
                     AspectJPlugin.PLUGIN_ID, "Could not find type root for " + jHandle));
             return ERROR_JAVA_ELEMENT;
         }
-        
+
         try {
             if (handleInfo.isPackageFragment()) {
                 IPackageFragment[] frags = findFragment(JavaCore.create(project), handleInfo);
@@ -515,24 +515,24 @@ public class AJProjectModelFacade {
                     return frags[0];
                 }
             }
-            
+
             // this gives us the type in the current project.
             // However, the type may actually be source coming from another project
             ITypeRoot typeRoot = getCUFromQualifiedName(handleInfo);
             IJavaElement candidate;
-            
+
             if (typeRoot instanceof ICompilationUnit) {
                 // we're in luck...
                 // all this work has taken us straight to the compilation unit
 
                 candidate = findElementInCU(handleInfo, (ICompilationUnit) typeRoot);
-                
+
             } else {
                 // we have a class file.
                 // search the rest of the workspace for this type
                 IResource file = typeRoot.getResource();
                 IClassFile classFile = (IClassFile) typeRoot;
-                
+
                 // try to find the source
                 if (file != null && !file.getFileExtension().equals("jar")) {
                     candidate = findElementInBinaryFolder(handleInfo, classFile);
@@ -545,19 +545,15 @@ public class AJProjectModelFacade {
             } else {
                 return ERROR_JAVA_ELEMENT;
             }
-        } catch (JavaModelException e) {
-            AspectJPlugin.getDefault().getLog().log(new Status(IStatus.WARNING, 
-                    AspectJPlugin.PLUGIN_ID, "Could not find type root for " + jHandle, e));
-            return ERROR_JAVA_ELEMENT;
-        } catch (NullPointerException e) {
-            AspectJPlugin.getDefault().getLog().log(new Status(IStatus.WARNING, 
+        } catch (JavaModelException | NullPointerException e) {
+            AspectJPlugin.getDefault().getLog().log(new Status(IStatus.WARNING,
                     AspectJPlugin.PLUGIN_ID, "Could not find type root for " + jHandle, e));
             return ERROR_JAVA_ELEMENT;
         }
     }
 
     /**
-     * this type root exists in a jar file.  Try to find the 
+     * this type root exists in a jar file.  Try to find the
      * java element specified in the handleInfo.  We are not going to be
      * able to convert this to source
      */
@@ -588,7 +584,7 @@ public class AJProjectModelFacade {
     }
 
     /**
-     * Find the java element corresponding to the handle.  We know that it exists in 
+     * Find the java element corresponding to the handle.  We know that it exists in
      * as a class file in a binary folder, but it may actually be
      * a source file in a different project
      */
@@ -608,7 +604,7 @@ public class AJProjectModelFacade {
                 typeRoot = newUnit != null ? newUnit : typeRoot;
             }
         }
-        
+
         if (handleInfo.isType) {
             switch (typeRoot.getElementType()) {
                 case IJavaElement.CLASS_FILE:
@@ -645,7 +641,7 @@ public class AJProjectModelFacade {
         AJCompilationUnit newUnit = CompilationUnitTools.convertToAJCompilationUnit(cunit);
         cunit = newUnit != null ? newUnit : cunit;
 
-        
+
         IProgramElement ipe;
         if (!handleInfo.isFile && !handleInfo.isType) {
             // program element will exist only if coming from aspect path
@@ -653,7 +649,7 @@ public class AJProjectModelFacade {
         } else {
             ipe = IHierarchy.NO_STRUCTURE;
         }
-        
+
         if (handleInfo.isFile) {
             // the original kind was a compilation unit, so just return that
             candidate = cunit;
@@ -682,7 +678,7 @@ public class AJProjectModelFacade {
         if (typeNameEnd < 0) {
             return null;
         }
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         String packageName = ajHandle.substring(packageStart+1, packageEnd);
         sb.append(packageName);
         if (sb.length() > 0) {
@@ -692,10 +688,10 @@ public class AJProjectModelFacade {
         sb.append(simpleName);
         int aspectStart = ajHandle.indexOf(AspectElement.JEM_ASPECT_TYPE, typeNameEnd);
         int classStart = ajHandle.indexOf(JavaElement.JEM_TYPE, typeNameEnd);
-        
-        int typeStart = classStart == -1 ? aspectStart : 
+
+        int typeStart = classStart == -1 ? aspectStart :
             aspectStart == -1 ? classStart : Math.min(classStart, aspectStart);
-        
+
         boolean isFile = typeStart == -1;
         boolean isType;
         if (!isFile) {
@@ -716,7 +712,7 @@ public class AJProjectModelFacade {
         if (type != null) {
             return type.getTypeRoot();
         }
-        
+
         // try by looking for the package instead
         // will not work for inner types
         // but that's ok, because we are only working
@@ -725,56 +721,56 @@ public class AJProjectModelFacade {
         if (fragments.length > 0) {
             for (IPackageFragment fragment : fragments) {
                 ICompilationUnit[] cus = fragment.getCompilationUnits();
-                
-                for (int j = 0; j < cus.length; j++) {
-                    IType maybeType = CompilationUnitTools.findType(cus[j], handleInfo.simpleName, true);
-                    if (maybeType != null) {
-                        return cus[j];
-                    }
+
+              for (ICompilationUnit iCompilationUnit : cus) {
+                IType maybeType = CompilationUnitTools.findType(iCompilationUnit, handleInfo.simpleName, true);
+                if (maybeType != null) {
+                  return iCompilationUnit;
                 }
+              }
                 IClassFile[] cfs = fragment.getClassFiles();
-                for (int j = 0; j < cfs.length; j++) {
-                    IType cType = cfs[j].getType();
-                    if (cType.getElementName().equals(handleInfo.simpleName)) {
-                        return cfs[j];
-                    }
+              for (IClassFile cf : cfs) {
+                IType cType = cf.getType();
+                if (cType.getElementName().equals(handleInfo.simpleName)) {
+                  return cf;
                 }
+              }
             }
         }
         return (ICompilationUnit) ERROR_JAVA_ELEMENT;
     }
-    
+
     private IPackageFragment[] findFragment(IJavaProject jproj, HandleInfo handleInfo) throws JavaModelException {
         IPackageFragmentRoot[] pkgRoots = jproj.getAllPackageFragmentRoots();
-        List<IPackageFragment> frags = new ArrayList<IPackageFragment>();
-        for (int i = 0; i < pkgRoots.length; i++) {
-            IPackageFragment candidate = pkgRoots[i].getPackageFragment(handleInfo.packageName);
-            if (candidate.exists()) {
-                frags.add(candidate);
-            }
+        List<IPackageFragment> frags = new ArrayList<>();
+      for (IPackageFragmentRoot pkgRoot : pkgRoots) {
+        IPackageFragment candidate = pkgRoot.getPackageFragment(handleInfo.packageName);
+        if (candidate.exists()) {
+          frags.add(candidate);
         }
+      }
         return frags.toArray(new  IPackageFragment[frags.size()]);
     }
-    
-    
+
+
     private Map<ISourceLocation, Integer> slocCache;
     /**
      * Open up the buffer to to convert from line number to offset
      * this is slow
      * We are always working in an AJCU with an aspect element
-     * 
-     * cache the results since it is likely that we will be 
+     *
+     * cache the results since it is likely that we will be
      * calling this often for the same sloc
      */
     private int offsetFromLine(ITypeRoot unit, ISourceLocation sloc) throws JavaModelException {
         if (sloc.getOffset() > 0) {
             return sloc.getOffset();
         }
-        
+
         if (slocCache != null && slocCache.containsKey(sloc)) {
-            return slocCache.get(sloc).intValue();
+            return slocCache.get(sloc);
         }
-        
+
         if (unit instanceof AJCompilationUnit) {
             AJCompilationUnit ajUnit = (AJCompilationUnit) unit;
             ajUnit.requestOriginalContentMode();
@@ -796,12 +792,12 @@ public class AJProjectModelFacade {
             while (offset < buf.getLength() && Character.isWhitespace(buf.getChar(offset))) {
                 offset++;
             }
-            
+
             // cache
             if (slocCache == null) {
-                slocCache = new HashMap<ISourceLocation, Integer>();
+                slocCache = new HashMap<>();
             }
-            slocCache.put(sloc, new Integer(offset));
+            slocCache.put(sloc, offset);
             return offset;
         }
         // no source code
@@ -830,7 +826,7 @@ public class AJProjectModelFacade {
      * short
      *
      */
-    class CancellableHierarchyWalker extends HierarchyWalker {
+    static class CancellableHierarchyWalker extends HierarchyWalker {
         private boolean cancelled = false;
         public IProgramElement process(IProgramElement node) {
             preProcess(node);
@@ -848,14 +844,14 @@ public class AJProjectModelFacade {
         }
     }
 
-    
+
     /**
      * find out what java elements are on a particular line
      */
     public List/*IJavaElement*/<IJavaElement> getJavaElementsForLine(ICompilationUnit icu, final int line) {
         IProgramElement ipe = javaElementToProgramElement(icu);
-        final List/*IProgramElement*/<IProgramElement> elementsOnLine = new LinkedList<IProgramElement>();
-        
+        final List/*IProgramElement*/<IProgramElement> elementsOnLine = new LinkedList<>();
+
         // walk the program element to get all ipes on the source line
         ipe.walk(new CancellableHierarchyWalker() {
             protected void preProcess(IProgramElement node) {
@@ -871,28 +867,27 @@ public class AJProjectModelFacade {
             }
         });
         // now convert to IJavaElements
-        List /*IJavaElement*/<IJavaElement> javaElements = new ArrayList<IJavaElement>(elementsOnLine.size());
-        for (Iterator<IProgramElement> ipeIter = elementsOnLine.iterator(); ipeIter.hasNext();) {
-            IProgramElement ipeOnLine = ipeIter.next();
-            javaElements.add(programElementToJavaElement(ipeOnLine));
-        }
+        List /*IJavaElement*/<IJavaElement> javaElements = new ArrayList<>(elementsOnLine.size());
+      for (IProgramElement ipeOnLine : elementsOnLine) {
+        javaElements.add(programElementToJavaElement(ipeOnLine));
+      }
         return javaElements;
     }
-    
+
     /**
      * find the relationships of a particular kind for a java element
      */
     public List<IJavaElement> getRelationshipsForElement(IJavaElement je, AJRelationshipType relType) {
         return getRelationshipsForElement(je, relType, false);
     }
-    
+
     public List<IJavaElement> getRelationshipsForElement(IJavaElement je, AJRelationshipType relType, boolean includeChildren) {
         if (!isInitialized) {
             return Collections.emptyList();
         }
         IProgramElement ipe = javaElementToProgramElement(je);
         List<IRelationship> relationships = relationshipMap.get(ipe);
-        List<IJavaElement> relatedJavaElements = new ArrayList<IJavaElement>(relationships != null ? relationships.size() : 0);
+        List<IJavaElement> relatedJavaElements = new ArrayList<>(relationships != null ? relationships.size() : 0);
         if (relationships != null) {
             for (IRelationship rel : relationships) {
                 if (relType.getDisplayName().equals(rel.getName())) {
@@ -904,7 +899,7 @@ public class AJProjectModelFacade {
                             // ignore handles that start with *
                             // these are handles from ITDs that are created early
                             if (! handle.startsWith("*")) {
-                                AspectJPlugin.getDefault().getLog().log(new Status(IStatus.WARNING, 
+                                AspectJPlugin.getDefault().getLog().log(new Status(IStatus.WARNING,
                                         AspectJPlugin.PLUGIN_ID, "Could not create a Java element " +
                                         "with handle:\n" + handle, new RuntimeException()));
                             }
@@ -921,7 +916,7 @@ public class AJProjectModelFacade {
         }
         return relatedJavaElements;
     }
-    
+
     /**
      * walks the file and grabs all relationships for it
      * could cache this to go faster
@@ -929,8 +924,8 @@ public class AJProjectModelFacade {
     public Map<Integer, List<IRelationship>> getRelationshipsForFile(ICompilationUnit icu) {
         return getRelationshipsForFile(icu, null);
     }
-    
-    
+
+
     /**
      * walks the file and grabs all relationships for it.  filter by relationship type
      * pass in null filter for all relationships
@@ -938,25 +933,25 @@ public class AJProjectModelFacade {
     public Map<Integer, List<IRelationship>> getRelationshipsForFile(ICompilationUnit icu, AJRelationshipType[] relType) {
         final Set<String> interesting;
         if (relType != null) {
-            interesting = new HashSet<String>();
-            for (int i = 0; i < relType.length; i++) {
-                interesting.add(relType[i].getDisplayName());
-            }
+            interesting = new HashSet<>();
+          for (AJRelationshipType ajRelationshipType : relType) {
+            interesting.add(ajRelationshipType.getDisplayName());
+          }
         } else {
             interesting = null;
         }
-        
+
         // walk the hierarchy and get relationships for each node
-        final Map<Integer, List<IRelationship>> allRelationshipsMap = new HashMap<Integer, List<IRelationship>>();
+        final Map<Integer, List<IRelationship>> allRelationshipsMap = new HashMap<>();
         IProgramElement ipe = javaElementToProgramElement(icu);
         ipe.walk(new HierarchyWalker() {
             protected void preProcess(IProgramElement node) {
                 List<IRelationship> orig = relationshipMap.get(node);
-                
+
                 if (orig == null) {
                     return;
                 }
-                List<IRelationship> nodeRels = new ArrayList<IRelationship>(orig);
+                List<IRelationship> nodeRels = new ArrayList<>(orig);
                 if (interesting != null) {
                     for (Iterator<IRelationship> relIter = nodeRels.iterator(); relIter
                             .hasNext();) {
@@ -966,39 +961,39 @@ public class AJProjectModelFacade {
                         }
                     }
                 }
-                
+
                 if (nodeRels.size() > 0) {
                     List<IRelationship> allRelsForLine;
-                    Integer line = new Integer(node.getSourceLocation().getLine());
+                    Integer line = node.getSourceLocation().getLine();
                     if (allRelationshipsMap.containsKey(line)) {
                         allRelsForLine = allRelationshipsMap.get(line);
                     } else {
-                        allRelsForLine = new LinkedList<IRelationship>();
+                        allRelsForLine = new LinkedList<>();
                         allRelationshipsMap.put(line, allRelsForLine);
                     }
                     allRelsForLine.addAll(nodeRels);
-                }                
+                }
             }
         });
         return allRelationshipsMap;
     }
-    
-    
-    
+
+
+
     /**
      * I don't like how the 3 methods getRelationshipsForXXX return very different things.
      * I am trying to be efficient and not do too much processing on my end, but this leads
      * to having different return types.  Maybe return each as an iterator.  That would be nice.
      */
     public List<IRelationship> getRelationshipsForProject(AJRelationshipType[] relType) {
-        Set<String> interesting = new HashSet<String>();
-        for (int i = 0; i < relType.length; i++) {
-            interesting.add(relType[i].getDisplayName());
-        }
+        Set<String> interesting = new HashSet<>();
+      for (AJRelationshipType ajRelationshipType : relType) {
+        interesting.add(ajRelationshipType.getDisplayName());
+      }
         if (relationshipMap instanceof RelationshipMap) {
             RelationshipMap map = (RelationshipMap) relationshipMap;
             // flatten and filter the map
-            List<IRelationship> allRels = new LinkedList<IRelationship>();
+            List<IRelationship> allRels = new LinkedList<>();
             for (List<IRelationship> relList : map.values()) {
                 for (IRelationship rel : relList) {
                     if (interesting.contains(rel.getName())) {
@@ -1017,7 +1012,7 @@ public class AJProjectModelFacade {
         if (!isInitialized) {
             return false;
         }
-        
+
         IProgramElement ipe = javaElementToProgramElement(elt);
         if (ipe != IHierarchy.NO_STRUCTURE) {
             List<IRelationship> rels = relationshipMap.get(ipe);
@@ -1028,7 +1023,7 @@ public class AJProjectModelFacade {
                     }
                 }
             }
-            // check children if the children would not otherwise be in 
+            // check children if the children would not otherwise be in
             // outline view (ie- code elements)
             if (ipe.getKind() != IProgramElement.Kind.CLASS && ipe.getKind() != IProgramElement.Kind.ASPECT) {
                 List<IProgramElement> ipeChildren = ipe.getChildren();
@@ -1048,12 +1043,12 @@ public class AJProjectModelFacade {
         }
         return false;
     }
-    
+
     public Set<IType> aspectsForFile(ICompilationUnit cu) {
         IProgramElement ipe = javaElementToProgramElement(cu);
         // compiler should be able to do this for us, but functionality is
         // not exposed. so let's do it ourselves
-        final Set<IType> aspects = new HashSet<IType>();
+        final Set<IType> aspects = new HashSet<>();
         ipe.walk(new HierarchyWalker() {
             protected void preProcess(IProgramElement node) {
                 if (node.getKind() == IProgramElement.Kind.ASPECT) {
@@ -1063,7 +1058,7 @@ public class AJProjectModelFacade {
         });
         return aspects;
     }
-    
+
     void dispose() {
         structureModel = null;
         relationshipMap = null;
@@ -1074,11 +1069,11 @@ public class AJProjectModelFacade {
     public boolean isDisposed() {
         return disposed;
     }
-    
+
     public IProject getProject() {
         return project;
     }
-    
+
     /**
      * useful for testing
      */
@@ -1086,7 +1081,7 @@ public class AJProjectModelFacade {
         final StringBuffer sb = new StringBuffer();
         HierarchyWalker walker = new HierarchyWalker() {
             int depth = 0;
-            
+
             protected void preProcess(IProgramElement node) {
                 sb.append(spaces(depth));
                 sb.append(node.getHandleIdentifier());
@@ -1096,9 +1091,9 @@ public class AJProjectModelFacade {
             protected void postProcess(IProgramElement node) {
                 depth-=2;
             }
-            
+
             String spaces(int depth) {
-                StringBuffer sb = new StringBuffer();
+                StringBuilder sb = new StringBuilder();
                 for (int i = 0; i < depth; i++) {
                     sb.append(" ");
                 }
@@ -1108,12 +1103,12 @@ public class AJProjectModelFacade {
         h.getRoot().walk(walker);
         return sb.toString();
     }
-    
+
     /**
      * useful for testing
      */
     public static String printRelationships(IRelationshipMap map) {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         RelationshipMap rmap = (RelationshipMap) map;
         for (Map.Entry<String, List<IRelationship>> entry : rmap.entrySet()) {
             String handle = entry.getKey();
@@ -1125,7 +1120,7 @@ public class AJProjectModelFacade {
         }
         return sb.toString();
     }
-    
+
     /**
      * useful for testing
      */
@@ -1136,10 +1131,10 @@ public class AJProjectModelFacade {
     IRelationshipMap getAllRelationships() {
         return relationshipMap;
     }
-    
+
     public String getModelAsString() {
         if (hasModel()) {
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
             sb.append("Hierarchy:\n");
             sb.append(printHierarchy(structureModel));
             sb.append("\nRelationship map:\n");

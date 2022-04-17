@@ -3,8 +3,8 @@
  * program and the accompanying materials are made available under the terms of
  * the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
- * 
- * Contributors: IBM Corporation - initial API and implementation 
+ *
+ * Contributors: IBM Corporation - initial API and implementation
  * 				 Helen Hawkins   - initial version
  *               Helen Hawkins   - updated for new ajde interface (bug 148190)
  ******************************************************************************/
@@ -42,7 +42,7 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 		AspectJPlugin.getDefault().setAJLogger(null);
 		Utils.setAutobuilding(true);
 	}
-	
+
 	@Override
 	protected void setUp() throws Exception {
 	    super.setUp();
@@ -53,7 +53,7 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 	/**
 	 * Test for bug 101481 - "clean" build doesn't work and refreshing of output
 	 * directory
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	public void xtestCleanBuild() throws Exception {
@@ -227,7 +227,7 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 		assertTrue(
 				"should not have any files in the bin2 folder", //$NON-NLS-1$
 				bin2.members().length == 0);
-		
+
 		bin.refreshLocal(IResource.DEPTH_INFINITE, null);
 		assertTrue(
 		        "should not have any files in the bin2 folder", //$NON-NLS-1$
@@ -391,7 +391,7 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 		// and that there are no errors reported
 		assertEquals(
 				"The number of builds should be " + (numberOfBuildsRun + 1), numberOfBuildsRun + 1, testLog.getNumberOfBuildsRun()); //$NON-NLS-1$
-		List buildLog = testLog.getPreviousBuildEntry(1);
+		List<String> buildLog = testLog.getPreviousBuildEntry(1);
 
 		// This is the message AJDT put's out when it decides not
 		// to do a build. It thinks there are no src changes in the
@@ -462,7 +462,7 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 		// and that there are no errors reported
 		assertEquals(
 				"The number of builds should be " + (numberOfBuildsRun + 1), numberOfBuildsRun + 1, testLog.getNumberOfBuildsRun()); //$NON-NLS-1$
-		List buildLog = testLog.getPreviousBuildEntry(1);
+		List<String> buildLog = testLog.getPreviousBuildEntry(1);
 
 		// This is the message AJDT put's out when it decides not
 		// to do a build. It thinks there are no src changes in the
@@ -539,7 +539,7 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 		assertFalse("There should be no errors in the build log", //$NON-NLS-1$
 				testLog.containsMessage("error")); //$NON-NLS-1$
 
-		List buildLogB = testLog.getPreviousBuildEntry(2);
+		List<String> buildLogB = testLog.getPreviousBuildEntry(2);
 		assertTrue("Should have tried to build project bug99133b", //$NON-NLS-1$
 				listContainsString(buildLogB, "bug99133b")); //$NON-NLS-1$
 
@@ -571,7 +571,7 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 				"going through the compiler, therefore AspectJ shouldn't " + //$NON-NLS-1$
 				"report that a full build happened", full); //$NON-NLS-1$
 
-		List buildLogA = testLog.getPreviousBuildEntry(1);
+		List<String> buildLogA = testLog.getPreviousBuildEntry(1);
 		assertTrue("Should have caused a build of project bug99133a", //$NON-NLS-1$
 				listContainsString(buildLogA, "bug99133a")); //$NON-NLS-1$
 
@@ -583,7 +583,7 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 		boolean fullA = listContainsString(buildLogA,
 				"AspectJ reports build successful, build was: FULL"); //$NON-NLS-1$
 		assertFalse("AspectJ should have reported an incremental build " //$NON-NLS-1$
-				+ "occurred, not a FULL build", fullA); //$NON-NLS-1$			
+				+ "occurred, not a FULL build", fullA); //$NON-NLS-1$
 	}
 
 	/**
@@ -610,7 +610,7 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 	public void testBug161739() throws Exception {
 		IProject project = createPredefinedProject("bug161739"); //$NON-NLS-1$
 		IFolder src = project.getFolder("src"); //$NON-NLS-1$
-		assertTrue("couldn't find src folder", src.exists()); //$NON-NLS-1$		
+		assertTrue("couldn't find src folder", src.exists()); //$NON-NLS-1$
 		IFolder bin = project.getFolder("bin"); //$NON-NLS-1$
 		assertTrue("bin folder should have been created", bin.exists()); //$NON-NLS-1$
 		IFolder testBin = bin.getFolder("test"); //$NON-NLS-1$
@@ -628,7 +628,7 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 				"folder should now exist: " + notExcluded, notExcluded.exists()); //$NON-NLS-1$
 
 		IFolder test = src.getFolder("test"); //$NON-NLS-1$
-		assertTrue("couldn't find src/test folder", test.exists()); //$NON-NLS-1$		
+		assertTrue("couldn't find src/test folder", test.exists()); //$NON-NLS-1$
 		IFolder notExcluded2 = test.getFolder("ABCD"); //$NON-NLS-1$
 		assertFalse("folder should not exist yet: " + notExcluded2, notExcluded2 //$NON-NLS-1$
 				.exists());
@@ -648,7 +648,7 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 				"folder should not exist yet: " + excluded2, excluded2.exists()); //$NON-NLS-1$
 		excluded2.create(true, true, null);
 		assertTrue("folder should now exist: " + excluded2, excluded2.exists()); //$NON-NLS-1$
-		
+
 		waitForAutoBuild();
 
 		// check that the expected folders were copied to bin
@@ -672,11 +672,11 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 				excludedBin2.exists());
 
 		// now test files instead of folders
-		
+
 		// create a file that should be copied
 		IFile notExcludedFile = notExcluded2.getFile("hello.txt");  //$NON-NLS-1$
 		notExcludedFile.create(new ReaderInputStream(new StringReader("test")), true, null); //$NON-NLS-1$
-		
+
 		// create a file that should be not copied
 		IFile excludedFile = excluded2.getFile("hello.txt"); //$NON-NLS-1$
 		excludedFile.create(new ReaderInputStream(new StringReader("test")), true, null); //$NON-NLS-1$
@@ -698,14 +698,14 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 				"excluded folder should NOT have been copied to bin: " + excludedBin, //$NON-NLS-1$
 				excludedBin.exists());
 	}
-	
+
 	private boolean wasIncrementalBuild(String msg) {
 		return msg.toLowerCase().indexOf("was: incremental") != -1; //$NON-NLS-1$
 	}
 
-	private boolean listContainsString(List l, String msg) {
-		for (Iterator iter = l.iterator(); iter.hasNext();) {
-			String logEntry = (String) iter.next();
+	private boolean listContainsString(List<String> l, String msg) {
+		for (Iterator<String> iter = l.iterator(); iter.hasNext();) {
+			String logEntry = iter.next();
 			if (logEntry.indexOf(msg) != -1) {
 				return true;
 			}

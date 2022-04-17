@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2009 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Andrew Eisenberg - initial API and implementation
  *******************************************************************************/
@@ -15,7 +15,6 @@ import java.util.ArrayList;
 
 import org.aspectj.asm.IProgramElement;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
-import org.eclipse.core.runtime.Assert;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.core.WorkingCopyOwner;
@@ -38,11 +37,11 @@ public class BinaryAspectElement extends BinaryType {
         IProgramElement ipe = AJProjectModelFactory.getInstance().getModelForJavaElement(this).javaElementToProgramElement(this);
         return new BinaryAspectElementInfo(ipe);
     }
-    
+
     protected char getHandleMementoDelimiter() {
         return AspectElement.JEM_ASPECT_TYPE;
     }
-    
+
     /*
      * Derived from JEM_METHOD clause in SourceType
      * Added support for advice, ITDs, and declare statements
@@ -53,8 +52,8 @@ public class BinaryAspectElement extends BinaryType {
             token = null;
             if (!memento.hasMoreTokens()) return this;
             String name = memento.nextToken();
-            
-            ArrayList<String> params = new ArrayList<String>();
+
+            ArrayList<String> params = new ArrayList<>();
             nextParam: while (memento.hasMoreTokens()) {
                 token = memento.nextToken();
                 switch (token.charAt(0)) {
@@ -66,13 +65,13 @@ public class BinaryAspectElement extends BinaryType {
                     case AspectElement.JEM_ADVICE:
                         if (!memento.hasMoreTokens()) return this;
                         String param = memento.nextToken();
-                        StringBuffer buffer = new StringBuffer();
+                        StringBuilder buffer = new StringBuilder();
                         while (param.length() == 1 && Signature.C_ARRAY == param.charAt(0)) { // backward compatible with 3.0 mementos
                             buffer.append(Signature.C_ARRAY);
                             if (!memento.hasMoreTokens()) return this;
                             param = memento.nextToken();
                         }
-                        params.add(buffer.toString() + param);
+                        params.add(buffer + param);
                         token = null;
                         break;
                     default:
@@ -81,7 +80,7 @@ public class BinaryAspectElement extends BinaryType {
             }
             String[] parameters = new String[params.size()];
             params.toArray(parameters);
-            
+
             JavaElement advice = new AdviceElement(this, name, parameters);
             if (token != null) {
                 return advice.getHandleFromMemento(token, memento, workingCopyOwner);
@@ -90,7 +89,7 @@ public class BinaryAspectElement extends BinaryType {
             }
         } else if (token.charAt(0) == AspectElement.JEM_ITD_METHOD) {
             String name = memento.nextToken();
-            ArrayList<String> params = new ArrayList<String>();
+            ArrayList<String> params = new ArrayList<>();
             nextParam: while (memento.hasMoreTokens()) {
                 token = memento.nextToken();
                 switch (token.charAt(0)) {
@@ -100,13 +99,13 @@ public class BinaryAspectElement extends BinaryType {
                     case AspectElement.JEM_ITD_METHOD:
                         if (!memento.hasMoreTokens()) return this;
                         String param = memento.nextToken();
-                        StringBuffer buffer = new StringBuffer();
+                        StringBuilder buffer = new StringBuilder();
                         while (param.length() == 1 && Signature.C_ARRAY == param.charAt(0)) { // backward compatible with 3.0 mementos
                             buffer.append(Signature.C_ARRAY);
                             if (!memento.hasMoreTokens()) return this;
                             param = memento.nextToken();
                         }
-                        params.add(buffer.toString() + param);
+                        params.add(buffer + param);
                         break;
                     default:
                         break nextParam;
@@ -130,7 +129,7 @@ public class BinaryAspectElement extends BinaryType {
 			}
         } else if (token.charAt(0) == AspectElement.JEM_DECLARE) {
             String name = memento.nextToken();
-            ArrayList params = new ArrayList();
+            ArrayList<String> params = new ArrayList<>();
             nextParam: while (memento.hasMoreTokens()) {
                 token = memento.nextToken();
                 switch (token.charAt(0)) {
@@ -140,13 +139,13 @@ public class BinaryAspectElement extends BinaryType {
                     case AspectElement.JEM_DECLARE:
                         if (!memento.hasMoreTokens()) return this;
                         String param = memento.nextToken();
-                        StringBuffer buffer = new StringBuffer();
+                        StringBuilder buffer = new StringBuilder();
                         while (param.length() == 1 && Signature.C_ARRAY == param.charAt(0)) { // backward compatible with 3.0 mementos
                             buffer.append(Signature.C_ARRAY);
                             if (!memento.hasMoreTokens()) return this;
                             param = memento.nextToken();
                         }
-                        params.add(buffer.toString() + param);
+                        params.add(buffer + param);
                         break;
                     default:
                         break nextParam;
@@ -161,7 +160,7 @@ public class BinaryAspectElement extends BinaryType {
             return itd.getHandleFromMemento(memento, workingCopyOwner);
         } else if (token.charAt(0) == AspectElement.JEM_POINTCUT) {
             String name = memento.nextToken();
-            ArrayList params = new ArrayList();
+            ArrayList<String> params = new ArrayList<>();
             nextParam: while (memento.hasMoreTokens()) {
                 token = memento.nextToken();
                 switch (token.charAt(0)) {
@@ -171,13 +170,13 @@ public class BinaryAspectElement extends BinaryType {
                     case AspectElement.JEM_POINTCUT:
                         if (!memento.hasMoreTokens()) return this;
                         String param = memento.nextToken();
-                        StringBuffer buffer = new StringBuffer();
+                        StringBuilder buffer = new StringBuilder();
                         while (param.length() == 1 && Signature.C_ARRAY == param.charAt(0)) { // backward compatible with 3.0 mementos
                             buffer.append(Signature.C_ARRAY);
                             if (!memento.hasMoreTokens()) return this;
                             param = memento.nextToken();
                         }
-                        params.add(buffer.toString() + param);
+                        params.add(buffer + param);
                         break;
                     default:
                         break nextParam;
@@ -189,11 +188,11 @@ public class BinaryAspectElement extends BinaryType {
             return pointcut.getHandleFromMemento(memento, workingCopyOwner);
         } else if (token.charAt(0) == AspectElement.JEM_METHOD &&
                ! (this.getOpenable() instanceof AJCompilationUnit)) {
-            // method must be mocked up if we are an aspect in a 
+            // method must be mocked up if we are an aspect in a
             // .class or .java file
             // cannot get the JavaElementInfo otherwise
             String name = memento.nextToken();
-            ArrayList params = new ArrayList();
+            ArrayList<String> params = new ArrayList<>();
             nextParam: while (memento.hasMoreTokens()) {
                 token = memento.nextToken();
                 switch (token.charAt(0)) {
@@ -204,13 +203,13 @@ public class BinaryAspectElement extends BinaryType {
                     case JEM_METHOD:
                         if (!memento.hasMoreTokens()) return this;
                         String param = memento.nextToken();
-                        StringBuffer buffer = new StringBuffer();
+                        StringBuilder buffer = new StringBuilder();
                         while (param.length() == 1 && Signature.C_ARRAY == param.charAt(0)) { // backward compatible with 3.0 mementos
                             buffer.append(Signature.C_ARRAY);
                             if (!memento.hasMoreTokens()) return this;
                             param = memento.nextToken();
                         }
-                        params.add(buffer.toString() + param);
+                        params.add(buffer + param);
                         break;
                     default:
                         break nextParam;

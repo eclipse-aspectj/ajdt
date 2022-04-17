@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2009 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Andrew Eisenberg - initial API and implementation
  *******************************************************************************/
@@ -12,7 +12,6 @@
 package org.eclipse.ajdt.core.model;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -25,7 +24,6 @@ import org.aspectj.asm.IProgramElement.Accessibility;
 import org.aspectj.asm.internal.ProgramElement;
 import org.aspectj.weaver.ConcreteTypeMunger;
 import org.aspectj.weaver.ResolvedMember;
-import org.aspectj.weaver.ResolvedMemberImpl;
 import org.aspectj.weaver.ResolvedType;
 import org.aspectj.weaver.ResolvedTypeMunger;
 import org.aspectj.weaver.TypeVariable;
@@ -41,9 +39,9 @@ import org.eclipse.jdt.core.compiler.CharOperation;
 /**
  * @author Andrew Eisenberg
  * @created Jan 13, 2009
- * 
+ *
  * This class provides AJDT access to the {@link World} object.
- * Clients must not hold a reference to any world object 
+ * Clients must not hold a reference to any world object
  * for longer than necessary
  */
 public final class AJWorldFacade {
@@ -62,13 +60,13 @@ public final class AJWorldFacade {
         public final String[] paramTypes;
         public final TypeParameter[] typeParameters;
     }
-    
+
     public static class ITDInfo {
         static ITDInfo create(ConcreteTypeMunger cMunger, boolean includeTypeParameters) {
             ResolvedType aspectType = cMunger.getAspectType();
             if (aspectType != null) {
                 ResolvedMember sig = cMunger.getSignature();
-                Accessibility a = sig != null ? 
+                Accessibility a = sig != null ?
                         ProgramElement.genAccessibility(sig.getModifiers()) :
                         Accessibility.PUBLIC;
                 String packageDeclaredIn = aspectType.getPackageName();
@@ -80,11 +78,11 @@ public final class AJWorldFacade {
                     convertedTypeParameters = null;
                 }
                 return new ITDInfo(a, packageDeclaredIn, topLevelAspectName, convertedTypeParameters);
-            } else { 
+            } else {
                 return null;
             }
         }
-        
+
         public ITDInfo(Accessibility accessibility, String packageDeclaredIn,
                 String topLevelAspectName, TypeParameter[] typeParameters) {
             this.accessibility = accessibility;
@@ -101,7 +99,7 @@ public final class AJWorldFacade {
             if (typeParameters == null) {
                 return null;
             }
-            
+
             ITypeParameter[] itypeParameters = new ITypeParameter[typeParameters.length];
             for (int i = 0; i < typeParameters.length; i++) {
                 itypeParameters[i] = new org.eclipse.jdt.internal.core.TypeParameter(parent, typeParameters[i].name);
@@ -121,10 +119,10 @@ public final class AJWorldFacade {
     }
 
     private static final TypeParameter[] NO_TYPE_PARAMETERS = new TypeParameter[0];
-    
+
     private final AjBuildManager manager;
     private final World world;
-    
+
     public AJWorldFacade(IProject project) {
         AjCompiler compiler = AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project);
         AjState state = IncrementalStateManager.retrieveStateFor(compiler.getId());
@@ -136,7 +134,7 @@ public final class AJWorldFacade {
             world = null;
         }
     }
-    
+
     /**
      * @param typeVariables
      * @return
@@ -147,7 +145,7 @@ public final class AJWorldFacade {
             return NO_TYPE_PARAMETERS;
         }
         TypeParameter[] typeParameters = new TypeParameter[typeVariables.length];
-        
+
         for (int i = 0; i < typeVariables.length; i++) {
             String name = typeVariables[i].getName();
             UnresolvedType upperBoundMunger = typeVariables[i].getFirstBound();
@@ -163,16 +161,16 @@ public final class AJWorldFacade {
     }
 
     private Map<char[], List<ConcreteTypeMunger>> cachedMungers;
-    
+
     private void cacheMunger(char[] typeName, List<ConcreteTypeMunger> mungers) {
         if (cachedMungers == null) {
-            cachedMungers = new HashMap<char[], List<ConcreteTypeMunger>>();
+            cachedMungers = new HashMap<>();
         }
         cachedMungers.put(typeName, mungers);
     }
-    
-    
-    
+
+
+
     public ITDInfo findITDInfoFromDeclaringType(char[] declaringTypeSignature, char[] name) {
         if (world == null || declaringTypeSignature == null) {
             return null;
@@ -191,11 +189,11 @@ public final class AJWorldFacade {
             return null;
         }
         itds = type.crosscuttingMembers.getTypeMungers();
-        
+
         if (itds == null) {
             return null;
         }
-        
+
         for (ConcreteTypeMunger concreteTypeMunger : itds) {
             ResolvedTypeMunger munger = concreteTypeMunger.getMunger();
             if (munger == null) {
@@ -206,7 +204,7 @@ public final class AJWorldFacade {
                     return ITDInfo.create(concreteTypeMunger, true);
                 }
             }
-            
+
             if (munger.getKind() == ResolvedTypeMunger.Method) {
                 // also need to compare parameters, but parameters
                 // are expensive to calculate
@@ -216,7 +214,7 @@ public final class AJWorldFacade {
             }
         }
         return null;
-    }    
+    }
 
     public ITDInfo findITDInfoFromTargetType(char[] targetTypeSignature, char[] name) {
         if (world == null || targetTypeSignature == null) {
@@ -245,7 +243,7 @@ public final class AJWorldFacade {
             itds = type.getInterTypeMungersIncludingSupers();
             cacheMunger(targetTypeSignature, itds);
         }
-        
+
         for (ConcreteTypeMunger concreteTypeMunger : itds) {
             ResolvedTypeMunger munger = concreteTypeMunger.getMunger();
             if (munger == null) {
@@ -256,7 +254,7 @@ public final class AJWorldFacade {
                     return ITDInfo.create(concreteTypeMunger, false);
                 }
             }
-            
+
             if (munger.getKind() == ResolvedTypeMunger.Method) {
                 // also need to compare parameters, but parameters
                 // are expensive to calculate
@@ -271,7 +269,7 @@ public final class AJWorldFacade {
     private String createAJSignature(char[] targetTypeSignature) {
         char[] copy = new char[targetTypeSignature.length];
         System.arraycopy(targetTypeSignature, 0, copy, 0, copy.length);
-        
+
 //        // AspectJ parameterized signatures start with 'P'
 //        boolean isGeneric = false;
 //        for (int i = 0; i < copy.length; i++) {
@@ -279,14 +277,14 @@ public final class AJWorldFacade {
 //                isGeneric = true;
 //            }
 //        }
-//        
+//
 //        if (isGeneric) {
 //            copy[0] = 'P';
 //        }
         CharOperation.replace(copy, '.', '/');
         return String.valueOf(copy);
     }
-    
+
     private static String createJDTSignature(String ajSignature) {
         char[] copy = ajSignature.toCharArray();
         CharOperation.replace(copy, '/', '.');
@@ -302,24 +300,23 @@ public final class AJWorldFacade {
         }
         // ensure '/' instead of '.'
         typeSignature = createAJSignature(typeSignature.toCharArray());
-        
+
         ResolvedType type = world.resolve(UnresolvedType.forSignature(typeSignature));
         if (type == null || type.isMissing()) {
             return null;
         }
-        List itds = type.getInterTypeMungersIncludingSupers();
+        List<ConcreteTypeMunger> itds = type.getInterTypeMungersIncludingSupers();
         ConcreteTypeMunger myMunger = null;
-        for (Iterator iterator = itds.iterator(); iterator.hasNext();) {
-            ConcreteTypeMunger munger = (ConcreteTypeMunger) iterator.next();
-            if (equalSignatures(elt, munger)) {
-                myMunger = munger;
-                break;
-            }
+      for (ConcreteTypeMunger munger : itds) {
+        if (equalSignatures(elt, munger)) {
+          myMunger = munger;
+          break;
         }
+      }
         if (myMunger == null) {
             return null;
         }
-        
+
         String returnTypeSig = myMunger.getSignature().getReturnType().getSignature();
         returnTypeSig = createJDTSignature(returnTypeSig);
 //        returnTypeSig = Signature.toString(returnType);

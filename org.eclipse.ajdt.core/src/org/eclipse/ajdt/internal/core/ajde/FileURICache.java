@@ -4,7 +4,7 @@
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
  *  http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  *  Contributors:
  *     Andrew Eisenberg - initial API and implementation
  *******************************************************************************/
@@ -34,10 +34,10 @@ public class FileURICache {
     private final IProject project;
     public FileURICache(IProject project) {
         this.project = project;
-        this.uriFileMap = new WeakHashMap<URI, IFile[]>();
-        this.uriContainerMap = new WeakHashMap<URI, IContainer[]>();
+        this.uriFileMap = new WeakHashMap<>();
+        this.uriContainerMap = new WeakHashMap<>();
     }
-    
+
     public IFile[] findFilesForURI(URI uri) {
         IFile[] files = uriFileMap.get(uri);
         if (files == null) {
@@ -74,7 +74,7 @@ public class FileURICache {
         }
         return containers;
     }
-    
+
     /**
      * Return the IResource within the project that maps to the given File
      * If project is not specified, arbitrarily choose the first resource
@@ -99,7 +99,7 @@ public class FileURICache {
         }
         return null;
     }
-    
+
     /**
      * Find the first resoruce in the workspace that corresponds to this file path
      * @param fullPath

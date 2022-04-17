@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2009, 2010 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Andrew Eisenberg - initial API and implementation
  *******************************************************************************/
@@ -47,14 +47,14 @@ import org.eclipse.jface.text.Region;
  * Provides ITD Aware content assist and code selection
  */
 public class ContentAssistProvider implements IJavaContentAssistProvider {
-    
+
     private static class MockCompilationUnit extends CompilationUnit {
-        
+
         char[] transformedContents;
         CompilationUnit orig;
-        
+
         ArrayList<Replacement> insertionTable;
-        
+
         public MockCompilationUnit(CompilationUnit orig) {
             super((PackageFragment) orig.getParent(), orig.getElementName(), orig.owner);
             this.orig = orig;
@@ -65,14 +65,14 @@ public class ContentAssistProvider implements IJavaContentAssistProvider {
             AspectsConvertingParser parser = new AspectsConvertingParser(orig.getContents());
             parser.setUnit(orig);
             insertionTable = parser.convert(ConversionOptions.CODE_COMPLETION);
-            
+
             return parser.content;
         }
-        
+
         public char[] getContents() {
             return transformedContents;
         }
-        
+
         int translatePositionToFake(int pos) {
             return AspectsConvertingParser.translatePositionToAfterChanges(pos, insertionTable);
         }
@@ -119,7 +119,7 @@ public class ContentAssistProvider implements IJavaContentAssistProvider {
         CompletionEngine engine = new CompletionEngine(environment, wrapped, project.getOptions(true), project, owner, monitor);
         engine.lookupEnvironment = new ITDAwareLookupEnvironment(engine.lookupEnvironment, environment);
         engine.complete(mcu, transformedPos, 0, typeRoot);
-        
+
         return true;
     }
 
@@ -137,7 +137,7 @@ public class ContentAssistProvider implements IJavaContentAssistProvider {
             throws JavaModelException {
 
         AJLog.log("===Code Select.  Unit: " + unit.getElementName() + " [ " + offset + ", " + length + " ]");
-        
+
         // see if we should shortcut other processing and we can
         // quickly find a selection that we know is only valid inside of
         // AspectJ
@@ -147,14 +147,14 @@ public class ContentAssistProvider implements IJavaContentAssistProvider {
         if (maybeResult != null && maybeResult.length > 0) {
             return maybeResult;
         }
-        
+
         if (prevResults != null && prevResults.length > 1) {
             return prevResults;
         }
         if (prevResults.length == 1 && prevResults[0] instanceof IType) {
             // get the expanded text region and see if it matches the type name
             String expandedRegion = getExpandedRegion(offset, length, ((CompilationUnit) unit).getContents()).replace('$', '.');
-            if (expandedRegion.equals(prevResults[0].getElementName()) || 
+            if (expandedRegion.equals(prevResults[0].getElementName()) ||
                     expandedRegion.equals(((IType) prevResults[0]).getFullyQualifiedName())) {
                 // we really are looking for the type
                 return prevResults;
@@ -175,17 +175,17 @@ public class ContentAssistProvider implements IJavaContentAssistProvider {
     protected String getExpandedRegion(int offset, int length, char[] contents) {
         int start = offset;
         int end = offset+length;
-        
+
         start--;
         while (start >= 0 && Character.isJavaIdentifierPart(contents[start])) {
             start--;
         }
         start++;
-        
+
         while (end < contents.length && Character.isJavaIdentifierPart(contents[end])) {
             end++;
         }
-        
+
         // include paren or bracket because this would be the start of a constructor call
         // TODO handle situation where there are spaces after the name and before the '(' or '<'
         if (end < contents.length && (contents[end] == '(' || contents[end] == '<')) {
@@ -193,7 +193,7 @@ public class ContentAssistProvider implements IJavaContentAssistProvider {
         }
         String candidate = String.valueOf(contents, start, end-start);
         candidate = candidate.trim();
-        String split[] = candidate.split("\\.|\\s");
+        String[] split = candidate.split("\\.|\\s");
         if (split.length > 1) {
             candidate = split[split.length-1];
         }

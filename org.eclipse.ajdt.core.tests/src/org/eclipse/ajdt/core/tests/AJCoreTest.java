@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2005, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman  - initial version
@@ -14,18 +14,8 @@ package org.eclipse.ajdt.core.tests;
 import java.util.Iterator;
 import java.util.List;
 
-import org.aspectj.asm.IProgramElement.Kind;
 import org.aspectj.asm.IRelationship;
-import org.aspectj.org.eclipse.jdt.internal.core.LocalVariable;
 import org.eclipse.ajdt.core.AspectJCore;
-import org.eclipse.ajdt.core.javaelements.AdviceElement;
-import org.eclipse.ajdt.core.javaelements.AspectElement;
-import org.eclipse.ajdt.core.javaelements.AspectJMemberElementInfo;
-import org.eclipse.ajdt.core.javaelements.DeclareElement;
-import org.eclipse.ajdt.core.javaelements.FieldIntertypeElement;
-import org.eclipse.ajdt.core.javaelements.IAspectJElement;
-import org.eclipse.ajdt.core.javaelements.IntertypeElement;
-import org.eclipse.ajdt.core.javaelements.MethodIntertypeElement;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
@@ -36,9 +26,6 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.internal.core.JavaElement;
-
-import static org.aspectj.asm.IProgramElement.Kind.*;
 
 /**
  * Tests for AspectJCore.create()
@@ -48,15 +35,15 @@ public class AJCoreTest extends AJDTCoreTestCase {
 	/**
 	 * Test that AspectJCore.create() can form appropriate Java elements from a
 	 * variety of handle identifiers
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	public void testCreateElementFromHandle() throws Exception {
-	    
+
 	    if (!IsWovenTester.isWeavingActive()) {
 	        fail("This test requires JDT Weaving service to be enabled");
 	    }
-	    
+
 		createPredefinedProject("TJP Example"); //$NON-NLS-1$
 		// each entry in the array contains:
 		// <handle> <name of element> <containing resource> <class name of
@@ -82,14 +69,14 @@ public class AJCoreTest extends AJDTCoreTestCase {
 	/**
 	 * Test that AspectJCore.create() can form appropriate Java elements from a
 	 * variety of handle identifiers
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	public void testCreateElementFromHandle2() throws Exception {
         if (!IsWovenTester.isWeavingActive()) {
             fail("This test requires JDT Weaving service to be enabled");
         }
-        
+
         createPredefinedProject("Bean Example"); //$NON-NLS-1$
 		String methodHandle = "=Bean Example/src<bean{Demo.java[Demo~main~\\[QString;?method-call(void bean.Point.setX(int))!0!0!0!0!I!0!false"; //$NON-NLS-1$
 
@@ -128,14 +115,14 @@ public class AJCoreTest extends AJDTCoreTestCase {
 	/**
 	 * Test that AspectJCore.create() can form appropriate Java elements from a
 	 * variety of handle identifiers
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	public void testCreateElementFromHandle3() throws Exception {
         if (!IsWovenTester.isWeavingActive()) {
             fail("This test requires JDT Weaving service to be enabled");
         }
-        
+
         createPredefinedProject("Spacewar Example"); //$NON-NLS-1$
 		// each entry in the array contains:
 		// <handle> <name of element> <containing resource> <class name of
@@ -153,7 +140,7 @@ public class AJCoreTest extends AJDTCoreTestCase {
 	 * Test that going from an IJavaElement to its handle identifier then back
 	 * to an IJavaElement using AspectJCore.create() results in a element that
 	 * is equivalent to the original (not necessarily identical).
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	public void testHandleCreateRoundtrip() throws Exception {
@@ -167,7 +154,7 @@ public class AJCoreTest extends AJDTCoreTestCase {
 	 * Test that going from an IJavaElement to its handle identifier then back
 	 * to an IJavaElement using AspectJCore.create() results in a element that
 	 * is equivalent to the original (not necessarily identical).
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	public void testHandleCreateRoundtrip2() throws Exception {
@@ -184,7 +171,7 @@ public class AJCoreTest extends AJDTCoreTestCase {
 	 * Test that going from an IJavaElement to its handle identifier then back
 	 * to an IJavaElement using AspectJCore.create() results in a element that
 	 * is equivalent to the original (not necessarily identical).
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	public void testHandleCreateRoundtrip3() throws Exception {
@@ -203,7 +190,7 @@ public class AJCoreTest extends AJDTCoreTestCase {
 	 * Test that going from an IJavaElement to its handle identifier then back
 	 * to an IJavaElement using AspectJCore.create() results in a element that
 	 * is equivalent to the original (not necessarily identical).
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	public void testHandleCreateRoundtrip4() throws Exception {
@@ -222,7 +209,7 @@ public class AJCoreTest extends AJDTCoreTestCase {
 	 * Test that going from an IJavaElement to its handle identifier then back
 	 * to an IJavaElement using AspectJCore.create() results in a element that
 	 * is equivalent to the original (not necessarily identical).
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	public void testHandleCreateRoundtrip5() throws Exception {
@@ -240,7 +227,7 @@ public class AJCoreTest extends AJDTCoreTestCase {
 	 * Test that going from an IJavaElement to its handle identifier then back
 	 * to an IJavaElement using AspectJCore.create() results in a element that
 	 * is equivalent to the original (not necessarily identical).
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	public void testHandleCreateRoundtripBug94107() throws Exception {
@@ -249,7 +236,7 @@ public class AJCoreTest extends AJDTCoreTestCase {
 		compareElementsFromRelationships(rels, project);
 	}
 
-	private static String getSimpleClassName(Object obj) {
+	private static String getSimpleClassName(IJavaElement obj) {
 		String longName = obj.getClass().getName();
 		int index = longName.lastIndexOf('.');
 		if (index == -1) {
@@ -263,18 +250,18 @@ public class AJCoreTest extends AJDTCoreTestCase {
 	    IJavaProject jProject = JavaCore.create(project);
         AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForProject(jProject.getProject());
 
-		List allRels = model.getRelationshipsForProject(rels);
+		List<IRelationship> allRels = model.getRelationshipsForProject(rels);
 		if (!model.hasModel() || allRels.size() == 0) {
 			// if the project or model didn't build properly we'd get no
 			// relationships
 			// and the test would blindly pass without this check
 			fail("No relationships found for project " + project.getName()); //$NON-NLS-1$
 		}
-		for (Iterator iter = allRels.iterator(); iter.hasNext();) {
-			IRelationship rel = (IRelationship) iter.next();
+		for (Iterator<IRelationship> iter = allRels.iterator(); iter.hasNext();) {
+			IRelationship rel = iter.next();
 			HandleTestUtils.checkAJHandle(rel.getSourceHandle(), model);
-			for (Iterator targetIter = rel.getTargets().iterator(); targetIter.hasNext();) {
-                String handle = (String) targetIter.next();
+			for (Iterator<String> targetIter = rel.getTargets().iterator(); targetIter.hasNext();) {
+                String handle = targetIter.next();
                 HandleTestUtils.checkAJHandle(handle, model);
             }
 		}

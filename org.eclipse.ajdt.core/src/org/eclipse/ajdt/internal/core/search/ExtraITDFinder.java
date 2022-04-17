@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2010 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Andrew Eisenberg - initial API and implementation
  *******************************************************************************/
@@ -53,7 +53,7 @@ import org.eclipse.jdt.internal.core.search.matching.VariablePattern;
 
 /**
  * Helps find ITD references and declarations of a {@link SearchPattern} inside of an {@link AspectElement}
- * 
+ *
  * @author Andrew Eisenberg
  * @created Aug 6, 2010
  */
@@ -62,12 +62,12 @@ public class ExtraITDFinder implements IExtraMatchFinder<SearchPattern> {
     public List<SearchMatch> findExtraMatches(PossibleMatch match,
             SearchPattern pattern, HierarchyResolver resolver)
             throws JavaModelException {
-        
-        List<SearchMatch> extraMatches = new ArrayList<SearchMatch>();
+
+        List<SearchMatch> extraMatches = new ArrayList<>();
         if ((match.openable instanceof AJCompilationUnit)) {
             boolean findDeclarations = findDeclarations(pattern);
             boolean findReferences = findReferences(pattern);
-            
+
             AJCompilationUnit unit = (AJCompilationUnit) match.openable;
             List<IntertypeElement> allRelevantItds = findRelevantITDs(pattern,
                     resolver, unit);
@@ -75,7 +75,7 @@ public class ExtraITDFinder implements IExtraMatchFinder<SearchPattern> {
                 if (findReferences) {
                    extraMatches.addAll(findExtraReferenceMatches(unit, allRelevantItds, pattern, match));
                 }
-                
+
                 // for method and constructor patterns, also look for declarations
                 // can't do this for field patterns because there would be a class cast exception
                 // when trying to cast a IntertypeDeclaration to an IField.
@@ -95,7 +95,7 @@ public class ExtraITDFinder implements IExtraMatchFinder<SearchPattern> {
         if (allItds.size() == 0) {
             return Collections.emptyList();
         }
-        
+
         // find target type
         char[] targetTypeName = null;
         if (pattern instanceof FieldPattern) {
@@ -103,15 +103,15 @@ public class ExtraITDFinder implements IExtraMatchFinder<SearchPattern> {
         } else if (pattern instanceof MethodPattern) {
             targetTypeName = TargetTypeUtils.getName(((MethodPattern) pattern).declaringQualification, ((MethodPattern) pattern).declaringSimpleName);
         }
-    
+
         // if target type is not known, then this means that a target
-        // type is not specified and therefore do not remove any 
+        // type is not specified and therefore do not remove any
         // potential matches.
         if (targetTypeName != null && targetTypeName.length > 0) {
             if (resolver != null) {
                 resolver.setFocusType(CharOperation.splitOn('.', targetTypeName));
             }
-            
+
             for (Iterator<IntertypeElement> itdIter = allItds.iterator(); itdIter.hasNext();) {
                 IntertypeElement itd = itdIter.next();
                 if (!isSubtypeOfSearchPattern(targetTypeName, itd, resolver)) {
@@ -153,11 +153,11 @@ public class ExtraITDFinder implements IExtraMatchFinder<SearchPattern> {
      * Two situations that we care about:
      * 1. field reference pattern inside of ITD.
      * 2. method reference pattern inside of ITD
-     * 
+     *
      * If the {@link PossibleMatch} is an {@link AJCompilationUnit}, then
-     * look to see if it has any ITDs whose target type is of the type of the search 
+     * look to see if it has any ITDs whose target type is of the type of the search
      * pattern.  And if so, then delegate for further possible matching matching.
-     * @throws JavaModelException 
+     * @throws JavaModelException
      */
     private List<SearchMatch> findExtraReferenceMatches(AJCompilationUnit unit, List<IntertypeElement> allRelevantItds, SearchPattern pattern, PossibleMatch match)
             throws JavaModelException {
@@ -167,13 +167,13 @@ public class ExtraITDFinder implements IExtraMatchFinder<SearchPattern> {
     }
 
     /**
-     * Return all declaration matches that are ITDs of the proper type or in the type hierarchy of the expected type 
-     * @throws JavaModelException 
+     * Return all declaration matches that are ITDs of the proper type or in the type hierarchy of the expected type
+     * @throws JavaModelException
      */
     private List<SearchMatch> findExtraDeclarationMatches(
             AJCompilationUnit unit, List<IntertypeElement> allRelevantItds, SearchPattern pattern, PossibleMatch match) throws JavaModelException {
-        
-        List<SearchMatch> extraDeclarationMatches = new ArrayList<SearchMatch>();
+
+        List<SearchMatch> extraDeclarationMatches = new ArrayList<>();
         // At this point, we know that the itds passed in have the same declaring type or are a subtype of the target type
         // So, just need to check selector and parameters
         // it is too time consuming to get the qualified parameters of the types, so
@@ -182,14 +182,14 @@ public class ExtraITDFinder implements IExtraMatchFinder<SearchPattern> {
             MethodPattern methPatt = (MethodPattern) pattern;
             char[] selector = methPatt.selector;
             char[][] simpleParamTypes = methPatt.parameterSimpleNames;
-    
+
             for (IntertypeElement itd : allRelevantItds) {
                 if (itd.getAJKind() == Kind.INTER_TYPE_METHOD &&
-                        CharOperation.equals(selector, itd.getTargetName().toCharArray())) { 
+                        CharOperation.equals(selector, itd.getTargetName().toCharArray())) {
                     char[][] itdSimpleParamNames = extractSimpleParamNames(itd);
                     if (CharOperation.equals(simpleParamTypes, itdSimpleParamNames)) {
                         ISourceRange sourceRange = itd.getNameRange();
-                        extraDeclarationMatches.add(new MethodDeclarationMatch(itd, SearchMatch.A_ACCURATE, sourceRange.getOffset(), sourceRange.getLength(), 
+                        extraDeclarationMatches.add(new MethodDeclarationMatch(itd, SearchMatch.A_ACCURATE, sourceRange.getOffset(), sourceRange.getLength(),
                                 match.document.getParticipant(), itd.getCompilationUnit().getResource()));
                     }
                 }
@@ -200,12 +200,12 @@ public class ExtraITDFinder implements IExtraMatchFinder<SearchPattern> {
             char[] targetTypeName = TargetTypeUtils.getName(consPatt.declaringQualification, consPatt.declaringSimpleName);
             char[][] simpleParamTypes = consPatt.parameterSimpleNames;
             for (IntertypeElement itd : allRelevantItds) {
-                if (itd.getAJKind() == Kind.INTER_TYPE_CONSTRUCTOR && 
-                        targetTypeName != null && CharOperation.equals(targetTypeName, fullyQualifiedTargetTypeName(itd))) { 
+                if (itd.getAJKind() == Kind.INTER_TYPE_CONSTRUCTOR &&
+                        targetTypeName != null && CharOperation.equals(targetTypeName, fullyQualifiedTargetTypeName(itd))) {
                     char[][] itdSimpleParamNames = extractSimpleParamNames(itd);
                     if (CharOperation.equals(simpleParamTypes, itdSimpleParamNames)) {
                         ISourceRange sourceRange = itd.getNameRange();
-                        extraDeclarationMatches.add(new MethodDeclarationMatch(itd, SearchMatch.A_ACCURATE, sourceRange.getOffset(), sourceRange.getLength(), 
+                        extraDeclarationMatches.add(new MethodDeclarationMatch(itd, SearchMatch.A_ACCURATE, sourceRange.getOffset(), sourceRange.getLength(),
                                 match.document.getParticipant(), itd.getCompilationUnit().getResource()));
                     }
                 }
@@ -219,7 +219,7 @@ public class ExtraITDFinder implements IExtraMatchFinder<SearchPattern> {
                         // must match the exact type, but only if a type exists
                         (targetTypeName == null || CharOperation.equals(targetTypeName, fullyQualifiedTargetTypeName(itd)))) {
                     ISourceRange sourceRange = itd.getNameRange();
-                    extraDeclarationMatches.add(new FieldDeclarationMatch(itd, SearchMatch.A_ACCURATE, sourceRange.getOffset(), sourceRange.getLength(), 
+                    extraDeclarationMatches.add(new FieldDeclarationMatch(itd, SearchMatch.A_ACCURATE, sourceRange.getOffset(), sourceRange.getLength(),
                             match.document.getParticipant(), itd.getCompilationUnit().getResource()));
                 }
             }
@@ -250,7 +250,7 @@ public class ExtraITDFinder implements IExtraMatchFinder<SearchPattern> {
         }
         if (resolver != null) {
         	LookupEnvironment env =  ((LookupEnvironment) ReflectionUtils.getPrivateField(HierarchyResolver.class, "lookupEnvironment", resolver));
-            ReferenceBinding targetBinding = 
+            ReferenceBinding targetBinding =
                    env.askForType(CharOperation.splitOn('.', itdTargetTypeName),env.getModule(ModuleBinding.ANY));
             if (targetBinding != null) {
                 return resolver.subOrSuperOfFocus(targetBinding);
@@ -268,15 +268,15 @@ public class ExtraITDFinder implements IExtraMatchFinder<SearchPattern> {
     private List<SearchMatch> walkITDs(CompilationUnit ajDomUnit,
             List<IntertypeElement> allItds, SearchPattern pattern,
             PossibleMatch possibleMatch) throws JavaModelException {
-        
-        List<SearchMatch> allExtraMatches = new LinkedList<SearchMatch>();
+
+        List<SearchMatch> allExtraMatches = new LinkedList<>();
         for (IntertypeElement itd : allItds) {
             BodyDeclaration decl = findITDInDom(ajDomUnit, itd);
             // we only care about ITD methods
             if (decl instanceof InterTypeMethodDeclaration) {
                 allExtraMatches.addAll(findPatternInITD((InterTypeMethodDeclaration) decl, itd, pattern, possibleMatch));
             }
-            
+
         }
         return allExtraMatches;
     }
@@ -284,7 +284,7 @@ public class ExtraITDFinder implements IExtraMatchFinder<SearchPattern> {
     private Collection<SearchMatch> findPatternInITD(
                 InterTypeMethodDeclaration decl, IntertypeElement itd,
                 SearchPattern pattern, PossibleMatch possibleMatch) {
-            ITDReferenceVisitor visitor = new ITDReferenceVisitor(itd, 
+            ITDReferenceVisitor visitor = new ITDReferenceVisitor(itd,
                     pattern, possibleMatch.document.getParticipant());
             Collection<SearchMatch> matches = visitor.doVisit(decl);
             // tentative matches are found elsewhere
@@ -315,7 +315,7 @@ public class ExtraITDFinder implements IExtraMatchFinder<SearchPattern> {
                 ISourceRange sourceRange = itd.getSourceRange();
                 int eltStart = sourceRange.getOffset();
                 int eltEnd = eltStart + sourceRange.getLength();
-                
+
                 // return this decl if one contains the other
                 if ((domStart <= eltStart && domEnd >= eltEnd) ||
                         (eltStart <= domStart && eltEnd >= domEnd)) {
@@ -340,8 +340,8 @@ public class ExtraITDFinder implements IExtraMatchFinder<SearchPattern> {
 
     private List<IntertypeElement> getAllItds(IParent parent) throws JavaModelException {
         IJavaElement[] children = parent.getChildren();
-        List<IntertypeElement> allItds = new LinkedList<IntertypeElement>();
-        
+        List<IntertypeElement> allItds = new LinkedList<>();
+
         for (IJavaElement elt : children) {
             if (elt instanceof IntertypeElement) {
                 allItds.add((IntertypeElement) elt);

@@ -38,8 +38,8 @@ import org.aspectj.util.FileUtil;
  * requires all the files every time.  To work around this,
  * set the global property CLEAN ("build.compiler.clean") to delete
  * all .class files in the destination directory before compiling.
- * 
- * <p><u>Warnings</u>: 
+ *
+ * <p><u>Warnings</u>:
  * <ol>
  * <li>cleaning will not work if no destination directory
  *     is specified in the javac task.
@@ -52,28 +52,24 @@ import org.aspectj.util.FileUtil;
  *     and thus cannot gain control to clean out the destination dir.
  *     </li>
  * <p>
- * 
+ *
  * @author Wes Isberg
  * @author Andrew Eisenberg
  * @since AspectJ 1.1, Ant 1.5.1, AJDT 2.1.0
  */
 public class AJDT_AjcCompilerAdapter implements CompilerAdapter {
-    
-    
-    /** 
-     * Define this system/project property to signal that the 
-     * destination directory should be cleaned 
+
+
+    /**
+     * Define this system/project property to signal that the
+     * destination directory should be cleaned
      * and javac reinvoked
      * to get the complete list of files every time.
      */
     public static final String CLEAN = "build.compiler.clean";
 
     /** track whether we re-called <code>javac.execute()</code> */
-    private static final ThreadLocal<Boolean> inSelfCall = new ThreadLocal<Boolean>() {
-        public Boolean initialValue() {
-            return Boolean.FALSE;
-        }
-    };
+    private static final ThreadLocal<Boolean> inSelfCall = ThreadLocal.withInitial(() -> Boolean.FALSE);
 
     Javac javac;
 
@@ -86,13 +82,13 @@ public class AJDT_AjcCompilerAdapter implements CompilerAdapter {
         javac.log("Note that you may see messages about skipping *.aj files above. " +
         		"These messages can be ignored as these files are handled directly by " +
         		"ajc.  Similarly, the messages below about skipping *.java files can be ignored.", Project.MSG_INFO);
-        
-        // javac task spits out messages that it 
-        
+
+        // javac task spits out messages that it
+
         if (null == javac) {
             throw new IllegalStateException("null javac");
         }
-        if (!((Boolean) inSelfCall.get()).booleanValue()
+        if (!(Boolean) inSelfCall.get()
             && afterCleaningDirs()) {
             // if we are not re-calling ourself and we cleaned dirs,
             // then re-call javac to get the list of all source files.
@@ -114,25 +110,25 @@ public class AJDT_AjcCompilerAdapter implements CompilerAdapter {
                 String[] args = javac.getCurrentCompilerArgs();
                 for (int i = 0; i < args.length; i++) {
                     if (args[i].equals("-log") && args.length > i) {
-                        logFile = args[i+1]; 
+                        logFile = args[i+1];
                         ajc.setLog(new File(logFile));
                         break;
                     }
                 }
 
                 ajc.execute();
-                
+
                 // if log file is used, this message handler will never show any errors
                 IMessage[] messages = handler.getMessages(IMessage.ERROR, true);
                 if (messages != IMessage.RA_IMessage && logFile != null) {
                     // log messages
-                    String msg = "Compilation has errors or warnings. Log is available in " + logFile; 
+                    String msg = "Compilation has errors or warnings. Log is available in " + logFile;
                     javac.log(msg, Project.MSG_INFO);
                     return false;
                 } else {
                     return ajc.wasCompilationSuccessful();
                 }
-                
+
             } finally {
                 inSelfCall.set(Boolean.FALSE);
             }
@@ -148,7 +144,7 @@ public class AJDT_AjcCompilerAdapter implements CompilerAdapter {
     }
 
     /**
-     * If destDir exists and property CLEAN is set, 
+     * If destDir exists and property CLEAN is set,
      * this cleans out the dest dir of any .class files,
      * and returns true to signal a recursive call.
      * @return true if destDir was cleaned.
@@ -175,34 +171,34 @@ public class AJDT_AjcCompilerAdapter implements CompilerAdapter {
         return true;
     }
 
-    
-    
-    
+
+
+
     protected File[] getAJFiles() {
         String[] list = javac.getSrcdir().list();
         File destDir = javac.getDestdir();
-        File[] sourceFiles = new File[0]; 
-        for (int i = 0; i < list.length; i++) {
-            File srcDir = javac.getProject().resolveFile(list[i]);
-            if (!srcDir.exists()) {
-                throw new BuildException("srcdir \""
-                                         + srcDir.getPath()
-                                         + "\" does not exist!", javac.getLocation());
-            }
-
-            DirectoryScanner ds = getDirectoryScanner(srcDir);
-            String[] files = ds.getIncludedFiles();
-
-            AJFileNameMapper m = new AJFileNameMapper();
-            SourceFileScanner sfs = new SourceFileScanner(javac);
-            File[] moreFiles = sfs.restrictAsFiles(files, srcDir, destDir, m);
-            if (moreFiles != null) {
-                File[] origFiles = sourceFiles;
-                sourceFiles = new File[origFiles.length + moreFiles.length];
-                System.arraycopy(origFiles, 0, sourceFiles, 0, origFiles.length);
-                System.arraycopy(moreFiles, 0, sourceFiles, origFiles.length, moreFiles.length);
-            }
+        File[] sourceFiles = new File[0];
+      for (String s : list) {
+        File srcDir = javac.getProject().resolveFile(s);
+        if (!srcDir.exists()) {
+          throw new BuildException("srcdir \""
+                                   + srcDir.getPath()
+                                   + "\" does not exist!", javac.getLocation());
         }
+
+        DirectoryScanner ds = getDirectoryScanner(srcDir);
+        String[] files = ds.getIncludedFiles();
+
+        AJFileNameMapper m = new AJFileNameMapper();
+        SourceFileScanner sfs = new SourceFileScanner(javac);
+        File[] moreFiles = sfs.restrictAsFiles(files, srcDir, destDir, m);
+        if (moreFiles != null) {
+          File[] origFiles = sourceFiles;
+          sourceFiles = new File[origFiles.length + moreFiles.length];
+          System.arraycopy(origFiles, 0, sourceFiles, 0, origFiles.length);
+          System.arraycopy(moreFiles, 0, sourceFiles, origFiles.length, moreFiles.length);
+        }
+      }
         return sourceFiles;
     }
 

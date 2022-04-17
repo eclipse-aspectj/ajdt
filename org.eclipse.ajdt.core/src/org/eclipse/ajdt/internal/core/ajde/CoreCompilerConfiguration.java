@@ -1,11 +1,11 @@
 /********************************************************************
- * Copyright (c) 2007 Contributors. All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: IBM Corporation - initial API and implementation 
+ * Copyright (c) 2007 Contributors. All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution and is available at
+ * http://eclipse.org/legal/epl-v10.html
+ *
+ * Contributors: IBM Corporation - initial API and implementation
  *               Helen Hawkins   - initial version (bug 148190)
  *******************************************************************/
 package org.eclipse.ajdt.internal.core.ajde;
@@ -13,7 +13,6 @@ package org.eclipse.ajdt.internal.core.ajde;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -52,21 +51,21 @@ import org.eclipse.jdt.internal.core.util.Util;
 import org.eclipse.osgi.util.NLS;
 
 /**
- * ICompilerConfiguration implementation which returns information for all 
+ * ICompilerConfiguration implementation which returns information for all
  * methods except getNonStandardOptions().  This implementation is used
  * if ajdt.core plugin is not present in the platform
  */
 public class CoreCompilerConfiguration implements ICompilerConfiguration {
 
     private String cachedClasspath = null;
-    protected IProject project; 
+    protected IProject project;
     protected CoreOutputLocationManager locationManager;
-    protected FileURICache fileCache; 
+    protected FileURICache fileCache;
 
     // fully qualified list of file names that have been touched since
     // last build
-    // set to null originally since we don't know anything 
-    // about build state when first created.  Assume everything 
+    // set to null originally since we don't know anything
+    // about build state when first created.  Assume everything
     // has changed.
     private List<File> modifiedFiles = null;
     // set of flags describing what has changed since last
@@ -74,7 +73,7 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
     // initially set to EVERYTHING since we don't know
     // build state when first created.
     private int configurationChanges;
-    
+
     // list of classpath entries that have been rebuilt since last build
     private List<String> classpathElementsWithModifiedContents = null;
 
@@ -84,16 +83,16 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
         configurationChanges = EVERYTHING;
         fileCache = new FileURICache(project);
     }
-    
+
     public void buildStarting() {
         ((CoreOutputLocationManager) getOutputLocationManager()).buildStarting();
     }
-    
+
     public void buildComplete() {
         ((CoreOutputLocationManager) getOutputLocationManager()).buildComplete();
     }
-    
-    
+
+
 
     @SuppressWarnings("unchecked")
     public Map<String, String> getJavaOptionsMap() {
@@ -196,19 +195,19 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
     /**
      * bug 270335 need to recreate locationManager if any of the
      * following configuration changes have occurred:
-     * ASPECTPATH_CHANGED | CLASSPATH_CHANGED | INPATH_CHANGED | 
+     * ASPECTPATH_CHANGED | CLASSPATH_CHANGED | INPATH_CHANGED |
      * OUTJAR_CHANGED | OUTPUTDESTINATIONS_CHANGED | INJARS_CHANGED
-     * 
-     * @return true if {@link #locationManager} field has been reset to 
+     *
+     * @return true if {@link #locationManager} field has been reset to
      * null.  false otherwise
      */
     public boolean flushOutputLocationManagerIfNecessary(int buildKind) {
-        if (buildKind == IncrementalProjectBuilder.FULL_BUILD || 
+        if (buildKind == IncrementalProjectBuilder.FULL_BUILD ||
                 buildKind == IncrementalProjectBuilder.CLEAN_BUILD) {
             locationManager = null;
-        } else if ((configurationChanges & 
-                (ASPECTPATH_CHANGED | CLASSPATH_CHANGED | 
-                 INPATH_CHANGED | OUTJAR_CHANGED | 
+        } else if ((configurationChanges &
+                (ASPECTPATH_CHANGED | CLASSPATH_CHANGED |
+                 INPATH_CHANGED | OUTJAR_CHANGED |
                  OUTPUTDESTINATIONS_CHANGED | INJARS_CHANGED)) != 0) {
             locationManager = null;
         } else {
@@ -220,10 +219,10 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
         }
         return locationManager == null;
     }
-    
+
     public List<String> getProjectSourceFiles() {
         Set<IFile> files = BuildConfig.getIncludedSourceFiles(project);
-        List<String> iofiles = new ArrayList<String>(files.size());
+        List<String> iofiles = new ArrayList<>(files.size());
         for (IFile f : files) {
             iofiles.add(f.getLocation().toOSString());
         }
@@ -242,7 +241,7 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
     }
 
     public String expandVariables(String path, String eKinds) {
-        StringBuffer resultBuffer = new StringBuffer();
+        StringBuilder resultBuffer = new StringBuilder();
         StringTokenizer strTok = new StringTokenizer(path, File.pathSeparator);
         StringTokenizer strTok2 = new StringTokenizer(eKinds, File.pathSeparator);
         while (strTok.hasMoreTokens()) {
@@ -271,7 +270,7 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
      * @return
      */
     public String fullyQualifyPathEntries(String inputPath) {
-        StringBuffer resultBuffer = new StringBuffer();
+        StringBuilder resultBuffer = new StringBuilder();
         StringTokenizer strTok = new StringTokenizer(inputPath, File.pathSeparator);
         while (strTok.hasMoreTokens()) {
             String current = strTok.nextToken();
@@ -327,21 +326,21 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 
     /**
      * Utility method for converting a semicolon separated list of files stored in a string into a Set of {@link File} objects.
-     * 
+     *
      */
     private Set<File> mapStringToSet(String input, boolean validateFiles) {
         if (input.length() == 0)
             return null;
         String inputCopy = input;
 
-        StringBuffer invalidEntries = new StringBuffer();
+        StringBuilder invalidEntries = new StringBuilder();
 
         // For relative paths (they don't start with a File.separator
         // or a drive letter on windows) - we prepend the projectBaseDirectory
         String projectBaseDirectory = project.getLocation().toOSString();
 
-        Set<File> fileSet = new HashSet<File>();
-        while (inputCopy.indexOf(File.pathSeparator) != -1) {
+        Set<File> fileSet = new HashSet<>();
+        while (inputCopy.contains(File.pathSeparator)) {
             int idx = inputCopy.indexOf(File.pathSeparator);
             String path = inputCopy.substring(0, idx);
 
@@ -377,42 +376,42 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
     private void getProjectRelativePaths(IResource[] resource_list, List<String> allProjectFiles, CoreUtils.FilenameFilter filter,
             int trimSegments, IClasspathEntry sourceEntry) {
         try {
-            for (int i = 0; i < resource_list.length; i++) {
-                IResource ir = resource_list[i];
-                // bug 161739: skip excluded resources
-                char[][] inclusionPatterns = ((ClasspathEntry) sourceEntry).fullInclusionPatternChars();
-                char[][] exclusionPatterns = ((ClasspathEntry) sourceEntry).fullExclusionPatternChars();
-                if (!Util.isExcluded(ir, inclusionPatterns, exclusionPatterns)) {
-                    if (ir instanceof IContainer) {
-                        getProjectRelativePaths(((IContainer) ir).members(), allProjectFiles, filter, trimSegments, sourceEntry);
-                    } else if (filter.accept(ir.getName())) {
-                        String[] segments = ir.getProjectRelativePath().segments();
-                        String path = ""; //$NON-NLS-1$
-                        for (int j = trimSegments; j < segments.length; j++) {
-                            path += segments[j];
-                            if (j < segments.length - 1)
-                                path += '/'; // matches Eclipse's separator
-                        }
-                        allProjectFiles.add(path);
-                    }
-
+          for (IResource ir : resource_list) {
+            // bug 161739: skip excluded resources
+            char[][] inclusionPatterns = ((ClasspathEntry) sourceEntry).fullInclusionPatternChars();
+            char[][] exclusionPatterns = ((ClasspathEntry) sourceEntry).fullExclusionPatternChars();
+            if (!Util.isExcluded(ir, inclusionPatterns, exclusionPatterns)) {
+              if (ir instanceof IContainer) {
+                getProjectRelativePaths(((IContainer) ir).members(), allProjectFiles, filter, trimSegments, sourceEntry);
+              }
+              else if (filter.accept(ir.getName())) {
+                String[] segments = ir.getProjectRelativePath().segments();
+                String path = ""; //$NON-NLS-1$
+                for (int j = trimSegments; j < segments.length; j++) {
+                  path += segments[j];
+                  if (j < segments.length - 1)
+                    path += '/'; // matches Eclipse's separator
                 }
+                allProjectFiles.add(path);
+              }
+
             }
+          }
         } catch (Exception e) {
         }
     }
 
     private ArrayList<IResource> getLinkedChildFolders(IResource resource) {
-        ArrayList<IResource> resultList = new ArrayList<IResource>();
+        ArrayList<IResource> resultList = new ArrayList<>();
 
         if (resource instanceof IContainer) {
             try {
                 IResource[] children = ((IContainer) resource).members();
-                for (int i = 0; i < children.length; i++) {
-                    if ((children[i] instanceof IFolder) && children[i].isLinked()) {
-                        resultList.add(children[i]);
-                    }
+              for (IResource child : children) {
+                if ((child instanceof IFolder) && child.isLinked()) {
+                  resultList.add(child);
                 }
+              }
             } catch (CoreException e) {
             }
         }
@@ -424,18 +423,17 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
         if (relPath.lastIndexOf('/') != -1) {
             // Check to see if the relPath under scrutiny is
             // under a linked folder in this project.
-            Iterator<IResource> it = linkedFolders.iterator();
-            while (it.hasNext()) {
-                IFolder folder = (IFolder) it.next();
-                String linkedFolderName = folder.getName();
-                if (relPath.indexOf(linkedFolderName + "/") == 0) { //$NON-NLS-1$
-                    // Do the replacement ensuring that the result uses
-                    // operating system separator characters.
-                    result = folder.getLocation().toString() + relPath.substring(linkedFolderName.length());
-                    result = result.replace('/', File.separatorChar);
-                    break;
-                }
+          for (IResource linkedFolder : linkedFolders) {
+            IFolder folder = (IFolder) linkedFolder;
+            String linkedFolderName = folder.getName();
+            if (relPath.indexOf(linkedFolderName + "/") == 0) { //$NON-NLS-1$
+              // Do the replacement ensuring that the result uses
+              // operating system separator characters.
+              result = folder.getLocation().toString() + relPath.substring(linkedFolderName.length());
+              result = result.replace('/', File.separatorChar);
+              break;
             }
+          }
         }
         if (result == null) {
             result = srcContainer.getLocation().toOSString() + File.separator + relPath;
@@ -451,11 +449,11 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
             AJLog.log(AJLog.BUILDER, "    but, we don't have any state yet, so not recording the change.");
         }
     }
-    
+
     /**
      * Flag this compiler configuration as having had a change.
      * This is reset after a call to {@link #configurationRead()}
-     * @param changeFlag change flag from 
+     * @param changeFlag change flag from
      * {@link CompilerConfigurationChangeFlags}
      */
     public void configurationChanged(int changeFlag) {
@@ -464,7 +462,7 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
     }
 
     private void logConfigurationChange(int changeFlag) {
-        List<String> changeKind = new ArrayList<String>();
+        List<String> changeKind = new ArrayList<>();
         if ((changeFlag & PROJECTSOURCEFILES_CHANGED) != NO_CHANGES) {
             changeKind.add("PROJECTSOURCEFILES_CHANGED");
         }
@@ -498,15 +496,15 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
         }
         AJLog.log(AJLog.BUILDER, "CoreCompilerConfiguration for project " + project.getName() + " registered a configuration change: " + changeKind);
     }
-    
+
     /**
-     * converts the current configuration change list to a 
+     * converts the current configuration change list to a
      * human readable string
      * @return human readable string denoting all configuration
      * changes since last read.
      */
     private String toConfigurationString() {
-        List<String> changeKind = new ArrayList<String>();
+        List<String> changeKind = new ArrayList<>();
         if ((configurationChanges & PROJECTSOURCEFILES_CHANGED) != NO_CHANGES) {
             changeKind.add("PROJECTSOURCEFILES_CHANGED");
         }
@@ -549,7 +547,7 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
         // we now know nothing has changed
         AJLog.log(AJLog.BUILDER, "Compiler configuration for project " + project.getName() + " has been read by compiler.  Resetting.");
         AJLog.log(AJLog.BUILDER, "     Configuration was " + toConfigurationString());
-        
+
         // we are still not keeping track of some changes:
         // JAVAOPTIONS_CHANGED | NONSTANDARDOPTIONS_CHANGED | OUTJAR_CHANGED |
         // OUTPUTDESTINATIONS_CHANGED | INJARS_CHANGED
@@ -560,7 +558,7 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
     /**
      * Need to tell AspectJ what has changed in the configuration since the last build was done - the lazy answer (which causes it
      * to behave as it always used to) is EVERYTHING.
-     * 
+     *
      * @see CompilerConfigurationChangeFlags
      * @see AspectJCorePreferences#isIncrementalCompilationOptimizationsEnabled
      */
@@ -594,11 +592,11 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
     }
 
     public void resetModifiedList() {
-        AJLog.log(AJLog.BUILDER, "Resetting list of modified source files.  Was " + 
+        AJLog.log(AJLog.BUILDER, "Resetting list of modified source files.  Was " +
                 (modifiedFiles == null ? "null" : modifiedFiles.toString()));
-        modifiedFiles = new ArrayList<File>();
+        modifiedFiles = new ArrayList<>();
     }
-    
+
     public void resetClasspathElementsWithModifiedContents() {
         classpathElementsWithModifiedContents = null;
     }
@@ -607,14 +605,14 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
         AJLog.log(AJLog.BUILDER, "      " + (modifiedContents == null ? "NULL" : modifiedContents.toString()));
         classpathElementsWithModifiedContents = modifiedContents;
     }
-    
+
     // must go through the classpath and look at projects we depend on that have been built before our
     // most recent last build
     public List<String> getClasspathElementsWithModifiedContents() {
         return classpathElementsWithModifiedContents;
     }
 
-    
+
     /**
      * helper method that grabs the compiler configuration for a particular project
      * creates one if it does not exist
@@ -624,15 +622,15 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
     public static CoreCompilerConfiguration getCompilerConfigurationForProject(IProject project) {
         return (CoreCompilerConfiguration) AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project).getCompilerConfiguration();
     }
-    
+
     public File[] getCompiledSourceFiles() {
         CoreOutputLocationManager coreOutputLocationManager = (CoreOutputLocationManager) getOutputLocationManager();
-        File[] compiledSourceFiles = 
+        File[] compiledSourceFiles =
             coreOutputLocationManager.getCompiledSourceFiles();
         return compiledSourceFiles;
-        
+
     }
-    
+
     public List<String> getProjectXmlConfigFiles() {
         return new AopXmlPreferences(project).getAopXmlFilesAsListOfStrings();
     }
@@ -651,7 +649,7 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
             return ResourcesPlugin.getEncoding();
         }
     }
-    
+
     public FileURICache getFileCache() {
         return fileCache;
     }
@@ -665,7 +663,7 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
         IJavaProject jp = JavaCore.create(project);
 		FactoryPath fp =  FactoryPathUtil.getFactoryPath(jp);
 		Map<FactoryContainer,FactoryPath.Attributes> containers = fp.getEnabledContainers();
-		ArrayList<File> fileList = new ArrayList<File>( containers.size() );
+		ArrayList<File> fileList = new ArrayList<>(containers.size());
 		for (Map.Entry<FactoryContainer, FactoryPath.Attributes> entry : containers.entrySet()) {
 			FactoryPath.Attributes attr = entry.getValue();
 			FactoryContainer fc = entry.getKey();

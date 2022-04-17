@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2009 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Andrew Eisenberg - initial API and implementation
  *******************************************************************************/
@@ -45,7 +45,7 @@ public aspect ExtraGettersSettersAspect {
                 ISearchProvider searchProvider = SearchAdapter.getInstance().getProvider();
                 if (searchProvider != null) {
                     IJavaElement maybe = getter ?
-                            searchProvider.findITDGetter(element) : 
+                            searchProvider.findITDGetter(element) :
                                 searchProvider.findITDSetter(element);
                     if (maybe != null) {
                         result = null;
@@ -57,7 +57,7 @@ public aspect ExtraGettersSettersAspect {
         }
         return result;
     }
-    
+
     private boolean isInterestingProject(IJavaElement elt) {
         IProject proj = elt.getJavaProject().getProject();
         return proj != null &&

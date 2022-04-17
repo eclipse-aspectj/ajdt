@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2005 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman - initial version
@@ -15,7 +15,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.StringTokenizer;
@@ -153,11 +152,11 @@ public class AspectJCorePreferences {
 
 	public static boolean isOnAspectpath(IClasspathEntry entry) {
 		IClasspathAttribute[] attributes = entry.getExtraAttributes();
-		for (int j = 0; j < attributes.length; j++) {
-			if (isAspectPathAttribute(attributes[j])) {
-				return true;
-			}
-		}
+    for (IClasspathAttribute attribute : attributes) {
+      if (isAspectPathAttribute(attribute)) {
+        return true;
+      }
+    }
 		return false;
 	}
 
@@ -180,7 +179,7 @@ public class AspectJCorePreferences {
 			return true;
 		} else {
 			for (String restriction : restrictions) {
-				if (item.indexOf(restriction) != -1) {
+				if (item.contains(restriction)) {
 					return true;
 				}
 			}
@@ -203,7 +202,7 @@ public class AspectJCorePreferences {
 			return true;
 		} else {
 			for (String restriction : restrictions) {
-				if (item.indexOf(restriction) != -1) {
+				if (item.contains(restriction)) {
 					return true;
 				}
 			}
@@ -218,22 +217,23 @@ public class AspectJCorePreferences {
 		IJavaProject jp = JavaCore.create(project);
 		try {
 			IClasspathEntry[] cp = jp.getRawClasspath();
-			for (int i = 0; i < cp.length; i++) {
-				if ((cp[i].getEntryKind() == IClasspathEntry.CPE_LIBRARY)
-						|| (cp[i].getEntryKind() == IClasspathEntry.CPE_VARIABLE)
-						|| (cp[i].getEntryKind() == IClasspathEntry.CPE_CONTAINER)
-						|| (cp[i].getEntryKind() == IClasspathEntry.CPE_PROJECT)) {
-					IClasspathEntry resolvedClasspathEntry = JavaCore.getResolvedClasspathEntry(cp[i]);
-					if (resolvedClasspathEntry != null) {
-						String entry = resolvedClasspathEntry.getPath().toPortableString();
-						if (entry.equals(path)) {
-							if (isOnAspectpath(cp[i])) {
-								return true;
-							}
-						}
-					}
-				}
-			}
+      for (IClasspathEntry iClasspathEntry : cp) {
+        if ((iClasspathEntry.getEntryKind() == IClasspathEntry.CPE_LIBRARY)
+            || (iClasspathEntry.getEntryKind() == IClasspathEntry.CPE_VARIABLE)
+            || (iClasspathEntry.getEntryKind() == IClasspathEntry.CPE_CONTAINER)
+            || (iClasspathEntry.getEntryKind() == IClasspathEntry.CPE_PROJECT))
+        {
+          IClasspathEntry resolvedClasspathEntry = JavaCore.getResolvedClasspathEntry(iClasspathEntry);
+          if (resolvedClasspathEntry != null) {
+            String entry = resolvedClasspathEntry.getPath().toPortableString();
+            if (entry.equals(path)) {
+              if (isOnAspectpath(iClasspathEntry)) {
+                return true;
+              }
+            }
+          }
+        }
+      }
 		} catch (JavaModelException e) {
 		}
 		return false;
@@ -251,7 +251,7 @@ public class AspectJCorePreferences {
 			IProject requiredProj) {
 		// add all output locations and exported classpath entities
 		// AspectJ compiler doesn't understand the concept of a java project
-		List<IClasspathEntry> actualEntries = new ArrayList<IClasspathEntry>();
+		List<IClasspathEntry> actualEntries = new ArrayList<>();
 
 		try {
 			JavaProject requiredJavaProj = (JavaProject) JavaCore.create(requiredProj);
@@ -265,33 +265,33 @@ public class AspectJCorePreferences {
 			Object resolvedClasspath = requiredJavaProj.resolveClasspath(requiredJavaProj.getRawClasspath(), true,
 					false);
 			IClasspathEntry[] requiredEntries = extractRequiredEntries(resolvedClasspath);
-			for (int i = 0; i < requiredEntries.length; i++) {
-				IClasspathEntry requiredEntry = requiredEntries[i];
-				if (requiredEntry.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
+      for (IClasspathEntry requiredEntry : requiredEntries) {
+        if (requiredEntry.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
 
-					// always add source entries even if not explicitly exported
-					// don't add the source folder itself, but instead add the
-					// outfolder
-					IPath outputLocation = requiredEntry.getOutputLocation();
-					if (outputLocation != null) {
-						IAccessRule[] rules = projEntry.getAccessRules();
-						IClasspathAttribute[] attributes = projEntry.getExtraAttributes();
+          // always add source entries even if not explicitly exported
+          // don't add the source folder itself, but instead add the
+          // outfolder
+          IPath outputLocation = requiredEntry.getOutputLocation();
+          if (outputLocation != null) {
+            IAccessRule[] rules = projEntry.getAccessRules();
+            IClasspathAttribute[] attributes = projEntry.getExtraAttributes();
 
-						// only add the out folder if it already exists
-						if (requiredProj.getFolder(outputLocation.removeFirstSegments(1)).exists()) {
-							IClasspathEntry outFolder = JavaCore.newLibraryEntry(outputLocation,
-									requiredEntry.getPath(), requiredProj.getFullPath(), rules, attributes,
-									projEntry.isExported());
-							actualEntries.add(outFolder);
-						}
-					}
-				} else if (requiredEntry.isExported()) {
-					// must recur through this entry and add entries that it
-					// contains
-					actualEntries.addAll(resolveClasspath(requiredEntry, requiredProj));
+            // only add the out folder if it already exists
+            if (requiredProj.getFolder(outputLocation.removeFirstSegments(1)).exists()) {
+              IClasspathEntry outFolder = JavaCore.newLibraryEntry(outputLocation,
+                requiredEntry.getPath(), requiredProj.getFullPath(), rules, attributes,
+                projEntry.isExported());
+              actualEntries.add(outFolder);
+            }
+          }
+        }
+        else if (requiredEntry.isExported()) {
+          // must recur through this entry and add entries that it
+          // contains
+          actualEntries.addAll(resolveClasspath(requiredEntry, requiredProj));
 
-				}
-			} // for (int i = 0; i < requiredEntries.length; i++)
+        }
+      } // for (int i = 0; i < requiredEntries.length; i++)
 
 			IPath outputLocation = requiredJavaProj.getOutputLocation();
 			// Output location may not exist. Do not put output location of
@@ -339,39 +339,39 @@ public class AspectJCorePreferences {
 		IClasspathContainer container = JavaCore.getClasspathContainer(classpathContainerEntry.getPath(),
 				thisJavaProject);
 		if (container != null) {
-			List<IClasspathEntry> actualEntries = new ArrayList<IClasspathEntry>();
+			List<IClasspathEntry> actualEntries = new ArrayList<>();
 			IClasspathEntry[] containerEntries = container.getClasspathEntries();
-			for (int i = 0; i < containerEntries.length; i++) {
-				// projects must be resolved specially since the AspectJ doesn't
-				// understand the
-				// concept of project
-				switch (containerEntries[i].getEntryKind()) {
-				case IClasspathEntry.CPE_PROJECT:
-					IProject requiredProj = thisProject.getWorkspace().getRoot()
-							.getProject(containerEntries[i].getPath().makeRelative().toPortableString());
-					if (!requiredProj.getName().equals(thisProject.getName()) && requiredProj.exists()) {
-						actualEntries.addAll(resolveDependentProjectClasspath(containerEntries[i], requiredProj));
-					}
-					break;
+      for (IClasspathEntry containerEntry : containerEntries) {
+        // projects must be resolved specially since the AspectJ doesn't
+        // understand the
+        // concept of project
+        switch (containerEntry.getEntryKind()) {
+          case IClasspathEntry.CPE_PROJECT:
+            IProject requiredProj = thisProject.getWorkspace().getRoot()
+              .getProject(containerEntry.getPath().makeRelative().toPortableString());
+            if (!requiredProj.getName().equals(thisProject.getName()) && requiredProj.exists()) {
+              actualEntries.addAll(resolveDependentProjectClasspath(containerEntry, requiredProj));
+            }
+            break;
 
-				case IClasspathEntry.CPE_VARIABLE:
-					IClasspathEntry resolvedClasspathEntry = JavaCore.getResolvedClasspathEntry(containerEntries[i]);
-					if (resolvedClasspathEntry != null) {
-						actualEntries.add(resolvedClasspathEntry);
-					}
-					break;
+          case IClasspathEntry.CPE_VARIABLE:
+            IClasspathEntry resolvedClasspathEntry = JavaCore.getResolvedClasspathEntry(containerEntry);
+            if (resolvedClasspathEntry != null) {
+              actualEntries.add(resolvedClasspathEntry);
+            }
+            break;
 
-				case IClasspathEntry.CPE_CONTAINER:
-					// not sure if we can have this, but try anyway
-					actualEntries.addAll(resolveClasspathContainer(containerEntries[i], thisProject));
-					break;
-				case IClasspathEntry.CPE_LIBRARY:
-					actualEntries.add(containerEntries[i]);
-					break;
-				default:
-					// do nothing
-				}
-			}
+          case IClasspathEntry.CPE_CONTAINER:
+            // not sure if we can have this, but try anyway
+            actualEntries.addAll(resolveClasspathContainer(containerEntry, thisProject));
+            break;
+          case IClasspathEntry.CPE_LIBRARY:
+            actualEntries.add(containerEntry);
+            break;
+          default:
+            // do nothing
+        }
+      }
 			return actualEntries;
 		} else {
 			return Collections.emptyList();
@@ -380,7 +380,7 @@ public class AspectJCorePreferences {
 
 	/**
 	 * Resolves a single classpath entry
-	 * 
+	 *
 	 * @param entry
 	 *            the classpath entry to resolve
 	 * @param thisProject
@@ -438,11 +438,11 @@ public class AspectJCorePreferences {
 
 	public static boolean isOnInpath(IClasspathEntry entry) {
 		IClasspathAttribute[] attributes = entry.getExtraAttributes();
-		for (int j = 0; j < attributes.length; j++) {
-			if (isInPathAttribute(attributes[j])) {
-				return true;
-			}
-		}
+    for (IClasspathAttribute attribute : attributes) {
+      if (isInPathAttribute(attribute)) {
+        return true;
+      }
+    }
 		return false;
 	}
 
@@ -457,22 +457,23 @@ public class AspectJCorePreferences {
 		IJavaProject jp = JavaCore.create(project);
 		try {
 			IClasspathEntry[] cp = jp.getRawClasspath();
-			for (int i = 0; i < cp.length; i++) {
-				if ((cp[i].getEntryKind() == IClasspathEntry.CPE_LIBRARY)
-						|| (cp[i].getEntryKind() == IClasspathEntry.CPE_VARIABLE)
-						|| (cp[i].getEntryKind() == IClasspathEntry.CPE_CONTAINER)
-						|| (cp[i].getEntryKind() == IClasspathEntry.CPE_PROJECT)) {
-					IClasspathEntry resolvedClasspathEntry = JavaCore.getResolvedClasspathEntry(cp[i]);
-					if (resolvedClasspathEntry != null) {
-						String entry = resolvedClasspathEntry.getPath().toPortableString();
-						if (entry.equals(jarPath)) {
-							if (isOnInpath(cp[i])) {
-								return true;
-							}
-						}
-					}
-				}
-			}
+      for (IClasspathEntry iClasspathEntry : cp) {
+        if ((iClasspathEntry.getEntryKind() == IClasspathEntry.CPE_LIBRARY)
+            || (iClasspathEntry.getEntryKind() == IClasspathEntry.CPE_VARIABLE)
+            || (iClasspathEntry.getEntryKind() == IClasspathEntry.CPE_CONTAINER)
+            || (iClasspathEntry.getEntryKind() == IClasspathEntry.CPE_PROJECT))
+        {
+          IClasspathEntry resolvedClasspathEntry = JavaCore.getResolvedClasspathEntry(iClasspathEntry);
+          if (resolvedClasspathEntry != null) {
+            String entry = resolvedClasspathEntry.getPath().toPortableString();
+            if (entry.equals(jarPath)) {
+              if (isOnInpath(iClasspathEntry)) {
+                return true;
+              }
+            }
+          }
+        }
+      }
 		} catch (JavaModelException e) {
 		}
 		return false;
@@ -490,7 +491,7 @@ public class AspectJCorePreferences {
 	/**
 	 * Searches the raw classpath for entries whose paths contain the strings in
 	 * putOnPath.
-	 * 
+	 *
 	 * Then ensures that these classpath entries are on the aspect path
 	 */
 	public static void augmentAspectPath(IProject project, String[] putOnAspectPath) {
@@ -499,17 +500,17 @@ public class AspectJCorePreferences {
 			return;
 		}
 		IJavaProject jp = JavaCore.create(project);
-		List<IClasspathEntry> toPutOnAspectPath = new ArrayList<IClasspathEntry>();
+		List<IClasspathEntry> toPutOnAspectPath = new ArrayList<>();
 		try {
 			IClasspathEntry[] cp = jp.getRawClasspath();
-			for (int i = 0; i < cp.length; i++) {
-				String path = cp[i].getPath().toPortableString();
-				for (int j = 0; j < putOnAspectPath.length; j++) {
-					if (path.indexOf(putOnAspectPath[j]) != -1) {
-						toPutOnAspectPath.add(cp[i]);
-					}
-				}
-			}
+      for (IClasspathEntry iClasspathEntry : cp) {
+        String path = iClasspathEntry.getPath().toPortableString();
+        for (String s : putOnAspectPath) {
+          if (path.contains(s)) {
+            toPutOnAspectPath.add(iClasspathEntry);
+          }
+        }
+      }
 
 			for (IClasspathEntry entry : toPutOnAspectPath) {
 				if (!isOnAspectpath(entry)) {
@@ -523,9 +524,9 @@ public class AspectJCorePreferences {
 	/**
 	 * Checks to see if the compiler option for incremental build optimizations
 	 * is on or off
-	 * 
+	 *
 	 * On by default
-	 * 
+	 *
 	 * @return
 	 */
 	public static boolean isIncrementalCompilationOptimizationsEnabled() {
@@ -623,7 +624,7 @@ public class AspectJCorePreferences {
 	/**
 	 * Firstly, add library to the Java build path if it's not there already,
 	 * then mark the entry as being on the aspect path
-	 * 
+	 *
 	 * @param project
 	 * @param path
 	 */
@@ -706,90 +707,88 @@ public class AspectJCorePreferences {
 		try {
 			IClasspathEntry[] cp = javaProject.getRawClasspath();
 			AJLog.log("internalGetProjectPath: iterating over classpath entries, size #"+(cp==null?0:cp.length));
-			for (int i = 0; i < cp.length; i++) {
-				IClasspathAttribute[] attributes = cp[i].getExtraAttributes();
-				AJLog.log("internalGetProjectPath: attributes on "+cp[i].getPath()+" are "+toString(attributes));
-				boolean attributeFound = false;
-				for (int j = 0; j < attributes.length; j++) {
-					if (attributes[j].getName().equals(attribute.getName())) {
-						attributeFound = true;
-						List<IClasspathEntry> actualEntries = new ArrayList<IClasspathEntry>();
+      for (IClasspathEntry iClasspathEntry : cp) {
+        IClasspathAttribute[] attributes = iClasspathEntry.getExtraAttributes();
+        AJLog.log("internalGetProjectPath: attributes on " + iClasspathEntry.getPath() + " are " + toString(attributes));
+        boolean attributeFound = false;
+        for (IClasspathAttribute iClasspathAttribute : attributes) {
+          if (iClasspathAttribute.getName().equals(attribute.getName())) {
+            attributeFound = true;
+            List<IClasspathEntry> actualEntries = new ArrayList<>();
 
-						if (useResolvedPath) {
-							// this entry is on the path. must resolve it
-							if (cp[i].getEntryKind() == IClasspathEntry.CPE_CONTAINER) {
-								List<IClasspathEntry> containerEntries = resolveClasspathContainer(cp[i], project);
-								// Bug 273770 - look for the
-								// XXXPATH_RESTRICTION_ATTRIBUTE_NAME classpath
-								// attribute
-								Set<String> extraPathElements = findContainerRestrictions(cp[i],
-										isAspectPathAttribute(attribute));
-								if (extraPathElements != null && extraPathElements.size() > 0) {
-									// must filter
-									for (Iterator<IClasspathEntry> cpIter = containerEntries.iterator(); cpIter
-											.hasNext();) {
-										IClasspathEntry containerEntry = cpIter.next();
-										if (!containsAsPathFragment(extraPathElements, containerEntry)) {
-											cpIter.remove();
-										}
-									}
-								}
-								actualEntries.addAll(containerEntries);
-							} else if (cp[i].getEntryKind() == IClasspathEntry.CPE_PROJECT) {
-								IProject requiredProj = project.getWorkspace().getRoot()
-										.getProject(cp[i].getPath().makeRelative().toPortableString());
-								if (!requiredProj.getName().equals(project.getName()) && requiredProj.exists()) {
-									actualEntries.addAll(resolveDependentProjectClasspath(cp[i], requiredProj));
-								}
-							} else { // resolve the classpath variable
-								IClasspathEntry resolved = JavaCore.getResolvedClasspathEntry(cp[i]);
-								if (resolved != null) {
-									if (resolved.getEntryKind() == IClasspathEntry.CPE_PROJECT) {
-										// must resolve the project
-										actualEntries.addAll(resolveDependentProjectClasspath(resolved, project
-												.getWorkspace().getRoot().getProject(resolved.getPath().toString())));
-									} else {
-										actualEntries.add(resolved);
-									}
-								}
-							} // cp[i].getEntryKind()
-						} else {
-							actualEntries.add(cp[i]);
-						} // useResolvedEntry
+            if (useResolvedPath) {
+              // this entry is on the path. must resolve it
+              if (iClasspathEntry.getEntryKind() == IClasspathEntry.CPE_CONTAINER) {
+                List<IClasspathEntry> containerEntries = resolveClasspathContainer(iClasspathEntry, project);
+                // Bug 273770 - look for the
+                // XXXPATH_RESTRICTION_ATTRIBUTE_NAME classpath
+                // attribute
+                Set<String> extraPathElements = findContainerRestrictions(iClasspathEntry,
+                  isAspectPathAttribute(attribute));
+                if (extraPathElements != null && extraPathElements.size() > 0) {
+                  // must filter
+                  containerEntries.removeIf(containerEntry -> !containsAsPathFragment(extraPathElements, containerEntry));
+                }
+                actualEntries.addAll(containerEntries);
+              }
+              else if (iClasspathEntry.getEntryKind() == IClasspathEntry.CPE_PROJECT) {
+                IProject requiredProj = project.getWorkspace().getRoot()
+                  .getProject(iClasspathEntry.getPath().makeRelative().toPortableString());
+                if (!requiredProj.getName().equals(project.getName()) && requiredProj.exists()) {
+                  actualEntries.addAll(resolveDependentProjectClasspath(iClasspathEntry, requiredProj));
+                }
+              }
+              else { // resolve the classpath variable
+                IClasspathEntry resolved = JavaCore.getResolvedClasspathEntry(iClasspathEntry);
+                if (resolved != null) {
+                  if (resolved.getEntryKind() == IClasspathEntry.CPE_PROJECT) {
+                    // must resolve the project
+                    actualEntries.addAll(resolveDependentProjectClasspath(resolved, project
+                      .getWorkspace().getRoot().getProject(resolved.getPath().toString())));
+                  }
+                  else {
+                    actualEntries.add(resolved);
+                  }
+                }
+              } // cp[i].getEntryKind()
+            }
+            else {
+              actualEntries.add(iClasspathEntry);
+            } // useResolvedEntry
 
-						for (IClasspathEntry actualEntry : actualEntries) {
-							// we can get null for actualEntry if the raw entry
-							// corresponds to
-							// an unbound classpath variable
-							if (actualEntry != null) {
-								pathString += actualEntry.getPath().toPortableString() + File.pathSeparator;
-								contentString += actualEntry.getContentKind() + File.pathSeparator;
-								entryString += actualEntry.getEntryKind() + File.pathSeparator;
-							}
-						}
-					} // attributes[j].equals(attribute)
-				} // for (int j = 0; j < attributes.length; j++)
+            for (IClasspathEntry actualEntry : actualEntries) {
+              // we can get null for actualEntry if the raw entry
+              // corresponds to
+              // an unbound classpath variable
+              if (actualEntry != null) {
+                pathString += actualEntry.getPath().toPortableString() + File.pathSeparator;
+                contentString += actualEntry.getContentKind() + File.pathSeparator;
+                entryString += actualEntry.getEntryKind() + File.pathSeparator;
+              }
+            }
+          } // attributes[j].equals(attribute)
+        } // for (int j = 0; j < attributes.length; j++)
 
-				// there is a special case that we must look inside the
-				// classpath container for entries with
-				// attributes if we are returning the resolved path and the
-				// container itself isn't already
-				// on the path.
-				if (!attributeFound && useResolvedPath && cp[i].getEntryKind() == IClasspathEntry.CPE_CONTAINER) {
-					List<IClasspathEntry> containerEntries = resolveClasspathContainer(cp[i], project);
-					AJLog.log("internalGetProjectPath: Couldn't find it on first look, so looking here: "+containerEntries);
-					for (IClasspathEntry containerEntry : containerEntries) {
-						if (isOnPath(containerEntry, isAspectPathAttribute(attribute))) {
-							AJLog.log("internalGetProjectPath: isOnPath  for "+containerEntry);
-							pathString += containerEntry.getPath().toPortableString() + File.pathSeparator;
-							contentString += containerEntry.getContentKind() + File.pathSeparator;
-							entryString += containerEntry.getEntryKind() + File.pathSeparator;
-						}
-					} // for (Iterator cpIter = containerEntries.iterator();
-						// cpIter.hasNext(); )
-				} // !attributeFound && useResolvedPath && cp[i].getEntryKind()
-					// == IClasspathEntry.CPE_CONTAINER
-			} // for (int i = 0; i < cp.length; i++)
+        // there is a special case that we must look inside the
+        // classpath container for entries with
+        // attributes if we are returning the resolved path and the
+        // container itself isn't already
+        // on the path.
+        if (!attributeFound && useResolvedPath && iClasspathEntry.getEntryKind() == IClasspathEntry.CPE_CONTAINER) {
+          List<IClasspathEntry> containerEntries = resolveClasspathContainer(iClasspathEntry, project);
+          AJLog.log("internalGetProjectPath: Couldn't find it on first look, so looking here: " + containerEntries);
+          for (IClasspathEntry containerEntry : containerEntries) {
+            if (isOnPath(containerEntry, isAspectPathAttribute(attribute))) {
+              AJLog.log("internalGetProjectPath: isOnPath  for " + containerEntry);
+              pathString += containerEntry.getPath().toPortableString() + File.pathSeparator;
+              contentString += containerEntry.getContentKind() + File.pathSeparator;
+              entryString += containerEntry.getEntryKind() + File.pathSeparator;
+            }
+          } // for (Iterator cpIter = containerEntries.iterator();
+          // cpIter.hasNext(); )
+        } // !attributeFound && useResolvedPath && cp[i].getEntryKind()
+        // == IClasspathEntry.CPE_CONTAINER
+      } // for (int i = 0; i < cp.length; i++)
 		} catch (JavaModelException e) {
 		}
 		return new String[] { pathString, contentString, entryString };
@@ -811,7 +810,7 @@ public class AspectJCorePreferences {
 		}
 		String pathStr = containerEntry.getPath().toString();
 		for (String extraPathStr : extraPathElements) {
-			if (pathStr.indexOf(extraPathStr) != -1) {
+			if (pathStr.contains(extraPathStr)) {
 				return true;
 			}
 		}
@@ -823,14 +822,14 @@ public class AspectJCorePreferences {
 		if (containerEntry.getEntryKind() != IClasspathEntry.CPE_CONTAINER) {
 			return Collections.emptySet();
 		}
-		Set<String> restrictionPaths = new HashSet<String>();
+		Set<String> restrictionPaths = new HashSet<>();
 		String restrictions = getRestriction(containerEntry,
 				isAspectPathAttribute ? ASPECTPATH_RESTRICTION_ATTRIBUTE_NAME : INPATH_RESTRICTION_ATTRIBUTE_NAME);
 		if (restrictions != null) {
 			String[] restrictionsArr = restrictions.split(",");
-			for (int j = 0; j < restrictionsArr.length; j++) {
-				restrictionPaths.add(restrictionsArr[j].trim());
-			}
+      for (String s : restrictionsArr) {
+        restrictionPaths.add(s.trim());
+      }
 			return restrictionPaths;
 		} else {
 			return null;
@@ -885,11 +884,11 @@ public class AspectJCorePreferences {
 					IClasspathAttribute[] attributes = cp[i].getExtraAttributes();
 					IClasspathAttribute[] newattrib = new IClasspathAttribute[attributes.length - 1];
 					int count = 0;
-					for (int j = 0; j < attributes.length; j++) {
-						if (!attributes[j].getName().equals(attr.getName())) {
-							newattrib[count++] = attributes[j];
-						}
-					}
+          for (IClasspathAttribute attribute : attributes) {
+            if (!attribute.getName().equals(attr.getName())) {
+              newattrib[count++] = attribute;
+            }
+          }
 					switch (cp[i].getEntryKind()) {
 					case IClasspathEntry.CPE_LIBRARY:
 						cp[i] = JavaCore.newLibraryEntry(cp[i].getPath(), cp[i].getSourceAttachmentPath(),
@@ -922,7 +921,7 @@ public class AspectJCorePreferences {
 
 	/**
 	 * Remove all occurrences of an attribute
-	 * 
+	 *
 	 * @param javaProject
 	 * @param attribute
 	 */
@@ -942,11 +941,11 @@ public class AspectJCorePreferences {
 					changed = true;
 					IClasspathAttribute[] newattrib = new IClasspathAttribute[attributes.length - 1];
 					int count = 0;
-					for (int j = 0; j < attributes.length; j++) {
-						if (!attributes[j].getName().equals(attribute.getName())) {
-							newattrib[count++] = attributes[j];
-						}
-					}
+          for (IClasspathAttribute iClasspathAttribute : attributes) {
+            if (!iClasspathAttribute.getName().equals(attribute.getName())) {
+              newattrib[count++] = iClasspathAttribute;
+            }
+          }
 					switch (cp[i].getEntryKind()) {
 					case IClasspathEntry.CPE_LIBRARY:
 						cp[i] = JavaCore.newLibraryEntry(cp[i].getPath(), cp[i].getSourceAttachmentPath(),
@@ -1012,10 +1011,9 @@ public class AspectJCorePreferences {
 				newCP[originalCP.length] = cp;
 				jp.setRawClasspath(newCP, new NullProgressMonitor());
 			}
-		} catch (JavaModelException e) {
-		} catch (NumberFormatException e) {
+		} catch (JavaModelException | NumberFormatException e) {
 		}
-	}
+  }
 
 	private static String toContentKind(String contentStr) {
 		int content = 0;
@@ -1024,36 +1022,41 @@ public class AspectJCorePreferences {
 		} else if (contentStr.equals("BINARY")) { //$NON-NLS-1$
 			content = IPackageFragmentRoot.K_BINARY;
 		}
-		return new Integer(content).toString();
+		return Integer.valueOf(content).toString();
 	}
 
 	private static String toEntryKind(String entryStr) {
 		int entry = 0;
-		if (entryStr.equals("SOURCE")) { //$NON-NLS-1$
-			entry = IClasspathEntry.CPE_SOURCE;
-		} else if (entryStr.equals("LIBRARY")) { //$NON-NLS-1$
-			entry = IClasspathEntry.CPE_LIBRARY;
-		} else if (entryStr.equals("PROJECT")) { //$NON-NLS-1$
-			entry = IClasspathEntry.CPE_PROJECT;
-		} else if (entryStr.equals("VARIABLE")) { //$NON-NLS-1$
-			entry = IClasspathEntry.CPE_VARIABLE;
-		} else if (entryStr.equals("CONTAINER")) { //$NON-NLS-1$
-			entry = IClasspathEntry.CPE_CONTAINER;
-		}
-		return new Integer(entry).toString();
+    switch (entryStr) {
+      case "SOURCE":  //$NON-NLS-1$
+        entry = IClasspathEntry.CPE_SOURCE;
+        break;
+      case "LIBRARY":  //$NON-NLS-1$
+        entry = IClasspathEntry.CPE_LIBRARY;
+        break;
+      case "PROJECT":  //$NON-NLS-1$
+        entry = IClasspathEntry.CPE_PROJECT;
+        break;
+      case "VARIABLE":  //$NON-NLS-1$
+        entry = IClasspathEntry.CPE_VARIABLE;
+        break;
+      case "CONTAINER":  //$NON-NLS-1$
+        entry = IClasspathEntry.CPE_CONTAINER;
+        break;
+    }
+		return Integer.valueOf(entry).toString();
 	}
 
 	public static String getRestriction(IClasspathEntry pathEntry, String attributeName) {
 		IClasspathAttribute[] attributes = pathEntry.getExtraAttributes();
-		for (int i = 0; i < attributes.length; i++) {
-			IClasspathAttribute attribute = attributes[i];
-			if (attribute.getName().equals(attributeName)) {
-				String extraStr = attribute.getValue();
-				if (extraStr != null) {
-					return extraStr;
-				}
-			}
-		}
+    for (IClasspathAttribute attribute : attributes) {
+      if (attribute.getName().equals(attributeName)) {
+        String extraStr = attribute.getValue();
+        if (extraStr != null) {
+          return extraStr;
+        }
+      }
+    }
 
 		return null;
 	}

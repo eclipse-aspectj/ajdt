@@ -44,7 +44,7 @@ public class ExtraPackageReferenceFinder extends AbstractExtraReferenceFinder<Pa
 
     protected List<IAspectJElement> getRelevantChildren(IParent parent) throws JavaModelException {
         IJavaElement[] children = parent.getChildren();
-        List<IAspectJElement> allItds = new LinkedList<IAspectJElement>();
+        List<IAspectJElement> allItds = new LinkedList<>();
 
         for (IJavaElement elt : children) {
             if (elt instanceof IntertypeElement || elt instanceof DeclareElement) {

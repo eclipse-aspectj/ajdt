@@ -1,6 +1,5 @@
 package org.eclipse.contribution.jdt.preferences;
 
-import org.eclipse.core.internal.jobs.JobManager;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceVisitor;
@@ -18,11 +17,11 @@ import org.eclipse.jdt.internal.core.util.Util;
 import org.eclipse.jdt.ui.JavaUI;
 
 /**
- * 
+ *
  * @author andrew
  * @created Dec 10, 2008
- * 
- * Reindexes all projects so that Java-like compilation units 
+ *
+ * Reindexes all projects so that Java-like compilation units
  * can be added to the index.
  */
 public class ReindexingJob extends WorkspaceJob {
@@ -33,13 +32,13 @@ public class ReindexingJob extends WorkspaceJob {
     public ReindexingJob() {
         super("Reindexing for JDT Weaving");
     }
-    
+
     @Override
     public IStatus runInWorkspace(IProgressMonitor monitor)
             throws CoreException {
         // to avoid risk of deadlock and wait for JDT to be fully initialized
         waitForJobFamily(JavaUI.ID_PLUGIN, monitor);
-        
+
         // be careful not to double schedule
         synchronized (LOCK) {
             if (isRunning) {
@@ -69,14 +68,14 @@ public class ReindexingJob extends WorkspaceJob {
         }
         return Status.OK_STATUS;
     }
-    
-    
+
+
     @Override
     public boolean belongsTo(Object family) {
         return ReindexingJob.class == family;
     }
-    
-    public static void waitForJobFamily(Object jobFamily, IProgressMonitor monitor) {
+
+    public static void waitForJobFamily(java.io.Serializable jobFamily, IProgressMonitor monitor) {
         boolean wasInterrupted = false;
         do {
             try {
@@ -94,11 +93,11 @@ public class ReindexingJob extends WorkspaceJob {
 
     private class TouchJavaLikeResourceVisitor implements IResourceVisitor {
         IProgressMonitor monitor;
-        
+
         TouchJavaLikeResourceVisitor(IProgressMonitor monitor) {
             this.monitor = monitor;
         }
-        
+
         public boolean visit(IResource resource) throws CoreException {
             if (resource.getType() == IResource.FILE && Util.isJavaLikeFileName(resource.getName())) {
                 resource.touch(monitor);

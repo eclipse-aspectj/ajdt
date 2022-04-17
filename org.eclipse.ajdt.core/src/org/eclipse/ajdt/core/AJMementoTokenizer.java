@@ -1,17 +1,15 @@
 /*******************************************************************************
  * Copyright (c) 2005 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman - initial version
  *******************************************************************************/
 package org.eclipse.ajdt.core;
-
-import java.lang.reflect.Field;
 
 import org.eclipse.ajdt.core.javaelements.AspectElement;
 import org.eclipse.jdt.core.compiler.CharOperation;
@@ -78,7 +76,7 @@ public class AJMementoTokenizer extends MementoTokenizer {
         index = (Integer) ReflectionUtils.getPrivateField(MementoTokenizer.class, "index", tokenizer);
         ReflectionUtils.setPrivateField(MementoTokenizer.class, "index", this, index);
     }
-    
+
     /**
      * create a memento tokenizer that is reset to the token after the given name
      */
@@ -86,7 +84,7 @@ public class AJMementoTokenizer extends MementoTokenizer {
         super(String.valueOf((char[]) ReflectionUtils.getPrivateField(MementoTokenizer.class, "memento", tokenizer)));
         memento = (char[]) ReflectionUtils.getPrivateField(MementoTokenizer.class, "memento", tokenizer);
         length = memento.length;
-        
+
         // only reset to the given name if it is found
         int nameIndex = CharOperation.indexOf(resetToName.toCharArray(), memento, true);
         if (index >= 0) {
@@ -96,8 +94,8 @@ public class AJMementoTokenizer extends MementoTokenizer {
         }
         ReflectionUtils.setPrivateField(MementoTokenizer.class, "index", this, index);
     }
-    
-    
+
+
 
     public boolean hasMoreTokens() {
         return this.index < this.length;
@@ -105,10 +103,10 @@ public class AJMementoTokenizer extends MementoTokenizer {
 
     public String nextToken() {
         int start = this.index;
-        StringBuffer buffer = null;
+        StringBuilder buffer = null;
         switch (this.memento[this.index++]) {
             case JavaElement.JEM_ESCAPE:
-                buffer = new StringBuffer();
+                buffer = new StringBuilder();
                 buffer.append(this.memento[this.index]);
                 start = ++this.index;
                 break;
@@ -157,8 +155,8 @@ public class AJMementoTokenizer extends MementoTokenizer {
                 return DECLARE;
             case AspectElement.JEM_POINTCUT:
                 return POINTCUT;
-                
-                
+
+
             case AspectElement.JEM_ASPECT_CU:
                 // only return here if JDT weaving is off
                 // if JDT weaving is on, then a * here
@@ -172,7 +170,7 @@ public class AJMementoTokenizer extends MementoTokenizer {
             switch (this.memento[this.index]) {
                 case JavaElement.JEM_ESCAPE:
                     if (buffer == null)
-                        buffer = new StringBuffer();
+                        buffer = new StringBuilder();
                     buffer.append(this.memento, start, this.index - start);
                     start = ++this.index;
                     break;
@@ -220,7 +218,7 @@ public class AJMementoTokenizer extends MementoTokenizer {
         }
         return new String(this.memento, start, this.index - start);
     }
-    
+
     void setIndexTo(int newIndex) {
         this.index = newIndex;
     }

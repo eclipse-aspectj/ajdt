@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Luzius Meisser - initial implementation
  *     Sian January - changed for Eclipse 3.2
@@ -32,16 +32,16 @@ import org.eclipse.jdt.internal.codeassist.InternalCompletionProposal;
 /**
  * Translates code positions from fakeBuffer into realBuffer before
  * passing them on to the wrapped ICompletionRequestor.
- * 
+ *
  * A description of how code completion works in AJDT can be found in bug 74419.
- * 
+ *
  * @author Luzius Meisser
  */
 public class ProposalRequestorWrapper extends CompletionRequestor {
 
     CompletionRequestor wrapped;
-    ArrayList insertionTable;
-    
+    ArrayList<AspectsConvertingParser.Replacement> insertionTable;
+
     private AJWorldFacade world;
     private ICompilationUnit unit;
 
@@ -60,37 +60,37 @@ public class ProposalRequestorWrapper extends CompletionRequestor {
         this.wrapped = wrapped;
         this.unit = unit;
         this.insertionTable = buffer.getInsertionTable();
-        this.contextSwitchIdentifier = 
-            contextSwitchIdentifier == null || contextSwitchIdentifier.length() == 0 ? 
+        this.contextSwitchIdentifier =
+            contextSwitchIdentifier == null || contextSwitchIdentifier.length() == 0 ?
                     null : contextSwitchIdentifier;
     }
     public ProposalRequestorWrapper(CompletionRequestor wrapped,
-            ICompilationUnit unit,
-            ArrayList insertionTable) {
+                                    ICompilationUnit unit,
+                                    ArrayList<AspectsConvertingParser.Replacement> insertionTable) {
         super();
         this.wrapped = wrapped;
         this.unit = unit;
         this.insertionTable = insertionTable;
         this.contextSwitchIdentifier = null;
     }
-    
+
     public void accept(CompletionProposal proposal) {
-        
+
         if (!shouldAccept(proposal)) {
             return;
         }
-        
+
         if (insertionTable.size() > 0) {
             translateReplaceRange(proposal);
         }
         wrapped.accept(proposal);
     }
-    
+
     private void translateReplaceRange(CompletionProposal proposal) {
         int s = proposal.getReplaceStart();
         int e = proposal.getReplaceEnd();
         proposal.setReplaceRange(trans(s), trans(e));
-        
+
         /* AJDT 1.7 */
         // translate all proposals contained in this one
         if (proposal instanceof InternalCompletionProposal) {
@@ -102,15 +102,15 @@ public class ProposalRequestorWrapper extends CompletionRequestor {
             }
         }
     }
-    
+
     protected boolean shouldAccept(CompletionProposal proposal) {
         if (proposal.getKind() == CompletionProposal.FIELD_REF ||
                 proposal.getKind() == CompletionProposal.METHOD_REF) {
-            
+
             if (world == null) {
                 world = new AJWorldFacade(unit.getJavaProject().getProject());
             }
-            
+
             ITDInfo info = world.findITDInfoFromTargetType(proposal.getDeclarationSignature(), proposal.getName());
             if (info != null) {
                 if (info.accessibility == Accessibility.PUBLIC) {
@@ -136,7 +136,7 @@ public class ProposalRequestorWrapper extends CompletionRequestor {
                         proposal.setFlags(oldFlags);
                             return true;
                     }
-    
+
                 }
                 return false;
             } else {
@@ -157,34 +157,34 @@ public class ProposalRequestorWrapper extends CompletionRequestor {
         }
         return true;
     }
-    
+
     // ignore the proposal added by the context switch identifier
     private boolean contextSwitchIgnore(CompletionProposal proposal) {
         return contextSwitchIdentifier != null &&
                 new String(proposal.getCompletion()).startsWith(contextSwitchIdentifier);
     }
-    
-    
+
+
     private int trans(int pos){
         return AspectsConvertingParser.translatePositionToBeforeChanges(pos, insertionTable);
     }
-    
+
     public void acceptContext(CompletionContext context) {
         wrapped.acceptContext(context);
     }
-    
+
     public void endReporting() {
         wrapped.endReporting();
     }
-    
+
     public void beginReporting() {
         wrapped.beginReporting();
     }
-    
+
     public void completionFailure(IProblem problem) {
         wrapped.completionFailure(problem);
     }
-    
+
     public String[] getFavoriteReferences() {
         return wrapped.getFavoriteReferences();
     }
@@ -193,32 +193,32 @@ public class ProposalRequestorWrapper extends CompletionRequestor {
             int requiredProposalKind) {
         return wrapped.isAllowingRequiredProposals(proposalKind, requiredProposalKind);
     }
-    
+
     public boolean isExtendedContextRequired() {
         return wrapped.isExtendedContextRequired();
     }
-    
+
     public boolean isIgnored(int completionProposalKind) {
         return wrapped.isIgnored(completionProposalKind);
     }
-    
+
     public void setAllowsRequiredProposals(int proposalKind,
             int requiredProposalKind, boolean allow) {
         wrapped.setAllowsRequiredProposals(proposalKind, requiredProposalKind, allow);
     }
-    
+
     public void setFavoriteReferences(String[] favoriteImports) {
         wrapped.setFavoriteReferences(favoriteImports);
     }
-    
+
     public void setIgnored(int completionProposalKind, boolean ignore) {
         wrapped.setIgnored(completionProposalKind, ignore);
     }
-    
+
     public void setRequireExtendedContext(boolean require) {
         wrapped.setRequireExtendedContext(require);
     }
-    
+
     public boolean equals(Object obj) {
         return wrapped.equals(obj);
     }
@@ -228,7 +228,7 @@ public class ProposalRequestorWrapper extends CompletionRequestor {
     public String toString() {
         return wrapped.toString();
     }
-    
-    
+
+
 
 }

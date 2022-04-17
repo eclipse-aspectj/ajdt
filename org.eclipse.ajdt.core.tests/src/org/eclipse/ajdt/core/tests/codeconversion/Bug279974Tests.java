@@ -1,17 +1,15 @@
 /*******************************************************************************
  * Copyright (c) 2009 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Andrew Eisenberg - initial API and implementation
  *******************************************************************************/
 
 package org.eclipse.ajdt.core.tests.codeconversion;
-
-import junit.framework.TestCase;
 
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
@@ -21,19 +19,19 @@ import org.eclipse.core.runtime.Path;
 /**
  * @author Andrew Eisenberg
  * @created Jul 9, 2009
- * 
+ *
  * Tests that content assist in ITDs are working properly
  * specifically, this tests if the extra filtering for
  * target types are turned on or not
  */
 public class Bug279974Tests extends AJDTCoreTestCase {
-    
+
     protected void setUp() throws Exception {
     }
-    
+
     protected void tearDown() throws Exception {
     }
-    
+
     static class MockAJCompilationUnit extends AJCompilationUnit {
 
         public MockAJCompilationUnit() {
@@ -45,9 +43,9 @@ public class Bug279974Tests extends AJDTCoreTestCase {
                 int posInSource) {
             return AJCompilationUnit.positionIsAtDottedExpression(source, posInSource);
         }
-        
+
     }
-    
+
     void expectingTrue(String source) {
         if (!MockAJCompilationUnit.positionIsAtDottedExpression(source, source.indexOf("<here>"))) {
             fail("Should not have found a dotted expression in:\n" + source);
@@ -58,8 +56,8 @@ public class Bug279974Tests extends AJDTCoreTestCase {
             fail("Should have found a dotted expression in:\n" + source);
         }
     }
-    
-    
+
+
     public void testPosIsAtDottedExpression1() throws Exception {
         expectingTrue("foo.<here>");
     }
@@ -88,7 +86,7 @@ public class Bug279974Tests extends AJDTCoreTestCase {
         expectingTrue("this.foo.b<here>");
     }
 
-    
+
     public void testPosIsAtDottedExpressionFalse1() throws Exception {
         expectingFalse("b<here>");
     }

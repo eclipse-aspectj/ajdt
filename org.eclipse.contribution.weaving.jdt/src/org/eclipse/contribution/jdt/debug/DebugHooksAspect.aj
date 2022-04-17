@@ -3,7 +3,7 @@
  * accompanying materials are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors: Andrew Eisenberg - initial API and implementation
  *******************************************************************************/
 package org.eclipse.contribution.jdt.debug;
@@ -37,7 +37,7 @@ import com.sun.jdi.event.EventSet;
 import com.sun.jdi.InternalException;
 /**
  * The pointcuts and advice that provides hooks for other plugins into the JDT debug infrastructure
- * 
+ *
  * @author Andrew Eisenberg
  * @created Oct 28, 2010
  */
@@ -53,14 +53,14 @@ public privileged aspect DebugHooksAspect {
 
     /**
      * This pointcut is reached when the debugged application stops at a new location.
-     * 
+     *
      * This provides client plugins the capability to further step through the application. this
      * allows client plugins to provide more precise step filters than what is normally available.
      */
-    pointcut arrivedAtNewLocation(Location location, JDIThread.StepHandler handler, JDIDebugTarget target) : 
+    pointcut arrivedAtNewLocation(Location location, JDIThread.StepHandler handler, JDIDebugTarget target) :
         execution(protected boolean JDIThread.StepHandler.locationShouldBeFiltered(Location) throws DebugException) &&
         args(location) && this(handler) && cflowbelow(eventHandling(target));
-    
+
     /**
      * In order to get the current thread for the extra step filtering, we need to use a bit
      * of a wormhole pattern to grab the {@link JDIDebugTarget}
@@ -74,7 +74,7 @@ public privileged aspect DebugHooksAspect {
         // determines that the step should be performed, then doit.
         // otherwise, proceed as usual
         try {
-            
+
             StepRequestImpl request = (StepRequestImpl) ((JDIThread.StepHandler) handler).getStepRequest();
             if (request != null) {
                 IThread thread = target.findThread(request.thread());
@@ -92,7 +92,7 @@ public privileged aspect DebugHooksAspect {
 
     /**
      * This pointcut is reached when an evaluation is performed during debugging/
-     * 
+     *
      * Note that there is a second method that may need to be advised
      * @param snippet
      * @param object
@@ -101,8 +101,8 @@ public privileged aspect DebugHooksAspect {
      */
     pointcut performEvaluation(String snippet, IJavaObject object,
             IJavaThread thread, IEvaluationListener listener,
-            int evaluationDetail, boolean hitBreakpoints, ASTEvaluationEngine engine) 
-                : execution(public void ASTEvaluationEngine.evaluate(String, IJavaThread, IEvaluationListener, int, boolean) throws DebugException) && 
+            int evaluationDetail, boolean hitBreakpoints, ASTEvaluationEngine engine)
+                : execution(public void ASTEvaluationEngine.evaluate(String, IJavaThread, IEvaluationListener, int, boolean) throws DebugException) &&
                   args(snippet, object, thread, listener, evaluationDetail, hitBreakpoints) && this(engine);
 
     void around(String snippet, IJavaObject object, IJavaThread thread,
@@ -117,10 +117,10 @@ public privileged aspect DebugHooksAspect {
         }
         proceed(snippet, object, thread, listener, evaluationDetail, hitBreakpoints, engine);
     }
-    
+
     /**
      * This pointcut is reached when an evaluation is performed during debugging/
-     * 
+     *
      * Note that there is a second method that may need to be advised
      * @param snippet
      * @param object
@@ -128,8 +128,8 @@ public privileged aspect DebugHooksAspect {
      * @param listener
      */
     pointcut performEvaluationWithThread(String snippet, IJavaStackFrame frame, IEvaluationListener listener,
-            int evaluationDetail, boolean hitBreakpoints, ASTEvaluationEngine engine) 
-                : execution(public void ASTEvaluationEngine.evaluate(String, IJavaStackFrame, IEvaluationListener, int, boolean) throws DebugException) && 
+            int evaluationDetail, boolean hitBreakpoints, ASTEvaluationEngine engine)
+                : execution(public void ASTEvaluationEngine.evaluate(String, IJavaStackFrame, IEvaluationListener, int, boolean) throws DebugException) &&
                   args(snippet, frame, listener, evaluationDetail, hitBreakpoints) && this(engine);
 
     void around(String snippet, IJavaStackFrame frame,
@@ -145,18 +145,18 @@ public privileged aspect DebugHooksAspect {
         }
         proceed(snippet, frame, listener, evaluationDetail, hitBreakpoints, engine);
     }
-    
+
     /**
      * Capture enabling of step requests
      */
     pointcut stepRequestEnabled(StepRequestImpl stepRequest) : execution(public void EventRequestImpl.enable()) && this(stepRequest);
-    
+
     private static final int MAX_RETRY = 50;
     /**
      * There is a problem in that when performing extra step filters, occasionally
-     * an exception is thrown, but on a retry to perform the step request, 
+     * an exception is thrown, but on a retry to perform the step request,
      * then the extra step is successful.
-     * 
+     *
      * Try 50 times before failing.  This seems to work
      * This is the same problem as described in:
      * https://bugs.eclipse.org/bugs/show_bug.cgi?id=297071
@@ -164,7 +164,7 @@ public privileged aspect DebugHooksAspect {
      * @param stepRequest
      */
     void around(StepRequestImpl stepRequest) : stepRequestEnabled(stepRequest) {
-        
+
         for (int attemptNumber = 1; attemptNumber < MAX_RETRY; attemptNumber++) {
             try {
                 proceed(stepRequest);
@@ -178,11 +178,11 @@ public privileged aspect DebugHooksAspect {
                 }
             }
         }
-        
+
         // try one more time, but do not swallow
         proceed(stepRequest);
     }
-    
+
     pointcut gettingStepFilters(JDIDebugTarget target) : execution(public String[] JDIDebugTarget.getStepFilters()) &&
             this(target);
 
@@ -196,28 +196,28 @@ public privileged aspect DebugHooksAspect {
             IDebugProvider provider = adapter.getProvider();
             if (provider != null && isInterestingLaunch(target)) {
                 return provider.augmentStepFilters(initialFilters);
-            } 
+            }
         } catch(Throwable t) {
             JDTWeavingPlugin.logException(t);
         }
         return initialFilters;
     }
-    
+
     pointcut conditionalBreakpointHit(IJavaThread thread, IJavaBreakpoint breakpoint, ConditionalBreakpointHandler handler) : execution(public int ConditionalBreakpointHandler.breakpointHit(IJavaThread, IJavaBreakpoint))
                 && args(thread, breakpoint) && this(handler);
-    
+
     int around(IJavaThread thread, IJavaBreakpoint breakpoint, ConditionalBreakpointHandler handler) :
             conditionalBreakpointHit(thread, breakpoint, handler) {
         try {
             IDebugProvider provider = adapter.getProvider();
-            if (provider != null && 
+            if (provider != null &&
                     isInterestingLaunch(thread) && provider.shouldPerformEvaluation((IJavaStackFrame) thread.getTopStackFrame())) {
                 return provider.conditionalBreakpointHit(thread, breakpoint, handler);
             }
         } catch (Throwable t) {
             JDTWeavingPlugin.logException(t);
         }
-        
+
         return proceed(thread, breakpoint, handler);
     }
 
@@ -253,15 +253,15 @@ public privileged aspect DebugHooksAspect {
     protected boolean isInterestingLaunch(IDebugElement thread) {
         try {
             if (thread == null) return false;
-            
+
             IDebugProvider provider = adapter.getProvider();
             if (provider != null && provider.isAlwaysInteretingLaunch()) {
                 return true;
             }
-            
+
             ILaunchConfiguration launchConfig = thread
                     .getLaunch().getLaunchConfiguration();
-            
+
             return isInterestingLaunch(launchConfig);
         } catch (CoreException e) {
             JDTWeavingPlugin.logException(e);
@@ -281,7 +281,7 @@ public privileged aspect DebugHooksAspect {
                 .getAttribute(
                         IJavaLaunchConfigurationConstants.ATTR_PROJECT_NAME,
                         "");
-        
+
         if (!projectName.equals("")) {
             IProject project = WORKSPACE_ROOT.getProject(projectName);
             return (WeavableProjectListener.getInstance()
@@ -290,7 +290,7 @@ public privileged aspect DebugHooksAspect {
             // most likely a server launch
             // return true iff we are running a SpringSource server
             String pluginId = launchConfig.getType().getPluginIdentifier();
-            return pluginId != null && (pluginId.contains("springsource") || pluginId.contains("vmware")); 
+            return pluginId != null && (pluginId.contains("springsource") || pluginId.contains("vmware"));
         }
     }
 }

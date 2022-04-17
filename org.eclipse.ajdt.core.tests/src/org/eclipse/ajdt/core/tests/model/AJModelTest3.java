@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2004, 2005 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Sian January - adapted from AJModelTest
@@ -61,7 +61,7 @@ public class AJModelTest3 extends AJDTCoreTestCase {
 				{ "declare soft: tjp.DemoException", "declare soft" }, //$NON-NLS-1$ //$NON-NLS-2$
 				{ "Demo.itd(int)", "Demo.itd" }, //$NON-NLS-1$ //$NON-NLS-2$
 				{ "Demo.f", "Demo.f" }, //$NON-NLS-1$ //$NON-NLS-2$
-				{ "before(): <anonymous pointcut>", "before" }, //$NON-NLS-1$ //$NON-NLS-2$	
+				{ "before(): <anonymous pointcut>", "before" }, //$NON-NLS-1$ //$NON-NLS-2$
 				{ "before(): demoExecs..", "before" }, //$NON-NLS-1$ //$NON-NLS-2$
 				{ "before(): <anonymous pointcut>..", "before" }, //$NON-NLS-1$ //$NON-NLS-2$
 				{ "after(): fieldSet..", "after" }, //$NON-NLS-1$ //$NON-NLS-2$
@@ -82,10 +82,10 @@ public class AJModelTest3 extends AJDTCoreTestCase {
 		String path = file.getRawLocation().toOSString();
 
 		AsmManager asm = AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project.getProject()).getModel();
-		Map annotationsMap = asm.getInlineAnnotations(path,
+		Map<Integer, List<IProgramElement>> annotationsMap = asm.getInlineAnnotations(path,
 				true, true);
 		AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForProject(project);
-        
+
 
 		assertNotNull(
 				"Didn't get annotations map for file: " + path, annotationsMap); //$NON-NLS-1$
@@ -98,19 +98,19 @@ public class AJModelTest3 extends AJDTCoreTestCase {
 
 		assertNotNull("Didn't get a compilation unit from file: " + path, unit); //$NON-NLS-1$
 
-		List toFind = new ArrayList();
-		List toMatch = new ArrayList();
+		List<String> toFind = new ArrayList<>();
+		List<String> toMatch = new ArrayList<>();
 		for (int i = 0; i < results.length; i++) {
 			toFind.add(results[i][0].intern());
 			toMatch.add(results[i][1].intern());
 		}
 
-		Set keys = annotationsMap.keySet();
-		for (Iterator it = keys.iterator(); it.hasNext();) {
-			Object key = it.next();
-			List annotations = (List) annotationsMap.get(key);
-			for (Iterator it2 = annotations.iterator(); it2.hasNext();) {
-				IProgramElement pe = (IProgramElement) it2.next();
+		Set<Integer> keys = annotationsMap.keySet();
+		for (Iterator<Integer> it = keys.iterator(); it.hasNext();) {
+			Integer key = it.next();
+			List<IProgramElement> annotations = annotationsMap.get(key);
+			for (Iterator<IProgramElement> it2 = annotations.iterator(); it2.hasNext();) {
+				IProgramElement pe = it2.next();
 				String peName = pe.toLabelString(false).intern();
 
 				IJavaElement je = model.programElementToJavaElement(pe);
@@ -122,7 +122,7 @@ public class AJModelTest3 extends AJDTCoreTestCase {
 				if (index == -1) {
 					fail("Unexpected additional IProgramElement name found: " + peName); //$NON-NLS-1$
 				} else {
-					String expected = (String) toMatch.get(index);
+					String expected = toMatch.get(index);
 					if (expected.equals(jaName)) {
 						toFind.remove(index);
 						toMatch.remove(index);
@@ -138,7 +138,7 @@ public class AJModelTest3 extends AJDTCoreTestCase {
 			String missing = ""; //$NON-NLS-1$
 			for (int j = 0; j < toFind.size(); j++) {
 				missing += System.getProperty("line.separator"); //$NON-NLS-1$
-				missing += (String) toFind.get(j);
+				missing += toFind.get(j);
 			}
 			fail("Did not find all expected IProgramElement names. Missing: " + missing); //$NON-NLS-1$
 		}

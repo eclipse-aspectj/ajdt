@@ -3,13 +3,12 @@
  * program and the accompanying materials are made available under the terms of
  * the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
- * 
- * Contributors: 
+ *
+ * Contributors:
  *         Andrew Eisenberg - Initial implementation
  ******************************************************************************/
 package org.eclipse.ajdt.core.tests.ajde;
 
-import java.util.Iterator;
 import java.util.List;
 
 import org.aspectj.ajde.core.AjCompiler;
@@ -26,26 +25,26 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 
 /**
- * 
+ *
  * @author Andrew Eisenberg
  * @created Apr 8, 2009
- * 
+ *
  *          Tests to ensure that
  *          {@link CoreCompilerConfiguration#setClasspathElementsWithModifiedContents}
  *          does not have duplicated classpath elements
  */
 public class Bug270325Tests extends AJDTCoreTestCase {
 
-    class MockCoreCompilerConfiguration extends CoreCompilerConfiguration {
+    static class MockCoreCompilerConfiguration extends CoreCompilerConfiguration {
 
-        List modifiedContents;
+        List<String> modifiedContents;
 
         public MockCoreCompilerConfiguration(IProject project) {
             super(project);
         }
 
         public void setClasspathElementsWithModifiedContents(
-                List modifiedContents) {
+                List<String> modifiedContents) {
             super.setClasspathElementsWithModifiedContents(modifiedContents);
             this.modifiedContents = modifiedContents;
         }
@@ -54,7 +53,7 @@ public class Bug270325Tests extends AJDTCoreTestCase {
     class MockCompilerFactory extends CoreCompilerFactory {
         protected AjCompiler createCompiler(IProject project) {
             AjCompiler compiler = new AjCompiler(project.getName(),
-                    new MockCoreCompilerConfiguration(project),
+              new MockCoreCompilerConfiguration(project),
                     new CoreBuildProgressMonitor(project),
                     new CoreBuildMessageHandler());
             return compiler;
@@ -102,33 +101,32 @@ public class Bug270325Tests extends AJDTCoreTestCase {
     }
 
     public void testNoDupsOnClasspath() throws Exception {
-        MockCoreCompilerConfiguration config = (MockCoreCompilerConfiguration) 
+        MockCoreCompilerConfiguration config = (MockCoreCompilerConfiguration)
                 AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(myProj)
                 .getCompilerConfiguration();
-        
-        
+
+
         jp1.getFile("src/c/B.java").touch(null);
         jp2.getFile("src/Nothing2.java").touch(null);
 
         jp1.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
         jp2.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
-        
+
         // incremental build
         myProj.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
         assertEquals("Should have only entries of modified contents.  Entries were:\n" + config.modifiedContents, 2, config.modifiedContents.size());
         assertTrue("'JavaProj2-On Inpath/bin' should be a modified entry.  Entries were:\n" + config.modifiedContents,
                 listContains(config.modifiedContents, "JavaProj2-On Inpath"));
         assertTrue("'JavaProj1/bin' should be a modified entry.  Entries were:\n" + config.modifiedContents,
-                listContains(config.modifiedContents, "JavaProj1"));        
+                listContains(config.modifiedContents, "JavaProj1"));
     }
-    
-    boolean listContains(List strings, String msg) {
-        for (Iterator iterator = strings.iterator(); iterator.hasNext();) {
-            String str = (String) iterator.next();
-            if (str.indexOf(msg) != -1) {
-                return true;
-            }
+
+    boolean listContains(List<String> strings, String msg) {
+      for (String str : strings) {
+        if (str.contains(msg)) {
+          return true;
         }
+      }
         return false;
     }
 }

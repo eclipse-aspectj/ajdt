@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2005 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Sian January  - initial version
@@ -25,7 +25,7 @@ import org.eclipse.jdt.internal.core.SourceMethod;
 
 /**
  * Mocks up a source method that is below an aspect declaration
- * 
+ *
  * hmmmm....what about binary methods?
  * what about fields?
  */
@@ -33,19 +33,19 @@ public class MockSourceMethod extends SourceMethod {
 
 	private MethodElementInfo elementInfo;
 
-	
+
 	public MockSourceMethod(JavaElement parent, String name,
 	        String[] parameterTypes) {
         super(parent, name, parameterTypes);
 	    this.elementInfo = null;
 	}
-	
+
 	public MockSourceMethod(JavaElement parent, String name,
 			String[] parameterTypes, MethodElementInfo elementInfo) {
 		super(parent, name, parameterTypes);
 		this.elementInfo = elementInfo;
 	}
-	
+
 	public MockSourceMethod(JavaElement parent, String name, String[] parameterTypes, int offset, String accessibility) {
 		super(parent, name, parameterTypes);
 		elementInfo = new MethodElementInfo();
@@ -62,7 +62,7 @@ public class MockSourceMethod extends SourceMethod {
     			elementInfo.setAJAccessibility(Accessibility.PRIVILEGED);
     		}
 		}
-		elementInfo.setSourceRangeStart(offset);	
+		elementInfo.setSourceRangeStart(offset);
 		elementInfo.setName(name.toCharArray());
 		elementInfo.setAJKind(Kind.METHOD);
 	}
@@ -70,28 +70,28 @@ public class MockSourceMethod extends SourceMethod {
 	public Kind getAJKind() throws JavaModelException {
 		return Kind.METHOD;
 	}
-	
+
 	public Accessibility getAJAccessibility() throws JavaModelException {
 		return elementInfo.accessibility;
 	}
-	
-	public List getAJModifiers() throws JavaModelException {
+
+	public List<IProgramElement.Modifiers> getAJModifiers() throws JavaModelException {
 		return elementInfo.modifiers;
 	}
-	
+
 	public ExtraInformation getAJExtraInformation() throws JavaModelException {
 		return elementInfo.extra;
 	}
-	
+
 	protected Object createElementInfo() {
 	    if (elementInfo != null) {
 	        return elementInfo;
 	    }
-	    
+
         try {
             IProgramElement ipe = AJProjectModelFactory.getInstance().getModelForJavaElement(this)
                     .javaElementToProgramElement(this);
-            
+
             elementInfo = new MethodElementInfo();
             ISourceLocation sourceLocation = ipe.getSourceLocation();
             elementInfo.setSourceRangeStart(sourceLocation.getOffset());
@@ -102,7 +102,7 @@ public class MockSourceMethod extends SourceMethod {
             elementInfo.setAJKind(IProgramElement.Kind.METHOD);
             elementInfo.setAJModifiers(ipe.getModifiers());
             elementInfo.setAJAccessibility(ipe.getAccessibility());
-        
+
             return elementInfo;
         } catch (Exception e) {
             // can fail for any of a number of reasons.
@@ -115,4 +115,3 @@ public class MockSourceMethod extends SourceMethod {
 
 	}
 }
-

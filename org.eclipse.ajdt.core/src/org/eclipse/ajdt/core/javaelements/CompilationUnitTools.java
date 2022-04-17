@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Luzius Meisser - initial implementation
  *******************************************************************************/
@@ -32,12 +32,12 @@ import org.eclipse.jdt.internal.core.PackageFragment;
  * @author Luzius Meisser
  */
 public class CompilationUnitTools {
-	
+
 	public static String convertAJToJavaFileName(String ajfile){
 		return ajfile.substring(0, ajfile.lastIndexOf('.')).concat(".java"); //$NON-NLS-1$
 	}
-	
-	
+
+
 	public static PackageFragment getParentPackage(IFile ajFile){
 		IJavaProject jp = JavaCore.create(ajFile.getProject());
 		IJavaElement elem = JavaModelManager.determineIfOnClasspath(ajFile, jp);
@@ -50,10 +50,10 @@ public class CompilationUnitTools {
 			return (PackageFragment)elem;
 		}
 		//should never happen
-		
+
 		return null;
 	}
-	
+
 	public static int getModifierCode(IProgramElement elem){
 		IProgramElement.Accessibility acc = elem.getAccessibility();
 		List<Modifiers> others = elem.getModifiers();
@@ -88,11 +88,11 @@ public class CompilationUnitTools {
     		if (others.contains(IProgramElement.Modifiers.VOLATILE)) {
     			modifiers |= ClassFileConstants.AccVolatile;
     		}
-		}		
+		}
 		return modifiers;
 	}
-	
-	
+
+
 	/**
 	 * returns the modifiers of this element as if this element were declared
 	 * public
@@ -125,10 +125,10 @@ public class CompilationUnitTools {
         if (others.contains(IProgramElement.Modifiers.VOLATILE)) {
             modifiers |= ClassFileConstants.AccVolatile;
         }
-        
+
         return modifiers;
     }
-	
+
 	public static IProgramElement.Accessibility getAccessibilityFromModifierCode(int code){
 		IProgramElement.Accessibility acc = null;
 		if ((code & ClassFileConstants.AccPublic) != 0){
@@ -142,9 +142,9 @@ public class CompilationUnitTools {
 		}
 		return acc;
 	}
-	
+
 	public static List<Modifiers> getModifiersFromModifierCode(int code){
-		List<Modifiers> mods = new ArrayList<Modifiers>(2);
+		List<Modifiers> mods = new ArrayList<>(2);
 		if ((code & ClassFileConstants.AccAbstract) != 0){
 			mods.add(IProgramElement.Modifiers.ABSTRACT);
 		}
@@ -168,7 +168,7 @@ public class CompilationUnitTools {
 		}
 		return mods;
 	}
-	
+
 	/**
 	 * Attempts to convert the compilation unit into an AJCompilation unit.
 	 * Returns null if not possible.
@@ -183,17 +183,17 @@ public class CompilationUnitTools {
             return null;
         }
 	}
-	
+
 	/**
 	 * Returns the type with the given simple name in the given compilation unit.
-	 * 
+	 *
 	 * If an inner type, then this name includes parent types.
-	 * 
+	 *
 	 * The separator may either be source ('.') or binary ('$')
 	 */
 	public static IType findType(ICompilationUnit unit, String name, boolean isBinarySeparator) {
 	    String[] names = name.split("\\" + (isBinarySeparator ? '$' : '.'));
-	    IType candidate = unit.getType(names[0]); 
+	    IType candidate = unit.getType(names[0]);
 	    if (names.length > 0) {
 	        for (int i = 1; i < names.length; i++) {
                 candidate = candidate.getType(names[i]);
@@ -201,10 +201,10 @@ public class CompilationUnitTools {
 	    }
 	    return candidate.exists() ? candidate : null;
 	}
-	
 
-	
-//	
+
+
+//
 //	private static IType internalFindType(IParent parent, String name) {
 //	    try {
 //            IJavaElement[] children = parent.getChildren();
