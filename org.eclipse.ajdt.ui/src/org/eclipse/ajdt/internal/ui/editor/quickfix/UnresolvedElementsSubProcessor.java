@@ -553,7 +553,7 @@ public class UnresolvedElementsSubProcessor {
 		}
 		// AspectJ Change End
 
-		Name node= null;
+		Name node;
 		if (selectedNode instanceof SimpleType) {
 			node= ((SimpleType) selectedNode).getName();
 		} else if (selectedNode instanceof ArrayType) {
@@ -833,9 +833,8 @@ public class UnresolvedElementsSubProcessor {
         proposals.add(new RenameNodeCorrectionProposal(label, context.getCompilationUnit(), problem.getOffset(), problem.getLength(), curr, 6));
       }
     }
-		suggestedRenames= null;
 
-		if (isOnlyParameterMismatch) {
+    if (isOnlyParameterMismatch) {
 			ArrayList parameterMismatchs= new ArrayList();
       for (IBinding iBinding : bindings) {
         IMethodBinding binding = (IMethodBinding) iBinding;
@@ -865,7 +864,7 @@ public class UnresolvedElementsSubProcessor {
 
 	private static void addNewMethodProposals(ICompilationUnit cu, CompilationUnit astRoot, Expression sender, List arguments, boolean isSuperInvocation, ASTNode invocationNode, String methodName, Collection proposals) throws JavaModelException {
 		ITypeBinding nodeParentType= Bindings.getBindingOfParentType(invocationNode);
-		ITypeBinding binding= null;
+		ITypeBinding binding;
 		if (sender != null) {
 			binding= sender.resolveTypeBinding();
 		} else {

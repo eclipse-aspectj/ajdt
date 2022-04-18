@@ -59,7 +59,7 @@ public class MockProblemRequestor implements IProblemRequestor {
 
     public static List filterProblems(List problems) {
       //$NON-NLS-1$
-      problems.removeIf(o -> ((CategorizedProblem) o).toString()
+      problems.removeIf(o -> o.toString()
         .equals("Pb(388) The import java.util.List is never used"));
         return problems;
     }

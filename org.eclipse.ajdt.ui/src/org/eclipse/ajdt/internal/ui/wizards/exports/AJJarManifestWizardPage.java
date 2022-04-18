@@ -886,7 +886,7 @@ class AJJarManifestWizardPage extends WizardPage implements IJarPackageWizardPag
 		List packages= new ArrayList(packageFragments.size());
     for (Object packageFragment : packageFragments) {
       IPackageFragment fragment = (IPackageFragment) packageFragment;
-      boolean containsJavaElements = false;
+      boolean containsJavaElements;
       int kind;
       try {
         kind = fragment.getKind();

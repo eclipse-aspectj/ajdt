@@ -160,7 +160,7 @@ public class AspectJBreakpointRulerAction extends Action {
 		if (model != null) {
 			try {
 
-				IMarker[] markers = null;
+				IMarker[] markers;
 				if (resource instanceof IFile)
 					markers = resource.findMarkers(
 							IBreakpoint.BREAKPOINT_MARKER, true,

@@ -13,7 +13,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -60,10 +59,10 @@ public class RenamingUtils {
 
 	public static void updateBuildConfigurations(Map oldNamesToNewNames,
 			IProject project, IProgressMonitor monitor) {
-		List buildConfigs = AJProperties.getAJPropertiesFiles(project);
+		List<IFile> buildConfigs = AJProperties.getAJPropertiesFiles(project);
     for (Object config : buildConfigs) {
       IFile buildConfig = (IFile) config;
-      BufferedReader br = null;
+      BufferedReader br;
       try {
         br = new BufferedReader(new InputStreamReader(buildConfig
           .getContents()));

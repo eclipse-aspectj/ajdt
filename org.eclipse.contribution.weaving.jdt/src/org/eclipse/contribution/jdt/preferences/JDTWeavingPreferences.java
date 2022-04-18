@@ -59,7 +59,7 @@ public class JDTWeavingPreferences {
     public static boolean getAskToEnableWeaving() {
         IPreferenceStore store = getPreferences();
         String value = store.getString(ASK_TO_ENABLE_WEAVING);
-        return value == "" || value.equals("true");
+        return value.equals("") || value.equals("true");
     }
 
     /**

@@ -152,7 +152,7 @@ public class JDTWeavingPreferencePage
                     JDTWeavingPlugin.logException("Could not open browser", e);
                 }
             } else {
-                IWebBrowser browser = null;
+                IWebBrowser browser;
                 int flags = 0;
                 if (WorkbenchBrowserSupport.getInstance()
                         .isInternalWebBrowserAvailable()) {

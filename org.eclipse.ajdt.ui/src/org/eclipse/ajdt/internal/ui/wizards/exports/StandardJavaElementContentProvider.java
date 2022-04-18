@@ -211,10 +211,12 @@ class StandardJavaElementContentProvider implements ITreeContentProvider, IWorki
 			}
 		} else {
 			// don't allow to drill down into a compilation unit or class file
-			if (element instanceof ICompilationUnit ||
+			if (
+				element instanceof ICompilationUnit ||
 				element instanceof IClassFile ||
-				element instanceof IFile)
-			return false;
+				element instanceof IFile
+			)
+				return false;
 		}
 
 		if (element instanceof IJavaProject) {

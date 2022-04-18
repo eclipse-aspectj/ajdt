@@ -19,6 +19,7 @@ public aspect IsWovenTester {
      */
     declare parents : ToolFactory implements WeavingMarker;
 
+    @SuppressWarnings("ConstantConditions")
     private static final boolean weavingActive = new ToolFactory() instanceof WeavingMarker;
 
     public static boolean isWeavingActive() {

@@ -166,7 +166,7 @@ public class AJJarPackagerUtil {
     for (Object o : resources) {
       IResource resource = (IResource) o;
       if (resource != null && resource.getType() != IResource.FILE) {
-        List children = null;
+        List children;
         try {
           children = Arrays.asList(((IContainer) resource).members());
         }

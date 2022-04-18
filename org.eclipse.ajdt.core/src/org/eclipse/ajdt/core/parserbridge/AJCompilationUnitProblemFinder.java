@@ -982,7 +982,7 @@ public class AJCompilationUnitProblemFinder extends
                 return false;
             }
 
-            List itds = model.getRelationshipsForElement(type, AJRelationshipManager.ASPECT_DECLARATIONS);
+            List<IJavaElement> itds = model.getRelationshipsForElement(type, AJRelationshipManager.ASPECT_DECLARATIONS);
           for (Object itd : itds) {
             AspectJMemberElement ajElt = (AspectJMemberElement) itd;
             if (ajElt.getElementName().endsWith("." + methodName)) {

@@ -531,6 +531,7 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
         try {
             try {
                 // Eclipse 3.5.1
+                //noinspection JavaReflectionMemberAccess
                 flushZipFilesMethod = JavaModelManager.class.getMethod("flushZipFiles");
                 flushZipFilesMethod.invoke(manager);
             } catch (NoSuchMethodException e) {
@@ -553,6 +554,7 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
         try {
             try {
                 // Eclipse 3.5.1
+                //noinspection JavaReflectionMemberAccess
                 cacheZipFilesMethod = JavaModelManager.class.getMethod("cacheZipFiles");
                 cacheZipFilesMethod.invoke(manager);
             } catch (NoSuchMethodException e) {

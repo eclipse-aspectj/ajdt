@@ -514,7 +514,7 @@ public class AJOrganizeImportsAction extends SelectionDispatchAction {
 	}
 
 	private IChooseImportQuery createChooseImportQuery() {
-		return (openChoices, ranges) -> doChooseImports(openChoices, ranges);
+		return this::doChooseImports;
 	}
 
 	private TypeNameMatch[] doChooseImports(TypeNameMatch[][] openChoices, final ISourceRange[] ranges) {

@@ -74,8 +74,7 @@ public class AJQuickFixProcessor extends QuickFixProcessor implements IQuickAssi
 							relevantError = true;
 							break;
 						}
-						relevantError = false;
-					default:
+            default:
 						relevantError = false;
 				}
 			}

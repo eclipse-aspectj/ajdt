@@ -4,7 +4,7 @@
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors: Sian January - initial version
  * ...
  **********************************************************************/
@@ -43,7 +43,7 @@ public class AspectJApplicationLaunchShortcut extends
 
 	public static final String JAVA_FILE_EXTENSION = "java"; //$NON-NLS-1$
 
-	
+
 	protected IType[] findTypes(Object[] elements, IRunnableContext context) throws InterruptedException, CoreException {
 		try {
 			IJavaElement[] javaElements = getJavaElements(elements);
@@ -51,7 +51,7 @@ public class AspectJApplicationLaunchShortcut extends
 			IJavaSearchScope scope = SearchEngine.createJavaSearchScope(javaElements, false);
 			return engine.searchMainMethodsIncludingAspects(context, scope, true);
 		} catch (InvocationTargetException e) {
-			throw (CoreException)e.getTargetException(); 
+			throw (CoreException)e.getTargetException();
 		}
 	}
 
@@ -64,7 +64,7 @@ public class AspectJApplicationLaunchShortcut extends
 
 	protected ILaunchConfiguration createConfiguration(IType type) {
 		ILaunchConfiguration config = null;
-		ILaunchConfigurationWorkingCopy wc = null;
+		ILaunchConfigurationWorkingCopy wc;
 		try {
 			ILaunchConfigurationType configType = getAJConfigurationType();
 			wc = configType.newInstance(null, getLaunchManager().generateUniqueLaunchConfigurationNameFrom(type.getElementName()));
@@ -72,14 +72,14 @@ public class AspectJApplicationLaunchShortcut extends
 			wc.setAttribute(IJavaLaunchConfigurationConstants.ATTR_PROJECT_NAME, type.getJavaProject().getElementName());
 			config = wc.doSave();
 		} catch (CoreException exception) {
-			reportErorr(exception);		
-		} 
+			reportErorr(exception);
+		}
 		return config;
 	}
 
 	/**
 	 * Returns the singleton launch manager.
-	 * 
+	 *
 	 * @return launch manager
 	 */
 	private ILaunchManager getLaunchManager() {
@@ -88,12 +88,12 @@ public class AspectJApplicationLaunchShortcut extends
 
 	/**
 	 * Opens an error dialog on the given exception.
-	 * 
+	 *
 	 * @param exception
 	 */
 	protected void reportErorr(CoreException exception) {
-		MessageDialog.openError(getShell(), LauncherMessages.JavaLaunchShortcut_3, exception.getStatus().getMessage());  
+		MessageDialog.openError(getShell(), LauncherMessages.JavaLaunchShortcut_3, exception.getStatus().getMessage());
 	}
 
-	
+
 }

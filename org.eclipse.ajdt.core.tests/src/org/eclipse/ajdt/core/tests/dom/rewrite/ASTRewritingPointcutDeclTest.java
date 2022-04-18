@@ -51,7 +51,7 @@ public class ASTRewritingPointcutDeclTest extends AJDTCoreTestCase {
 
 	public void testAddImportStatement() throws Exception {
 		IProject project = createPredefinedProject("AST"); //$NON-NLS-1$
-		Map compilerOptions = JavaCore.create(project).getOptions(true);
+		Map<String, String> compilerOptions = JavaCore.create(project).getOptions(true);
 
 		Document doc = new Document("import java.util.List;\nclass X {}\n"); //$NON-NLS-1$
 		ASTParser parser = ASTParser.newParser(AST.JLS3);
@@ -82,7 +82,7 @@ public class ASTRewritingPointcutDeclTest extends AJDTCoreTestCase {
 
 	public void testPointcutDesignatorRename() throws Exception {
 		IProject project = createPredefinedProject("AST"); //$NON-NLS-1$
-		Map compilerOptions = JavaCore.create(project).getOptions(true);
+		Map<String, String> compilerOptions = JavaCore.create(project).getOptions(true);
 
 		Document doc = new Document("aspect A {\n" //$NON-NLS-1$
 				+ "    public pointcut a();\n" //$NON-NLS-1$
@@ -117,7 +117,7 @@ public class ASTRewritingPointcutDeclTest extends AJDTCoreTestCase {
 
 	public void testNotPointcutRename() throws Exception {
 		IProject project = createPredefinedProject("AST"); //$NON-NLS-1$
-		Map compilerOptions = JavaCore.create(project).getOptions(true);
+		Map<String, String> compilerOptions = JavaCore.create(project).getOptions(true);
 
 		// add node, change ASTVisitor and ASTMatcher
 		// update ASTConverter and ASTRewriteAnalyzer
@@ -156,7 +156,7 @@ public class ASTRewritingPointcutDeclTest extends AJDTCoreTestCase {
 
 	public void testCflowPointcutRename() throws Exception {
 		IProject project = createPredefinedProject("AST"); //$NON-NLS-1$
-		Map compilerOptions = JavaCore.create(project).getOptions(true);
+		Map<String, String> compilerOptions = JavaCore.create(project).getOptions(true);
 
 		// add node, change ASTVisitor and ASTMatcher
 		// update ASTConverter and ASTRewriteAnalyzer
@@ -195,7 +195,7 @@ public class ASTRewritingPointcutDeclTest extends AJDTCoreTestCase {
 
 	public void testCflowbelowPointcutRename() throws Exception {
 		IProject project = createPredefinedProject("AST"); //$NON-NLS-1$
-		Map compilerOptions = JavaCore.create(project).getOptions(true);
+		Map<String, String> compilerOptions = JavaCore.create(project).getOptions(true);
 
 		// add node, change ASTVisitor and ASTMatcher
 		// update ASTConverter and ASTRewriteAnalyzer
@@ -234,7 +234,7 @@ public class ASTRewritingPointcutDeclTest extends AJDTCoreTestCase {
 
 	public void testPerthisPointcutRename() throws Exception {
 		IProject project = createPredefinedProject("AST"); //$NON-NLS-1$
-		Map compilerOptions = JavaCore.create(project).getOptions(true);
+		Map<String, String> compilerOptions = JavaCore.create(project).getOptions(true);
 
 		// add node, change ASTVisitor and ASTMatcher
 		// update ASTConverter and ASTRewriteAnalyzer
@@ -269,7 +269,7 @@ public class ASTRewritingPointcutDeclTest extends AJDTCoreTestCase {
 
 	public void testPercflowPointcutRename() throws Exception {
 		IProject project = createPredefinedProject("AST"); //$NON-NLS-1$
-		Map compilerOptions = JavaCore.create(project).getOptions(true);
+		Map<String, String> compilerOptions = JavaCore.create(project).getOptions(true);
 
 		// add node, change ASTVisitor and ASTMatcher
 		// update ASTConverter and ASTRewriteAnalyzer
@@ -304,7 +304,7 @@ public class ASTRewritingPointcutDeclTest extends AJDTCoreTestCase {
 
 	public void testBeforePointcutRename() throws Exception {
 		IProject project = createPredefinedProject("AST"); //$NON-NLS-1$
-		Map compilerOptions = JavaCore.create(project).getOptions(true);
+		Map<String, String> compilerOptions = JavaCore.create(project).getOptions(true);
 
 		// add node, change ASTVisitor and ASTMatcher
 		// update ASTConverter and ASTRewriteAnalyzer
@@ -341,7 +341,7 @@ public class ASTRewritingPointcutDeclTest extends AJDTCoreTestCase {
 
 	public void testAfterPointcutRename() throws Exception {
 		IProject project = createPredefinedProject("AST"); //$NON-NLS-1$
-		Map compilerOptions = JavaCore.create(project).getOptions(true);
+		Map<String, String> compilerOptions = JavaCore.create(project).getOptions(true);
 
 		// add node, change ASTVisitor and ASTMatcher
 		// update ASTConverter and ASTRewriteAnalyzer
@@ -378,7 +378,7 @@ public class ASTRewritingPointcutDeclTest extends AJDTCoreTestCase {
 
 	public void testAroundPointcutRename() throws Exception {
 		IProject project = createPredefinedProject("AST"); //$NON-NLS-1$
-		Map compilerOptions = JavaCore.create(project).getOptions(true);
+		Map<String, String> compilerOptions = JavaCore.create(project).getOptions(true);
 
 		// add node, change ASTVisitor and ASTMatcher
 		// update ASTConverter and ASTRewriteAnalyzer
@@ -415,7 +415,7 @@ public class ASTRewritingPointcutDeclTest extends AJDTCoreTestCase {
 
 	public void testAndPointcutRename() throws Exception {
 		IProject project = createPredefinedProject("AST"); //$NON-NLS-1$
-		Map compilerOptions = JavaCore.create(project).getOptions(true);
+		Map<String, String> compilerOptions = JavaCore.create(project).getOptions(true);
 
 		// add node, change ASTVisitor and ASTMatcher
 		// update ASTConverter and ASTRewriteAnalyzer
@@ -454,7 +454,7 @@ public class ASTRewritingPointcutDeclTest extends AJDTCoreTestCase {
 
 	public void testOrPointcutRename() throws Exception {
 		IProject project = createPredefinedProject("AST"); //$NON-NLS-1$
-		Map compilerOptions = JavaCore.create(project).getOptions(true);
+		Map<String, String> compilerOptions = JavaCore.create(project).getOptions(true);
 
 		// add node, change ASTVisitor and ASTMatcher
 		// update ASTConverter and ASTRewriteAnalyzer
@@ -492,7 +492,7 @@ public class ASTRewritingPointcutDeclTest extends AJDTCoreTestCase {
 
 	public void testMethodRename() throws Exception {
 		IProject project = createPredefinedProject("AST"); //$NON-NLS-1$
-		Map compilerOptions = JavaCore.create(project).getOptions(true);
+		Map<String, String> compilerOptions = JavaCore.create(project).getOptions(true);
 
 		Document doc = new Document("package test1;\n" //$NON-NLS-1$
 				+ "abstract class E {\n" + "    public void a();\n" + "}\n"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
@@ -523,7 +523,7 @@ public class ASTRewritingPointcutDeclTest extends AJDTCoreTestCase {
 
 	public void testPointcutRename() throws Exception {
 		IProject project = createPredefinedProject("AST"); //$NON-NLS-1$
-		Map compilerOptions = JavaCore.create(project).getOptions(true);
+		Map<String, String> compilerOptions = JavaCore.create(project).getOptions(true);
 
 		Document doc = new Document("package test1;\n" //$NON-NLS-1$
 				+ "abstract class E {\n" + "    public pointcut a();\n" //$NON-NLS-1$ //$NON-NLS-2$
@@ -558,7 +558,7 @@ public class ASTRewritingPointcutDeclTest extends AJDTCoreTestCase {
 
 	public void testPointcutWithBodyRename() throws Exception {
 		IProject project = createPredefinedProject("AST"); //$NON-NLS-1$
-		Map compilerOptions = JavaCore.create(project).getOptions(true);
+		Map<String, String> compilerOptions = JavaCore.create(project).getOptions(true);
 
 		Document doc = new Document("package test1;\n" //$NON-NLS-1$
 				+ "abstract class E {\n" + "    public pointcut temp();\n" //$NON-NLS-1$ //$NON-NLS-2$
@@ -599,7 +599,7 @@ public class ASTRewritingPointcutDeclTest extends AJDTCoreTestCase {
 	 */
 	public void _testMethodDeclChanges() throws Exception {
 		IProject project = createPredefinedProject("AST"); //$NON-NLS-1$
-		Map compilerOptions = JavaCore.create(project).getOptions(true);
+		Map<String, String> compilerOptions = JavaCore.create(project).getOptions(true);
 
 		Document doc = new Document(
 				"package test1;\n" //$NON-NLS-1$

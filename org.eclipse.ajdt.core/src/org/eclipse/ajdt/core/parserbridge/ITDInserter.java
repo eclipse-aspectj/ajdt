@@ -287,7 +287,7 @@ public class ITDInserter extends ASTVisitor {
             }
         }
         ititAST.fields = fields.toArray(new FieldDeclaration[0]);
-        ititAST.methods = methods.toArray(new MethodDeclaration[0]);
+        ititAST.methods = methods.toArray(new AbstractMethodDeclaration[0]);
 
 
         // figure out how to make type bindings and figure out method bindings

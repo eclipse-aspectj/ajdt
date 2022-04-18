@@ -131,7 +131,7 @@ public class UpdateAJMarkers {
           if (fragRoot.getKind() == IPackageFragmentRoot.K_SOURCE) {
             IJavaElement[] frags = fragRoot.getChildren();
             for (IJavaElement frag : frags) {
-              Set<String> completedCUNames = new HashSet<String>(frags.length, 1.0f);
+              Set<String> completedCUNames = new HashSet<>(frags.length, 1.0f);
               IJavaElement[] cus = ((IPackageFragment) frag).getChildren();
               for (IJavaElement iJavaElement : cus) {
                 // ignore any class files in the source folder (Bug 258698)
@@ -140,7 +140,7 @@ public class UpdateAJMarkers {
                   IResource resource = iJavaElement.getResource();
                   if (!completedCUNames.contains(resource.getName())) {
                     subMonitor.subTask("Add markers for " + iJavaElement.getElementName());
-                    addMarkersForFile((ICompilationUnit) iJavaElement, ((ICompilationUnit) iJavaElement).getResource());
+                    addMarkersForFile((ICompilationUnit) iJavaElement, iJavaElement.getResource());
                     completedCUNames.add(resource.getName());
                     fileCount++;
                   }

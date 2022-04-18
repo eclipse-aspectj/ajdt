@@ -679,7 +679,7 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		Composite row3Comp = createRowComposite(othersComposite,2);
 
 		//fills the editor with the stored preference if there is one.
-		String currValue = ""; //$NON-NLS-1$
+		String currValue; //$NON-NLS-1$
 		if (isProjectPreferencePage()) {
 			if (hasProjectSpecificOptions(getProject())) {
 				currValue = AspectJPreferences.getStringPrefValue(getProject(), AspectJPreferences.COMPILER_OPTIONS);
@@ -1266,7 +1266,7 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 
 	public static void setProjectDefaults(IEclipsePreferences projectNode) {
     for (String key : keys) {
-      String value = (String) defaultValueMap.get(key);
+      String value = defaultValueMap.get(key);
       projectNode.put(key, value);
     }
 	}
@@ -1279,7 +1279,7 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		} catch (BackingStoreException e) {
 		}
     for (String key : keys) {
-      String value = (String) defaultValueMap.get(key);
+      String value = defaultValueMap.get(key);
       boolean keyExists = false;
       if (existingKeysList.contains(key)) {
         keyExists = true;

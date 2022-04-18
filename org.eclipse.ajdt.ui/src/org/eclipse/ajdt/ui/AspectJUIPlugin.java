@@ -216,7 +216,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 	 * point, but there doesn't seem to be one.
 	 */
 	private void checkTemplatesInstalled() {
-	    TemplateStore codeTemplates = null;
+	    TemplateStore codeTemplates;
 	    try {
     		codeTemplates = JavaPlugin.getDefault()
     				.getTemplateStore();

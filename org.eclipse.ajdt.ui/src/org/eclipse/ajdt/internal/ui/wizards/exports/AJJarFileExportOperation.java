@@ -186,7 +186,7 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 			if (javaProject != null)
 				enclosingJavaProjects.add(javaProject);
 
-			IResource resource= null;
+			IResource resource;
 			if (element instanceof IJavaElement) {
 				IJavaElement je= (IJavaElement)element;
 				try {
@@ -263,7 +263,7 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 		int leadSegmentsToRemove= 1;
 		IPackageFragmentRoot pkgRoot= null;
 		boolean isInJavaProject= false;
-		IResource resource= null;
+		IResource resource;
 		IJavaProject jProject= null;
 		if (element instanceof IJavaElement) {
 			isInJavaProject= true;
@@ -387,7 +387,7 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 		if (container.getType() == IResource.FOLDER && isOutputFolder((IFolder)container))
 			return;
 
-		IResource[] children= null;
+		IResource[] children;
 		try {
 			children= container.members();
       for (IResource child : children)
@@ -705,7 +705,7 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 		/*
 		 * XXX: Bug 6584: Need a way to get class files for a java file (or CU)
 		 */
-		IClassFileReader cfReader= null;
+		IClassFileReader cfReader;
 		IResource[] members= container.members();
 		Map<String, ArrayList<IFile>> map= new HashMap<>(members.length);
     for (IResource member : members) {
@@ -772,7 +772,7 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 	 * @return the status of this operation
 	 */
 	public IStatus getStatus() {
-		String message= null;
+		String message;
 		switch (fStatus.getSeverity()) {
 			case IStatus.OK:
 				message= ""; //$NON-NLS-1$

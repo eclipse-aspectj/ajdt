@@ -12,7 +12,6 @@ package org.eclipse.ajdt.internal.ui.markers;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -165,7 +164,7 @@ public class AJMarkersDialog extends Dialog {
 	}
 
 	private void addAspects(Table table) throws CoreException {
-		List ajcus = AJCompilationUnitManager.INSTANCE.getAJCompilationUnits(JavaCore.create(project));
+		List<? extends AJCompilationUnit> ajcus = AJCompilationUnitManager.INSTANCE.getAJCompilationUnits(JavaCore.create(project));
     for (Object o : ajcus) {
       AJCompilationUnit unit = (AJCompilationUnit) o;
       IType[] types = unit.getAllTypes();
@@ -261,10 +260,10 @@ public class AJMarkersDialog extends Dialog {
       if (aspectEl != null) {
         String fullyQualifiedName = getFullyQualifiedAspectName(aspectEl);
         String text = item.getText(1);
-        if (text == DEFAULT_MARKERS) {
+        if (text.equals(DEFAULT_MARKERS)) {
           AspectJPreferences.setSavedIcon(project, fullyQualifiedName, null);
         }
-        else if (text == NO_MARKERS) {
+        else if (text.equals(NO_MARKERS)) {
           AspectJPreferences.setSavedIcon(project, fullyQualifiedName, NO_MARKERS);
         }
         else {
@@ -321,7 +320,7 @@ public class AJMarkersDialog extends Dialog {
 				table.getSelection()[0].setText(1, DEFAULT_MARKERS);
 				table.getSelection()[0].setImage(1, defaultImage);
 				table.getSelection()[0].setData(null);
-			} else if (selection == NO_MARKERS) {
+			} else if (selection.equals(NO_MARKERS)) {
 				table.getSelection()[0].setText(1, NO_MARKERS);
 				table.getSelection()[0].setImage(1, null);
 				table.getSelection()[0].setData(NO_MARKERS);
@@ -429,7 +428,7 @@ public class AJMarkersDialog extends Dialog {
 				table.setSelection(defaultItem);
 			}
 			defaultItem.setImage(defaultImage);
-			if(selection != NO_MARKERS && selection != null && !(selection.startsWith(SAMPLE))) {
+			if(!selection.equals(NO_MARKERS) && selection != null && !(selection.startsWith(SAMPLE))) {
 				TableItem customItem = new TableItem(table, SWT.NONE);
 				customItem.setText(selection.substring(selection.lastIndexOf('/') + 1));
 				customItem.setImage(create16x16Image(CustomMarkerImageProvider.getImage(selection)));

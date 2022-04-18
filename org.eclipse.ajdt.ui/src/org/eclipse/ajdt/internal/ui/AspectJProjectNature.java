@@ -15,7 +15,6 @@ package org.eclipse.ajdt.internal.ui;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.Map;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
@@ -234,7 +233,7 @@ public class AspectJProjectNature implements IProjectNature {
 		Collection resultCommands = findBuilder(project, JavaCore.BUILDER_ID);
     for (Object resultCommand : resultCommands) {
       ICommand javaBuilderCommand = (ICommand) resultCommand;
-      Map arguments = javaBuilderCommand.getArguments();
+      Map<String, String> arguments = javaBuilderCommand.getArguments();
       String value = (String) arguments.get(JAVA_BUILDER_GENERATE_CLASSES);
       if (value == null || !value.equals(Boolean.FALSE.toString())) {
         return false;

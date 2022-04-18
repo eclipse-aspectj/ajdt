@@ -283,7 +283,7 @@ public class AspectJPreferences {
 	}
 
 	public static void setShowWeaveMessagesOption(IProject project, boolean showWeaveMessages) {
-		String value = ""; //$NON-NLS-1$
+		String value; //$NON-NLS-1$
 		IBuildMessageHandler handler = AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project).getMessageHandler();
 		if (showWeaveMessages) {
 			value = VALUE_TRUE;

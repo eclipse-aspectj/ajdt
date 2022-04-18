@@ -107,6 +107,7 @@ public class AJComparatorTest extends AJDTCoreTestCase {
 		AJComparator comp = new AJComparator();
 		assertTrue("ajce1 should be less than ajce2",comp.compare(ajce1,ajce2) < 0);
 		assertTrue("ajce2 should be greater than ajce1",comp.compare(ajce2,ajce1) > 0);
+    //noinspection EqualsWithItself
     assertEquals("ajce1 should be equal to ajce1", 0, comp.compare(ajce1, ajce1));
 	}
 
@@ -160,6 +161,7 @@ public class AJComparatorTest extends AJDTCoreTestCase {
 		AJComparator comp = new AJComparator();
 		assertTrue("ije1 should be less than ije2",comp.compare(ije1,ije2) < 0);
 		assertTrue("ije2 should be greater than ije1",comp.compare(ije2,ije1) > 0);
+    //noinspection EqualsWithItself
     assertEquals("ije1 should be equal to ije1", 0, comp.compare(ije1, ije1));
 
 	}

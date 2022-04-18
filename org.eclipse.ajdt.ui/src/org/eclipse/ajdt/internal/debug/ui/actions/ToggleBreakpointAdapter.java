@@ -71,7 +71,7 @@ public class ToggleBreakpointAdapter implements IToggleBreakpointsTargetExtensio
 
     protected void report(final String message, final IWorkbenchPart part) {
         JDIDebugUIPlugin.getStandardDisplay().asyncExec(() -> {
-            IEditorStatusLine statusLine = (IEditorStatusLine) part.getAdapter(IEditorStatusLine.class);
+            IEditorStatusLine statusLine = part.getAdapter(IEditorStatusLine.class);
             if (statusLine != null) {
                 if (message != null) {
                     statusLine.setMessage(true, message, null);
@@ -159,7 +159,7 @@ public class ToggleBreakpointAdapter implements IToggleBreakpointsTargetExtensio
                         }
 
                         String typeName = null;
-                        IResource resource = null;
+                        IResource resource;
                         Map attributes = new HashMap(10);
                         if (type == null) {
                             resource = getResource(editorPart);

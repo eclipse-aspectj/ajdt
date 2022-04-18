@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2005 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Sian January  - initial version
@@ -18,16 +18,19 @@ import org.eclipse.jdt.launching.IRuntimeClasspathEntry;
 
 public class LTWAspectpathModel extends ClasspathModel {
 
-	
+
 	public IRuntimeClasspathEntry[] getAllEntries() {
 		IClasspathEntry[] user = getEntries(USER);
 		IRuntimeClasspathEntry[] all = new IRuntimeClasspathEntry[user.length];
 		if (user.length > 0) {
+			// FIXME: IClasspathEntry and IRuntimeClasspathEntry are incompatible types.
+			//  This can only work if all entries are objects of classes implementing both interfaces,
+			//  e.g. org.eclipse.jdt.internal.debug.ui.classpath.ClasspathEntry.
 			System.arraycopy(user, 0, all, 0, user.length);
 		}
 		return all;
 	}
-	
+
 	public IClasspathEntry getBootstrapEntry() {
 		return null;
 	}

@@ -101,7 +101,6 @@ public class BuildClasspathResolver {
 		IClasspathEntry[] classpathEntries = javaProject.getExpandedClasspath();
 		ArrayList<ClasspathLocation> sLocations = new ArrayList<>(classpathEntries.length);
 		ArrayList<ClasspathLocation> bLocations = new ArrayList<>(classpathEntries.length);
-		nextEntry :
     for (IClasspathEntry classpathEntry : classpathEntries) {
       ClasspathEntry entry = (ClasspathEntry) classpathEntry;
       IPath path = entry.getPath();
@@ -129,7 +128,13 @@ public class BuildClasspathResolver {
             // AspectJ Change End
           }
           sLocations.add(
-            ClasspathLocation.forSourceFolder((IContainer) target, outputFolder, entry.fullInclusionPatternChars(), entry.fullExclusionPatternChars()));
+            ClasspathLocation.forSourceFolder(
+              (IContainer) target,
+              outputFolder,
+              entry.fullInclusionPatternChars(),
+              entry.fullExclusionPatternChars()
+            )
+          );
           continue;
 
         case IClasspathEntry.CPE_PROJECT:
@@ -227,7 +232,7 @@ public class BuildClasspathResolver {
 		ArrayList<ClasspathMultiDirectory> outputFolders = new ArrayList<>(1);
 		this.sourceLocations = new ClasspathMultiDirectory[sLocations.size()];
 		if (!sLocations.isEmpty()) {
-			sLocations.toArray(this.sourceLocations);
+			sLocations.toArray(new ClasspathLocation[0]);
 
 			// collect the output folders, skipping duplicates
 			next : for (int i = 0, l = sourceLocations.length; i < l; i++) {

@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -451,7 +450,7 @@ public abstract class PathBlock {
                   .toPortableString(), resolvedEntry);
                 break;
               case IClasspathEntry.CPE_CONTAINER:
-                List containerEntries = AspectJCorePreferences.resolveClasspathContainer(
+                List<IClasspathEntry> containerEntries = AspectJCorePreferences.resolveClasspathContainer(
                   rawEntry, currJProject.getProject());
 
                 for (Object entry : containerEntries) {
@@ -468,7 +467,7 @@ public abstract class PathBlock {
                 if (!requiredProj.getName().equals(thisProject.getName())
                     && requiredProj.exists())
                 {
-                  List containerEntries2 = AspectJCorePreferences.resolveDependentProjectClasspath(rawEntry, requiredProj);
+                  List<IClasspathEntry> containerEntries2 = AspectJCorePreferences.resolveDependentProjectClasspath(rawEntry, requiredProj);
                   for (Object o : containerEntries2) {
                     IClasspathEntry containerEntry = (IClasspathEntry) o;
                     resolvedEntries.put(containerEntry.getPath()

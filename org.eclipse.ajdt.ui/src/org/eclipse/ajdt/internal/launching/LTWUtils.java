@@ -15,7 +15,6 @@ package org.eclipse.ajdt.internal.launching;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -34,7 +33,6 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -74,7 +72,7 @@ public class LTWUtils {
 			IPackageFragmentRoot[] roots = project.getAllPackageFragmentRoots();
       for (IPackageFragmentRoot root : roots) {
         if (!(root instanceof JarPackageFragmentRoot) && root.getJavaProject().equals(project)) {
-          List aspects = getAspects(root);
+          List<IType> aspects = getAspects(root);
           String path;
           if (root.getElementName().trim().equals("")) { //$NON-NLS-1$
             path = AOP_XML_LOCATION;

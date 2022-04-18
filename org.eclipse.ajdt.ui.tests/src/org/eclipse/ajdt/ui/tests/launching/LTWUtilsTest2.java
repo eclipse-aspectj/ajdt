@@ -28,6 +28,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
+import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.internal.core.JarPackageFragmentRoot;
 
@@ -58,7 +59,7 @@ public class LTWUtilsTest2 extends UITestCase{
       }
     }
 		assertEquals("There should be one src directory",1,srcRoots.size()); //$NON-NLS-1$
-		List aspects = LTWUtils.getAspects((IPackageFragmentRoot)srcRoots.get(0));
+		List<IType> aspects = LTWUtils.getAspects((IPackageFragmentRoot)srcRoots.get(0));
 		assertEquals("There should be two aspects",2,aspects.size()); //$NON-NLS-1$
 		String aspectOne = ((AspectElement)aspects.get(0)).getElementName();
 		String aspectTwo = ((AspectElement)aspects.get(1)).getElementName();

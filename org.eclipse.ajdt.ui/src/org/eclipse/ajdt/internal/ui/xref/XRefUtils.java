@@ -69,8 +69,8 @@ public class XRefUtils {
 		if (store
 				.getBoolean(AspectJPreferences.PROMPT_FOR_AUTO_OPEN_CROSS_REF_VIEW)) {
 
-			boolean userClickedYes = false;
-			boolean rememberUsersChoice = false;
+			boolean userClickedYes;
+			boolean rememberUsersChoice;
 
 			MessageDialogWithToggle dialog = MessageDialogWithToggle
 					.openYesNoQuestion(

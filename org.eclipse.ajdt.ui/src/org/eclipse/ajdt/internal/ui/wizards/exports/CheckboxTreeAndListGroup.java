@@ -765,7 +765,7 @@ public class CheckboxTreeAndListGroup implements ICheckStateListener, ISelection
 			updateHierarchy(key);
 			if (fCurrentTreeSelection != null && fCurrentTreeSelection.equals(key)) {
 				fListViewer.setAllChecked(false);
-				fListViewer.setCheckedElements(((List) items.get(key)).toArray());
+				fListViewer.setCheckedElements(((List<?>) items.get(key)).toArray());
 			}
 		}
 	}

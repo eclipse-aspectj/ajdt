@@ -529,8 +529,8 @@ public class TypeInfoViewer {
 
 			// local vars to speed up rendering
 			TypeNameMatch last= null;
-			TypeNameMatch type= null;
-			TypeNameMatch next= null;
+			TypeNameMatch type;
+			TypeNameMatch next;
 			List elements= new ArrayList();
 			List imageDescriptors= new ArrayList();
 			List labels= new ArrayList();
@@ -552,8 +552,7 @@ public class TypeInfoViewer {
 					i++;
 				}
 			}
-			matchingTypes= null;
-			fViewer.fExpectedItemCount= elements.size();
+      fViewer.fExpectedItemCount= elements.size();
 			fViewer.addHistory(fTicket, elements, imageDescriptors, labels);
 
 			if ((fMode & INDEX) == 0) {
@@ -1244,7 +1243,7 @@ public class TypeInfoViewer {
 	}
 
 	private void addDashLine() {
-		TableItem item= null;
+		TableItem item;
 		if (fItems.size() > fNextElement) {
 			item= (TableItem)fItems.get(fNextElement);
 		} else {
@@ -1256,7 +1255,7 @@ public class TypeInfoViewer {
 	}
 
 	private void addSingleElement(Object element, ImageDescriptor imageDescriptor, String label) {
-		TableItem item= null;
+		TableItem item;
 		Object old= null;
 		if (fItems.size() > fNextElement) {
 			item= (TableItem)fItems.get(fNextElement);

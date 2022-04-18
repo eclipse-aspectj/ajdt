@@ -137,7 +137,7 @@ public class AdviceMarkersTest2 extends UITestCase {
           int foundIndex = 0;
           for (int k = 0; !found && (k < tofindMsg.size()); k++) {
             String msg1 = tofindMsg.get(k);
-            if (msg1 == msg) {
+            if (msg1.equals(msg)) {
               Integer expLine = (Integer) tofindLine.get(k);
               if (expLine == line) {
                 found = true;
@@ -163,7 +163,7 @@ public class AdviceMarkersTest2 extends UITestCase {
 				String missing = ""; //$NON-NLS-1$
         for (String s : tofindMsg) {
           missing += System.getProperty("line.separator"); //$NON-NLS-1$
-          missing += (String) s;
+          missing += s;
         }
 				fail("Did not find all expected markers of type " //$NON-NLS-1$
 						+ markerTypes[i] + ". Missing: " + missing); //$NON-NLS-1$

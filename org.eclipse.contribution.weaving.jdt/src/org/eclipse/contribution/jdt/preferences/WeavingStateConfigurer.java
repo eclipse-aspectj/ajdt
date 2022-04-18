@@ -122,7 +122,7 @@ public class WeavingStateConfigurer {
      */
     private IStatus changeSimpleConfiguratorManipulator(boolean becomeEnabled) {
         SimpleConfiguratorManipulator manipulator = new SimpleConfiguratorManipulatorImpl();
-        BundleContext bundleContext = null;
+        BundleContext bundleContext;
         try {
             bundleContext = Platform.getBundle(JDTWeavingPlugin.ID).getBundleContext();
         } catch (Exception e) {
@@ -324,7 +324,7 @@ public class WeavingStateConfigurer {
     protected String internalChangeWeavingState(boolean becomeEnabled,
             BufferedReader br) throws IOException {
         StringBuilder sb = new StringBuilder();
-        String line = null;
+        String line;
         boolean hookAdded = false;
         while ((line = br.readLine()) != null) {
             if (line.trim().startsWith("osgi.framework.extensions=")) {
@@ -394,7 +394,7 @@ public class WeavingStateConfigurer {
 
     protected boolean internalCurrentConfigStateIsWeaving(BufferedReader br)
             throws IOException {
-        String line = null;
+        String line;
         while ((line = br.readLine()) != null) {
             if (line.trim().startsWith("osgi.framework.extensions=") &&
                     line.contains("org.eclipse.equinox.weaving.hook")) {

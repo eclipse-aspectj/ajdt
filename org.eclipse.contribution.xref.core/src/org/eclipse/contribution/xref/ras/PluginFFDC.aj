@@ -50,7 +50,7 @@ public abstract aspect PluginFFDC extends FFDC {
 	 * caught and the object (if any) that caught it
 	 */
 	public void logException (Throwable th, String sourceId, Object obj) {
-		IStatus status = null;
+		IStatus status;
 		if (th instanceof CoreException) {
 			status = ((CoreException) th).getStatus();
 		} else {

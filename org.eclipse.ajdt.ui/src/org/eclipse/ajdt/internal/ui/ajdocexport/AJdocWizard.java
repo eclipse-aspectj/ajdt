@@ -275,7 +275,7 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 	// required for generating ajdoc i.e. location of tools.jar, ajde.jar etc.
 	private boolean executeJavadocGeneration() {
 
-		Process process = null;
+		Process process;
 		try {
 			List userVmArgs = new ArrayList();
 			List progArgs = new ArrayList();

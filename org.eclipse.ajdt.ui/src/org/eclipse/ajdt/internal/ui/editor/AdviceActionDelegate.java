@@ -506,7 +506,7 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 
 	protected void report(final String message) {
 		JDIDebugUIPlugin.getStandardDisplay().asyncExec(() -> {
-      IEditorStatusLine fStatusLine = (IEditorStatusLine) editor.getAdapter(IEditorStatusLine.class);
+      IEditorStatusLine fStatusLine = editor.getAdapter(IEditorStatusLine.class);
       if (fStatusLine != null) {
         fStatusLine.setMessage(true, message, null);
       }

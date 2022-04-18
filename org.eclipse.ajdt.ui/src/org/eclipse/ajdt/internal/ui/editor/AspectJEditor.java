@@ -366,7 +366,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 
         if (input instanceof IFileEditorInput) {
             IFileEditorInput fInput = (IFileEditorInput) input;
-            ICompilationUnit unit = null;
+            ICompilationUnit unit;
             // in case it is a .aj file, we need to register it in the
             // WorkingCopyManager
             if (CoreUtils.ASPECTJ_SOURCE_ONLY_FILTER.accept(fInput

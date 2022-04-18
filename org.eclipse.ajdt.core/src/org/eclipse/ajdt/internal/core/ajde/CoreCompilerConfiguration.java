@@ -282,7 +282,7 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
                 // Try to resolve path relative to the workspace. Need to
                 // replace part of the path string with a fully qualified
                 // equivalent.
-                String projectName = null;
+                String projectName;
                 int slashPos = current.indexOf(AspectJPlugin.NON_OS_SPECIFIC_SEPARATOR, 1);
                 if (slashPos != -1) {
                     projectName = current.substring(1, slashPos);

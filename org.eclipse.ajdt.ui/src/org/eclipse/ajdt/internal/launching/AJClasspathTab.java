@@ -497,7 +497,7 @@ public class AJClasspathTab extends JavaClasspathTab {
     public boolean isValid(ILaunchConfiguration launchConfig) {
         setErrorMessage(null);
         setMessage(null);
-        String projectName = null;
+        String projectName;
         try {
             projectName = launchConfig.getAttribute(
                     IJavaLaunchConfigurationConstants.ATTR_PROJECT_NAME, ""); //$NON-NLS-1$

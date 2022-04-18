@@ -30,7 +30,6 @@ import org.eclipse.jface.preference.PreferenceConverter;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DefaultInformationControl;
 import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.IInformationControl;
 import org.eclipse.jface.text.IInformationControlCreator;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextViewer;
@@ -43,7 +42,6 @@ import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.RGB;
-import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.texteditor.ITextEditor;
@@ -195,7 +193,7 @@ public class JavaCorrectionAssistant extends QuickAssistAssistant {
 
 		ensureUpdatedAnnotations(editor);
 
-		Iterator iter= model.getAnnotationIterator();
+		Iterator<Annotation> iter= model.getAnnotationIterator();
 		if (goToClosest) {
 			IRegion lineInfo= getRegionOfInterest(editor, invocationLocation);
 			if (lineInfo == null) {

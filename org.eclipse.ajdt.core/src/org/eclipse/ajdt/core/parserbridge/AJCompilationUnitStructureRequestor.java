@@ -313,7 +313,7 @@ public class AJCompilationUnitStructureRequestor extends
 
         Object parentInfo = this.infoStack.peek();
         JavaElement parentHandle= (JavaElement) this.handleStack.peek();
-        AdviceElement handle = null;
+        AdviceElement handle;
 
         // translate nulls to empty arrays
         if (parameterTypes == null) {
@@ -370,7 +370,7 @@ public class AJCompilationUnitStructureRequestor extends
 
         Object parentInfo = this.infoStack.peek();
         JavaElement parentHandle= (JavaElement) this.handleStack.peek();
-        IntertypeElement handle = null;
+        IntertypeElement handle;
 
         // translate nulls to empty arrays
         if (parameterTypes == null) {
@@ -478,7 +478,7 @@ public class AJCompilationUnitStructureRequestor extends
         nameSourceEnd = nameSourceStart;
         Object parentInfo = this.infoStack.peek();
         JavaElement parentHandle= (JavaElement) this.handleStack.peek();
-        DeclareElement handle = null;
+        DeclareElement handle;
 
         DeclareElementInfo info = new DeclareElementInfo();
 
@@ -568,7 +568,7 @@ public class AJCompilationUnitStructureRequestor extends
 
         Object parentInfo = this.infoStack.peek();
         JavaElement parentHandle= (JavaElement) this.handleStack.peek();
-        PointcutElement handle = null;
+        PointcutElement handle;
 
         // translate nulls to empty arrays
         if (parameterTypes == null) {

@@ -105,7 +105,7 @@ public class PushInRefactoringInputPage extends UserInputWizardPage {
         }
 
         public int compare(Viewer viewer, Object e1, Object e2) {
-            if (column == ASPECT_SORT) {
+            if (column.equals(ASPECT_SORT)) {
                 if (e1 instanceof IJavaElement) {
                     if (! (e1 instanceof IType)) {
                         e1 = ((IJavaElement) e1).getParent();
@@ -118,7 +118,7 @@ public class PushInRefactoringInputPage extends UserInputWizardPage {
                     }
                     e2 = ((IJavaElement) e2).getElementName();
                 }
-            } else if (column == ITD_SORT || column == TARGET_SORT) {
+            } else if (column.equals(ITD_SORT) || column.equals(TARGET_SORT)) {
                 // This isn't quite right because what shows up in
                 // the column isn't what gets sorted on.
                 if (e1 instanceof IJavaElement) {

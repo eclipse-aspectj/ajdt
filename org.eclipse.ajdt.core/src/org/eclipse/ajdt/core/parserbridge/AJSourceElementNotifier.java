@@ -170,7 +170,7 @@ protected char[][] getThrownExceptions(AbstractMethodDeclaration methodDeclarati
 protected char[][] getTypeParameterBounds(TypeParameter typeParameter) {
 	TypeReference firstBound = typeParameter.type;
 	TypeReference[] otherBounds = typeParameter.bounds;
-	char[][] typeParameterBounds = null;
+	char[][] typeParameterBounds;
 	if (firstBound != null) {
 		if (otherBounds != null) {
 			int otherBoundsLength = otherBounds.length;
@@ -274,7 +274,7 @@ protected void notifySourceElementRequestor(AbstractMethodDeclaration methodDecl
 	}
 	char[][] thrownExceptionTypes = getThrownExceptions(methodDeclaration);
 	// by default no selector end position
-	int selectorSourceEnd = -1;
+	int selectorSourceEnd;
 	if (methodDeclaration.isConstructor()) {
 		selectorSourceEnd = this.sourceEnds.get(methodDeclaration);
 		if (isInRange){
@@ -410,8 +410,8 @@ public void notifySourceElementRequestor(
 					&& eofPosition >= parsedUnit.sourceEnd;
 
 		// collect the top level ast nodes
-		int length = 0;
-		ASTNode[] nodes = null;
+		int length;
+		ASTNode[] nodes;
 		if (isInRange) {
 			requestor.enterCompilationUnit();
 		}
@@ -495,7 +495,7 @@ protected void notifySourceElementRequestor(FieldDeclaration fieldDeclaration, T
 				// remember deprecation so as to not lose it below
 				boolean deprecated = (currentModifiers & ClassFileConstants.AccDeprecated) != 0 || hasDeprecatedAnnotation(fieldDeclaration.annotations);
 
-				char[] typeName = null;
+				char[] typeName;
 				if (fieldDeclaration.type == null) {
 					// enum constant
 					typeName = declaringType.name;
@@ -683,8 +683,7 @@ protected void notifySourceElementRequestor(TypeDeclaration typeDeclaration, boo
 		if (memberTypeIndex < memberTypeCounter) {
 			nextMemberDeclaration = memberTypes[memberTypeIndex];
 			if (nextMemberDeclaration.declarationSourceStart < position) {
-				position = nextMemberDeclaration.declarationSourceStart;
-				nextDeclarationType = 2; // MEMBER
+        nextDeclarationType = 2; // MEMBER
 			}
 		}
 		switch (nextDeclarationType) {

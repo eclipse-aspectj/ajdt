@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -26,10 +26,10 @@ import org.eclipse.swt.widgets.Shell;
 
 /**
  * A message dialog which also allows the user to adjust a toggle setting.
- * 
+ *
  * This is typically used to allow the user to indicate whether the dialog
  * should be shown in the future.
- * 
+ *
  * NOTE : This code has been lifted dirctly from
  * org.eclipse.ui.internal.ide.dialogs.MessageDialogWithToggle
  */
@@ -38,8 +38,8 @@ public class MessageDialogWithToggle extends MessageDialog {
     /**
      * The message displayed to the user, with the toggle button
      */
-    private String toggleMessage = null;
-    private boolean toggleState = false;
+    private String toggleMessage;
+    private boolean toggleState;
     private Button toggleButton = null;
 
     /**
@@ -50,13 +50,13 @@ public class MessageDialogWithToggle extends MessageDialog {
     /**
      * Creates a message dialog with a toggle. See the superclass constructor
      * for info on the other parameters.
-     * 
+     *
      * @param toggleMessage
      *            the message for the toggle control, or <code>null</code>
      *            for the default message ("Do not show this message again").
      * @param toggleState
      *            the initial state for the toggle
-     *  
+     *
      */
     public MessageDialogWithToggle(
         Shell parentShell,
@@ -83,7 +83,7 @@ public class MessageDialogWithToggle extends MessageDialog {
     /**
      * Returns the toggle state. This can be called even after the dialog is
      * closed.
-     * 
+     *
      * @return <code>true</code> if the toggle button is checked, <code>false</code>
      *         if not
      */
@@ -126,7 +126,7 @@ public class MessageDialogWithToggle extends MessageDialog {
 
     /**
      * Returns the toggle button.
-     * 
+     *
      * @return the toggle button
      */
     protected Button getToggleButton() {
@@ -135,7 +135,7 @@ public class MessageDialogWithToggle extends MessageDialog {
 
     /**
      * Convenience method to open a simple confirm (OK/Cancel) dialog.
-     * 
+     *
      * @param parent
      *            the parent shell of the dialog, or <code>null</code> if
      *            none
@@ -177,7 +177,7 @@ public class MessageDialogWithToggle extends MessageDialog {
 
     /**
      * Convenience method to open a standard error dialog.
-     * 
+     *
      * @param parent
      *            the parent shell of the dialog, or <code>null</code> if
      *            none
@@ -217,7 +217,7 @@ public class MessageDialogWithToggle extends MessageDialog {
 
     /**
      * Convenience method to open a standard information dialog.
-     * 
+     *
      * @param parent
      *            the parent shell of the dialog, or <code>null</code> if
      *            none
@@ -257,7 +257,7 @@ public class MessageDialogWithToggle extends MessageDialog {
 
     /**
      * Convenience method to open a simple Yes/No question dialog.
-     * 
+     *
      * @param parent
      *            the parent shell of the dialog, or <code>null</code> if
      *            none
@@ -297,7 +297,7 @@ public class MessageDialogWithToggle extends MessageDialog {
 
     /**
      * Convenience method to open a standard warning dialog.
-     * 
+     *
      * @param parent
      *            the parent shell of the dialog, or <code>null</code> if
      *            none

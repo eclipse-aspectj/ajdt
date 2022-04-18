@@ -163,7 +163,7 @@ public class ImageDecorator implements ILabelDecorator {
 				IAspectJElement ajElem = (IAspectJElement)element;
 				if(ajElem.getJavaProject().getProject().exists()) {
 					IProgramElement.Accessibility acceb = ajElem.getAJAccessibility();
-					AJDTIcon icon = null;
+					AJDTIcon icon;
 					if (acceb == null){
 						if (ajElem instanceof AdviceElement) {
 						    boolean hasTest = AJProjectModelFactory.getInstance().getModelForJavaElement(ajElem)

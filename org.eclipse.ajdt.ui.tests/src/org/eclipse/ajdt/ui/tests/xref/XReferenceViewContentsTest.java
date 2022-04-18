@@ -13,6 +13,7 @@ package org.eclipse.ajdt.ui.tests.xref;
 
 import java.util.List;
 
+import org.aspectj.asm.IRelationship;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
@@ -49,7 +50,7 @@ public class XReferenceViewContentsTest extends UITestCase {
 				AJRelationshipManager.MATCHES_DECLARE,
 				AJRelationshipManager.MATCHED_BY};
 
-		List/*IRelationship*/ listOfRels = model.getRelationshipsForProject(rels);
+		List<IRelationship>/*IRelationship*/ listOfRels = model.getRelationshipsForProject(rels);
     assertFalse("there should be some relationships", listOfRels.isEmpty()); //$NON-NLS-1$
 
 		IJavaProject jProject = JavaCore.create(project);

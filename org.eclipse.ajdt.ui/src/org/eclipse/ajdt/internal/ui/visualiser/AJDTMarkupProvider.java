@@ -157,7 +157,7 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
         								if(!(packageName.equals(""))) { //$NON-NLS-1$
         									memberName = packageName + "." + memberName; //$NON-NLS-1$
         								}
-        								IMarkupKind markupKind = null;
+        								IMarkupKind markupKind;
         								if(kindMap == null) {
         									kindMap = new HashMap<String, IMarkupKind>();
         								}
@@ -355,7 +355,7 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 				value = prefs.getString(key);
 				savedColours.put(key, value);
 			}
-			if(value != null && value != "") { //$NON-NLS-1$
+			if(value != null && !value.equals("")) { //$NON-NLS-1$
 				String[] rgb = value.split(","); //$NON-NLS-1$
 				if(rgb.length != 3) {
 					return null;
@@ -424,7 +424,7 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 	 */
 	protected void resetSavedColours() {
 		String colourKeys = prefs.getString(allPrefereceKeys);
-		if(colourKeys != null && colourKeys != "") { //$NON-NLS-1$
+		if(colourKeys != null && !colourKeys.equals("")) { //$NON-NLS-1$
 			String[] keys = colourKeys.split(","); //$NON-NLS-1$
       for (String key : keys) {
         prefs.setToDefault(key);

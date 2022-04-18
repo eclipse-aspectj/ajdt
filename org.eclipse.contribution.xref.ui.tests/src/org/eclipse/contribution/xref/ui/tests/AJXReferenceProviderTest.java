@@ -40,7 +40,7 @@ public class AJXReferenceProviderTest extends TestCase {
 	}
 
 	public void setAndGetCheckedFilters(List<String> listToSet, String identifier) {
-		List<String> checkedListReturned = new ArrayList<>();
+		List<String> checkedListReturned;
 		providerDef.getProvider().setCheckedFilters(listToSet);
 		checkedListReturned = providerDef.getProvider().getFilterCheckedList();
     assertEquals("Returned List, (" + identifier + ") size Expected <" + listToSet.size() + "> Actual <" + checkedListReturned.size() + ">", checkedListReturned.size(), listToSet.size()); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
@@ -52,7 +52,7 @@ public class AJXReferenceProviderTest extends TestCase {
 	}
 
 	public void setAndGetCheckedInplaceFilters(List<String> listToSet, String identifier) {
-		List<String> checkedListReturned = new ArrayList<>();
+		List<String> checkedListReturned;
 		providerDef.getProvider().setCheckedInplaceFilters(listToSet);
 		checkedListReturned = providerDef.getProvider().getFilterCheckedInplaceList();
     assertEquals("Returned List, (" + identifier + ") size Expected <" + listToSet.size() + "> Actual <" + checkedListReturned.size() + ">", checkedListReturned.size(), listToSet.size()); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$

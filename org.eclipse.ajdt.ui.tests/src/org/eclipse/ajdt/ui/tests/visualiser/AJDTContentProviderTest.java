@@ -20,6 +20,8 @@ import org.eclipse.ajdt.internal.ui.visualiser.AJDTContentProvider;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.contribution.visualiser.core.ProviderManager;
 import org.eclipse.contribution.visualiser.jdtImpl.JDTMember;
+import org.eclipse.contribution.visualiser.interfaces.IMember;
+import org.eclipse.contribution.visualiser.interfaces.IGroup;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
@@ -190,7 +192,7 @@ public class AJDTContentProviderTest extends UITestCase {
 	 */
 	private class MockStructuredSelection implements IStructuredSelection {
 
-		private Object elementToSelect = null;
+		private Object elementToSelect;
 
 		private MockStructuredSelection(Object elementToSelect){
 			this.elementToSelect = elementToSelect;
@@ -229,19 +231,19 @@ public class AJDTContentProviderTest extends UITestCase {
 	 * {@link org.eclipse.ajdt.internal.ui.visualiser.AJDTContentProvider#getAllMembers()}.
 	 */
 	public void testGetAllMembers() {
-		List members = ajdtContentProvider.getAllMembers();
+		List<IMember> members = ajdtContentProvider.getAllMembers();
 		assertNotNull("Members list should not be null", members); //$NON-NLS-1$
 
 		// Select the project - should cause getAllMembers to return all elements in all packages
 		ajdtContentProvider.selectionChanged(null, new MockStructuredSelection(javaTestProject));
-		List projectMembers = ajdtContentProvider.getAllMembers();
+		List<IMember> projectMembers = ajdtContentProvider.getAllMembers();
 		assertEquals("Wrong number of project members", PROJECT_MEMBER_COUNT, projectMembers.size()); //$NON-NLS-1$
 
 
 		System.out.println("Commented out part of AJDTContentProviderTest.testGetAllMembers() because of sporadic failures on build server.");
 		// Select the first package - should cause getAllMembers to return all elements in that packages
 		ajdtContentProvider.selectionChanged(null, new MockStructuredSelection(defaultPackage));
-		List packageMembers = ajdtContentProvider.getAllMembers();
+		List<IMember> packageMembers = ajdtContentProvider.getAllMembers();
 		assertEquals("Wrong number of package members", DEFAULT_PACKAGE_MEMBER_COUNT, packageMembers.size()); //$NON-NLS-1$
 	}
 
@@ -255,12 +257,12 @@ public class AJDTContentProviderTest extends UITestCase {
 	 * typical usage. Tests are provided for completeness/coverage.
 	 */
 	public void testGetAllGroups() {
-		List allGroups = ajdtContentProvider.getAllGroups();
+		List<IGroup> allGroups = ajdtContentProvider.getAllGroups();
 		assertNotNull("Groups list should not be null", allGroups); //$NON-NLS-1$
 
 		// Select the project - should cause getAllGroups to return all packages
 		ajdtContentProvider.selectionChanged(null, new MockStructuredSelection(javaTestProject));
-		List projectGroups = ajdtContentProvider.getAllGroups();
+		List<IGroup> projectGroups = ajdtContentProvider.getAllGroups();
 		assertEquals("Wrong number of projects for package", PROJECT_PACKAGE_COUNT, projectGroups.size()); //$NON-NLS-1$
 	}
 

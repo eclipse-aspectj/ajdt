@@ -128,7 +128,7 @@ public class AJSourceElementParser extends CommentRecorderParser {
 	CompilerOptions options;
 	HashtableOfObjectToInt sourceEnds = new HashtableOfObjectToInt();
 	HashMap<org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeIds, char[][]> nodesToCategories = new HashMap<>(); // a map from ASTNode to char[][]
-	boolean useSourceJavadocParser = true;
+	boolean useSourceJavadocParser;
 
 /**
  * An ast visitor that visits local type declarations.
@@ -847,7 +847,7 @@ private ISourceElementRequestor.TypeParameterInfo[] getTypeParameterInfos(TypePa
 		TypeParameter typeParameter = typeParameters[i];
 		TypeReference firstBound = typeParameter.type;
 		TypeReference[] otherBounds = typeParameter.bounds;
-		char[][] typeParameterBounds = null;
+		char[][] typeParameterBounds;
 		if (firstBound != null) {
 			if (otherBounds != null) {
 				int otherBoundsLength = otherBounds.length;
@@ -1238,7 +1238,7 @@ public void notifySourceElementRequestor(AbstractMethodDeclaration methodDeclara
 		}
 	}
 	// by default no selector end position
-	int selectorSourceEnd = -1;
+	int selectorSourceEnd;
 	if (methodDeclaration.isConstructor()) {
 		selectorSourceEnd = this.sourceEnds.get(methodDeclaration);
 		if (isInRange){
@@ -1386,7 +1386,7 @@ public void notifySourceElementRequestor(FieldDeclaration fieldDeclaration, Type
 				// remember deprecation so as to not lose it below
 				boolean deprecated = (currentModifiers & ClassFileConstants.AccDeprecated) != 0 || hasDeprecatedAnnotation(fieldDeclaration.annotations);
 
-				char[] typeName = null;
+				char[] typeName;
 				if (fieldDeclaration.type == null) {
 					// enum constant
 					typeName = declaringType.name;
@@ -1585,8 +1585,7 @@ public void notifySourceElementRequestor(TypeDeclaration typeDeclaration, boolea
 		if (memberTypeIndex < memberTypeCounter) {
 			nextMemberDeclaration = memberTypes[memberTypeIndex];
 			if (nextMemberDeclaration.declarationSourceStart < position) {
-				position = nextMemberDeclaration.declarationSourceStart;
-				nextDeclarationType = 2; // MEMBER
+        nextDeclarationType = 2; // MEMBER
 			}
 		}
 		switch (nextDeclarationType) {
@@ -1715,8 +1714,7 @@ public void parseTypeMemberDeclarations(
 			parse();
 			notifySourceElementRequestor(unit);
 		} finally {
-			unit = compilationUnit;
-			compilationUnit = null; // reset parser
+      compilationUnit = null; // reset parser
 		}
 	} catch (AbortCompilation e) {
 		// ignore this exception

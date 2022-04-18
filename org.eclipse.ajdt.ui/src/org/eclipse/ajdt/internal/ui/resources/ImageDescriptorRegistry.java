@@ -84,6 +84,6 @@ public class ImageDescriptorRegistry {
 	}
 
 	private void hookDisplay() {
-		fDisplay.disposeExec(() -> dispose());
+		fDisplay.disposeExec(this::dispose);
 	}
 }

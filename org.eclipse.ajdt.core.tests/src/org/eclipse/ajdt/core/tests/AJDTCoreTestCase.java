@@ -693,7 +693,7 @@ public class AJDTCoreTestCase extends TestCase {
         boolean errorFound = false;
         sb.append("Problems:\n");
       for (IMarker marker : markers) {
-        if (((Integer) marker.getAttribute(IMarker.SEVERITY)).intValue() == IMarker.SEVERITY_ERROR) {
+        if ((Integer) marker.getAttribute(IMarker.SEVERITY) == IMarker.SEVERITY_ERROR) {
           sb.append("  ");
           sb.append(marker.getResource().getName()).append(" : ");
           sb.append(marker.getAttribute(IMarker.LINE_NUMBER)).append(" : ");

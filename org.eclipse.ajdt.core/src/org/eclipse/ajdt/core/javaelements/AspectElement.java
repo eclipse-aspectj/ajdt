@@ -141,10 +141,10 @@ public class AspectElement extends SourceType implements IAspectJElement {
     public PointcutElement[] getPointcuts() throws JavaModelException {
         // pointcuts appear as methods
         IMethod[] methods = getMethods();
-        List<IMethod> list = new ArrayList<>();
+        List<PointcutElement> list = new ArrayList<>();
       for (IMethod method : methods) {
         if (method instanceof PointcutElement) {
-          list.add(method);
+          list.add((PointcutElement) method);
         }
       }
         PointcutElement[] array = new PointcutElement[list.size()];
@@ -165,10 +165,10 @@ public class AspectElement extends SourceType implements IAspectJElement {
     public AdviceElement[] getAdvice() throws JavaModelException {
         // advice statements appear as methods
         IMethod[] methods = getMethods();
-        List<IMethod> list = new ArrayList<>();
+        List<AdviceElement> list = new ArrayList<>();
       for (IMethod method : methods) {
         if (method instanceof AdviceElement) {
-          list.add(method);
+          list.add((AdviceElement) method);
         }
       }
         AdviceElement[] array = new AdviceElement[list.size()];
@@ -189,10 +189,10 @@ public class AspectElement extends SourceType implements IAspectJElement {
     public DeclareElement[] getDeclares() throws JavaModelException {
         // declare statements appear as methods
         IMethod[] methods = getMethods();
-        List<IMethod> list = new ArrayList<>();
+        List<DeclareElement> list = new ArrayList<>();
       for (IMethod method : methods) {
         if (method instanceof DeclareElement) {
-          list.add(method);
+          list.add((DeclareElement) method);
         }
       }
         DeclareElement[] array = new DeclareElement[list.size()];
@@ -213,10 +213,10 @@ public class AspectElement extends SourceType implements IAspectJElement {
     public IntertypeElement[] getITDs() throws JavaModelException {
         // ITDs statements appear as methods
         IMethod[] methods = getMethods();
-        List<IMethod> list = new ArrayList<>();
+        List<IntertypeElement> list = new ArrayList<>();
       for (IMethod method : methods) {
         if (method instanceof IntertypeElement) {
-          list.add(method);
+          list.add((IntertypeElement) method);
         }
       }
         IntertypeElement[] array = new IntertypeElement[list.size()];
@@ -237,10 +237,10 @@ public class AspectElement extends SourceType implements IAspectJElement {
     public IAspectJElement[] getAllAspectMemberElements()
             throws JavaModelException {
         IJavaElement[] allChildren = getChildren();
-        List<IJavaElement> list = new ArrayList<>();
+        List<IAspectJElement> list = new ArrayList<>();
       for (IJavaElement allChild : allChildren) {
         if (allChild instanceof IAspectJElement) {
-          list.add(allChild);
+          list.add((IAspectJElement) allChild);
         }
       }
         IAspectJElement[] array = new IAspectJElement[list.size()];

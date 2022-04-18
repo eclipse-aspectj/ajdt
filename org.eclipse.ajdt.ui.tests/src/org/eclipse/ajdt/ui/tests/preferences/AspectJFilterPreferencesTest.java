@@ -21,7 +21,7 @@ public class AspectJFilterPreferencesTest extends UITestCase {
 
 
 	public void setAndGetCheckedFilters(List listToSet, String identifier) {
-		List /* String */ checkedListReturned = new ArrayList();
+		List /* String */ checkedListReturned;
 		AspectJPreferences.setCheckedFilters(listToSet);
 		checkedListReturned = AspectJPreferences.getFilterCheckedList();
     assertEquals("Returned List, (" + identifier + ") size Expected <" + listToSet.size() + "> Actual <" + checkedListReturned.size() + ">", checkedListReturned.size(), listToSet.size()); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
@@ -33,7 +33,7 @@ public class AspectJFilterPreferencesTest extends UITestCase {
 	}
 
 	public void setAndGetEventCheckedFilters(List listToSet, String identifier) {
-		List /* String */ checkedListReturned = new ArrayList();
+		List /* String */ checkedListReturned;
 		AspectJPreferences.setEventTraceList(listToSet);
 		checkedListReturned = AspectJPreferences.getEventTraceCheckedList();
     assertEquals("Returned List, (" + identifier + ") size Expected <" + listToSet.size() + "> Actual <" + checkedListReturned.size() + ">", checkedListReturned.size(), listToSet.size()); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
@@ -45,7 +45,7 @@ public class AspectJFilterPreferencesTest extends UITestCase {
 	}
 
 	public void setAndGetCheckedInplaceFilters(List listToSet, String identifier) {
-		List /* String */ checkedListReturned = new ArrayList();
+		List /* String */ checkedListReturned;
 		AspectJPreferences.setCheckedInplaceFilters(listToSet);
 		checkedListReturned = AspectJPreferences.getFilterCheckedInplaceList();
     assertEquals("Returned List, (" + identifier + ") size Expected <" + listToSet.size() + "> Actual <" + checkedListReturned.size() + ">", checkedListReturned.size(), listToSet.size()); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$

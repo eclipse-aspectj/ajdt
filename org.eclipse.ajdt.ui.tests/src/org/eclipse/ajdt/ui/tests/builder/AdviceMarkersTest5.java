@@ -156,7 +156,7 @@ public class AdviceMarkersTest5 extends UITestCase {
 				StringBuilder missing = new StringBuilder(); //$NON-NLS-1$
         for (String s : tofindMsg) {
           missing.append(System.getProperty("line.separator")); //$NON-NLS-1$
-          missing.append((String) s);
+          missing.append(s);
         }
 				fail("Did not find all expected markers of type " //$NON-NLS-1$
 						+ markerTypes[i] + ". Missing: " + missing); //$NON-NLS-1$

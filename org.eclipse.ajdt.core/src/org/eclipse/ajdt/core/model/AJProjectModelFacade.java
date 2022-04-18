@@ -951,13 +951,7 @@ public class AJProjectModelFacade {
                 }
                 List<IRelationship> nodeRels = new ArrayList<>(orig);
                 if (interesting != null) {
-                    for (Iterator<IRelationship> relIter = nodeRels.iterator(); relIter
-                            .hasNext();) {
-                        IRelationship rel = relIter.next();
-                        if (!interesting.contains(rel.getName())) {
-                            relIter.remove();
-                        }
-                    }
+                  nodeRels.removeIf(rel -> !interesting.contains(rel.getName()));
                 }
 
                 if (nodeRels.size() > 0) {

@@ -130,7 +130,7 @@ public class CompilationUnitTools {
     }
 
 	public static IProgramElement.Accessibility getAccessibilityFromModifierCode(int code){
-		IProgramElement.Accessibility acc = null;
+		IProgramElement.Accessibility acc;
 		if ((code & ClassFileConstants.AccPublic) != 0){
 			acc = IProgramElement.Accessibility.PUBLIC;
 		} else if ((code & ClassFileConstants.AccProtected) != 0) {

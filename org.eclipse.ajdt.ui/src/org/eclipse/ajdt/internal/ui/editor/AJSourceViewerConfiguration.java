@@ -40,7 +40,7 @@ import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
 
 public class AJSourceViewerConfiguration extends JavaSourceViewerConfiguration {
 
-	AspectJTextTools ajtt = null;
+	AspectJTextTools ajtt;
 
 	public AJSourceViewerConfiguration(AspectJTextTools textTools, AspectJEditor editor) {
 		super(textTools.getColorManager(), textTools.getPreferenceStore(), editor, IJavaPartitions.JAVA_PARTITIONING);

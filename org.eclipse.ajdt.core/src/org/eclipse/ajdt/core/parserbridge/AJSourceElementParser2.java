@@ -105,7 +105,7 @@ public class AJSourceElementParser2 extends CommentRecorderParser {
 	boolean reportLocalDeclarations;
 	HashtableOfObjectToInt sourceEnds = new HashtableOfObjectToInt();
 	HashMap<ASTNode, char[][]> nodesToCategories = new HashMap<>(); // a map from ASTNode to char[][]
-	boolean useSourceJavadocParser = true;
+	boolean useSourceJavadocParser;
 
 	AJSourceElementNotifier notifier; // AspectJ Change
 

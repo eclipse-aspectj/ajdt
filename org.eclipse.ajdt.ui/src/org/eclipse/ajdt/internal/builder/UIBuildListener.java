@@ -503,7 +503,7 @@ public class UIBuildListener implements IAJBuildListener {
         IProject[] dependingProjects = new IProject[referencingProjects.length
                 + classFolderReferences.length];
       System.arraycopy(referencingProjects, 0, dependingProjects, 0, referencingProjects.length);
-      System.arraycopy(classFolderReferences, 0, dependingProjects, 0 + referencingProjects.length, classFolderReferences.length);
+      System.arraycopy(classFolderReferences, 0, dependingProjects, referencingProjects.length, classFolderReferences.length);
         return dependingProjects;
     }
 

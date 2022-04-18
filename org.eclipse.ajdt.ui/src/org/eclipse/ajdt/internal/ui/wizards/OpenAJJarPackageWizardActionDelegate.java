@@ -43,8 +43,8 @@ public class OpenAJJarPackageWizardActionDelegate extends AJJarPackageActionDele
      */
     public void run(IAction action) {
         Shell parent= getShell();
-        AJJarPackageData jarPackage= null;  // AspectJ Change
-        String errorDetail= null;
+        AJJarPackageData jarPackage;  // AspectJ Change
+        String errorDetail;
         try {
             jarPackage= readJarPackage(getDescriptionFile(getSelection()));
         } catch (CoreException ex) {

@@ -131,7 +131,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
         CompilationParticipant[] participants = prebuild(kind, project, requiredProjects, compilerConfig);
         progressMonitor.worked(1);
 
-        String mode = "";  //$NON-NLS-1$
+        String mode;  //$NON-NLS-1$
         if (kind!=IncrementalProjectBuilder.FULL_BUILD) {
             mode = "Incremental AspectJ compilation"; //$NON-NLS-1$
         } else {
@@ -863,7 +863,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
         IProject[] dependingProjects = new IProject[referencingProjects.length
                 + classFolderReferences.length];
       System.arraycopy(referencingProjects, 0, dependingProjects, 0, referencingProjects.length);
-      System.arraycopy(classFolderReferences, 0, dependingProjects, 0 + referencingProjects.length, classFolderReferences.length);
+      System.arraycopy(classFolderReferences, 0, dependingProjects, referencingProjects.length, classFolderReferences.length);
         return dependingProjects;
     }
 

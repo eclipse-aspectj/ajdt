@@ -1242,7 +1242,7 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 				if (TokenScanner.isComment(tok)) {
 					tok= scanner.readNext(true); // next non-comment token
 				}
-				boolean keep= true;
+				boolean keep;
 				switch (tok) {
 					case ITerminalSymbols.TokenNamepublic: keep= Modifier.isPublic(newModifiers); break;
 					case ITerminalSymbols.TokenNameprotected: keep= Modifier.isProtected(newModifiers); break;
@@ -3286,7 +3286,7 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 		RewriteEvent bodyEvent= getEvent(node, EnumDeclaration.BODY_DECLARATIONS_PROPERTY);
 		int indent= 0;
 		if (bodyEvent != null && bodyEvent.getChangeKind() != RewriteEvent.UNCHANGED) {
-			boolean hasConstants= !((List) getNewValue(node, EnumDeclaration.ENUM_CONSTANTS_PROPERTY)).isEmpty();
+			boolean hasConstants= !((List<?>) getNewValue(node, EnumDeclaration.ENUM_CONSTANTS_PROPERTY)).isEmpty();
 
 			RewriteEvent[] children= bodyEvent.getChildren();
 			try {

@@ -177,7 +177,7 @@ public final class AJWorldFacade {
         }
         List<ConcreteTypeMunger> itds;
         String nameStr = new String(name);
-        ResolvedType type = null;
+        ResolvedType type;
         try {
             String sig = createAJSignature(declaringTypeSignature);
             type = world.getCoreType(UnresolvedType.forSignature(sig));
@@ -228,7 +228,7 @@ public final class AJWorldFacade {
                 return null;
             }
         } else {
-            ResolvedType type = null;
+            ResolvedType type;
             try {
                 String sig = createAJSignature(targetTypeSignature);
                 type = world.getCoreType(UnresolvedType.forSignature(sig));
@@ -360,7 +360,7 @@ public final class AJWorldFacade {
 
     private boolean equalParams(IProgramElement elt, ConcreteTypeMunger munger) {
         UnresolvedType[] unresolvedTypes = munger.getSignature().getParameterTypes();
-        List eltTypes = elt.getParameterTypes();
+        List<char[]> eltTypes = elt.getParameterTypes();
         int unresolvedTypesLength = unresolvedTypes == null ? 0 : unresolvedTypes.length;
         int eltTypesLength = eltTypes == null ? 0 : eltTypes.size();
         if (unresolvedTypesLength != eltTypesLength) {

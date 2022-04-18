@@ -25,6 +25,8 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.eclipse.jdt.core.search.SearchEngine;
 
+import java.util.Arrays;
+
 public class AJMainMethodSearchEngineTest extends UITestCase {
 
     IProject project;
@@ -95,9 +97,11 @@ public class AJMainMethodSearchEngineTest extends UITestCase {
         int constraints = IJavaSearchScope.SOURCES;
         IJavaSearchScope scope = SearchEngine.createJavaSearchScope(elements, constraints);
         IType[] results = searchEngine.searchMainMethodsIncludingAspects(new NullProgressMonitor(), scope, true);
-      assertEquals("There should be " + expected +
-                   " main method(s) found.  Instead found " +
-                   results, results.length, expected); //$NON-NLS-1$
+        assertEquals(
+            "There should be " + expected + " main method(s) found. Instead found " + results.length, //$NON-NLS-1$
+            results.length,
+            expected
+        );
     }
 
 

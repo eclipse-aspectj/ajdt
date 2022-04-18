@@ -152,7 +152,7 @@ public class AspectJBreakpointRulerActionTest extends UITestCase {
 
 			try {
 
-				IMarker[] markers = null;
+				IMarker[] markers;
 				if (resource instanceof IFile)
 					markers = resource.findMarkers(
 							IBreakpoint.BREAKPOINT_MARKER, true,
@@ -185,7 +185,7 @@ public class AspectJBreakpointRulerActionTest extends UITestCase {
 		if (model != null) {
 			try {
 
-				IMarker[] markers = null;
+				IMarker[] markers;
 				if (resource instanceof IFile)
 					markers = resource.findMarkers(
 							IBreakpoint.BREAKPOINT_MARKER, true,
@@ -207,7 +207,7 @@ public class AspectJBreakpointRulerActionTest extends UITestCase {
                 && breakpointManager.isRegistered(breakpoint)
                 && includesRulerLine(model
                 .getMarkerPosition(marker),
-              document, (IVerticalRulerInfo) editor.getAdapter(IVerticalRulerInfo.class)))
+              document, editor.getAdapter(IVerticalRulerInfo.class)))
               breakpoints.add(marker);
           }
 				}

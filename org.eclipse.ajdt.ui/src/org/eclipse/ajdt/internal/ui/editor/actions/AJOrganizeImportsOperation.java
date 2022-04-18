@@ -498,8 +498,7 @@ public class AJOrganizeImportsOperation implements IWorkspaceRunnable {
 			JavaModelUtil.applyEdit(fCompilationUnit, edit, fDoSave, new SubProgressMonitor(monitor, 1));
 
 			determineImportDifferences(importsRewrite, oldSingleImports, oldDemandImports);
-			processor= null;
-		} finally {
+    } finally {
 			monitor.done();
 		}
 	}

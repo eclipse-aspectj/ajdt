@@ -47,7 +47,7 @@ public class MethodIntertypeElement extends IntertypeElement
       //      if (result.getAJKind()!=Kind.INTER_TYPE_FIELD) {
 //          throw new JavaModelException("Element exists, but is not a field: "+this);
 //      }
-        return (IntertypeElementInfo) super.createElementInfo();
+        return super.createElementInfo();
     }
 
     public IMember createMockDeclaration(IType parent) {

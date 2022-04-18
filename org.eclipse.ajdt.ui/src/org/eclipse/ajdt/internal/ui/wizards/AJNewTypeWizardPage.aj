@@ -171,7 +171,7 @@ privileged aspect AJNewTypeWizardPage {
         IWorkspaceRoot workspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
         IResource res = workspaceRoot.findMember(path);
         IProject proj = res.getProject();
-        IResource pack = null;
+        IResource pack;
 
         if (res.getType() == IResource.FOLDER) {
             IFolder folder = (IFolder) res;
@@ -246,7 +246,7 @@ privileged aspect AJNewTypeWizardPage {
 
             Set /* String (import names) */ existingImports;
 
-            String lineDelimiter= null;
+            String lineDelimiter;
             if (!isInnerClass) {
                 lineDelimiter= StubUtility.getLineDelimiterUsed(pack.getJavaProject());
 

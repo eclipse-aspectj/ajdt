@@ -16,7 +16,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.ajdt.core.AJProperties;
@@ -57,7 +56,7 @@ public class RenameToAJAction implements IActionDelegate {
 for (Object object : sel) {
 if (object instanceof IAdaptable) {
 
-IResource file = (IResource) ((IAdaptable) object)
+IResource file = ((IAdaptable) object)
 .getAdapter(IResource.class);
 if (file != null) {
 IProject project = file.getProject();
@@ -96,10 +95,10 @@ updateBuildConfigs(monitor, project, name);
 	 */
 	private void updateBuildConfigs(IProgressMonitor monitor, IProject project,
 			String name) {
-		List buildConfigs = AJProperties.getAJPropertiesFiles(project);
+		List<IFile> buildConfigs = AJProperties.getAJPropertiesFiles(project);
     for (Object config : buildConfigs) {
       IFile buildConfig = (IFile) config;
-      BufferedReader br = null;
+      BufferedReader br;
       try {
         br = new BufferedReader(new InputStreamReader(buildConfig
           .getContents()));

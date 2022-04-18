@@ -54,7 +54,7 @@ public class PrintCrossCuttingModelAction extends Action {
 	 */
 	public void run() {
 		BusyIndicator.showWhile(ConsolePlugin.getStandardDisplay(),
-      () -> printCrossCuttingModel());
+      this::printCrossCuttingModel);
 	}
 
 	private void printCrossCuttingModel() {

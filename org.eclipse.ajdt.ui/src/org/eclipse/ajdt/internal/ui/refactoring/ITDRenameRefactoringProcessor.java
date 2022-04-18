@@ -159,7 +159,7 @@ public class ITDRenameRefactoringProcessor extends JavaRenameProcessor {
         }
         final String references= extended.getAttribute(JavaRefactoringDescriptorUtil.ATTRIBUTE_REFERENCES);
         if (references != null) {
-            updateReferences= Boolean.valueOf(references);
+            updateReferences= Boolean.parseBoolean(references);
         } else {
             return RefactoringStatus.createFatalErrorStatus(Messages.format(RefactoringCoreMessages.InitializableRefactoring_argument_not_exist, JavaRefactoringDescriptorUtil.ATTRIBUTE_REFERENCES));
         }

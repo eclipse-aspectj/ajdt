@@ -156,7 +156,7 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 		IJavaProject javaProject = JavaCore.create(project);
 		IPath workspaceRelativeOutputPath = javaProject.getOutputLocation();
 
-		String realOutputLocation = null;
+		String realOutputLocation;
 		if (workspaceRelativeOutputPath.segmentCount() == 1) { // project
 			// root
 			realOutputLocation = javaProject.getResource().getLocation()

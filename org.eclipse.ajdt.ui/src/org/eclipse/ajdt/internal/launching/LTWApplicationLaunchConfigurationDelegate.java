@@ -92,7 +92,7 @@ public class LTWApplicationLaunchConfigurationDelegate
 		// Classpath
 		String[] classpath = getClasspath(configuration);
 
-		String[] ltwClasspath = null;
+		String[] ltwClasspath;
 		try {
 		    ltwClasspath = getLTWClasspath(classpath, isJava5OrLater);
 		}

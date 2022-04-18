@@ -256,11 +256,11 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
         usedIdentifiers.clear();
 
         int tok = 1;
-        int prevTok = -1;
+        int prevTok;
         int pos;
         int typeDeclStart = 0;
         char[] text = null;
-        char[] prevText = null;
+        char[] prevText;
 
         while (true) {
             prevTok = tok;
@@ -525,18 +525,18 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 
             case TokenNameclass:
                 if (!afterDot) {  // bug 273691
-                    typeDeclStart = pos = scanner.getCurrentTokenStartPosition();
+                    typeDeclStart = scanner.getCurrentTokenStartPosition();
                     inClassDeclaration = true;
                 }
                 break;
 
             case TokenNameinterface:  // interface and @interface
-                typeDeclStart = pos = scanner.getCurrentTokenStartPosition();
+                typeDeclStart = scanner.getCurrentTokenStartPosition();
                 inInterfaceDeclaration = true;
                 break;
 
             case TokenNameenum:  // interface and @interface
-                typeDeclStart = pos = scanner.getCurrentTokenStartPosition();
+                typeDeclStart = scanner.getCurrentTokenStartPosition();
                 inEnumDeclaration = true;
                 break;
 
@@ -1374,7 +1374,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
         if (end == -1)
             return;
 
-        char[] temp = null;
+        char[] temp;
         if (content[end] == endThrow[0]) {
             pos = findPrevious(')', pos);
             if (pos == -1)

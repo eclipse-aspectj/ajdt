@@ -111,7 +111,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
         private void refreshPathBlock() {
             if (hasChangesInClasspathFile()) {
                 // must run from the UI thread
-                Display.getDefault().syncExec(() -> resetPathBlocks());
+                Display.getDefault().syncExec(AspectJProjectPropertiesPage.this::resetPathBlocks);
             }
         }
     }
@@ -618,7 +618,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 			TabItem tabItem = (TabItem) widget;
 			BuildPathBasePage newPage = (BuildPathBasePage) tabItem.getData();
 			if (fCurrPage != null) {
-				List selection = fCurrPage.getSelection();
+				List<?> selection = fCurrPage.getSelection();
 				if (!selection.isEmpty()) {
 					newPage.setSelection(selection, false);
 				}

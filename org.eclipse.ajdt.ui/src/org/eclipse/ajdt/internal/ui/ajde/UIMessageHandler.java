@@ -160,7 +160,7 @@ public class UIMessageHandler implements IBuildMessageHandler {
         public ISourceLocation location;
         public String message;
         public IMessage.Kind kind;
-        public boolean declaredErrorOrWarning = false;
+        public boolean declaredErrorOrWarning;
         public List<ISourceLocation> extraLocs;
         public Throwable thrown;
 
@@ -223,9 +223,9 @@ public class UIMessageHandler implements IBuildMessageHandler {
                 Iterator<IResource> affectedResourceIterator = affectedResources
                         .iterator();
                 AJLog.log(AJLog.COMPILER,"Types affected during build = "+affectedResources.size()); //$NON-NLS-1$
-                IResource ir = null;
+                IResource ir;
                 while (affectedResourceIterator.hasNext()) {
-                    ir = (IResource) affectedResourceIterator.next();
+                    ir = affectedResourceIterator.next();
                     try {
                         if (ir.exists()) {
                             ir.deleteMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, false,
@@ -248,11 +248,10 @@ public class UIMessageHandler implements IBuildMessageHandler {
                 }
 
                 Iterator<ProblemTracker> problemIterator = problems.iterator();
-                ProblemTracker p = null;
+                ProblemTracker p;
                 while (problemIterator.hasNext()) {
-                    p = (ProblemTracker) problemIterator.next();
-                    ir = null;
-                    IMarker marker = null;
+                    p = problemIterator.next();
+                  IMarker marker = null;
                     try {
                       if (p.location != null) {
                             ir = locationToResource(p.location, project);
@@ -276,15 +275,15 @@ public class UIMessageHandler implements IBuildMessageHandler {
                   }
                 }
                 if ((p.start >= 0) && (p.end >= 0)) {
-                    marker.setAttribute(IMarker.CHAR_START,new Integer(p.start));
-                    marker.setAttribute(IMarker.CHAR_END,new Integer(p.end + 1));
+                    marker.setAttribute(IMarker.CHAR_START, Integer.valueOf(p.start));
+                    marker.setAttribute(IMarker.CHAR_END, Integer.valueOf(p.end + 1));
                 }
                 if (!ir.getProject().equals(project)) {
                   addOtherProjectMarker(project,marker);
                 }
                 if (p.location.getLine() > 0) {
                   marker.setAttribute(IMarker.LINE_NUMBER,
-                      new Integer(p.location.getLine()));
+                    Integer.valueOf(p.location.getLine()));
                 }
               } else {
                 AJLog.log(AJLog.COMPILER_MESSAGES,
@@ -305,16 +304,15 @@ public class UIMessageHandler implements IBuildMessageHandler {
                                           // message
                               int relCount=0;
                             for (ISourceLocation sLoc : p.extraLocs) {
-                              StringBuilder attrData = new StringBuilder();
-                              attrData.append(sLoc.getSourceFile().getAbsolutePath());
-                              attrData.append(":::"); //$NON-NLS-1$
-                              attrData.append(sLoc.getLine());
-                              attrData.append(":::"); //$NON-NLS-1$
-                              attrData.append(sLoc.getEndLine());
-                              attrData.append(":::"); //$NON-NLS-1$
-                              attrData.append(sLoc.getColumn());
+                              String attrData = sLoc.getSourceFile().getAbsolutePath() +
+                                                ":::" + //$NON-NLS-1$
+                                                sLoc.getLine() +
+                                                ":::" + //$NON-NLS-1$
+                                                sLoc.getEndLine() +
+                                                ":::" + //$NON-NLS-1$
+                                                sLoc.getColumn();
                               marker.setAttribute(AspectJUIPlugin.RELATED_LOCATIONS_ATTRIBUTE_PREFIX
-                                                  + (relCount++), attrData.toString());
+                                                  + (relCount++), attrData);
                             }
                           }
 
@@ -367,7 +365,7 @@ public class UIMessageHandler implements IBuildMessageHandler {
      * @return the IResource if a match was found, null otherwise
      */
     private IResource locationToResource(ISourceLocation sloc, IProject project) {
-        IResource resource = null;
+        IResource resource;
 		File file = sloc.getSourceFile();
 		String loc = file.getPath();
 		if (!file.exists()) {
@@ -594,12 +592,7 @@ public class UIMessageHandler implements IBuildMessageHandler {
      * keep any project markers.
      */
     void clearProblems() {
-        for (Iterator<ProblemTracker> probIter = problems.iterator(); probIter.hasNext();) {
-            ProblemTracker problem = probIter.next();
-            if (problem.location != null) {
-                probIter.remove();
-            }
-        }
+      problems.removeIf(problem -> problem.location != null);
     }
 
     public static void clearOtherProjectMarkers(IProject p) {

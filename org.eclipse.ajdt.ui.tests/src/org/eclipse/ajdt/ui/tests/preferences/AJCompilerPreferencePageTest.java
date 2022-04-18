@@ -171,7 +171,7 @@ public class AJCompilerPreferencePageTest extends UITestCase {
 		IMarker[] markers = project.findMarkers(null, true, IResource.DEPTH_INFINITE);
 
     for (IMarker iMarker : markers) {
-      IMarker marker = (IMarker) iMarker;
+      IMarker marker = iMarker;
 
       /*
        * This may seem a little odd, but the getAttribute method can return either

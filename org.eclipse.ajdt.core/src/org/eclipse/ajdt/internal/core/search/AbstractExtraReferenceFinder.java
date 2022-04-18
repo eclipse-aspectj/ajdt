@@ -102,7 +102,7 @@ abstract public class AbstractExtraReferenceFinder<T extends SearchPattern> {
     protected List<SearchMatch> findDeclareMatches(DeclareElement decl, SearchParticipant participant, T pattern) throws JavaModelException {
         AJCompilationUnit unit = ((AJCompilationUnit) decl.getCompilationUnit());
         // should already be in original content mode, but do this any way just in case.
-        char[] contents = null;
+        char[] contents;
         try {
             unit.requestOriginalContentMode();
             contents = unit.getContents();

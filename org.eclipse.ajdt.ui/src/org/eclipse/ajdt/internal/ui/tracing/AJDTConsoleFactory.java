@@ -7,7 +7,7 @@ import org.eclipse.ui.console.IConsoleListener;
 import org.eclipse.ui.console.IConsoleManager;
 
 public class AJDTConsoleFactory implements IConsoleFactory {
-    private IConsoleManager fConsoleManager = null;
+    private IConsoleManager fConsoleManager;
     private AJDTEventTraceConsole fConsole = null;
 
 

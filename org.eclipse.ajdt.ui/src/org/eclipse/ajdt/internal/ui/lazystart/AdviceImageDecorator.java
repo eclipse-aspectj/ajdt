@@ -62,7 +62,7 @@ public class AdviceImageDecorator implements ILightweightLabelDecorator {
 
 	private void ensureAdviceListenerIsRegistered() {
 		if (fAdviceChangedListener == null) {
-			fAdviceChangedListener= () -> fireAdviceChanged();
+			fAdviceChangedListener= this::fireAdviceChanged;
 			AJBuilder.addAdviceListener(fAdviceChangedListener);
 		}
 	}

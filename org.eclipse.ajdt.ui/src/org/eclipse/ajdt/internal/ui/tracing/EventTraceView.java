@@ -182,9 +182,9 @@ public class EventTraceView extends ViewPart
 
 		String dlogTitle = UIMessages.eventTrace_filter_dialog_title;
 		String dlogMessage = UIMessages.eventTrace_filter_dialog_message;
-		List populatingList = Arrays.asList(DebugTracing.categoryNames);
+		List<String> populatingList = Arrays.asList(DebugTracing.categoryNames);
 
-		List checkedList = AspectJPreferences.getEventTraceCheckedList();
+		List<String> checkedList = AspectJPreferences.getEventTraceCheckedList();
 
 		List defaultList = new ArrayList();
 		defaultList.add(DebugTracing.categoryNames[0]);

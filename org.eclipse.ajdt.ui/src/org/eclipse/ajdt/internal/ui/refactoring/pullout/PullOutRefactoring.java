@@ -1223,7 +1223,7 @@ public class PullOutRefactoring extends Refactoring {
      * one member to be pulled out has to be set prior to calling this method.
      */
     public RefactoringStatus setAspect(String name) {
-        IType type= null;
+        IType type;
 
         try {
             if (name.length() == 0)

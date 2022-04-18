@@ -145,7 +145,7 @@ public class AJJarPackageWizardPage extends WizardExportResourcesPage implements
 		restoreResourceSpecificationWidgetValues(); // superclass API defines this hook
 		restoreWidgetValues();
 		if (fInitialSelection != null)
-			BusyIndicator.showWhile(parent.getDisplay(), () -> setupBasedOnInitialSelections());
+			BusyIndicator.showWhile(parent.getDisplay(), this::setupBasedOnInitialSelections);
 
 		setControl(composite);
 		update();

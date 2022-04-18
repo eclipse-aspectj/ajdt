@@ -195,7 +195,7 @@ public class CompilationUnitAnnotationModelWrapper implements IAnnotationModel, 
 			JavaModelManager.PerWorkingCopyInfo perWorkingCopyInfo = ((CompilationUnit)unit).getPerWorkingCopyInfo();
 			boolean computeProblems = JavaProject.hasJavaNature(project.getProject()) && perWorkingCopyInfo != null && perWorkingCopyInfo.isActive();
 			IProblemFactory problemFactory = new DefaultProblemFactory();
-			Map options = project.getOptions(true);
+			Map<String, String> options = project.getOptions(true);
 			IBuffer buffer;
 			try {
 				buffer = unit.getBuffer();

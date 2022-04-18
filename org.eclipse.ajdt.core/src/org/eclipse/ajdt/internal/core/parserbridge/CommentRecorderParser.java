@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  * 	   Luzius Meisser - Copied into AJDT
@@ -23,11 +23,11 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
 
 /**
  * Internal parser used for parsing source to create DOM AST nodes.
- * 
+ *
  * @since 3.0
  */
 public class CommentRecorderParser extends Parser {
-	
+
 	// support for comments
 	int[] commentStops = new int[10];
 	int[] commentStarts = new int[10];
@@ -43,7 +43,7 @@ public class CommentRecorderParser extends Parser {
 	}
 
 	// old javadoc style check which doesn't include all leading comments into declaration
-	// for backward compatibility with 2.1 DOM 
+	// for backward compatibility with 2.1 DOM
 	public void checkComment() {
 	}
 
@@ -116,7 +116,7 @@ public class CommentRecorderParser extends Parser {
 
 		int lastCommentIndex = this.scanner.commentPtr;
 		if (lastCommentIndex < 0) return position; // no comment
-	
+
 		// compute the index of the first obsolete comment
 		int index = lastCommentIndex;
 		int validCount = 0;
@@ -132,7 +132,7 @@ public class CommentRecorderParser extends Parser {
 		// if the source at <position> is immediately followed by a line comment, then
 		// flush this comment and shift <position> to the comment end.
 		if (validCount > 0){
-			int immediateCommentEnd = 0;
+			int immediateCommentEnd;
 			while (index<lastCommentIndex && (immediateCommentEnd = -this.scanner.commentStops[index+1])  > 0){ // only tolerating non-javadoc comments (non-javadoc comment end positions are negative)
 				// is there any line break until the end of the immediate comment ? (thus only tolerating line comment)
 				immediateCommentEnd--; // comment end in one char too far
@@ -142,13 +142,13 @@ public class CommentRecorderParser extends Parser {
 				index++;
 			}
 		}
-	
+
 		if (index < 0) return position; // no obsolete comment
 		pushOnCommentsStack(0, index); // store comment before flushing them
 
 		if (validCount > 0){ // move valid comment infos, overriding obsolete comment infos
 			System.arraycopy(this.scanner.commentStarts, index + 1, this.scanner.commentStarts, 0, validCount);
-			System.arraycopy(this.scanner.commentStops, index + 1, this.scanner.commentStops, 0, validCount);		
+			System.arraycopy(this.scanner.commentStops, index + 1, this.scanner.commentStops, 0, validCount);
 		}
 		this.scanner.commentPtr = validCount - 1;
 		return position;
@@ -174,12 +174,12 @@ public class CommentRecorderParser extends Parser {
 		super.initialize();
 		this.commentPtr = -1;
 	}
-	
+
 	/*
 	 * Push all stored comments in stack.
 	 */
 	private void pushOnCommentsStack(int start, int end) {
-	
+
 		for (int i=start; i<=end; i++) {
 			// First see if comment hasn't been already stored
 			int scannerStart = this.scanner.commentStarts[i]<0 ? -this.scanner.commentStarts[i] : this.scanner.commentStarts[i];

@@ -71,7 +71,7 @@ public class AJdocWriter {
 	// AspectJ Extension - passing an AJdocOptionsManager as an argument
 	public void writeXML(AJdocOptionsManager store) throws ParserConfigurationException, TransformerException {
 
-		DocumentBuilder docBuilder= null;
+		DocumentBuilder docBuilder;
 		DocumentBuilderFactory factory= DocumentBuilderFactory.newInstance();
 		factory.setValidating(false);
 		docBuilder= factory.newDocumentBuilder();

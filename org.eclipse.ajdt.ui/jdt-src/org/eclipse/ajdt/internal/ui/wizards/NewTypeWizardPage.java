@@ -534,7 +534,7 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 			}
 
 			try {
-				IType type= null;
+				IType type;
 				if (elem.getElementType() == IJavaElement.TYPE) {
 					type= (IType)elem;
 					if (type.exists()) {
@@ -970,7 +970,7 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 	 * status are updated.
 	 */
 	private void typePageDialogFieldChanged(DialogField field) {
-		String fieldName= null;
+		String fieldName;
 		if (field == fPackageDialogField) {
 			fPackageStatus= packageChanged();
 			updatePackageStatusLabel();
@@ -1944,7 +1944,7 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 
 			Set /* String (import names) */ existingImports;
 
-			String lineDelimiter= null;
+			String lineDelimiter;
 			if (!isInnerClass) {
 				lineDelimiter= StubUtility.getLineDelimiterUsed(pack.getJavaProject());
 

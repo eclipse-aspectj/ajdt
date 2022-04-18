@@ -119,7 +119,7 @@ public class BuildConfigurationUtils {
 			br = new BufferedReader(new FileReader(file));
 			Properties properties = new Properties();
 			properties.load(ifile.getContents());
-			Enumeration iter = properties.keys();
+			Enumeration<Object> iter = properties.keys();
 
 			// first stage - find any source folders
 			while (iter.hasMoreElements()) {

@@ -392,8 +392,7 @@ public class AjcTask extends MatchingTask {
 		adapterFiles = new ArrayList<>();
 		argfiles = null;
 		inxmlfiles = null;
-		executing = false;
-		aspectpath = null;
+    aspectpath = null;
 		bootclasspath = null;
 		classpath = null;
 		cmd = new GuardedCommand();
@@ -1739,7 +1738,7 @@ public class AjcTask extends MatchingTask {
 			}
 
 			String next() {
-				String err = null;
+				String err;
 				if (!hasNext()) {
 					err = "need arg for flag " + args[args.length - 1];
 				} else {
@@ -1988,7 +1987,7 @@ public class AjcTask extends MatchingTask {
 			if (size <= max) {
 				return args;
 			}
-			File tmpFile = null;
+			File tmpFile;
 			PrintWriter out = null;
 			// adapted from DefaultCompilerAdapter.executeExternalCompile
 			try {

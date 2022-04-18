@@ -428,7 +428,7 @@ public class AJDTUtils {
             IProject[] referencingProjects = new IProject[refProjects.length
                     + classFolderReferences.length];
           System.arraycopy(refProjects, 0, referencingProjects, 0, refProjects.length);
-          System.arraycopy(classFolderReferences, 0, referencingProjects, 0 + refProjects.length, classFolderReferences.length);
+          System.arraycopy(classFolderReferences, 0, referencingProjects, refProjects.length, classFolderReferences.length);
 
           for (IProject referencingProject : referencingProjects) {
             IMarker[] problemMarkers = referencingProject.findMarkers(
@@ -801,8 +801,8 @@ public class AJDTUtils {
     public static boolean hasAJPluginDependency(IProject project) {
 
         ManifestEditor manEd = getPDEManifestEditor(project);
-        IPluginModel model = null;
-        IPluginImport[] imports = null;
+        IPluginModel model;
+        IPluginImport[] imports;
 
         if (manEd != null) {
             model = (IPluginModel) manEd.getAggregateModel();

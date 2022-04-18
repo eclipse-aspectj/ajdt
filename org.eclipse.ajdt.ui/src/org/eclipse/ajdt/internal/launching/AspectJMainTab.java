@@ -155,7 +155,7 @@ public class AspectJMainTab extends SharedJavaMainTab {
 		// AspectJ Change Begin
 		AJMainMethodSearchEngine engine = new AJMainMethodSearchEngine();
 		// AspectJ Change End
-		IType[] types = null;
+		IType[] types;
 		try {
 			// AspectJ Change Begin
 			types = engine.searchMainMethodsIncludingAspects(getLaunchConfigurationDialog(), searchScope, fConsiderInheritedMainButton.getSelection());
@@ -166,7 +166,7 @@ public class AspectJMainTab extends SharedJavaMainTab {
 			return;
 		}//end catch
     //end catch
-		SelectionDialog dialog = null;
+		SelectionDialog dialog;
 		// AspectJ Change Begin
 		dialog = new AJMainTypeSelectionDialog(getShell(), types);
 		// AspectJ Change End

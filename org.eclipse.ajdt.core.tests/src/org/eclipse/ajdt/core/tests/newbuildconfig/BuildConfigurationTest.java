@@ -16,7 +16,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -190,7 +189,7 @@ public class BuildConfigurationTest extends AJDTCoreTestCase {
 	    IJavaElement unit = JavaCore.create(file);
 
 	    if (model.hasProgramElement(unit)) {
-	        List accumulatedErrors = Collections.emptyList();
+	        List<Object> accumulatedErrors = Collections.emptyList();
 	        HandleTestUtils.checkJavaHandle(unit.getHandleIdentifier(), model);
 	        IProgramElement ipe = model.javaElementToProgramElement(unit);
 	        HandleTestUtils.checkAJHandle(ipe.getHandleIdentifier(), model);

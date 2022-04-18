@@ -3,8 +3,8 @@
  * program and the accompanying materials are made available under the terms of
  * the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
- * 
- * Contributors: IBM Corporation - initial API and implementation 
+ *
+ * Contributors: IBM Corporation - initial API and implementation
  * 				 Helen Hawkins   - iniital version
  ******************************************************************************/
 package org.eclipse.ajdt.core.tests;
@@ -24,7 +24,7 @@ import org.eclipse.core.runtime.Status;
  * @author Helen Hawkins
  */
 public class AspectJCoreTestPlugin extends Plugin {
-    
+
 	/**
 	 * shared single instance of the plugin
 	 */
@@ -55,7 +55,7 @@ public class AspectJCoreTestPlugin extends Plugin {
 		try {
 			URL resolved = FileLocator.resolve(loc);
 			pluginDir = resolved.getFile();
-		} catch (IOException e) {}		
+		} catch (IOException e) {}
 		if ((pluginDir==null) || (pluginDir.length()==0)) {
 			return System.getProperty("user.dir") + File.separator //$NON-NLS-1$
 				+ "workspace" + File.separator + "org.eclipse.ajdt.core.tests" //$NON-NLS-1$ //$NON-NLS-2$
@@ -74,7 +74,7 @@ public class AspectJCoreTestPlugin extends Plugin {
 	public static void log (Throwable e) {
 		if (e instanceof InvocationTargetException)
 			e = ((InvocationTargetException) e).getTargetException();
-		IStatus status = null;
+		IStatus status;
 		if (e instanceof CoreException)
 			status = ((CoreException) e).getStatus();
 		else
@@ -84,7 +84,7 @@ public class AspectJCoreTestPlugin extends Plugin {
 	}
 
 	public static void logInfo(String message) {
-	    IStatus status = 
+	    IStatus status =
 	            new Status(IStatus.INFO, getPluginId(), IStatus.OK, message, null);
 	    getDefault().getLog().log(status);
 	}

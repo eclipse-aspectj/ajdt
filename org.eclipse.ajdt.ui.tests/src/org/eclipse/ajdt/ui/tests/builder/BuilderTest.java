@@ -92,7 +92,7 @@ public class BuilderTest extends UITestCase {
 
 		waitForJobsToComplete();
 
-		IFile newFile = null;
+		IFile newFile;
 
 		IFile f = p1.getFile("newFile.txt"); //$NON-NLS-1$
 		if (!f.exists()) {
@@ -166,7 +166,7 @@ public class BuilderTest extends UITestCase {
 
 		waitForJobsToComplete();
 
-		IFile newFile = null;
+		IFile newFile;
 		IFile f = src.getFile("newFile2.txt"); //$NON-NLS-1$
 		if (!f.exists()) {
 			f.create(new ByteArrayInputStream(new byte[0]), true, null);
@@ -240,7 +240,7 @@ public class BuilderTest extends UITestCase {
 
 		waitForJobsToComplete();
 
-		IFile newFile = null;
+		IFile newFile;
 		IFile f = pack.getFile("newFile.txt"); //$NON-NLS-1$
 		if (!f.exists()) {
 			f.create(new ByteArrayInputStream(new byte[0]), true, null);
@@ -312,7 +312,7 @@ public class BuilderTest extends UITestCase {
 
 		waitForJobsToComplete();
 
-		IFile newFile = null;
+		IFile newFile;
 		IFile f = pack.getFile("newFile.txt"); //$NON-NLS-1$
 		if (!f.exists()) {
 			f.create(new ByteArrayInputStream(new byte[0]), true, null);
@@ -384,7 +384,7 @@ public class BuilderTest extends UITestCase {
 
 		waitForJobsToComplete();
 
-		IFile newFile = null;
+		IFile newFile;
 		IFile f = p1.getFile("newFile4.txt"); //$NON-NLS-1$
 		if (!f.exists()) {
 			f.create(new ByteArrayInputStream(new byte[0]), true, null);
@@ -494,7 +494,7 @@ public class BuilderTest extends UITestCase {
 
 		waitForJobsToComplete();
 
-		IFile newFile = null;
+		IFile newFile;
 		IFile f = project.getFile("newFile.txt"); //$NON-NLS-1$
 		if (!f.exists()) {
 			f.create(new ByteArrayInputStream(new byte[0]), true, null);

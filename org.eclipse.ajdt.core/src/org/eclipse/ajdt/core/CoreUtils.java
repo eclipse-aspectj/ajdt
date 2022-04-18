@@ -101,7 +101,7 @@ public class CoreUtils {
 
         if (bundle != null) {
             URL installLoc = bundle.getEntry("/"); //$NON-NLS-1$
-            URL resolved = null;
+            URL resolved;
             try {
                 resolved = FileLocator.resolve(installLoc);
                 String fullPath = resolved.getFile();

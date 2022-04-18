@@ -179,7 +179,7 @@ public class AJBuilderTest2 extends AJDTCoreTestCase {
             if (!pack.exists()) {
                 pack.create(true, true, null);
             }
-            IFile textFile = null;
+            IFile textFile;
 
             IFile f = pack.getFile("newFile.txt"); //$NON-NLS-1$
             if (!f.exists()) {
@@ -273,7 +273,7 @@ public class AJBuilderTest2 extends AJDTCoreTestCase {
         IJavaProject javaProject = JavaCore.create(project);
         IPath workspaceRelativeOutputPath = javaProject.getOutputLocation();
 
-        String realOutputLocation = null;
+        String realOutputLocation;
         if (workspaceRelativeOutputPath.segmentCount() == 1) { // project
             // root
             realOutputLocation = javaProject.getResource().getLocation()
