@@ -34,6 +34,7 @@ import org.eclipse.jdt.internal.core.ClassFile;
 import org.eclipse.jdt.internal.core.DefaultWorkingCopyOwner;
 import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.JavaModelManager;
+import org.eclipse.jdt.internal.core.NamedMember;
 import org.eclipse.jdt.internal.core.PackageFragment;
 
 public class AspectJCore {
@@ -75,30 +76,27 @@ public class AspectJCore {
 		return -1;
 	}
 
-	private static IJavaElement getCodeElement(String codeElementHandle, JavaElement parent) {
-		int li = indexOfIgnoringEscapes(
-				codeElementHandle,
-				JavaElement.JEM_COUNT);
+	private static AJCodeElement getCodeElement(String codeElementHandle, JavaElement parent) {
+		int li = indexOfIgnoringEscapes(codeElementHandle, JavaElement.JEM_COUNT);
 		if (li != -1) {
-		    int occurrenceIndex = codeElementHandle.lastIndexOf(JavaElement.JEM_COUNT);
-		    if (Character.isDigit(codeElementHandle.charAt(occurrenceIndex+1))) {
-		        int occurrence = Integer.parseInt(codeElementHandle.substring(occurrenceIndex+1));
-		        String cname = codeElementHandle.substring(0, li);
-		        return new AJCodeElement(parent, cname, occurrence);
-		    }
-            codeElementHandle = codeElementHandle.substring(0, li);
+			int occurrenceIndex = codeElementHandle.lastIndexOf(JavaElement.JEM_COUNT);
+			if (Character.isDigit(codeElementHandle.charAt(occurrenceIndex + 1))) {
+				int occurrence = Integer.parseInt(codeElementHandle.substring(occurrenceIndex + 1));
+				String cname = codeElementHandle.substring(0, li);
+				return new AJCodeElement(parent, cname, occurrence);
+			}
+			codeElementHandle = codeElementHandle.substring(0, li);
 		}
 		// no occurrance count
 		return new AJCodeElement(parent, codeElementHandle);
 	}
 
-	public static IJavaElement create(String handleIdentifier,
-			WorkingCopyOwner owner) {
+	public static IJavaElement create(String handleIdentifier, WorkingCopyOwner owner) {
 
 		if (handleIdentifier == null) {
 			return null;
 		}
-		Map aspectsInJavaFiles = new HashMap();
+		Map<IOpenable, List<NamedMember>> aspectsInJavaFiles = new HashMap<>();
 
 		boolean isCodeElement = false;
 		String codeElementHandle = ""; //$NON-NLS-1$
@@ -116,89 +114,80 @@ public class AspectJCore {
 		AJMementoTokenizer memento = new AJMementoTokenizer(handleIdentifier);
 		while (memento.hasMoreTokens()) {
 			String token = memento.nextToken();
-			if ((token.charAt(0) == AspectElement.JEM_ASPECT_CU)
-					|| (token.charAt(0) == JavaElement.JEM_COMPILATIONUNIT)
-					|| (token.charAt(0) == JavaElement.JEM_CLASSFILE)) {
+			final char firstChar = token.charAt(0);
+			if (
+				firstChar == AspectElement.JEM_ASPECT_CU ||
+				firstChar == JavaElement.JEM_COMPILATIONUNIT ||
+				firstChar == JavaElement.JEM_CLASSFILE
+			) {
 
 				int index;
-				if (token.charAt(0) == AspectElement.JEM_ASPECT_CU) {
-				    index = handleIdentifier.indexOf(AspectElement.JEM_ASPECT_CU);
-				} else if (token.charAt(0) == JavaElement.JEM_COMPILATIONUNIT) {
-				    index = handleIdentifier.indexOf(JavaElement.JEM_COMPILATIONUNIT);
-				} else { // JEM_CLASSFILE
-				    index = handleIdentifier.indexOf(JavaElement.JEM_CLASSFILE);
-				}
+				if (firstChar == AspectElement.JEM_ASPECT_CU)
+					index = handleIdentifier.indexOf(AspectElement.JEM_ASPECT_CU);
+				else if (firstChar == JavaElement.JEM_COMPILATIONUNIT)
+					index = handleIdentifier.indexOf(JavaElement.JEM_COMPILATIONUNIT);
+				else
+					index = handleIdentifier.indexOf(JavaElement.JEM_CLASSFILE);
 
 				if (index != -1) {
-					IJavaElement je = JavaCore.create(handleIdentifier
-							.substring(0, index));
+					IJavaElement je = JavaCore.create(handleIdentifier.substring(0, index));
 					if (je instanceof PackageFragment) {
 						PackageFragment pf = (PackageFragment) je;
 						String cuName = handleIdentifier.substring(index + 1);
 						int ind1 = cuName.indexOf(JavaElement.JEM_TYPE);
-						if (ind1 != -1) {
+						if (ind1 != -1)
 							cuName = cuName.substring(0, ind1);
-						}
 						int ind2 = cuName.indexOf(AspectElement.JEM_ASPECT_TYPE);
-						if (ind2 != -1) {
+						if (ind2 != -1)
 							cuName = cuName.substring(0, ind2);
-						}
 						int ind3 = cuName.indexOf(AspectElement.JEM_ITD_METHOD);
-						if (ind3 != -1) {
+						if (ind3 != -1)
 							cuName = cuName.substring(0, ind3);
-						}
 						ind3 = cuName.indexOf(AspectElement.JEM_ITD_FIELD);
-						if (ind3 != -1) {
+						if (ind3 != -1)
 							cuName = cuName.substring(0, ind3);
-						}
-                        int ind4 = cuName.indexOf(AspectElement.JEM_DECLARE);
-                        if (ind4 != -1) {
-                            cuName = cuName.substring(0, ind4);
-                        }
-                        int ind5 = cuName.indexOf(AspectElement.JEM_IMPORTDECLARATION);
-                        if (ind5 != -1) {
-                            cuName = cuName.substring(0, ind5);
-                        }
-                        int ind6 = cuName.indexOf(AspectElement.JEM_PACKAGEDECLARATION);
-                        if (ind6 != -1) {
-                            cuName = cuName.substring(0, ind6);
-                        }
+						int ind4 = cuName.indexOf(AspectElement.JEM_DECLARE);
+						if (ind4 != -1)
+							cuName = cuName.substring(0, ind4);
+						int ind5 = cuName.indexOf(AspectElement.JEM_IMPORTDECLARATION);
+						if (ind5 != -1)
+							cuName = cuName.substring(0, ind5);
+						int ind6 = cuName.indexOf(AspectElement.JEM_PACKAGEDECLARATION);
+						if (ind6 != -1)
+							cuName = cuName.substring(0, ind6);
 						if (CoreUtils.ASPECTJ_SOURCE_ONLY_FILTER.accept(cuName)) {
-						    // no need to use a cuprovider because we know this
-						    // is an AJCompilationUnit
+							// no need to use a cuprovider because we know this
+							// is an AJCompilationUnit
 							JavaElement cu = new AJCompilationUnit(pf, cuName, owner);
-							token = memento.nextToken();
-							if (!memento.hasMoreTokens()) {
+							memento.nextToken();
+							if (!memento.hasMoreTokens())
 								return cu;
-							}
-							IJavaElement restEl = cu.getHandleFromMemento(
-									memento.nextToken(), memento, owner);
+							IJavaElement restEl = cu.getHandleFromMemento(memento.nextToken(), memento, owner);
 							if (restEl != null) {
 								if (isCodeElement) {
 									// there was an AJCodeElement at the end of
 									// the handle
-									IJavaElement codeEl = getCodeElement(codeElementHandle,(JavaElement) restEl);
-									if (codeEl != null) {
+									AJCodeElement codeEl = getCodeElement(codeElementHandle,(JavaElement) restEl);
+									if (codeEl != null)
 										return codeEl;
-									}
 								}
 								return restEl;
 							}
-						} else {
+						}
+						else {
 							// Use the default working copy owner for Java elements
-							IJavaElement restEl = pf.getHandleFromMemento(
-									token, memento, DefaultWorkingCopyOwner.PRIMARY);
+							IJavaElement restEl = pf.getHandleFromMemento(token, memento, DefaultWorkingCopyOwner.PRIMARY);
 							if (restEl != null) {
 								if (isCodeElement) {
 									// there was an AJCodeElement at the end of
 									// the handle
-									IJavaElement codeEl = getCodeElement(codeElementHandle,(JavaElement) restEl);
-									if (codeEl != null) {
+									AJCodeElement codeEl = getCodeElement(codeElementHandle,(JavaElement) restEl);
+									if (codeEl != null)
 										return codeEl;
-									}
 								}
 								return restEl;
-							} else if (ind2 != -1) { // An aspect in a .java file...
+							}
+							else if (ind2 != -1) { // An aspect in a .java file...
 								int index3 = handleIdentifier.indexOf(AspectElement.JEM_ASPECT_TYPE);
 								String aspectName = handleIdentifier.substring(index3 + 1);
 								boolean identifierIsAspect = true;
@@ -247,43 +236,34 @@ public class AspectJCore {
 									aspectName = aspectName.substring(0, ind14);
 									identifierIsAspect = false;
 								}
-								IOpenable openable;
-								if (cuName.endsWith(".class")) {
-								    openable = pf.getClassFile(cuName);
-								} else {
-								    openable = pf.getCompilationUnit(cuName);
+								IOpenable openable = cuName.endsWith(".class")
+									? pf.getClassFile(cuName)
+									: pf.getCompilationUnit(cuName);
+								List<NamedMember> namedMembers = aspectsInJavaFiles.computeIfAbsent(openable, k -> new ArrayList<>());
+								NamedMember aspectElement = null;
+								for (NamedMember namedMember : namedMembers) {
+									if (namedMember.getElementName().equals(aspectName)) {
+										aspectElement = namedMember;
+									}
 								}
-								List l;
-								if(aspectsInJavaFiles.get(openable) instanceof List) {
-									l = (List)aspectsInJavaFiles.get(openable);
-								} else {
-									l = new ArrayList();
-									aspectsInJavaFiles.put(openable, l);
+								if(aspectElement == null) {
+									if (openable instanceof ClassFile) {
+										ClassFile cOpenable = (ClassFile) openable;
+										aspectElement = new BinaryAspectElement(cOpenable, aspectName);
+									}
+									else {
+										aspectElement = new AspectElement((JavaElement) openable, aspectName);
+									}
+									namedMembers.add(aspectElement);
 								}
-								JavaElement aspectEl = null;
-                for (Object o : l) {
-                  AspectElement element = (AspectElement) o;
-                  if (element.getElementName().equals(aspectName)) {
-                    aspectEl = element;
-                  }
-                }
-								if(aspectEl == null) {
-								    if (openable instanceof ClassFile) {
-								        ClassFile cOpenable = (ClassFile) openable;
-								        aspectEl = new BinaryAspectElement(cOpenable, aspectName);
-                                    } else {
-                                        aspectEl = new AspectElement((JavaElement) openable, aspectName);
-                                    }
-									l.add(aspectEl);
-								}
-                                int afterAspectIndex = index3 + aspectName.length() + 1;
-
+								int afterAspectIndex = index3 + aspectName.length() + 1;
 
 								if (identifierIsAspect) {
-								    return aspectEl;
-								} else {
-    								memento.setIndexTo(afterAspectIndex);
-    								return aspectEl.getHandleFromMemento(memento.nextToken(), memento, owner);
+									return aspectElement;
+								}
+								else {
+									memento.setIndexTo(afterAspectIndex);
+									return aspectElement.getHandleFromMemento(memento.nextToken(), memento, owner);
 								}
 							}
 						}
