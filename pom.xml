@@ -60,7 +60,7 @@
 		<aspectj-maven-compiler-version>1.13.1</aspectj-maven-compiler-version>
 
 		<!-- AspectJ Core binaries + sources (tools, weaver, runtime) to include in AJDT -->
-		<aspectj.version>1.9.9.1</aspectj.version>
+		<aspectj.version>1.9.10-SNAPSHOT</aspectj.version>
 
 		<aspectj.exclude.meta-data>
 			META-INF/**,
