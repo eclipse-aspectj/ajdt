@@ -209,7 +209,7 @@ public class QuickFixProcessor implements IQuickFixProcessor, IQuickAssistProces
 		try {
 			IBuffer buf= cu.getBuffer();
 			while (offset >= start) {
-				if (ignoreCharacters.indexOf(buf.getChar(offset - 1)) == -1) { 
+				if (ignoreCharacters.indexOf(buf.getChar(offset - 1)) == -1) {
 					return offset;
 				}
 				offset--;
@@ -238,16 +238,15 @@ public class QuickFixProcessor implements IQuickFixProcessor, IQuickAssistProces
 		}
 		// AspectJ Change End
 
-		HashSet<Integer> handledProblems= new HashSet<Integer>(locations.length);
-		ArrayList<ICommandAccess> resultingCollections= new ArrayList<ICommandAccess>();
-		for (int i= 0; i < locations.length; i++) {
-			IProblemLocation curr= locations[i];
-			Integer id= new Integer(curr.getProblemId());
-			if (handledProblems.add(id)) {
-				process(context, curr, resultingCollections);
-			}
-		}
-		return resultingCollections.toArray(new IJavaCompletionProposal[resultingCollections.size()]);
+		HashSet<Integer> handledProblems= new HashSet<>(locations.length);
+		ArrayList<ICommandAccess> resultingCollections= new ArrayList<>();
+    for (IProblemLocation curr : locations) {
+      Integer id = curr.getProblemId();
+      if (handledProblems.add(id)) {
+        process(context, curr, resultingCollections);
+      }
+    }
+		return resultingCollections.toArray(new IJavaCompletionProposal[0]);
 	}
 
 	private void process(IInvocationContext context, IProblemLocation problem, Collection<ICommandAccess> proposals) throws CoreException {
@@ -404,7 +403,7 @@ public class QuickFixProcessor implements IQuickFixProcessor, IQuickAssistProces
 				break;
 			case IProblem.MissingValueForAnnotationMember:
 				LocalCorrectionsSubProcessor.addValueForAnnotationProposals(context, problem, proposals);
-				break;				
+				break;
 			case IProblem.BodyForNativeMethod:
 				ModifierCorrectionSubProcessor.addNativeMethodProposals(context, problem, proposals);
 				break;
@@ -564,11 +563,11 @@ public class QuickFixProcessor implements IQuickFixProcessor, IQuickAssistProces
 
     public boolean hasAssists(IInvocationContext context) throws CoreException {
         IProblem[] problems = context.getASTRoot().getProblems();
-        for (int i = 0; i < problems.length; i++) {
-            if (hasCorrections(context.getCompilationUnit(), problems[i].getID())) {
-                return true;
-            }
+      for (IProblem problem : problems) {
+        if (hasCorrections(context.getCompilationUnit(), problem.getID())) {
+          return true;
         }
+      }
         return false;
     }
     // end AspectJ Change

@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman - initial version
@@ -48,22 +48,22 @@ public class DebugTracing {
 	/**
 	 * More detailed trace for the project builder
 	 */
-	public static boolean DEBUG_BUILDER = true;	
+	public static boolean DEBUG_BUILDER = true;
 
 	/**
 	 * More detailed trace for project classpaths
 	 */
-	public static boolean DEBUG_BUILDER_CLASSPATH = false;	
+	public static boolean DEBUG_BUILDER_CLASSPATH = false;
 
     /**
      * More detailed trace for the parser
      */
-    public static boolean DEBUG_PARSER = true; 
+    public static boolean DEBUG_PARSER = true;
 
     /**
      * Enable/disable model sanity checking
      */
-    public static boolean DEBUG_MODEL = true; 
+    public static boolean DEBUG_MODEL = true;
 
     public static final String[] categoryNames = new String[]{
 		UIMessages.eventTrace_category_compiler,
@@ -74,34 +74,34 @@ public class DebugTracing {
 		UIMessages.eventTrace_category_parser,
 		UIMessages.eventTrace_category_model
 	};
-		
+
 	public static String startupInfo() {
 		Bundle bundle = AspectJUIPlugin.getDefault().getBundle();
-		String version = (String) bundle.getHeaders().get(
+		String version = bundle.getHeaders().get(
 				Constants.BUNDLE_VERSION);
-		
-		StringBuffer eventData = new StringBuffer( );
+
+		StringBuilder eventData = new StringBuilder( );
 		eventData.append( "Startup information: ");  //$NON-NLS-1$
 		eventData.append( "\n   AJDT version: " ); //$NON-NLS-1$
 		eventData.append( version );
-		
+
 		eventData.append( "\n   AspectJ Compiler version: " ); //$NON-NLS-1$
 		eventData.append( Version.getText() );
-		eventData.append( "\n   usingVisualiser="+AspectJUIPlugin.usingVisualiser ); //$NON-NLS-1$
-		eventData.append( "\n   usingXref="+AspectJUIPlugin.usingXref ); //$NON-NLS-1$
-		eventData.append( "\n   usingCUprovider="+AspectJPlugin.USING_CU_PROVIDER ); //$NON-NLS-1$
-		
+		eventData.append("\n   usingVisualiser=").append(AspectJUIPlugin.usingVisualiser); //$NON-NLS-1$
+		eventData.append("\n   usingXref=").append(AspectJUIPlugin.usingXref); //$NON-NLS-1$
+		eventData.append("\n   usingCUprovider=").append(AspectJPlugin.USING_CU_PROVIDER); //$NON-NLS-1$
+
 		IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();
 		String[] props = AspectJUIPlugin.getDefault().getPluginPreferences().propertyNames();
-		for ( int i = 0; i < props.length; i++ ) {
-			eventData.append( "\n   " ); //$NON-NLS-1$
-			eventData.append( props[i] );
-			eventData.append( " = " ); //$NON-NLS-1$
-			eventData.append( store.getString( props[i] ) );
-		}
+    for (String prop : props) {
+      eventData.append("\n   "); //$NON-NLS-1$
+      eventData.append(prop);
+      eventData.append(" = "); //$NON-NLS-1$
+      eventData.append(store.getString(prop));
+    }
 		return eventData.toString();
 	}
-		
+
 	public static void setDebug(boolean on) {
 		DEBUG = on;
 		if (on) {
@@ -110,43 +110,15 @@ public class DebugTracing {
 			AJBuilder.removeStateListener();
 		}
 	}
-	
+
 	public static void setDebugCategories(List checked) {
-		if (checked.contains(categoryNames[0])) {
-			DEBUG_COMPILER = true;
-		} else {
-			DEBUG_COMPILER = false;
-		}
-		if (checked.contains(categoryNames[1])) {
-			DEBUG_COMPILER_PROGRESS = true;
-		} else {
-			DEBUG_COMPILER_PROGRESS = false;
-		}
-		if (checked.contains(categoryNames[2])) {
-			DEBUG_COMPILER_MESSAGES = true;
-		} else {
-			DEBUG_COMPILER_MESSAGES = false;
-		}
-		if (checked.contains(categoryNames[3])) {
-			DEBUG_BUILDER = true;
-		} else {
-			DEBUG_BUILDER = false;
-		}
-        if (checked.contains(categoryNames[4])) {
-            DEBUG_BUILDER_CLASSPATH = true;
-        } else {
-            DEBUG_BUILDER_CLASSPATH = false;
-        }
-        if (checked.contains(categoryNames[5])) {
-            DEBUG_PARSER = true;
-        } else {
-            DEBUG_PARSER = false;
-        }
-        if (checked.contains(categoryNames[6])) {
-            DEBUG_MODEL = true;
-        } else {
-            DEBUG_MODEL = false;
-        }
+    DEBUG_COMPILER = checked.contains(categoryNames[0]);
+    DEBUG_COMPILER_PROGRESS = checked.contains(categoryNames[1]);
+    DEBUG_COMPILER_MESSAGES = checked.contains(categoryNames[2]);
+    DEBUG_BUILDER = checked.contains(categoryNames[3]);
+    DEBUG_BUILDER_CLASSPATH = checked.contains(categoryNames[4]);
+    DEBUG_PARSER = checked.contains(categoryNames[5]);
+    DEBUG_MODEL = checked.contains(categoryNames[6]);
 	}
-	
+
 }

@@ -10,7 +10,6 @@ Adrian Colyer, Andy Clement, Tracy Gardner - initial version
 **********************************************************************/
 package org.eclipse.ajdt.internal.ui.actions;
 
-import java.util.Iterator;
 import java.util.Vector;
 
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
@@ -31,20 +30,17 @@ import org.eclipse.ui.IWorkbenchPart;
  */
 public class AddAJNatureAction implements IObjectActionDelegate {
 
-	private Vector selected = new Vector();
+	private final Vector<IProject> selected = new Vector<>();
 
 	/**
 	 * @see IActionDelegate#run(IAction)
 	 */
 	public void run(IAction arg0) {
 
-		for (Iterator iter = selected.iterator(); iter.hasNext();) {
-
-			IProject project = (IProject) iter.next();
-			
-			try {			
+		for (IProject project : selected) {
+			try {
 				// Add the AspectJ nature to the project and update the
-				// build classpath with the aspectjrt.jar	
+				// build classpath with the aspectjrt.jar
 				AJDTUtils.addAspectJNature(project,true);
 			} catch (CoreException e) {
 			}
@@ -60,10 +56,9 @@ public class AddAJNatureAction implements IObjectActionDelegate {
 		boolean enable = true;
 		if (sel instanceof IStructuredSelection) {
 			IStructuredSelection selection = (IStructuredSelection) sel;
-			for (Iterator iter = selection.iterator(); iter.hasNext();) {
-				Object object = iter.next();
+			for (Object object : selection) {
 				if (object instanceof IAdaptable) {
-					IProject project = (IProject) ((IAdaptable)object).getAdapter(IProject.class);	
+					IProject project = ((IAdaptable) object).getAdapter(IProject.class);
 					if(project != null) {
 						selected.add(project);
 					} else {

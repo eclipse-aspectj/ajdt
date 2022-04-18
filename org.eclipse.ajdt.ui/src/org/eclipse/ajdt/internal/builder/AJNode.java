@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Helen Hawkins   - iniital version
@@ -24,14 +24,14 @@ import org.eclipse.ui.model.IWorkbenchAdapter;
  */
 public class AJNode implements IAdaptable, IXReferenceNode {
 
-    private String label;
-    private IJavaElement javaElement;
-    
+    private final String label;
+    private final IJavaElement javaElement;
+
     public AJNode(IJavaElement javaElement, String label) {
         this.label = label;
         this.javaElement = javaElement;
     }
-    
+
 	/**
 	 * @see IAdaptable#getAdapter(Class)
 	 */
@@ -43,7 +43,7 @@ public class AJNode implements IAdaptable, IXReferenceNode {
 		}
 		return null;
 	}
-	
+
 	public String getLabel() {
 	    return label;
 	}
@@ -51,8 +51,8 @@ public class AJNode implements IAdaptable, IXReferenceNode {
     /* (non-Javadoc)
      * @see org.eclipse.contribution.xref.core.IXReferenceNode#getJavaElement()
      */
-    public IJavaElement getJavaElement() {       
+    public IJavaElement getJavaElement() {
         return javaElement;
     }
-	
+
 }

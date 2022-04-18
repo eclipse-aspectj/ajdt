@@ -3,10 +3,10 @@
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v1.0 which accompanies this distribution,
  * and is available at http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors: IBM Corporation - initial API and implementation Sebastian
  * Davids <sdavids@gmx.de>bug 38692
- * Luzius Meisser - adjusted for ajdoc 
+ * Luzius Meisser - adjusted for ajdoc
  * Helen Hawkins - updated for Eclipse 3.1 (bug 109484)
  * Arturo Salazar , Jason Naylor - Adjust for projects with large # of files.
  ******************************************************************************/
@@ -88,10 +88,10 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 	private AJdocTreeWizardPage fJTWPage;
 	private AJdocSpecificsWizardPage fJSWPage;
 	private AJdocStandardWizardPage fJSpWPage;
-	
+
 	private IPath fDestination;
 
-	private boolean fWriteCustom;
+	private final boolean fWriteCustom;
 	private boolean fOpenInBrowser;
 
 	private final String TREE_PAGE_DESC = "JavadocTreePage"; //$NON-NLS-1$
@@ -105,8 +105,8 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 	//private final String JAVADOC_ANT_INFORMATION_DIALOG = "javadocAntInformationDialog";//$NON-NLS-1$
 
 	private AJdocOptionsManager fStore;
-	private IWorkspaceRoot fRoot;
-	private IFile fXmlJavadocFile;
+	private final IWorkspaceRoot fRoot;
+	private final IFile fXmlJavadocFile;
 
 	private static final String ID_JAVADOC_PROCESS_TYPE = "org.eclipse.jdt.ui.javadocProcess"; //$NON-NLS-1$
 
@@ -170,19 +170,18 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 				URL newURL = fDestination.toFile().toURL();
 				List projs = new ArrayList();
 				//get javadoc locations for all projects
-				for (int i = 0; i < checkedProjects.length; i++) {
-					IJavaProject curr = checkedProjects[i];
-					URL currURL = JavaUI.getProjectJavadocLocation(curr);
-					if (!newURL.equals(currURL)) { // currURL can be null
-						//if not all projects have the same javadoc location
-						// ask if you want to change
-						//them to have the same javadoc location
-						projs.add(curr);
-					}
-				}
+        for (IJavaProject curr : checkedProjects) {
+          URL currURL = JavaUI.getProjectJavadocLocation(curr);
+          if (!newURL.equals(currURL)) { // currURL can be null
+            //if not all projects have the same javadoc location
+            // ask if you want to change
+            //them to have the same javadoc location
+            projs.add(curr);
+          }
+        }
 				if (!projs.isEmpty()) {
 					setAllJavadocLocations((IJavaProject[]) projs
-							.toArray(new IJavaProject[projs.size()]), newURL);
+							.toArray(new IJavaProject[0]), newURL);
 				}
 			} catch (MalformedURLException e) {
 				JavaPlugin.log(e);
@@ -210,11 +209,8 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 //			}
 //		}
 
-		if (!executeJavadocGeneration())
-			return false;
-
-		return true;
-	}
+    return executeJavadocGeneration();
+  }
 
 	private void updateStore(IJavaProject[] checkedProjects) {
 		//writes the new settings to store
@@ -225,7 +221,7 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.eclipse.jface.wizard.IWizard#performCancel()
 	 */
 	public boolean performCancel() {
@@ -251,7 +247,7 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 		for (int j = 0; j < projects.length; j++) {
 			IJavaProject iJavaProject = projects[j];
 //			 AspectJ Extension - message
-			String message= Messages.format(JavadocExportMessages.JavadocWizard_updatejavadoclocation_message, new String[] { iJavaProject.getElementName(), fDestination.toOSString()}); 
+			String message= Messages.format(JavadocExportMessages.JavadocWizard_updatejavadoclocation_message, new String[] { iJavaProject.getElementName(), fDestination.toOSString()});
 			MessageDialog dialog= new MessageDialog(shell, JavadocExportMessages.JavadocWizard_updatejavadocdialog_label, image, message, 4, buttonlabels, 1);
 
 			switch (dialog.open()) {
@@ -287,7 +283,7 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 			fStore.getArgumentArray(userVmArgs, progArgs);
 
 			File file = File.createTempFile("javadoc-arguments", ".tmp"); //$NON-NLS-1$//$NON-NLS-2$
-			
+
 			String jreDir = JavaRuntime.getDefaultVMInstall().getInstallLocation().getAbsolutePath();
 			String aspectjrtDir = CoreUtils.getAspectjrtClasspath();
 			String aspectjtoolsDir = ""; //$NON-NLS-1$
@@ -295,7 +291,7 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 			URL weaverURL = Platform.getBundle(AspectJPlugin.WEAVER_PLUGIN_ID).getEntry("aspectjweaver.jar"); //$NON-NLS-1$
 			// From Eclipse 3.2M4 onwards we need equinox.common instead of core.runtime
 			URL coreURL = Platform.getBundle("org.eclipse.equinox.common").getEntry("/"); //$NON-NLS-1$ //$NON-NLS-2$
-			
+
 			try {
 				File ajdeFile = new File(FileLocator.toFileURL(ajdeURL).getFile());
 				if (ajdeFile.exists()) {
@@ -304,7 +300,7 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 					int lengthOfPath = ajdeFile.getAbsolutePath().length();
 					MessageDialog.openError(getShell(),
 							UIMessages.ajdocWizard_error_title,
-							NLS.bind(UIMessages.ajdocWizard_error_cant_find_ajde_jar, 
+							NLS.bind(UIMessages.ajdocWizard_error_cant_find_ajde_jar,
 									ajdeFile.getAbsolutePath().substring(0,(lengthOfPath/2)),
 									ajdeFile.getAbsolutePath().substring((lengthOfPath/2))));
 					return true;
@@ -316,7 +312,7 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 					int lengthOfPath = weaverFile.getAbsolutePath().length();
 					MessageDialog.openError(getShell(),
 							UIMessages.ajdocWizard_error_title,
-							NLS.bind(UIMessages.ajdocWizard_error_cant_find_weaver_jar, 
+							NLS.bind(UIMessages.ajdocWizard_error_cant_find_weaver_jar,
 									weaverFile.getAbsolutePath().substring(0,(lengthOfPath/2)),
 									weaverFile.getAbsolutePath().substring((lengthOfPath/2))));
 					return true;
@@ -326,36 +322,36 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 				// you're running ajdoc in a runtime workbench and you have imported org.eclipse.core.runtime
 				// into your workbench coreFile is just this directory and ajdoc doesn't run
 				// (and it's not immediately obvious why).
-				if (coreFile.exists() && 
-						(coreFile.getName().endsWith("jar") //$NON-NLS-1$ 
+				if (coreFile.exists() &&
+						(coreFile.getName().endsWith("jar") //$NON-NLS-1$
 								|| coreFile.getName().endsWith("cp"))) { //$NON-NLS-1$
 					aspectjtoolsDir += File.pathSeparator + "\""+ coreFile.getAbsolutePath()+"\"";
 				} else {
 					int lengthOfPath = coreFile.getAbsolutePath().length();
 					MessageDialog.openError(getShell(),
 							UIMessages.ajdocWizard_error_title,
-							NLS.bind(UIMessages.ajdocWizard_error_cant_find_runtime_jar, 
+							NLS.bind(UIMessages.ajdocWizard_error_cant_find_runtime_jar,
 									coreFile.getAbsolutePath().substring(0,(lengthOfPath/2)),
-									coreFile.getAbsolutePath().substring((lengthOfPath/2)))); 
+									coreFile.getAbsolutePath().substring((lengthOfPath/2))));
 					return true;
 				}
 			} catch (IOException e) {
 			}
-			
+
 			List vmArgs = new ArrayList();
 			String[] contentsOfJREDir = JavaRuntime.getDefaultVMInstall().getInstallLocation().list();
 			boolean foundJavaCmd = false;
-			for (int i = 0; i < contentsOfJREDir.length; i++) {
-				if (contentsOfJREDir[i].equals("bin")) { //$NON-NLS-1$
-					vmArgs.add(jreDir + File.separator + "bin" + File.separator + "java"); //$NON-NLS-1$ //$NON-NLS-2$
-					foundJavaCmd = true;
-					break;
-				}
-			}
+      for (String s : contentsOfJREDir) {
+        if (s.equals("bin")) { //$NON-NLS-1$
+          vmArgs.add(jreDir + File.separator + "bin" + File.separator + "java"); //$NON-NLS-1$ //$NON-NLS-2$
+          foundJavaCmd = true;
+          break;
+        }
+      }
 			if (!foundJavaCmd) {
-				vmArgs.add(jreDir + File.separator + "jre" + File.separator + "bin" + File.separator + "java"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$				
+				vmArgs.add(jreDir + File.separator + "jre" + File.separator + "bin" + File.separator + "java"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 			}
-			
+
 			// Bug 119853: Mac OS uses different paths
 			String javadocJarDir;
 			String javadocJarName;
@@ -366,33 +362,34 @@ public class AJdocWizard extends Wizard implements IExportWizard {
                 javadocJarName = "classes.jar"; //$NON-NLS-1$
 			    javadocJarDir = jreDir + File.separator + ".." + File.separator + "Classes" + File.separator + "classes.jar"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 			}
-			
+
 			boolean noXmx = true;
-			for (Iterator iter = userVmArgs.iterator(); iter.hasNext();) {
-				String element = (String) iter.next();
-				if (element.startsWith("-Xmx")) { //$NON-NLS-1$
-					noXmx = false;
-				} 
-                if (element.indexOf(javadocJarName) != -1) {
- 					javadocJarDir = element;
-				} else {
-					vmArgs.add(element);
-				}
-			}
+      for (Object userVmArg : userVmArgs) {
+        String element = (String) userVmArg;
+        if (element.startsWith("-Xmx")) { //$NON-NLS-1$
+          noXmx = false;
+        }
+        if (element.contains(javadocJarName)) {
+          javadocJarDir = element;
+        }
+        else {
+          vmArgs.add(element);
+        }
+      }
 			if (noXmx) {
 				// user didn't specify max heap size, so provide our own setting (from ajdoc.bat)
 				vmArgs.add("-Xmx64M"); //$NON-NLS-1$
 			}
 			vmArgs.add("-classpath"); //$NON-NLS-1$
-			
+
 			vmArgs.add(checkForSpaces(aspectjtoolsDir + File.pathSeparator + "\""+ javadocJarDir + "\""+ File.pathSeparator + "\""+ aspectjrtDir + "\""));
 			vmArgs.add("org.aspectj.tools.ajdoc.Main"); //$NON-NLS-1$
-			
-			// Condense arguments into a file so that a poject 
+
+			// Condense arguments into a file so that a poject
 			// with a large amount of source files doesn't pass too many
 			// arguments causing a System error 87 on windows when ajdoc is called.
 			int sourceIndex = 0; // get index of where the source files start
-			
+
 			for (int i = 0; i < progArgs.size(); i++) {
 				// Keep adding arguments till we reach the source files.
 				String progArg = (String)progArgs.get(i);
@@ -408,7 +405,7 @@ public class AJdocWizard extends Wizard implements IExportWizard {
                     vmArgs.add(checkForSpaces(progArg));
                 }
 			}
-			
+
 			// Create a temporary file containing a list of
 			// all the source files to use as an argument file.
 			File tempFile = File.createTempFile("filelist", ".lst");
@@ -420,18 +417,18 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 				out.write("\n");
 			}
 			out.close();
-			
+
 			String[] args = (String[]) vmArgs
-					.toArray(new String[vmArgs.size()]);
-			
+					.toArray(new String[0]);
+
 			process = Runtime.getRuntime().exec(args);
 			if (process != null) {
 				// construct a formatted command line for the process properties
-				StringBuffer buf = new StringBuffer();
-				for (int i = 0; i < args.length; i++) {
-					buf.append(args[i]);
-					buf.append(' ');
-				}
+				StringBuilder buf = new StringBuilder();
+        for (String arg : args) {
+          buf.append(arg);
+          buf.append(' ');
+        }
 
 				/* AJDT 1.7 begin */
                 try {
@@ -489,7 +486,7 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 		if (curr.indexOf(' ') == -1) {
 			return curr;
 		}
-		StringBuffer buf = new StringBuffer();
+		StringBuilder buf = new StringBuilder();
 		for (int i = 0; i < curr.length(); i++) {
 			char ch = curr.charAt(i);
 			if (ch == '\\' || ch == '\'' /*|| ch == ' '*/) {
@@ -512,7 +509,7 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 		super.addPage(fJTWPage);
 		super.addPage(fJSWPage);
 		super.addPage(fJSpWPage);
-		
+
 		fJTWPage.init();
 		fJSWPage.init();
 		fJSpWPage.init();
@@ -560,12 +557,12 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 			}
 		}
 	}
-	
+
     /* AJDT 1.7 begin */
     private class JavadocLaunchListener implements ILaunchesListener2 {
-        private Display fDisplay;
+        private final Display fDisplay;
         private volatile ILaunch fLaunch;
-        private File fFile;
+        private final File fFile;
 
         public JavadocLaunchListener(Display display, ILaunch launch, File file) {
             fDisplay= display;
@@ -574,12 +571,12 @@ public class AJdocWizard extends Wizard implements IExportWizard {
         }
 
         public void launchesTerminated(ILaunch[] launches) {
-            for (int i= 0; i < launches.length; i++) {
-                if (launches[i] == fLaunch) {
-                    onTerminated();
-                    return;
-                }
+          for (ILaunch launch : launches) {
+            if (launch == fLaunch) {
+              onTerminated();
+              return;
             }
+          }
         }
 
         public void onTerminated() {

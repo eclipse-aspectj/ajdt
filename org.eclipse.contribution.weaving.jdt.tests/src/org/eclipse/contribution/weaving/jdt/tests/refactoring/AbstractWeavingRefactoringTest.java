@@ -51,7 +51,7 @@ public abstract class AbstractWeavingRefactoringTest extends WeavingTestCase {
     }
 
     protected void assertContents(ICompilationUnit[] existingUnits, String[] expectedContents) {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         for (int i = 0; i < existingUnits.length; i++) {
             char[] contents = ((CompilationUnit) existingUnits[i]).getContents();
             String actualContents = String.valueOf(contents).replace("\r\n", "\n");
@@ -63,7 +63,7 @@ public abstract class AbstractWeavingRefactoringTest extends WeavingTestCase {
             }
         }
         if (sb.length() > 0) {
-            fail("Refactoring produced unexpected results:" + sb.toString());
+            fail("Refactoring produced unexpected results:" + sb);
         }
     }
 
@@ -107,24 +107,25 @@ public abstract class AbstractWeavingRefactoringTest extends WeavingTestCase {
         }
 
         RefactoringStatusEntry[] entries = result.getEntries();
-        for (int i = 0; i < entries.length; i++) {
-            // if this entries is known or it isn't an error,
-            // then it can be ignored.
-            // otherwise not OK.
-            if (!checkStringForKnownErrors(entries[i].getMessage()) &&
-                    entries[i].isError()) {
-                return result;
-            }
+      for (RefactoringStatusEntry entry : entries) {
+        // if this entries is known or it isn't an error,
+        // then it can be ignored.
+        // otherwise not OK.
+        if (!checkStringForKnownErrors(entry.getMessage()) &&
+            entry.isError())
+        {
+          return result;
         }
+      }
         return new RefactoringStatus();
     }
 
     private boolean checkStringForKnownErrors(String resultString) {
-        return resultString.indexOf("Found potential matches") >= 0 ||
-        resultString.indexOf("Method breakpoint participant") >= 0 ||
-        resultString.indexOf("Watchpoint participant") >= 0 ||
-        resultString.indexOf("Breakpoint participant") >= 0 ||
-        resultString.indexOf("Launch configuration participant") >= 0;
+        return resultString.contains("Found potential matches") ||
+               resultString.contains("Method breakpoint participant") ||
+               resultString.contains("Watchpoint participant") ||
+               resultString.contains("Breakpoint participant") ||
+               resultString.contains("Launch configuration participant");
     }
 
     protected void performDummySearch() throws Exception {

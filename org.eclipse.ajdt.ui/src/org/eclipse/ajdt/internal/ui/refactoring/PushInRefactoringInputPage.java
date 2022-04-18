@@ -46,7 +46,7 @@ import org.eclipse.swt.widgets.TableColumn;
 
 public class PushInRefactoringInputPage extends UserInputWizardPage {
     class SortListener implements Listener {
-        
+
         private final TableViewer tableViewer;
         private final Table table;
 
@@ -54,7 +54,7 @@ public class PushInRefactoringInputPage extends UserInputWizardPage {
             this.tableViewer = tableViewer;
             this.table = tableViewer.getTable();
         }
-        
+
         public void handleEvent(Event e) {
             // determine new sort column and direction
 
@@ -88,16 +88,16 @@ public class PushInRefactoringInputPage extends UserInputWizardPage {
             table.setSortDirection(dir);
         }
     }
-    
+
     class Sorter extends ViewerSorter {
         final static String ICON_SORT = "icon.sort";
         final static String ASPECT_SORT = "aspect.sort";
         final static String ITD_SORT = "itd.sort";
         final static String TARGET_SORT = "target.sort";
-        
+
         private final int dir;
         private final String column;
-        
+
         Sorter(String column, int dir) {
             super();
             this.column = column;
@@ -119,7 +119,7 @@ public class PushInRefactoringInputPage extends UserInputWizardPage {
                     e2 = ((IJavaElement) e2).getElementName();
                 }
             } else if (column == ITD_SORT || column == TARGET_SORT) {
-                // This isn't quite right because what shows up in 
+                // This isn't quite right because what shows up in
                 // the column isn't what gets sorted on.
                 if (e1 instanceof IJavaElement) {
                     e1 = ((IJavaElement) e1).getElementName();
@@ -128,9 +128,9 @@ public class PushInRefactoringInputPage extends UserInputWizardPage {
                     e2 = ((IJavaElement) e2).getElementName();
                 }
             }
-            
-            
-            
+
+
+
             if (dir == SWT.DOWN) {
                 return e1.toString().compareTo(e2.toString());
             } else {
@@ -138,16 +138,16 @@ public class PushInRefactoringInputPage extends UserInputWizardPage {
             }
         }
     }
-    
+
     private Listener sortListener;
 
     TableViewerColumn iconColumn;
     TableViewerColumn aspectColumn;
     TableViewerColumn targetColumn;
     TableViewerColumn itdColumn;
-    
-    private PushInRefactoringDescriptor descriptor;
-    
+
+    private final PushInRefactoringDescriptor descriptor;
+
     public PushInRefactoringInputPage(String name, PushInRefactoringDescriptor descriptor) {
         super(name);
         Assert.isNotNull(descriptor.getITDs(), "Cannot perform refactoring with no ITDs Selected");
@@ -170,11 +170,11 @@ public class PushInRefactoringInputPage extends UserInputWizardPage {
         label.setLayoutData(gridData);
 
         createTable(result);
-        
+
         label = new Label(result, SWT.SINGLE | SWT.LEFT | SWT.BORDER);
         label.setText("To change the set of intertype declarations to be pushed in, click cancel and reselect only the desired AspectJ elements.");
         label.setLayoutData(gridData);
-       
+
         handleInputChanged();
     }
 
@@ -214,7 +214,7 @@ public class PushInRefactoringInputPage extends UserInputWizardPage {
         layoutComposite.addColumnData(new ColumnWeightData(40, convertWidthInCharsToPixels(20), true));
         layoutComposite.addColumnData(new ColumnWeightData(40, convertWidthInCharsToPixels(20), true));
         layoutComposite.addColumnData(new ColumnWeightData(40, convertWidthInCharsToPixels(20), true));
-        
+
         // use this instead if we want to implement check boxes
 //        final CheckboxTableViewer tv = CheckboxTableViewer.newCheckList(layoutComposite, SWT.V_SCROLL | SWT.H_SCROLL | SWT.BORDER | SWT.FULL_SELECTION | SWT.MULTI);
         final TableViewer tv = new TableViewer(layoutComposite, SWT.V_SCROLL | SWT.H_SCROLL | SWT.BORDER | SWT.FULL_SELECTION | SWT.MULTI);
@@ -237,19 +237,19 @@ public class PushInRefactoringInputPage extends UserInputWizardPage {
         gridData= new GridData(GridData.FILL_BOTH);
         gridData.heightHint= SWTUtil.getTableHeightHint(table, Math.max(fields.length,5));
         layoutComposite.setLayoutData(gridData);
-        
+
         sortListener = new SortListener(tv);
         iconColumn.getColumn().addListener(SWT.Selection, sortListener);
         aspectColumn.getColumn().addListener(SWT.Selection, sortListener);
         targetColumn.getColumn().addListener(SWT.Selection, sortListener);
         itdColumn.getColumn().addListener(SWT.Selection, sortListener);
     }
-    
+
     private void createColumns(final TableViewer tv) {
 
         // four columns: icon, Aspect name, ITD name, target type name(s)
-        
-        
+
+
         iconColumn = new TableViewerColumn(tv, SWT.LEAD);
         iconColumn.setLabelProvider(new CellLabelProvider() {
             public void update(ViewerCell cell) {
@@ -258,20 +258,20 @@ public class PushInRefactoringInputPage extends UserInputWizardPage {
                     IAspectJElement ajElem = (IAspectJElement) elt;
                     AJDTIcon icon;
                     try {
-                        icon = (AJDTIcon) AspectJImages.instance()
+                        icon = AspectJImages.instance()
                                 .getStructureIcon(ajElem.getAJKind(), ajElem.getAJAccessibility());
                         cell.setImage(icon.getImageDescriptor().createImage());
                     } catch (JavaModelException e) {
                     }
                 } else if (elt instanceof IType) {
-                    AJDTIcon icon = (AJDTIcon) AspectJImages.instance()
+                    AJDTIcon icon = AspectJImages.instance()
                             .getStructureIcon(Kind.CLASS, Accessibility.PUBLIC);
                     cell.setImage(icon.getImageDescriptor().createImage());
                 }
             }
         });
 
-        
+
         aspectColumn = new TableViewerColumn(tv, SWT.LEAD);
         aspectColumn.setLabelProvider(new CellLabelProvider() {
             public void update(ViewerCell cell) {
@@ -284,7 +284,7 @@ public class PushInRefactoringInputPage extends UserInputWizardPage {
         });
         TableColumn column= aspectColumn.getColumn();
         column.setText("Declaring aspect");
-        
+
         itdColumn = new TableViewerColumn(tv, SWT.LEAD);
         itdColumn.setLabelProvider(new CellLabelProvider() {
             public void update(ViewerCell cell) {
@@ -310,7 +310,7 @@ public class PushInRefactoringInputPage extends UserInputWizardPage {
                     } else {
                         // declare parents
                         List<String> parents = ipe.getParentTypes();
-                        StringBuffer sb = new StringBuffer();
+                        StringBuilder sb = new StringBuilder();
                         for (Iterator<String> parentIter = parents.iterator(); parentIter
                                 .hasNext();) {
                             String parent = parentIter.next();
@@ -328,7 +328,7 @@ public class PushInRefactoringInputPage extends UserInputWizardPage {
         });
         column = itdColumn.getColumn();
         column.setText("Intertype Name");
-        
+
         targetColumn = new TableViewerColumn(tv, SWT.LEAD);
         targetColumn.setLabelProvider(new CellLabelProvider() {
             public void update(ViewerCell cell) {
@@ -341,7 +341,7 @@ public class PushInRefactoringInputPage extends UserInputWizardPage {
                     }
                 } else if (elt instanceof DeclareElement) {
                     DeclareElement de = (DeclareElement) elt;
-                    AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(de); 
+                    AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(de);
                     IProgramElement ipe = model.javaElementToProgramElement(de);
                     String targetName;
                     if (ipe.getKind().isDeclareAnnotation()) {
@@ -355,7 +355,7 @@ public class PushInRefactoringInputPage extends UserInputWizardPage {
                         }
                     } else {
                         List<IJavaElement> elts = model.getRelationshipsForElement(de, AJRelationshipManager.DECLARED_ON);
-                        StringBuffer sb = new StringBuffer();
+                        StringBuilder sb = new StringBuilder();
                         for (Iterator<IJavaElement> eltIter = elts.iterator(); eltIter.hasNext(); ) {
                             IJavaElement target = eltIter.next();
                             sb.append(target.getElementName());
@@ -370,7 +370,7 @@ public class PushInRefactoringInputPage extends UserInputWizardPage {
                     IType type = (IType) elt;
                     AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(type);
                     List<IJavaElement> elts = model.getRelationshipsForElement(type, AJRelationshipManager.DECLARED_ON);
-                    StringBuffer sb = new StringBuffer();
+                    StringBuilder sb = new StringBuilder();
                     for (Iterator<IJavaElement> eltIter = elts.iterator(); eltIter.hasNext(); ) {
                         IJavaElement target = eltIter.next();
                         sb.append(target.getElementName());

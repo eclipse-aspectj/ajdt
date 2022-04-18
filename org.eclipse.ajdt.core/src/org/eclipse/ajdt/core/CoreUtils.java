@@ -126,7 +126,7 @@ public class CoreUtils {
         return null;
     }
 
-    public synchronized static String getAspectjrtSourcePath() throws IOException {
+    public synchronized static String getAspectjrtSourcePath() {
         if (aspectjrtSourcePath == null && !sourceCheckDone) {
             sourceCheckDone = true;
             String aspectjrtClasspath = getAspectjrtClasspath();
@@ -168,13 +168,13 @@ public class CoreUtils {
     for (IProject iProject : projectsInWorkspace) {
       if (iProject.equals(project)
           || !(iProject.isOpen()))
-        continue workThroughProjects;
+        continue;
       try {
         if (iProject.hasNature(JavaCore.NATURE_ID)) {
           JavaProject javaProject = (JavaProject) JavaCore
             .create(iProject);
           if (javaProject == null)
-            continue workThroughProjects;
+            continue;
 
           try {
             IClasspathEntry[] cpEntry = javaProject
@@ -200,7 +200,6 @@ public class CoreUtils {
             }
           }
           catch (JavaModelException e) {
-            continue workThroughProjects;
           }
         }
       }
@@ -236,8 +235,8 @@ public class CoreUtils {
       }
 		} catch (JavaModelException e) {
 		}
-		return (IClasspathEntry[]) exportedEntries
-				.toArray(new IClasspathEntry[exportedEntries.size()]);
+		return exportedEntries
+				.toArray(new IClasspathEntry[0]);
 	}
 
 	/**
@@ -291,7 +290,7 @@ public class CoreUtils {
         }
       }
     }
-		return (IPath[])paths.toArray(new IPath[paths.size()]);
+		return paths.toArray(new IPath[0]);
 	}
 
 	   public static boolean isAJProject(IProject project) {

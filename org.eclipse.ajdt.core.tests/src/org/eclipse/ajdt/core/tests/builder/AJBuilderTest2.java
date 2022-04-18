@@ -32,6 +32,8 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 
+import static org.junit.Assert.assertNotEquals;
+
 public class AJBuilderTest2 extends AJDTCoreTestCase {
     @Override
     protected void setUp() throws Exception {
@@ -54,8 +56,7 @@ public class AJBuilderTest2 extends AJDTCoreTestCase {
 		IPath origOutput = javaProject.getOutputLocation();
 
 		IPath newOutput = new Path("/bug91420/newBin"); //$NON-NLS-1$
-		assertFalse("should be setting output dir to new place", //$NON-NLS-1$
-				origOutput.toString().equals(newOutput.toString()));
+    assertNotEquals("should be setting output dir to new place", origOutput.toString(), newOutput.toString());
 
 		TestLogger testLog = new TestLogger();
 		AspectJPlugin.getDefault().setAJLogger(testLog);
@@ -222,19 +223,18 @@ public class AJBuilderTest2 extends AJDTCoreTestCase {
             assertFalse("project should have no errors", testLog //$NON-NLS-1$
                     .containsMessage("error"));  //$NON-NLS-1$
 
-            StringBuffer origContents = new StringBuffer("package pack; "); //$NON-NLS-1$
-            origContents.append(System.getProperty("line.separator")); //$NON-NLS-1$
-            origContents.append("public class C {}"); //$NON-NLS-1$
+          //$NON-NLS-1$
+          String origContents = "package pack; " + System.getProperty("line.separator") + //$NON-NLS-1$
+                                "public class C {}"; //$NON-NLS-1$
 
-            // add compilation error to the class
+          // add compilation error to the class
             // write "blah blah blah" to the class
             // NOTE: we add a comment so that thet class file doesn't get
             // deleted, as we test for it later, but this is a somewhat
             // arbitrary test because the behaviour of AJC is different to the
             // JDT compiler when the source has errors (see bug 102733)
-            StringBuffer sb = new StringBuffer("blah blah blah/*comment*/"); //$NON-NLS-1$
-            sb.append(origContents);
-            StringReader sr = new StringReader(sb.toString());
+          StringReader sr = new StringReader(//$NON-NLS-1$
+            "blah blah blah/*comment*/" + origContents);
             c.setContents(new ReaderInputStream(sr), IResource.FORCE, null);
             sr.close();
             waitForAutoRefresh();
@@ -287,11 +287,11 @@ public class AJBuilderTest2 extends AJDTCoreTestCase {
         File outputDir = new File(realOutputLocation + File.separator
                 + packageName);
         File[] outputFiles = outputDir.listFiles();
-        for (int i = 0; i < outputFiles.length; i++) {
-            if (outputFiles[i].getName().equals(fileName)) {
-                return true;
-            }
+      for (File outputFile : outputFiles) {
+        if (outputFile.getName().equals(fileName)) {
+          return true;
         }
+      }
         return false;
     }
 
@@ -318,15 +318,15 @@ public class AJBuilderTest2 extends AJDTCoreTestCase {
 			String libName) throws JavaModelException {
 		IClasspathEntry[] entries = proj.getRawClasspath();
 		IPath libPath = proj.getProject().getLocation().append(libName);
-		for (int i = 0; i < entries.length; i++) {
-			IClasspathEntry entry = entries[i];
-			if (entry.getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
-				if (entry.getPath().equals(libPath)
-						|| entry.getPath().equals(libPath.makeAbsolute())) {
-					return true;
-				}
-			}
-		}
+    for (IClasspathEntry entry : entries) {
+      if (entry.getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
+        if (entry.getPath().equals(libPath)
+            || entry.getPath().equals(libPath.makeAbsolute()))
+        {
+          return true;
+        }
+      }
+    }
 		return false;
 	}
 
@@ -346,16 +346,16 @@ public class AJBuilderTest2 extends AJDTCoreTestCase {
 	private boolean projectHasProjectDependency(IJavaProject proj,
 			IProject projectDependedOn) throws JavaModelException {
 		IClasspathEntry[] entries = proj.getRawClasspath();
-		for (int i = 0; i < entries.length; i++) {
-			IClasspathEntry entry = entries[i];
-			if (entry.getEntryKind() == IClasspathEntry.CPE_PROJECT) {
-				if (entry.getPath().equals(projectDependedOn.getFullPath())
-						|| entry.getPath().equals(
-								projectDependedOn.getFullPath().makeAbsolute())) {
-					return true;
-				}
-			}
-		}
+    for (IClasspathEntry entry : entries) {
+      if (entry.getEntryKind() == IClasspathEntry.CPE_PROJECT) {
+        if (entry.getPath().equals(projectDependedOn.getFullPath())
+            || entry.getPath().equals(
+          projectDependedOn.getFullPath().makeAbsolute()))
+        {
+          return true;
+        }
+      }
+    }
 		return false;
 	}
 

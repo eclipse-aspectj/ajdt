@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Helen Hawkins   - iniital version
@@ -28,7 +28,7 @@ import org.eclipse.ui.PlatformUI;
 
 /**
  * @author hawkinsh
- *  
+ *
  */
 public class XReferenceViewTest extends TestCase {
 
@@ -150,7 +150,7 @@ public class XReferenceViewTest extends TestCase {
 		assertEquals(0, viewContentProvider.getElements(null).length);
 
 		// if the input is not an IXReferenceAdapter, we ignore it
-		viewContentProvider.inputChanged(null, null, new String("aha!")); //$NON-NLS-1$
+		viewContentProvider.inputChanged(null, null, "aha!"); //$NON-NLS-1$
 		assertEquals(0, viewContentProvider.getElements(null).length);
 
 		// add a XReference adapter with no XReference

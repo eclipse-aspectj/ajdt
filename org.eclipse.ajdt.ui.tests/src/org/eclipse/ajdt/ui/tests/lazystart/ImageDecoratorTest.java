@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Matt Chapman - initial implementation
  *******************************************************************************/
@@ -40,16 +40,14 @@ public class ImageDecoratorTest extends UITestCase {
 		AJCompilationUnit cu = AJCompilationUnitManager.INSTANCE
 				.getAJCompilationUnit((IFile) aj);
 		IType[] types = cu.getAllTypes();
-		assertTrue(
-				"Compilation unit should contain exactly one type", types.length == 1); //$NON-NLS-1$
+    assertEquals("Compilation unit should contain exactly one type", 1, types.length); //$NON-NLS-1$
 		assertTrue(
 				"Contained type should be an AspectElement", types[0] instanceof AspectElement); //$NON-NLS-1$
 		AspectElement aspect = (AspectElement) types[0];
 		DeclareElement[] declares = aspect.getDeclares();
 		assertNotNull(
 				"AspectElement.getDeclares() should not return null", declares); //$NON-NLS-1$
-		assertTrue(
-				"AspectElement.getDeclares() should return exactly one declare element", declares.length == 1); //$NON-NLS-1$
+    assertEquals("AspectElement.getDeclares() should return exactly one declare element", 1, declares.length); //$NON-NLS-1$
 		String text = labelProvider.getText(declares[0]);
 		assertEquals(
 				"Label provider returned wrong text for declare statement", "declare warning", text); //$NON-NLS-1$ //$NON-NLS-2$

@@ -104,9 +104,8 @@ public class UIMessageHandlerTest extends UITestCase {
 		} catch (RuntimeException re) {
 			message = re.getMessage();
 		}
-		assertTrue("expected a runtime error with message 'fake abort' when " + //$NON-NLS-1$
-				" testing error handling but didn't find one", //$NON-NLS-1$
-				message.equals("org.aspectj.bridge.AbortException: fake abort")); //$NON-NLS-1$
+    assertEquals("expected a runtime error with message 'fake abort' when " + //$NON-NLS-1$
+                 " testing error handling but didn't find one", "org.aspectj.bridge.AbortException: fake abort", message); //$NON-NLS-1$
 	}
 
 	/**
@@ -128,9 +127,8 @@ public class UIMessageHandlerTest extends UITestCase {
 		} catch (RuntimeException re) {
 			message = re.getMessage();
 		}
-		assertTrue("expected a runtime error with message 'fake abort' when " + //$NON-NLS-1$
-				" testing error handling but didn't find one", //$NON-NLS-1$
-				message.equals("org.aspectj.bridge.AbortException: fake abort")); //$NON-NLS-1$
+    assertEquals("expected a runtime error with message 'fake abort' when " + //$NON-NLS-1$
+                 " testing error handling but didn't find one", "org.aspectj.bridge.AbortException: fake abort", message); //$NON-NLS-1$
 	}
 
 	public void testDefaultSettingsMessagesThatAreIgnored() throws Exception {

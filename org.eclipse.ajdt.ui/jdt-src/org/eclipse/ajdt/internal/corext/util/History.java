@@ -16,6 +16,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.Collection;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -52,8 +54,8 @@ import org.xml.sax.SAXException;
 /**
  * History stores a list of key, object pairs. The list is bounded at size
  * MAX_HISTORY_SIZE. If the list exceeds this size the eldest element is removed
- * from the list. An element can be added/renewed with a call to <code>accessed(Object)</code>. 
- * 
+ * from the list. An element can be added/renewed with a call to <code>accessed(Object)</code>.
+ *
  * The history can be stored to/loaded from an xml file.
  */
 public abstract class History {
@@ -71,7 +73,7 @@ public abstract class History {
 	private final String fFileName;
 	private final String fRootNodeName;
 	private final String fInfoNodeName;
-		
+
 	public History(String fileName, String rootNodeName, String infoNodeName) {
 		fHistory= new LinkedHashMap(80, 0.75f, true) {
 			private static final long serialVersionUID= 1L;
@@ -84,72 +86,72 @@ public abstract class History {
 		fInfoNodeName= infoNodeName;
 		fPositions= new Hashtable(MAX_HISTORY_SIZE);
 	}
-	
+
 	public History(String fileName) {
 		this(fileName, DEFAULT_ROOT_NODE_NAME, DEFAULT_INFO_NODE_NAME);
 	}
-	
+
 	public synchronized void accessed(Object object) {
 		fHistory.put(getKey(object), object);
 		rebuildPositions();
 	}
-	
+
 	public synchronized boolean contains(Object object) {
 		return fHistory.containsKey(getKey(object));
 	}
-	
+
 	public synchronized boolean containsKey(Object key) {
 		return fHistory.containsKey(key);
 	}
-	
+
 	public synchronized boolean isEmpty() {
 		return fHistory.isEmpty();
 	}
-	
+
 	public synchronized Object remove(Object object) {
 		Object removed= fHistory.remove(getKey(object));
 		rebuildPositions();
 		return removed;
 	}
-	
+
 	public synchronized Object removeKey(Object key) {
 		Object removed= fHistory.remove(key);
 		rebuildPositions();
 		return removed;
 	}
-	
+
 	/**
 	 * Normalized position in history of object denoted by key.
 	 * The position is a value between zero and one where zero
 	 * means not contained in history and one means newest element
 	 * in history. The lower the value the older the element.
-	 * 
+	 *
 	 * @param key The key of the object to inspect
 	 * @return value in [0.0, 1.0] the lower the older the element
 	 */
 	public synchronized float getNormalizedPosition(Object key) {
-		if (!containsKey(key)) 
+		if (!containsKey(key))
 			return 0.0f;
 
-		int pos= ((Integer)fPositions.get(key)).intValue() + 1;
-		
-		//containsKey(key) implies fHistory.size()>0	
+		int pos= (Integer) fPositions.get(key) + 1;
+
+		//containsKey(key) implies fHistory.size()>0
 		return (float)pos / (float)fHistory.size();
 	}
-	
+
 	/**
 	 * Absolute position of object denoted by key in the
 	 * history or -1 if !containsKey(key). The higher the
 	 * newer.
-	 * 
+	 *
 	 * @param key The key of the object to inspect
 	 * @return value between 0 and MAX_HISTORY_SIZE - 1, or -1
 	 */
 	public synchronized int getPosition(Object key) {
 		if (!containsKey(key))
 			return -1;
-		
-		return ((Integer)fPositions.get(key)).intValue();
+
+		return (Integer) fPositions.get(key);
 	}
 
 	public synchronized void load() {
@@ -158,13 +160,12 @@ public abstract class History {
 		if (file.exists()) {
 			InputStreamReader reader= null;
 	        try {
-				reader = new InputStreamReader(new FileInputStream(file), "utf-8");//$NON-NLS-1$
+				reader = new InputStreamReader(Files.newInputStream(file.toPath()), StandardCharsets.UTF_8);//$NON-NLS-1$
 				load(new InputSource(reader));
-			} catch (IOException e) {
+			} catch (IOException | CoreException e) {
 				JavaPlugin.log(e);
-			} catch (CoreException e) {
-				JavaPlugin.log(e);
-			} finally {
+			}
+          finally {
 				try {
 					if (reader != null)
 						reader.close();
@@ -174,20 +175,19 @@ public abstract class History {
 			}
 		}
 	}
-	
+
 	public synchronized void save() {
 		IPath stateLocation= JavaPlugin.getDefault().getStateLocation().append(fFileName);
 		File file= new File(stateLocation.toOSString());
 		OutputStream out= null;
 		try {
-			out= new FileOutputStream(file); 
+			out= Files.newOutputStream(file.toPath());
 			save(out);
-		} catch (IOException e) {
+		} catch (IOException | CoreException e) {
 			JavaPlugin.log(e);
-		} catch (CoreException e) {
-			JavaPlugin.log(e);
-		} catch (TransformerFactoryConfigurationError e) {
-			// The XML library can be misconficgured (e.g. via 
+		}
+    catch (TransformerFactoryConfigurationError e) {
+			// The XML library can be misconficgured (e.g. via
 			// -Djava.endorsed.dirs=C:\notExisting\xerces-2_7_1)
 			JavaPlugin.log(e);
 		} finally {
@@ -200,47 +200,46 @@ public abstract class History {
 			}
 		}
 	}
-	
+
 	protected Set getKeys() {
 		return fHistory.keySet();
 	}
-	
+
 	protected Collection getValues() {
 		return fHistory.values();
 	}
-	
+
 	/**
 	 * Store <code>Object</code> in <code>Element</code>
-	 * 
+	 *
 	 * @param object The object to store
 	 * @param element The Element to store to
 	 */
 	protected abstract void setAttributes(Object object, Element element);
-	
+
 	/**
 	 * Return a new instance of an Object given <code>element</code>
-	 * 
+	 *
 	 * @param element The element containing required information to create the Object
 	 */
 	protected abstract Object createFromElement(Element element);
-	
+
 	/**
 	 * Get key for object
-	 * 
+	 *
 	 * @param object The object to calculate a key for, not null
 	 * @return The key for object, not null
 	 */
 	protected abstract Object getKey(Object object);
-	
+
 	private void rebuildPositions() {
 		fPositions.clear();
 		Collection values= fHistory.values();
 		int pos=0;
-		for (Iterator iter= values.iterator(); iter.hasNext();) {
-			Object element= iter.next();
-			fPositions.put(getKey(element), new Integer(pos));
-			pos++;
-		}
+    for (Object element : values) {
+      fPositions.put(getKey(element), pos);
+      pos++;
+    }
 	}
 
 	private void load(InputSource inputSource) throws CoreException {
@@ -248,15 +247,11 @@ public abstract class History {
 		try {
 			DocumentBuilder parser = DocumentBuilderFactory.newInstance().newDocumentBuilder();
 			root = parser.parse(inputSource).getDocumentElement();
-		} catch (SAXException e) {
-			throw createException(e, Messages.format(CorextMessages.History_error_read, fFileName));  
-		} catch (ParserConfigurationException e) {
-			throw createException(e, Messages.format(CorextMessages.History_error_read, fFileName)); 
-		} catch (IOException e) {
-			throw createException(e, Messages.format(CorextMessages.History_error_read, fFileName)); 
+		} catch (SAXException | IOException | ParserConfigurationException e) {
+			throw createException(e, Messages.format(CorextMessages.History_error_read, fFileName));
 		}
-		
-		if (root == null) return;
+
+    if (root == null) return;
 		if (!root.getNodeName().equalsIgnoreCase(fRootNodeName)) {
 			return;
 		}
@@ -276,24 +271,22 @@ public abstract class History {
 		}
 		rebuildPositions();
 	}
-	
+
 	private void save(OutputStream stream) throws CoreException {
 		try {
 			DocumentBuilderFactory factory= DocumentBuilderFactory.newInstance();
-			DocumentBuilder builder= factory.newDocumentBuilder();		
+			DocumentBuilder builder= factory.newDocumentBuilder();
 			Document document= builder.newDocument();
-			
+
 			Element rootElement = document.createElement(fRootNodeName);
 			document.appendChild(rootElement);
-	
-			Iterator values= getValues().iterator();
-			while (values.hasNext()) {
-				Object object= values.next();
-				Element element= document.createElement(fInfoNodeName);
-				setAttributes(object, element);
-				rootElement.appendChild(element);
-			}
-			
+
+      for (Object object : getValues()) {
+        Element element = document.createElement(fInfoNodeName);
+        setAttributes(object, element);
+        rootElement.appendChild(element);
+      }
+
 			Transformer transformer=TransformerFactory.newInstance().newTransformer();
 			transformer.setOutputProperty(OutputKeys.METHOD, "xml"); //$NON-NLS-1$
 			transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8"); //$NON-NLS-1$
@@ -302,11 +295,9 @@ public abstract class History {
 			StreamResult result = new StreamResult(stream);
 
 			transformer.transform(source, result);
-		} catch (TransformerException e) {
-			throw createException(e, Messages.format(CorextMessages.History_error_serialize, fFileName));
-		} catch (ParserConfigurationException e) {
+		} catch (TransformerException | ParserConfigurationException e) {
 			throw createException(e, Messages.format(CorextMessages.History_error_serialize, fFileName));
 		}
-	}
+  }
 
 }

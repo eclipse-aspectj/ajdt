@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Helen Hawkins   - iniital version
@@ -23,7 +23,7 @@ import junit.framework.TestCase;
 public class XReferenceAdapterFactoryTest extends TestCase {
 
 	private XReferenceAdapterFactory xraf;
-	
+
 	/*
 	 * @see TestCase#setUp()
 	 */
@@ -46,14 +46,14 @@ public class XReferenceAdapterFactoryTest extends TestCase {
 
 	public void testGetAdapter() {
 		Object o = new Object();
-		Object adapter = xraf.getAdapter(o,IXReferenceAdapter.class);
+		IXReferenceAdapter adapter = xraf.getAdapter(o,IXReferenceAdapter.class);
 		assertNotNull(adapter);
         assertTrue(adapter instanceof IXReferenceAdapter);
-        IXReferenceAdapter xra = (IXReferenceAdapter)adapter;
-		assertEquals(o,xra.getReferenceSource());       
+        IXReferenceAdapter xra = adapter;
+		assertEquals(o,xra.getReferenceSource());
 	}
-    
-    	
+
+
 	public void testGetAdapterList() {
 		@SuppressWarnings("rawtypes")
         Class[] adaptedClasses = xraf.getAdapterList();

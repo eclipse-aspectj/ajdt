@@ -147,7 +147,7 @@ public abstract class IntertypeElement extends AspectJMemberElement {
             // no successful build yet, we don't know the contents
             info.setName(name.toCharArray());
             info.setAJKind(IProgramElement.Kind.ERROR);
-            info.setAJModifiers(Collections.<Modifiers>emptyList());
+            info.setAJModifiers(Collections.emptyList());
         }
         return info;
     }

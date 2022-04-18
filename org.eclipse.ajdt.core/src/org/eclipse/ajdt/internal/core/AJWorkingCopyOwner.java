@@ -18,14 +18,14 @@ import org.eclipse.jdt.internal.core.DefaultWorkingCopyOwner;
 
 /**
  * A working copy owner that creates internal buffers.
- * Based on org.eclipse.jdt.internal.core.DefaultWorkingCopyOwner. 
+ * Based on org.eclipse.jdt.internal.core.DefaultWorkingCopyOwner.
  * Part of the fix for 117412.
  */
 public class AJWorkingCopyOwner extends WorkingCopyOwner {
-		
-	public static final WorkingCopyOwner INSTANCE = 
-		AspectJPlugin.USING_CU_PROVIDER ? (WorkingCopyOwner)DefaultWorkingCopyOwner.PRIMARY :
-				(WorkingCopyOwner)new AJWorkingCopyOwner();
+
+	public static final WorkingCopyOwner INSTANCE =
+		AspectJPlugin.USING_CU_PROVIDER ? DefaultWorkingCopyOwner.PRIMARY :
+      new AJWorkingCopyOwner();
 
 	private AJWorkingCopyOwner() {
 		// singleton - so use a private constructor
@@ -36,7 +36,7 @@ public class AJWorkingCopyOwner extends WorkingCopyOwner {
 		if (DefaultWorkingCopyOwner.PRIMARY.primaryBufferProvider != null) return DefaultWorkingCopyOwner.PRIMARY.primaryBufferProvider.createBuffer(workingCopy);
 		return super.createBuffer(workingCopy);
 	}
-	
+
 	public String toString() {
 		return "AJDT working copy owner"; //$NON-NLS-1$
 	}

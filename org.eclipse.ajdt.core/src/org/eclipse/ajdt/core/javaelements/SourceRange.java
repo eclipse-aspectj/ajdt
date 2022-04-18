@@ -52,12 +52,11 @@ public class SourceRange implements ISourceRange {
         return this.length ^ this.offset;
     }
     public String toString() {
-        StringBuilder buffer = new StringBuilder();
-        buffer.append("[offset="); //$NON-NLS-1$
-        buffer.append(this.offset);
-        buffer.append(", length="); //$NON-NLS-1$
-        buffer.append(this.length);
-        buffer.append("]"); //$NON-NLS-1$
-        return buffer.toString();
+      String buffer = "[offset=" + //$NON-NLS-1$
+                      this.offset +
+                      ", length=" + //$NON-NLS-1$
+                      this.length +
+                      "]"; //$NON-NLS-1$
+      return buffer;
     }
 }

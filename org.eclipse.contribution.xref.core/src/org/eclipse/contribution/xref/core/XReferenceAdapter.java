@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Helen Hawkins   - iniital version
@@ -22,12 +22,12 @@ import org.eclipse.jdt.core.IJavaElement;
 /**
  * Convenience implementation of IXReferenceAdapter
  * @see org.eclipse.contribution.xref.core.IXReferenceAdapter
- *  
+ *
  */
 public class XReferenceAdapter extends PlatformObject implements IXReferenceAdapter {
 
-	private IAdaptable referenceSource;
-	
+	private final IAdaptable referenceSource;
+
 	/**
 	 * @param source
 	 *            the object for which we're providing cross references
@@ -45,10 +45,10 @@ public class XReferenceAdapter extends PlatformObject implements IXReferenceAdap
 		}
 		return null;
 	}
-	
+
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.eclipse.contributions.xref.core.IXReferenceAdapter#getReferenceSource()
 	 */
 	public IAdaptable getReferenceSource() {
@@ -57,15 +57,15 @@ public class XReferenceAdapter extends PlatformObject implements IXReferenceAdap
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.eclipse.contributions.xref.core.IXReferenceAdapter#getXReferences()
 	 */
 	@SuppressWarnings("deprecation")
-    public Collection<IXReference> getXReferences() {		
+    public Collection<IXReference> getXReferences() {
 		XReferenceProviderManager manager =
 			XReferenceProviderManager.getManager();
 		List<IXReferenceProvider> providers = manager.getProvidersFor(referenceSource);
-		List<IXReference> xrefs = new ArrayList<IXReference>();
+		List<IXReference> xrefs = new ArrayList<>();
 		boolean isInplace = manager.getIsInplace();
 		for (IXReferenceProvider provider : providers) {
 		    List<String> filter;
@@ -81,7 +81,7 @@ public class XReferenceAdapter extends PlatformObject implements IXReferenceAdap
 			    c = provider.getXReferences(referenceSource, filter);
 			}
 			if (c != null) {
-			    xrefs.addAll(c);                
+			    xrefs.addAll(c);
 			}
 		}
 		return xrefs;

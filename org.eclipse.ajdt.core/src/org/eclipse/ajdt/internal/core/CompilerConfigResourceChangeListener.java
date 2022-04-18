@@ -25,7 +25,7 @@ import org.eclipse.core.runtime.CoreException;
  */
 public class CompilerConfigResourceChangeListener implements IResourceChangeListener {
 
-	private CompilerConfigResourceDeltaVisitor myDeltaVisitor;
+	private final CompilerConfigResourceDeltaVisitor myDeltaVisitor;
 
 	/*
 	 * (non-Javadoc)

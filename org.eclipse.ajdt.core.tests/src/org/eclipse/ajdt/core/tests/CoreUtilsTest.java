@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman  - initial version
@@ -66,15 +66,15 @@ public class CoreUtilsTest extends AJDTCoreTestCase {
 		assertTrue("CoreUtils.getOutputFolders didn't return bin folder", //$NON-NLS-1$
 				out[0].toString().endsWith("bin")); //$NON-NLS-1$
 	}
-	
-	public void testListAJSigToJavaSig1() throws Exception {
+
+	public void testListAJSigToJavaSig1() {
 	    List orig = new ArrayList();
         orig.add("PPPP///<P<<".toCharArray());
         orig.add("LLLPPPP///<P<<LP".toCharArray());
         orig.add("......P<LP<P".toCharArray());
         orig.add("".toCharArray());
         orig.add(null);
-        
+
         String[] expected = new String[] {
                 "LPPP...<L<<",
                 "LLLPPPP...<L<<LP",
@@ -82,18 +82,18 @@ public class CoreUtilsTest extends AJDTCoreTestCase {
                 "",
                 ""
         };
-        
+
         String[] result = CoreUtils.listAJSigToJavaSig(orig);
         assertEquals("Result of listAJSigToJavaSig should be the same number of Strings as orig",
                 expected.length, result.length);
-        
+
         for (int i = 0; i < result.length; i++) {
-            assertEquals("listAJSigToJavaSig did not convert to Java signature properly.", 
+            assertEquals("listAJSigToJavaSig did not convert to Java signature properly.",
                     expected[i], result[i]);
         }
-        
+
         result = CoreUtils.listAJSigToJavaSig(null);
-        
+
         assertEquals("listAJSigToJavaSig did not convert to Java signature properly.", 0,
                 result.length);
 	}

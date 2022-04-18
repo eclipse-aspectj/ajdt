@@ -90,7 +90,7 @@ public class SourceTransformerTests extends WeavingTestCase {
         Shell shell = new Shell();
         MockCompilationUnit cu = (MockCompilationUnit) JavaCore.create(file);
 
-        Map<String, String> settings= new Hashtable<String, String>();
+        Map<String, String> settings= new Hashtable<>();
         settings.put(CleanUpConstants.FORMAT_SOURCE_CODE, CleanUpOptions.TRUE);
 
         RefactoringExecutionStarter.startCleanupRefactoring(new ICompilationUnit[] { cu },

@@ -44,7 +44,7 @@ public class AopXmlPreferencePage extends PropertyPage implements
 
     private final int IDX_ADD = 0, IDX_REMOVE = 1, IDX_EDIT = 2;
     private final String[] buttonLabels = { "Add...", "Remove", "Edit..." };
-    
+
     protected class AopXmlAdapter implements IDialogFieldListener, IListAdapter {
         public void dialogFieldChanged(DialogField field) {
             isDirty = true;
@@ -69,18 +69,14 @@ public class AopXmlPreferencePage extends PropertyPage implements
         }
 
         public void selectionChanged(ListDialogField field) {
-            if (field.getSelectedElements().size() == 1) {
-                field.enableButton(IDX_EDIT, true);
-            } else {
-                field.enableButton(IDX_EDIT, false);
-            }
+          field.enableButton(IDX_EDIT, field.getSelectedElements().size() == 1);
         }
     }
-    
+
     private class AopXmlLabelProvider implements ILabelProvider {
 
-        private Image image = AspectJImages.AOP_XML.getImageDescriptor().createImage();
-        
+        private final Image image = AspectJImages.AOP_XML.getImageDescriptor().createImage();
+
         public Image getImage(Object element) {
             return image;
         }
@@ -91,7 +87,7 @@ public class AopXmlPreferencePage extends PropertyPage implements
 
         public void addListener(ILabelProviderListener listener) { }
 
-        public void dispose() { 
+        public void dispose() {
             image.dispose();
         }
 
@@ -101,11 +97,11 @@ public class AopXmlPreferencePage extends PropertyPage implements
 
         public void removeListener(ILabelProviderListener listener) { }
     }
-    
+
     private ListDialogField control;
     private AopXmlPreferences preferenceStore;
     private boolean isDirty = false;
-    
+
     public AopXmlPreferencePage() { }
 
     public void editSelected() {
@@ -115,9 +111,9 @@ public class AopXmlPreferencePage extends PropertyPage implements
             int index = control.getIndexOfElement(path);
             control.removeElement(path);
             if (newPaths != null) {
-                for (int i = 0; i < newPaths.length; i++) {
-                    control.addElement(newPaths[i], index++);
-                }
+              for (IPath newPath : newPaths) {
+                control.addElement(newPath, index++);
+              }
             }
 
         }
@@ -130,24 +126,24 @@ public class AopXmlPreferencePage extends PropertyPage implements
     public void addNew() {
         IPath[] newPaths = chooseAopXmlEntries(getShell(), null, getElementsAsArray());
         if (newPaths != null) {
-            for (int i = 0; i < newPaths.length; i++) {
-                control.addElement(newPaths[i]);
-            }
+          for (IPath newPath : newPaths) {
+            control.addElement(newPath);
+          }
         }
     }
 
     public void storePreferences() {
         List elements = control.getElements();
         preferenceStore.setAopXmlFiles(elements != null ? (IPath[]) elements.toArray(new IPath[0]) : null);
-        
+
     }
-    
+
     private void initializeContents() {
         IPath[] paths = preferenceStore.getAopXmlFiles();
         control.setElements(Arrays.asList(paths));
     }
-    
-    
+
+
     /**
      * Shows the UI to select new aop.xml entries located in the workspace.
      * The dialog returns the selected entries or <code>null</code> if the dialog has
@@ -170,12 +166,12 @@ public class AopXmlPreferencePage extends PropertyPage implements
         TypedElementSelectionValidator validator= new TypedElementSelectionValidator(acceptedClasses, true);
         ArrayList usedJars= new ArrayList(usedEntries.length);
         IWorkspaceRoot root= ResourcesPlugin.getWorkspace().getRoot();
-        for (int i= 0; i < usedEntries.length; i++) {
-            IResource resource= root.findMember(usedEntries[i]);
-            if (resource instanceof IFile) {
-                usedJars.add(resource);
-            }
+      for (IPath usedEntry : usedEntries) {
+        IResource resource = root.findMember(usedEntry);
+        if (resource instanceof IFile) {
+          usedJars.add(resource);
         }
+      }
         IResource focus= initialSelection != null ? root.findMember(initialSelection) : null;
 
         FilteredElementTreeSelectionDialog dialog = new FilteredElementTreeSelectionDialog(shell, new WorkbenchLabelProvider(), new WorkbenchContentProvider());
@@ -200,19 +196,19 @@ public class AopXmlPreferencePage extends PropertyPage implements
     }
 
     private IProject getProject() {
-        return (IProject) getElement().getAdapter(IProject.class);
+        return getElement().getAdapter(IProject.class);
     }
 
 
     protected Control createContents(Composite parent) {
-        preferenceStore = new AopXmlPreferences(getProject());   
+        preferenceStore = new AopXmlPreferences(getProject());
         AopXmlAdapter adapter = new AopXmlAdapter();
         control = new ListDialogField(adapter, buttonLabels, new AopXmlLabelProvider());
         PixelConverter converter= new PixelConverter(parent);
-        
+
         Composite composite= new Composite(parent, SWT.NONE);
         composite.setFont(parent.getFont());
-        
+
         LayoutUtil.doDefaultLayout(composite, new DialogField[] { control }, true, SWT.DEFAULT, SWT.DEFAULT);
         LayoutUtil.setHorizontalGrabbing(control.getListControl(parent));
 
@@ -220,9 +216,9 @@ public class AopXmlPreferencePage extends PropertyPage implements
         control.setButtonsMinWidth(buttonBarWidth);
         control.setDialogFieldListener(adapter);
         control.enableButton(IDX_EDIT, false);
-            
+
         initializeContents();
-        
+
         return composite;
     }
 
@@ -230,7 +226,7 @@ public class AopXmlPreferencePage extends PropertyPage implements
         List paths = control.getElements();
         return (IPath[]) paths.toArray(new IPath[0]);
     }
-    
+
     public boolean performOk() {
         if (isDirty) {
             storePreferences();
@@ -249,8 +245,8 @@ public class AopXmlPreferencePage extends PropertyPage implements
 
     private int askToBuild() {
         MessageDialog dialog = new MessageDialog(getShell(),
-                UIMessages.CompilerConfigurationBlock_needsbuild_title, null, 
-                UIMessages.CompilerConfigurationBlock_needsfullbuild_message + 
+                UIMessages.CompilerConfigurationBlock_needsbuild_title, null,
+                UIMessages.CompilerConfigurationBlock_needsfullbuild_message +
                 "\nAlso, be sure to add the -xmlConfigured option to your project's extra compiler options.",
                 MessageDialog.QUESTION, new String[] {
                         IDialogConstants.YES_LABEL,

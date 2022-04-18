@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -21,21 +21,21 @@ import org.eclipse.jface.viewers.ViewerFilter;
  * Filters out all packages and folders
  */
 class ContainerFilter  extends ViewerFilter {
-	
-	private boolean fFilterContainers;
-	
+
+	private final boolean fFilterContainers;
+
 	public static boolean FILTER_CONTAINERS= true;
 	public static boolean FILTER_NON_CONTAINERS= false;
 
 	public ContainerFilter(boolean filterContainers) {
 		fFilterContainers= filterContainers;
 	}
-	
+
 	/**
 	 * Returns the result of this filter, when applied to the
 	 * given inputs.
 	 *
-	 * @param inputs the set of elements to 
+	 * @param inputs the set of elements to
 	 * @return Returns true if element should be included in filtered set
 	 */
 	public boolean select(Viewer viewer, Object parent, Object element) {
@@ -50,4 +50,3 @@ class ContainerFilter  extends ViewerFilter {
 		return (fFilterContainers && !isContainer) || (!fFilterContainers && isContainer);
 	}
 }
-

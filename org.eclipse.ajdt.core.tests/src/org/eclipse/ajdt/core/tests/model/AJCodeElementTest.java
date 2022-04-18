@@ -11,7 +11,6 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.tests.model;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -28,6 +27,8 @@ import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.internal.core.JavaElement;
+
+import static org.junit.Assert.assertNotEquals;
 
 /**
  * @author hawkinsh
@@ -63,19 +64,17 @@ public class AJCodeElementTest extends AJDTCoreTestCase {
 		// through the normal running of a program, the hashcode must always return the same answer
 		int hash1 = ajCodeElements[0].hashCode();
 		int hash2 = ajCodeElements[0].hashCode();
-		assertTrue("through the normal running of a program, the hashcodes must always return the same int", //$NON-NLS-1$
-		        hash1 == hash2);
+    assertEquals("through the normal running of a program, the hashcodes must always return the same int", hash1, hash2);
 
 		// if A and B are objects such that A.equals(B) then A.hashCode() == B.hashCode()
-		IJavaElement parent = ajCodeElements[0].getParent();
+		JavaElement parent = ajCodeElements[0].getParent();
 		String name = ajCodeElements[0].getName();
-		AJCodeElement newAJCE = new AJCodeElement((JavaElement) parent, name);
-		assertTrue("these should be equal according to equals method", ajCodeElements[0].equals(newAJCE)); //$NON-NLS-1$
-		assertTrue("if A and B are objects such that A.equals(B) then A.hashCode() == B.hashCode()", //$NON-NLS-1$
-				newAJCE.hashCode() == ajCodeElements[0].hashCode());
+		AJCodeElement newAJCE = new AJCodeElement(parent, name);
+    assertEquals("these should be equal according to equals method", ajCodeElements[0], newAJCE); //$NON-NLS-1$
+    assertEquals("if A and B are objects such that A.equals(B) then A.hashCode() == B.hashCode()", newAJCE.hashCode(), ajCodeElements[0].hashCode());
 
 		// if A and B are objects such that !(A.equals(B)) then less confusing if A.hashCode() != B.hashCode()
-		assertFalse("these should not be equal according to the equals method",ajCodeElements[0].equals(ajCodeElements[1])); //$NON-NLS-1$
+    assertNotEquals("these should not be equal according to the equals method", ajCodeElements[0], ajCodeElements[1]); //$NON-NLS-1$
 		assertTrue("if A and B are objects such that !(A.equals(B)) then less confusing if A.hashCode() != B.hashCode()", //$NON-NLS-1$
 				ajCodeElements[0].hashCode() != ajCodeElements[1].hashCode());
 
@@ -85,18 +84,18 @@ public class AJCodeElementTest extends AJDTCoreTestCase {
 	 * Class under test for boolean equals(Object)
 	 */
 	public void testEqualsObject() {
-		IJavaElement parent = ajCodeElements[0].getParent();
+		JavaElement parent = ajCodeElements[0].getParent();
 		String name = ajCodeElements[0].getName();
-		AJCodeElement a1 = new AJCodeElement((JavaElement) parent, name);
-		AJCodeElement a2 = new AJCodeElement((JavaElement) parent, name);
+		AJCodeElement a1 = new AJCodeElement(parent, name);
+		AJCodeElement a2 = new AJCodeElement(parent, name);
 		AJCodeElement a3 = ajCodeElements[0];
 
 		// equals must be reflexive: x.equals(x) == true (always)
-		assertTrue("x.equals(x) == true (always)", a1.equals(a1)); //$NON-NLS-1$
+    assertEquals("x.equals(x) == true (always)", a1, a1); //$NON-NLS-1$
 
 		// equals must be symmetric: x.equals(y) == true <==> y.equals(x) == true
 		// (way to test this is if x.equals(y) == false ==> y.equals(x) == false)
-		assertTrue("equals must be symmetric",!(a3.equals(ajCodeElements[1]) && ajCodeElements[1].equals(a3))); //$NON-NLS-1$
+    assertFalse("equals must be symmetric", a3.equals(ajCodeElements[1]) && ajCodeElements[1].equals(a3)); //$NON-NLS-1$
 
 		// equals must be transitive: for all x,y,z, if x.equals(y) == true and y.equals(z) == true
 		// ==> x.equals(z) == true
@@ -113,40 +112,41 @@ public class AJCodeElementTest extends AJDTCoreTestCase {
 
 		// for any non-null reference value x, x.equals(null) must return false
 		assertNotNull("shouldn't be null",a1); //$NON-NLS-1$
-		assertFalse("for any non-null reference value x, x.equals(null) must return false",a1.equals(null)); //$NON-NLS-1$
+    assertNotEquals("for any non-null reference value x, x.equals(null) must return false", null, a1); //$NON-NLS-1$
 	}
 
 	/**
 	 * @param model
 	 * @return
 	 */
-	private AJCodeElement[] createAJCodeElements(Map<? extends Object, ? extends List<? extends IProgramElement>> annotationsMap) {
+	private AJCodeElement[] createAJCodeElements(Map<?, ? extends List<? extends IProgramElement>> annotationsMap) {
 		AJCodeElement[] arrayOfajce = new AJCodeElement[2];
-		Set<? extends Object> keys = annotationsMap.keySet();
-		for (Iterator<? extends Object> it = keys.iterator(); it.hasNext();) {
-			Object key = it.next();
-			List<? extends IProgramElement> annotations = annotationsMap.get(key);
-			for (Iterator<? extends IProgramElement> it2 = annotations.iterator(); it2.hasNext();) {
-				IProgramElement node = it2.next();
-				if (node.getHandleIdentifier()
-						.equals("=AJProject83082/src<wpstest.aspectj{Main.java[Main~main~\\[QString;?method-call(void java.io.PrintStream.println(java.lang.String))")  //$NON-NLS-1$
-					) {
+		Set<?> keys = annotationsMap.keySet();
+    for (Object key : keys) {
+      List<? extends IProgramElement> annotations = annotationsMap.get(key);
+      for (IProgramElement node : annotations) {
+        if (node.getHandleIdentifier()
+          .equals("=AJProject83082/src<wpstest.aspectj{Main.java[Main~main~\\[QString;?method-call(void java.io.PrintStream.println(java.lang.String))")  //$NON-NLS-1$
+        )
+        {
 
-					IJavaElement ije = model.programElementToJavaElement(node);
-					if (ije instanceof AJCodeElement) {
-						arrayOfajce[0] = (AJCodeElement) ije;
-					}
-				} else if (node.getHandleIdentifier()
-						.equals("=AJProject83082/src<wpstest.aspectj{Main.java[Main~main~\\[QString;?method-call(void java.io.PrintStream.println(java.lang.String))!2")  //$NON-NLS-1$
-					) {
+          IJavaElement ije = model.programElementToJavaElement(node);
+          if (ije instanceof AJCodeElement) {
+            arrayOfajce[0] = (AJCodeElement) ije;
+          }
+        }
+        else if (node.getHandleIdentifier()
+          .equals("=AJProject83082/src<wpstest.aspectj{Main.java[Main~main~\\[QString;?method-call(void java.io.PrintStream.println(java.lang.String))!2")  //$NON-NLS-1$
+        )
+        {
 
-					IJavaElement ije = model.programElementToJavaElement(node);
-					if (ije instanceof AJCodeElement) {
-						arrayOfajce[1] = (AJCodeElement) ije;
-					}
-				}
-			}
-		}
+          IJavaElement ije = model.programElementToJavaElement(node);
+          if (ije instanceof AJCodeElement) {
+            arrayOfajce[1] = (AJCodeElement) ije;
+          }
+        }
+      }
+    }
 		return arrayOfajce;
 	}
 

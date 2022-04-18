@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2008 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *      Andrew Eisenberg - Initial implementation
  *******************************************************************************/
@@ -34,14 +34,14 @@ import org.eclipse.jdt.internal.core.DefaultWorkingCopyOwner;
 
 /**
  * Tests AJCompilationUnitProblemFinder and ITDAwareness
- * 
+ *
  * Tests bug 265557
- * 
+ *
  * @author andrew
  *
  */
 public class ProblemFinderTests11 extends AJDTCoreTestCase {
-    List<ICompilationUnit> allCUnits = new ArrayList<ICompilationUnit> ();
+    List<ICompilationUnit> allCUnits = new ArrayList<>();
     ICompilationUnit errorUnit;
     IProject proj;
     protected void setUp() throws Exception {
@@ -51,31 +51,29 @@ public class ProblemFinderTests11 extends AJDTCoreTestCase {
         proj.build(IncrementalProjectBuilder.FULL_BUILD, null);
 
         IFolder src = proj.getFolder("src");
-        
-        IResourceVisitor visitor = new IResourceVisitor() {
-            public boolean visit(IResource resource) throws CoreException {
-                if (resource.getType() == IResource.FILE && 
-                        (resource.getName().endsWith("java") ||
-                                resource.getName().endsWith("aj"))) {
-                    if (resource.getName().equals("ClassWithException2.java")) {
-                        errorUnit = createUnit((IFile) resource);
-                    } else {
-                        allCUnits.add(createUnit((IFile) resource));
-                    }
+
+        IResourceVisitor visitor = resource -> {
+            if (resource.getType() == IResource.FILE &&
+                    (resource.getName().endsWith("java") ||
+                            resource.getName().endsWith("aj"))) {
+                if (resource.getName().equals("ClassWithException2.java")) {
+                    errorUnit = createUnit((IFile) resource);
+                } else {
+                    allCUnits.add(createUnit((IFile) resource));
                 }
-                return true;
             }
+            return true;
         };
         src.accept(visitor);
         proj.build(IncrementalProjectBuilder.FULL_BUILD, null);
-        
+
         joinBackgroudActivities();
     }
-    
+
     private ICompilationUnit createUnit(IFile file) {
         return (ICompilationUnit) AspectJCore.create(file);
     }
-    
+
     protected void tearDown() throws Exception {
         super.tearDown();
         setAutobuilding(true);
@@ -85,16 +83,16 @@ public class ProblemFinderTests11 extends AJDTCoreTestCase {
      * Should have one error in this of an unsoftened exception
      */
     public void testProblemFindingErrors() throws Exception {
-    
+
         HashMap problems = doFind(errorUnit);
         assertEquals("Should have found 1 problem, but instead found " + problems.size() +
                 "\n" + MockProblemRequestor.printProblems(problems),
                 1, problems.size());
-        
+
     }
-    
+
     public void testProblemFindingAll() throws Exception {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         for (ICompilationUnit element : allCUnits) {
             sb.append(problemFind(element));
         }
@@ -102,7 +100,7 @@ public class ProblemFinderTests11 extends AJDTCoreTestCase {
             fail(sb.toString());
         }
     }
-    
+
     private String problemFind(ICompilationUnit unit) throws Exception {
         HashMap problems = doFind(unit);
         MockProblemRequestor.filterAllWarningProblems(problems);
@@ -116,17 +114,17 @@ public class ProblemFinderTests11 extends AJDTCoreTestCase {
             throws JavaModelException {
         HashMap problems = new HashMap();
         if (unit instanceof AJCompilationUnit) {
-            AJCompilationUnitProblemFinder.processAJ((AJCompilationUnit) unit, 
-                    AJWorkingCopyOwner.INSTANCE, problems, true, 
+            AJCompilationUnitProblemFinder.processAJ((AJCompilationUnit) unit,
+                    AJWorkingCopyOwner.INSTANCE, problems, true,
                     ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
         } else {
             // Requires JDT Weaving
             CompilationUnitProblemFinder.process((CompilationUnit) unit, null,
-                    DefaultWorkingCopyOwner.PRIMARY, problems, true, 
+                    DefaultWorkingCopyOwner.PRIMARY, problems, true,
                     ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
         }
         return problems;
     }
 
-    
+
 }

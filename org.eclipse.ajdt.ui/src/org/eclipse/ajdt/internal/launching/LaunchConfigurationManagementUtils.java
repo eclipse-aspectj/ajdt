@@ -4,7 +4,7 @@
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors: Sian January - initial version
  * ...
  **********************************************************************/
@@ -40,7 +40,7 @@ public class LaunchConfigurationManagementUtils {
 	/**
 	 * Update the aspect path for launch configurations relating to the given
 	 * project
-	 * 
+	 *
 	 * @param project -
 	 *            the project
 	 * @param existingAspectPathEntries -
@@ -53,51 +53,48 @@ public class LaunchConfigurationManagementUtils {
 		try {
 			String projectName = project.getElementName();
 			List configs = getLaunchConfigsForProject(projectName);
-			for (Iterator iter = configs.iterator(); iter.hasNext();) {
-				ILaunchConfiguration configuration = (ILaunchConfiguration) iter
-						.next();
-				IRuntimeClasspathEntry[] entries = JavaRuntime
-						.computeUnresolvedRuntimeClasspath(configuration);
-				List entriesAsList = new ArrayList(Arrays.asList(entries));
+      for (Object config : configs) {
+        ILaunchConfiguration configuration = (ILaunchConfiguration) config;
+        IRuntimeClasspathEntry[] entries = JavaRuntime
+          .computeUnresolvedRuntimeClasspath(configuration);
+        List entriesAsList = new ArrayList(Arrays.asList(entries));
 
-				for (Iterator iterator = existingAspectPathEntries.iterator(); iterator
-						.hasNext();) {
-					IClasspathEntry entryToRemove = ((CPListElement) iterator
-							.next()).getClasspathEntry();
+        for (Object existingAspectPathEntry : existingAspectPathEntries) {
+          IClasspathEntry entryToRemove = ((CPListElement) existingAspectPathEntry).getClasspathEntry();
 
-					for (Iterator iterator2 = entriesAsList.iterator(); iterator2
-							.hasNext();) {
-						IRuntimeClasspathEntry entry = (IRuntimeClasspathEntry) iterator2
-								.next();
-						if (entry.getClasspathProperty() == IRuntimeClasspathEntry.USER_CLASSES) {
-							if (entryToRemove.equals(entry.getClasspathEntry())) {
-								iterator2.remove();
-								break;
-							}
-						}
-					}
-				}
-				for (Iterator iterator = newAspectPathEntries.iterator(); iterator
-						.hasNext();) {
-					IClasspathEntry newEntry = ((CPListElement) iterator.next())
-							.getClasspathEntry();
-					if (newEntry.getEntryKind() != IClasspathEntry.CPE_CONTAINER) {
-					    entriesAsList.add(new RuntimeClasspathEntry(newEntry));
-					} else {
-					    IClasspathContainer container = 
-					        JavaCore.getClasspathContainer(newEntry.getPath(), project);
-					    if (container != null) {
-    					    IClasspathEntry[] containerEntries = container.getClasspathEntries();
-    					    for (int i = 0; i < containerEntries.length; i++) {
-    					        entriesAsList.add(new RuntimeClasspathEntry(containerEntries[i]));
-    					    }
-					    }
-					}
-				}
-				IRuntimeClasspathEntry[] updatedEntries = (IRuntimeClasspathEntry[]) entriesAsList
-						.toArray(new IRuntimeClasspathEntry[0]);
-				updateConfigurationClasspath(configuration, updatedEntries);
-			}
+          for (Iterator iterator2 = entriesAsList.iterator(); iterator2
+            .hasNext(); ) {
+            IRuntimeClasspathEntry entry = (IRuntimeClasspathEntry) iterator2
+              .next();
+            if (entry.getClasspathProperty() == IRuntimeClasspathEntry.USER_CLASSES) {
+              if (entryToRemove.equals(entry.getClasspathEntry())) {
+                iterator2.remove();
+                break;
+              }
+            }
+          }
+        }
+        for (Object newAspectPathEntry : newAspectPathEntries) {
+          IClasspathEntry newEntry = ((CPListElement) newAspectPathEntry)
+            .getClasspathEntry();
+          if (newEntry.getEntryKind() != IClasspathEntry.CPE_CONTAINER) {
+            entriesAsList.add(new RuntimeClasspathEntry(newEntry));
+          }
+          else {
+            IClasspathContainer container =
+              JavaCore.getClasspathContainer(newEntry.getPath(), project);
+            if (container != null) {
+              IClasspathEntry[] containerEntries = container.getClasspathEntries();
+              for (IClasspathEntry containerEntry : containerEntries) {
+                entriesAsList.add(new RuntimeClasspathEntry(containerEntry));
+              }
+            }
+          }
+        }
+        IRuntimeClasspathEntry[] updatedEntries = (IRuntimeClasspathEntry[]) entriesAsList
+          .toArray(new IRuntimeClasspathEntry[0]);
+        updateConfigurationClasspath(configuration, updatedEntries);
+      }
 		} catch (CoreException cEx) {
 			AJLog.log(cEx.getMessage());
 		}
@@ -107,7 +104,7 @@ public class LaunchConfigurationManagementUtils {
 	/**
 	 * Update the outjar for launch configurations relating to the given
 	 * project
-	 * 
+	 *
 	 * @param project -
 	 *            the project
 	 * @param oldOutJar -
@@ -119,41 +116,40 @@ public class LaunchConfigurationManagementUtils {
 		try {
 			String projectName = project.getElementName();
 			List configs = getLaunchConfigsForProject(projectName);
-			for (Iterator iter = configs.iterator(); iter.hasNext();) {
-				ILaunchConfiguration configuration = (ILaunchConfiguration) iter
-						.next();
-				IRuntimeClasspathEntry[] entries = JavaRuntime
-						.computeUnresolvedRuntimeClasspath(configuration);
-				List entriesAsList = new ArrayList(Arrays.asList(entries));
-	
-				if(oldOutJar != null) {
-					for (Iterator iterator2 = entriesAsList.iterator(); iterator2
-							.hasNext();) {
-						IRuntimeClasspathEntry entry = (IRuntimeClasspathEntry) iterator2
-								.next();
-						if (entry.getClasspathProperty() == IRuntimeClasspathEntry.USER_CLASSES) {
-							if (oldOutJar.equals(entry.getClasspathEntry())) {
-								iterator2.remove();
-								break;
-							}
-						}
-					}
-				}
-				if(newOutJar != null) {	
-					entriesAsList.add(new RuntimeClasspathEntry(newOutJar));
-				}
-				IRuntimeClasspathEntry[] updatedEntries = (IRuntimeClasspathEntry[]) entriesAsList
-						.toArray(new IRuntimeClasspathEntry[0]);
-				updateConfigurationClasspath(configuration, updatedEntries);
-			}
+      for (Object config : configs) {
+        ILaunchConfiguration configuration = (ILaunchConfiguration) config;
+        IRuntimeClasspathEntry[] entries = JavaRuntime
+          .computeUnresolvedRuntimeClasspath(configuration);
+        List entriesAsList = new ArrayList(Arrays.asList(entries));
+
+        if (oldOutJar != null) {
+          for (Iterator iterator2 = entriesAsList.iterator(); iterator2
+            .hasNext(); ) {
+            IRuntimeClasspathEntry entry = (IRuntimeClasspathEntry) iterator2
+              .next();
+            if (entry.getClasspathProperty() == IRuntimeClasspathEntry.USER_CLASSES) {
+              if (oldOutJar.equals(entry.getClasspathEntry())) {
+                iterator2.remove();
+                break;
+              }
+            }
+          }
+        }
+        if (newOutJar != null) {
+          entriesAsList.add(new RuntimeClasspathEntry(newOutJar));
+        }
+        IRuntimeClasspathEntry[] updatedEntries = (IRuntimeClasspathEntry[]) entriesAsList
+          .toArray(new IRuntimeClasspathEntry[0]);
+        updateConfigurationClasspath(configuration, updatedEntries);
+      }
 		} catch (CoreException cEx) {
 			AJLog.log(cEx.getMessage());
 		}
 	}
-	
+
 	/**
 	 * Update and save a new classpath for the given launch configuration
-	 * 
+	 *
 	 * @param configuration
 	 * @param updatedEntries
 	 */
@@ -169,10 +165,9 @@ public class LaunchConfigurationManagementUtils {
 					false);
 			try {
 				List mementos = new ArrayList(classpath.length);
-				for (int i = 0; i < classpath.length; i++) {
-					IRuntimeClasspathEntry entry = classpath[i];
-					mementos.add(entry.getMemento());
-				}
+        for (IRuntimeClasspathEntry entry : classpath) {
+          mementos.add(entry.getMemento());
+        }
 				wc.setAttribute(
 						IJavaLaunchConfigurationConstants.ATTR_CLASSPATH,
 						mementos);
@@ -187,7 +182,7 @@ public class LaunchConfigurationManagementUtils {
 
 	/**
 	 * Get all the launch configurations for types in the given project
-	 * 
+	 *
 	 * @param projectName
 	 */
 	private static List getLaunchConfigsForProject(String projectName) {
@@ -198,15 +193,15 @@ public class LaunchConfigurationManagementUtils {
 			ILaunchConfiguration[] configs = DebugPlugin.getDefault()
 					.getLaunchManager().getLaunchConfigurations(configType);
 			candidateConfigs = new ArrayList(configs.length);
-			for (int i = 0; i < configs.length; i++) {
-				ILaunchConfiguration config = configs[i];
-				if (config
-						.getAttribute(
-								IJavaLaunchConfigurationConstants.ATTR_PROJECT_NAME,
-								"").equals(projectName)) { //$NON-NLS-1$
-					candidateConfigs.add(config);
-				}
-			}
+      for (ILaunchConfiguration config : configs) {
+        if (config
+          .getAttribute(
+            IJavaLaunchConfigurationConstants.ATTR_PROJECT_NAME,
+            "").equals(projectName))
+        { //$NON-NLS-1$
+          candidateConfigs.add(config);
+        }
+      }
 		} catch (CoreException cEx) {
 			AJLog.log(cEx.getMessage());
 		}

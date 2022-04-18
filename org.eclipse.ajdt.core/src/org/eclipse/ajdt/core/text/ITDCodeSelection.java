@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2009 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Andrew Eisenberg - initial API and implementation
  *******************************************************************************/
@@ -44,7 +44,7 @@ public class ITDCodeSelection {
     public ITDCodeSelection(ICompilationUnit unit) {
         this.unit = unit;
     }
-    
+
     // will not work inside of ITD methods when 'this' has been changed
     public IJavaElement[] findJavaElement(IRegion wordRegion)
             throws JavaModelException {
@@ -54,12 +54,12 @@ public class ITDCodeSelection {
         ITDAwareSelectionRequestor requestor = new ITDAwareSelectionRequestor(AJProjectModelFactory.getInstance().getModelForJavaElement(javaProject), unit);
         /* AJDT 1.7 */
         SelectionEngine engine = new SelectionEngine(environment, requestor, javaProject.getOptions(true), unit.getOwner());
-        
+
         final AspectsConvertingParser converter = new AspectsConvertingParser(((CompilationUnit) unit).getContents());
         converter.setUnit(unit);
         ArrayList<Replacement> replacements = converter.convert(ConversionOptions.CODE_COMPLETION);
-        
-        org.eclipse.jdt.internal.compiler.env.ICompilationUnit wrappedUnit = 
+
+        org.eclipse.jdt.internal.compiler.env.ICompilationUnit wrappedUnit =
                 new CompilationUnit((PackageFragment) unit.getParent(), unit.getElementName(), unit.getOwner()) {
             public char[] getContents() {
                 return converter.content;
@@ -69,21 +69,21 @@ public class ITDCodeSelection {
         int transformedEnd = AspectsConvertingParser.translatePositionToAfterChanges(wordRegion.getOffset() + wordRegion.getLength(), replacements)-1;
         requestor.setReplacements(replacements);
         engine.select(wrappedUnit, transformedStart, transformedEnd);
-        
-        
-        
+
+
+
         // maybe perform code select again.  If we are inside of an ITD method
         // must check for ITD references to the target type
         IntertypeElement itd = itdOrNull(unit, wordRegion.getOffset());
-        if (itd != null && 
+        if (itd != null &&
                 (itd.getAJKind() == IProgramElement.Kind.INTER_TYPE_METHOD ||
                 itd.getAJKind() == IProgramElement.Kind.INTER_TYPE_CONSTRUCTOR)) {
             char[] targetType = itd.getTargetType();
-            
+
             final AspectsConvertingParser converter2 = new AspectsConvertingParser(((CompilationUnit) unit).getContents());
             converter2.setUnit(unit);
             ArrayList<Replacement> replacements2 = converter2.convert(ConversionOptions.getCodeCompletionOptionWithContextSwitch(wordRegion.getOffset(), targetType));
-            wrappedUnit = 
+            wrappedUnit =
                 new CompilationUnit((PackageFragment) unit.getParent(), unit.getElementName(), unit.getOwner()) {
                 public char[] getContents() {
                     return converter2.content;
@@ -96,19 +96,19 @@ public class ITDCodeSelection {
             SelectionEngine engine2 = new SelectionEngine(environment, requestor, javaProject.getOptions(true), unit.getOwner());
             engine2.select(wrappedUnit, transformedStart, transformedEnd);
         }
-        
+
         IJavaElement[] elements = requestor.getElements();
         if (itd != null && elements.length == 0) {
             // maybe we are selecting on the name of the itd itself
             ISourceRange nameRange = itd.getNameRange();
-            if (nameRange.getOffset() <= wordRegion.getOffset() && 
+            if (nameRange.getOffset() <= wordRegion.getOffset() &&
                     (nameRange.getOffset() + nameRange.getLength()) >= (wordRegion.getOffset() + wordRegion.getLength())) {
                 elements = new IJavaElement[] { itd };
             }
-            
+
             // maybe we are selecting the target type of the itd
             ISourceRange targetNameRange = itd.getTargetTypeSourceRange();
-            if (targetNameRange.getOffset() <= wordRegion.getOffset() && 
+            if (targetNameRange.getOffset() <= wordRegion.getOffset() &&
                     (targetNameRange.getOffset() + targetNameRange.getLength()) >= (wordRegion.getOffset() + wordRegion.getLength())) {
                 IType targetType = itd.findTargetType();
                 if (targetType != null) { // will be null if model not initialized
@@ -124,17 +124,16 @@ public class ITDCodeSelection {
         if (unit instanceof AJCompilationUnit) {
             IJavaElement elt = unit.getElementAt(pos);
             if (elt instanceof IntertypeElement) {
-                IntertypeElement itd = (IntertypeElement) elt;
-                return itd;
+              return (IntertypeElement) elt;
             }
         }
         return null;
     }
 
     /**
-     * This might perform a quick code selection if the selected region is in 
-     * an aspectj-only location.  
-     * 
+     * This might perform a quick code selection if the selected region is in
+     * an aspectj-only location.
+     *
      * The only location currently supported is target type names of ITDs, but this
      * may be expanded in the future.
      * @param wordRegion the selected region

@@ -45,7 +45,7 @@ public class Bug285188DecErrorTests extends UITestCase {
         IMarker[] markers = clazz.findMarkers(IAJModelMarker.AJDT_PROBLEM_MARKER, true, IResource.DEPTH_INFINITE);
         assertEquals("Expecting to find one marker on " + clazz.getFullPath(), 1, markers.length);
 
-        int line = ((Integer) markers[0].getAttribute(IMarker.LINE_NUMBER)).intValue();
+        int line = (Integer) markers[0].getAttribute(IMarker.LINE_NUMBER);
         assertEquals("Expecting maker to be on line 5", 5, line);
 
         String loc = ((String) markers[0].getAttribute(AspectJUIPlugin.RELATED_LOCATIONS_ATTRIBUTE_PREFIX + 0)).replace("\\", "/");

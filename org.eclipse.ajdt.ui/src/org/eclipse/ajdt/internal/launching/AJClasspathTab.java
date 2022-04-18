@@ -3,7 +3,7 @@
  * accompanying materials are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors: Sian January - initial version ...
  **********************************************************************/
 package org.eclipse.ajdt.internal.launching;
@@ -84,7 +84,7 @@ public class AJClasspathTab extends JavaClasspathTab {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.eclipse.debug.ui.ILaunchConfigurationTab#createControl(org.eclipse.swt.widgets.Composite)
      */
@@ -134,12 +134,12 @@ public class AJClasspathTab extends JavaClasspathTab {
 
     /**
      * Creates the buttons to manipulate the classpath.
-     * 
+     *
      * @param pathButtonComp composite buttons are contained in
      * @since 3.0
      */
     protected void createPathButtons(Composite pathButtonComp) {
-        List<RuntimeClasspathAction> advancedActions = new ArrayList<RuntimeClasspathAction>(5);
+        List<RuntimeClasspathAction> advancedActions = new ArrayList<>(5);
 
         createButton(pathButtonComp, new MoveUpAction(fClasspathViewer));
         createButton(pathButtonComp, new MoveDownAction(fClasspathViewer));
@@ -164,8 +164,8 @@ public class AJClasspathTab extends JavaClasspathTab {
         action = new AttachSourceAction(null, SWT.RADIO);
         advancedActions.add(action);
 
-        IAction[] adv = (IAction[]) advancedActions
-                .toArray(new IAction[advancedActions.size()]);
+        IAction[] adv = advancedActions
+                .toArray(new IAction[0]);
         createButton(pathButtonComp, new AddAdvancedAction(fClasspathViewer,
                 adv));
 
@@ -176,7 +176,7 @@ public class AJClasspathTab extends JavaClasspathTab {
 
     /**
      * Creates a button for the given action.
-     * 
+     *
      * @param pathButtonComp parent composite for the button
      * @param action the action triggered by the button
      * @return the button that was created
@@ -190,7 +190,7 @@ public class AJClasspathTab extends JavaClasspathTab {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.eclipse.debug.ui.ILaunchConfigurationTab#setDefaults(org.eclipse.debug.core.
      * ILaunchConfigurationWorkingCopy)
      */
@@ -198,7 +198,7 @@ public class AJClasspathTab extends JavaClasspathTab {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.eclipse.debug.ui.ILaunchConfigurationTab#initializeFrom(org.eclipse.debug.core.
      * ILaunchConfiguration)
      */
@@ -241,11 +241,10 @@ public class AJClasspathTab extends JavaClasspathTab {
                         IJavaLaunchConfigurationConstants.ATTR_DEFAULT_CLASSPATH,
                         false);
                 try {
-                    List<String> mementos = new ArrayList<String>(classpath.length);
-                    for (int i = 0; i < classpath.length; i++) {
-                        IRuntimeClasspathEntry entry = classpath[i];
-                        mementos.add(entry.getMemento());
-                    }
+                    List<String> mementos = new ArrayList<>(classpath.length);
+                  for (IRuntimeClasspathEntry entry : classpath) {
+                    mementos.add(entry.getMemento());
+                  }
                     wc.setAttribute(
                             IJavaLaunchConfigurationConstants.ATTR_CLASSPATH,
                             mementos);
@@ -261,7 +260,7 @@ public class AJClasspathTab extends JavaClasspathTab {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.eclipse.debug.ui.ILaunchConfigurationTab#activated(org.eclipse.debug.core.
      * ILaunchConfigurationWorkingCopy)
      */
@@ -319,7 +318,7 @@ public class AJClasspathTab extends JavaClasspathTab {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.eclipse.debug.ui.ILaunchConfigurationTab#performApply(org.eclipse.debug.core.
      * ILaunchConfigurationWorkingCopy)
      */
@@ -342,11 +341,10 @@ public class AJClasspathTab extends JavaClasspathTab {
                                 IJavaLaunchConfigurationConstants.ATTR_DEFAULT_CLASSPATH,
                                 false);
                 try {
-                    List<String> mementos = new ArrayList<String>(classpath.length);
-                    for (int i = 0; i < classpath.length; i++) {
-                        IRuntimeClasspathEntry entry = classpath[i];
-                        mementos.add(entry.getMemento());
-                    }
+                    List<String> mementos = new ArrayList<>(classpath.length);
+                  for (IRuntimeClasspathEntry entry : classpath) {
+                    mementos.add(entry.getMemento());
+                  }
                     configuration.setAttribute(
                             IJavaLaunchConfigurationConstants.ATTR_CLASSPATH,
                             mementos);
@@ -362,51 +360,53 @@ public class AJClasspathTab extends JavaClasspathTab {
 
     /**
      * Returns the classpath entries currently specified by this tab.
-     * 
+     *
      * @return the classpath entries currently specified by this tab
      */
     private IRuntimeClasspathEntry[] getCurrentClasspath() {
         IClasspathEntry[] boot = fModel.getEntries(ClasspathModel.BOOTSTRAP);
         IClasspathEntry[] user = fModel.getEntries(ClasspathModel.USER);
-        List<IRuntimeClasspathEntry> entries = new ArrayList<IRuntimeClasspathEntry>(boot.length + user.length);
+        List<IRuntimeClasspathEntry> entries = new ArrayList<>(boot.length + user.length);
         IClasspathEntry bootEntry;
         IRuntimeClasspathEntry entry;
-        for (int i = 0; i < boot.length; i++) {
-            bootEntry = boot[i];
-            entry = null;
-            if (bootEntry instanceof ClasspathEntry) {
-                entry = ((ClasspathEntry) bootEntry).getDelegate();
-            } else if (bootEntry instanceof IRuntimeClasspathEntry) {
-                entry = (IRuntimeClasspathEntry) boot[i];
-            }
-            if (entry != null) {
-                if (entry.getClasspathProperty() == IRuntimeClasspathEntry.USER_CLASSES) {
-                    entry.setClasspathProperty(IRuntimeClasspathEntry.BOOTSTRAP_CLASSES);
-                }
-                entries.add(entry);
-            }
+      for (IClasspathEntry classpathEntry : boot) {
+        bootEntry = classpathEntry;
+        entry = null;
+        if (bootEntry instanceof ClasspathEntry) {
+          entry = ((ClasspathEntry) bootEntry).getDelegate();
         }
+        else if (bootEntry instanceof IRuntimeClasspathEntry) {
+          entry = (IRuntimeClasspathEntry) classpathEntry;
+        }
+        if (entry != null) {
+          if (entry.getClasspathProperty() == IRuntimeClasspathEntry.USER_CLASSES) {
+            entry.setClasspathProperty(IRuntimeClasspathEntry.BOOTSTRAP_CLASSES);
+          }
+          entries.add(entry);
+        }
+      }
         IClasspathEntry userEntry;
-        for (int i = 0; i < user.length; i++) {
-            userEntry = user[i];
-            entry = null;
-            if (userEntry instanceof ClasspathEntry) {
-                entry = ((ClasspathEntry) userEntry).getDelegate();
-            } else if (userEntry instanceof IRuntimeClasspathEntry) {
-                entry = (IRuntimeClasspathEntry) user[i];
-            }
-            if (entry != null) {
-                entry.setClasspathProperty(IRuntimeClasspathEntry.USER_CLASSES);
-                entries.add(entry);
-            }
+      for (IClasspathEntry iClasspathEntry : user) {
+        userEntry = iClasspathEntry;
+        entry = null;
+        if (userEntry instanceof ClasspathEntry) {
+          entry = ((ClasspathEntry) userEntry).getDelegate();
         }
-        return entries.toArray(new IRuntimeClasspathEntry[entries.size()]);
+        else if (userEntry instanceof IRuntimeClasspathEntry) {
+          entry = (IRuntimeClasspathEntry) iClasspathEntry;
+        }
+        if (entry != null) {
+          entry.setClasspathProperty(IRuntimeClasspathEntry.USER_CLASSES);
+          entries.add(entry);
+        }
+      }
+        return entries.toArray(new IRuntimeClasspathEntry[0]);
     }
 
     /**
      * Returns whether the specified classpath is equivalent to the default classpath for this
      * configuration.
-     * 
+     *
      * @param classpath classpath to compare to default
      * @param configuration original configuration
      * @return whether the specified classpath is equivalent to the default classpath for this
@@ -438,7 +438,7 @@ public class AJClasspathTab extends JavaClasspathTab {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.eclipse.debug.ui.ILaunchConfigurationTab#getName()
      */
     public String getName() {
@@ -468,7 +468,7 @@ public class AJClasspathTab extends JavaClasspathTab {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.eclipse.debug.ui.ILaunchConfigurationTab#dispose()
      */
     public void dispose() {
@@ -480,7 +480,7 @@ public class AJClasspathTab extends JavaClasspathTab {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.eclipse.debug.ui.ILaunchConfigurationTab#getImage()
      */
     public Image getImage() {
@@ -489,7 +489,7 @@ public class AJClasspathTab extends JavaClasspathTab {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.eclipse.debug.ui.ILaunchConfigurationTab#isValid(org.eclipse.debug.core.ILaunchConfiguration
      * )
@@ -529,22 +529,23 @@ public class AJClasspathTab extends JavaClasspathTab {
         }
 
         IRuntimeClasspathEntry[] entries = fModel.getAllEntries();
-        for (int i = 0; i < entries.length; i++) {
-            if (entries[i].getType() == IRuntimeClasspathEntry.ARCHIVE
-                    && (!entries[i].getPath().isAbsolute())) {
-                setErrorMessage(NLS
-                        .bind(LauncherMessages.JavaClasspathTab_Invalid_runtime_classpath_1,
-                                new String[] { entries[i].getPath().toString() }));
-                return false;
-            }
+      for (IRuntimeClasspathEntry entry : entries) {
+        if (entry.getType() == IRuntimeClasspathEntry.ARCHIVE
+            && (!entry.getPath().isAbsolute()))
+        {
+          setErrorMessage(NLS
+            .bind(LauncherMessages.JavaClasspathTab_Invalid_runtime_classpath_1,
+              new String[] { entry.getPath().toString() }));
+          return false;
         }
+      }
 
         return true;
     }
 
     /**
      * Returns whether the bootpath should be displayed.
-     * 
+     *
      * @return whether the bootpath should be displayed
      * @since 3.0
      */

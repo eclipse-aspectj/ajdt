@@ -9,8 +9,8 @@ import org.eclipse.ui.console.IConsoleManager;
 public class AJDTConsoleFactory implements IConsoleFactory {
     private IConsoleManager fConsoleManager = null;
     private AJDTEventTraceConsole fConsole = null;
-    
-    
+
+
     public AJDTConsoleFactory() {
         fConsoleManager = ConsolePlugin.getDefault().getConsoleManager();
         fConsoleManager.addConsoleListener(new IConsoleListener() {
@@ -18,19 +18,19 @@ public class AJDTConsoleFactory implements IConsoleFactory {
             }
 
             public void consolesRemoved(IConsole[] consoles) {
-                for (int i = 0; i < consoles.length; i++) {
-                    if(consoles[i] == fConsole) {
-                        fConsole = null;
-                    }
+              for (IConsole console : consoles) {
+                if (console == fConsole) {
+                  fConsole = null;
                 }
+              }
             }
-        
+
         });
     }
 
     public void openConsole() {
         if (fConsole == null) {
-            fConsole = new AJDTEventTraceConsole(); 
+            fConsole = new AJDTEventTraceConsole();
             fConsoleManager.addConsoles(new IConsole[]{fConsole});
         }
         fConsoleManager.showConsoleView(fConsole);

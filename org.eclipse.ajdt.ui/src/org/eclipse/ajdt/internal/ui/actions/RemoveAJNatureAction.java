@@ -29,30 +29,28 @@ import org.eclipse.ui.IWorkbenchPart;
  * This action is driven from the popup menu of a project that has
  * the AspectJ nature. It removes the AJ nature and builder etc.,
  * reverting the project to its original form, or if the project
- * was intially created as an aspectJ project, it converts to a 
+ * was intially created as an aspectJ project, it converts to a
  * Java project.
  */
 public class RemoveAJNatureAction implements IObjectActionDelegate {
 
-	private Vector selected = new Vector();
+	private final Vector selected = new Vector();
 
 	/**
 	 * @see IActionDelegate#run(IAction)
 	 */
 	public void run(IAction arg0)
 	{
-		for (Iterator iter = selected.iterator(); iter.hasNext();)
-		{
-			IProject project = (IProject) iter.next();
-			try
-			{
-				// Reove the AspectJ nature from the project and attempt
-				// to update the build classpath by removing the aspectjrt.jar	
-				AspectJUIPlugin.convertFromAspectJProject(project);
-			}
-			catch (CoreException e) {
-			}
-		}
+    for (Object o : selected) {
+      IProject project = (IProject) o;
+      try {
+        // Reove the AspectJ nature from the project and attempt
+        // to update the build classpath by removing the aspectjrt.jar
+        AspectJUIPlugin.convertFromAspectJProject(project);
+      }
+      catch (CoreException e) {
+      }
+    }
 	}
 
 	/**
@@ -64,22 +62,23 @@ public class RemoveAJNatureAction implements IObjectActionDelegate {
 		boolean enable = true;
 		if (sel instanceof IStructuredSelection) {
 			IStructuredSelection selection = (IStructuredSelection) sel;
-			for (Iterator iter = selection.iterator(); iter.hasNext();) {
-				Object object = iter.next();
-				if (object instanceof IAdaptable) {
-					IProject project = (IProject) ((IAdaptable)object).getAdapter(IProject.class);	
-					if(project != null) {
-						selected.add(project);
-					} else {
-						enable = false;
-						break;
-					}
-		
-				} else {
-					enable = false;
-					break;
-				}
-			}
+      for (Object object : selection) {
+        if (object instanceof IAdaptable) {
+          IProject project = ((IAdaptable) object).getAdapter(IProject.class);
+          if (project != null) {
+            selected.add(project);
+          }
+          else {
+            enable = false;
+            break;
+          }
+
+        }
+        else {
+          enable = false;
+          break;
+        }
+      }
 			action.setEnabled(enable);
 		}
 	}

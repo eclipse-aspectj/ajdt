@@ -153,7 +153,6 @@ public class AspectJProjectWizardTest extends UITestCase {
     assertNotNull("A .classpath file has not been created", //$NON-NLS-1$
       project.findMember(".classpath"));
 
-    IProject preOpenCloseWizard = project;
     try {
       project.close(null);
       project.open(null);
@@ -163,7 +162,7 @@ public class AspectJProjectWizardTest extends UITestCase {
       fail("Project does not open and close correctly"); //$NON-NLS-1$
     }
     assertEquals("When a project is closed and then opened its properties change", //$NON-NLS-1$
-      project, preOpenCloseWizard);
+      project, project);
 
     try {
       assertTrue("The Wizard created project does not have Java Nature", //$NON-NLS-1$

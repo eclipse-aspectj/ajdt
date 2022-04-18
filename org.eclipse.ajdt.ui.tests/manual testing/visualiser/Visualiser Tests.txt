@@ -5,15 +5,15 @@ Test1 - Linked Source Folder (bug 48624)
 ----------------------------------------
 
  a. Install AJDT and the TJP example
- b. Move the ‘src’ directory to a location outside the workspace such as the desktop:
+ b. Move the â€˜srcâ€™ directory to a location outside the workspace such as the desktop:
 		- Use the navigator to locate the 'src'directory in the TJP project.
 		(Window > Show View > Other... > Basic > Navigator)
 		Select the 'src' folder and drag it onto the Desktop whilst holding down the shift key
- c. Delete the ‘bin’ directory:
+ c. Delete the â€˜binâ€™ directory:
 		- Using the navigator window
- d. Create a new folder and link it to the ‘src’ folder that you moved.
-		(Right click on the project, then click ‘New’ > ‘Folder’.  Enter “src” for the name,
-		then click “Advanced >>”. Check “Link to folder in the file system”, then browse
+ d. Create a new folder and link it to the â€˜srcâ€™ folder that you moved.
+		(Right click on the project, then click â€˜Newâ€™ > â€˜Folderâ€™.  Enter â€œsrcâ€ for the name,
+		then click â€œAdvanced >>â€. Check â€œLink to folder in the file systemâ€, then browse
 		to the location that you moved the original source folder to.  Ok out of the dialog.)
  e. Right click the project and bring up its properties. Java Build Path > Source > Add folder
 	and add the newly created folder.
@@ -36,39 +36,39 @@ Test2 - Errors and Warnings (enhancement 71626)
     stripes.  Check particularly that the Menu only contains Timing and Billing and
     that there are red and yellow stripes in the main Visualiser view.
     			(VIS_2)
- e.	Click the ‘Hide Errors’ button in the Visuliser Menu and check that all the red 
+ e.	Click the â€˜Hide Errorsâ€™ button in the Visuliser Menu and check that all the red 
     stripes disappear.
     			(VIS_3)
- f.	Click the ‘Hide Warnings’ button in the Menu and check that the yellow stripe
+ f.	Click the â€˜Hide Warningsâ€™ button in the Menu and check that the yellow stripe
     disappears.
     			(VIS_4)
- g.	Press ‘Hide Errors’ and ‘Hide Warnings’ again so that error and warning stripes
+ g.	Press â€˜Hide Errorsâ€™ and â€˜Hide Warningsâ€™ again so that error and warning stripes
     are not hidden.  Uncheck Billing in the Menu.  The Billing stripes and the red
     stripes should all disappear.  Uncheck Timing.  The yellow stripe and the Timing
     stripes should all disappear.
     			(VIS_5)
  h.	Switch providers (see the Visualiser help if you do not know how to do this). 
-    Check that the ‘Hide Errors’ and ‘Hide Warnings’ buttons have disappeared from
+    Check that the â€˜Hide Errorsâ€™ and â€˜Hide Warningsâ€™ buttons have disappeared from
     the Menu.
     			(VIS_6)
 
 Test3 - Multiple Source folders
 -------------------------------
 
- a.	Check out the ‘MultipleSourceFolders’ test project from the org.eclipse.ajdt.ui.tests
+ a.	Check out the â€˜MultipleSourceFoldersâ€™ test project from the org.eclipse.ajdt.ui.tests
     project on Eclipse.org and build it.
- b. Ensure by inspection that the contents of both the ‘src’ and the ‘src2’ source
+ b. Ensure by inspection that the contents of both the â€˜srcâ€™ and the â€˜src2â€™ source
  	folders are being built.
  c.	Open the Aspect Visualization perspective and select the project.  You should see
-    three bars in the Visualiser labelled ‘Class1’, ‘Class2’ and ‘Class3’.
+    three bars in the Visualiser labelled â€˜Class1â€™, â€˜Class2â€™ and â€˜Class3â€™.
     			(VIS_7)
- d.	Select the default package under ‘src’.  You should see one bar labelled ‘Class1’
+ d.	Select the default package under â€˜srcâ€™.  You should see one bar labelled â€˜Class1â€™
     in the Visualiser.
     			(VIS_8)
- e.	Select the package ‘pack’ under ‘src’.  You should see one bar labelled ‘Class2’
+ e.	Select the package â€˜packâ€™ under â€˜srcâ€™.  You should see one bar labelled â€˜Class2â€™
     in the Visualiser.
     			(VIS_9)
- f.	Select the package ‘pack’ under ‘src2’.  You should see one bar labelled ‘Class3’
+ f.	Select the package â€˜packâ€™ under â€˜src2â€™.  You should see one bar labelled â€˜Class3â€™
     in the Visualiser.
     			(VIS_10)
 
@@ -92,8 +92,8 @@ Test4 - Colour Persistence (bug 72368)
 Test5 - Resetting Colour Memory
 -------------------------------
 
- a.	Save some colours in the Visualiser Menu, as in 4a and b.  Click the ‘Reset Color
-    Memory’ button on the Visualiser Menu’s icon bar.  The colours in the Menu should
+ a.	Save some colours in the Visualiser Menu, as in 4a and b.  Click the â€˜Reset Color
+    Memoryâ€™ button on the Visualiser Menuâ€™s icon bar.  The colours in the Menu should
     reset.
     			(VIS_15)
  b.	Switch to a different project in the package explorer then switch back.  The colour
@@ -114,10 +114,10 @@ Test7 - Refreshing after a build (bug 75392)
 --------------------------------------------
 
  a.	Install the Spacewar example project.
- b.	Build with the ‘demo’ build configuration. 
+ b.	Build with the â€˜demoâ€™ build configuration. 
  c.	Select the Spacewar project in the package explorer so that it is displayed in the
     Visualiser.
- d.	Rebuild with the ‘debug’ build configuration.  You should see an extra entry in
+ d.	Rebuild with the â€˜debugâ€™ build configuration.  You should see an extra entry in
     the Visualiser Menu and a number of extra stripes appear on the bars, without
     having to click a different project then click back to Spacewar.
     			(VIS_19)

@@ -586,39 +586,39 @@ public class AspectJCorePreferences {
 
 		IScopeContext projectScope = new ProjectScope(project);
 		IEclipsePreferences projectNode = projectScope.getNode(AspectJPlugin.UI_PLUGIN_ID);
-		String pathString = ""; //$NON-NLS-1$
+		StringBuilder pathString = new StringBuilder(); //$NON-NLS-1$
 		int index = 1;
 		String value = projectNode.get(pathName + index, ""); //$NON-NLS-1$
 		if (value.length() == 0) {
 			return null;
 		}
 		while (value.length() > 0) {
-			pathString += value;
-			pathString += File.pathSeparator;
+			pathString.append(value);
+			pathString.append(File.pathSeparator);
 			index++;
 			value = projectNode.get(pathName + index, ""); //$NON-NLS-1$
 		}
 
-		String contentString = ""; //$NON-NLS-1$
+		StringBuilder contentString = new StringBuilder(); //$NON-NLS-1$
 		index = 1;
 		value = projectNode.get(pathConKinds + index, ""); //$NON-NLS-1$
 		while (value.length() > 0) {
-			contentString += toContentKind(value.toUpperCase());
-			contentString += File.pathSeparator;
+			contentString.append(toContentKind(value.toUpperCase()));
+			contentString.append(File.pathSeparator);
 			index++;
 			value = projectNode.get(pathConKinds + index, ""); //$NON-NLS-1$
 		}
 
-		String entryString = ""; //$NON-NLS-1$
+		StringBuilder entryString = new StringBuilder(); //$NON-NLS-1$
 		index = 1;
 		value = projectNode.get(pathEntKinds + index, ""); //$NON-NLS-1$
 		while (value.length() > 0) {
-			entryString += toEntryKind(value.toUpperCase());
-			entryString += File.pathSeparator;
+			entryString.append(toEntryKind(value.toUpperCase()));
+			entryString.append(File.pathSeparator);
 			index++;
 			value = projectNode.get(pathEntKinds + index, ""); //$NON-NLS-1$
 		}
-		return new String[] { pathString, contentString, entryString };
+		return new String[] { pathString.toString(), contentString.toString(), entryString.toString() };
 	}
 
 	/**
@@ -699,9 +699,9 @@ public class AspectJCorePreferences {
 				markOldStylePathAsRead(project, INPATH);
 			}
 		}
-		String pathString = ""; //$NON-NLS-1$
-		String contentString = ""; //$NON-NLS-1$
-		String entryString = ""; //$NON-NLS-1$
+		StringBuilder pathString = new StringBuilder(); //$NON-NLS-1$
+		StringBuilder contentString = new StringBuilder(); //$NON-NLS-1$
+		StringBuilder entryString = new StringBuilder(); //$NON-NLS-1$
 
 		IJavaProject javaProject = JavaCore.create(project);
 		try {
@@ -761,9 +761,9 @@ public class AspectJCorePreferences {
               // corresponds to
               // an unbound classpath variable
               if (actualEntry != null) {
-                pathString += actualEntry.getPath().toPortableString() + File.pathSeparator;
-                contentString += actualEntry.getContentKind() + File.pathSeparator;
-                entryString += actualEntry.getEntryKind() + File.pathSeparator;
+                pathString.append(actualEntry.getPath().toPortableString()).append(File.pathSeparator);
+                contentString.append(actualEntry.getContentKind()).append(File.pathSeparator);
+                entryString.append(actualEntry.getEntryKind()).append(File.pathSeparator);
               }
             }
           } // attributes[j].equals(attribute)
@@ -780,9 +780,9 @@ public class AspectJCorePreferences {
           for (IClasspathEntry containerEntry : containerEntries) {
             if (isOnPath(containerEntry, isAspectPathAttribute(attribute))) {
               AJLog.log("internalGetProjectPath: isOnPath  for " + containerEntry);
-              pathString += containerEntry.getPath().toPortableString() + File.pathSeparator;
-              contentString += containerEntry.getContentKind() + File.pathSeparator;
-              entryString += containerEntry.getEntryKind() + File.pathSeparator;
+              pathString.append(containerEntry.getPath().toPortableString()).append(File.pathSeparator);
+              contentString.append(containerEntry.getContentKind()).append(File.pathSeparator);
+              entryString.append(containerEntry.getEntryKind()).append(File.pathSeparator);
             }
           } // for (Iterator cpIter = containerEntries.iterator();
           // cpIter.hasNext(); )
@@ -791,14 +791,14 @@ public class AspectJCorePreferences {
       } // for (int i = 0; i < cp.length; i++)
 		} catch (JavaModelException e) {
 		}
-		return new String[] { pathString, contentString, entryString };
+		return new String[] { pathString.toString(), contentString.toString(), entryString.toString() };
 	}
 
 	private static String toString(IClasspathAttribute[] attributes) {
 		StringBuilder s = new StringBuilder();
 		if (attributes != null) {
 			for (IClasspathAttribute ca: attributes) {
-				s.append(ca.getName()+"="+ca.getValue()+" ");
+				s.append(ca.getName()).append("=").append(ca.getValue()).append(" ");
 			}
 		}
 		return s.toString().trim();

@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2010 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Kris De Volder - initial API and implementation
  *******************************************************************************/
@@ -37,12 +37,12 @@ import org.eclipse.jface.text.Region;
  * An abstract superclass for Several ITDAwareCodeSelectionTests, which seem to
  * share some code in common. We can pull-up some of that shared code to here as
  * needed.
- * 
+ *
  * @author kdvolder
  */
 public abstract class AbstractITDAwareCodeSelectionTests extends
         AJDTCoreTestCase {
-    
+
     public static Test suite() {
         TestSuite suite = new TestSuite();
         suite.addTestSuite(ITDAwareCodeSelectionTests4.class);
@@ -105,8 +105,8 @@ public abstract class AbstractITDAwareCodeSelectionTests extends
     protected void validateCodeSelect(ICompilationUnit unit, IRegion region,
             String expected, boolean expectingProblems) throws Exception {
         validateCodeSelect(unit, region, expected, expectingProblems, -1);
-    } 
-    
+    }
+
     protected void validateCodeSelect(ICompilationUnit unit, IRegion region,
             String expected, boolean expectingProblems, int numParams) throws Exception {
         if (!expectingProblems) {
@@ -121,7 +121,7 @@ public abstract class AbstractITDAwareCodeSelectionTests extends
         assertTrue("Java element " + elt.getHandleIdentifier()
                 + " should exist", elt.exists());
         assertEquals(expected, elt.getElementName());
-        
+
         if (numParams >= 0 && elt instanceof IMethod) {
             assertEquals("Wrong number of parameters for " + elt, numParams, ((IMethod) elt).getNumberOfParameters());
         }
@@ -141,18 +141,18 @@ public abstract class AbstractITDAwareCodeSelectionTests extends
         assertEquals("Element found has wrong signature",
                 expectedSignature, getSignature(elt));
     }
-    
+
     /**
      * Convenience method to get a String that can be used to test whether you found what you
      * expected to find. It returns a method signature in following format:
-     * 
+     *
      *   <DeclaringType>.<methodName>(<ParamType>, ...)
-     *   
+     *
      * For ITDs the declaring type will be the Aspect, and the method name will include the
      * target type:
-     * 
+     *
      *   <AspectType>.<TargetType>.<methodName>(<ParamType>, ...)
-     * 
+     *
      * Type names are "simple" (i.e. don't include package name)
      * <p>
      * The method name for a constructor is the name of the class, for a regular constructor.
@@ -161,15 +161,15 @@ public abstract class AbstractITDAwareCodeSelectionTests extends
     private String getSignature(IJavaElement elt) {
         if (elt instanceof IMethod) {
             IMethod method = (IMethod) elt;
-            String sig = method.getDeclaringType().getFullyQualifiedName();
-            sig += "." + method.getElementName() + "(";
+            StringBuilder sig = new StringBuilder(method.getDeclaringType().getFullyQualifiedName());
+            sig.append(".").append(method.getElementName()).append("(");
             String[] paramTypeSigs = method.getParameterTypes();
             for (int i = 0; i < paramTypeSigs.length; i++) {
-                if (i>0) sig+= ", ";
-                sig += Signature.getSignatureSimpleName(paramTypeSigs[i]);
+                if (i>0) sig.append(", ");
+                sig.append(Signature.getSignatureSimpleName(paramTypeSigs[i]));
             }
-            sig += ")";
-            return sig;
+            sig.append(")");
+            return sig.toString();
         }
         else {
             throw new Error("Not implemented, if you have tests with fields... implement this :-)");

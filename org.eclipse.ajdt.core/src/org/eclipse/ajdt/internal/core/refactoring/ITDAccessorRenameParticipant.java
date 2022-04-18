@@ -289,13 +289,11 @@ public class ITDAccessorRenameParticipant extends RenameParticipant {
                 elt.getElementName().endsWith("." + getOldSetterName())) {
             IntertypeElement itd = (IntertypeElement) elt;
             String[] parameterTypes = itd.getParameterTypes();
-            if (itd.getAJKind() == Kind.INTER_TYPE_METHOD &&
-                    parameterTypes != null &&
-                    parameterTypes.length == 1 &&
-                    parameterTypes[0].equals(field.getTypeSignature()) &&
-                    itd.getReturnType().equals(Signature.SIG_VOID)) {
-                 return true;
-            }
+          return itd.getAJKind() == Kind.INTER_TYPE_METHOD &&
+                 parameterTypes != null &&
+                 parameterTypes.length == 1 &&
+                 parameterTypes[0].equals(field.getTypeSignature()) &&
+                 itd.getReturnType().equals(Signature.SIG_VOID);
         }
         return false;
     }
@@ -314,12 +312,10 @@ public class ITDAccessorRenameParticipant extends RenameParticipant {
             useIsForBooleanGetter = isFound;
             IntertypeElement itd = (IntertypeElement) elt;
             String[] parameterTypes = itd.getParameterTypes();
-            if (itd.getAJKind() == Kind.INTER_TYPE_METHOD &&
-                    (parameterTypes == null ||
-                     parameterTypes.length == 0) &&
-                    itd.getReturnType().equals(field.getTypeSignature())) {
-                 return true;
-            }
+          return itd.getAJKind() == Kind.INTER_TYPE_METHOD &&
+                 (parameterTypes == null ||
+                  parameterTypes.length == 0) &&
+                 itd.getReturnType().equals(field.getTypeSignature());
         }
         return false;
     }

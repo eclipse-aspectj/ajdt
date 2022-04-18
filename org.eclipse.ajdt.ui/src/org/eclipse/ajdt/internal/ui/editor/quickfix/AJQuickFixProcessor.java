@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2005 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -43,8 +43,8 @@ public class AJQuickFixProcessor extends QuickFixProcessor implements IQuickAssi
 		default:
 			return false;
 		}
-	}	
-	
+	}
+
 	/* (non-Javadoc)
 	 * @see IAssistProcessor#getCorrections(org.eclipse.jdt.internal.ui.text.correction.IAssistContext, org.eclipse.jdt.internal.ui.text.correction.IProblemLocation[])
 	 */
@@ -52,9 +52,9 @@ public class AJQuickFixProcessor extends QuickFixProcessor implements IQuickAssi
 		if (locations == null || locations.length == 0) {
 			return null;
 		}
-		
+
 		final IProject project = context.getCompilationUnit().getJavaProject().getProject();
-		
+
 		if (AspectJPlugin.isAJProject(project)) {
 			// We're looking at a problem in an AspectJ Project
 			IEditorPart ed = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
@@ -84,19 +84,18 @@ public class AJQuickFixProcessor extends QuickFixProcessor implements IQuickAssi
 				return null;
 			}
 		}
-		
+
 		HashSet handledProblems= new HashSet(locations.length);
 		ArrayList resultingCollections= new ArrayList();
-		for (int i= 0; i < locations.length; i++) {
-			IProblemLocation curr= locations[i];
-			Integer id= new Integer(curr.getProblemId());
-			if (handledProblems.add(id)) {
-				process(context, curr, resultingCollections);
-			}
-		}
-		return (IJavaCompletionProposal[]) resultingCollections.toArray(new IJavaCompletionProposal[resultingCollections.size()]);
+    for (IProblemLocation curr : locations) {
+      Integer id = curr.getProblemId();
+      if (handledProblems.add(id)) {
+        process(context, curr, resultingCollections);
+      }
+    }
+		return (IJavaCompletionProposal[]) resultingCollections.toArray(new IJavaCompletionProposal[0]);
 	}
-	
+
 	private void process(IInvocationContext context, IProblemLocation problem, Collection proposals) throws CoreException {
 		int id= problem.getProblemId();
 		if (id == 0) { // no proposals for none-problem locations
@@ -131,11 +130,11 @@ public class AJQuickFixProcessor extends QuickFixProcessor implements IQuickAssi
 
     public boolean hasAssists(IInvocationContext context) throws CoreException {
         IProblem[] problems = context.getASTRoot().getProblems();
-        for (int i = 0; i < problems.length; i++) {
-            if (hasCorrections(context.getCompilationUnit(), problems[i].getID())) {
-                return true;
-            }
+      for (IProblem problem : problems) {
+        if (hasCorrections(context.getCompilationUnit(), problem.getID())) {
+          return true;
         }
+      }
         return false;
     }
     // end AspectJ Change

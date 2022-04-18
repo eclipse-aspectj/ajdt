@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2011 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Andrew Eisenberg - initial version
  *******************************************************************************/
@@ -26,14 +26,14 @@ import org.eclipse.ltk.core.refactoring.RefactoringCore;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 
 /**
- * 
+ *
  * @author Andrew Eisenberg
  * @created Nov 26, 2010
  */
 public class PushInRefactoringITITTests extends AbstractAJDTRefactoringTest {
 
     private enum ToPushIn { ALL, FIRST }
-    
+
     // empty ITIT
     public void testEmptyITIT() throws Exception {
         performRefactoringAndUndo(
@@ -42,7 +42,7 @@ public class PushInRefactoringITITTests extends AbstractAJDTRefactoringTest {
                         "pack2",
                 },
                 new String[] {
-                        "Aspect.aj", 
+                        "Aspect.aj",
                         "Java.java",
                 },
                 new String[] {
@@ -61,7 +61,7 @@ public class PushInRefactoringITITTests extends AbstractAJDTRefactoringTest {
                 }, ToPushIn.FIRST
         );
     }
-    
+
     // empty fully qualified ITIT
     public void testEmptyFullyQualifiedITIT() throws Exception {
         performRefactoringAndUndo(
@@ -70,7 +70,7 @@ public class PushInRefactoringITITTests extends AbstractAJDTRefactoringTest {
                         "pack2",
                 },
                 new String[] {
-                        "Aspect.aj", 
+                        "Aspect.aj",
                         "Java.java",
                 },
                 new String[] {
@@ -88,7 +88,7 @@ public class PushInRefactoringITITTests extends AbstractAJDTRefactoringTest {
                 }, ToPushIn.FIRST
         );
     }
-    
+
     // single field no imports
     public void testOneFieldNoImports() throws Exception {
         performRefactoringAndUndo(
@@ -97,7 +97,7 @@ public class PushInRefactoringITITTests extends AbstractAJDTRefactoringTest {
                         "pack2",
                 },
                 new String[] {
-                        "Aspect.aj", 
+                        "Aspect.aj",
                         "Java.java",
                 },
                 new String[] {
@@ -113,8 +113,8 @@ public class PushInRefactoringITITTests extends AbstractAJDTRefactoringTest {
                 new String[] {
                         null,
                         "package pack2;\n public class Java {\n" +
-                        "\tpublic static final class ITIT {\n" + 
-                        "    public static final int X = 9;\n" + 
+                        "\tpublic static final class ITIT {\n" +
+                        "    public static final int X = 9;\n" +
                         "  }\n" +
                         "}",
                 }, ToPushIn.FIRST
@@ -129,7 +129,7 @@ public class PushInRefactoringITITTests extends AbstractAJDTRefactoringTest {
                         "pack2",
                 },
                 new String[] {
-                        "Aspect.aj", 
+                        "Aspect.aj",
                         "Java.java",
                 },
                 new String[] {
@@ -146,8 +146,8 @@ public class PushInRefactoringITITTests extends AbstractAJDTRefactoringTest {
                 new String[] {
                         null,
                         "package pack2;\n public class Java {\n" +
-                        "\tpublic static final class ITIT {\n" + 
-                        "    public static final int X = 9;\n" + 
+                        "\tpublic static final class ITIT {\n" +
+                        "    public static final int X = 9;\n" +
                         "    public static final int X() { return 9; }\n" +
                         "  }\n" +
                         "}",
@@ -163,7 +163,7 @@ public class PushInRefactoringITITTests extends AbstractAJDTRefactoringTest {
                         "pack2",
                 },
                 new String[] {
-                        "Aspect.aj", 
+                        "Aspect.aj",
                         "Java.java",
                 },
                 new String[] {
@@ -184,7 +184,7 @@ public class PushInRefactoringITITTests extends AbstractAJDTRefactoringTest {
                         "package pack2;\n\n" +
                         "import java.util.List;\n\n" +
                         "public class Java {\n" +
-                        "\tpublic static final class ITIT {\n" + 
+                        "\tpublic static final class ITIT {\n" +
                         "    public static final List<String> X = null;\n" +
                         "    public static final int X() { return 9; }\n" +
                         "  }\n" +
@@ -201,7 +201,7 @@ public class PushInRefactoringITITTests extends AbstractAJDTRefactoringTest {
                         "pack2",
                 },
                 new String[] {
-                        "Aspect.aj", 
+                        "Aspect.aj",
                         "Java.java",
                 },
                 new String[] {
@@ -223,7 +223,7 @@ public class PushInRefactoringITITTests extends AbstractAJDTRefactoringTest {
                         "package pack2;\n" +
                         "import java.util.List;\n" +
                         "public class Java {\n" +
-                        "\tpublic static final class ITIT {\n" + 
+                        "\tpublic static final class ITIT {\n" +
                         "    public static final List<String> X = null;" +
                         "    public static final int X() { return 9; }" +
                         "  }\n" +
@@ -240,7 +240,7 @@ public class PushInRefactoringITITTests extends AbstractAJDTRefactoringTest {
                         "pack2",
                 },
                 new String[] {
-                        "Aspect.aj", 
+                        "Aspect.aj",
                         "Java.java",
                 },
                 new String[] {
@@ -259,7 +259,7 @@ public class PushInRefactoringITITTests extends AbstractAJDTRefactoringTest {
                         null,
                         "package pack2;\n" +
                         "public class Java {\n" +
-                        "\tpublic static final class ITIT {\n" + 
+                        "\tpublic static final class ITIT {\n" +
                         "    public static final java.util.List<String> X = null;" +
                         "    public static final int X() { return 9; }" +
                         "  }\n" +
@@ -276,7 +276,7 @@ public class PushInRefactoringITITTests extends AbstractAJDTRefactoringTest {
                         "pack2",
                 },
                 new String[] {
-                        "Aspect.aj", 
+                        "Aspect.aj",
                         "Java.java",
                 },
                 new String[] {
@@ -300,7 +300,7 @@ public class PushInRefactoringITITTests extends AbstractAJDTRefactoringTest {
                         "  }",
                         "package pack2;\n" +
                         "public class Java {\n" +
-                        "\tpublic static final class ITIT {\n" + 
+                        "\tpublic static final class ITIT {\n" +
                         "    public static final java.util.List<String> X = null;\n" +
                         "    public static final int X() { return 9; }\n" +
                         "  }\n" +
@@ -318,7 +318,7 @@ public class PushInRefactoringITITTests extends AbstractAJDTRefactoringTest {
                         "pack2",
                 },
                 new String[] {
-                        "Aspect.aj", 
+                        "Aspect.aj",
                         "Java.java",
                 },
                 new String[] {
@@ -347,7 +347,7 @@ public class PushInRefactoringITITTests extends AbstractAJDTRefactoringTest {
                 }, ToPushIn.FIRST
         );
     }
-    
+
     // Two ITITs one aspect same target
     public void testTwoITITsOneAspect() throws Exception {
         performRefactoringAndUndo(
@@ -356,7 +356,7 @@ public class PushInRefactoringITITTests extends AbstractAJDTRefactoringTest {
                         "pack2",
                 },
                 new String[] {
-                        "Aspect.aj", 
+                        "Aspect.aj",
                         "Java.java",
                 },
                 new String[] {
@@ -379,12 +379,12 @@ public class PushInRefactoringITITTests extends AbstractAJDTRefactoringTest {
                         null,
                         "package pack2;\n" +
                         "public class Java {\n" +
-                        "\tpublic static final class ITIT {\n" + 
+                        "\tpublic static final class ITIT {\n" +
                         "    public static final java.util.List<String> X = null;\n" +
                         "    public static final int X() { return 9; }\n" +
                         "  }\n" +
                         "\n" +
-                        "\tpublic static final class ITIT2 {\n" + 
+                        "\tpublic static final class ITIT2 {\n" +
                         "    public static final java.util.List<String> X = null;\n" +
                         "    public static final int X() { return 9; }\n" +
                         "  }\n" +
@@ -401,7 +401,7 @@ public class PushInRefactoringITITTests extends AbstractAJDTRefactoringTest {
                         "pack2",
                 },
                 new String[] {
-                        "Aspect.aj", 
+                        "Aspect.aj",
                         "Java.java",
                 },
                 new String[] {
@@ -431,7 +431,7 @@ public class PushInRefactoringITITTests extends AbstractAJDTRefactoringTest {
                         "}",
                         "package pack2;\n" +
                         "public class Java {\n" +
-                        "\tpublic static final class ITIT {\n" + 
+                        "\tpublic static final class ITIT {\n" +
                         "    public static final java.util.List<String> X = null;\n" +
                         "    public static final int X() { return 9; }\n" +
                         "  }\n" +
@@ -449,7 +449,7 @@ public class PushInRefactoringITITTests extends AbstractAJDTRefactoringTest {
                         "pack2",
                 },
                 new String[] {
-                        "Aspect.aj", 
+                        "Aspect.aj",
                         "Java.java",
                         "Java2.java",
                 },
@@ -476,14 +476,14 @@ public class PushInRefactoringITITTests extends AbstractAJDTRefactoringTest {
                         null,
                         "package pack2;\n" +
                         "public class Java {\n" +
-                        "\tpublic static final class ITIT {\n" + 
+                        "\tpublic static final class ITIT {\n" +
                         "    public static final java.util.List<String> X = null;\n" +
                         "    public static final int X() { return 9; }\n" +
                         "  }\n" +
                         "}",
                         "package pack2;\n" +
                         "public class Java2 {\n" +
-                        "\tpublic static final class ITIT2 {\n" + 
+                        "\tpublic static final class ITIT2 {\n" +
                         "    public static final java.util.List<String> X2 = null;\n" +
                         "    public static final int X2() { return 9; }\n" +
                         "  }\n" +
@@ -492,13 +492,13 @@ public class PushInRefactoringITITTests extends AbstractAJDTRefactoringTest {
         );
     }
 
-    
+
     // First compilation unit contains the elements to push in.
     private void performRefactoringAndUndo(String[] packNames, String[] cuNames, String[] initialContents, String[] finalContents, ToPushIn toPush) throws Exception {
         ICompilationUnit[] units = createUnits(packNames, cuNames, initialContents);
         List<IMember> itds;
         if (toPush == ToPushIn.ALL) {
-            itds = new ArrayList<IMember>();
+            itds = new ArrayList<>();
             for (IJavaElement elt : units[0].getTypes()[0].getChildren()) {
                 if (elt instanceof IAspectJElement || elt instanceof IType) {
                     itds.add((IMember) elt);
@@ -507,7 +507,7 @@ public class PushInRefactoringITITTests extends AbstractAJDTRefactoringTest {
         } else {
             itds = Collections.singletonList((IMember) units[0].getTypes()[0].getChildren()[0]);
         }
-        
+
         PushInRefactoring refactoring = new PushInRefactoring();
         refactoring.setITDs(itds);
         RefactoringStatus result = performRefactoring(refactoring, true, false);
@@ -521,16 +521,16 @@ public class PushInRefactoringITITTests extends AbstractAJDTRefactoringTest {
         // undo
         assertTrue("anythingToUndo", RefactoringCore.getUndoManager()
                 .anythingToUndo());
-        assertTrue("! anythingToRedo", !RefactoringCore.getUndoManager()
-                .anythingToRedo());
+      assertFalse("! anythingToRedo", RefactoringCore.getUndoManager()
+        .anythingToRedo());
 
         RefactoringCore.getUndoManager().performUndo(null,
                 new NullProgressMonitor());
         assertContents(units, initialContents);
 
         // redo
-        assertTrue("! anythingToUndo", !RefactoringCore.getUndoManager()
-                .anythingToUndo());
+      assertFalse("! anythingToUndo", RefactoringCore.getUndoManager()
+        .anythingToUndo());
         assertTrue("anythingToRedo", RefactoringCore.getUndoManager()
                 .anythingToRedo());
         RefactoringCore.getUndoManager().performRedo(null,

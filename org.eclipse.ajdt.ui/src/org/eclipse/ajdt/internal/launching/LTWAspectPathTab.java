@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2005 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Sian January  - initial version
@@ -70,29 +70,29 @@ public class LTWAspectPathTab extends JavaClasspathTab {
 	public static final String ATTR_ASPECTPATH = LaunchingPlugin.getUniqueIdentifier() + ".ASPECTPATH"; //$NON-NLS-1$
 	protected RuntimeClasspathViewer fClasspathViewer;
 	private LTWAspectpathModel fModel;
-	
+
 	/**
 	 * The last launch config this tab was initialized from
 	 */
 	protected ILaunchConfiguration fLaunchConfiguration;
-	
+
 	public void createControl(Composite parent) {
 		Font font = parent.getFont();
-		
+
 		Composite comp = new Composite(parent, SWT.NONE);
 		setControl(comp);
 		PlatformUI.getWorkbench().getHelpSystem().setHelp(getControl(), IJavaDebugHelpContextIds.LAUNCH_CONFIGURATION_DIALOG_CLASSPATH_TAB);
 		GridLayout topLayout = new GridLayout();
 		topLayout.numColumns = 2;
-		comp.setLayout(topLayout);		
+		comp.setLayout(topLayout);
 		GridData gd;
-		
+
 		Label label = new Label(comp, SWT.NONE);
 		label.setText(UIMessages.LTWAspectPathTab_label);
 		gd = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
 		gd.horizontalSpan = 2;
 		label.setLayoutData(gd);
-		
+
 		fClasspathViewer = new RuntimeClasspathViewer(comp);
 		fClasspathViewer.addEntriesChangedListener(this);
 		fClasspathViewer.getTreeViewer().getControl().setFont(font);
@@ -107,19 +107,19 @@ public class LTWAspectPathTab extends JavaClasspathTab {
 		gd = new GridData(GridData.VERTICAL_ALIGN_BEGINNING | GridData.HORIZONTAL_ALIGN_FILL);
 		pathButtonComp.setLayoutData(gd);
 		pathButtonComp.setFont(font);
-		
+
 		createPathButtons(pathButtonComp);
 	}
-	
+
 	/**
 	 * Creates the buttons to manipulate the classpath.
-	 * 
+	 *
 	 * @param pathButtonComp composite buttons are contained in
 	 * @since 3.0
 	 */
 	protected void createPathButtons(Composite pathButtonComp) {
 		List advancedActions = new ArrayList(5);
-		
+
 		createButton(pathButtonComp, new MoveUpAction(fClasspathViewer));
 		createButton(pathButtonComp, new MoveDownAction(fClasspathViewer));
 		createButton(pathButtonComp, new RemoveAction(fClasspathViewer));
@@ -127,29 +127,29 @@ public class LTWAspectPathTab extends JavaClasspathTab {
 		createButton(pathButtonComp, new AddJarAction(fClasspathViewer));
 		createButton(pathButtonComp, new AddExternalJarAction(fClasspathViewer, DIALOG_SETTINGS_PREFIX));
 
-		RuntimeClasspathAction action = new AddFolderAction(null);								
+		RuntimeClasspathAction action = new AddFolderAction(null);
 		advancedActions.add(action);
-		
-		action = new AddExternalFolderAction(null, DIALOG_SETTINGS_PREFIX);								
-		advancedActions.add(action);		
 
-		action = new AddVariableAction(null);								
-		advancedActions.add(action);	
-		
+		action = new AddExternalFolderAction(null, DIALOG_SETTINGS_PREFIX);
+		advancedActions.add(action);
+
+		action = new AddVariableAction(null);
+		advancedActions.add(action);
+
 		action = new AddLibraryAction(null);
 		advancedActions.add(action);
-		
-		action = new AttachSourceAction(null, SWT.RADIO);								
+
+		action = new AttachSourceAction(null, SWT.RADIO);
 		advancedActions.add(action);
-		
-		IAction[] adv = (IAction[])advancedActions.toArray(new IAction[advancedActions.size()]);
+
+		IAction[] adv = (IAction[])advancedActions.toArray(new IAction[0]);
 		createButton(pathButtonComp, new AddAdvancedAction(fClasspathViewer, adv));
 
 	}
 
 	/**
 	 * Creates a button for the given action.
-	 * 
+	 *
 	 * @param pathButtonComp parent composite for the button
 	 * @param action the action triggered by the button
 	 * @return the button that was created
@@ -166,10 +166,10 @@ public class LTWAspectPathTab extends JavaClasspathTab {
 	public void activated(ILaunchConfigurationWorkingCopy workingCopy) {
 
 	}
-	
+
 	/**
 	 * Returns the classpath entries currently specified by this tab.
-	 * 
+	 *
 	 * @return the classpath entries currently specified by this tab
 	 */
 	private IRuntimeClasspathEntry[] getCurrentClasspath() {
@@ -177,20 +177,21 @@ public class LTWAspectPathTab extends JavaClasspathTab {
 		List entries = new ArrayList(user.length);
 		IRuntimeClasspathEntry entry;
 		IClasspathEntry userEntry;
-		for (int i = 0; i < user.length; i++) {
-			userEntry= user[i];
-			entry = null;
-			if (userEntry instanceof ClasspathEntry) {
-				entry = ((ClasspathEntry)userEntry).getDelegate();
-			} else if (userEntry instanceof IRuntimeClasspathEntry) {
-				entry= (IRuntimeClasspathEntry) user[i];
-			}
-			if (entry != null) {
-				entry.setClasspathProperty(IRuntimeClasspathEntry.USER_CLASSES);
-				entries.add(entry);
-			}
-		}			
-		return (IRuntimeClasspathEntry[]) entries.toArray(new IRuntimeClasspathEntry[entries.size()]);
+    for (IClasspathEntry iClasspathEntry : user) {
+      userEntry = iClasspathEntry;
+      entry = null;
+      if (userEntry instanceof ClasspathEntry) {
+        entry = ((ClasspathEntry) userEntry).getDelegate();
+      }
+      else if (userEntry instanceof IRuntimeClasspathEntry) {
+        entry = (IRuntimeClasspathEntry) iClasspathEntry;
+      }
+      if (entry != null) {
+        entry.setClasspathProperty(IRuntimeClasspathEntry.USER_CLASSES);
+        entries.add(entry);
+      }
+    }
+		return (IRuntimeClasspathEntry[]) entries.toArray(new IRuntimeClasspathEntry[0]);
 	}
 
 	/* (non-Javadoc)
@@ -214,10 +215,10 @@ public class LTWAspectPathTab extends JavaClasspathTab {
 	private void refresh(ILaunchConfiguration configuration) {
 		if (configuration == getLaunchConfiguration()) {
 			setDirty(false);
-			return;		
+			return;
 		}
 
-		setErrorMessage(null);		
+		setErrorMessage(null);
 		setLaunchConfiguration(configuration);
 		try {
 			createClasspathModel(configuration);
@@ -227,7 +228,7 @@ public class LTWAspectPathTab extends JavaClasspathTab {
 		} catch (CoreException e) {
 			setErrorMessage(e.getMessage());
 		}
-		
+
 		fClasspathViewer.setLaunchConfiguration(configuration);
 		fClasspathViewer.getTreeViewer().setInput(fModel);
 		setDirty(false);
@@ -235,16 +236,15 @@ public class LTWAspectPathTab extends JavaClasspathTab {
 
 	public void performApply(ILaunchConfigurationWorkingCopy configuration) {
 		if (isDirty()) {
-			IRuntimeClasspathEntry[] classpath = getCurrentClasspath();			
+			IRuntimeClasspathEntry[] classpath = getCurrentClasspath();
 			try {
 				List mementos = new ArrayList(classpath.length);
-				for (int i = 0; i < classpath.length; i++) {
-					IRuntimeClasspathEntry entry = classpath[i];
-					mementos.add(entry.getMemento());
-				}
+        for (IRuntimeClasspathEntry entry : classpath) {
+          mementos.add(entry.getMemento());
+        }
 				configuration.setAttribute(ATTR_ASPECTPATH, mementos);
 			} catch (CoreException e) {
-				JDIDebugUIPlugin.errorDialog(LauncherMessages.JavaClasspathTab_Unable_to_save_classpath_1, e); 
+				JDIDebugUIPlugin.errorDialog(LauncherMessages.JavaClasspathTab_Unable_to_save_classpath_1, e);
 			}
 		}
 	}
@@ -259,13 +259,13 @@ public class LTWAspectPathTab extends JavaClasspathTab {
 			rtes[i] = JavaRuntime.newRuntimeClasspathEntry((String)iter.next());
 			i++;
 		}
-		for (int j = 0; j < rtes.length; j++) {
-			fModel.addEntry(ClasspathModel.USER, rtes[j]);			
-		}	
+    for (IRuntimeClasspathEntry rte : rtes) {
+      fModel.addEntry(ClasspathModel.USER, rte);
+    }
 	}
-	
-	
-	
+
+
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.debug.ui.ILaunchConfigurationTab#isValid(org.eclipse.debug.core.ILaunchConfiguration)
 	 */
@@ -281,7 +281,7 @@ public class LTWAspectPathTab extends JavaClasspathTab {
 		}
 		return entries.size() > 0;
 	}
-	
+
 	public String getName() {
 		return UIMessages.LTWAspectPathTab_title;
 	}
@@ -291,17 +291,17 @@ public class LTWAspectPathTab extends JavaClasspathTab {
 	 */
 	private void setLaunchConfiguration(ILaunchConfiguration config) {
 		fLaunchConfiguration = config;
-	}	
-	
+	}
+
 	/**
 	 * Returns the current launch configuration
 	 */
 	public ILaunchConfiguration getLaunchConfiguration() {
 		return fLaunchConfiguration;
 	}
-	
+
 	public Image getImage() {
-		return AspectJImages.instance().getRegistry().get(((AJDTIcon)AspectJImages.instance().getStructureIcon(IProgramElement.Kind.ASPECT, IProgramElement.Accessibility.PUBLIC)).getImageDescriptor());
+		return AspectJImages.instance().getRegistry().get(AspectJImages.instance().getStructureIcon(IProgramElement.Kind.ASPECT, IProgramElement.Accessibility.PUBLIC).getImageDescriptor());
 	}
 
 }

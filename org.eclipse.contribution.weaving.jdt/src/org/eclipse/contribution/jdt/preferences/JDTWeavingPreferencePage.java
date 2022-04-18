@@ -34,8 +34,8 @@ public class JDTWeavingPreferencePage
 	extends PreferencePage
 	implements IWorkbenchPreferencePage {
 
-    private WeavingStateConfigurer configurer;
-    
+    private final WeavingStateConfigurer configurer;
+
 	public JDTWeavingPreferencePage() {
 		super("JDT Weaving preferences");
 		setDescription("Preferences for the JDT Weaving plugin.  Enable and disable the weaving service here.");
@@ -45,13 +45,13 @@ public class JDTWeavingPreferencePage
     @Override
     protected Control createContents(Composite parent) {
         noDefaultAndApplyButton();
-        
+
         final Composite area = new Composite(parent, SWT.NONE);
-        
+
         GridLayout gridLayout = new GridLayout();
         gridLayout.numColumns = 1;
         area.setLayout(gridLayout);
-        
+
         Label messageLabel = new Label(area, SWT.NONE);
         messageLabel.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false,
                 false));
@@ -60,7 +60,7 @@ public class JDTWeavingPreferencePage
         } else {
             messageLabel.setText("JDT Weaving is currently DISABLED");
         }
-        
+
         Button changeWeavingButton = new Button(area, SWT.PUSH);
         changeWeavingButton.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false,
                 false));
@@ -69,24 +69,24 @@ public class JDTWeavingPreferencePage
         } else {
             changeWeavingButton.setText("Click to ENABLE (requires restart)");
         }
-        
+
         changeWeavingButton.addSelectionListener(new SelectionListener() {
-        
+
             public void widgetSelected(SelectionEvent e) {
                 changeWeavingState(area.getShell());
             }
-        
+
             public void widgetDefaultSelected(SelectionEvent e) {
                 changeWeavingState(area.getShell());
             }
         });
-        
-        
+
+
         Label reindexLabel = new Label(area, SWT.NONE);
         reindexLabel.setText("Click here if you want to reindex your workspace so\n" +
         		"that all Java-like compilation units can be located by the indexer\n " +
         		"(e.g., during Java searches)");
-        
+
         Button reindexButton = new Button(area, SWT.PUSH );
         reindexButton.setText("Reindex now");
         reindexButton.addSelectionListener(new SelectionListener() {
@@ -97,7 +97,7 @@ public class JDTWeavingPreferencePage
                 new ReindexingJob().schedule();
             }
         });
-        
+
         // warning label if wrong version of the weaver is being used.
         Label warningLabel = new Label(area, SWT.NONE);
         warningLabel.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false,
@@ -110,32 +110,28 @@ public class JDTWeavingPreferencePage
         		"sluggishness or memory problems, it is recommended that you increase\n" +
         		"your Xmx and PermGen sizes to at least 512 and 128 respectively, using\n" +
         		"something like the following vmargs when launching eclipse:");
-        
+
         Text vmargsText = new Text(area, SWT.READ_ONLY | SWT.SINGLE);
         vmargsText.setBackground(area.getBackground());
         vmargsText.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false,
                 false));
         vmargsText.setText("\t-vmargs -Xmx512M -XX:MaxPermSize=128M");
-        
+
         Link moreInfoLink = new Link(area, SWT.BORDER);
         moreInfoLink.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false,
                 false));
         moreInfoLink.setText("<a href=\"http://wiki.eclipse.org/JDT_weaving_features\">More information...</a>");
-        moreInfoLink.addListener (SWT.Selection, new Listener() {
-            public void handleEvent(Event event) {
-                openUrl(event.text);
-            }
-        });
+        moreInfoLink.addListener (SWT.Selection, event -> openUrl(event.text));
         Label weaverVersion = new Label(area, SWT.NONE);
         weaverVersion.setText(new WeavingStateConfigurer().getWeaverVersionInfo());
 
-        
+
         return area;
     }
 
     public void init(IWorkbench workbench) {
     }
-	
+
     private void changeWeavingState(Shell shell) {
         new WeavingStateConfigurerUI(shell, configurer).askFromPreferences();
     }

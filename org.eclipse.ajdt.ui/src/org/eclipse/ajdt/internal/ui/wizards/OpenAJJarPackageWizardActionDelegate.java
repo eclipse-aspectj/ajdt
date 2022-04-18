@@ -31,7 +31,7 @@ import org.xml.sax.SAXException;
 /**
  * This action delegate opens the JAR Package Wizard and initializes
  * it with the selected JAR package description.
- * 
+ *
  * AspectJ Changes marked
  */
 public class OpenAJJarPackageWizardActionDelegate extends AJJarPackageActionDelegate { // AspectJ Change
@@ -46,43 +46,33 @@ public class OpenAJJarPackageWizardActionDelegate extends AJJarPackageActionDele
         AJJarPackageData jarPackage= null;  // AspectJ Change
         String errorDetail= null;
         try {
-            jarPackage= readJarPackage(getDescriptionFile(getSelection()));         
-        } catch (IOException ex) {
-            errorDetail= ex.getLocalizedMessage();
-            MessageDialog.openError(parent, JarPackagerMessages.OpenJarPackageWizardDelegate_error_openJarPackager_title, JarPackagerMessages.OpenJarPackageWizardDelegate_error_openJarPackager_message + errorDetail); 
-            return;
+            jarPackage= readJarPackage(getDescriptionFile(getSelection()));
         } catch (CoreException ex) {
             errorDetail= ex.getLocalizedMessage();
-            MessageDialog.openError(parent, JarPackagerMessages.OpenJarPackageWizardDelegate_error_openJarPackager_title, JarPackagerMessages.OpenJarPackageWizardDelegate_error_openJarPackager_message + errorDetail); 
-            return;
-        } catch (SAXException ex) {
-            errorDetail= "Bad XML Format: " + ex.getLocalizedMessage(); 
-            MessageDialog.openError(parent, JarPackagerMessages.OpenJarPackageWizardDelegate_error_openJarPackager_title, JarPackagerMessages.OpenJarPackageWizardDelegate_error_openJarPackager_message + errorDetail); 
+            MessageDialog.openError(parent, JarPackagerMessages.OpenJarPackageWizardDelegate_error_openJarPackager_title, JarPackagerMessages.OpenJarPackageWizardDelegate_error_openJarPackager_message + errorDetail);
             return;
         }
 
-        if (fReader != null && !fReader.getStatus().isOK())
-            ErrorDialog.openError(parent, JarPackagerMessages.OpenJarPackageWizardDelegate_jarDescriptionReaderWarnings_title, null, fReader.getStatus()); 
+      if (fReader != null && !fReader.getStatus().isOK())
+            ErrorDialog.openError(parent, JarPackagerMessages.OpenJarPackageWizardDelegate_jarDescriptionReaderWarnings_title, null, fReader.getStatus());
         AJJarPackageWizard wizard= new AJJarPackageWizard();  // AspectJ Change
         wizard.init(getWorkbench(), jarPackage);
         WizardDialog dialog= new WizardDialog(parent, wizard);
         dialog.create();
         dialog.open();
     }
-    
+
     /**
      * Reads the JAR package spec from file.
-     * @param description 
+     * @param description
      * @return the JAR package spec
-     * @throws CoreException 
-     * @throws IOException 
-     * @throws SAXException 
+     * @throws CoreException
      */
-    private AJJarPackageData readJarPackage(IFile description) throws CoreException, IOException, SAXException { // AspectJ Change
+    private AJJarPackageData readJarPackage(IFile description) throws CoreException { // AspectJ Change
         Assert.isLegal(description.isAccessible());
         Assert.isNotNull(description.getFileExtension());
         Assert.isLegal(description.getFileExtension().equals(AJJarPackagerUtil.DESCRIPTION_EXTENSION));  // AspectJ Change
-        AJJarPackageData jarPackage= new AJJarPackageData(); // AspectJ Change 
+        AJJarPackageData jarPackage= new AJJarPackageData(); // AspectJ Change
         try {
             fReader= jarPackage.createJarDescriptionReader(description.getContents());
             fReader.read(jarPackage);

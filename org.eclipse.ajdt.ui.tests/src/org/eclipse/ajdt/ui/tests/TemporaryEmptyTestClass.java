@@ -23,9 +23,9 @@ package org.eclipse.ajdt.ui.tests;
  */
 public class TemporaryEmptyTestClass extends UITestCase {
     @Override
-    protected void setUp() throws Exception {
+    protected void setUp() {
     }
-    public void testTestNothing() throws Exception {
-        
+    public void testTestNothing() {
+
     }
 }

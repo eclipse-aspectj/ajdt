@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2005 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Sian January - initial implementation
  *******************************************************************************/
@@ -38,68 +38,66 @@ import org.eclipse.ui.IWorkbenchWindowActionDelegate;
  */
 public class SaveBCAction implements IWorkbenchWindowActionDelegate {
 
-	
+
 	private IProject currentProject;
 
-	
+
 	/**
 	 *  Executed when button clicked or popup menu "Select this build file" clicked
 	 */
 	public void run(IAction action) {
 		if(currentProject != null) {
 			String title = UIMessages.BCDialog_SaveBuildConfigurationAs_title;
-			String msg = UIMessages.BCDialog_SaveBuildConfigurationAs_message; 
+			String msg = UIMessages.BCDialog_SaveBuildConfigurationAs_message;
 			String defaultFileName = UIMessages.BCDialog_SaveBuildConfigurationAs_default;
 			String fileName = AJDTUtils.getFreeFileName(
 					currentProject, defaultFileName,
 					AJProperties.EXTENSION);
-	
-			IInputValidator validator = new IInputValidator() {
-				public String isValid(String input) {
-	                IStatus status = PDEPlugin.getWorkspace().validateName(input + "." + AJProperties.EXTENSION, IResource.FILE); // $NON-NLS-1$ //$NON-NLS-1$
-	                if (!status.isOK()) {
-	                    return status.getMessage();
-	                }
-					return null;				
-				}
-			};
-	
+
+			IInputValidator validator = input -> {
+                IStatus status = PDEPlugin.getWorkspace().validateName(input + "." + AJProperties.EXTENSION, IResource.FILE); // $NON-NLS-1$ //$NON-NLS-1$
+                if (!status.isOK()) {
+                    return status.getMessage();
+                }
+        return null;
+      };
+
 			InputDialog md = new InputDialog(AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getShell(), title, msg, fileName,
 					validator);
 			md.setBlockOnOpen(true);
 			if (md.open() == Window.OK) {
 				if (md.getValue() != null) {
-				
+
 					String newName = md.getValue();
-					
+
 					IFile newFile = getFile(currentProject, newName);
 					if (newFile.exists()) {
 						if (!askUserOverwrite(newFile.getName())) {
-							
-						} 
+
+						}
 						try {
 							newFile.delete(true, null);
 						} catch (CoreException e1) {
 						}
-						
+
 					}
 					BuildConfigurationUtils.saveBuildConfiguration(newFile);
 				}
-			} 
+			}
 			try {
 				currentProject.refreshLocal(1, null);
 			} catch (CoreException e) {
 			}
 		}
 	}
-	
+
 	private boolean askUserOverwrite(String fileName) {
 		String[] options = {
 				UIMessages.BCDialog_Overwrite_yes,
 				UIMessages.BCDialog_Overwrite_no };
 		String title = UIMessages.BCDialog_Overwrite_title;
 		String msg = UIMessages.BCDialog_Overwrite_message.replaceAll("%fileName", fileName); //$NON-NLS-1$
-	
+
 		MessageDialog mdiag = new MessageDialog(null, title, null, msg,
 				MessageDialog.QUESTION, options, 1);
 		return (mdiag.open() == 0);
@@ -123,7 +121,7 @@ public class SaveBCAction implements IWorkbenchWindowActionDelegate {
 			if (first instanceof IProject) {
 				currentProject = (IProject) first;
 			} else if (first instanceof IAdaptable) {
-				currentProject = (IProject) ((IAdaptable)first).getAdapter(IProject.class);
+				currentProject = ((IAdaptable)first).getAdapter(IProject.class);
 			}
 		}
 	}

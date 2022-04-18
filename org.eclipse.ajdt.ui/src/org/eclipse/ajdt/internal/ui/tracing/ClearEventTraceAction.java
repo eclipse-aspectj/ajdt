@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2005 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Ben Dalziel     - initial version
@@ -28,7 +28,7 @@ import org.eclipse.ui.internal.console.IInternalConsoleConstants;
  * Clients may instantiate this class; this class is not intended to be
  * subclassed.
  * </p>
- * 
+ *
  * @since 3.0
  */
 public class ClearEventTraceAction extends Action {
@@ -37,12 +37,12 @@ public class ClearEventTraceAction extends Action {
 
 	/**
 	 * Constructs a clear output action.
-	 * 
+	 *
 	 * @since 3.1
 	 */
 	private ClearEventTraceAction() {
-		super(ConsoleMessages.ClearOutputAction_title); 
-		setToolTipText(ConsoleMessages.ClearOutputAction_toolTipText); 
+		super(ConsoleMessages.ClearOutputAction_title);
+		setToolTipText(ConsoleMessages.ClearOutputAction_toolTipText);
 		setHoverImageDescriptor(ConsolePluginImages
 				.getImageDescriptor(IConsoleConstants.IMG_LCL_CLEAR));
 		setDisabledImageDescriptor(ConsolePluginImages
@@ -63,15 +63,13 @@ public class ClearEventTraceAction extends Action {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.eclipse.jface.action.IAction#run()
 	 */
 	public void run() {
 		BusyIndicator.showWhile(ConsolePlugin.getStandardDisplay(),
-				new Runnable() {
-					public void run() {
-						fText.setText(""); //$NON-NLS-1$
-					}
-				});
+      () -> {
+        fText.setText(""); //$NON-NLS-1$
+      });
 	}
 }

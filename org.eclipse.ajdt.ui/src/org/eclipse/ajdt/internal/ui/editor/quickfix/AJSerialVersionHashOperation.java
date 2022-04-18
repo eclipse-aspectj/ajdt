@@ -74,9 +74,9 @@ import org.eclipse.ui.PlatformUI;
 
 /**
  * Proposal for a hashed serial version id.
- * 
+ *
  * Adapted for AspectJ changes marked with // AspectJ Change
- * 
+ *
  * @since 3.1
  */
 public final class AJSerialVersionHashOperation extends AbstractSerialVersionOperationCore { // AspectJ Change
@@ -89,15 +89,12 @@ public final class AJSerialVersionHashOperation extends AbstractSerialVersionOpe
             if (classfileResource == null)
                 return null;
 
-            InputStream contents= classfileResource.getContents();
-            try {
-                IClassFileReader cfReader= ToolFactory.createDefaultClassFileReader(contents, IClassFileReader.ALL);
-                if (cfReader != null) {
-                    return calculateSerialVersionId(cfReader);
-                }
-            } finally {
-                contents.close();
+          try (InputStream contents = classfileResource.getContents()) {
+            IClassFileReader cfReader = ToolFactory.createDefaultClassFileReader(contents, IClassFileReader.ALL);
+            if (cfReader != null) {
+              return calculateSerialVersionId(cfReader);
             }
+          }
             return null;
         } finally {
             if (monitor != null)
@@ -118,38 +115,36 @@ public final class AJSerialVersionHashOperation extends AbstractSerialVersionOpe
         int mod= getClassModifiers(cfReader);
 //      System.out.println(Integer.toHexString(mod) + ' ' + Flags.toString(mod));
 
-        int classModifiers= mod & (Flags.AccPublic | Flags.AccFinal | Flags.AccInterface | Flags.AccAbstract); 
+        int classModifiers= mod & (Flags.AccPublic | Flags.AccFinal | Flags.AccInterface | Flags.AccAbstract);
 
         doos.writeInt(classModifiers); // class modifiers
         char[][] interfaces= getSortedInterfacesNames(cfReader);
-        for (int i= 0; i < interfaces.length; i++) {
-            doos.writeUTF(getClassName(interfaces[i]));
-        }
+      for (char[] anInterface : interfaces) {
+        doos.writeUTF(getClassName(anInterface));
+      }
         IFieldInfo[] sortedFields= getSortedFields(cfReader);
-        for (int i= 0; i < sortedFields.length; i++) {
-            IFieldInfo curr= sortedFields[i];
-            int flags= curr.getAccessFlags();
-            if (!Flags.isPrivate(flags) || (!Flags.isStatic(flags) && !Flags.isTransient(flags))) {
-                doos.writeUTF(new String(curr.getName()));
-                doos.writeInt(flags & (Flags.AccPublic | Flags.AccPrivate | Flags.AccProtected | Flags.AccStatic | Flags.AccFinal | Flags.AccVolatile | Flags.AccTransient)); // field modifiers
-                doos.writeUTF(new String(curr.getDescriptor()));
-            }
+      for (IFieldInfo curr : sortedFields) {
+        int flags = curr.getAccessFlags();
+        if (!Flags.isPrivate(flags) || (!Flags.isStatic(flags) && !Flags.isTransient(flags))) {
+          doos.writeUTF(new String(curr.getName()));
+          doos.writeInt(flags & (Flags.AccPublic | Flags.AccPrivate | Flags.AccProtected | Flags.AccStatic | Flags.AccFinal | Flags.AccVolatile | Flags.AccTransient)); // field modifiers
+          doos.writeUTF(new String(curr.getDescriptor()));
         }
+      }
         if (hasStaticClassInitializer(cfReader)) {
             doos.writeUTF(STATIC_CLASS_INITIALIZER);
             doos.writeInt(Flags.AccStatic);
             doos.writeUTF("()V"); //$NON-NLS-1$
         }
         IMethodInfo[] sortedMethods= getSortedMethods(cfReader);
-        for (int i= 0; i < sortedMethods.length; i++) {
-            IMethodInfo curr= sortedMethods[i];
-            int flags= curr.getAccessFlags();
-            if (!Flags.isPrivate(flags) && !curr.isClinit()) {
-                doos.writeUTF(new String(curr.getName()));
-                doos.writeInt(flags & (Flags.AccPublic | Flags.AccPrivate | Flags.AccProtected | Flags.AccStatic | Flags.AccFinal | Flags.AccSynchronized | Flags.AccNative | Flags.AccAbstract | Flags.AccStrictfp)); // method modifiers
-                doos.writeUTF(getClassName(curr.getDescriptor()));
-            }
+      for (IMethodInfo curr : sortedMethods) {
+        int flags = curr.getAccessFlags();
+        if (!Flags.isPrivate(flags) && !curr.isClinit()) {
+          doos.writeUTF(new String(curr.getName()));
+          doos.writeInt(flags & (Flags.AccPublic | Flags.AccPrivate | Flags.AccProtected | Flags.AccStatic | Flags.AccFinal | Flags.AccSynchronized | Flags.AccNative | Flags.AccAbstract | Flags.AccStrictfp)); // method modifiers
+          doos.writeUTF(getClassName(curr.getDescriptor()));
         }
+      }
         doos.flush();
         return computeHash(os.toByteArray());
     }
@@ -158,15 +153,14 @@ public final class AJSerialVersionHashOperation extends AbstractSerialVersionOpe
         IInnerClassesAttribute innerClassesAttribute= cfReader.getInnerClassesAttribute();
         if (innerClassesAttribute != null) {
             IInnerClassesAttributeEntry[] entries = innerClassesAttribute.getInnerClassAttributesEntries();
-            for (int i= 0; i < entries.length; i++) {
-                IInnerClassesAttributeEntry entry = entries[i];
-                char[] innerClassName = entry.getInnerClassName();
-                if (innerClassName != null) {
-                    if (CharOperation.equals(cfReader.getClassName(), innerClassName)) {
-                        return entry.getAccessFlags();
-                    }
-                }
+          for (IInnerClassesAttributeEntry entry : entries) {
+            char[] innerClassName = entry.getInnerClassName();
+            if (innerClassName != null) {
+              if (CharOperation.equals(cfReader.getClassName(), innerClassName)) {
+                return entry.getAccessFlags();
+              }
             }
+          }
         }
         return cfReader.getAccessFlags();
     }
@@ -181,7 +175,7 @@ public final class AJSerialVersionHashOperation extends AbstractSerialVersionOpe
                 for (int i= 7; i >= 0; i--) {
                     hash= (hash << 8) | (sha[i] & 0xFF);
                 }
-                return new Long(hash);
+                return hash;
             }
         } catch (NoSuchAlgorithmException e) {
             JavaPlugin.log(e);
@@ -191,51 +185,41 @@ public final class AJSerialVersionHashOperation extends AbstractSerialVersionOpe
 
     private static char[][] getSortedInterfacesNames(IClassFileReader cfReader) {
         char[][] interfaceNames= cfReader.getInterfaceNames();
-        Arrays.sort(interfaceNames, new Comparator() {
-            public int compare(Object o1, Object o2) {
-                return CharOperation.compareTo(((char[]) o1), ((char[]) o2));
-            }
-        });
+        Arrays.sort(interfaceNames, (Comparator) (o1, o2) -> CharOperation.compareTo(((char[]) o1), ((char[]) o2)));
         return interfaceNames;
     }
 
     private static IFieldInfo[] getSortedFields(IClassFileReader cfReader) {
         IFieldInfo[] allFields= cfReader.getFieldInfos();
-        Arrays.sort(allFields, new Comparator() {
-            public int compare(Object o1, Object o2) {
-                return CharOperation.compareTo(((IFieldInfo) o1).getName(), ((IFieldInfo) o2).getName());
-            }
-        });
+        Arrays.sort(allFields, (Comparator) (o1, o2) -> CharOperation.compareTo(((IFieldInfo) o1).getName(), ((IFieldInfo) o2).getName()));
         return allFields;
     }
 
     private static boolean hasStaticClassInitializer(IClassFileReader cfReader) {
         IMethodInfo[] methodInfos= cfReader.getMethodInfos();
-        for (int i= 0; i < methodInfos.length; i++) {
-            if (methodInfos[i].isClinit()) {
-                return true;
-            }
+      for (IMethodInfo methodInfo : methodInfos) {
+        if (methodInfo.isClinit()) {
+          return true;
         }
+      }
         return false;
     }
 
     private static IMethodInfo[] getSortedMethods(IClassFileReader cfReader) {
         IMethodInfo[] allMethods= cfReader.getMethodInfos();
-        Arrays.sort(allMethods, new Comparator() {
-            public int compare(Object o1, Object o2) {
-                IMethodInfo mi1= (IMethodInfo) o1;
-                IMethodInfo mi2= (IMethodInfo) o2;
-                if (mi1.isConstructor() != mi2.isConstructor()) {
-                    return mi1.isConstructor() ? -1 : 1;
-                } else if (mi1.isConstructor()) {
-                    return 0;
-                }
-                int res= CharOperation.compareTo(mi1.getName(), mi2.getName());
-                if (res != 0) {
-                    return res;
-                }
-                return CharOperation.compareTo(mi1.getDescriptor(), mi2.getDescriptor());
+        Arrays.sort(allMethods, (Comparator) (o1, o2) -> {
+            IMethodInfo mi1= (IMethodInfo) o1;
+            IMethodInfo mi2= (IMethodInfo) o2;
+            if (mi1.isConstructor() != mi2.isConstructor()) {
+                return mi1.isConstructor() ? -1 : 1;
+            } else if (mi1.isConstructor()) {
+                return 0;
             }
+            int res= CharOperation.compareTo(mi1.getName(), mi2.getName());
+            if (res != 0) {
+                return res;
+            }
+            return CharOperation.compareTo(mi1.getDescriptor(), mi2.getDescriptor());
         });
         return allMethods;
     }
@@ -243,17 +227,17 @@ public final class AJSerialVersionHashOperation extends AbstractSerialVersionOpe
     // AspectJ Change begin
     /**
      * The original version of this method used the JDT state
-     * object to find the class file of the type, but in 
+     * object to find the class file of the type, but in
      * AspectJ projects, there is no State object.
-     * 
+     *
      * Instead use the IOutputLocationManager for the project
-     * 
+     *
      * Note that this will not work when the type is anonymous or it is
      * a named type inside a method declaration
      */
     private static IFile getClassfile(ITypeBinding typeBinding) throws CoreException {
         IType type = (IType) typeBinding.getJavaElement();
-        
+
         // get the output location manager
         IProject project = typeBinding.getJavaElement().getJavaProject().getProject();
         AjCompiler compiler = AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project);
@@ -262,12 +246,12 @@ public final class AJSerialVersionHashOperation extends AbstractSerialVersionOpe
             return null;
         }
         CoreOutputLocationManager coreManager = (CoreOutputLocationManager) manager;
-        
+
         // get the binary folder
         ICompilationUnit cu = type.getCompilationUnit();
         File file = new File(cu.getResource().getLocation().toOSString());
         File outLocation = coreManager.getOutputLocationForResource(file);
-        
+
         // convert to IFolder
         IPath outPath = new Path(outLocation.getPath());
         IPath projPath = project.getLocation();
@@ -278,7 +262,7 @@ public final class AJSerialVersionHashOperation extends AbstractSerialVersionOpe
         if (!outFolder.exists()) {
             return null;
         }
-        
+
         // get the package path
         IPackageFragment frag = type.getPackageFragment();
         String packageName = frag.getElementName();
@@ -287,15 +271,15 @@ public final class AJSerialVersionHashOperation extends AbstractSerialVersionOpe
         if (!packageFolder.exists()) {
             return null;
         }
-        
+
         // determine the binary name of this type
-        StringBuffer binaryName = new StringBuffer();
+        StringBuilder binaryName = new StringBuilder();
         IJavaElement enclosing = type.getParent();
         while (enclosing != null && ! (enclosing instanceof ICompilationUnit) ) {
-            binaryName.append(enclosing.getElementName() + "$");
+            binaryName.append(enclosing.getElementName()).append("$");
             enclosing = enclosing.getParent();
         }
-        binaryName.append(type.getElementName() + ".class");
+        binaryName.append(type.getElementName()).append(".class");
         IFile classFile = packageFolder.getFile(new Path(binaryName.toString()));
         if (classFile.exists()) {
             return classFile;
@@ -307,21 +291,18 @@ public final class AJSerialVersionHashOperation extends AbstractSerialVersionOpe
 
     /**
      * Displays an appropriate error message for a specific problem.
-     * 
+     *
      * @param message
      *            The message to display
      */
     private static void displayErrorMessage(final String message) {
         final Display display= PlatformUI.getWorkbench().getDisplay();
         if (display != null && !display.isDisposed()) {
-            display.asyncExec(new Runnable() {
-
-                public final void run() {
-                    if (!display.isDisposed()) {
-                        final Shell shell= display.getActiveShell();
-                        if (shell != null && !shell.isDisposed())
-                            MessageDialog.openError(shell, CorrectionMessages.SerialVersionHashOperation_dialog_error_caption, Messages.format(CorrectionMessages.SerialVersionHashOperation_dialog_error_message, message));
-                    }
+            display.asyncExec(() -> {
+                if (!display.isDisposed()) {
+                    final Shell shell= display.getActiveShell();
+                    if (shell != null && !shell.isDisposed())
+                        MessageDialog.openError(shell, CorrectionMessages.SerialVersionHashOperation_dialog_error_caption, Messages.format(CorrectionMessages.SerialVersionHashOperation_dialog_error_message, message));
                 }
             });
         }
@@ -329,7 +310,7 @@ public final class AJSerialVersionHashOperation extends AbstractSerialVersionOpe
 
     /**
      * Displays an appropriate error message for a specific problem.
-     * 
+     *
      * @param throwable
      *            the throwable object to display
      */
@@ -339,7 +320,7 @@ public final class AJSerialVersionHashOperation extends AbstractSerialVersionOpe
 
     /**
      * Displays a dialog with a question as message.
-     * 
+     *
      * @param title
      *            The title to display
      * @param message
@@ -350,14 +331,11 @@ public final class AJSerialVersionHashOperation extends AbstractSerialVersionOpe
         final boolean[] result= { true};
         final Display display= PlatformUI.getWorkbench().getDisplay();
         if (display != null && !display.isDisposed()) {
-            display.syncExec(new Runnable() {
-
-                public final void run() {
-                    if (!display.isDisposed()) {
-                        final Shell shell= display.getActiveShell();
-                        if (shell != null && !shell.isDisposed())
-                            result[0]= MessageDialog.openQuestion(shell, title, message);
-                    }
+            display.syncExec(() -> {
+                if (!display.isDisposed()) {
+                    final Shell shell= display.getActiveShell();
+                    if (shell != null && !shell.isDisposed())
+                        result[0]= MessageDialog.openQuestion(shell, title, message);
                 }
             });
         }
@@ -373,19 +351,16 @@ public final class AJSerialVersionHashOperation extends AbstractSerialVersionOpe
 
     /**
      * {@inheritDoc}
-     * @throws CoreException 
+     * @throws CoreException
      */
  	 /* AJDT 1.7 */
      protected boolean addInitializer(final VariableDeclarationFragment fragment, final ASTNode declarationNode) {
         Assert.isNotNull(fragment);
         try {
-            PlatformUI.getWorkbench().getProgressService().busyCursorWhile(new IRunnableWithProgress() {
-
-                public final void run(final IProgressMonitor monitor) throws InterruptedException {
-                    Assert.isNotNull(monitor);
-                    String id= computeId(declarationNode, monitor);
-                    fragment.setInitializer(fragment.getAST().newNumberLiteral(id));
-                }
+            PlatformUI.getWorkbench().getProgressService().busyCursorWhile(monitor -> {
+                Assert.isNotNull(monitor);
+                String id= computeId(declarationNode, monitor);
+                fragment.setInitializer(fragment.getAST().newNumberLiteral(id));
             });
         } catch (InvocationTargetException exception) {
             JavaPlugin.log(exception);
@@ -434,13 +409,12 @@ public final class AJSerialVersionHashOperation extends AbstractSerialVersionOpe
             if (typeBinding != null) {
                 Long id= calculateSerialVersionId(typeBinding, new SubProgressMonitor(monitor, 100));
                 if (id != null)
-                    serialVersionID= id.longValue();
+                    serialVersionID= id;
             }
-        } catch (CoreException exception) {
+        } catch (CoreException | IOException exception) {
             displayErrorMessage(exception);
-        } catch (IOException exception) {
-            displayErrorMessage(exception);
-        } finally {
+        }
+        finally {
             monitor.done();
         }
         return serialVersionID + LONG_SUFFIX;

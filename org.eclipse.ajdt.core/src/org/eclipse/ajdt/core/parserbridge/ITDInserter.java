@@ -109,11 +109,11 @@ public class ITDInserter extends ASTVisitor {
     private final LookupEnvironment env;
 
 
-    private Map<TypeDeclaration, OrigContents> origMap = new HashMap<>();
+    private final Map<TypeDeclaration, OrigContents> origMap = new HashMap<>();
 
     private final ITDTypeConverter typeConverter;
 
-    private AJProjectModelFacade model;
+    private final AJProjectModelFacade model;
 
     public ITDInserter(ICompilationUnit unit, LookupEnvironment env, ProblemReporter reporter) {
         this.unit = unit;

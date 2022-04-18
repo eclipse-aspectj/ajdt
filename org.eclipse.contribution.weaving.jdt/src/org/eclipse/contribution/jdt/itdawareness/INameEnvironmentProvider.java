@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2009 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Andrew Eisenberg - initial API and implementation
  *******************************************************************************/
@@ -27,22 +27,22 @@ import org.eclipse.jdt.internal.core.SearchableEnvironment;
  * This class should only be implemented from within the AJDT framework
  * @author andrew
  * @created Nov 22, 2008
- * 
+ *
  * @noimplement
  *
  */
 public interface INameEnvironmentProvider {
-    public SearchableEnvironment getNameEnvironment(JavaProject project,
+    SearchableEnvironment getNameEnvironment(JavaProject project,
             WorkingCopyOwner owner);
-    
-    public SearchableEnvironment getNameEnvironment(JavaProject project,
+
+    SearchableEnvironment getNameEnvironment(JavaProject project,
             ICompilationUnit[] workingCopies);
-    
-    public ISourceType transformSourceTypeInfo(ISourceType info);
-    
+
+    ISourceType transformSourceTypeInfo(ISourceType info);
+
     @SuppressWarnings("unchecked")
-    public CompilationUnitDeclaration problemFind(          
-            CompilationUnit unitElement, 
+    CompilationUnitDeclaration problemFind(
+            CompilationUnit unitElement,
             SourceElementParser parer,
             WorkingCopyOwner workingCopyOwner,
             HashMap problems,
@@ -50,6 +50,6 @@ public interface INameEnvironmentProvider {
             int reconcileFlags,
             IProgressMonitor monitor) throws JavaModelException;
 
-    public boolean shouldFindProblems(CompilationUnit unitElement);
+    boolean shouldFindProblems(CompilationUnit unitElement);
 
 }

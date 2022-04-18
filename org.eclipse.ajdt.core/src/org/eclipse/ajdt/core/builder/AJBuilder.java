@@ -96,7 +96,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 
     private static IStateListener isl = null;
 
-    private static List<IAJBuildListener> buildListeners = new ArrayList<>();
+    private static final List<IAJBuildListener> buildListeners = new ArrayList<>();
 
     /**
      * keeps track of the last workbench preference
@@ -298,7 +298,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
                             } else
                                 Util.log(exception, "Exception occurred in reconcile participant"); //$NON-NLS-1$
                         }
-                        public void run() throws Exception {
+                        public void run() {
                             participant.buildStarting(new CompilationParticipantResult[0], false);
                             participant.buildFinished(javaProject);
                         }
@@ -320,7 +320,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
                             } else
                                 Util.log(exception, "Exception occurred in reconcile participant"); //$NON-NLS-1$
                         }
-                        public void run() throws Exception {
+                        public void run() {
                             participant.buildStarting(results, false);
                             if (participant.isAnnotationProcessor()) {
                                 participant.processAnnotations(results);
@@ -383,7 +383,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
                     resultsList.add(buildContext);
                 }
             }
-            results = resultsList.toArray(new BuildContext[resultsList.size()]);
+            results = resultsList.toArray(new BuildContext[0]);
         }
         return results;
     }
@@ -446,7 +446,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
                         } else
                             Util.log(exception, "Exception occurred in reconcile participant"); //$NON-NLS-1$
                     }
-                    public void run() throws Exception {
+                    public void run() {
                         participant.aboutToBuild(javaProject);
                     }
                 });
@@ -858,16 +858,12 @@ public class AJBuilder extends IncrementalProjectBuilder {
     private IProject[] getDependingProjects(IProject project) {
         IProject[] referencingProjects = project.getReferencingProjects();
         // this only gets the class folder depending projects
-        IProject[] classFolderReferences = (IProject[]) CoreUtils
+        IProject[] classFolderReferences = CoreUtils
                 .getDependingProjects(project).get(0);
         IProject[] dependingProjects = new IProject[referencingProjects.length
                 + classFolderReferences.length];
-        for (int i = 0; i < referencingProjects.length; i++) {
-            dependingProjects[i] = referencingProjects[i];
-        }
-        for (int i = 0; i < classFolderReferences.length; i++) {
-            dependingProjects[i + referencingProjects.length] = classFolderReferences[i];
-        }
+      System.arraycopy(referencingProjects, 0, dependingProjects, 0, referencingProjects.length);
+      System.arraycopy(classFolderReferences, 0, dependingProjects, 0 + referencingProjects.length, classFolderReferences.length);
         return dependingProjects;
     }
 
@@ -887,7 +883,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
           srcEntries.add(entry);
         }
       }
-        return (IClasspathEntry[]) srcEntries.toArray(new IClasspathEntry[srcEntries.size()]);
+        return srcEntries.toArray(new IClasspathEntry[0]);
     }
 
     /**
@@ -1469,7 +1465,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
               catch (BackingStoreException e) {
                 // problem with pref store - quietly ignore
               }
-              lastWorkbenchPreference = (String) JavaCore.getOptions().get(JavaCore.CORE_JAVA_BUILD_INVALID_CLASSPATH);
+              lastWorkbenchPreference = JavaCore.getOptions().get(JavaCore.CORE_JAVA_BUILD_INVALID_CLASSPATH);
             }
           }// end if dependent has a Java nature
         }
@@ -1592,7 +1588,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
                         } else
                             Util.log(exception, "Exception occurred in reconcile participant"); //$NON-NLS-1$
                     }
-                    public void run() throws Exception {
+                    public void run() {
                         participant.cleanStarting(javaProject);
                     }
                 });
@@ -1808,7 +1804,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
                 public void detectedClassChangeInThisDir(File f) {
                 }
 
-                public void aboutToCompareClasspaths(List oldClasspath, List newClasspath) {
+                public void aboutToCompareClasspaths(List<String> oldClasspath, List<String> newClasspath) {
                 }
 
                 public void pathChangeDetected() {

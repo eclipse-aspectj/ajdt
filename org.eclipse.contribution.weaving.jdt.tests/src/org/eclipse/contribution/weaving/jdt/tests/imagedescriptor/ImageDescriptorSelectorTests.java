@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2009 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Andrew Eisenberg - initial API and implementation
  *******************************************************************************/
@@ -42,28 +42,28 @@ import org.eclipse.ui.dialogs.FilteredItemsSelectionDialog;
  */
 public class ImageDescriptorSelectorTests extends WeavingTestCase {
     MockCompilationUnit cu;
-    
+
     public void setUp() throws Exception {
         IProject proj = createPredefinedProject("MockCUProject");
         IFile file = proj.getFile("src/nothing/nothing.mock");
         cu = (MockCompilationUnit) JavaCore.create(file);
         cu.becomeWorkingCopy(monitor);
     }
-    
+
     public void tearDown() throws Exception {
         super.tearDown();
         MockImageDescriptorSelector.isSet = false;
     }
 
-    public void testImageSelectHierarchy() throws Exception {
+    public void testImageSelectHierarchy() {
         HierarchyLabelProvider hierarchy = new HierarchyLabelProvider(null);
         testLabelProvider(hierarchy);
-    } 
+    }
 
     public void testImageSelectDialog() throws Exception {
         FilteredTypesSelectionDialog dialog = new FilteredTypesSelectionDialog(new Shell(Display.getCurrent().getActiveShell()), false, null, null, 0, null);
         LabelProvider fTypeInfoLabelProvider = getLabelProvider(dialog);
-        
+
         // here, we can't test the image directly because the extra decorators are added to it.
         // instead just test that the image selector was activated
         fTypeInfoLabelProvider.getImage(new JavaSearchTypeNameMatch((IType) cu.getChildren()[0], 0));
@@ -81,7 +81,7 @@ public class ImageDescriptorSelectorTests extends WeavingTestCase {
         waitForJobsToComplete();
         Assert.assertTrue("Image descriptor selector never activated", MockImageDescriptorSelector.isSet);
     }
-    
+
     class MockDebugTypeSelectionDialog extends DebugTypeSelectionDialog {
 
         public MockDebugTypeSelectionDialog(Shell shell, IType[] elements, String title) {
@@ -96,16 +96,16 @@ public class ImageDescriptorSelectorTests extends WeavingTestCase {
             return (ILabelProvider) providerField.get(fItemsListLabelProvider);
         }
     }
-    
-    public void testImageSelectComputeImage() throws Exception {
+
+    public void testImageSelectComputeImage() {
         Image i = new JavaElementImageProvider().getImageLabel(cu, 0);
         testImage(i);
     }
 
-    
 
-    
-    
+
+
+
     private void testLabelProvider(ILabelProvider provider) {
         Image i = provider.getImage(cu);
         testImage(i);
@@ -114,17 +114,17 @@ public class ImageDescriptorSelectorTests extends WeavingTestCase {
     private void testImage(Image i) {
         byte[] createdImageData = i.getImageData().data;
         byte[] origImageData = MockImageDescriptorSelector.getImage().getImageData().data;
-        
+
         Assert.assertEquals("Mock image is not the same as expected image", origImageData.length, createdImageData.length);
         for (int j = 0; j < origImageData.length; j++) {
             Assert.assertEquals("Mock image is not the same as expected image", origImageData[j], createdImageData[j]);
         }
     }
-    
-    
+
+
     private LabelProvider getLabelProvider(FilteredTypesSelectionDialog dialog) throws Exception {
         Field field = FilteredTypesSelectionDialog.class.getDeclaredField("fTypeInfoLabelProvider");
         field.setAccessible(true);
         return (LabelProvider) field.get(dialog);
-    } 
+    }
 }

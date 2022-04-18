@@ -43,7 +43,7 @@ public class ProposalRequestorWrapper extends CompletionRequestor {
     ArrayList<AspectsConvertingParser.Replacement> insertionTable;
 
     private AJWorldFacade world;
-    private ICompilationUnit unit;
+    private final ICompilationUnit unit;
 
        // this is the identifier added by the AspectsConvertingParser
     // should be ignored
@@ -118,7 +118,7 @@ public class ProposalRequestorWrapper extends CompletionRequestor {
                     return true;
                 } else if (info.accessibility == Accessibility.PACKAGE) {
                     // accessible only in package of declaring aspect
-                    if (((IPackageFragment) unit.getParent()).getElementName().equals(info.packageDeclaredIn)) {
+                    if (unit.getParent().getElementName().equals(info.packageDeclaredIn)) {
                         int oldFlags = proposal.getFlags();
                         oldFlags |= Flags.AccDefault;
                         oldFlags &= ~Flags.AccPublic;
@@ -128,7 +128,7 @@ public class ProposalRequestorWrapper extends CompletionRequestor {
                 } else if (info.accessibility == Accessibility.PRIVATE) {
                     // accessible only in declaring aspect's compilation unit
                     if (unit.getElementName().startsWith(info.topLevelAspectName + ".") &&
-                       ((IPackageFragment) unit.getParent()).getElementName().equals(info.packageDeclaredIn)) {
+                       unit.getParent().getElementName().equals(info.packageDeclaredIn)) {
 
                         int oldFlags = proposal.getFlags();
                         oldFlags |= Flags.AccPrivate;
@@ -145,15 +145,11 @@ public class ProposalRequestorWrapper extends CompletionRequestor {
             }
         } else if (proposal.getKind() == CompletionProposal.LOCAL_VARIABLE_REF) {
             // check to see if this is the proposal that has been added by the context switch for ITDs
-            if (contextSwitchIgnore(proposal)) {
-                return false;
-            }
+          return !contextSwitchIgnore(proposal);
         } else if (proposal.getKind() == CompletionProposal.TYPE_REF) {
             // check to see if this is an ITIT type that should not be see
             char[] typeName = (char[]) ReflectionUtils.getPrivateField(InternalCompletionProposal.class, "typeName", (InternalCompletionProposal) proposal);
-            if (typeName != null && CharOperation.contains('$', typeName)) {
-                return false;
-            }
+          return typeName == null || !CharOperation.contains('$', typeName);
         }
         return true;
     }

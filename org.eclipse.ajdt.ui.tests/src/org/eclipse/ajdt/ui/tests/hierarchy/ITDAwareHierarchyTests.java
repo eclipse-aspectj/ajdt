@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2010 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Andrew Eisenberg - initial version
  *******************************************************************************/
@@ -39,16 +39,16 @@ public class ITDAwareHierarchyTests extends UITestCase {
     AJCompilationUnit ship;
     ICompilationUnit yacht;
     IJavaProject shipProj;
-    
+
     // for some reason, the primary owner is from jdt ui, and this is giving us problems
     // set it to null, so that the ui plugin is not triggered here.
     WorkingCopyOwner primaryOwner;
-    
+
     protected void setUp() throws Exception {
         super.setUp();
         primaryOwner = DefaultWorkingCopyOwner.PRIMARY.primaryBufferProvider;
         DefaultWorkingCopyOwner.PRIMARY.primaryBufferProvider = null;
-        
+
         IProject proj = createPredefinedProject("ITDAwareHierarchy");
         IFile shipFile = proj.getFile("src/ships/Ship.aj");
         ship = (AJCompilationUnit) AspectJCore.create(shipFile);
@@ -57,12 +57,12 @@ public class ITDAwareHierarchyTests extends UITestCase {
         yacht = (ICompilationUnit) AspectJCore.create(yachtFile);
         yacht.becomeWorkingCopy(null);
         shipProj = JavaCore.create(proj);
-        
+
         // ensure the project is indexed so that hierarchy building can occur
         IndexManager manager = JavaModelManager.getIndexManager();
         manager.indexAll(proj);
     }
-    
+
     protected void tearDown() throws Exception {
         try {
             super.tearDown();
@@ -70,7 +70,7 @@ public class ITDAwareHierarchyTests extends UITestCase {
             DefaultWorkingCopyOwner.PRIMARY.primaryBufferProvider = primaryOwner;
         }
     }
-    
+
     /**
      * Tests that ITD super types and super interfaces are included in the type hierarchy
      * when they are declared on the focus type
@@ -83,12 +83,12 @@ public class ITDAwareHierarchyTests extends UITestCase {
         arrayContains("Object", allClasses);
         arrayContains("FloatingThing", allClasses);
         arrayContains("Ship", allClasses);
-        
+
         IType[] allInterfaces = hierarchy.getAllInterfaces();
         assertEquals(1, allInterfaces.length);
         arrayContains("Log", allInterfaces);
     }
-    
+
     /**
      * Tests that ITD super types and super interfaces are included in the type hierarchy
      * when they are declared on the non-focus type
@@ -102,25 +102,25 @@ public class ITDAwareHierarchyTests extends UITestCase {
         arrayContains("FloatingThing", allClasses);
         arrayContains("Ship", allClasses);
         arrayContains("Yacht", allClasses);
-        
+
         IType[] allInterfaces = hierarchy.getAllInterfaces();
         assertEquals(1, allInterfaces.length);
         arrayContains("Log", allInterfaces);
     }
-    
+
     /**
      * We don't implement this yet
      */
     public void testSubTypeHierarchy() {
          System.out.println("ITD Aware Sub Type Hierarchies not implemented");
     }
-    
-    
+
+
     private void arrayContains(String elementName, IType[] array) {
         boolean found = false;
-        for (int i = 0; i < array.length; i++) {
-            found |= array[i].getElementName().equals(elementName);
-        }
+      for (IType iType : array) {
+        found |= iType.getElementName().equals(elementName);
+      }
         if (!found) {
             fail("Searching for " + elementName + " in ITD aware type hierarchy, but not found");
         }

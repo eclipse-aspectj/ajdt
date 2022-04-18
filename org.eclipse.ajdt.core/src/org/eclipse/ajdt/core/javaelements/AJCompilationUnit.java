@@ -98,7 +98,7 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 	protected JavaCompatibleBuffer javaCompBuffer;
 
 
-	private Object contentModeLock = new Object();
+	private final Object contentModeLock = new Object();
 
 	public boolean isInOriginalContentMode() throws JavaModelException {
 	    synchronized (contentModeLock) {
@@ -349,7 +349,7 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
         }
         // underlying resource is null in the case of a working copy on a class file in a jar
         if (underlyingResource != null)
-            unitInfo.setTimestamp(((IFile)underlyingResource).getModificationStamp());
+            unitInfo.setTimestamp(underlyingResource.getModificationStamp());
 
         // compute other problems if needed
         CompilationUnitDeclaration compilationUnitDeclaration = null;
@@ -531,13 +531,13 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
         try {
             try {
                 // Eclipse 3.5.1
-                flushZipFilesMethod = JavaModelManager.class.getMethod("flushZipFiles", new Class[0]);
-                flushZipFilesMethod.invoke(manager, new Object[0]);
+                flushZipFilesMethod = JavaModelManager.class.getMethod("flushZipFiles");
+                flushZipFilesMethod.invoke(manager);
             } catch (NoSuchMethodException e) {
                 // Eclipse 3.5.2
                 try {
-                    flushZipFilesMethod = JavaModelManager.class.getMethod("flushZipFiles", new Class[]  { Object.class });
-                    flushZipFilesMethod.invoke(manager, new Object[] { this });
+                    flushZipFilesMethod = JavaModelManager.class.getMethod("flushZipFiles", Object.class);
+                    flushZipFilesMethod.invoke(manager, this);
                 } catch (NoSuchMethodException e1) {
                     throw new JavaModelException(e1, IJavaModelStatusConstants.CORE_EXCEPTION);
                 }
@@ -553,13 +553,13 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
         try {
             try {
                 // Eclipse 3.5.1
-                cacheZipFilesMethod = JavaModelManager.class.getMethod("cacheZipFiles", new Class[0]);
-                cacheZipFilesMethod.invoke(manager, new Object[0]);
+                cacheZipFilesMethod = JavaModelManager.class.getMethod("cacheZipFiles");
+                cacheZipFilesMethod.invoke(manager);
             } catch (NoSuchMethodException e) {
                 // Eclipse 3.5.2
                 try {
-                    cacheZipFilesMethod = JavaModelManager.class.getMethod("cacheZipFiles", new Class[]  { Object.class });
-                    cacheZipFilesMethod.invoke(manager, new Object[] { this });
+                    cacheZipFilesMethod = JavaModelManager.class.getMethod("cacheZipFiles", Object.class);
+                    cacheZipFilesMethod.invoke(manager, this);
                 } catch (NoSuchMethodException e1) {
                     throw new JavaModelException(e1, IJavaModelStatusConstants.CORE_EXCEPTION);
                 }
@@ -571,8 +571,7 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 
 	public IJavaElement[] codeSelect(int offset, int length,
 			WorkingCopyOwner workingCopyOwner) throws JavaModelException {
-		IJavaElement[] res = super.codeSelect(offset, length, workingCopyOwner);
-		return res;
+    return super.codeSelect(offset, length, workingCopyOwner);
 	}
 
 	protected void closeBuffer() {
@@ -640,7 +639,7 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
         }
       }
     }
-	    return (IType[]) aspects.toArray(new IType[aspects.size()]);
+	    return aspects.toArray(new IType[0]);
 	}
 
 	/**
@@ -799,7 +798,8 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
                 currPos--;
 	        }
 
-             return currPos < 3 ||
+        //noinspection PointlessArithmeticExpression
+        return currPos < 3 ||
                      !(sourceArr[currPos-3] == 't' &&
                        sourceArr[currPos-2] == 'h' &&
                        sourceArr[currPos-1] == 'i' &&
@@ -846,7 +846,7 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 	    if (position < -1 || position > buffer.getLength()) {
 	        throw new JavaModelException(new JavaModelStatus(IJavaModelStatusConstants.INDEX_OUT_OF_BOUNDS));
 	    }
-	    JavaProject project = (JavaProject) getJavaProject();
+	    JavaProject project = getJavaProject();
 		/* AJDT 1.7 */
 	    ITDAwareNameEnvironment environment = new ITDAwareNameEnvironment(project, owner, monitor);
 
@@ -901,10 +901,9 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 	private JavaElement getType(JavaElement type, String typeName) {
 	    try {
     		try {
-    			Constructor<SourceType> cons = SourceType.class.getDeclaredConstructor(new Class[]{JavaElement.class,String.class});
+    			Constructor<SourceType> cons = SourceType.class.getDeclaredConstructor(JavaElement.class,String.class);
     			cons.setAccessible(true);
-    			org.eclipse.jdt.internal.core.NamedMember obj = cons.newInstance(new Object[]{type,typeName});
-    			return obj;
+          return cons.newInstance(type,typeName);
     		} catch (SecurityException | InvocationTargetException | IllegalAccessException | InstantiationException |
                  IllegalArgumentException | NoSuchMethodException e) {
     		    throw new JavaModelException(e, IJavaModelStatusConstants.CORE_EXCEPTION);
@@ -1028,10 +1027,9 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 		final String moveClass = "org.eclipse.jdt.internal.corext.refactoring.changes.CompilationUnitReorgChange"; //$NON-NLS-1$
 		if (callerName.equals(moveClass)) {
 			// need to return a handle identifier that JDT can use (bug 121533)
-			String modifiedHandle = super.getHandleIdentifier().replace(
-					AspectElement.JEM_ASPECT_CU,
-					JavaElement.JEM_COMPILATIONUNIT);
-			return modifiedHandle;
+      return super.getHandleIdentifier().replace(
+          AspectElement.JEM_ASPECT_CU,
+          JavaElement.JEM_COMPILATIONUNIT);
 		}
 		return super.getHandleIdentifier();
 	}

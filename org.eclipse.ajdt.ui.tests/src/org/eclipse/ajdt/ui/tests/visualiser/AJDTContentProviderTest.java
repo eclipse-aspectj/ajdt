@@ -34,23 +34,23 @@ import org.eclipse.ui.WorkbenchException;
 
 /**
  * Test the content provider used by the AJDT the Visualiser.
- * 
+ *
  * While this test class drives most of the important methods of <code>AJDTContentProvider</code>,
  * it also depends on the workbench infrastructure to inialise classes correctly. So, rather
  * than creating an instance of <code>AJDTContentProvider</code> directly, it was necessary to
  * activate the Visualiser perspective via the workbench, then retrieve the active instance
- * of <code>AJDTContentProvider</code> from the <code>ProviderManager</code> class. 
- * 
- * The following methods have been excluded from testing, as no meaningful test could be 
+ * of <code>AJDTContentProvider</code> from the <code>ProviderManager</code> class.
+ *
+ * The following methods have been excluded from testing, as no meaningful test could be
  * performed:
- * 
+ *
  * {@link org.eclipse.ajdt.internal.ui.visualiser.AJDTContentProvider#reset()}
  * Sets internal variables to null, thus cleaning state, but accessor methods cannot
  * check this, as they would trigger said internal variables to be re-initialised to
  * non-null values.
- * 
+ *
  * {@link org.eclipse.ajdt.internal.ui.visualiser.AJDTContentProvider#processMouseClick()}
- * No discernable chanage of state to measure. 
+ * No discernable chanage of state to measure.
  */
 public class AJDTContentProviderTest extends UITestCase {
 
@@ -58,14 +58,14 @@ public class AJDTContentProviderTest extends UITestCase {
 	private IWorkbench workbench = null;
 	private IWorkbenchPage visualiserPerspective = null;
 	private AJDTContentProvider ajdtContentProvider = null;
-	private String testProjectName = "Simple AJ Project"; //$NON-NLS-1$
+	private final String testProjectName = "Simple AJ Project"; //$NON-NLS-1$
 	private IProject testProject = null;
-	private IJavaProject javaTestProject = null; 
+	private IJavaProject javaTestProject = null;
 
 	// NB This count includes the default package (so 3 == p1, p2 and default)
 	private static final int PROJECT_PACKAGE_COUNT = 3;
 	private static final int PROJECT_MEMBER_COUNT = 4;
-	
+
 	private IPackageFragment defaultPackage = null;
 	private static final String DEFAULT_PACKAGE_NAME = "";  // default package //$NON-NLS-1$
 	private static final int DEFAULT_PACKAGE_MEMBER_COUNT = 2;
@@ -79,7 +79,7 @@ public class AJDTContentProviderTest extends UITestCase {
 	private static final String PACKAGE_TWO_NAME = "p2"; //$NON-NLS-1$
 	private static final String PACKAGE_TWO_MEMBER_NAME = "Aspect"; //$NON-NLS-1$
 	private static final int PACKAGE_TWO_MEMBER_COUNT = 1;
-	
+
 	// Any valid Java element (used to drive methods expecting one as an arg)
 	private IJavaElement someJavaElement = null;
 
@@ -91,7 +91,7 @@ public class AJDTContentProviderTest extends UITestCase {
 	/*
 	 * Setup the visualiser perspective, test project, packages and members therein
 	 * which other tests depend on.
-	 * 
+	 *
 	 * @see org.eclipse.ajdt.ui.tests.UITestCase#setUp()
 	 */
 	protected void setUp() throws Exception {
@@ -105,7 +105,7 @@ public class AJDTContentProviderTest extends UITestCase {
 		try {
 			// Check what perspectives are open to start with
 			workbench.getActiveWorkbenchWindow();
-			
+
 			// Keep a reference to the opened perspective page so we can close
 			// it afterwards
 			visualiserPerspective = workbench.showPerspective(
@@ -122,22 +122,22 @@ public class AJDTContentProviderTest extends UITestCase {
 		/*
 		 * Create a project, a package and some members for the various tests to
 		 * use. NB This must exist as a valid eclipse project under:
-		 * 
+		 *
 		 * org.eclipse.ajdt.ui.tests\workspace
-		 * 
+		 *
 		 * Re-use an existing test project.
 		 */
 		testProject = createPredefinedProject(testProjectName);
 		javaTestProject = JavaCore.create(testProject);
-		
-		/* 
+
+		/*
 		 * This is required in order to gurantee that AJDT "knows about all the .aj files"
 		 * as some tests depend on this.
-		 */ 
+		 */
 		AJCompilationUnitManager.INSTANCE.initCompilationUnits(AspectJPlugin.getWorkspace());
 
-		
-		// It seems to be protocol to call this method at this point... 
+
+		// It seems to be protocol to call this method at this point...
 		waitForJobsToComplete();
 
 		/*
@@ -157,17 +157,17 @@ public class AJDTContentProviderTest extends UITestCase {
 
 		/*
 		 * Calling:
-		 * 
+		 *
 		 *    visualiserPerspective.close()
-		 * 
+		 *
 		 * results in no perspective being open, thus skuppering subsequent tests (!)
-		 * 
+		 *
 		 * Use:
-		 * 
+		 *
 		 *    closePerspective(visualiserPerspective.getPerspective(), false, false);
-		 * 
+		 *
 		 * the last arg indicating that the "page" should not be closed.
-		 * 
+		 *
 		 * -spyoung
 		 */
 		visualiserPerspective.closePerspective(visualiserPerspective.getPerspective(), false, false);
@@ -191,7 +191,7 @@ public class AJDTContentProviderTest extends UITestCase {
 	private class MockStructuredSelection implements IStructuredSelection {
 
 		private Object elementToSelect = null;
-		
+
 		private MockStructuredSelection(Object elementToSelect){
 			this.elementToSelect = elementToSelect;
 		}
@@ -224,20 +224,20 @@ public class AJDTContentProviderTest extends UITestCase {
 
 	/**
 	 * More detailed test method for (also drives {@link org.eclipse.ajdt.internal.ui.
-	 * visualiser.AJDTContentProvider#selectionChanged(org.eclipse.ui.IWorkbenchPart, 
+	 * visualiser.AJDTContentProvider#selectionChanged(org.eclipse.ui.IWorkbenchPart,
 	 * org.eclipse.jface.viewers.ISelection)} for non-trivial test cases.
 	 * {@link org.eclipse.ajdt.internal.ui.visualiser.AJDTContentProvider#getAllMembers()}.
 	 */
 	public void testGetAllMembers() {
 		List members = ajdtContentProvider.getAllMembers();
 		assertNotNull("Members list should not be null", members); //$NON-NLS-1$
-		
+
 		// Select the project - should cause getAllMembers to return all elements in all packages
 		ajdtContentProvider.selectionChanged(null, new MockStructuredSelection(javaTestProject));
 		List projectMembers = ajdtContentProvider.getAllMembers();
 		assertEquals("Wrong number of project members", PROJECT_MEMBER_COUNT, projectMembers.size()); //$NON-NLS-1$
 
-		
+
 		System.out.println("Commented out part of AJDTContentProviderTest.testGetAllMembers() because of sporadic failures on build server.");
 		// Select the first package - should cause getAllMembers to return all elements in that packages
 		ajdtContentProvider.selectionChanged(null, new MockStructuredSelection(defaultPackage));
@@ -247,11 +247,11 @@ public class AJDTContentProviderTest extends UITestCase {
 
 	/**
 	 * More detailed test method for (also drives {@link org.eclipse.ajdt.internal.ui.
-	 * visualiser.AJDTContentProvider#selectionChanged(org.eclipse.ui.IWorkbenchPart, 
+	 * visualiser.AJDTContentProvider#selectionChanged(org.eclipse.ui.IWorkbenchPart,
 	 * org.eclipse.jface.viewers.ISelection)} for non-trivial test cases.
 	 * {@link org.eclipse.ajdt.internal.ui.visualiser.AJDTContentProvider#getAllGroups()}.
-	 * 
-	 * NB This method does not appear to be invoked by the workbench over the course of 
+	 *
+	 * NB This method does not appear to be invoked by the workbench over the course of
 	 * typical usage. Tests are provided for completeness/coverage.
 	 */
 	public void testGetAllGroups() {

@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman  - initial version
@@ -36,17 +36,17 @@ public class BinaryWeavingSupportTest extends UITestCase {
 				IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, false,
 				IResource.DEPTH_ZERO);
 		boolean found = false;
-		for (int i = 0; i < markers.length; i++) {
-			String msg = markers[i].getAttribute(IMarker.MESSAGE, ""); //$NON-NLS-1$
-			if (msg.indexOf(adviceDidNotMatch) != -1) {
-				found = true;
-			}
-		}
+    for (IMarker marker : markers) {
+      String msg = marker.getAttribute(IMarker.MESSAGE, ""); //$NON-NLS-1$
+      if (msg.contains(adviceDidNotMatch)) {
+        found = true;
+      }
+    }
 		assertTrue("Didn't find advice did not match marker", found); //$NON-NLS-1$
 		createPredefinedProject("WeaveMe"); //$NON-NLS-1$
 		markers = mybar.findMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER,
 				false, IResource.DEPTH_ZERO);
-		
+
 		// Commenting out because not adding advice marker on aspect path elements
 //		found = false;
 //		for (int i = 0; i < markers.length; i++) {
@@ -56,6 +56,6 @@ public class BinaryWeavingSupportTest extends UITestCase {
 //			}
 //		}
 //		assertFalse(
-//				"WeaveMe project should have removed advice did not match marker", found); //$NON-NLS-1$		
+//				"WeaveMe project should have removed advice did not match marker", found); //$NON-NLS-1$
 	}
 }

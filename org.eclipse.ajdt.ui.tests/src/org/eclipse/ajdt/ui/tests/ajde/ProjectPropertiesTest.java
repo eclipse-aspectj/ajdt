@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Matt Chapman - initial version
  *     Helen Hawkins - updated for new ajde interface (bug 148190)
@@ -22,8 +22,8 @@ import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.NullProgressMonitor;
 
 /**
- * 
- * 
+ *
+ *
  * @author mchapman
  */
 public class ProjectPropertiesTest extends UITestCase {
@@ -43,10 +43,9 @@ public class ProjectPropertiesTest extends UITestCase {
 
 		project.build(IncrementalProjectBuilder.FULL_BUILD,
 				new NullProgressMonitor());
-		assertTrue("Regression of bug 148055: Should be no errors, but got " //$NON-NLS-1$
-				+((UIMessageHandler)AspectJPlugin.getDefault().getCompilerFactory()
-        				.getCompilerForProject(project).getMessageHandler()).getErrors(),
-        				((UIMessageHandler)AspectJPlugin.getDefault().getCompilerFactory()
-                				.getCompilerForProject(project).getMessageHandler()).getErrors().size()==0);	
+    assertEquals("Regression of bug 148055: Should be no errors, but got " //$NON-NLS-1$
+                 + ((UIMessageHandler) AspectJPlugin.getDefault().getCompilerFactory()
+      .getCompilerForProject(project).getMessageHandler()).getErrors(), 0, ((UIMessageHandler) AspectJPlugin.getDefault().getCompilerFactory()
+      .getCompilerForProject(project).getMessageHandler()).getErrors().size());
 	}
 }

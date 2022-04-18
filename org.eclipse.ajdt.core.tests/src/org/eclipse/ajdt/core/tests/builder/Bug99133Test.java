@@ -88,7 +88,7 @@ public class Bug99133Test extends AJDTCoreTestCase {
 		IFile c1 = getFile(pB,"p","C1.java"); //$NON-NLS-1$ //$NON-NLS-2$
 		BufferedReader br1 = new BufferedReader(new InputStreamReader(c1.getContents()));
 
-		StringBuffer sb1 = new StringBuffer();
+		StringBuilder sb1 = new StringBuilder();
 		int lineNumber1 = 1;
 		String line1 = br1.readLine();
 		while (line1 != null) {
@@ -214,7 +214,7 @@ public class Bug99133Test extends AJDTCoreTestCase {
 		IFile c1 = getFile(pB,"p","C1.java"); //$NON-NLS-1$ //$NON-NLS-2$
 		BufferedReader br1 = new BufferedReader(new InputStreamReader(c1.getContents()));
 
-		StringBuffer sb1 = new StringBuffer();
+		StringBuilder sb1 = new StringBuilder();
 		int lineNumber1 = 1;
 		String line1 = br1.readLine();
 		while (line1 != null) {
@@ -414,20 +414,21 @@ public class Bug99133Test extends AJDTCoreTestCase {
 		IClasspathEntry[] cpEntry = javaProject.getRawClasspath();
 		List<IClasspathEntry> newEntries = new ArrayList<>();
 
-		for (int j = 0; j < cpEntry.length; j++) {
-			IClasspathEntry entry = cpEntry[j];
-			if (entry.getEntryKind() == IClasspathEntry.CPE_PROJECT) {
-				if (!entry.getPath().equals(projectDependedOn.getFullPath())
-						&& !entry.getPath().equals(
-								projectDependedOn.getFullPath().makeAbsolute())) {
-					newEntries.add(entry);
-				}
-			} else {
-				newEntries.add(entry);
-			}
-		}
-		IClasspathEntry[] newCP = (IClasspathEntry[]) newEntries
-				.toArray(new IClasspathEntry[newEntries.size()]);
+    for (IClasspathEntry entry : cpEntry) {
+      if (entry.getEntryKind() == IClasspathEntry.CPE_PROJECT) {
+        if (!entry.getPath().equals(projectDependedOn.getFullPath())
+            && !entry.getPath().equals(
+          projectDependedOn.getFullPath().makeAbsolute()))
+        {
+          newEntries.add(entry);
+        }
+      }
+      else {
+        newEntries.add(entry);
+      }
+    }
+		IClasspathEntry[] newCP = newEntries
+				.toArray(new IClasspathEntry[0]);
 		javaProject.setRawClasspath(newCP, null);
 	}
 
@@ -470,12 +471,11 @@ public class Bug99133Test extends AJDTCoreTestCase {
 
 
 	private boolean listContainsString(List<String> l, String msg) {
-        for (Iterator<String> iter = l.iterator(); iter.hasNext();) {
-            String logEntry = iter.next();
-            if (logEntry.indexOf(msg) != -1) {
-                return true;
-            }
-        }
+    for (String logEntry : l) {
+      if (logEntry.contains(msg)) {
+        return true;
+      }
+    }
         return false;
 	}
 

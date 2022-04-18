@@ -12,6 +12,7 @@
 package org.eclipse.ajdt.core.codeconversion;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -135,9 +136,9 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 
     public char[] content;
 
-    private Set<String> typeReferences;
+    private final Set<String> typeReferences;
 
-    private Set<String> usedIdentifiers;
+    private final Set<String> usedIdentifiers;
 
     private ConversionOptions options;
 
@@ -148,7 +149,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 
     //list of replacements
     //by convetion: sorted by posBefore in ascending order
-    private ArrayList<Replacement> replacements;
+    private final ArrayList<Replacement> replacements;
 
     protected Scanner scanner;
 
@@ -280,43 +281,42 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                     break;
 
                 // FIXADE Hmmm...here we should be including enclosing types
-                char[] name = text;
-                if (inTypeDeclaration() && !inPointcutDesignator) {
+              if (inTypeDeclaration() && !inPointcutDesignator) {
 
                     // only do this if we are not adding ITDs
                     if (inAspectDeclaration && !insertIntertypeDeclarations) {
-                        if (CharOperation.equals(percflow, name)) {
+                        if (CharOperation.equals(percflow, text)) {
                             startPointcutDesignator();
-                        } else if (CharOperation.equals(percflowbelow, name)) {
+                        } else if (CharOperation.equals(percflowbelow, text)) {
                             startPointcutDesignator();
-                        } else if (CharOperation.equals(perthis, name)) {
+                        } else if (CharOperation.equals(perthis, text)) {
                             startPointcutDesignator();
-                        } else if (CharOperation.equals(pertarget, name)) {
+                        } else if (CharOperation.equals(pertarget, text)) {
                             startPointcutDesignator();
-                        } else if (CharOperation.equals(issingleton, name)) {
+                        } else if (CharOperation.equals(issingleton, text)) {
                             startPointcutDesignator();
-                        } else if (CharOperation.equals(pertypewithin, name)) {
+                        } else if (CharOperation.equals(pertypewithin, text)) {
                             startPointcutDesignator();
                         }
                     }
                     // store the type name if not already found
                     if (currentTypeName == null) {
-                        currentTypeName = name;
+                        currentTypeName = text;
                     }
                 }
 
-                if (!afterComma && !afterOpenParen && (CharOperation.equals(throwing, name) || CharOperation.equals(returning, name))) {
+                if (!afterComma && !afterOpenParen && (CharOperation.equals(throwing, text) || CharOperation.equals(returning, text))) {
                     consumeRetOrThrow();
                 } else if (inPointcutDesignator
-                        && Character.isUpperCase(name[0])  // Assume all types start with upercase
-                        && (content[scanner.getCurrentTokenStartPosition()-1]!='.')  // can ignore if looks fully qualified
-                        && (content[scanner.getCurrentTokenStartPosition()-1]!='*')) // can ignore if looks like a wild core
+                           && Character.isUpperCase(text[0])  // Assume all types start with upercase
+                           && (content[scanner.getCurrentTokenStartPosition()-1]!='.')  // can ignore if looks fully qualified
+                           && (content[scanner.getCurrentTokenStartPosition()-1]!='*')) // can ignore if looks like a wild core
                 {
-                    typeReferences.add(String.valueOf(name));
+                    typeReferences.add(String.valueOf(text));
                 }
 
                 if (isSimulateContextSwitchNecessary) {
-                    usedIdentifiers.add(new String(name));
+                    usedIdentifiers.add(new String(text));
                 }
                 break;
             case TokenNamefor:
@@ -713,19 +713,17 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                     if (type.isClass()) {
                         String superClass = type.getSuperclassName();
                         if (declareExtends.size() > 0) {
-                            superClass = (String) declareExtends.get(0);
+                            superClass = declareExtends.get(0);
                             superClass = superClass.replace('$', '.');
                         }
                         if (superClass != null) {
-                            sb.append(" " + EXTENDS + " " + superClass);
+                            sb.append(" " + EXTENDS + " ").append(superClass);
                         }
                     }
 
                     String[] superInterfaces = type.getSuperInterfaceNames();
                     List<String> interfaceParents = type.isClass() ? declareImplements : declareExtends;
-                  for (String superInterface : superInterfaces) {
-                    interfaceParents.add(superInterface);
-                  }
+                  interfaceParents.addAll(Arrays.asList(superInterfaces));
 
                     if (interfaceParents.size() > 0) {
 
@@ -739,7 +737,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                                 .hasNext();) {
                             String interName = interfaceIter.next();
                             interName = interName.replace('$', '.');
-                            sb.append(" " + interName);
+                            sb.append(" ").append(interName);
                             if (interfaceIter.hasNext()) {
                                 sb.append(",");
                             }
@@ -767,7 +765,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
         } catch (JavaModelException e) {
         }
         // this type may not exist
-        return unit.getType(new String(typeName));
+        return unit.getType(typeName);
     }
 
     private IType getHandleFromChild(String typeName, IParent parent)
@@ -799,7 +797,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
      * @return list of all declare extends that apply to this type
      * in fully qualified strings
      */
-    protected List<String>[] getDeclareExtendsImplements(IType type) {
+    protected List[] getDeclareExtendsImplements(IType type) {
         List<String> declareExtends = new ArrayList<>();
         List<String> declareImplements = new ArrayList<>();
         if (type != null  && type.exists()) {
@@ -907,7 +905,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
         List<IProgramElement> children = declareElt.getChildren();
         for (IProgramElement child : children) {
             sb.append("\t\tpublic static ");
-            sb.append(child.getCorrespondingType(true) + " ");
+            sb.append(child.getCorrespondingType(true)).append(" ");
             sb.append(child.getName());
             if (child.getKind() == IProgramElement.Kind.FIELD) {
             	sb.append(";\n");
@@ -920,7 +918,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                          typeIter.hasNext();) {
                         String paramType = String.valueOf((char[]) typeIter.next());
                         String paramName = (String) nameIter.next();
-                        sb.append(paramType + " " + paramName);
+                        sb.append(paramType).append(" ").append(paramName);
                         if (typeIter.hasNext()) {
                             sb.append(", ");
                         }
@@ -943,11 +941,11 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
             IProgramElement declareElt, String name) {
         sb.append(getAccessibilityString(declareElt));
         for (IProgramElement.Modifiers modifier : declareElt.getModifiers()) {
-            sb.append(modifier + " ");
+            sb.append(modifier).append(" ");
         }
         // need to add a return statement?
         if (declareElt.getKind() == IProgramElement.Kind.INTER_TYPE_METHOD) {
-            sb.append(declareElt.getCorrespondingType(true) + " " + name);
+            sb.append(declareElt.getCorrespondingType(true)).append(" ").append(name);
         } else {
             sb.append(currentTypeName);
         }
@@ -959,7 +957,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                  typeIter.hasNext();) {
                 String paramType = String.valueOf((char[]) typeIter.next());
                 String paramName = (String) nameIter.next();
-                sb.append(paramType + " " + paramName);
+                sb.append(paramType).append(" ").append(paramName);
                 if (typeIter.hasNext()) {
                     sb.append(", ");
                 }
@@ -977,9 +975,9 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
     protected void createITDFieldText(StringBuffer sb,
             IProgramElement declareElt, String name) {
         for (IProgramElement.Modifiers modifier : declareElt.getModifiers()) {
-            sb.append(modifier + " ");
+            sb.append(modifier).append(" ");
         }
-        sb.append(declareElt.getCorrespondingType(true) + " " + name + ";\n\t");
+        sb.append(declareElt.getCorrespondingType(true)).append(" ").append(name).append(";\n\t");
     }
 
 
@@ -1145,9 +1143,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
             int posSemi = scanner.getCurrentTokenStartPosition();
             int len = posSemi - posColon;
             char[] empty = new char[len];
-            for (int i = 0; i < empty.length; i++) {
-                empty[i] = ' ';
-            }
+          Arrays.fill(empty, ' ');
             addReplacement(posColon, len, empty);
         }
     }
@@ -1397,9 +1393,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
             }
         } else {
             temp = new char[end - pos];
-            for (int i = 0; i < temp.length; i++) {
-                temp[i] = ' ';
-            }
+          Arrays.fill(temp, ' ');
         }
         addReplacement(pos, temp.length, temp);
     }
@@ -1455,7 +1449,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
     private void addReplacement(int pos, int length, char[] text) {
         int last = replacements.size() - 1;
         while (last >= 0) {
-            if (((Replacement) replacements.get(last)).posBefore < pos)
+            if (replacements.get(last).posBefore < pos)
                 break;
             last--;
         }
@@ -1492,7 +1486,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
             offset += ins.lengthAdded;
         }
         if (i > 0) {
-            ins = (Replacement) replacements.get(i - 1);
+            ins = replacements.get(i - 1);
             if (ins.posAfter + ins.text.length > posAfter) {
                 //diff must be > 0
                 int diff = posAfter - ins.posAfter;

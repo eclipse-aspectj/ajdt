@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2005, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman - initial version
@@ -38,14 +38,14 @@ public class Builder extends IncrementalProjectBuilder {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.eclipse.core.resources.IncrementalProjectBuilder#build(int,
 	 *      java.util.Map, org.eclipse.core.runtime.IProgressMonitor)
 	 */
 	protected IProject[] build(int kind, Map args, IProgressMonitor monitor)
 			throws CoreException {
 		final IProject project = getProject();
-		
+
 		if (AspectJProjectNature.hasNewBuilder(project)) {
 			// don't need to do anything, the new builder will do the actual
 			// build
@@ -58,16 +58,12 @@ public class Builder extends IncrementalProjectBuilder {
 		if (!AspectJProjectNature.hasNewBuilder(project)) {
 			// addition of new builder failed for some reason
 			AJLog.log(AJLog.BUILDER,"AJDT migration builder: addition of new builder failed!"); //$NON-NLS-1$
-			Display.getDefault().syncExec(new Runnable() {
-				public void run() {
-					MessageDialog
-							.openError(
-									null,
-									UIMessages.Builder_migration_failed_title,
-									NLS.bind(UIMessages.Builder_migration_failed_message,
-											project.getName()));
-				}
-			});
+			Display.getDefault().syncExec(() -> MessageDialog
+          .openError(
+              null,
+              UIMessages.Builder_migration_failed_title,
+              NLS.bind(UIMessages.Builder_migration_failed_message,
+                  project.getName())));
 			return null;
 		}
 

@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Sian January - initial implementation
  *******************************************************************************/
@@ -24,13 +24,13 @@ import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 public class AJMarkersDialogAction implements IWorkbenchWindowActionDelegate {
 
 	private ISelection fSelection;
-		
+
 	public void run(IAction action) {
 		if(fSelection instanceof StructuredSelection) {
 			Object element = ((StructuredSelection)fSelection).getFirstElement();
 			if(element instanceof IAdaptable) {
 				IAdaptable adaptable = (IAdaptable) element;
-				IResource resource = (IResource) adaptable.getAdapter(IResource.class);
+				IResource resource = adaptable.getAdapter(IResource.class);
 				if(resource != null) {
 					Shell shell = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getShell();
 					IProject project = resource.getProject();
@@ -46,7 +46,7 @@ public class AJMarkersDialogAction implements IWorkbenchWindowActionDelegate {
 	}
 
 	public void dispose() {
-	
+
 	}
 
 	public void init(IWorkbenchWindow window) {

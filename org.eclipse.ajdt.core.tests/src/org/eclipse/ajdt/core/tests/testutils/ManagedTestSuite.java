@@ -52,11 +52,11 @@ public class ManagedTestSuite extends TestSuite {
 		}
 
 		private void dumpJobs() {
-			StringBuffer sb = new StringBuffer();
+			StringBuilder sb = new StringBuilder();
 			sb.append(MessageFormat.format("Jobs:\n", test.toString()));
 			Job[] jobs = Job.getJobManager().find(null);
 			for (Job job : jobs) {
-				sb.append(job.getName().toString());
+				sb.append(job.getName());
 				sb.append(" [");
 				sb.append(JobManager.printState(job.getState()));
 				sb.append(", ");
@@ -64,7 +64,7 @@ public class ManagedTestSuite extends TestSuite {
 				sb.append("]");
 				sb.append("\n");
 			}
-			System.err.println(sb.toString());
+			System.err.println(sb);
 		}
 
 		@Override
@@ -73,7 +73,7 @@ public class ManagedTestSuite extends TestSuite {
 			StringBuffer sb = StsTestUtil.getStackDumps();
 			System.err.println(
 					MessageFormat.format("Test {0} is taking too long:\n", test.toString()) +
-					sb.toString());
+          sb);
 			dumpJobs();
 
 //			killTest("Test is taking too long");
@@ -127,9 +127,9 @@ public class ManagedTestSuite extends TestSuite {
 				e.printStackTrace();
 			}
 		}
-	};
+	}
 
-	private class Listener implements TestListener {
+  private class Listener implements TestListener {
 
 		private DumpThreadTask task;
 

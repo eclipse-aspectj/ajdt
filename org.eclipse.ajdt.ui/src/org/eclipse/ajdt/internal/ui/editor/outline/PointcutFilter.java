@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Matt Chapman - initial version
  *******************************************************************************/
@@ -24,11 +24,8 @@ public class PointcutFilter extends ViewerFilter {
 	 */
 	public boolean select(Viewer viewer, Object parentElement, Object element) {
 		//System.out.println("element="+element);
-		if (element instanceof PointcutElement) {
-			//System.out.println("found pc");
-			return false;
-		}
-		return true;
-	}
+    //System.out.println("found pc");
+    return !(element instanceof PointcutElement);
+  }
 
 }

@@ -4,7 +4,7 @@
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Matthew Ford - initial API and implementation
  *******************************************************************************/
@@ -70,7 +70,7 @@ public class ConfigureAJBuildPathAction extends Action implements
 			return ((ClassPathContainer) firstElement).getJavaProject()
 					.getProject();
 		} else if (firstElement instanceof IAdaptable) {
-			IResource res = (IResource) ((IAdaptable) firstElement)
+			IResource res = ((IAdaptable) firstElement)
 					.getAdapter(IResource.class);
 			if (res != null) {
 				return res.getProject();

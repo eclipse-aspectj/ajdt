@@ -3,7 +3,7 @@
  * program and the accompanying materials are made available under the terms of
  * the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors: Sian January - initial version
  ******************************************************************************/
 package org.eclipse.ajdt.internal.ui.visualiser;
@@ -67,12 +67,12 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 	protected static final String aspectJErrorKind = "declare error"; //$NON-NLS-1$
 	protected static final String aspectJWarningKind = "declare warning"; //$NON-NLS-1$
 	protected Map<String, String> savedColours;
-	
-	private static Color aspectJErrorColor = new Color(null, new RGB(228,5,64));
-	private static Color aspectJWarningColor = new Color(null, new RGB(255,206,90));
+
+	private static final Color aspectJErrorColor = new Color(null, new RGB(228,5,64));
+	private static final Color aspectJWarningColor = new Color(null, new RGB(255,206,90));
 	private Action resetColorMemoryAction;
-	private static String resetColorMemoryID = "ResetColorMemoryUniqueID32dfnio239";  //$NON-NLS-1$
-	private IPreferenceStore prefs = AspectJUIPlugin.getDefault().getPreferenceStore();
+	private static final String resetColorMemoryID = "ResetColorMemoryUniqueID32dfnio239";  //$NON-NLS-1$
+	private final IPreferenceStore prefs = AspectJUIPlugin.getDefault().getPreferenceStore();
 	private static final String allPrefereceKeys = "AJDTVisualiserMarkupProvider.allPrefereceKeys"; //$NON-NLS-1$
 
 	/**
@@ -84,20 +84,20 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 		}
 		List markupList = super.getMemberMarkups(member);
 		if(markupList != null) {
-			return checkErrorsAndWarnings(markupList); 
-		} 
+			return checkErrorsAndWarnings(markupList);
+		}
 		return null;
 	}
-	
-	
+
+
 	private void updateModel() {
 		if(ProviderManager.getContentProvider() instanceof AJDTContentProvider) {
 			IJavaProject jp = ((AJDTContentProvider)ProviderManager.getContentProvider()).getCurrentProject();
 			if( jp != null) {
 		        AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForProject(jp.getProject());
 
-				Collection<IRelationship> allRelationships = model.getRelationshipsForProject( 
-				        new AJRelationshipType[] {AJRelationshipManager.ADVISED_BY, AJRelationshipManager.ANNOTATED_BY, 
+				Collection<IRelationship> allRelationships = model.getRelationshipsForProject(
+				        new AJRelationshipType[] {AJRelationshipManager.ADVISED_BY, AJRelationshipManager.ANNOTATED_BY,
 				        AJRelationshipManager.ASPECT_DECLARATIONS, AJRelationshipManager.MATCHES_DECLARE});
 				if(allRelationships != null) {
 					for (IRelationship relationship : allRelationships) {
@@ -109,14 +109,14 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
     						    IJavaElement target = model.programElementToJavaElement(targetStr);
     						    String simpleName;
         						String qualifiedName;
-        						
+
                                 if(!(target instanceof IAJCodeElement)) {
         							IJavaElement enclosingType = target.getAncestor(IJavaElement.TYPE);
                                     if (enclosingType == null) {
                                         // Bug 324706  I don't know why the sloc is null.  Log the bug and
                                         // continue on.
-                                        VisualiserPlugin.log(IStatus.WARNING, 
-                                                "Bug 324706: null containing type found for " + target.getElementName() + 
+                                        VisualiserPlugin.log(IStatus.WARNING,
+                                                "Bug 324706: null containing type found for " + target.getElementName() +
                                                 "\nHandle identifier is: " + target.getHandleIdentifier());
                                         // avoid an npe
                                         continue;
@@ -124,7 +124,7 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 
                                     simpleName = enclosingType.getElementName();
                                     qualifiedName = ((IType) enclosingType).getFullyQualifiedName('.');
-                                    
+
         						} else { // It's an injar aspect so we wno't be able to find the parents
         							qualifiedName = target.getElementName();
         							String[] parts = qualifiedName.split(" "); //$NON-NLS-1$
@@ -135,17 +135,17 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
         								simpleName = aNameWithExtension;
         							}
         						}
-						
+
         						if (sourceIpe.getSourceLocation() == null) {
         						    // Bug 324706  I don't know why the sloc is null.  Log the bug and
         						    // continue on.
-        						    VisualiserPlugin.log(IStatus.WARNING, 
-        						            "Bug 324706: Warning, null source location found in " + sourceIpe.getName() + 
+        						    VisualiserPlugin.log(IStatus.WARNING,
+        						            "Bug 324706: Warning, null source location found in " + sourceIpe.getName() +
         						            "\nHandle identifier is: " + sourceIpe.getHandleIdentifier());
         						    // avoid an npe
         						    continue;
         						}
-        						
+
     						    int lineNum = sourceIpe.getSourceLocation().getLine();
     						    IJavaElement sourceJe = model.programElementToJavaElement(relationship.getSourceHandle());
     						    if (sourceJe != null) {
@@ -162,7 +162,7 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
         									kindMap = new HashMap<String, IMarkupKind>();
         								}
         								if(relationship.getName().equals(AJRelationshipManager.MATCHES_DECLARE.getDisplayName())) {
-        									String sourceName = target.getElementName();					
+        									String sourceName = target.getElementName();
         									boolean errorKind = sourceName.startsWith(aspectJErrorKind);
         									if(kindMap.get(sourceName + ":::" + qualifiedName) instanceof IMarkupKind) { //$NON-NLS-1$
         										markupKind = kindMap.get(sourceName + ":::" + qualifiedName); //$NON-NLS-1$
@@ -177,7 +177,7 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
         										markupKind = new SimpleMarkupKind(simpleName, qualifiedName);
         										kindMap.put(qualifiedName, markupKind);
         									}
-        								} 
+        								}
         								kinds.add(markupKind);
         								Stripe stripe = new Stripe(kinds, lineNum, 1);
         								addMarkup(memberName, stripe);
@@ -199,38 +199,38 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 	 */
 	private List<Stripe> checkErrorsAndWarnings(List stripes) {
 		List<Stripe> returningStripes = new ArrayList<Stripe>();
-		for (Iterator iter = stripes.iterator(); iter.hasNext();) {
-			Stripe stripe = (Stripe) iter.next();
-			List<IMarkupKind> kinds = new ArrayList<IMarkupKind>(stripe.getKinds());
-			for (Iterator<IMarkupKind> iterator = kinds.iterator(); iterator.hasNext();) {
-				IMarkupKind kind = iterator.next();
-				if(kind instanceof StealthMarkupKind) {
-					String name = kind.getName();
-					String[] parts = name.split(":::"); //$NON-NLS-1$
-					if(parts.length > 1) {
-						String eOrWKind = parts[0];
-						if(eOrWKind.startsWith(aspectJErrorKind) && hideErrors) {
-							iterator.remove();
-							continue;
-						}
-						if(eOrWKind.startsWith(aspectJWarningKind) && hideWarnings) {
-							iterator.remove();
-							continue;
-						}
-						String aspectName = parts[1];
-						if(VisualiserPlugin.menu != null) {
-							if(!VisualiserPlugin.menu.getActive(aspectName)) {
-								iterator.remove();
-							}
-						}
-					}
-				}
-			}
-			if(kinds.size() > 0) {
-				Stripe newStripe = new Stripe(kinds, stripe.getOffset(), stripe.getDepth());
-				returningStripes.add(newStripe);
-			}
-		}
+    for (Object o : stripes) {
+      Stripe stripe = (Stripe) o;
+      List<IMarkupKind> kinds = new ArrayList<IMarkupKind>(stripe.getKinds());
+      for (Iterator<IMarkupKind> iterator = kinds.iterator(); iterator.hasNext(); ) {
+        IMarkupKind kind = iterator.next();
+        if (kind instanceof StealthMarkupKind) {
+          String name = kind.getName();
+          String[] parts = name.split(":::"); //$NON-NLS-1$
+          if (parts.length > 1) {
+            String eOrWKind = parts[0];
+            if (eOrWKind.startsWith(aspectJErrorKind) && hideErrors) {
+              iterator.remove();
+              continue;
+            }
+            if (eOrWKind.startsWith(aspectJWarningKind) && hideWarnings) {
+              iterator.remove();
+              continue;
+            }
+            String aspectName = parts[1];
+            if (VisualiserPlugin.menu != null) {
+              if (!VisualiserPlugin.menu.getActive(aspectName)) {
+                iterator.remove();
+              }
+            }
+          }
+        }
+      }
+      if (kinds.size() > 0) {
+        Stripe newStripe = new Stripe(kinds, stripe.getOffset(), stripe.getDepth());
+        returningStripes.add(newStripe);
+      }
+    }
 		return returningStripes;
 	}
 
@@ -254,8 +254,8 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 			}
 		}
 	}
-	
-	
+
+
 	/**
 	 * Set the color for a kind.
 	 * @param string - the kind
@@ -265,7 +265,7 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 		super.setColorFor(kind, color);
 		saveColourForAspect(kind.getFullName(), color.getRed(), color.getGreen(), color.getBlue());
 	}
-	
+
 	/**
 	 * Get all the markup kinds.
 	 * @return a Set of IMarkupKinds
@@ -275,13 +275,13 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 			updateModel();
 		}
 		TreeSet<IMarkupKind> kinds = new TreeSet<IMarkupKind>();
-		if(kindMap != null) { 
+		if(kindMap != null) {
 			kinds.addAll(kindMap.values());
 		}
 		return kinds;
 	}
 
-	
+
 	/**
 	 * Process a mouse click on a stripe.  This method opens the editor at the line of the stripe clicked.
 	 * @see org.eclipse.contribution.visualiser.interfaces.IMarkupProvider#processMouseclick(java.lang.String, org.eclipse.contribution.visualiser.core.Stripe, int)
@@ -304,8 +304,8 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 			return true;
 		}
 	}
-	
-		
+
+
 	protected void saveColourForAspect(String aspectName, int r, int g, int b) {
 		if(ProviderManager.getContentProvider() instanceof AJDTContentProvider) {
 			IProject currentProject = ((AJDTContentProvider)ProviderManager.getContentProvider()).getCurrentProject().getProject();
@@ -313,7 +313,7 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 			if(prefs.getString(key) == null) {
 				prefs.setDefault(key, ""); //$NON-NLS-1$
 			}
-			
+
 			// Save all keys we add in order that they can be reset.
 			String allColourKeys = prefs.getString(allPrefereceKeys);
 			if(allColourKeys == null) {
@@ -323,11 +323,11 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 				allColourKeys += "," + key; //$NON-NLS-1$
 				prefs.putValue(allPrefereceKeys, allColourKeys);
 			}
-			
+
 			String value = r + "," + g + "," + b; //$NON-NLS-1$ //$NON-NLS-2$
 			prefs.setValue(key, value);
 			if(savedColours == null) {
-				savedColours = new HashMap<String, String>();
+				savedColours = new HashMap<>();
 			}
 			savedColours.remove(key);
 			savedColours.put(key, value);
@@ -341,18 +341,18 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 		super.resetMarkupsAndKinds();
 		kindMap = null;
 	}
-	
+
 	protected Color getSavedColour(String aspectName) {
 		if(ProviderManager.getContentProvider() instanceof AJDTContentProvider) {
 			IProject currentProject = ((AJDTContentProvider)ProviderManager.getContentProvider()).getCurrentProject().getProject();
 			String key = currentProject + ":::" + aspectName; //$NON-NLS-1$
 			if(savedColours == null) {
-				savedColours = new HashMap<String, String>();
+				savedColours = new HashMap<>();
 			}
 			String value = savedColours.get(key);
 			if(value == null) {
 				IPreferenceStore prefs = AspectJUIPlugin.getDefault().getPreferenceStore();
-				value = prefs.getString(key); 
+				value = prefs.getString(key);
 				savedColours.put(key, value);
 			}
 			if(value != null && value != "") { //$NON-NLS-1$
@@ -369,12 +369,12 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 		}
 		return null;
 	}
-	
-	
+
+
 	/**
-	 * Activate the markup provider. 
+	 * Activate the markup provider.
 	 */
-	public void activate() { 
+	public void activate() {
 		if(VisualiserPlugin.menu != null) {
 			resetColorMemoryAction = new Action() {
 				public void run() {
@@ -418,7 +418,7 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 			menuManager.add(resetColorMemoryAction);
 		}
 	}
-	
+
 	/**
 	 * Reset all the saved colours
 	 */
@@ -426,12 +426,12 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 		String colourKeys = prefs.getString(allPrefereceKeys);
 		if(colourKeys != null && colourKeys != "") { //$NON-NLS-1$
 			String[] keys = colourKeys.split(","); //$NON-NLS-1$
-			for (int i = 0; i < keys.length; i++) {
-				prefs.setToDefault(keys[i]);
-			}
+      for (String key : keys) {
+        prefs.setToDefault(key);
+      }
 			prefs.setToDefault(allPrefereceKeys);
 		}
-		savedColours = new HashMap<String, String>();
+		savedColours = new HashMap<>();
 		super.resetColours();
 	}
 
@@ -450,14 +450,14 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 			IMenuManager menuManager = menuActionBars.getMenuManager();
 			menuManager.remove(resetColorMemoryID);
 			menuManager.update(true);
-		}		
+		}
 	}
-	
+
 	private class ErrorOrWarningMarkupKind extends StealthMarkupKind {
-		
-		private boolean errorKind;
+
+		private final boolean errorKind;
 		private String declaringAspect;
-		
+
 		/**
 		 * @param name
 		 */

@@ -27,28 +27,28 @@ import org.eclipse.swt.widgets.Control;
 
 
 public class PathBlockWorkbookPage extends BuildPathBasePage {
-	
-	private TreeListDialogField fClassPathList;
-	
+
+	private final TreeListDialogField fClassPathList;
+
 	public PathBlockWorkbookPage(TreeListDialogField classPathList) {
 		fClassPathList= classPathList;
 	}
-	
+
 	public Control getControl(Composite parent) {
 		PixelConverter converter= new PixelConverter(parent);
-		
+
 		Composite composite= new Composite(parent, SWT.NONE);
 		composite.setFont(parent.getFont());
-		
+
 		LayoutUtil.doDefaultLayout(composite, new DialogField[] { fClassPathList }, true, SWT.DEFAULT, SWT.DEFAULT);
 		LayoutUtil.setHorizontalGrabbing(fClassPathList.getTreeControl(null));
 
 		int buttonBarWidth= converter.convertWidthInCharsToPixels(24);
 		fClassPathList.setButtonsMinWidth(buttonBarWidth);
-			
+
 		return composite;
 	}
-	
+
 	/*
 	 * @see BuildPathBasePage#getSelection
 	 */
@@ -58,11 +58,11 @@ public class PathBlockWorkbookPage extends BuildPathBasePage {
 
 	/*
 	 * @see BuildPathBasePage#setSelection
-	 */	
+	 */
 	public void setSelection(List selElements, boolean expand) {
 		fClassPathList.selectElements(new StructuredSelection(selElements));
 	}
-		
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.jdt.internal.ui.wizards.buildpaths.BuildPathBasePage#isEntryKind(int)
 	 */
@@ -86,5 +86,5 @@ public class PathBlockWorkbookPage extends BuildPathBasePage {
     boolean editCustomEntry(CPListElementAttribute attr) {
         return editCustomAttribute(fClassPathList.getTreeViewer().getControl().getShell(), attr);
     }
-    
+
 }

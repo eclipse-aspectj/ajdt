@@ -116,8 +116,6 @@ public class AjcTask extends MatchingTask {
 	 * </pre>
 	 *
 	 * @param javac the Javac command to implement (not null)
-	 * @param ajc the AjcTask to adapt (not null)
-	 * @param destDir the File class destination directory (may be null)
 	 * @return null if no error, or String error otherwise
 	 */
 	public String setupAjc(Javac javac) {
@@ -239,17 +237,17 @@ public class AjcTask extends MatchingTask {
 	private static final List<String> VALID_XOPTIONS;
 
 	/** valid warning (-warn:[...]) variants */
-	private static final List<? extends String> VALID_WARNINGS;
+	private static final List<String> VALID_WARNINGS;
 
 	/** valid debugging (-g:[...]) variants */
-	private static final List<? extends java.io.Serializable> VALID_DEBUG;
+	private static final List<String> VALID_DEBUG;
 
 	/**
 	 * -Xlint variants (error, warning, ignore)
 	 *
 	 * @see org.aspectj.weaver.Lint
 	 */
-	private static final List<? extends String> VALID_XLINT;
+	private static final List<String> VALID_XLINT;
 
 	public static final String COMMAND_EDITOR_NAME = AjcTask.class.getName() + ".COMMAND_EDITOR";
 
@@ -289,8 +287,8 @@ public class AjcTask extends MatchingTask {
 			String editorClassName = System.getProperty(COMMAND_EDITOR_NAME);
 			if (null != editorClassName) {
 				ClassLoader cl = AjcTask.class.getClassLoader();
-				Class<? extends ICommandEditor> editorClass = cl.loadClass(editorClassName);
-				editor = editorClass.newInstance();
+				Class<ICommandEditor> editorClass = (Class<ICommandEditor>) cl.loadClass(editorClassName);
+				editor = editorClass.getConstructor().newInstance();
 			}
 		} catch (Throwable t) {
 			System.err.println("Warning: unable to load command editor");
@@ -321,7 +319,7 @@ public class AjcTask extends MatchingTask {
 	private Path aspectpath;
 	private Path argfiles;
 	private Path inxmlfiles;
-	private List<? extends String> ignored;
+	private List<String> ignored;
 	private Path sourceRoots;
 	private File xweaveDir;
 	private String xdoneSignal;
@@ -436,11 +434,11 @@ public class AjcTask extends MatchingTask {
 	// ---------------------- option values
 
 	// used by entries with internal commas
-	protected String validCommaList(String list, List<? extends String> valid, String label) {
+	protected String validCommaList(String list, List<String> valid, String label) {
 		return validCommaList(list, valid, label, valid.size());
 	}
 
-	protected String validCommaList(String list, List<? extends String> valid, String label, int max) {
+	protected String validCommaList(String list, List<String> valid, String label, int max) {
 		StringBuilder result = new StringBuilder();
 		StringTokenizer st = new StringTokenizer(list, ",");
 		int num = 0;
@@ -789,8 +787,8 @@ public class AjcTask extends MatchingTask {
 	 */
 	public void setMessageHolderClass(String className) {
 		try {
-			Class<? extends IMessageHolder> mclass = Class.forName(className);
-			IMessageHolder holder = mclass.newInstance();
+			Class<IMessageHolder> mclass = (Class<IMessageHolder>) Class.forName(className);
+			IMessageHolder holder = mclass.getConstructor().newInstance();
 			setMessageHolder(holder);
 		} catch (Throwable t) {
 			String m = "unable to instantiate message holder: " + className;
@@ -813,8 +811,8 @@ public class AjcTask extends MatchingTask {
 	 */
 	public void setCommandEditorClass(String className) { // skip Ant interface?
 		try {
-			Class<? extends ICommandEditor> mclass = Class.forName(className);
-			setCommandEditor(mclass.newInstance());
+			Class<ICommandEditor> mclass = (Class<ICommandEditor>) Class.forName(className);
+			setCommandEditor(mclass.getConstructor().newInstance());
 		} catch (Throwable t) {
 			String m = "unable to instantiate command editor: " + className;
 			throw new BuildException(m, t);
@@ -1084,8 +1082,7 @@ public class AjcTask extends MatchingTask {
 
 	// package-private for testing
 	String[] makeCommand() {
-		ArrayList<String> result = new ArrayList<>();
-		if (0 < ignored.size()) {
+    if (0 < ignored.size()) {
       for (String s : ignored) {
         logVerbose("ignored: " + s);
       }
@@ -1107,10 +1104,10 @@ public class AjcTask extends MatchingTask {
 			outjarFixedup = true;
 		}
 
-		result.addAll(cmd.extractArguments());
+    ArrayList<String> result = new ArrayList<>(cmd.extractArguments());
 		addListArgs(result);
 
-		String[] command = (String[]) result.toArray(new String[0]);
+		String[] command = result.toArray(new String[0]);
 		if (null != commandEditor) {
 			command = commandEditor.editCommand(command);
 		} else if (null != COMMAND_EDITOR) {
@@ -1278,14 +1275,14 @@ public class AjcTask extends MatchingTask {
             sb.append(LangUtil.unqualifiedClassName(t.getClass()));
             String thrownMessage = t.getMessage();
             if (!LangUtil.isEmpty(thrownMessage)) {
-              sb.append(" \"" + thrownMessage + "\"");
+              sb.append(" \"").append(thrownMessage).append("\"");
             }
           }
-          sb.append("\"" + message + "\"");
+          sb.append("\"").append(message).append("\"");
           prefix = ", ";
         }
 				if (0 < sb.length()) {
-					sb.append(" (" + numThrown + " exceptions)");
+					sb.append(" (").append(numThrown).append(" exceptions)");
 					throw new BuildException(sb.toString());
 				}
 			}
@@ -1355,7 +1352,7 @@ public class AjcTask extends MatchingTask {
 				both[both.length - 2] = "-messageHolder";
 				both[both.length - 1] = this.messageHolder.getClass().getName();
 			}
-			// try to use javaw instead on windows
+			// try to use javaw instead on Windows
 			if (both[0].endsWith("java.exe")) {
 				String path = both[0];
 				path = path.substring(0, path.length() - 4);
@@ -1443,7 +1440,7 @@ public class AjcTask extends MatchingTask {
 
 	// ------------------------------ setup and reporting
 	/** @return null if path null or empty, String rendition otherwise */
-	protected static void addFlaggedPath(String flag, Path path, List<? extends String> list) {
+	protected static void addFlaggedPath(String flag, Path path, List<String> list) {
 		if (!LangUtil.isEmpty(flag) && ((null != path) && (0 < path.size()))) {
 			list.add(flag);
 			list.add(path.toString());
@@ -1962,7 +1959,7 @@ public class AjcTask extends MatchingTask {
 		// }
 		// }
 
-		List<? extends String> extractArguments() {
+		List<String> extractArguments() {
 			ArrayList<String> result = new ArrayList<>();
 			String[] cmds = command.getArguments();
 			if (!LangUtil.isEmpty(cmds)) {
@@ -2019,7 +2016,7 @@ public class AjcTask extends MatchingTask {
 
 	private static class AntMessageHandler implements IMessageHandler {
 
-		private TaskLogger logger;
+		private final TaskLogger logger;
 		private final boolean taskLevelVerbose;
 		private final boolean handledMessage;
 

@@ -3,8 +3,8 @@
  * program and the accompanying materials are made available under the terms of
  * the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
- * 
- * Contributors: IBM Corporation - initial API and implementation 
+ *
+ * Contributors: IBM Corporation - initial API and implementation
  * 				 Helen Hawkins   - initial version
  ******************************************************************************/
 package org.eclipse.ajdt.ui.tests.preferences;
@@ -24,7 +24,7 @@ public class AspectJProjectPropertiesPageTest extends UITestCase {
 	IJavaProject jp;
 	AspectJProjectPropertiesPage page;
 	TestLogger testLog;
-	
+
 	/*
 	 * @see TestCase#setUp()
 	 */
@@ -39,13 +39,13 @@ public class AspectJProjectPropertiesPageTest extends UITestCase {
 		page.setIsTesting(true);
 		page.createControl(JavaPlugin.getActiveWorkbenchShell());
 	}
-	
+
 	protected void tearDown() throws Exception {
 		super.tearDown();
 		page.dispose();
 	}
-	
-	public void testPerformApply() throws Exception {
+
+	public void testPerformApply() {
 		// check nothing in sfe
 		assertEquals("expected there not to be an outjar set by default but" + //$NON-NLS-1$
 				" there was","",page.getOutjarValue()); //$NON-NLS-1$ //$NON-NLS-2$
@@ -54,14 +54,14 @@ public class AspectJProjectPropertiesPageTest extends UITestCase {
 		assertEquals("expected the outjar to be output.jar but found " //$NON-NLS-1$
 				+ page.getOutjarValue(),"output.jar",page.getOutjarValue()); //$NON-NLS-1$
 		// perform Apply - expect there to be a build
-		testLog.clearLog();			
+		testLog.clearLog();
 		page.performApply();
 		waitForJobsToComplete();
 		boolean didBuild = testLog.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
 		assertTrue("expected build to occur after performApply but did not",didBuild);		 //$NON-NLS-1$
 	}
 
-	public void testPerformOk() throws Exception {
+	public void testPerformOk() {
 		// check nothing in sfe
 		assertEquals("expected there not to be an outjar set by default but" + //$NON-NLS-1$
 				" there was","",page.getOutjarValue()); //$NON-NLS-1$ //$NON-NLS-2$
@@ -70,14 +70,14 @@ public class AspectJProjectPropertiesPageTest extends UITestCase {
 		assertEquals("expected the outjar to be output.jar but found " //$NON-NLS-1$
 				+ page.getOutjarValue(),"output.jar",page.getOutjarValue()); //$NON-NLS-1$
 		// perform Ok - expect there to be a build
-		testLog.clearLog();			
+		testLog.clearLog();
 		page.performOk();
         waitForJobsToComplete();
 		boolean didBuild = testLog.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
 		assertTrue("expected build to occur after performOky but did not",didBuild);		 //$NON-NLS-1$
 	}
-	
-	public void testPerformCancel() throws Exception {
+
+	public void testPerformCancel() {
 		// check nothing in sfe
 		assertEquals("expected there not to be an outjar set by default but" + //$NON-NLS-1$
 				" there was","",page.getOutjarValue()); //$NON-NLS-1$ //$NON-NLS-2$
@@ -86,7 +86,7 @@ public class AspectJProjectPropertiesPageTest extends UITestCase {
 		assertEquals("expected the outjar to be output.jar but found " //$NON-NLS-1$
 				+ page.getOutjarValue(),"output.jar",page.getOutjarValue()); //$NON-NLS-1$
 		// perform cancel - dont expect there to be a build
-		testLog.clearLog();			
+		testLog.clearLog();
 		page.performCancel();
         waitForJobsToComplete();
 		boolean didBuild = testLog.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
@@ -94,7 +94,7 @@ public class AspectJProjectPropertiesPageTest extends UITestCase {
 				"but a build happened",didBuild);		 //$NON-NLS-1$
 	}
 
-	public void testPerformDefaults() throws Exception {
+	public void testPerformDefaults() {
 		// check nothing in sfe
 		assertEquals("expected there not to be an outjar set by default but" + //$NON-NLS-1$
 				" there was","",page.getOutjarValue()); //$NON-NLS-1$ //$NON-NLS-2$
@@ -102,17 +102,17 @@ public class AspectJProjectPropertiesPageTest extends UITestCase {
 		page.setOutjarValue("output.jar"); //$NON-NLS-1$
 		assertEquals("expected the outjar to be output.jar but found " //$NON-NLS-1$
 				+ page.getOutjarValue(),"output.jar",page.getOutjarValue()); //$NON-NLS-1$
-		// perform defaults - dont expect there to be a build because 
+		// perform defaults - dont expect there to be a build because
 		// nothing has changed
-		testLog.clearLog();			
+		testLog.clearLog();
 		page.performDefaults();
         waitForJobsToComplete();
 		boolean didBuild = testLog.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
 		assertFalse("didn't expect build to occur after performDefaults " + //$NON-NLS-1$
 				"but a build happened",didBuild);		 //$NON-NLS-1$
 	}
-	
-	public void testPerformApplyThenOk() throws Exception {
+
+	public void testPerformApplyThenOk() {
 		// check nothing in sfe
 		assertEquals("expected there not to be an outjar set by default but" + //$NON-NLS-1$
 				" there was","",page.getOutjarValue()); //$NON-NLS-1$ //$NON-NLS-2$
@@ -121,7 +121,7 @@ public class AspectJProjectPropertiesPageTest extends UITestCase {
 		assertEquals("expected the outjar to be output.jar but found " //$NON-NLS-1$
 				+ page.getOutjarValue(),"output.jar",page.getOutjarValue()); //$NON-NLS-1$
 		// perform Apply - expect there to be a build
-		testLog.clearLog();	
+		testLog.clearLog();
 		page.performApply();
         waitForJobsToComplete();
 		boolean didBuild = testLog.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
@@ -133,6 +133,6 @@ public class AspectJProjectPropertiesPageTest extends UITestCase {
 		didBuild = testLog.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
 		assertFalse("didn't expect build to occur after performOk because " + //$NON-NLS-1$
 				"already done one but one happened",didBuild);		 //$NON-NLS-1$
-		
+
 	}
 }

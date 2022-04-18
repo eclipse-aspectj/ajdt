@@ -83,7 +83,7 @@ public class ContentAssistProvider implements IJavaContentAssistProvider {
             CompletionRequestor requestor, WorkingCopyOwner owner,
             /* AJDT 1.7 */
             ITypeRoot typeRoot, Openable target, IProgressMonitor monitor) throws Exception {
-        JavaProject project = (JavaProject) target.getJavaProject();
+        JavaProject project = target.getJavaProject();
         if (! AspectJPlugin.isAJProject(project.getProject())) {
             return false;
         }

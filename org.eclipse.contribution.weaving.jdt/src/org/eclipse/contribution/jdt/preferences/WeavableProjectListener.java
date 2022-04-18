@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2009 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Andrew Eisenberg - initial API and implementation
  *******************************************************************************/
@@ -38,7 +38,7 @@ import org.eclipse.ui.progress.UIJob;
  * Listens for creations of weavable projects (based on project nature)
  */
 public class WeavableProjectListener implements ILifecycleListener {
-    
+
     public static String WEAVABLE_NATURE_EXTENSION_POINT = "org.eclipse.contribution.weaving.jdt.weavablenature"; //$NON-NLS-1$
     private Set<String> weavableNatures = null;
     private Set<String> indexRequiredNatures = null;
@@ -46,20 +46,20 @@ public class WeavableProjectListener implements ILifecycleListener {
     protected WeavableProjectListener() {
         // singleton
     }
-    
+
     public static WeavableProjectListener getInstance() {
         return INSTANCE;
     }
-    
+
     /**
      * not API. For testing only
      */
     public static void setInstance(WeavableProjectListener mock) {
         INSTANCE = mock;
     }
-    
+
     /**
-     * @return true iff there is at least one project open in the 
+     * @return true iff there is at least one project open in the
      * workspace that requires reindexing
      */
     public boolean workspaceHasReindexableProjects() {
@@ -73,7 +73,7 @@ public class WeavableProjectListener implements ILifecycleListener {
         }
         return false;
     }
-    
+
     private boolean indexingRequiredProject(IProject project) {
         for (String natureid : indexRequiredNatures) {
             try {
@@ -97,11 +97,11 @@ public class WeavableProjectListener implements ILifecycleListener {
             throws CoreException {
         return project != null && project.isAccessible() && project.hasNature(natureid);
     }
-    
+
     private void initWeavableNatures() {
-        weavableNatures = new HashSet<String>();
-        indexRequiredNatures = new HashSet<String>();
-        
+        weavableNatures = new HashSet<>();
+        indexRequiredNatures = new HashSet<>();
+
         IExtensionPoint exP = null;
         try {
             exP = Platform.getExtensionRegistry().getExtensionPoint(WEAVABLE_NATURE_EXTENSION_POINT);
@@ -110,26 +110,27 @@ public class WeavableProjectListener implements ILifecycleListener {
         }
         if (exP != null) {
             IExtension[] exs = exP.getExtensions();
-            for (int i = 0; i < exs.length; i++) {
-                IConfigurationElement[] configs = exs[i].getConfigurationElements();
-                for (int j = 0; j < configs.length; j++) {
-                    try {
-                        IConfigurationElement config = configs[j];
-                        if (config.isValid()) {
-                            String natureid = (String) config.getAttribute("natureid");
-                            if (natureid != null) {
-                                weavableNatures.add(natureid);
-                                String requiresReindexing = config.getAttribute("requiresReindexing");
-                                if (requiresReindexing != null && Boolean.parseBoolean(requiresReindexing)) {
-                                    indexRequiredNatures.add(natureid);
-                                }
-                            }
-                        }
-                    } catch (Exception e) {
-                        JDTWeavingPlugin.logException(e);
+          for (IExtension ex : exs) {
+            IConfigurationElement[] configs = ex.getConfigurationElements();
+            for (IConfigurationElement iConfigurationElement : configs) {
+              try {
+                IConfigurationElement config = iConfigurationElement;
+                if (config.isValid()) {
+                  String natureid = config.getAttribute("natureid");
+                  if (natureid != null) {
+                    weavableNatures.add(natureid);
+                    String requiresReindexing = config.getAttribute("requiresReindexing");
+                    if (Boolean.parseBoolean(requiresReindexing)) {
+                      indexRequiredNatures.add(natureid);
                     }
+                  }
                 }
+              }
+              catch (Exception e) {
+                JDTWeavingPlugin.logException(e);
+              }
             }
+          }
         }
     }
 
@@ -168,20 +169,20 @@ public class WeavableProjectListener implements ILifecycleListener {
                 event.kind == LifecycleEvent.PRE_PROJECT_CREATE) {
             if (event.resource instanceof IProject) {
                 if (isWeavableProject((IProject) event.resource)) {
-                    askToEnableWeaving(); 
+                    askToEnableWeaving();
                 }
             }
         }
     }
-    
+
     public static void weavableNatureAdded(IProject project) {
         if (INSTANCE.isWeavableProject(project)) {
-            INSTANCE.askToEnableWeaving(); 
+            INSTANCE.askToEnableWeaving();
         }
     }
 
     protected void askToEnableWeaving() {
-        
+
         try {
             if (!IsWovenTester.isWeavingActive()) {
                 if (JDTWeavingPreferences.shouldAskToEnableWeaving()) {

@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2003 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -23,7 +23,7 @@ import org.eclipse.ui.IPlaceholderFolderLayout;
 
 /**
  * Based on
- * 
+ *
  * @see org.eclipse.jdt.internal.ui.JavaHierarchyPerspectiveFactory
  */
 public class AspectVisualizerPerspectiveFactory implements IPerspectiveFactory {
@@ -73,37 +73,39 @@ public class AspectVisualizerPerspectiveFactory implements IPerspectiveFactory {
 		// Tell the Visualiser to switch to the AJDT providers
 		ProviderDefinition[] definitions = ProviderManager
 				.getAllProviderDefinitions();
-		for (int i = 0; i < definitions.length; i++) {
-			if (definitions[i].getMarkupInstance() instanceof AJDTMarkupProvider
-					&& definitions[i].getContentProvider() instanceof AJDTContentProvider) {
-				definitions[i].setEnabled(true);
-			} else {
-				definitions[i].setEnabled(false);
-			}
-		}
+    for (ProviderDefinition definition : definitions) {
+      if (definition.getMarkupInstance() instanceof AJDTMarkupProvider
+          && definition.getContentProvider() instanceof AJDTContentProvider)
+      {
+        definition.setEnabled(true);
+      }
+      else {
+        definition.setEnabled(false);
+      }
+    }
 	}
 
 	private void createHorizontalLayout(IPageLayout layout) {
 		/*
 		 * 158988 - change the views used by this perspective
-		 *  
-		 * NB The order in which you add the views makes a lot of difference to how easy it 
-		 * is to arrange them as you want! 
+		 *
+		 * NB The order in which you add the views makes a lot of difference to how easy it
+		 * is to arrange them as you want!
 		 */
 		final String VISUALISER_VIEW_ID = "org.eclipse.contribution.visualiser.views.Visualiser";  //$NON-NLS-1$
 		final String VISUALISER_MENU_VIEW_ID = "org.eclipse.contribution.visualiser.views.Menu";  //$NON-NLS-1$
 
 		// Add the Visualiser Menu above the Java editor view
-		layout.addView(VISUALISER_MENU_VIEW_ID, 
-				IPageLayout.TOP, (float) 0.75, IPageLayout.ID_EDITOR_AREA);		
+		layout.addView(VISUALISER_MENU_VIEW_ID,
+				IPageLayout.TOP, (float) 0.75, IPageLayout.ID_EDITOR_AREA);
 
 		// Add the package explorer to the left
-		layout.addView(JavaUI.ID_PACKAGES, 
+		layout.addView(JavaUI.ID_PACKAGES,
 				IPageLayout.LEFT, (float) 0.20, VISUALISER_MENU_VIEW_ID);
 
 		// Add the main visualiser view to the left of the v.menu
-		layout.addView(VISUALISER_VIEW_ID, 
-				IPageLayout.LEFT, (float) 0.75, VISUALISER_MENU_VIEW_ID);		
+		layout.addView(VISUALISER_VIEW_ID,
+				IPageLayout.LEFT, (float) 0.75, VISUALISER_MENU_VIEW_ID);
 
 
 		/*

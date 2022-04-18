@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2010 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Kris De Volder - initial API and implementation
  *******************************************************************************/
@@ -21,7 +21,7 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jface.text.ITextSelection;
 
 public class SelectionUtil {
-	
+
 	/**
 	 * Find elements completely enclosed by the given text selection, or, if
 	 * no such elements are found, the smallest element that encloses the
@@ -34,7 +34,7 @@ public class SelectionUtil {
 	 */
 	public static List<IJavaElement> findSelectedElements(
 			ICompilationUnit unit, ITextSelection textSel) {
-		List<IJavaElement> foundElements = new ArrayList<IJavaElement>();
+		List<IJavaElement> foundElements = new ArrayList<>();
 		if (textSel.getLength()>0) {
 			// Skip this call for length 0, since we know we can't find anything anyway.
 			findEnclosedElements(unit, textSel.getOffset(), textSel.getLength(), foundElements);
@@ -55,8 +55,7 @@ public class SelectionUtil {
 			int length, List<IJavaElement> foundElements) {
 		if (isEnclosed(el, offset, length)) {
 			foundElements.add(el);
-			return;
-		}
+    }
 		else if (el instanceof IParent) {
 			try {
 				IJavaElement[] children = ((IParent) el).getChildren();
@@ -69,11 +68,11 @@ public class SelectionUtil {
 	}
 
 	public static boolean isEnclosed(IJavaElement _el, int offset, int length) {
-		if (!(_el instanceof ISourceReference)) return false; 
+		if (!(_el instanceof ISourceReference)) return false;
 		try {
 			ISourceReference el = (ISourceReference)_el;
 			int end = offset + length;
-			int elOffset = ((ISourceReference)el).getSourceRange().getOffset();
+			int elOffset = el.getSourceRange().getOffset();
 			int elEnd = elOffset + el.getSourceRange().getLength();
 			return offset <= elOffset && elEnd <= end;
 		} catch (JavaModelException e) {

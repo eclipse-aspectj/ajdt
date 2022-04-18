@@ -4,7 +4,7 @@
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -45,7 +45,7 @@ import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.texteditor.IEditorStatusLine;
 
 /**
- * Job used to verify the position of a breakpoint 
+ * Job used to verify the position of a breakpoint
  * Somewhat based on org.eclipse.jdt.internal.debug.ui.actions.BreakpointLocationVerifierJob
  */
 public class BreakpointLocationVerifierJob extends Job {
@@ -53,45 +53,45 @@ public class BreakpointLocationVerifierJob extends Job {
 	/**
 	 * The document which contains the code source.
 	 */
-	private IDocument fDocument;
-	
+	private final IDocument fDocument;
+
 	/**
 	 * The temporary breakpoint that has been set. Can be <code>null</code> if the callee was not able
 	 * to check if a breakpoint was already set at this position.
-	 */	
-	private IJavaLineBreakpoint fBreakpoint;
-	
+	 */
+	private final IJavaLineBreakpoint fBreakpoint;
+
 	/**
 	 * The number of the line where the breakpoint has been requested.
 	 */
-	private int fLineNumber;
-	
+	private final int fLineNumber;
+
 	/**
 	 * The qualified type name of the class where the temporary breakpoint as been set.
 	 * Can be <code>null</code> if fBreakpoint is null.
-	 */	
-	private String fTypeName;
-	
+	 */
+	private final String fTypeName;
+
 	/**
 	 * The type in which should be set the breakpoint.
 	 */
-	private IType fType;
+	private final IType fType;
 
 	/**
 	 * The resource in which should be set the breakpoint.
 	 */
-	private IResource fResource;
-	
-	
+	private final IResource fResource;
+
+
 	/**
 	 * The status line to use to display errors
 	 */
-	private IEditorStatusLine fStatusLine;
+	private final IEditorStatusLine fStatusLine;
 
-	private int fOffset;
-	
+	private final int fOffset;
+
 	public BreakpointLocationVerifierJob(IDocument document, IJavaLineBreakpoint breakpoint, int offset, int lineNumber, String typeName, IType type, IResource resource, IEditorPart editorPart) {
-		super(ActionMessages.BreakpointLocationVerifierJob_breakpoint_location); 
+		super(ActionMessages.BreakpointLocationVerifierJob_breakpoint_location);
 		fDocument= document;
 		fBreakpoint= breakpoint;
 		fOffset = offset;
@@ -99,10 +99,10 @@ public class BreakpointLocationVerifierJob extends Job {
 		fTypeName= typeName;
 		fType= type;
 		fResource= resource;
-		fStatusLine= (IEditorStatusLine) editorPart.getAdapter(IEditorStatusLine.class);
+		fStatusLine= editorPart.getAdapter(IEditorStatusLine.class);
 		setSystem(true);
 	}
-	
+
 	public IStatus run(IProgressMonitor monitor) {
 		ICompilationUnit cu = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit((IFile)fResource);
 		if(cu == null) {
@@ -110,8 +110,8 @@ public class BreakpointLocationVerifierJob extends Job {
 		}
 		try {
 			IJavaElement element = cu.getElementAt(fOffset);
-			if(element == null 
-					|| element instanceof ICompilationUnit 
+			if(element == null
+					|| element instanceof ICompilationUnit
 					|| element instanceof IType
 					|| element instanceof PointcutElement
 					|| isField(element)
@@ -125,29 +125,28 @@ public class BreakpointLocationVerifierJob extends Job {
 					IRegion line = fDocument.getLineInformation(lineNumber - 1);
 					int offset = line.getOffset();
                     element = cu.getElementAt(offset);
-                    if (!(element == null 
-							|| element instanceof ICompilationUnit 
+                    if (!(element == null
+							|| element instanceof ICompilationUnit
 							|| element instanceof IType
 							|| element instanceof PointcutElement
 							|| isField(element)
 							|| emptyOrComment(fDocument.get(offset, line.getLength())))) {
 						createNewBreakpoint(lineNumber, fTypeName);
-						return new Status(IStatus.OK, JDIDebugUIPlugin.getUniqueIdentifier(), IStatus.ERROR, ActionMessages.BreakpointLocationVerifierJob_not_valid_location, null); 
+						return new Status(IStatus.OK, JDIDebugUIPlugin.getUniqueIdentifier(), IStatus.ERROR, ActionMessages.BreakpointLocationVerifierJob_not_valid_location, null);
 					}
 					lineNumber++;
 				}
 				// Cannot find a valid location
-				report(ActionMessages.BreakpointLocationVerifierJob_not_valid_location); 
-				return new Status(IStatus.OK, JDIDebugUIPlugin.getUniqueIdentifier(), IStatus.ERROR, ActionMessages.BreakpointLocationVerifierJob_not_valid_location, null); 
-			}			
-		} catch (JavaModelException e) {
-		} catch (CoreException e) {
-		} catch (BadLocationException e) {
+				report(ActionMessages.BreakpointLocationVerifierJob_not_valid_location);
+				return new Status(IStatus.OK, JDIDebugUIPlugin.getUniqueIdentifier(), IStatus.ERROR, ActionMessages.BreakpointLocationVerifierJob_not_valid_location, null);
+			}
 		}
-		return new Status(IStatus.OK, JDIDebugUIPlugin.getUniqueIdentifier(), IStatus.OK, ActionMessages.BreakpointLocationVerifierJob_breakpoint_set, null); 
-		
+    catch (BadLocationException | CoreException e) {
+    }
+    return new Status(IStatus.OK, JDIDebugUIPlugin.getUniqueIdentifier(), IStatus.OK, ActionMessages.BreakpointLocationVerifierJob_breakpoint_set, null);
+
 	}
-	
+
 	private boolean isField(IJavaElement element) {
 		if (element instanceof IField) {
 			//The code below deals with the fact that all IntertypeElements implement IField,
@@ -162,10 +161,10 @@ public class BreakpointLocationVerifierJob extends Job {
 					return false;
 				}
 			}
-			else 
+			else
 				return true;
 		}
-		else { 
+		else {
 			return false;
 		}
 	}
@@ -203,15 +202,13 @@ public class BreakpointLocationVerifierJob extends Job {
 	}
 
 	protected void report(final String message) {
-		JDIDebugUIPlugin.getStandardDisplay().asyncExec(new Runnable() {
-			public void run() {
-				if (fStatusLine != null) {
-					fStatusLine.setMessage(true, message, null);
-				}
-				if (message != null && JDIDebugUIPlugin.getActiveWorkbenchShell() != null) {
-					Display.getCurrent().beep();
-				}
-			}
-		});
+		JDIDebugUIPlugin.getStandardDisplay().asyncExec(() -> {
+      if (fStatusLine != null) {
+        fStatusLine.setMessage(true, message, null);
+      }
+      if (message != null && JDIDebugUIPlugin.getActiveWorkbenchShell() != null) {
+        Display.getCurrent().beep();
+      }
+    });
 	}
 }

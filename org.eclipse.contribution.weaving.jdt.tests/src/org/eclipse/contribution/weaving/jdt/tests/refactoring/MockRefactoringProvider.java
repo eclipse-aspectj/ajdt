@@ -47,7 +47,7 @@ public class MockRefactoringProvider implements IRefactoringProvider {
     }
 
     public boolean shouldCheckResultForCompileProblems(ICompilationUnit unit) {
-        checkResults = Boolean.valueOf(!(unit instanceof MockCompilationUnit));
+        checkResults = !(unit instanceof MockCompilationUnit);
         return !(unit instanceof MockCompilationUnit);
     }
 
@@ -66,7 +66,7 @@ public class MockRefactoringProvider implements IRefactoringProvider {
     }
 
     public CompilationUnit createASTForRefactoring(ITypeRoot root) {
-        createASTForRefactoring = Boolean.valueOf(!(root instanceof MockCompilationUnit));
+        createASTForRefactoring = !(root instanceof MockCompilationUnit);
         return null;
     }
 
@@ -84,7 +84,6 @@ public class MockRefactoringProvider implements IRefactoringProvider {
         fParser.setUnitName(cfName.substring(0, cfName.length() - 6) + JavaModelUtil.DEFAULT_CU_SUFFIX);
         fParser.setProject(unit.getJavaProject());
         fParser.setCompilerOptions(unit.getJavaProject().getOptions(true));
-        CompilationUnit newCUNode= (CompilationUnit) fParser.createAST(monitor);
-        return newCUNode;
+      return (CompilationUnit) fParser.createAST(monitor);
     }
 }

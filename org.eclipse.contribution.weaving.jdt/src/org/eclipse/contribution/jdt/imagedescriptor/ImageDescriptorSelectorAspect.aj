@@ -12,12 +12,8 @@
 package org.eclipse.contribution.jdt.imagedescriptor;
 
 import org.eclipse.contribution.jdt.JDTWeavingPlugin;
-import org.eclipse.jdt.core.CompletionProposal;
 import org.eclipse.jdt.internal.ui.text.java.LazyJavaCompletionProposal;
-import org.eclipse.jdt.internal.ui.viewsupport.JavaElementImageProvider;
-import org.eclipse.jdt.ui.text.java.CompletionProposalLabelProvider;
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.swt.graphics.Image;
 
 /**
  * Captures locations in the code where {@link ImageDescriptor}s are created in the

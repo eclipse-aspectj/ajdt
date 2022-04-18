@@ -40,7 +40,7 @@ import org.eclipse.ltk.core.refactoring.participants.ResourceChangeChecker;
 public class RefactoringHooksTests extends AbstractWeavingRefactoringTest {
 
     private IRefactoringProvider orig;
-    private MockRefactoringProvider mock = new MockRefactoringProvider();
+    private final MockRefactoringProvider mock = new MockRefactoringProvider();
 
     @Override
     protected void setUp() throws Exception {
@@ -74,9 +74,8 @@ public class RefactoringHooksTests extends AbstractWeavingRefactoringTest {
         ICompilationUnit unit = createCompilationUnitAndPackage("p", unitName, source, project);
         String toRefactor = "x";
         int start = source.indexOf(toRefactor);
-        int end = start;
-        RenameLocalVariableProcessor refactoring = new RenameLocalVariableProcessor(
-                new LocalVariable(extractFirstMethod(unit), toRefactor, start, end, start, end, "I", new Annotation[0], 0, false));
+      RenameLocalVariableProcessor refactoring = new RenameLocalVariableProcessor(
+                new LocalVariable(extractFirstMethod(unit), toRefactor, start, start, start, start, "I", new Annotation[0], 0, false));
         refactoring.setNewElementName("other");
         RefactoringStatus status = refactoring.checkInitialConditions(monitor);
         assertTrue("Refactoring returns with messages.\n" + status, status.isOK());

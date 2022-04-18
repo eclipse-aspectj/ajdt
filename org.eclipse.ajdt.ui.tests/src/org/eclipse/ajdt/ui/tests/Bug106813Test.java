@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2005 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Sian January  - initial version
@@ -20,7 +20,7 @@ import org.eclipse.ui.internal.views.log.LogView;
 
 public class Bug106813Test extends UITestCase {
 
-	
+
 	public void testBug106813() throws Exception {
 		IViewPart view = Workbench.getInstance().getActiveWorkbenchWindow().getActivePage().getActivePart().getSite().getPage().showView("org.eclipse.pde.runtime.LogView"); //$NON-NLS-1$
 		if(view instanceof LogView) {
@@ -28,7 +28,7 @@ public class Bug106813Test extends UITestCase {
 			AbstractEntry[] logs = logView.getElements();
 			int originalNumberOfLogEntries = logs.length;
 			IProject project = createPredefinedProject("Bean Example"); //$NON-NLS-1$
-			assertTrue("The Bean Example project should have been created", project != null); //$NON-NLS-1$
+      assertNotNull("The Bean Example project should have been created", project); //$NON-NLS-1$
 			project.close(null);
 			// This test occasionally fails on the build server...why?
             waitForJobsToComplete();
@@ -37,21 +37,20 @@ public class Bug106813Test extends UITestCase {
 			// Check that no more errors have appeared in the error log
 			logs = logView.getElements();
 			String newLogStr = printNewLogs(logs, originalNumberOfLogEntries);
-			assertTrue("The error log should not have had any errors added to it:\n" + newLogStr, //$NON-NLS-1$
-			        newLogStr.length() == 0); 
-		}	
+      assertEquals("The error log should not have had any errors added to it:\n" + newLogStr, 0, newLogStr.length());
+		}
 	}
-	
+
 	String printNewLogs(AbstractEntry[] logs, int startFrom) {
-	    StringBuffer sb = new StringBuffer();
+	    StringBuilder sb = new StringBuilder();
 	    for (int i = startFrom; i < logs.length; i++) {
-	        if (((LogEntry) logs[i]).getMessage().indexOf("sleep interrupted") == -1) {
-	            sb.append("ENTRY " + (i-startFrom) + "\n");
-    	        sb.append(((LogEntry) logs[i]).getMessage() + "\n");
+	        if (!((LogEntry) logs[i]).getMessage().contains("sleep interrupted")) {
+	            sb.append("ENTRY ").append(i - startFrom).append("\n");
+    	        sb.append(((LogEntry) logs[i]).getMessage()).append("\n");
     	        sb.append(((LogEntry) logs[i]).getStack());
 	        }
         }
         return sb.toString();
 	}
-	
+
 }

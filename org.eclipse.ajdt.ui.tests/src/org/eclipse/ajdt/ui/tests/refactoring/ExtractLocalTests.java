@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2010 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Andrew Eisenberg - initial API and implementation
  *******************************************************************************/
@@ -24,7 +24,7 @@ import org.eclipse.ltk.core.refactoring.RefactoringStatus;
  *
  */
 public class ExtractLocalTests extends AbstractAJDTRefactoringTest {
-    
+
     public void testExtractLocalSimple1() throws Exception {
         String initialContents = "class Foo { void x() { int x = 9 + 8; } }";
         String toExtract = "9 + 8";
@@ -37,7 +37,7 @@ public class ExtractLocalTests extends AbstractAJDTRefactoringTest {
         String finalContents = "class Foo { void x() { int xx = 9 + 8;\nint x = xx; } }";
         performRefactoringAndUndo("xx", "Foo.aj", initialContents, finalContents, initialContents.indexOf(toExtract), toExtract.length());
     }
-    
+
     public void testExtractLocalAspect1() throws Exception {
         String initialContents = "aspect Foo { void x() { int x = 9 + 8; } }";
         String toExtract = "9 + 8";
@@ -51,31 +51,31 @@ public class ExtractLocalTests extends AbstractAJDTRefactoringTest {
         String finalContents = "package p; aspect Foo { void x() { int xx = 9 + 8;\nint x = xx; } }";
         performRefactoringAndUndo("xx", "p", "Foo.aj", initialContents, finalContents, initialContents.indexOf(toExtract), toExtract.length());
     }
-    
+
     public void testExtractLocalAspect3() throws Exception {
         String initialContents = "package p; aspect Foo { void x() { int x = 9 + 8; } }";
         String toExtract = "9 + 8";
         String finalContents = "package p; aspect Foo { void x() { int xx = 9 + 8;\nint x = xx; } }";
         performRefactoringAndUndo("xx", "p", "Foo.aj", initialContents, finalContents, initialContents.indexOf(toExtract), toExtract.length());
     }
-    
+
     public void testExtractLocalAspect4() throws Exception {
         String initialContents = "package p; aspect Foo { void X.x() { int x = 9 + 8; } class X { } }";
         String toExtract = "9 + 8";
         String finalContents = "package p; aspect Foo { void X.x() { int xx = 9 + 8;\nint x = xx; } class X { } }";
         performRefactoringAndUndo("xx", "p", "Foo.aj", initialContents, finalContents, initialContents.indexOf(toExtract), toExtract.length());
     }
-    
+
     public void testExtractLocalAspect5() throws Exception {
         String initialContents = "package p; aspect Foo { before() : execution(* X.*(..)) { int x = 9 + 8; } class X { } }";
         String toExtract = "9 + 8";
         String finalContents = "package p; aspect Foo { before() : execution(* X.*(..)) { int xx = 9 + 8;\nint x = xx; } class X { } }";
         performRefactoringAndUndo("xx", "p", "Foo.aj", initialContents, finalContents, initialContents.indexOf(toExtract), toExtract.length());
     }
-    
+
     /**
      * Assumes that we are renaming the first itd of the first CU
-     * @throws Exception 
+     * @throws Exception
      */
     private void performRefactoringAndUndo(String varName, String cuName, String initialContents, String finalContents, int start, int length) throws Exception {
         performRefactoringAndUndo(varName, "", cuName, initialContents, finalContents, start, length);
@@ -95,16 +95,16 @@ public class ExtractLocalTests extends AbstractAJDTRefactoringTest {
         // undo
         assertTrue("anythingToUndo", RefactoringCore.getUndoManager()
                 .anythingToUndo());
-        assertTrue("! anythingToRedo", !RefactoringCore.getUndoManager()
-                .anythingToRedo());
+      assertFalse("! anythingToRedo", RefactoringCore.getUndoManager()
+        .anythingToRedo());
 
         RefactoringCore.getUndoManager().performUndo(null,
                 new NullProgressMonitor());
         assertContents(unit, initialContents);
 
         // redo
-        assertTrue("! anythingToUndo", !RefactoringCore.getUndoManager()
-                .anythingToUndo());
+      assertFalse("! anythingToUndo", RefactoringCore.getUndoManager()
+        .anythingToUndo());
         assertTrue("anythingToRedo", RefactoringCore.getUndoManager()
                 .anythingToRedo());
         RefactoringCore.getUndoManager().performRedo(null,

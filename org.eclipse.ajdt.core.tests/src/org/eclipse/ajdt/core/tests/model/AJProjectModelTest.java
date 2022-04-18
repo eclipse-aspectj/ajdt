@@ -104,10 +104,10 @@ public class AJProjectModelTest extends AJDTCoreTestCase {
 		IJavaElement je2 = ajCodeElements[1];
 		int line1 = model.getJavaElementLineNumber(je1);
 		int line2 = model.getJavaElementLineNumber(je2);
-		assertTrue("The first IJavaElement should be located at line " + LINE1 //$NON-NLS-1$
-				+ " got: " + line1, line1 == LINE1); //$NON-NLS-1$
-		assertTrue("The second IJavaElement should be located at line " + LINE2 //$NON-NLS-1$
-				+ " got: " + line2, line2 == LINE2); //$NON-NLS-1$
+    assertEquals("The first IJavaElement should be located at line " + LINE1 //$NON-NLS-1$
+                 + " got: " + line1, LINE1, line1); //$NON-NLS-1$
+    assertEquals("The second IJavaElement should be located at line " + LINE2 //$NON-NLS-1$
+                 + " got: " + line2, LINE2, line2); //$NON-NLS-1$
 	}
 
 	public void testGetAllRelationships() {
@@ -118,22 +118,19 @@ public class AJProjectModelTest extends AJDTCoreTestCase {
 		IJavaElement je2 = ajCodeElements[1];
 		int advisedCount1 = 0;
 		int advisedCount2 = 0;
-		for (Iterator<IRelationship> iter = allRels.iterator(); iter.hasNext();) {
-			IRelationship rel = iter.next();
-			for (Iterator<String> targetIter = rel.getTargets().iterator(); targetIter.hasNext();) {
-                String ipeHandle = targetIter.next();
-                IJavaElement target = model.programElementToJavaElement(ipeHandle);
-                if (target.equals(je1)) {
-                    advisedCount1++;
-                } else if (target.equals(je2)) {
-                    advisedCount2++;
-                }
-            }
-		}
-		assertTrue(
-				"The first IJavaElement should be advised twice", advisedCount1 == 2); //$NON-NLS-1$
-		assertTrue(
-				"The second IJavaElement should be advised twice", advisedCount2 == 2); //$NON-NLS-1$
+    for (IRelationship rel : allRels) {
+      for (String ipeHandle : rel.getTargets()) {
+        IJavaElement target = model.programElementToJavaElement(ipeHandle);
+        if (target.equals(je1)) {
+          advisedCount1++;
+        }
+        else if (target.equals(je2)) {
+          advisedCount2++;
+        }
+      }
+    }
+    assertEquals("The first IJavaElement should be advised twice", 2, advisedCount1); //$NON-NLS-1$
+    assertEquals("The second IJavaElement should be advised twice", 2, advisedCount2); //$NON-NLS-1$
 
 		rels = new AJRelationshipType[] { AJRelationshipManager.DECLARED_ON };
 		allRels = model.getRelationshipsForProject(rels);
@@ -142,37 +139,38 @@ public class AJProjectModelTest extends AJDTCoreTestCase {
 		}
 	}
 
-	private AJCodeElement[] createAJCodeElements(Map<? extends Object, ? extends List<? extends IProgramElement>> annotationsMap) {
+	private AJCodeElement[] createAJCodeElements(Map<?, ? extends List<? extends IProgramElement>> annotationsMap) {
 		AJCodeElement[] arrayOfajce = new AJCodeElement[2];
-		Set<? extends Object> keys = annotationsMap.keySet();
-		for (Iterator<? extends Object> it = keys.iterator(); it.hasNext();) {
-			Object key = it.next();
-			List<? extends IProgramElement> annotations = annotationsMap.get(key);
-			for (Iterator<? extends IProgramElement> it2 = annotations.iterator(); it2.hasNext();) {
-				IProgramElement node = it2.next();
-				ISourceLocation sl = node.getSourceLocation();
-				if (node
-						.toLinkLabelString(false)
-						.equals(
-								"Main: method-call(void java.io.PrintStream.println(java.lang.String))") //$NON-NLS-1$
-						&& (sl.getLine() == LINE1)) {
+		Set<?> keys = annotationsMap.keySet();
+    for (Object key : keys) {
+      List<? extends IProgramElement> annotations = annotationsMap.get(key);
+      for (IProgramElement node : annotations) {
+        ISourceLocation sl = node.getSourceLocation();
+        if (node
+              .toLinkLabelString(false)
+              .equals(
+                "Main: method-call(void java.io.PrintStream.println(java.lang.String))") //$NON-NLS-1$
+            && (sl.getLine() == LINE1))
+        {
 
-					IJavaElement ije = model.programElementToJavaElement(node);
-					if (ije instanceof AJCodeElement) {
-						arrayOfajce[0] = (AJCodeElement) ije;
-					}
-				} else if (node
-						.toLinkLabelString(false)
-						.equals("Main: method-call(void java.io.PrintStream.println(java.lang.String))") //$NON-NLS-1$
-						&& (sl.getLine() == LINE2)) {
+          IJavaElement ije = model.programElementToJavaElement(node);
+          if (ije instanceof AJCodeElement) {
+            arrayOfajce[0] = (AJCodeElement) ije;
+          }
+        }
+        else if (node
+                   .toLinkLabelString(false)
+                   .equals("Main: method-call(void java.io.PrintStream.println(java.lang.String))") //$NON-NLS-1$
+                 && (sl.getLine() == LINE2))
+        {
 
-					IJavaElement ije = model.programElementToJavaElement(node);
-					if (ije instanceof AJCodeElement) {
-						arrayOfajce[1] = (AJCodeElement) ije;
-					}
-				}
-			}
-		}
+          IJavaElement ije = model.programElementToJavaElement(node);
+          if (ije instanceof AJCodeElement) {
+            arrayOfajce[1] = (AJCodeElement) ije;
+          }
+        }
+      }
+    }
 		return arrayOfajce;
 	}
 }

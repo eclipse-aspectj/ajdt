@@ -27,7 +27,7 @@ import java.util.Map;
  */
 public class ReflectionUtils {
 
-    private static Map<String, Field> fieldMap = new HashMap<>();
+    private static final Map<String, Field> fieldMap = new HashMap<>();
 
     public static <T> Object getPrivateField(Class<T> clazz, String fieldName, T target) {
         String key = clazz.getCanonicalName() + fieldName;

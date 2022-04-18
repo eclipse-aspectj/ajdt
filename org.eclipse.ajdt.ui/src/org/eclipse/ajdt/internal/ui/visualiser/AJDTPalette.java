@@ -1,13 +1,13 @@
 /*******************************************************************************
  * Copyright (c) 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Sian January - initial version
- *     Matt Chapman - switch to IVisualiserPalette, and RGB instead of Color 
+ *     Matt Chapman - switch to IVisualiserPalette, and RGB instead of Color
  *******************************************************************************/
 package org.eclipse.ajdt.internal.ui.visualiser;
 
@@ -83,7 +83,7 @@ public class AJDTPalette implements IVisualiserPalette {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.eclipse.contribution.visualiser.interfaces.IVisualiserPalette#getRGBValues()
 	 */
 	public RGB[] getRGBValues() {
@@ -95,14 +95,14 @@ public class AJDTPalette implements IVisualiserPalette {
 	 * 200 and a random B value between 50 and 250, which are also multiples of
 	 * 5. This is to avoid anything close to colours used by errors and warnings
 	 * and to try and prevent two colours that look the same.
-	 * 
+	 *
 	 * @return randomly generated Color
 	 */
 	public RGB getRandomRGBValue() {
 	    Random rand = new Random();
-		int r = Math.abs(((int) (rand.nextInt() * 30)) * 5 + 50) % 255;
-		int g = Math.abs(((int) (rand.nextInt() * 30)) * 5 + 50) % 255;
-		int b = Math.abs(((int) (rand.nextInt() * 40)) * 5 + 50) % 255;
+		int r = Math.abs(rand.nextInt() * 30 * 5 + 50) % 255;
+		int g = Math.abs(rand.nextInt() * 30 * 5 + 50) % 255;
+		int b = Math.abs(rand.nextInt() * 40 * 5 + 50) % 255;
 		return new RGB(r, g, b);
 	}
 

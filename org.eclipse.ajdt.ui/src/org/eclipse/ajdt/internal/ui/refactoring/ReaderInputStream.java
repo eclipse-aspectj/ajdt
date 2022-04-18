@@ -3,9 +3,9 @@
  * program and the accompanying materials are made available under the terms of
  * the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors: Sian January - initial version
- * ... 
+ * ...
  ******************************************************************************/
 package org.eclipse.ajdt.internal.ui.refactoring;
 
@@ -14,16 +14,16 @@ import java.io.InputStream;
 import java.io.Reader;
 
 /**
- * 
+ *
  */
 public class ReaderInputStream extends InputStream {
 
-	private Reader reader;
-	
+	private final Reader reader;
+
 	public ReaderInputStream(Reader reader){
 		this.reader = reader;
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see java.io.InputStream#read()
 	 */
@@ -31,9 +31,9 @@ public class ReaderInputStream extends InputStream {
 		return reader.read();
 	}
 
-	
+
     public void close() throws IOException {
     	reader.close();
-    } 
-	
+    }
+
 }

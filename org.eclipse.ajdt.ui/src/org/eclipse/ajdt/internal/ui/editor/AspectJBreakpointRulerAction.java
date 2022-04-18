@@ -3,7 +3,7 @@
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v1.0 which accompanies this distribution,
  * and is available at http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors: IBM Corporation - initial API and implementation
  ******************************************************************************/
 package org.eclipse.ajdt.internal.ui.editor;
@@ -48,16 +48,16 @@ public class AspectJBreakpointRulerAction extends Action {
 
 	private ITextEditor fTextEditor;
 
-	private IEditorStatusLine fStatusLine;
+	private final IEditorStatusLine fStatusLine;
 
-	private ToggleBreakpointAdapter fBreakpointAdapter;
+	private final ToggleBreakpointAdapter fBreakpointAdapter;
 
 	public AspectJBreakpointRulerAction(IVerticalRulerInfo ruler,
 			ITextEditor editor, IEditorPart editorPart) {
-		super(UIMessages.ManageBreakpointRulerAction_label); 
+		super(UIMessages.ManageBreakpointRulerAction_label);
 		fRuler = ruler;
 		fTextEditor = editor;
-		fStatusLine = (IEditorStatusLine) editorPart
+		fStatusLine = editorPart
 				.getAdapter(IEditorStatusLine.class);
 		fBreakpointAdapter = new ToggleBreakpointAdapter();
 	}
@@ -72,7 +72,7 @@ public class AspectJBreakpointRulerAction extends Action {
 
 	/**
 	 * Returns this action's vertical ruler info.
-	 * 
+	 *
 	 * @return this action's vertical ruler
 	 */
 	protected IVerticalRulerInfo getVerticalRulerInfo() {
@@ -81,7 +81,7 @@ public class AspectJBreakpointRulerAction extends Action {
 
 	/**
 	 * Returns this action's editor.
-	 * 
+	 *
 	 * @return this action's editor
 	 */
 	protected ITextEditor getTextEditor() {
@@ -90,17 +90,17 @@ public class AspectJBreakpointRulerAction extends Action {
 
 	/**
 	 * Returns the <code>IDocument</code> of the editor's input.
-	 * 
+	 *
 	 * @return the document of the editor's input
 	 */
 	protected IDocument getDocument() {
 		IDocumentProvider provider = fTextEditor.getDocumentProvider();
 		return provider.getDocument(fTextEditor.getEditorInput());
 	}
-	
+
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.eclipse.jface.action.IAction#run()
 	 */
 	public void run() {
@@ -123,18 +123,16 @@ public class AspectJBreakpointRulerAction extends Action {
 			} else {
 				// remove existing breakpoints of any type
 				IBreakpointManager manager = DebugPlugin.getDefault().getBreakpointManager();
-				Iterator<IMarker> iterator = list.iterator();
-				while (iterator.hasNext()) {
-					IMarker marker = iterator.next();
-					IBreakpoint breakpoint = manager.getBreakpoint(marker);
-					if (breakpoint != null) {
-						breakpoint.delete();
-					}
-				}
+        for (IMarker marker : list) {
+          IBreakpoint breakpoint = manager.getBreakpoint(marker);
+          if (breakpoint != null) {
+            breakpoint.delete();
+          }
+        }
 			}
 		} catch (CoreException e) {
-			JDIDebugUIPlugin.errorDialog(UIMessages.ManageBreakpointRulerAction_error_adding_message1, e); 
-		}	
+			JDIDebugUIPlugin.errorDialog(UIMessages.ManageBreakpointRulerAction_error_adding_message1, e);
+		}
 	}
 
 	protected IResource getResource() {
@@ -148,12 +146,12 @@ public class AspectJBreakpointRulerAction extends Action {
 
 	/**
 	 * Returns a list of markers that exist at the current ruler location.
-	 * 
+	 *
 	 * @return a list of markers that exist at the current ruler location
 	 */
 	protected List<IMarker> getMarkers() {
 
-		List<IMarker> breakpoints = new ArrayList<IMarker>();
+		List<IMarker> breakpoints = new ArrayList<>();
 
 		IResource resource = getResource();
 		IDocument document = getDocument();
@@ -177,16 +175,16 @@ public class AspectJBreakpointRulerAction extends Action {
 				if (markers != null) {
 					IBreakpointManager breakpointManager = DebugPlugin
 							.getDefault().getBreakpointManager();
-					for (int i = 0; i < markers.length; i++) {
-						IBreakpoint breakpoint = breakpointManager
-								.getBreakpoint(markers[i]);
-						if (breakpoint != null
-								&& breakpointManager.isRegistered(breakpoint)
-								&& includesRulerLine(model
-										.getMarkerPosition(markers[i]),
-										document))
-							breakpoints.add(markers[i]);
-					}
+          for (IMarker marker : markers) {
+            IBreakpoint breakpoint = breakpointManager
+              .getBreakpoint(marker);
+            if (breakpoint != null
+                && breakpointManager.isRegistered(breakpoint)
+                && includesRulerLine(model
+                .getMarkerPosition(marker),
+              document))
+              breakpoints.add(marker);
+          }
 				}
 			} catch (CoreException x) {
 				JDIDebugUIPlugin.log(x.getStatus());
@@ -198,7 +196,7 @@ public class AspectJBreakpointRulerAction extends Action {
 	/**
 	 * Returns the <code>AbstractMarkerAnnotationModel</code> of the editor's
 	 * input.
-	 * 
+	 *
 	 * @return the marker annotation model
 	 */
 	protected AbstractMarkerAnnotationModel getAnnotationModel() {
@@ -213,7 +211,7 @@ public class AspectJBreakpointRulerAction extends Action {
 
 	/**
 	 * Checks whether a position includes the ruler's line of activity.
-	 * 
+	 *
 	 * @param position
 	 *            the position to be checked
 	 * @param document
@@ -237,16 +235,14 @@ public class AspectJBreakpointRulerAction extends Action {
 	}
 
 	protected void report(final String message) {
-		JDIDebugUIPlugin.getStandardDisplay().asyncExec(new Runnable() {
-			public void run() {
-				if (fStatusLine != null) {
-					fStatusLine.setMessage(true, message, null);
-				}
-				if (message != null
-						&& JDIDebugUIPlugin.getActiveWorkbenchShell() != null) {
-					Display.getCurrent().beep();
-				}
-			}
-		});
+		JDIDebugUIPlugin.getStandardDisplay().asyncExec(() -> {
+      if (fStatusLine != null) {
+        fStatusLine.setMessage(true, message, null);
+      }
+      if (message != null
+          && JDIDebugUIPlugin.getActiveWorkbenchShell() != null) {
+        Display.getCurrent().beep();
+      }
+    });
 	}
 }

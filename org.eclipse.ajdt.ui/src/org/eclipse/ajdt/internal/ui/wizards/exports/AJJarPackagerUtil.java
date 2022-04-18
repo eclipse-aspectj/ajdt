@@ -4,7 +4,7 @@
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -49,41 +49,40 @@ public class AJJarPackagerUtil {
 	public static boolean askToCreateDirectory(final Shell parent, File directory) {
 		if (parent == null)
 			return false;
-		return queryDialog(parent, JarPackagerMessages.JarPackage_confirmCreate_title, Messages.format(JarPackagerMessages.JarPackage_confirmCreate_message, directory.toString())); 
+		return queryDialog(parent, JarPackagerMessages.JarPackage_confirmCreate_title, Messages.format(JarPackagerMessages.JarPackage_confirmCreate_message, directory.toString()));
 	}
 
 	/**
 	 * Computes and returns the elements as resources.
 	 * The underlying resource is used for Java elements.
-	 * 
+	 *
 	 * @return a List with the selected resources
 	 */
 	public static List asResources(Object[] fSelectedElements) {
 		if (fSelectedElements == null)
 			return null;
 		List selectedResources= new ArrayList(fSelectedElements.length);
-		for (int i= 0; i < fSelectedElements.length; i++) {
-			Object element= fSelectedElements[i];
-			if (element instanceof IJavaElement) {
-				selectedResources.add(((IJavaElement)element).getResource());
-			}
-			else if (element instanceof IResource)
-				selectedResources.add(element);
-		}
+    for (Object element : fSelectedElements) {
+      if (element instanceof IJavaElement) {
+        selectedResources.add(((IJavaElement) element).getResource());
+      }
+      else if (element instanceof IResource)
+        selectedResources.add(element);
+    }
 		return selectedResources;
 	}
 
 	public static boolean askForOverwritePermission(final Shell parent, String filePath) {
 		if (parent == null)
 			return false;
-		return queryDialog(parent, JarPackagerMessages.JarPackage_confirmReplace_title, Messages.format(JarPackagerMessages.JarPackage_confirmReplace_message, filePath)); 
+		return queryDialog(parent, JarPackagerMessages.JarPackage_confirmReplace_title, Messages.format(JarPackagerMessages.JarPackage_confirmReplace_message, filePath));
 	}
 
 	/**
 	 * Checks if the manifest file can be overwritten.
 	 * If the JAR package setting does not allow to overwrite the manifest
 	 * then a dialog will ask the user again.
-	 * 
+	 *
 	 * @param	parent	the parent for the dialog,
 	 * 			or <code>null</code> if no dialog should be presented
 	 * @return	<code>true</code> if it is OK to create the JAR
@@ -96,7 +95,7 @@ public class AJJarPackagerUtil {
 
 	/**
 	 * Gets the name of the manifest's main class
-	 * 
+	 *
 	 * @return a string with the name
 	 */
 	static String getMainClassName(JarPackageData jarPackage) {
@@ -112,18 +111,14 @@ public class AJJarPackagerUtil {
 		if (display == null || display.isDisposed())
 			return false;
 		final boolean[] returnValue= new boolean[1];
-		Runnable runnable= new Runnable() {
-			public void run() {
-				returnValue[0]= MessageDialog.openQuestion(parent, title, message);
-			}
-		};
-		display.syncExec(runnable);	
+		Runnable runnable= () -> returnValue[0]= MessageDialog.openQuestion(parent, title, message);
+		display.syncExec(runnable);
 		return returnValue[0];
 	}
-	
+
 	/**
 	 * Creates a <code>CoreException</code> with the given parameters.
-	 * 
+	 *
 	 * @param	message	a string with the message
 	 * @param	ex		the exception to be wrapped or <code>null</code> if none
 	 * @return a CoreException
@@ -136,13 +131,13 @@ public class AJJarPackagerUtil {
 
 	/**
 	 * Tells whether the specified manifest main class is valid.
-	 * 
+	 *
 	 * @return <code>true</code> if a main class is specified and valid
 	 */
 	public static boolean isMainClassValid(JarPackageData data, IRunnableContext context) {
 		if (data == null)
 			return false;
-		
+
 		IType mainClass= data.getManifestMainClass();
 		if (mainClass == null)
 			// no main class specified
@@ -160,29 +155,29 @@ public class AJJarPackagerUtil {
 		}
 		return false;
 	}
-	
+
 	static boolean contains(List resources, IFile file) {
 		if (resources == null || file == null)
 			return false;
-			
+
 		if (resources.contains(file))
 			return true;
-		
-		Iterator iter= resources.iterator();
-		while (iter.hasNext()) {
-			IResource resource= (IResource)iter.next();
-			if (resource != null && resource.getType() != IResource.FILE) {
-				List children= null;
-				try {
-					children= Arrays.asList(((IContainer)resource).members());
-				} catch (CoreException ex) {
-					// ignore this folder
-					continue;
-				}
-				if (children != null && contains(children, file))
-					return true;
-			}
-		}
+
+    for (Object o : resources) {
+      IResource resource = (IResource) o;
+      if (resource != null && resource.getType() != IResource.FILE) {
+        List children = null;
+        try {
+          children = Arrays.asList(((IContainer) resource).members());
+        }
+        catch (CoreException ex) {
+          // ignore this folder
+          continue;
+        }
+        if (contains(children, file))
+          return true;
+      }
+    }
 		return false;
 	}
 }

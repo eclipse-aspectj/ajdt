@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2008 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *      Andrew Eisenberg - Initial implementation
  *******************************************************************************/
@@ -25,13 +25,13 @@ public class AdviceMarkersTest6 extends UITestCase {
 
     public void testBug235204() throws Exception {
         IProject project = createPredefinedProject("Bug235204-Recursive Calls"); //$NON-NLS-1$
-        assertTrue("The example project should have been created", project != null); //$NON-NLS-1$
-        
+        assertNotNull("The example project should have been created", project); //$NON-NLS-1$
+
         // Find the file
         IFile aspectFile = (IFile) project.findMember("src/recursive/RecursiveCatcher.aj");      //$NON-NLS-1$
-        
+
         assertTrue("Should have found RecursiveCatcher.aj", aspectFile.exists()); //$NON-NLS-1$
-        
+
         openFileInDefaultEditor(aspectFile, false);
 
         // wait for annotation model to be created
@@ -40,26 +40,26 @@ public class AdviceMarkersTest6 extends UITestCase {
         IMarker[] markers = getMarkers(aspectFile);
         assertEquals("Didn't find any advice markers, but should have found 3", 3, markers.length); //$NON-NLS-1$
 
-        Set lineNumbers = new HashSet();
-        lineNumbers.add(new Integer(markers[0].getAttribute(IMarker.LINE_NUMBER, -1)));
-        lineNumbers.add(new Integer(markers[1].getAttribute(IMarker.LINE_NUMBER, -1)));
-        lineNumbers.add(new Integer(markers[2].getAttribute(IMarker.LINE_NUMBER, -1)));
-        
+        Set<Integer> lineNumbers = new HashSet<>();
+        lineNumbers.add(markers[0].getAttribute(IMarker.LINE_NUMBER, -1));
+        lineNumbers.add(markers[1].getAttribute(IMarker.LINE_NUMBER, -1));
+        lineNumbers.add(markers[2].getAttribute(IMarker.LINE_NUMBER, -1));
+
         assertTrue("Advice marker is on wrong line number.  Should be at the call site, not execution site", //$NON-NLS-1$
-                lineNumbers.contains(new Integer(22)));
+                lineNumbers.contains(22));
         assertTrue("Advice marker is on wrong line number.  Should be at the call site, not execution site", //$NON-NLS-1$
-                lineNumbers.contains(new Integer(23)));
+                lineNumbers.contains(23));
         assertTrue("Advice marker is on wrong line number.  Should be at the call site, not execution site", //$NON-NLS-1$
-                lineNumbers.contains(new Integer(24)));
-          
+                lineNumbers.contains(24));
+
     }
-    
+
     protected IMarker[] getMarkers(IResource resource)
             throws Exception {
             return resource.findMarkers(
                     IAJModelMarker.BEFORE_ADVICE_MARKER, true,
                     IResource.DEPTH_INFINITE);
-        
+
     }
-    
+
 }

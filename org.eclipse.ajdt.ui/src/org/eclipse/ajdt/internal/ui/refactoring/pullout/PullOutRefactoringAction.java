@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2010 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Kris De Volder - initial API and implementation
  *******************************************************************************/
@@ -41,7 +41,7 @@ public class PullOutRefactoringAction implements IWorkbenchWindowActionDelegate,
 
 	private PullOutRefactoring currSelection;
 	private RefactoringStatus  currStatus;
-	
+
 	private CompilationUnitEditor editor = null;
 	private IWorkbenchWindow window = null;
 
@@ -65,11 +65,11 @@ public class PullOutRefactoringAction implements IWorkbenchWindowActionDelegate,
 		if (selection instanceof IStructuredSelection) {
 			IStructuredSelection extended = (IStructuredSelection) selection;
 			Object[] elements= extended.toArray();
-			for (int i = 0; i < elements.length; i++) {
-				if (elements[i] instanceof IMethod || elements[i] instanceof IField) {
-					currSelection.addMember((IMember) elements[i], currStatus);
-				}
-			}
+      for (Object element : elements) {
+        if (element instanceof IMethod || element instanceof IField) {
+          currSelection.addMember((IMember) element, currStatus);
+        }
+      }
 		} else if (selection instanceof ITextSelection) {
 			if (editor != null) {
 				ITextSelection textSel = (ITextSelection) selection;

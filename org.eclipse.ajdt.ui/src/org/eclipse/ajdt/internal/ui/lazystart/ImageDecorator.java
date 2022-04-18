@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Luzius Meisser - initial implementation
  *******************************************************************************/
@@ -65,13 +65,13 @@ import org.eclipse.ui.internal.decorators.DecoratorManager;
  * @see ILabelDecorator
  */
 public class ImageDecorator implements ILabelDecorator {
-	
-	private ArrayList listeners;
+
+	private final ArrayList listeners;
 	private ImageDescriptorRegistry fRegistry;
 	private boolean preventRecursion = false;
-	private TreeHierarchyLayoutProblemsDecorator problemsDecorator;
-	private DecoratorManager decman;
-		
+	private final TreeHierarchyLayoutProblemsDecorator problemsDecorator;
+	private final DecoratorManager decman;
+
 	/**
 	 *
 	 */
@@ -107,7 +107,7 @@ public class ImageDecorator implements ILabelDecorator {
 		if (!Utils.isBundleActive()) {
 			return null;
 		}
-		
+
 		Image img = null;
 		if (element instanceof ICompilationUnit){
 			ICompilationUnit comp = (ICompilationUnit)element;
@@ -127,20 +127,20 @@ public class ImageDecorator implements ILabelDecorator {
 					}
 				}
 			}
-		} else if (element instanceof IFile) { 
+		} else if (element instanceof IFile) {
 			IFile file= (IFile) element;
 			if (file.getFileExtension() != null) {
 				if (file.getFileExtension().equals(AJProperties.EXTENSION)) {
-					img = getImageLabel(((AJDTIcon)AspectJImages.BC_FILE).getImageDescriptor());
+					img = getImageLabel(AspectJImages.BC_FILE.getImageDescriptor());
 				} else if (file.getFileExtension().equals("jar") || file.getFileExtension().equals("zip")) { //$NON-NLS-1$ //$NON-NLS-2$
 					// TODO: decorate out-jars?
 				} else if (file.getFileExtension().equals("xml")) {
 				    // maybe this is an aop.xml that is part of the build config
 				    if (new AopXmlPreferences(file.getProject()).isAopXml(file)) {
-				        img = getImageLabel(((AJDTIcon) AspectJImages.AOP_XML).getImageDescriptor());
+				        img = getImageLabel(AspectJImages.AOP_XML.getImageDescriptor());
 				    }
 				}
-			} 
+			}
 		} else if (element instanceof JarPackageFragmentRoot) {
 		    JarPackageFragmentRoot root = (JarPackageFragmentRoot) element;
 			try {
@@ -168,16 +168,16 @@ public class ImageDecorator implements ILabelDecorator {
 						if (ajElem instanceof AdviceElement) {
 						    boolean hasTest = AJProjectModelFactory.getInstance().getModelForJavaElement(ajElem)
 	                        .hasRuntimeTest(ajElem);
-							icon = (AJDTIcon)AspectJImages.instance().getAdviceIcon(ajElem.getAJExtraInformation(), hasTest);
+							icon = AspectJImages.instance().getAdviceIcon(ajElem.getAJExtraInformation(), hasTest);
 						} else if (ajElem instanceof IntertypeElement) {
-							icon = (AJDTIcon)AspectJImages.instance().getStructureIcon(ajElem.getAJKind(), ajElem.getAJAccessibility());
+							icon = AspectJImages.instance().getStructureIcon(ajElem.getAJKind(), ajElem.getAJAccessibility());
 						} else if (ajElem instanceof DeclareElement) {
-							icon = (AJDTIcon)AspectJImages.instance().getStructureIcon(ajElem.getAJKind(), ajElem.getAJAccessibility());
+							icon = AspectJImages.instance().getStructureIcon(ajElem.getAJKind(), ajElem.getAJAccessibility());
 						} else {
-							icon = (AJDTIcon)AspectJImages.instance().getIcon(ajElem.getAJKind());
+							icon = AspectJImages.instance().getIcon(ajElem.getAJKind());
 						}
 					} else {
-						icon = (AJDTIcon)AspectJImages.instance().getStructureIcon(ajElem.getAJKind(), ajElem.getAJAccessibility());
+						icon = AspectJImages.instance().getStructureIcon(ajElem.getAJKind(), ajElem.getAJAccessibility());
 					}
 					if (icon != null){
 						img = getImageLabel(getJavaImageDescriptor(icon.getImageDescriptor(), image.getBounds(), computeJavaAdornmentFlags(ajElem)));
@@ -187,14 +187,14 @@ public class ImageDecorator implements ILabelDecorator {
 			}
 		}
 
-		if (img != null){			
+		if (img != null){
 			preventRecursion = true;
-			
+
 			//the Java ProblemsDecorator is not registered in the official
 			//decorator list of eclipse, so we need it to call ourself.
 			//problem: if jdt includes more decorators, we won't know it.
 			img = problemsDecorator.decorateImage(img, element);
-			
+
 			//apply standard decorators (eg cvs)
 			img = decman.decorateImage(img, element);
 			preventRecursion = false;
@@ -202,26 +202,26 @@ public class ImageDecorator implements ILabelDecorator {
 		}
 		return null;
 	}
-	
+
 	private Image getImageLabel(ImageDescriptor descriptor){
-		if (descriptor == null) 
-			return null;	
+		if (descriptor == null)
+			return null;
 		return getRegistry().get(descriptor);
 	}
-	
+
 	private ImageDescriptorRegistry getRegistry() {
 		if (fRegistry == null) {
 			fRegistry= JavaPlugin.getImageDescriptorRegistry();
 		}
 		return fRegistry;
 	}
-	
+
 	public static ImageDescriptor getJavaImageDescriptor(ImageDescriptor descriptor, Rectangle rect, int adorflags) {
 		int flags = (rect.width == 16)?JavaElementImageProvider.SMALL_ICONS:0;
 		Point size= useSmallSize(flags) ? JavaElementImageProvider.SMALL_SIZE : JavaElementImageProvider.BIG_SIZE;
 		return new JavaElementImageDescriptor(descriptor, adorflags, size);
 	}
-	
+
 	private static boolean useSmallSize(int flags) {
 		return (flags & JavaElementImageProvider.SMALL_ICONS) != 0;
 	}
@@ -255,23 +255,23 @@ public class ImageDecorator implements ILabelDecorator {
 				if (itd.getAJKind() == IProgramElement.Kind.INTER_TYPE_FIELD) {
 					if (text.endsWith("()")) { //$NON-NLS-1$
 						return text.substring(0,text.length()-2);
-					}					
+					}
 				}
 			} catch (JavaModelException e) {
 			}
 		}
 		return null;
 	}
-	
+
 	private int computeJavaAdornmentFlags(IJavaElement element) {
 		int flags= 0;
-		if (true && element instanceof IMember) {
+		if (element instanceof IMember) {
 			try {
 				IMember member= (IMember) element;
-				
+
 				if (element.getElementType() == IJavaElement.METHOD && ((IMethod)element).isConstructor())
 					flags |= JavaElementImageDescriptor.CONSTRUCTOR;
-					
+
 				int modifiers= member.getFlags();
 				if (Flags.isAbstract(modifiers) && confirmAbstract(member))
 					flags |= JavaElementImageDescriptor.ABSTRACT;
@@ -281,10 +281,10 @@ public class ImageDecorator implements ILabelDecorator {
 					flags |= JavaElementImageDescriptor.SYNCHRONIZED;
 				if (Flags.isStatic(modifiers) || isInterfaceField(member))
 					flags |= JavaElementImageDescriptor.STATIC;
-				
+
 				if (Flags.isDeprecated(modifiers))
 					flags |= JavaElementImageDescriptor.DEPRECATED;
-				
+
 				if (member.getElementType() == IJavaElement.TYPE) {
 					if (JavaModelUtil.hasMainMethod((IType) member)) {
 						flags |= JavaElementImageDescriptor.RUNNABLE;
@@ -297,7 +297,7 @@ public class ImageDecorator implements ILabelDecorator {
 		}
 		return flags;
 	}
-	
+
 	private static boolean confirmAbstract(IMember element) throws JavaModelException {
 		// never show the abstract symbol on interfaces or members in interfaces
 		if (element.getElementType() == IJavaElement.TYPE) {
@@ -305,15 +305,15 @@ public class ImageDecorator implements ILabelDecorator {
 		}
 		return element.getDeclaringType().isClass();
 	}
-	
+
 	private static boolean isInterfaceField(IMember element) throws JavaModelException {
 		// always show the final && static symbol on interface fields
 		if (element.getElementType() == IJavaElement.FIELD) {
 			return element.getDeclaringType().isInterface();
 		}
 		return false;
-	}	
-	
+	}
+
 	private static boolean confirmSynchronized(IJavaElement member) {
 		// Synchronized types are allowed but meaningless.
 		return member.getElementType() != IJavaElement.TYPE;

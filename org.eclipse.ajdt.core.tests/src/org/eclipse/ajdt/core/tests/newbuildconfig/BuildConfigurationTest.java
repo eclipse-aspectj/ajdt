@@ -153,26 +153,15 @@ public class BuildConfigurationTest extends AJDTCoreTestCase {
 	}
 
 	private void compareFiles(IFile propertiesFile, IFile newPropertiesFile) throws CoreException, IOException {
-		BufferedReader br = null;
-		BufferedReader br2 = null;
-		try {
-			br = new BufferedReader(new InputStreamReader(propertiesFile.getContents()));
-			br2 = new BufferedReader(new InputStreamReader(newPropertiesFile.getContents()));
-			String line1 = br.readLine();
-			String line2 = br2.readLine();
-			while(line1 != null && line2 != null) {
-				assertEquals(line1.trim(), line2.trim());
-				line1 = br.readLine();
-				line2 = br2.readLine();
-			}
-		} finally {
-			if(br != null) {
-				br.close();
-			}
-			if(br2 != null) {
-				br2.close();
-			}
-		}
+    try (BufferedReader br = new BufferedReader(new InputStreamReader(propertiesFile.getContents())); BufferedReader br2 = new BufferedReader(new InputStreamReader(newPropertiesFile.getContents()))) {
+      String line1 = br.readLine();
+      String line2 = br2.readLine();
+      while (line1 != null && line2 != null) {
+        assertEquals(line1.trim(), line2.trim());
+        line1 = br.readLine();
+        line2 = br2.readLine();
+      }
+    }
 	}
 
 	private void checkIncluded(int numFiles) {
@@ -206,13 +195,12 @@ public class BuildConfigurationTest extends AJDTCoreTestCase {
 	        IProgramElement ipe = model.javaElementToProgramElement(unit);
 	        HandleTestUtils.checkAJHandle(ipe.getHandleIdentifier(), model);
 	        if (accumulatedErrors.size() > 0) {
-	            StringBuffer sb = new StringBuffer();
+	            StringBuilder sb = new StringBuilder();
 	            sb.append("Found errors in comparing elements:\n");
-	            for (Iterator iterator = accumulatedErrors.iterator(); iterator
-	            .hasNext();) {
-	                String msg = (String) iterator.next();
-	                sb.append(msg + "\n");
-	            }
+            for (Object accumulatedError : accumulatedErrors) {
+              String msg = (String) accumulatedError;
+              sb.append(msg).append("\n");
+            }
 	            fail(sb.toString());
 	        }
 	    }

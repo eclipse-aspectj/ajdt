@@ -223,7 +223,7 @@ public final class AJWorldFacade {
         List<ConcreteTypeMunger> itds;
         String nameStr = new String(name);
         if (cachedMungers != null && cachedMungers.containsKey(targetTypeSignature)) {
-            itds = (List<ConcreteTypeMunger>) cachedMungers.get(targetTypeSignature);
+            itds = cachedMungers.get(targetTypeSignature);
             if (itds == null) {
                 return null;
             }

@@ -115,12 +115,13 @@ public aspect ITDAwarenessAspect {
 
     private boolean isInWeavable(ICompilationUnit[] workingCopies) {
         if (workingCopies != null && nameEnvironmentAdapter.getProvider() != null) {
-            for (int i = 0; i < workingCopies.length; i++) {
-                if (workingCopies[i] instanceof CompilationUnit &&
-                        nameEnvironmentAdapter.getProvider().shouldFindProblems((CompilationUnit) workingCopies[i])) {
-                    return true;
-                }
+          for (ICompilationUnit workingCopy : workingCopies) {
+            if (workingCopy instanceof CompilationUnit &&
+                nameEnvironmentAdapter.getProvider().shouldFindProblems((CompilationUnit) workingCopy))
+            {
+              return true;
             }
+          }
         }
         return false;
     }
@@ -305,7 +306,7 @@ public aspect ITDAwarenessAspect {
             codeSelectWithArgs(unit, offset, length) {
         IJavaElement[] result = proceed(unit, offset, length);
         if (contentAssistAdapter.getProvider() != null && nameEnvironmentAdapter.getProvider() != null &&
-                nameEnvironmentAdapter.getProvider().shouldFindProblems((CompilationUnit) unit)) {
+                nameEnvironmentAdapter.getProvider().shouldFindProblems(unit)) {
             // look for ITDs at the current location if required
             try {
                 result = contentAssistAdapter.getProvider().doCodeSelect(unit, offset, length, result);

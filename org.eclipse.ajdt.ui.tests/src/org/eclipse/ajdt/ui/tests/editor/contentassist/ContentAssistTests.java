@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Luzius Meisser - initial implementation
  *******************************************************************************/
@@ -35,13 +35,13 @@ import org.eclipse.ui.texteditor.ITextEditor;
 
 /**
  * Tests for completion proposals.
- * 
+ *
  * @author Luzius Meisser
  */
 public class ContentAssistTests extends UITestCase {
 
 	IProject fProject;
-	
+
 	/*
 	 * @see TestCase#setUp()
 	 */
@@ -50,7 +50,7 @@ public class ContentAssistTests extends UITestCase {
 		AllUITests.setupAJDTPlugin();
 		fProject = createPredefinedProject("CodeCompletionTestArea"); //$NON-NLS-1$
 	}
-	
+
 	public void testContentAssistA() throws JavaModelException{
 		IFile file = (IFile)fProject.findMember("src/p2/Aspect.aj"); //$NON-NLS-1$
 		ICompletionProposal[] props = getCompletionProposals(file, "/*completion test pos A*/"); //$NON-NLS-1$
@@ -61,7 +61,7 @@ public class ContentAssistTests extends UITestCase {
 		if (!contains(props, "limited AspectJ")) //$NON-NLS-1$
 			fail("Limited AspectJ support note missing"); //$NON-NLS-1$
 	}
-	
+
 	public void testContentAssistB() throws JavaModelException{
 		IFile file = (IFile)fProject.findMember("src/p2/Aspect.aj"); //$NON-NLS-1$
 		ICompletionProposal[] props = getCompletionProposals(file, "/*completion test pos B*/"); //$NON-NLS-1$
@@ -72,7 +72,7 @@ public class ContentAssistTests extends UITestCase {
 		if (contains(props, "x37")) //$NON-NLS-1$
 			fail("Field x37 should not be visible."); //$NON-NLS-1$
 	}
-	
+
 	public void testContentAssistC() throws JavaModelException{
 		IFile file = (IFile)fProject.findMember("src/p2/TestClass.java"); //$NON-NLS-1$
 		ICompletionProposal[] props = getCompletionProposals(file, "/*completion test pos C*/"); //$NON-NLS-1$
@@ -85,14 +85,14 @@ public class ContentAssistTests extends UITestCase {
 		if (!contains(props, "limited AspectJ")) //$NON-NLS-1$
 			fail("Limited AspectJ support note missing"); //$NON-NLS-1$
 	}
-	
+
 	public void testContentAssistD() throws JavaModelException{
 		IFile file = (IFile)fProject.findMember("src/p2/TestClass.java"); //$NON-NLS-1$
 		ICompletionProposal[] props = getCompletionProposals(file, "/*completion test pos D*/"); //$NON-NLS-1$
 		if (contains(props, "decw")) //$NON-NLS-1$
 			fail("AspectJ code template exists in a java file, but it should not."); //$NON-NLS-1$
 	}
-	
+
     public void testContentAssistE() throws JavaModelException{
         IFile file = (IFile)fProject.findMember("src/p2/Aspect.aj"); //$NON-NLS-1$
         ICompletionProposal[] props = getCompletionProposals(file, "/*completion test pos E*/"); //$NON-NLS-1$
@@ -109,7 +109,7 @@ public class ContentAssistTests extends UITestCase {
         if (!contains(props, "decw")) //$NON-NLS-1$
             fail("AspectJ code template missing."); //$NON-NLS-1$
     }
-	
+
 	private ICompletionProposal[] getCompletionProposals(IFile file, String marker) throws JavaModelException{
 		AspectJEditor editor = (AspectJEditor)openFileInAspectJEditor(file, false);
 		AJCompletionProcessor proc = new AJCompletionProcessor(editor, getContentAssistant(editor), IDocument.DEFAULT_CONTENT_TYPE);
@@ -127,34 +127,33 @@ public class ContentAssistTests extends UITestCase {
 		int offset = content.indexOf(marker);
 		return proc.computeCompletionProposals(editor.getViewer(), offset);
 	}
-	
+
 	private ContentAssistant getContentAssistant(ITextEditor editor) {
 		ContentAssistant assistant= new ContentAssistant();
 		IContentAssistProcessor javaProcessor= new JavaCompletionProcessor(editor, assistant, IDocument.DEFAULT_CONTENT_TYPE);
 		assistant.setContentAssistProcessor(javaProcessor, IDocument.DEFAULT_CONTENT_TYPE);
-	
+
 		ContentAssistProcessor singleLineProcessor= new JavaCompletionProcessor(editor, assistant, IJavaPartitions.JAVA_SINGLE_LINE_COMMENT);
 		assistant.setContentAssistProcessor(singleLineProcessor, IJavaPartitions.JAVA_SINGLE_LINE_COMMENT);
-	
+
 		ContentAssistProcessor stringProcessor= new JavaCompletionProcessor(editor, assistant, IJavaPartitions.JAVA_STRING);
 		assistant.setContentAssistProcessor(stringProcessor, IJavaPartitions.JAVA_STRING);
-		
+
 		ContentAssistProcessor multiLineProcessor= new JavaCompletionProcessor(editor, assistant, IJavaPartitions.JAVA_MULTI_LINE_COMMENT);
 		assistant.setContentAssistProcessor(multiLineProcessor, IJavaPartitions.JAVA_MULTI_LINE_COMMENT);
-	
+
 		ContentAssistProcessor javadocProcessor= new JavadocCompletionProcessor(editor, assistant);
 		assistant.setContentAssistProcessor(javadocProcessor, IJavaPartitions.JAVA_DOC);
-	
+
 		assistant.setContextInformationPopupOrientation(IContentAssistant.CONTEXT_INFO_ABOVE);
 		return assistant;
 	}
-	
+
 	private boolean contains(ICompletionProposal[] props, String what){
-		for (int i = 0; i < props.length; i++) {
-			ICompletionProposal proposal = props[i];
-			if (proposal.getDisplayString().indexOf(what) != -1)
-				return true;
-		}
+    for (ICompletionProposal proposal : props) {
+      if (proposal.getDisplayString().contains(what))
+        return true;
+    }
 		return false;
 	}
 

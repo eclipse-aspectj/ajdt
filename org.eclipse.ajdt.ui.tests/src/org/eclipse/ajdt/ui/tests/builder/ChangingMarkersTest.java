@@ -128,12 +128,12 @@ public class ChangingMarkersTest extends UITestCase {
 
         // warnings
         warningMarkers = javaFile.findMarkers(IAJModelMarker.AJDT_PROBLEM_MARKER, true, IResource.DEPTH_INFINITE);
-        for (int i = 0; i < warningMarkers.length; i++) {
-            System.out.println(warningMarkers[i].getAttribute(IMarker.LINE_NUMBER) + " : " + warningMarkers[i].getAttribute(IMarker.MESSAGE) +  //$NON-NLS-1$
-            " : " + warningMarkers[i].getAttribute(AspectJUIPlugin.RELATED_LOCATIONS_ATTRIBUTE_PREFIX+"0")); //$NON-NLS-1$ //$NON-NLS-2$
-            System.out.println(warningMarkers[i].getAttributes().keySet());
-            System.out.println(warningMarkers[i].getAttributes().values());
-        }
+      for (IMarker warningMarker : warningMarkers) {
+        System.out.println(warningMarker.getAttribute(IMarker.LINE_NUMBER) + " : " + warningMarker.getAttribute(IMarker.MESSAGE) +  //$NON-NLS-1$
+                           " : " + warningMarker.getAttribute(AspectJUIPlugin.RELATED_LOCATIONS_ATTRIBUTE_PREFIX + "0")); //$NON-NLS-1$ //$NON-NLS-2$
+        System.out.println(warningMarker.getAttributes().keySet());
+        System.out.println(warningMarker.getAttributes().values());
+      }
 
         warningMarkers = javaFile.findMarkers(IAJModelMarker.AJDT_PROBLEM_MARKER, true, IResource.DEPTH_INFINITE);
         assertEquals("Didn't find correct number of warning markers in " + javaFile, 1, warningMarkers.length); //$NON-NLS-1$

@@ -1,13 +1,13 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Luzius Meisser  - adjusted for ajdoc 
+ *     Luzius Meisser  - adjusted for ajdoc
  *     Helen Hawkins   - updated to Eclipse 3.1
  *******************************************************************************/
 package org.eclipse.ajdt.internal.ui.ajdocexport;
@@ -90,18 +90,18 @@ public class AJdocTreeWizardPage extends AJdocWizardPage {
 	// AspectJ Extension end
 	private Label fDestinationLabel;
 	private CLabel fDescriptionLabel;
-	
+
 	private String fVisibilitySelection;
 
 	// AspectJ Extension - using AJdocOptionsManager instead
-	private AJdocOptionsManager fStore;
+	private final AJdocOptionsManager fStore;
 
 	private StatusInfo fJavadocStatus;
 	private StatusInfo fDestinationStatus;
 	private StatusInfo fDocletStatus;
 	private StatusInfo fTreeStatus;
 	private StatusInfo fPreferenceStatus;
-	private StatusInfo fWizardStatus;
+	private final StatusInfo fWizardStatus;
 
 	private final int PREFERENCESTATUS= 0;
 	private final int CUSTOMSTATUS= 1;
@@ -116,7 +116,7 @@ public class AJdocTreeWizardPage extends AJdocWizardPage {
 	protected AJdocTreeWizardPage(String pageName, AJdocOptionsManager store) {
 		super(pageName);
 		// AspectJ Extension - message
-		setDescription(UIMessages.ajdocTreeWizardPage_javadoctreewizardpage_description); 
+		setDescription(UIMessages.ajdocTreeWizardPage_javadoctreewizardpage_description);
 
 		fStore= store;
 
@@ -150,12 +150,12 @@ public class AJdocTreeWizardPage extends AJdocWizardPage {
 		Dialog.applyDialogFont(composite);
 		PlatformUI.getWorkbench().getHelpSystem().setHelp(composite, IJavaHelpContextIds.JAVADOC_TREE_PAGE);
 	}
-	
+
 	// AspectJ Extension - renaming method to be ajdoc
 	protected void createAJdocCommandSet(Composite composite) {
-		
+
 		final int numColumns= 2;
-		
+
 		GridLayout layout= createGridLayout(numColumns);
 		layout.marginHeight= 0;
 		layout.marginWidth= 0;
@@ -166,21 +166,17 @@ public class AJdocTreeWizardPage extends AJdocWizardPage {
 //		 AspectJ Extension - message
 		String labelText;
         if (!AJDTUtils.isMacOS()) {
-            labelText = UIMessages.ajdocTreeWizardPage_ajdoccommand_label; 
+            labelText = UIMessages.ajdocTreeWizardPage_ajdoccommand_label;
         } else {
-            labelText = UIMessages.ajdocTreeWizardPage_MAC_ajdoccommand_label; 
+            labelText = UIMessages.ajdocTreeWizardPage_MAC_ajdoccommand_label;
         }
 
-		createLabel(group, SWT.NONE, labelText, createGridData(GridData.HORIZONTAL_ALIGN_BEGINNING, numColumns, 0)); 
+		createLabel(group, SWT.NONE, labelText, createGridData(GridData.HORIZONTAL_ALIGN_BEGINNING, numColumns, 0));
 		fAJdocCommandText= createCombo(group, SWT.NONE, null, createGridData(GridData.FILL_HORIZONTAL, numColumns - 1, 0));
 
-		fAJdocCommandText.addModifyListener(new ModifyListener() {
-			public void modifyText(ModifyEvent e) {
-				doValidation(JAVADOCSTATUS);
-			}
-		});
+		fAJdocCommandText.addModifyListener(e -> doValidation(JAVADOCSTATUS));
 
-		final Button javadocCommandBrowserButton= createButton(group, SWT.PUSH, JavadocExportMessages.JavadocTreeWizardPage_javadoccommand_button_label, createGridData(GridData.HORIZONTAL_ALIGN_FILL, 1, 0)); 
+		final Button javadocCommandBrowserButton= createButton(group, SWT.PUSH, JavadocExportMessages.JavadocTreeWizardPage_javadoccommand_button_label, createGridData(GridData.HORIZONTAL_ALIGN_FILL, 1, 0));
 		SWTUtil.setButtonDimensionHint(javadocCommandBrowserButton);
 
 		javadocCommandBrowserButton.addSelectionListener(new SelectionAdapter() {
@@ -190,44 +186,40 @@ public class AJdocTreeWizardPage extends AJdocWizardPage {
 			}
 		});
 	}
-	
 
-	
-	
+
+
+
 	protected void createInputGroup(Composite composite) {
 //		 AspectJ Extension - message
-		createLabel(composite, SWT.NONE, UIMessages.ajdoc_info_projectselection, createGridData(6)); 
+		createLabel(composite, SWT.NONE, UIMessages.ajdoc_info_projectselection, createGridData(6));
 		Composite c= new Composite(composite, SWT.NONE);
-		
+
 		// AspectJ Extension begin - fill layout
 		FillLayout f = new FillLayout();
 		c.setLayout(f);
 		c.setLayoutData(createGridData(GridData.FILL_VERTICAL | GridData.GRAB_VERTICAL | GridData.FILL_HORIZONTAL | GridData.GRAB_HORIZONTAL, 6, 1));
 		// AspectJ Extension end
-		
+
 		// AspectJ Extension - using aj equivalents
 		ITreeContentProvider treeContentProvider= new AJdocProjectContentProvider();
-		
-		// AspectJ Extension Begin - 
+
+		// AspectJ Extension Begin -
 		fInputGroup= new CheckboxTreeViewer(c, SWT.BORDER);
 		fInputGroup.setLabelProvider(new JavaElementLabelProvider(JavaElementLabelProvider.SHOW_DEFAULT));
 		fInputGroup.setContentProvider(treeContentProvider);
 		fInputGroup.setInput(this);
-		
-		fInputGroup.addCheckStateListener(new ICheckStateListener() {
-			public void checkStateChanged(CheckStateChangedEvent e) {
-				doValidation(TREESTATUS);
-			}
-		});
+
+		fInputGroup.addCheckStateListener(e -> doValidation(TREESTATUS));
 		fInputGroup.setComparator(new JavaElementComparator());
-		
+
 		IJavaElement[] elements= fStore.getInitialElements();
 		setTreeChecked(elements);
 		if (elements.length > 0) {
 			fInputGroup.setSelection(new StructuredSelection(elements[0].getJavaProject()));
 		}
 		c.layout();
-		
+
 //		fInputGroup.aboutToOpen();
 		// AspectJ Extension End
 	}
@@ -240,13 +232,13 @@ public class AJdocTreeWizardPage extends AJdocWizardPage {
 		Composite visibilityGroup= new Composite(composite, SWT.NONE);
 		visibilityGroup.setLayoutData(createGridData(GridData.FILL_HORIZONTAL, 6, 0));
 		visibilityGroup.setLayout(visibilityLayout);
-		
+
 //		 AspectJ Extension - message
-		createLabel(visibilityGroup, SWT.NONE, UIMessages.ajdocTreeWizardPage_visibilitygroup_label, createGridData(GridData.FILL_HORIZONTAL, 4, 0)); 
-		fPrivateVisibility= createButton(visibilityGroup, SWT.RADIO, JavadocExportMessages.JavadocTreeWizardPage_privatebutton_label, createGridData(GridData.FILL_HORIZONTAL, 1, 0)); 
-		fPackageVisibility= createButton(visibilityGroup, SWT.RADIO, JavadocExportMessages.JavadocTreeWizardPage_packagebutton_label, createGridData(GridData.FILL_HORIZONTAL, 1, 0)); 
-		fProtectedVisibility= createButton(visibilityGroup, SWT.RADIO, JavadocExportMessages.JavadocTreeWizardPage_protectedbutton_label, createGridData(GridData.FILL_HORIZONTAL, 1, 0)); 
-		fPublicVisibility= createButton(visibilityGroup, SWT.RADIO, JavadocExportMessages.JavadocTreeWizardPage_publicbutton_label, createGridData(GridData.FILL_HORIZONTAL, 1, 0)); 
+		createLabel(visibilityGroup, SWT.NONE, UIMessages.ajdocTreeWizardPage_visibilitygroup_label, createGridData(GridData.FILL_HORIZONTAL, 4, 0));
+		fPrivateVisibility= createButton(visibilityGroup, SWT.RADIO, JavadocExportMessages.JavadocTreeWizardPage_privatebutton_label, createGridData(GridData.FILL_HORIZONTAL, 1, 0));
+		fPackageVisibility= createButton(visibilityGroup, SWT.RADIO, JavadocExportMessages.JavadocTreeWizardPage_packagebutton_label, createGridData(GridData.FILL_HORIZONTAL, 1, 0));
+		fProtectedVisibility= createButton(visibilityGroup, SWT.RADIO, JavadocExportMessages.JavadocTreeWizardPage_protectedbutton_label, createGridData(GridData.FILL_HORIZONTAL, 1, 0));
+		fPublicVisibility= createButton(visibilityGroup, SWT.RADIO, JavadocExportMessages.JavadocTreeWizardPage_publicbutton_label, createGridData(GridData.FILL_HORIZONTAL, 1, 0));
 
 		fDescriptionLabel= new CLabel(visibilityGroup, SWT.LEFT);
 		fDescriptionLabel.setLayoutData(createGridData(GridData.FILL_HORIZONTAL, 4, convertWidthInCharsToPixels(3) -  3)); // INDENT of CLabel
@@ -315,7 +307,7 @@ public class AJdocTreeWizardPage extends AJdocWizardPage {
 	}
 
 	private void createOptionsSet(Composite composite) {
-		
+
 		final int numColumns= 4;
 
 		final GridLayout layout= createGridLayout(numColumns);
@@ -325,40 +317,36 @@ public class AJdocTreeWizardPage extends AJdocWizardPage {
 		group.setLayoutData(createGridData(GridData.FILL_HORIZONTAL, 6, 0));
 		group.setLayout(layout);
 
-		fStandardButton= createButton(group, SWT.RADIO, JavadocExportMessages.JavadocTreeWizardPage_standarddocletbutton_label, createGridData(GridData.HORIZONTAL_ALIGN_FILL, numColumns, 0)); 
+		fStandardButton= createButton(group, SWT.RADIO, JavadocExportMessages.JavadocTreeWizardPage_standarddocletbutton_label, createGridData(GridData.HORIZONTAL_ALIGN_FILL, numColumns, 0));
 
-		fDestinationLabel= createLabel(group, SWT.NONE, JavadocExportMessages.JavadocTreeWizardPage_destinationfield_label, createGridData(GridData.HORIZONTAL_ALIGN_FILL, 1, convertWidthInCharsToPixels(3))); 
+		fDestinationLabel= createLabel(group, SWT.NONE, JavadocExportMessages.JavadocTreeWizardPage_destinationfield_label, createGridData(GridData.HORIZONTAL_ALIGN_FILL, 1, convertWidthInCharsToPixels(3)));
 		fDestinationText= createText(group, SWT.SINGLE | SWT.BORDER, null, createGridData(GridData.FILL_HORIZONTAL, numColumns - 2, 0));
 		((GridData) fDestinationText.getLayoutData()).widthHint= 0;
-		fDestinationText.addModifyListener(new ModifyListener() {
-			public void modifyText(ModifyEvent e) {
-				doValidation(STANDARDSTATUS);
-			}
-		});
+		fDestinationText.addModifyListener(e -> doValidation(STANDARDSTATUS));
 
-		fDestinationBrowserButton= createButton(group, SWT.PUSH, JavadocExportMessages.JavadocTreeWizardPage_destinationbrowse_label, createGridData(GridData.HORIZONTAL_ALIGN_END, 1, 0)); 
+		fDestinationBrowserButton= createButton(group, SWT.PUSH, JavadocExportMessages.JavadocTreeWizardPage_destinationbrowse_label, createGridData(GridData.HORIZONTAL_ALIGN_END, 1, 0));
 		SWTUtil.setButtonDimensionHint(fDestinationBrowserButton);
 
 //      AspectJ Extension - commenting out unused code
 /*		//Option to use custom doclet
-		fCustomButton= createButton(group, SWT.RADIO, JavadocExportMessages.JavadocTreeWizardPage_customdocletbutton_label, createGridData(GridData.HORIZONTAL_ALIGN_FILL, numColumns, 0)); 
-		
+		fCustomButton= createButton(group, SWT.RADIO, JavadocExportMessages.JavadocTreeWizardPage_customdocletbutton_label, createGridData(GridData.HORIZONTAL_ALIGN_FILL, numColumns, 0));
+
 		//For Entering location of custom doclet
-		fDocletTypeLabel= createLabel(group, SWT.NONE, JavadocExportMessages.JavadocTreeWizardPage_docletnamefield_label, createGridData(GridData.HORIZONTAL_ALIGN_BEGINNING, 1, convertWidthInCharsToPixels(3))); 
+		fDocletTypeLabel= createLabel(group, SWT.NONE, JavadocExportMessages.JavadocTreeWizardPage_docletnamefield_label, createGridData(GridData.HORIZONTAL_ALIGN_BEGINNING, 1, convertWidthInCharsToPixels(3)));
 		fDocletTypeText= createText(group, SWT.SINGLE | SWT.BORDER, null, createGridData(GridData.HORIZONTAL_ALIGN_FILL, numColumns - 1, 0));
 		((GridData) fDocletTypeText.getLayoutData()).widthHint= 0;
-		
-		
+
+
 		fDocletTypeText.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent e) {
 				doValidation(CUSTOMSTATUS);
 			}
 		});
 
-		fDocletLabel= createLabel(group, SWT.NONE, JavadocExportMessages.JavadocTreeWizardPage_docletpathfield_label, createGridData(GridData.HORIZONTAL_ALIGN_BEGINNING, 1, convertWidthInCharsToPixels(3))); 
+		fDocletLabel= createLabel(group, SWT.NONE, JavadocExportMessages.JavadocTreeWizardPage_docletpathfield_label, createGridData(GridData.HORIZONTAL_ALIGN_BEGINNING, 1, convertWidthInCharsToPixels(3)));
 		fDocletText= createText(group, SWT.SINGLE | SWT.BORDER, null, createGridData(GridData.HORIZONTAL_ALIGN_FILL, numColumns - 1, 0));
 		((GridData) fDocletText.getLayoutData()).widthHint= 0;
-		
+
 		fDocletText.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent e) {
 				doValidation(CUSTOMSTATUS);
@@ -381,8 +369,8 @@ public class AJdocTreeWizardPage extends AJdocWizardPage {
 		});
 */		fDestinationBrowserButton.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent event) {
-				String text= handleFolderBrowseButtonPressed(fDestinationText.getText(), JavadocExportMessages.JavadocTreeWizardPage_destinationbrowsedialog_title, 
-				   		JavadocExportMessages.JavadocTreeWizardPage_destinationbrowsedialog_label); 
+				String text= handleFolderBrowseButtonPressed(fDestinationText.getText(), JavadocExportMessages.JavadocTreeWizardPage_destinationbrowsedialog_title,
+				   		JavadocExportMessages.JavadocTreeWizardPage_destinationbrowsedialog_label);
 				fDestinationText.setText(text);
 			}
 		});
@@ -406,7 +394,7 @@ public class AJdocTreeWizardPage extends AJdocWizardPage {
 			fDestinationText.setEnabled(false);
 			fDestinationBrowserButton.setEnabled(false);
 			fDestinationLabel.setEnabled(false);
-			
+
 		} else {
 			fStandardButton.setSelection(true);
 			fDestinationText.setText(fStore.getDestination());
@@ -418,7 +406,7 @@ public class AJdocTreeWizardPage extends AJdocWizardPage {
 			fDocletTypeText.setEnabled(false);
 			fDocletTypeLabel.setEnabled(false);
 */		}
-		
+
 		// AspectJ Extension - using fAJdocCommandText instead
 		fAJdocCommandText.setItems(fStore.getJavadocCommandHistory());
 		fAJdocCommandText.select(0);
@@ -431,73 +419,70 @@ public class AJdocTreeWizardPage extends AJdocWizardPage {
 	 * project is selected.
 	 */
 	private void setTreeChecked(IJavaElement[] sourceElements) {
-		for (int i= 0; i < sourceElements.length; i++) {
-			// AspectJ Extension Begin - change due to use of CheckboxTreeViewer
-			IJavaElement curr= sourceElements[i];
-			if (curr instanceof IJavaProject) {
-				fInputGroup.setChecked(curr, true);
-			}
-			// AspectJ Extension End
-		}
+    for (IJavaElement curr : sourceElements) {
+      // AspectJ Extension Begin - change due to use of CheckboxTreeViewer
+      if (curr instanceof IJavaProject) {
+        fInputGroup.setChecked(curr, true);
+      }
+      // AspectJ Extension End
+    }
 	}
 
 	private IPath[] getSourcePath(IJavaProject[] projects) {
 		HashSet res= new HashSet();
 		//loops through all projects and gets a list if of thier sourpaths
-		for (int k= 0; k < projects.length; k++) {
-			IJavaProject iJavaProject= projects[k];
-
-			try {
-				IPackageFragmentRoot[] roots= iJavaProject.getPackageFragmentRoots();
-				for (int i= 0; i < roots.length; i++) {
-					IPackageFragmentRoot curr= roots[i];
-					if (curr.getKind() == IPackageFragmentRoot.K_SOURCE) {
-						IResource resource= curr.getResource();
-						if (resource != null) {
-							IPath p= resource.getLocation();
-							if (p != null) {
-								res.add(p);
-							}
-						}
-					}
-				}
-			} catch (JavaModelException e) {
-				JavaPlugin.log(e);
-			}
-		}
-		return (IPath[]) res.toArray(new IPath[res.size()]);
+    for (IJavaProject iJavaProject : projects) {
+      try {
+        IPackageFragmentRoot[] roots = iJavaProject.getPackageFragmentRoots();
+        for (IPackageFragmentRoot curr : roots) {
+          if (curr.getKind() == IPackageFragmentRoot.K_SOURCE) {
+            IResource resource = curr.getResource();
+            if (resource != null) {
+              IPath p = resource.getLocation();
+              if (p != null) {
+                res.add(p);
+              }
+            }
+          }
+        }
+      }
+      catch (JavaModelException e) {
+        JavaPlugin.log(e);
+      }
+    }
+		return (IPath[]) res.toArray(new IPath[0]);
 	}
 
 	private IPath[] getClassPath(IJavaProject[] javaProjects) {
 		HashSet res= new HashSet();
 
 		IWorkspaceRoot root= ResourcesPlugin.getWorkspace().getRoot();
-		for (int j= 0; j < javaProjects.length; j++) {
-			IJavaProject curr= javaProjects[j];
-			try {
-				IPath outputLocation= null;
-				
-				IResource outputPathFolder= root.findMember(curr.getOutputLocation());
-				if (outputPathFolder != null)
-					outputLocation= outputPathFolder.getLocation();
+    for (IJavaProject curr : javaProjects) {
+      try {
+        IPath outputLocation = null;
 
-				String[] classPath= JavaRuntime.computeDefaultRuntimeClassPath(curr);
-				for (int i= 0; i < classPath.length; i++) {
-					IPath path= Path.fromOSString(classPath[i]);
-					if (!path.equals(outputLocation)) {
-						res.add(path);
-					}
-				}
-			} catch (CoreException e) {
-				JavaPlugin.log(e);
-			}
-		}
-		return (IPath[]) res.toArray(new IPath[res.size()]);
+        IResource outputPathFolder = root.findMember(curr.getOutputLocation());
+        if (outputPathFolder != null)
+          outputLocation = outputPathFolder.getLocation();
+
+        String[] classPath = JavaRuntime.computeDefaultRuntimeClassPath(curr);
+        for (String s : classPath) {
+          IPath path = Path.fromOSString(s);
+          if (!path.equals(outputLocation)) {
+            res.add(path);
+          }
+        }
+      }
+      catch (CoreException e) {
+        JavaPlugin.log(e);
+      }
+    }
+		return (IPath[]) res.toArray(new IPath[0]);
 	}
 
-	
+
 	/**
-	 * Gets a list of elements to generated javadoc for from each project. 
+	 * Gets a list of elements to generated javadoc for from each project.
 	 * Javadoc can be generated for either a IPackageFragmentRoot or a ICompilationUnit.
 	 */
 //	 AspectJ Extension - commenting out unused code
@@ -578,39 +563,38 @@ public class AJdocTreeWizardPage extends AJdocWizardPage {
 		fStore.setAccess(fVisibilitySelection);
 		// AspectJ Extension - setting the selected elements to be the checked
 		// projects because that's all we're interested in - the build
-		// configs will sort out what needs to be included. 
+		// configs will sort out what needs to be included.
 		fStore.setSelectedElements(checkedProjects);
-		
+
 		ArrayList commands= new ArrayList();
 		// AspectJ Extension - adding ajdoc command instead of javadoc
 		commands.add(fAJdocCommandText.getText()); // must be first
 		String[] items= fAJdocCommandText.getItems();
-		for (int i= 0; i < items.length; i++) {
-			String curr= items[i];
-			if (!commands.contains(curr)) {
-				commands.add(curr);
-			}
-		}
-		fStore.setJavadocCommandHistory((String[]) commands.toArray(new String[commands.size()]));
+    for (String curr : items) {
+      if (!commands.contains(curr)) {
+        commands.add(curr);
+      }
+    }
+		fStore.setJavadocCommandHistory((String[]) commands.toArray(new String[0]));
 	}
 
 	public IJavaProject[] getCheckedProjects() {
 		ArrayList res= new ArrayList();
 		TreeItem[] treeItems= fInputGroup.getTree().getItems();
-		for (int i= 0; i < treeItems.length; i++) {
-			if (treeItems[i].getChecked()) {
-				Object curr= treeItems[i].getData();
-				if (curr instanceof IJavaProject) {
-					res.add(curr);
-				}
-			}
-		}
-		return (IJavaProject[]) res.toArray(new IJavaProject[res.size()]);
+    for (TreeItem treeItem : treeItems) {
+      if (treeItem.getChecked()) {
+        Object curr = treeItem.getData();
+        if (curr instanceof IJavaProject) {
+          res.add(curr);
+        }
+      }
+    }
+		return (IJavaProject[]) res.toArray(new IJavaProject[0]);
 	}
-	
+
 	protected void doValidation(int validate) {
 
-		
+
 		switch (validate) {
 			case PREFERENCESTATUS :
 				fPreferenceStatus= new StatusInfo();
@@ -625,12 +609,12 @@ public class AJdocTreeWizardPage extends AJdocWizardPage {
 					String doclet= fDocletTypeText.getText();
 					String docletPath= fDocletText.getText();
 					if (doclet.length() == 0) {
-						fDocletStatus.setError(JavadocExportMessages.JavadocTreeWizardPage_nodocletname_error); 
+						fDocletStatus.setError(JavadocExportMessages.JavadocTreeWizardPage_nodocletname_error);
 
 					} else if (JavaConventions.validateJavaTypeName(doclet).matches(IStatus.ERROR)) {
-						fDocletStatus.setError(JavadocExportMessages.JavadocTreeWizardPage_invaliddocletname_error); 
+						fDocletStatus.setError(JavadocExportMessages.JavadocTreeWizardPage_invaliddocletname_error);
 					} else if ((docletPath.length() == 0) || !validDocletPath(docletPath)) {
-						fDocletStatus.setError(JavadocExportMessages.JavadocTreeWizardPage_invaliddocletpath_error); 
+						fDocletStatus.setError(JavadocExportMessages.JavadocTreeWizardPage_invaliddocletpath_error);
 					}
 					updateStatus(findMostSevereStatus());
 				}
@@ -642,15 +626,15 @@ public class AJdocTreeWizardPage extends AJdocWizardPage {
 					fDocletStatus= new StatusInfo();
 					String dest= fDestinationText.getText();
 					if (dest.length() == 0) {
-						fDestinationStatus.setError(JavadocExportMessages.JavadocTreeWizardPage_nodestination_error); 
+						fDestinationStatus.setError(JavadocExportMessages.JavadocTreeWizardPage_nodestination_error);
 					}
 					File file= new File(dest);
 					if (!Path.ROOT.isValidPath(dest) || file.isFile()) {
-						fDestinationStatus.setError(JavadocExportMessages.JavadocTreeWizardPage_invaliddestination_error); 
+						fDestinationStatus.setError(JavadocExportMessages.JavadocTreeWizardPage_invaliddestination_error);
 					}
 					// AspectJ Extension - message
 					if (new File(dest, "package-list").exists() || new File(dest, "index.html").exists()) //$NON-NLS-1$//$NON-NLS-2$
-						fDestinationStatus.setWarning(UIMessages.ajdocTreeWizardPage_warning_mayoverwritefiles); 
+						fDestinationStatus.setWarning(UIMessages.ajdocTreeWizardPage_warning_mayoverwritefiles);
 					updateStatus(findMostSevereStatus());
 				}
 				break;
@@ -659,16 +643,16 @@ public class AJdocTreeWizardPage extends AJdocWizardPage {
 
 				fTreeStatus= new StatusInfo();
 				// AspectJ Extension - there is just a list of projects, thefore we need
-				// to check if there are any checked projects rather than getting all the 
-				// checked items. 
+				// to check if there are any checked projects rather than getting all the
+				// checked items.
 				//if (!fInputGroup.getAllCheckedListItems().hasNext())
 				if (fInputGroup.getCheckedElements().length == 0)
 					// AspectJ Extension - updated message
-					fTreeStatus.setError(UIMessages.ajdoc_error_noProjectSelected); 
+					fTreeStatus.setError(UIMessages.ajdoc_error_noProjectSelected);
 				updateStatus(findMostSevereStatus());
 
 				break;
-				
+
 			case JAVADOCSTATUS:
 				fJavadocStatus= new StatusInfo();
 				// AspectJ Extension - using fAJdocCommandText instead
@@ -677,40 +661,40 @@ public class AJdocTreeWizardPage extends AJdocWizardPage {
 				if (text.length() == 0) {
 			        String errorText;
 			        if (!AJDTUtils.isMacOS()) {
-			            errorText = UIMessages.ajdocTreeWizardPage_ajdoccmd_error_enterpath; 
+			            errorText = UIMessages.ajdocTreeWizardPage_ajdoccmd_error_enterpath;
 			        } else {
-			            errorText = UIMessages.ajdocTreeWizardPage_MAC_ajdoccmd_error_enterpath; 
+			            errorText = UIMessages.ajdocTreeWizardPage_MAC_ajdoccmd_error_enterpath;
 			        }
 
-					fJavadocStatus.setError(errorText);  
+					fJavadocStatus.setError(errorText);
 				} else {
 					File file= new File(text);
 					if (!file.isFile()) {
 	                    String errorText;
 	                    if (!AJDTUtils.isMacOS()) {
-	                        errorText = UIMessages.ajdocTreeWizardPage_ajdoccmd_error_notexists; 
+	                        errorText = UIMessages.ajdocTreeWizardPage_ajdoccmd_error_notexists;
 	                    } else {
-	                        errorText = UIMessages.ajdocTreeWizardPage_MAC_ajdoccmd_error_notexists; 
+	                        errorText = UIMessages.ajdocTreeWizardPage_MAC_ajdoccmd_error_notexists;
 	                    }
-						fJavadocStatus.setError(errorText);  
+						fJavadocStatus.setError(errorText);
 					}
 				}
 				updateStatus(findMostSevereStatus());
 				break;
 		} //end switch
-		
-		
+
+
 	}
-	
+
 	// AspectJ Extension - changed name to "browseForAJDocCommand"
 	protected void browseForAJdocCommand() {
 		FileDialog dialog= new FileDialog(getShell());
 //		 AspectJ Extension - message
         String dialogText;
         if (!AJDTUtils.isMacOS()) {
-            dialogText = UIMessages.AJdocTreeWizardPage_ajdoccmd_dialog_title; 
+            dialogText = UIMessages.AJdocTreeWizardPage_ajdoccmd_dialog_title;
         } else {
-            dialogText = UIMessages.AJdocTreeWizardPage_MAC_ajdoccmd_dialog_title; 
+            dialogText = UIMessages.AJdocTreeWizardPage_MAC_ajdoccmd_dialog_title;
         }
 		dialog.setText(dialogText);
 		String dirName= fAJdocCommandText.getText();
@@ -726,11 +710,11 @@ public class AJdocTreeWizardPage extends AJdocWizardPage {
 					newItems.add(curr);
 				}
 			}
-			fAJdocCommandText.setItems((String[]) newItems.toArray(new String[newItems.size()]));
+			fAJdocCommandText.setItems((String[]) newItems.toArray(new String[0]));
 			fAJdocCommandText.select(0);
 		}
 	}
-	
+
 
 	// AspectJ Extension - commenting out unused code
 /*	private boolean validDocletPath(String docletPath) {

@@ -248,7 +248,7 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
             String current = strTok.nextToken();
             int entryKind = Integer.parseInt(strTok2.nextToken());
             if (entryKind == IClasspathEntry.CPE_VARIABLE) {
-                int slashPos = current.indexOf(AspectJPlugin.NON_OS_SPECIFIC_SEPARATOR, 0);
+                int slashPos = current.indexOf(AspectJPlugin.NON_OS_SPECIFIC_SEPARATOR);
                 if (slashPos != -1) {
                     String exp = JavaCore.getClasspathVariable(current.substring(0, slashPos)).toOSString();
                     resultBuffer.append(exp);
@@ -301,7 +301,7 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
                         if (res != null) {
                             resultBuffer.append(res.getRawLocation().toOSString());
                         } else {
-                            resultBuffer.append(projectPath + AspectJPlugin.NON_OS_SPECIFIC_SEPARATOR + rest);
+                            resultBuffer.append(projectPath).append(AspectJPlugin.NON_OS_SPECIFIC_SEPARATOR).append(rest);
                         }
                     } else {
                         resultBuffer.append(projectPath);
@@ -348,7 +348,7 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
             if (!f.isAbsolute())
                 f = new File(projectBaseDirectory + File.separator + path);
             if (validateFiles && !f.exists()) {
-                invalidEntries.append(f + "\n"); //$NON-NLS-1$
+                invalidEntries.append(f).append("\n"); //$NON-NLS-1$
             } else {
                 fileSet.add(f);
             }
@@ -360,7 +360,7 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
             if (!f.isAbsolute())
                 f = new File(projectBaseDirectory + File.separator + inputCopy);
             if (validateFiles && !f.exists()) {
-                invalidEntries.append(f + "\n"); //$NON-NLS-1$
+                invalidEntries.append(f).append("\n"); //$NON-NLS-1$
             } else {
                 fileSet.add(f);
             }
@@ -386,13 +386,13 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
               }
               else if (filter.accept(ir.getName())) {
                 String[] segments = ir.getProjectRelativePath().segments();
-                String path = ""; //$NON-NLS-1$
+                StringBuilder path = new StringBuilder(); //$NON-NLS-1$
                 for (int j = trimSegments; j < segments.length; j++) {
-                  path += segments[j];
+                  path.append(segments[j]);
                   if (j < segments.length - 1)
-                    path += '/'; // matches Eclipse's separator
+                    path.append('/'); // matches Eclipse's separator
                 }
-                allProjectFiles.add(path);
+                allProjectFiles.add(path.toString());
               }
 
             }
@@ -625,9 +625,7 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 
     public File[] getCompiledSourceFiles() {
         CoreOutputLocationManager coreOutputLocationManager = (CoreOutputLocationManager) getOutputLocationManager();
-        File[] compiledSourceFiles =
-            coreOutputLocationManager.getCompiledSourceFiles();
-        return compiledSourceFiles;
+      return coreOutputLocationManager.getCompiledSourceFiles();
 
     }
 

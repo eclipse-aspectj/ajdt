@@ -4,7 +4,7 @@
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors: Sian January - initial version
  * ...
  **********************************************************************/
@@ -62,7 +62,7 @@ public class AspectJMainTab extends SharedJavaMainTab {
 	 * Boolean launch configuration attribute indicating that external jars (on
 	 * the runtime classpath) should be searched when looking for a main type.
 	 * Default value is <code>false</code>.
-	 * 
+	 *
 	 * @since 2.1
 	 */
 	public static final String ATTR_INCLUDE_EXTERNAL_JARS = IJavaDebugUIConstants.PLUGIN_ID + ".INCLUDE_EXTERNAL_JARS"; //$NON-NLS-1$
@@ -70,11 +70,11 @@ public class AspectJMainTab extends SharedJavaMainTab {
 	 * Boolean launch configuration attribute indicating whether types inheriting
 	 * a main method should be considerd when searching for a main type.
 	 * Default value is <code>false</code>.
-	 * 
+	 *
 	 * @since 3.0
 	 */
-	public static final String ATTR_CONSIDER_INHERITED_MAIN = IJavaDebugUIConstants.PLUGIN_ID + ".CONSIDER_INHERITED_MAIN"; //$NON-NLS-1$	
-	
+	public static final String ATTR_CONSIDER_INHERITED_MAIN = IJavaDebugUIConstants.PLUGIN_ID + ".CONSIDER_INHERITED_MAIN"; //$NON-NLS-1$
+
 	// UI widgets
 	private Button fSearchExternalJarsCheckButton;
 	private Button fConsiderInheritedMainButton;
@@ -94,17 +94,17 @@ public class AspectJMainTab extends SharedJavaMainTab {
 		comp.setFont(font);
 		createProjectEditor(comp);
 		createVerticalSpacer(comp, 1);
-		fSearchExternalJarsCheckButton = createCheckButton(parent, LauncherMessages.JavaMainTab_E_xt__jars_6); 
+		fSearchExternalJarsCheckButton = createCheckButton(parent, LauncherMessages.JavaMainTab_E_xt__jars_6);
 		GridData gd = new GridData();
 		gd.horizontalSpan = 2;
 		fSearchExternalJarsCheckButton.setLayoutData(gd);
 		fSearchExternalJarsCheckButton.addSelectionListener(getDefaultListener());
-		fConsiderInheritedMainButton = createCheckButton(parent, LauncherMessages.JavaMainTab_22); 
+		fConsiderInheritedMainButton = createCheckButton(parent, LauncherMessages.JavaMainTab_22);
 		gd = new GridData();
 		gd.horizontalSpan = 2;
 		fConsiderInheritedMainButton.setLayoutData(gd);
 		fConsiderInheritedMainButton.addSelectionListener(getDefaultListener());
-		fStopInMainCheckButton = createCheckButton(parent, LauncherMessages.JavaMainTab_St_op_in_main_1); 
+		fStopInMainCheckButton = createCheckButton(parent, LauncherMessages.JavaMainTab_St_op_in_main_1);
 		gd = new GridData();
 		fStopInMainCheckButton.setLayoutData(gd);
 		fStopInMainCheckButton.addSelectionListener(getDefaultListener());
@@ -117,14 +117,14 @@ public class AspectJMainTab extends SharedJavaMainTab {
 	public Image getImage() {
 		return JavaUI.getSharedImages().getImage(ISharedImages.IMG_OBJS_CLASS);
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.debug.ui.ILaunchConfigurationTab#getName()
 	 */
 	public String getName() {
 		return LauncherMessages.JavaMainTab__Main_19;
 	}
-	
+
 	/**
 	 * Show a dialog that lists all main types
 	 */
@@ -136,13 +136,13 @@ public class AspectJMainTab extends SharedJavaMainTab {
 			if (model != null) {
 				try {
 					elements = model.getJavaProjects();
-				}//end try 
+				}//end try
 				catch (JavaModelException e) {JDIDebugUIPlugin.log(e);}
 			}//end if
-		}//end if 
+		}//end if
 		else {
 			elements = new IJavaElement[]{project};
-		}//end else		
+		}//end else
 		if (elements == null) {
 			elements = new IJavaElement[]{};
 		}//end if
@@ -150,7 +150,7 @@ public class AspectJMainTab extends SharedJavaMainTab {
 		if (fSearchExternalJarsCheckButton.getSelection()) {
 			constraints |= IJavaSearchScope.APPLICATION_LIBRARIES;
 			constraints |= IJavaSearchScope.SYSTEM_LIBRARIES;
-		}//end if	
+		}//end if
 		IJavaSearchScope searchScope = SearchEngine.createJavaSearchScope(elements, constraints);
 		// AspectJ Change Begin
 		AJMainMethodSearchEngine engine = new AJMainMethodSearchEngine();
@@ -160,32 +160,29 @@ public class AspectJMainTab extends SharedJavaMainTab {
 			// AspectJ Change Begin
 			types = engine.searchMainMethodsIncludingAspects(getLaunchConfigurationDialog(), searchScope, fConsiderInheritedMainButton.getSelection());
 			// AspectJ Change End
-		}//end try 
-		catch (InvocationTargetException e) {
-			setErrorMessage(e.getMessage());
-			return;
-		}//end catch 
-		catch (InterruptedException e) {
+		}//end try
+		catch (InvocationTargetException | InterruptedException e) {
 			setErrorMessage(e.getMessage());
 			return;
 		}//end catch
+    //end catch
 		SelectionDialog dialog = null;
 		// AspectJ Change Begin
-		dialog = new AJMainTypeSelectionDialog(getShell(), types); 
+		dialog = new AJMainTypeSelectionDialog(getShell(), types);
 		// AspectJ Change End
-		dialog.setTitle(LauncherMessages.JavaMainTab_Choose_Main_Type_11); 
-		dialog.setMessage(LauncherMessages.JavaMainTab_Choose_a_main__type_to_launch__12); 
+		dialog.setTitle(LauncherMessages.JavaMainTab_Choose_Main_Type_11);
+		dialog.setMessage(LauncherMessages.JavaMainTab_Choose_a_main__type_to_launch__12);
 		if (dialog.open() == Window.CANCEL) {
 			return;
 		}//end if
-		Object[] results = dialog.getResult();	
+		Object[] results = dialog.getResult();
 		IType type = (IType)results[0];
 		if (type != null) {
 			fMainText.setText(type.getFullyQualifiedName());
 			fProjText.setText(type.getJavaProject().getElementName());
 		}//end if
-	}	
-	
+	}
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.jdt.internal.debug.ui.launcher.AbstractJavaMainTab#initializeFrom(org.eclipse.debug.core.ILaunchConfiguration)
 	 */
@@ -195,7 +192,7 @@ public class AspectJMainTab extends SharedJavaMainTab {
 		updateStopInMainFromConfig(config);
 		updateInheritedMainsFromConfig(config);
 		updateExternalJars(config);
-	}	
+	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.debug.ui.AbstractLaunchConfigurationTab#isValid(org.eclipse.debug.core.ILaunchConfiguration)
@@ -210,59 +207,59 @@ public class AspectJMainTab extends SharedJavaMainTab {
 			if (status.isOK()) {
 				IProject project= ResourcesPlugin.getWorkspace().getRoot().getProject(name);
 				if (!project.exists()) {
-					setErrorMessage(NLS.bind(LauncherMessages.JavaMainTab_20, new String[] {name})); 
+					setErrorMessage(NLS.bind(LauncherMessages.JavaMainTab_20, new String[] {name}));
 					return false;
 				}//end if
 				if (!project.isOpen()) {
-					setErrorMessage(NLS.bind(LauncherMessages.JavaMainTab_21, new String[] {name})); 
+					setErrorMessage(NLS.bind(LauncherMessages.JavaMainTab_21, new String[] {name}));
 					return false;
 				}//end if
-			}//end if 
+			}//end if
 			else {
-				setErrorMessage(NLS.bind(LauncherMessages.JavaMainTab_19, new String[]{status.getMessage()})); 
+				setErrorMessage(NLS.bind(LauncherMessages.JavaMainTab_19, new String[]{status.getMessage()}));
 				return false;
 			}//end else
 		}//end if
 		name = fMainText.getText().trim();
 		if (name.length() == 0) {
-			setErrorMessage(LauncherMessages.JavaMainTab_Main_type_not_specified_16); 
+			setErrorMessage(LauncherMessages.JavaMainTab_Main_type_not_specified_16);
 			return false;
 		}//end if
 		return true;
 	}
-			
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.debug.ui.ILaunchConfigurationTab#performApply(org.eclipse.debug.core.ILaunchConfigurationWorkingCopy)
 	 */
 	public void performApply(ILaunchConfigurationWorkingCopy config) {
 		config.setAttribute(IJavaLaunchConfigurationConstants.ATTR_PROJECT_NAME, fProjText.getText().trim());
 		config.setAttribute(IJavaLaunchConfigurationConstants.ATTR_MAIN_TYPE_NAME, fMainText.getText().trim());
-		
+
 		// attribute added in 2.1, so null must be used instead of false for backwards compatibility
 		if (fStopInMainCheckButton.getSelection()) {
 			config.setAttribute(IJavaLaunchConfigurationConstants.ATTR_STOP_IN_MAIN, true);
-		}//end if 
+		}//end if
 		else {
 			config.setAttribute(IJavaLaunchConfigurationConstants.ATTR_STOP_IN_MAIN, (String)null);
 		}//end else
-		
+
 		// attribute added in 2.1, so null must be used instead of false for backwards compatibility
 		if (fSearchExternalJarsCheckButton.getSelection()) {
 			config.setAttribute(ATTR_INCLUDE_EXTERNAL_JARS, true);
-		}//end if 
+		}//end if
 		else {
 			config.setAttribute(ATTR_INCLUDE_EXTERNAL_JARS, (String)null);
 		}//end else
-		
+
 		// attribute added in 3.0, so null must be used instead of false for backwards compatibility
 		if (fConsiderInheritedMainButton.getSelection()) {
 			config.setAttribute(ATTR_CONSIDER_INHERITED_MAIN, true);
-		}//end if 
+		}//end if
 		else {
 			config.setAttribute(ATTR_CONSIDER_INHERITED_MAIN, (String)null);
-		}//end else		
+		}//end else
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.debug.ui.ILaunchConfigurationTab#setDefaults(org.eclipse.debug.core.ILaunchConfigurationWorkingCopy)
 	 */
@@ -270,13 +267,13 @@ public class AspectJMainTab extends SharedJavaMainTab {
 		IJavaElement javaElement = getContext();
 		if (javaElement != null) {
 			initializeJavaProject(javaElement, config);
-		}//end if 
+		}//end if
 		else {
 			config.setAttribute(IJavaLaunchConfigurationConstants.ATTR_PROJECT_NAME, EMPTY_STRING);
 		}//end else
 		initializeMainTypeAndName(javaElement, config);
 	}
-	
+
 	/**
 	 * updates the external jars attribute from the specified launch config
 	 * @param config the config to load from
@@ -285,7 +282,7 @@ public class AspectJMainTab extends SharedJavaMainTab {
 		boolean search = false;
 		try {
 			search = config.getAttribute(ATTR_INCLUDE_EXTERNAL_JARS, false);
-		}//end try 
+		}//end try
 		catch (CoreException e) {JDIDebugUIPlugin.log(e);}
 		fSearchExternalJarsCheckButton.setSelection(search);
 	}
@@ -298,7 +295,7 @@ public class AspectJMainTab extends SharedJavaMainTab {
 		boolean inherit = false;
 		try {
 			inherit = config.getAttribute(ATTR_CONSIDER_INHERITED_MAIN, false);
-		}//end try 
+		}//end try
 		catch (CoreException e) {JDIDebugUIPlugin.log(e);}
 		fConsiderInheritedMainButton.setSelection(inherit);
 	}
@@ -311,9 +308,9 @@ public class AspectJMainTab extends SharedJavaMainTab {
 		boolean stop = false;
 		try {
 			stop = config.getAttribute(IJavaLaunchConfigurationConstants.ATTR_STOP_IN_MAIN, false);
-		}//end try 
+		}//end try
 		catch (CoreException e) {JDIDebugUIPlugin.log(e);}
 		fStopInMainCheckButton.setSelection(stop);
 	}
-	
+
 }

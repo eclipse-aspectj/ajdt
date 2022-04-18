@@ -177,8 +177,7 @@ public class CompilationUnitTools {
 	    if (unit instanceof AJCompilationUnit) {
             return (AJCompilationUnit) unit;
         } else if (unit instanceof CompilationUnit) {
-            AJCompilationUnit maybeAJUnit = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit((IFile) unit.getResource());
-            return maybeAJUnit;
+        return AJCompilationUnitManager.INSTANCE.getAJCompilationUnit((IFile) unit.getResource());
         } else {
             return null;
         }

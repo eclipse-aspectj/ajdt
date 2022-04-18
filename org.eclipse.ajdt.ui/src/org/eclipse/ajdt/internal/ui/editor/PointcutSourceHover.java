@@ -87,13 +87,11 @@ public class PointcutSourceHover extends AbstractJavaEditorTextHover implements
 	 * @since 3.0
 	 */
 	public IInformationControlCreator getHoverControlCreator() {
-		return new IInformationControlCreator() {
-			public IInformationControl createInformationControl(Shell parent) {
-				// need to use our own version to get AJ keyword highlighting
-				return new AJSourceViewerInformationControl(parent,
-						EditorsUI.getTooltipAffordanceString());
-			}
-		};
+		return parent -> {
+      // need to use our own version to get AJ keyword highlighting
+      return new AJSourceViewerInformationControl(parent,
+          EditorsUI.getTooltipAffordanceString());
+    };
 	}
 
 	/*
@@ -101,15 +99,13 @@ public class PointcutSourceHover extends AbstractJavaEditorTextHover implements
 	 * @since 3.0
 	 */
 	public IInformationControlCreator getInformationPresenterControlCreator() {
-		return new IInformationControlCreator() {
-			public IInformationControl createInformationControl(Shell parent) {
-				int shellStyle = SWT.RESIZE | SWT.TOOL;
-				int style = SWT.V_SCROLL | SWT.H_SCROLL;
-				// need to use our own version to get AJ keyword highlighting
-				return new AJSourceViewerInformationControl(parent, shellStyle,
-						style);
-			}
-		};
+		return parent -> {
+      int shellStyle = SWT.RESIZE | SWT.TOOL;
+      int style = SWT.V_SCROLL | SWT.H_SCROLL;
+      // need to use our own version to get AJ keyword highlighting
+      return new AJSourceViewerInformationControl(parent, shellStyle,
+          style);
+    };
 	}
 
 }

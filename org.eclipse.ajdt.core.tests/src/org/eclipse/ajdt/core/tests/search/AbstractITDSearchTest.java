@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2009 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Andrew Eisenberg - initial API and implementation
  *******************************************************************************/
@@ -46,7 +46,7 @@ import org.eclipse.jdt.internal.core.search.JavaSearchScope;
  */
 public class AbstractITDSearchTest extends AJDTCoreTestCase {
     class ITDAwareSearchRequestor extends SearchRequestor {
-        List<SearchMatch> matches = new ArrayList<SearchMatch>();
+        List<SearchMatch> matches = new ArrayList<>();
         @Override
 		public void acceptSearchMatch(SearchMatch match) throws CoreException {
             // order matches by offset
@@ -58,7 +58,7 @@ public class AbstractITDSearchTest extends AJDTCoreTestCase {
             }
             matches.add(match);
         }
-        
+
         public List<SearchMatch> getMatches() {
             return matches;
         }
@@ -76,11 +76,11 @@ public class AbstractITDSearchTest extends AJDTCoreTestCase {
         AJCompilationUnit ajUnit = (AJCompilationUnit) unit;
         IType type = ajUnit.getTypes()[0];
         IJavaElement[] children = type.getChildren();
-        for (int i = 0; i < children.length; i++) {
-            if (children[i] instanceof IntertypeElement) {
-                return (IntertypeElement) children[i];
-            }
+      for (IJavaElement child : children) {
+        if (child instanceof IntertypeElement) {
+          return (IntertypeElement) child;
         }
+      }
         return null;
     }
 
@@ -109,7 +109,7 @@ public class AbstractITDSearchTest extends AJDTCoreTestCase {
         javaProject.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
         waitForManualBuild();
         assertNoProblems(javaProject.getProject());
-        
+
         AspectJCoreTestPlugin.logInfo("About to create Search pattern in " + name);
         SearchPattern pattern = SearchPattern.createPattern(elt, flags);
         SearchEngine engine = new SearchEngine();
@@ -118,7 +118,7 @@ public class AbstractITDSearchTest extends AJDTCoreTestCase {
 
         AspectJCoreTestPlugin.logInfo("About to perform search in " + name);
         ITDAwareSearchRequestor requestor = new ITDAwareSearchRequestor();
-        engine.search(pattern, new SearchParticipant[] { SearchEngine.getDefaultSearchParticipant() }, 
+        engine.search(pattern, new SearchParticipant[] { SearchEngine.getDefaultSearchParticipant() },
                 scope, requestor, new NullProgressMonitor());
         return requestor.getMatches();
     }
@@ -130,23 +130,22 @@ public class AbstractITDSearchTest extends AJDTCoreTestCase {
     protected ICompilationUnit createCU(String pack, String name, String contents) throws CoreException {
         return createCompilationUnitAndPackage(pack, name, contents, javaProject);
     }
-    
+
     protected void assertNoMatch(String contents, List<SearchMatch> matches) {
         assertEquals("Should not have found any matches, but instead found matches in:\n" + contents + "\n\nMatches were:" + printMatches(matches), 0, matches.size());
     }
 
     private String printMatches(List<SearchMatch> matches) {
-        StringBuffer sb = new StringBuffer();
-        for (Iterator<SearchMatch> matchIter = matches.iterator(); matchIter.hasNext();) {
-            SearchMatch match = matchIter.next();
-            sb.append("\n\n" + match);
-            
-        }
+        StringBuilder sb = new StringBuilder();
+      for (SearchMatch match : matches) {
+        sb.append("\n\n").append(match);
+
+      }
         return sb.toString();
     }
 
     protected void assertMatch(String matchName, String contents, List<SearchMatch> matches) {
-        
+
         // remove matches from inside import statements
         int matchStart = 0;
         if (matches.size() > 1) {
@@ -163,7 +162,7 @@ public class AbstractITDSearchTest extends AJDTCoreTestCase {
         assertEquals("Wrong match location", contents.indexOf(matchName, matchStart), match.getOffset());
         assertEquals("Wrong match length", matchName.length(), match.getLength());
         assertTrue("Match enclosing element does not exist", ((IJavaElement) match.getElement()).exists());
-            
+
             // disabled because we can't get this right right now.
     //        assertEquals("Expected exact match, but was potential", SearchMatch.A_ACCURATE, match.getAccuracy());
     }
@@ -172,26 +171,25 @@ public class AbstractITDSearchTest extends AJDTCoreTestCase {
         SearchMatch match = matches.get(0);
         assertEquals("Wrong match location", contents.indexOf(matchName), match.getOffset());
         assertEquals("Wrong match length", matchName.length(), match.getLength());
-        
+
         match = matches.get(1);
         assertEquals("Wrong match location", contents.lastIndexOf(matchName), match.getOffset());
         assertEquals("Wrong match length", matchName.length(), match.getLength());
-        
+
         // disabled because we can't get this right right now.
         //        assertEquals("Expected exact match, but was potential", SearchMatch.A_ACCURATE, match.getAccuracy());
     }
-    
+
 
     protected void assertDeclarationMatches(IMember declaration, List<SearchMatch> matches) throws JavaModelException {
         boolean found = false;
-        for (Iterator<SearchMatch> searchIter = matches.iterator(); searchIter.hasNext();) {
-            SearchMatch match = searchIter.next();
-            if (match.getElement().equals(declaration)) {
-                found = true;
-                assertDeclarationMatch(declaration, match);
-                break;
-            }
+      for (SearchMatch match : matches) {
+        if (match.getElement().equals(declaration)) {
+          found = true;
+          assertDeclarationMatch(declaration, match);
+          break;
         }
+      }
         if (!found) {
             fail("Expected to find " + declaration + " in matches, but did not.\n" + printMatches(matches));
         }

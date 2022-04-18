@@ -250,16 +250,14 @@ public class PushinRefactoringTests extends UITestCase {
             return;
         }
 
-        IResourceVisitor visitor = new IResourceVisitor() {
-            public boolean visit(IResource resource) throws CoreException {
-                if (resource.getType() == IResource.FILE) {
-                    if (resource.getFileExtension().equals("aj")) {
-                        fail("Should not have any aj files left after refactoring, but found: " +
-                                resource.getFullPath());
-                    }
+        IResourceVisitor visitor = resource1 -> {
+            if (resource1.getType() == IResource.FILE) {
+                if (resource1.getFileExtension().equals("aj")) {
+                    fail("Should not have any aj files left after refactoring, but found: " +
+                         resource1.getFullPath());
                 }
-                return false;
             }
+            return false;
         };
         resource.accept(visitor);
     }
@@ -284,33 +282,33 @@ public class PushinRefactoringTests extends UITestCase {
         // no errors on log
         logs = logView.getElements();
         if (numErrors != logs.length) {
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
             for (int i = numErrors; i < logs.length; i++) {
                 LogEntry entry = (LogEntry) logs[i];
-                sb.append(entry.getMessage() + "\n" + entry.getStack() + "\n");
+                sb.append(entry.getMessage()).append("\n").append(entry.getStack()).append("\n");
             }
-            fail("Should not have any extra log entries after refactoring petclinic:\n" + sb.toString());
+            fail("Should not have any extra log entries after refactoring petclinic:\n" + sb);
         }
 
         // no compile errors
         IMarker[] problems = jProject.getProject().findMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, true, IResource.DEPTH_INFINITE);
         if (problems.length > 0) {
-            StringBuffer sb = new StringBuffer();
-            for (int i = 0; i < problems.length; i++) {
-                IMarker marker = problems[i];
-                String msg = (String) marker.getAttribute(IMarker.MESSAGE);
+            StringBuilder sb = new StringBuilder();
+          for (IMarker marker : problems) {
+            String msg = (String) marker.getAttribute(IMarker.MESSAGE);
 
-                // ignore missing imports
-                // ignore duplicate resource warnings
-                if (((Integer) marker.getAttribute(IMarker.SEVERITY)).intValue() >= IMarker.SEVERITY_WARNING
-                            && msg.indexOf("import") == -1
-                            && msg.indexOf("duplicate resource:") == -1) {
-                    sb.append(marker.getResource().getFullPath() + ": ");
-                    sb.append(msg  + "\n");
-                }
+            // ignore missing imports
+            // ignore duplicate resource warnings
+            if ((Integer) marker.getAttribute(IMarker.SEVERITY) >= IMarker.SEVERITY_WARNING
+                && !msg.contains("import")
+                && !msg.contains("duplicate resource:"))
+            {
+              sb.append(marker.getResource().getFullPath()).append(": ");
+              sb.append(msg).append("\n");
             }
+          }
             if (sb.length() > 0) {
-                fail("Should not have any compile errors after pushin refactoring:\n" + sb.toString());
+                fail("Should not have any compile errors after pushin refactoring:\n" + sb);
             }
         }
     }

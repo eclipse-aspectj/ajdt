@@ -3,8 +3,8 @@
  * program and the accompanying materials are made available under the terms of
  * the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
- * 
- * Contributors: IBM Corporation - initial API and implementation 
+ *
+ * Contributors: IBM Corporation - initial API and implementation
  * 				 Helen Hawkins   - iniital version
  ******************************************************************************/
 package org.eclipse.ajdt.ui.tests.testutils;
@@ -22,7 +22,7 @@ import org.eclipse.ajdt.core.builder.AJBuilder;
 public class TestLogger implements IAJLogger {
 
     private List log;
-    
+
     public TestLogger() {
     	// need to register state listener to get feedback about builds
     	AJBuilder.addStateListener();
@@ -41,20 +41,20 @@ public class TestLogger implements IAJLogger {
     public void log(int category, String msg) {
     	log(msg);
     }
-    
+
     public boolean containsMessage(String msg) {
     	if (log == null) {
     		return false;
     	}
-        for (Iterator iter = log.iterator(); iter.hasNext();) {
-            String logEntry = (String) iter.next();
-            if (logEntry.indexOf(msg) != -1) {
-                return true;
-            }
+      for (Object o : log) {
+        String logEntry = (String) o;
+        if (logEntry.contains(msg)) {
+          return true;
         }
+      }
         return false;
     }
-    
+
     /**
      * Return the first line in the log that contains the given string
      * @param msg
@@ -66,63 +66,63 @@ public class TestLogger implements IAJLogger {
         }
     	for (int i = log.size()-1; i >= 0; i--) {
            String logEntry = (String)log.get(i);
-            if (logEntry.indexOf(msg) != -1) {
+            if (logEntry.contains(msg)) {
                 return logEntry;
             }
         }
         return null;
     }
-    
+
     public int numberOfEntriesForMessage(String msg) {
         if (log == null) {
             return 0;
         }
         int occurances = 0;
-        for (Iterator iter = log.iterator(); iter.hasNext();) {
-            String logEntry = (String) iter.next();
-            StringBuffer sb = new StringBuffer(logEntry);
-            if (sb.indexOf(msg) != -1) {
-                occurances++;
-            }
+      for (Object o : log) {
+        String logEntry = (String) o;
+        StringBuilder sb = new StringBuilder(logEntry);
+        if (sb.indexOf(msg) != -1) {
+          occurances++;
         }
+      }
         return occurances;
     }
-    
+
     /**
      * Clears the log
      */
     public void clearLog() {
     	if (log != null) {
-        	log.clear();			
+        	log.clear();
 		}
     }
-    
+
     /**
      * Prints the contents of the log to the screen - useful
      * in testcase development
      */
     public void printLog() {
-    	System.out.println(""); //$NON-NLS-1$
+    	System.out.println(); //$NON-NLS-1$
     	System.out.println("Printing log begin ------------------------------------"); //$NON-NLS-1$
     	if (log == null) {
     	    System.out.println("Empty log"); //$NON-NLS-1$
     	}
-    	for (Iterator iter = log.iterator(); iter.hasNext();) {
-			String element = (String) iter.next();
-			System.out.println("LOG: " + element); //$NON-NLS-1$
-		}
+      for (Object o : log) {
+        String element = (String) o;
+        System.out.println("LOG: " + element); //$NON-NLS-1$
+      }
     	System.out.println("-------------------------------------- Printing log end"); //$NON-NLS-1$
     }
 
     public String getLogMessages() {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         if (log == null) {
             return "";
         }
-        for (Iterator logIter = log.iterator(); logIter.hasNext();) {
-            String msg = (String) logIter.next();
-            sb.append(msg + "\n");
-        }
+      for (Object o : log) {
+        String msg = (String) o;
+        sb.append(msg).append("\n");
+      }
         return sb.toString();
     }
 }

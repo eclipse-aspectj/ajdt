@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2002, 2005 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Adrian Colyer, Andy Clement, Tracy Gardner - initial version
@@ -42,7 +42,7 @@ public class AspectJProjectNature implements IProjectNature {
 	/**
 	 * Driven when this project nature is 'given' to a project, it adds the
 	 * appropriate builder to the project build specification.
-	 * 
+	 *
 	 * @todo scan the current list of builders, if it contains
 	 *       'org.eclipse.jdt.core.javabuilder' replace that entry with our
 	 *       entry, otherwise simply insert our builder as a new entry.
@@ -66,7 +66,7 @@ public class AspectJProjectNature implements IProjectNature {
 		    // ask if weaving service should be enable
 		    WeavableProjectListener.weavableNatureAdded(project);
 		} catch (Exception e) {
-		    
+
 		}
 	}
 
@@ -174,12 +174,12 @@ public class AspectJProjectNature implements IProjectNature {
 	 */
 	private static boolean contains(ICommand[] commands, String builderId) {
 		boolean found = false;
-		for (int i = 0; i < commands.length; i++) {
-			if (commands[i].getBuilderName().equals(builderId)) {
-				found = true;
-				break;
-			}
-		}
+    for (ICommand command : commands) {
+      if (command.getBuilderName().equals(builderId)) {
+        found = true;
+        break;
+      }
+    }
 		return found;
 	}
 
@@ -205,9 +205,7 @@ public class AspectJProjectNature implements IProjectNature {
 	private static ICommand[] insert(ICommand[] sourceCommands, ICommand command) {
 		ICommand[] newCommands = new ICommand[sourceCommands.length + 1];
 		newCommands[0] = command;
-		for (int i = 0; i < sourceCommands.length; i++) {
-			newCommands[i + 1] = sourceCommands[i];
-		}
+    System.arraycopy(sourceCommands, 0, newCommands, 1, sourceCommands.length);
 		return newCommands;
 	}
 
@@ -217,11 +215,11 @@ public class AspectJProjectNature implements IProjectNature {
 	private static ICommand[] remove(ICommand[] sourceCommands, String builderId) {
 		ICommand[] newCommands = new ICommand[sourceCommands.length - 1];
 		int newCommandIndex = 0;
-		for (int i = 0; i < sourceCommands.length; i++) {
-			if (!sourceCommands[i].getBuilderName().equals(builderId)) {
-				newCommands[newCommandIndex++] = sourceCommands[i];
-			}
-		}
+    for (ICommand sourceCommand : sourceCommands) {
+      if (!sourceCommand.getBuilderName().equals(builderId)) {
+        newCommands[newCommandIndex++] = sourceCommand;
+      }
+    }
 		return newCommands;
 	}
 
@@ -229,25 +227,25 @@ public class AspectJProjectNature implements IProjectNature {
 	 * Does java builder command in given project has got binary file generation disabled.
 	 * @param project2
 	 * @return
-	 * @throws CoreException 
+	 * @throws CoreException
 	 */
 	public static boolean isClassGenerationDisabled(
 			IProject project) throws CoreException {
 		Collection resultCommands = findBuilder(project, JavaCore.BUILDER_ID);
-		for (Iterator it = resultCommands.iterator(); it.hasNext();) {
-			ICommand javaBuilderCommand = (ICommand) it.next();
-			Map arguments = javaBuilderCommand.getArguments();
-			String value = (String) arguments.get(JAVA_BUILDER_GENERATE_CLASSES);
-			if (value == null || !value.equals(Boolean.FALSE.toString())) {
-				return false;
-			}
-		}
+    for (Object resultCommand : resultCommands) {
+      ICommand javaBuilderCommand = (ICommand) resultCommand;
+      Map arguments = javaBuilderCommand.getArguments();
+      String value = (String) arguments.get(JAVA_BUILDER_GENERATE_CLASSES);
+      if (value == null || !value.equals(Boolean.FALSE.toString())) {
+        return false;
+      }
+    }
 		return true;
 	}
 
 	/**
 	 * Find builder commands in given project
-	 * 
+	 *
 	 * @param project
 	 *            project to search in
 	 * @param builderId
@@ -260,11 +258,11 @@ public class AspectJProjectNature implements IProjectNature {
 			throws CoreException {
 		ICommand[] commands = project.getDescription().getBuildSpec();
 		Collection resultCommands = new ArrayList();
-		for (int i = 0; i < commands.length; i++) {
-			if (commands[i].getBuilderName().equals(builderId)) {
-				resultCommands.add(commands[i]);
-			}
-		}
+    for (ICommand command : commands) {
+      if (command.getBuilderName().equals(builderId)) {
+        resultCommands.add(command);
+      }
+    }
 		return resultCommands;
 	}
 }

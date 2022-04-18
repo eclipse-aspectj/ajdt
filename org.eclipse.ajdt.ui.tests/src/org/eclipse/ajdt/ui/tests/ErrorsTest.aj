@@ -13,7 +13,6 @@ package org.eclipse.ajdt.ui.tests;
 
 import junit.framework.TestCase;
 
-import org.eclipse.ajdt.ui.tests.ras.PluginFFDCTest;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.PartInitException;
@@ -52,24 +51,24 @@ public aspect ErrorsTest {
 			proceed();
 			if (logView != null) {
     			logs = logView.getElements();
-    			String failureText = ""; //$NON-NLS-1$
+    			StringBuilder failureText = new StringBuilder(); //$NON-NLS-1$
     			if(logs.length > numErrors) { // Check for errors or warnings
     				int numAdded = logs.length - numErrors;
     				for (int i = 0; i < numAdded; i++) { // New entries are always added at the start
     					LogEntry entry = (LogEntry) logs[i];
     					if(entry.getSeverity() == IStatus.ERROR || entry.getSeverity() == IStatus.WARNING) {
     					    // ignore expected exceptions
-    						if (entry.getMessage().indexOf("org.eclipse.contribution.xref.core.tests.unknownProvider") == -1 && //$NON-NLS-1$
-    						        entry.getMessage().indexOf("org.eclipse.contribution.xref.core.tests.UnknownProvider") == -1 && //$NON-NLS-1$
-    						        entry.getMessage().indexOf("One or more bundles are not resolved because the following root constraints are not resolved") == -1 && //$NON-NLS-1$
-    						        entry.getMessage().indexOf("Could not load repository template extension") == -1 && //$NON-NLS-1$
-    						        entry.getMessage().indexOf("The following is a complete list of bundles which are not resolved") == -1) { //$NON-NLS-1$
-    							failureText += "The test added errors to the log:\n" + entry.getMessage() + "\n" + entry.getStack() + "\n\n"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    						if (!entry.getMessage().contains("org.eclipse.contribution.xref.core.tests.unknownProvider") && //$NON-NLS-1$
+                    !entry.getMessage().contains("org.eclipse.contribution.xref.core.tests.UnknownProvider") && //$NON-NLS-1$
+                    !entry.getMessage().contains("One or more bundles are not resolved because the following root constraints are not resolved") && //$NON-NLS-1$
+                    !entry.getMessage().contains("Could not load repository template extension") && //$NON-NLS-1$
+                    !entry.getMessage().contains("The following is a complete list of bundles which are not resolved")) { //$NON-NLS-1$
+    							failureText.append("The test added errors to the log:\n").append(entry.getMessage()).append("\n").append(entry.getStack()).append("\n\n"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
     						}
     					}
     				}
     				if (failureText.length() > 0) {
-    					TestCase.fail(failureText);
+    					TestCase.fail(failureText.toString());
     				}
     			}
 			}

@@ -43,12 +43,12 @@ import org.eclipse.ui.wizards.newresource.BasicNewProjectResourceWizard;
  * Wizard to create a new AspectJ project
  */
 public class AspectJProjectWizard extends NewElementWizard implements IExecutableExtension {
-    
+
     protected NewJavaProjectWizardPageOne fFirstPage;
     protected NewJavaProjectWizardPageTwo fSecondPage;
-    
+
     private IConfigurationElement fConfigElement;
-    
+
     public AspectJProjectWizard() {
 		setDefaultPageImageDescriptor(AspectJImages.W_NEW_AJ_PRJ.getImageDescriptor());
 		setDialogSettings(AspectJUIPlugin.getDefault().getDialogSettings());
@@ -57,7 +57,7 @@ public class AspectJProjectWizard extends NewElementWizard implements IExecutabl
 
     /*
      * @see Wizard#addPages
-     */	
+     */
     public void addPages() {
         super.addPages();
         fFirstPage= new NewJavaProjectWizardPageOne();
@@ -68,15 +68,15 @@ public class AspectJProjectWizard extends NewElementWizard implements IExecutabl
         fSecondPage.setTitle(UIMessages.NewAspectJProject_BuildSettings);
         fSecondPage.setDescription(UIMessages.NewAspectJProject_BuildSettingsDescription);
         addPage(fSecondPage);
-    }		
-    
+    }
+
     /* (non-Javadoc)
      * @see org.eclipse.jdt.internal.ui.wizards.NewElementWizard#finishPage(org.eclipse.core.runtime.IProgressMonitor)
      */
     protected void finishPage(IProgressMonitor monitor) throws InterruptedException, CoreException {
     	fSecondPage.performFinish(monitor); // use the full progress monitor
     }
-    
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.wizard.IWizard#performFinish()
 	 */
@@ -87,27 +87,26 @@ public class AspectJProjectWizard extends NewElementWizard implements IExecutabl
 	        BasicNewProjectResourceWizard.updatePerspective(fConfigElement);
 	 		IProject project = fSecondPage.getJavaProject().getProject();
 	 		selectAndReveal(project);
-			boolean completed = finalizeNewProject(project);
-			res = completed;
+      res = finalizeNewProject(project);
 		}
 		return res;
 	}
-    
-    protected void handleFinishException(Shell shell, InvocationTargetException e) {
-        String title= NewWizardMessages.JavaProjectWizard_op_error_title; 
-        String message= NewWizardMessages.JavaProjectWizard_op_error_create_message; 
-        ExceptionHandler.handle(e, getShell(), title, message);
-    }	
 
-    
+    protected void handleFinishException(Shell shell, InvocationTargetException e) {
+        String title= NewWizardMessages.JavaProjectWizard_op_error_title;
+        String message= NewWizardMessages.JavaProjectWizard_op_error_create_message;
+        ExceptionHandler.handle(e, getShell(), title, message);
+    }
+
+
 	/**
 	 * Builds and adds the necessary properties to the new project and updates the workspace view
 	 */
 	private boolean finalizeNewProject(IProject project) {
-		
+
         // Bugzilla 46271
         // Force a build of the new AspectJ project using the Java builder
-        // so that project state can be created. The creation of project 
+        // so that project state can be created. The creation of project
         // state means that Java projects can reference this project on their
         // build path and successfully continue to build.
 
@@ -126,7 +125,7 @@ public class AspectJProjectWizard extends NewElementWizard implements IExecutabl
 	}
 
 
-   
+
     /*
      * Stores the configuration element for the wizard.  The config element will be used
      * in <code>performFinish</code> to set the result perspective.
@@ -134,7 +133,7 @@ public class AspectJProjectWizard extends NewElementWizard implements IExecutabl
     public void setInitializationData(IConfigurationElement cfig, String propertyName, Object data) {
         fConfigElement= cfig;
     }
-    
+
     /* (non-Javadoc)
      * @see IWizard#performCancel()
      */
@@ -142,7 +141,7 @@ public class AspectJProjectWizard extends NewElementWizard implements IExecutabl
         fSecondPage.performCancel();
         return super.performCancel();
     }
-    
+
     /* (non-Javadoc)
      * @see org.eclipse.jface.wizard.IWizard#canFinish()
      */

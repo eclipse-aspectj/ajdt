@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2005 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Helen Hawkins and Sian January - initial version
@@ -61,7 +61,7 @@ import org.xml.sax.helpers.DefaultHandler;
 public class LTWUtils {
 
 	public final static String AOP_XML_LOCATION = "META-INF/aop-ajc.xml"; //$NON-NLS-1$
-	
+
 	/**
 	 * Generate one aop-ajc.xml file for each source directory in the given project.
 	 * The aop-ajc.xml files will list all concrete aspects included in the active
@@ -72,60 +72,61 @@ public class LTWUtils {
 		try {
 			// Get all the source folders in the project
 			IPackageFragmentRoot[] roots = project.getAllPackageFragmentRoots();
-			for (int i = 0; i < roots.length; i++) {
-				IPackageFragmentRoot root = roots[i];
-				if (!(root instanceof JarPackageFragmentRoot) && root.getJavaProject().equals(project)) {
-					List aspects = getAspects(root);
-					String path;
-					if (root.getElementName().trim().equals("")) { //$NON-NLS-1$
-						path = AOP_XML_LOCATION;
-					} else {
-						path = root.getElementName().trim().concat("/").concat(AOP_XML_LOCATION); //$NON-NLS-1$
-					}
-					IFile ltwConfigFile = (IFile) project.getProject().findMember(path);
-					
-					// If the source folder does not already contain an aop-ajc.xml file:
-					if (ltwConfigFile == null) { 
-						if (aspects.size() != 0) { // If there are aspects in the list
-							
-							// Create the META-INF folder and the aop-ajc.xml file
-							IFolder metainf = (IFolder) ((Workspace)ResourcesPlugin.getWorkspace()).
-							newResource(project.getPath().append("/" + root.getElementName() + "/META-INF"), //$NON-NLS-1$ //$NON-NLS-2$
-									IResource.FOLDER);
-							IFile aopFile = (IFile) ((Workspace)ResourcesPlugin.getWorkspace()).
-								newResource(project.getPath().append(path),
-										IResource.FILE);
-							if(metainf == null || !metainf.exists()) {
-								metainf.create(true,true,null);
-							}
-							aopFile.create(new ByteArrayInputStream(new byte[0]), true, null);
-							project.getProject().refreshLocal(4, null);
-							
-							// Add the xml content to the aop-ajc.xml file
-							addAspectsToLTWConfigFile(false, aspects, aopFile);
-							copyToOutputFolder(aopFile, project, root.getRawClasspathEntry());
-						}
-						 
-					// Otherwise update the existing file	
-					} else { 
-						addAspectsToLTWConfigFile(true, aspects, ltwConfigFile);
-						copyToOutputFolder(ltwConfigFile, project, root.getRawClasspathEntry());
-					}
-				}
-			}
+      for (IPackageFragmentRoot root : roots) {
+        if (!(root instanceof JarPackageFragmentRoot) && root.getJavaProject().equals(project)) {
+          List aspects = getAspects(root);
+          String path;
+          if (root.getElementName().trim().equals("")) { //$NON-NLS-1$
+            path = AOP_XML_LOCATION;
+          }
+          else {
+            path = root.getElementName().trim().concat("/").concat(AOP_XML_LOCATION); //$NON-NLS-1$
+          }
+          IFile ltwConfigFile = (IFile) project.getProject().findMember(path);
+
+          // If the source folder does not already contain an aop-ajc.xml file:
+          if (ltwConfigFile == null) {
+            if (aspects.size() != 0) { // If there are aspects in the list
+
+              // Create the META-INF folder and the aop-ajc.xml file
+              IFolder metainf = (IFolder) ((Workspace) ResourcesPlugin.getWorkspace()).
+                newResource(project.getPath().append("/" + root.getElementName() + "/META-INF"), //$NON-NLS-1$ //$NON-NLS-2$
+                  IResource.FOLDER);
+              IFile aopFile = (IFile) ((Workspace) ResourcesPlugin.getWorkspace()).
+                newResource(project.getPath().append(path),
+                  IResource.FILE);
+              if (metainf == null || !metainf.exists()) {
+                metainf.create(true, true, null);
+              }
+              aopFile.create(new ByteArrayInputStream(new byte[0]), true, null);
+              project.getProject().refreshLocal(4, null);
+
+              // Add the xml content to the aop-ajc.xml file
+              addAspectsToLTWConfigFile(false, aspects, aopFile);
+              copyToOutputFolder(aopFile, project, root.getRawClasspathEntry());
+            }
+
+            // Otherwise update the existing file
+          }
+          else {
+            addAspectsToLTWConfigFile(true, aspects, ltwConfigFile);
+            copyToOutputFolder(ltwConfigFile, project, root.getRawClasspathEntry());
+          }
+        }
+      }
 		} catch (Exception e) {
 		}
 
 	}
-	
-	
+
+
 	private static void copyToOutputFolder(IFile file, IJavaProject javaProject, IClasspathEntry srcEntry) throws CoreException {
 		IPath outputPath = srcEntry.getOutputLocation();
         if (outputPath == null) {
 			outputPath = javaProject.getOutputLocation();
 		}
-        outputPath = outputPath.removeFirstSegments(1).makeRelative();   
-        IContainer outputFolder = getContainerForGivenPath(outputPath,javaProject.getProject());        
+        outputPath = outputPath.removeFirstSegments(1).makeRelative();
+        IContainer outputFolder = getContainerForGivenPath(outputPath,javaProject.getProject());
         IContainer srcContainer = getContainerForGivenPath(srcEntry.getPath().removeFirstSegments(1),javaProject.getProject());
         if (!outputFolder.equals(srcContainer)) {
         	IResource outputFile = outputFolder.getFile(new Path(AOP_XML_LOCATION));
@@ -135,26 +136,26 @@ public class LTWUtils {
 			}
 			AJLog.log("Copying added file " + file);//$NON-NLS-1$
 			IFolder metainf = (IFolder) ((Workspace)ResourcesPlugin.getWorkspace()).
-				newResource(new Path(outputFolder.getFullPath() + "/META-INF"), //$NON-NLS-1$ 
+				newResource(new Path(outputFolder.getFullPath() + "/META-INF"), //$NON-NLS-1$
 					IResource.FOLDER);
 			if(!metainf.exists()) {
 				metainf.create(true,true,null);
 			}
 			file.copy(outputFile.getFullPath(), IResource.FORCE, null);
 			outputFile.setDerived(true);
-			outputFile.refreshLocal(IResource.DEPTH_ZERO, null);			
-        }		
+			outputFile.refreshLocal(IResource.DEPTH_ZERO, null);
+        }
 	}
 
 	private static IContainer getContainerForGivenPath(IPath path, IProject project) {
 		if (path.toOSString().equals("")) { //$NON-NLS-1$
 			return project;
-		}	
+		}
 		return project.getFolder(path);
 	}
 
 	/**
-	 * Create a new xml document with an 'aspectj' element that contains 
+	 * Create a new xml document with an 'aspectj' element that contains
 	 * one 'aspects' element.
 	 * @throws ParserConfigurationException
 	 */
@@ -162,14 +163,14 @@ public class LTWUtils {
 		// Create the document and add a root 'aspectj' element with one 'aspects' child element
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder builder = factory.newDocumentBuilder();
-		DOMImplementation impl = builder.getDOMImplementation();        
+		DOMImplementation impl = builder.getDOMImplementation();
 		Document doc = impl.createDocument(null, "aspectj", null);	 //$NON-NLS-1$
 		Element root = doc.getDocumentElement();
 		Element aspectsElement = doc.createElement("aspects"); //$NON-NLS-1$
 		root.appendChild(aspectsElement);
 		return doc;
 	}
-	
+
 	/**
 	 * Updates the given aop-ajc.xml file with the current aspects to be included.
 	 * The file should exist when this method is called.
@@ -178,8 +179,8 @@ public class LTWUtils {
 	 * @param configFile - the file
 	 * @throws Exception
 	 */
-	private static void addAspectsToLTWConfigFile(boolean readFileFirst, 
-			List aspects, IFile configFile) 
+	private static void addAspectsToLTWConfigFile(boolean readFileFirst,
+			List aspects, IFile configFile)
 			throws Exception {
 		Document doc;
 		if (readFileFirst) { // If the aop-ajc.xml file already exists load the existing document
@@ -187,39 +188,39 @@ public class LTWUtils {
 		} else { // Otherwise create a new document
 			doc = createNewXMLDocument();
 		}
-		
+
 		if (doc == null) {
 			return;
 		}
-		
+
 		NodeList children = doc.getDocumentElement().getChildNodes();
 		for (int i = 0; i < children.getLength(); i++) {
-			Node child = children.item(i);			
-			if (child.getNodeName().equals("aspects")) { //$NON-NLS-1$				
+			Node child = children.item(i);
+			if (child.getNodeName().equals("aspects")) { //$NON-NLS-1$
 				// Delete any existing aspects
-				if (child.hasChildNodes()) { 
+				if (child.hasChildNodes()) {
 		            Node root = child.getFirstChild();
 		            while  (root != null){
 		                child.removeChild(root);
 		                root = child.getFirstChild();
 		            }
-				}				
+				}
 				// Add all the current aspects to the document
-				for (Iterator iter = aspects.iterator(); iter.hasNext();) {
-					IType aspect = (IType) iter.next();
-					Element grandChild = doc.createElement("aspect"); //$NON-NLS-1$
-					grandChild.setAttribute("name",getFullyQualifiedName(aspect)); //$NON-NLS-1$
-					child.appendChild(grandChild);
-				}				
+        for (Object o : aspects) {
+          IType aspect = (IType) o;
+          Element grandChild = doc.createElement("aspect"); //$NON-NLS-1$
+          grandChild.setAttribute("name", getFullyQualifiedName(aspect)); //$NON-NLS-1$
+          child.appendChild(grandChild);
+        }
 			}
 		}
-		
+
 		// Write out the document
 		File file = new File(getFileName(configFile));
 		XMLPrintHandler.writeFile(doc, file);
 		configFile.refreshLocal(1,null);
 	}
-	
+
 	/**
 	 * Creates an XML document from the given file
 	 * @param configFile
@@ -229,19 +230,19 @@ public class LTWUtils {
 	private static Document readFile(IFile configFile) throws Exception {
 		DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
 		builder.setErrorHandler(new AOPXMLErrorHandler());
-		return builder.parse(configFile.getContents());		
+		return builder.parse(configFile.getContents());
 	}
-	
+
 	/**
 	 * Get the OS specific full path for the given file
 	 * @param configFile
 	 * @return
 	 */
 	private static String getFileName(IFile configFile) {
-		return ResourcesPlugin.getWorkspace().getRoot().getLocation().toOSString() 
+		return ResourcesPlugin.getWorkspace().getRoot().getLocation().toOSString()
 			+ configFile.getFullPath().toOSString();
 	}
-	
+
 	/**
 	 * Get the fully qualified name for the given aspect (e.g. package.Class
 	 * or package.EnclosingClass.InnerClass)
@@ -249,9 +250,9 @@ public class LTWUtils {
 	 * @return
 	 */
 	private static String getFullyQualifiedName(IType aspect) {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		IJavaElement parent = aspect.getCompilationUnit().getParent();
-		if (parent instanceof IPackageFragment 
+		if (parent instanceof IPackageFragment
 				&& !parent.getElementName().equals("")) { //$NON-NLS-1$
 			sb.append(parent.getElementName());
 			sb.append("."); //$NON-NLS-1$
@@ -259,7 +260,7 @@ public class LTWUtils {
 		sb.append(getFullTypeName(aspect));
 		return sb.toString();
 	}
-	
+
 	/**
 	 * Get the full type name for the given type, including any enclosing classes.
 	 * @param element
@@ -275,7 +276,7 @@ public class LTWUtils {
 			return element.getElementName();
 		}
 	}
-	
+
 	/**
 	 * Get a list of all the aspects found in the given source
 	 * directory, which are included in the current build.
@@ -287,44 +288,41 @@ public class LTWUtils {
 			final IPackageFragmentRoot root) throws CoreException {
 		final List<IType> aspects = new ArrayList();
 		final Set<IFile> includedFiles = BuildConfig.getIncludedSourceFiles(root.getJavaProject().getProject());
-		root.getResource().accept(new IResourceVisitor() {
+		root.getResource().accept(resource -> {
+if (includedFiles.contains(resource)) {
+AJCompilationUnit ajcu = AJCompilationUnitManager.INSTANCE
+.getAJCompilationUnit((IFile) resource);
+if (ajcu != null) {
+try {
+IType[] types = ajcu.getAllAspects();
+for (IType type : types) {
+aspects.add(type);
+}
+} catch (JavaModelException e) {}
+} else {
+ICompilationUnit cu = JavaCore
+.createCompilationUnitFrom((IFile) resource);
+if (cu != null) {
+Set<IType> types = AJProjectModelFactory.getInstance().getModelForJavaElement(cu)
+.aspectsForFile(cu);
 
-			public boolean visit(IResource resource) {
-                if (includedFiles.contains(resource)) {
-                    AJCompilationUnit ajcu = AJCompilationUnitManager.INSTANCE
-                            .getAJCompilationUnit((IFile) resource);
-                    if (ajcu != null) {
-                        try {
-                            IType[] types = ajcu.getAllAspects();
-                            for (int i = 0; i < types.length; i++) {
-                                aspects.add(types[i]);
-                            }
-                        } catch (JavaModelException e) {}
-                    } else {
-                        ICompilationUnit cu = JavaCore
-                                .createCompilationUnitFrom((IFile) resource);
-                        if (cu != null) {
-                            Set<IType> types = AJProjectModelFactory.getInstance().getModelForJavaElement(cu)
-                                    .aspectsForFile(cu);
-
-                            for (IType element : types) {
-                                aspects.add(element);
-                            }
-                        }
-                    }
-                }
-                return resource.getType() == IResource.FOLDER
-                        || resource.getType() == IResource.PROJECT;
-            }
-		});
+for (IType element : types) {
+aspects.add(element);
+}
+}
+}
+}
+return resource.getType() == IResource.FOLDER
+|| resource.getType() == IResource.PROJECT;
+});
 		return aspects;
 	}
-	
+
 	/**
 	 * Error handler class for AOP XML parsing exceptions
 	 */
 	private static class AOPXMLErrorHandler extends DefaultHandler {
-		
+
 		/**
 		 * Throws a more detailed exception when an error occurs parsing a file.
 		 * @param exception - the Exception input
@@ -345,8 +343,8 @@ public class LTWUtils {
 					+ exception.getMessage().substring(
 						exception.getMessage().indexOf(':') + 2));
 		}
-		
-		
+
+
 		/**
 		 * Throws a more detailed exception when a warning occurs while
 		 * parsing a file
@@ -358,10 +356,10 @@ public class LTWUtils {
 			error(exception);
 		}
 
-		
+
 		/**
 		 * Throws a more detailed exception when a fatal error occurs while
-		 * parsing a file 
+		 * parsing a file
 		 * @param exception - input
 		 * @throws SAXException - more detailed output
 		 * @see org.xml.sax.ErrorHandler#fatalError(org.xml.sax.SAXParseException)
@@ -369,14 +367,14 @@ public class LTWUtils {
 		public void fatalError(SAXParseException exception) throws SAXException	{
 			error(exception);
 		}
-				
+
 	}
-	
+
 	/**
 	 * Exception used in error handler to hold details of an XML parsing error
 	 */
 	private static class AOPXMLException extends SAXException{
-		
+
 		private static final long serialVersionUID = 4296332843488816647L;
 
 		/**
@@ -386,7 +384,7 @@ public class LTWUtils {
 		AOPXMLException(String input){
 			super(input);
 		}
-		
+
 	}
-	
+
 }

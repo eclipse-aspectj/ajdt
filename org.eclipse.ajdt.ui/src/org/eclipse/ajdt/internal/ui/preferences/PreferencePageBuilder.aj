@@ -18,8 +18,6 @@ import java.util.Map;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.builder.AJBuildJob;
 import org.eclipse.ajdt.internal.ui.AspectJProjectPropertiesPage;
-import org.eclipse.ajdt.internal.ui.wizards.AspectPathBlock;
-import org.eclipse.ajdt.internal.ui.wizards.InPathBlock;
 import org.eclipse.ajdt.internal.ui.wizards.PathBlock;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
@@ -29,8 +27,6 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.IWorkbenchPropertyPage;
 
 /**
@@ -45,25 +41,25 @@ aspect PreferencePageBuilder {
     private boolean compilerPageDoBuild = false;
 
     // manage those pages which have been activated
-    private List activePages = new ArrayList();
+    private final List activePages = new ArrayList();
 
     // manage those pages for whom performOk has not been executed
-    private List remainingActivePages = new ArrayList();
+    private final List remainingActivePages = new ArrayList();
 
     // manage buttons on all pages
-    private Map /* IWorkbenchPropertyPage -> (Map of Button -> Boolean)*/buttonOriginalValues = new HashMap();
+    private final Map /* IWorkbenchPropertyPage -> (Map of Button -> Boolean)*/buttonOriginalValues = new HashMap();
 
     // manage combo boxes on all pages
-    private Map /* IWorkbenchPropertyPage -> (Map of Combo -> Integer)*/comboOriginalValues = new HashMap();
+    private final Map /* IWorkbenchPropertyPage -> (Map of Combo -> Integer)*/comboOriginalValues = new HashMap();
 
     // manage string field editors on all pages
-    private Map /* IWorkbenchPropertyPage -> (Map of StringFieldEditors -> String)*/stringFieldEditorsOriginalValues = new HashMap();
+    private final Map /* IWorkbenchPropertyPage -> (Map of StringFieldEditors -> String)*/stringFieldEditorsOriginalValues = new HashMap();
 
     // manage selection buttons on all pages
-    private Map /* IWorkbenchPropertyPage -> (Map of SelectionButtonDialogField -> Boolean)*/selectionButtonOriginalValues = new HashMap();
+    private final Map /* IWorkbenchPropertyPage -> (Map of SelectionButtonDialogField -> Boolean)*/selectionButtonOriginalValues = new HashMap();
 
     // manage tree list dialog fields on all pages
-    private Map /* IWorkbenchPropertyPage -> (Map of TreeListDialogField -> List)*/dialogFieldOriginalValues = new HashMap();
+    private final Map /* IWorkbenchPropertyPage -> (Map of TreeListDialogField -> List)*/dialogFieldOriginalValues = new HashMap();
 
     private boolean useProjectSettingsOriginalValue;
 
@@ -128,12 +124,12 @@ aspect PreferencePageBuilder {
 
         if (!buttonOriginalValues.containsKey(page)) {
             Map buttonValues = new HashMap();
-            buttonValues.put(b, new Boolean(val));
+            buttonValues.put(b, val);
             buttonOriginalValues.put(page, buttonValues);
         } else {
             Map buttonValues = (Map) buttonOriginalValues.get(page);
             if (!buttonValues.containsKey(b)) {
-                buttonValues.put(b, new Boolean(val));
+                buttonValues.put(b, val);
             }
         }
     }
@@ -146,12 +142,12 @@ aspect PreferencePageBuilder {
         comboSelect(combo,selection,page) && interestingPage() {
         if (!comboOriginalValues.containsKey(page)) {
             Map comboValues = new HashMap();
-            comboValues.put(combo, new Integer(selection));
+            comboValues.put(combo, selection);
             comboOriginalValues.put(page, comboValues);
         } else {
             Map comboValues = (Map) comboOriginalValues.get(page);
             if (!comboValues.containsKey(combo)) {
-                comboValues.put(combo, new Integer(selection));
+                comboValues.put(combo, selection);
             }
         }
     }
@@ -208,115 +204,100 @@ aspect PreferencePageBuilder {
         // rather than the related AJDTPathBlockPage (so we can check if the contents
         // of the TreeListDialogField more easily in settingsHaveChanged(IWorkbenchPropertyPage)).
         // We therefore iterate through the active pages.
-        for (Iterator iter = activePages.iterator(); iter.hasNext();) {
-            IWorkbenchPropertyPage ajdtPage = (IWorkbenchPropertyPage) iter
-                    .next();
-            if ((basePage instanceof PathBlock)
-                    && (ajdtPage instanceof AspectJProjectPropertiesPage)) {
-                page = ajdtPage;
-            }
+      for (Object activePage : activePages) {
+        IWorkbenchPropertyPage ajdtPage = (IWorkbenchPropertyPage) activePage;
+        if ((basePage instanceof PathBlock)
+            && (ajdtPage instanceof AspectJProjectPropertiesPage))
+        {
+          page = ajdtPage;
         }
+      }
 
         if (!dialogFieldOriginalValues.containsKey(page)) {
             Map fieldValues = new HashMap();
-            List listOfElements = new ArrayList();
-            listOfElements.addAll(elements);
+          List listOfElements = new ArrayList(elements);
             fieldValues.put(dialogField, listOfElements);
             dialogFieldOriginalValues.put(page, fieldValues);
         } else {
             Map fieldValues = (Map) dialogFieldOriginalValues
                     .get(page);
             if (!fieldValues.containsKey(dialogField)) {
-                List listOfElements = new ArrayList();
-                listOfElements.addAll(elements);
+              List listOfElements = new ArrayList(elements);
                 fieldValues.put(dialogField, listOfElements);
             }
         }
     }
 
     private boolean settingsHaveChanged() {
-        Iterator iterator = activePages.iterator();
-        while (iterator.hasNext()) {
-            IWorkbenchPropertyPage page = (IWorkbenchPropertyPage) iterator
-                    .next();
-            if (settingsHaveChangedOnPage(page)) {
-                return true;
-            }
+      for (Object activePage : activePages) {
+        IWorkbenchPropertyPage page = (IWorkbenchPropertyPage) activePage;
+        if (settingsHaveChangedOnPage(page)) {
+          return true;
         }
+      }
         return false;
     }
 
     private boolean settingsHaveChangedOnPage(IWorkbenchPropertyPage page) {
         Map buttonsOnPage = (Map) buttonOriginalValues.get(page);
         if (buttonsOnPage != null) {
-            Iterator buttons = buttonsOnPage.keySet().iterator();
-            while (buttons.hasNext()) {
-                Button b = (Button) buttons.next();
-                if (b.getSelection() != ((Boolean) buttonsOnPage.get(b))
-                        .booleanValue())
-                    return true;
-            }
+          for (Object o : buttonsOnPage.keySet()) {
+            Button b = (Button) o;
+            if (b.getSelection() != (Boolean) buttonsOnPage.get(b))
+              return true;
+          }
         }
 
         Map comboBoxesOnPage = (Map) comboOriginalValues.get(page);
         if (comboBoxesOnPage != null) {
-            Iterator comboboxes = comboBoxesOnPage.keySet().iterator();
-            while (comboboxes.hasNext()) {
-                Combo c = (Combo) comboboxes.next();
-                if (c.getSelectionIndex() != ((Integer) comboBoxesOnPage.get(c))
-                        .intValue())
-                    return true;
-            }
+          for (Object o : comboBoxesOnPage.keySet()) {
+            Combo c = (Combo) o;
+            if (c.getSelectionIndex() != (Integer) comboBoxesOnPage.get(c))
+              return true;
+          }
         }
 
         Map editorsOnPage = (Map) stringFieldEditorsOriginalValues
                 .get(page);
         if (editorsOnPage != null) {
-            Iterator editors = editorsOnPage.keySet().iterator();
-            while (editors.hasNext()) {
-                StringFieldEditor e = (StringFieldEditor) editors.next();
-                if (!(e.getStringValue()
-                        .equals(((String) editorsOnPage.get(e)))))
-                    return true;
-            }
+          for (Object o : editorsOnPage.keySet()) {
+            StringFieldEditor e = (StringFieldEditor) o;
+            if (!(e.getStringValue()
+              .equals(editorsOnPage.get(e))))
+              return true;
+          }
         }
 
         Map selectionButtonsOnPage = (Map) selectionButtonOriginalValues
                 .get(page);
         if (selectionButtonsOnPage != null) {
-            Iterator buttons = selectionButtonsOnPage.keySet().iterator();
-            while (buttons.hasNext()) {
-                SelectionButtonDialogField b = (SelectionButtonDialogField) buttons
-                        .next();
-                if (b.isSelected() != ((Boolean) selectionButtonsOnPage.get(b))
-                        .booleanValue())
-                    return true;
-            }
+          for (Object o : selectionButtonsOnPage.keySet()) {
+            SelectionButtonDialogField b = (SelectionButtonDialogField) o;
+            if (b.isSelected() != (Boolean) selectionButtonsOnPage.get(b))
+              return true;
+          }
         }
 
         Map dialogFieldsOnPage = (Map) dialogFieldOriginalValues
                 .get(page);
         if (dialogFieldsOnPage != null) {
-            Iterator fields = dialogFieldsOnPage.keySet().iterator();
-            while (fields.hasNext()) {
-                TreeListDialogField f = (TreeListDialogField) fields.next();
-                List currentLibs = f.getElements();
-                List originalLibs = (List) dialogFieldsOnPage.get(f);
-                if (currentLibs.size() != originalLibs.size()) {
-                    return true;
-                }
-                for (int i = 0; i < originalLibs.size(); i++) {
-                    if (!(originalLibs.get(i).equals(currentLibs.get(i)))) {
-                        return true;
-                    }
-                }
+          for (Object o : dialogFieldsOnPage.keySet()) {
+            TreeListDialogField f = (TreeListDialogField) o;
+            List currentLibs = f.getElements();
+            List originalLibs = (List) dialogFieldsOnPage.get(f);
+            if (currentLibs.size() != originalLibs.size()) {
+              return true;
             }
+            for (int i = 0; i < originalLibs.size(); i++) {
+              if (!(originalLibs.get(i).equals(currentLibs.get(i)))) {
+                return true;
+              }
+            }
+          }
         }
         if (page instanceof AJCompilerPreferencePage) {
             AJCompilerPreferencePage ajPage = (AJCompilerPreferencePage) page;
-            if (ajPage.useProjectSettings() != useProjectSettingsOriginalValue) {
-                return true;
-            }
+          return ajPage.useProjectSettings() != useProjectSettingsOriginalValue;
         }
         return false;
     }
@@ -324,22 +305,20 @@ aspect PreferencePageBuilder {
     private void resetButtonsOnPage(IWorkbenchPropertyPage page) {
         Map buttonsOnPage = (Map) buttonOriginalValues.get(page);
         if (buttonsOnPage != null) {
-            Iterator buttons = buttonsOnPage.keySet().iterator();
-            while (buttons.hasNext()) {
-                Button b = (Button) buttons.next();
-                buttonsOnPage.put(b, new Boolean(b.getSelection()));
-            }
+          for (Object o : buttonsOnPage.keySet()) {
+            Button b = (Button) o;
+            buttonsOnPage.put(b, b.getSelection());
+          }
         }
     }
 
     private void resetComboBoxesOnPage(IWorkbenchPropertyPage page) {
         Map comboBoxesOnPage = (Map) comboOriginalValues.get(page);
         if (comboBoxesOnPage != null) {
-            Iterator boxes = comboBoxesOnPage.keySet().iterator();
-            while (boxes.hasNext()) {
-                Combo c = (Combo) boxes.next();
-                comboBoxesOnPage.put(c, new Integer(c.getSelectionIndex()));
-            }
+          for (Object o : comboBoxesOnPage.keySet()) {
+            Combo c = (Combo) o;
+            comboBoxesOnPage.put(c, c.getSelectionIndex());
+          }
         }
     }
 
@@ -347,11 +326,10 @@ aspect PreferencePageBuilder {
         Map editorsOnPage = (Map) stringFieldEditorsOriginalValues
                 .get(page);
         if (editorsOnPage != null) {
-            Iterator editors = editorsOnPage.keySet().iterator();
-            while (editors.hasNext()) {
-                StringFieldEditor e = (StringFieldEditor) editors.next();
-                editorsOnPage.put(e, e.getStringValue());
-            }
+          for (Object o : editorsOnPage.keySet()) {
+            StringFieldEditor e = (StringFieldEditor) o;
+            editorsOnPage.put(e, e.getStringValue());
+          }
         }
     }
 
@@ -359,12 +337,10 @@ aspect PreferencePageBuilder {
         Map buttonsOnPage = (Map) selectionButtonOriginalValues
                 .get(page);
         if (buttonsOnPage != null) {
-            Iterator buttons = buttonsOnPage.keySet().iterator();
-            while (buttons.hasNext()) {
-                SelectionButtonDialogField b = (SelectionButtonDialogField) buttons
-                        .next();
-                buttonsOnPage.put(b, new Boolean(b.isSelected()));
-            }
+          for (Object o : buttonsOnPage.keySet()) {
+            SelectionButtonDialogField b = (SelectionButtonDialogField) o;
+            buttonsOnPage.put(b, b.isSelected());
+          }
         }
     }
 
@@ -372,11 +348,10 @@ aspect PreferencePageBuilder {
         Map fieldsOnPage = (Map) dialogFieldOriginalValues
                 .get(page);
         if (fieldsOnPage != null) {
-            Iterator fields = fieldsOnPage.keySet().iterator();
-            while (fields.hasNext()) {
-                TreeListDialogField f = (TreeListDialogField) fields.next();
-                fieldsOnPage.put(f, f.getElements());
-            }
+          for (Object o : fieldsOnPage.keySet()) {
+            TreeListDialogField f = (TreeListDialogField) o;
+            fieldsOnPage.put(f, f.getElements());
+          }
         }
     }
 
@@ -439,13 +414,14 @@ aspect PreferencePageBuilder {
      * or whether autobuilding is set
      */
     private boolean wantToBuild() {
-        for (Iterator iter = activePages.iterator(); iter.hasNext();) {
-            IWorkbenchPropertyPage page = (IWorkbenchPropertyPage) iter.next();
-            if ((page instanceof AJCompilerPreferencePage)
-                    && settingsHaveChangedOnPage(page)) {
-                return compilerPageDoBuild;
-            }
+      for (Object activePage : activePages) {
+        IWorkbenchPropertyPage page = (IWorkbenchPropertyPage) activePage;
+        if ((page instanceof AJCompilerPreferencePage)
+            && settingsHaveChangedOnPage(page))
+        {
+          return compilerPageDoBuild;
         }
+      }
         return AspectJPlugin.getWorkspace().getDescription().isAutoBuilding();
     }
 
@@ -476,16 +452,13 @@ aspect PreferencePageBuilder {
 
     private void buildAllProjects(AJCompilerPreferencePage prefPage) {
         IProject[] projects = prefPage.getProjects();
-        for (int i = 0; i < projects.length; i++) {
-            IProject AJproject = projects[i];
-
-            final IProject project = (AJproject);
-            if (project != null) {
-                AJBuildJob job = new AJBuildJob(project, IncrementalProjectBuilder.FULL_BUILD);
-                job.schedule();
-            }
-
+      for (IProject AJproject : projects) {
+        if ((AJproject) != null) {
+          AJBuildJob job = new AJBuildJob((AJproject), IncrementalProjectBuilder.FULL_BUILD);
+          job.schedule();
         }
+
+      }
 
     }
 

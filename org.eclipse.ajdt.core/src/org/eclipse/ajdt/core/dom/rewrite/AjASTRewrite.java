@@ -284,7 +284,7 @@ public class AjASTRewrite {
 		return internalRewriteAST(content, lineInfo, lineDelim, astRoot.getCommentList(), options, rootNode);
 	}
 
-	private TextEdit internalRewriteAST(char[] content, LineInformation lineInfo, String lineDelim, List<? extends Object> commentNodes, Map options, ASTNode rootNode) {
+	private TextEdit internalRewriteAST(char[] content, LineInformation lineInfo, String lineDelim, List<?> commentNodes, Map options, ASTNode rootNode) {
 		TextEdit result= new MultiTextEdit();
 		//validateASTNotModified(rootNode);
 

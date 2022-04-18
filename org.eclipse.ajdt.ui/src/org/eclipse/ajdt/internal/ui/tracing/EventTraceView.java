@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman - initial version
@@ -45,19 +45,19 @@ import org.eclipse.ui.part.ViewPart;
 /**
  * Displays and configures debug tracing for AJDT
  */
-public class EventTraceView extends ViewPart 
+public class EventTraceView extends ViewPart
 				implements EventTrace.EventListener {
 
 	StyledText text;
-	
+
 	private ClearEventTraceAction clearEventTraceAction;
-	
+
 	private PrintCrossCuttingModelAction printModelAction;
-	
+
 	private FilterTraceAction filterAction;
-	
-	private Font font = JFaceResources.getFont(JFaceResources.TEXT_FONT);
-	
+
+	private final Font font = JFaceResources.getFont(JFaceResources.TEXT_FONT);
+
 	/**
 	 * Constructor for AJDTEventTraceView.
 	 */
@@ -65,9 +65,9 @@ public class EventTraceView extends ViewPart
 		super();
 	}
 
-	public void dispose( ) {		
+	public void dispose( ) {
 		AspectJPreferences.setEventTraceList(
-					filterAction.getCheckedList());		
+					filterAction.getCheckedList());
 		DebugTracing.setDebug(false);
 		EventTrace.removeListener( this );
 	}
@@ -85,7 +85,7 @@ public class EventTraceView extends ViewPart
 
 		makeActions();
 		contributeToActionBars();
-		
+
 		// Add an empty ISelectionProvider so that this view works with dynamic help (bug 104331)
 		getSite().setSelectionProvider(new ISelectionProvider() {
 			public void addSelectionChangedListener(ISelectionChangedListener listener) {
@@ -106,7 +106,7 @@ public class EventTraceView extends ViewPart
 	private void startup() {
 		ajdtEvent(DebugTracing.startupInfo(),AJLog.DEFAULT, new Date());
 	}
-	
+
 	/**
 	 * @see IWorkbenchPart#setFocus()
 	 */
@@ -123,23 +123,19 @@ public class EventTraceView extends ViewPart
 
     public void ajdtEvent(String msg, final int category, Date time) {
 		/*
-		 * This code no longer dependent on either java.util.DateFormat, nor its ICU4J 
-		 * version, while avoiding the deprecated methods in java.util.Date, hence the 
+		 * This code no longer dependent on either java.util.DateFormat, nor its ICU4J
+		 * version, while avoiding the deprecated methods in java.util.Date, hence the
 		 * slightly convoluted manner of extracting the time from the given date.
-		 * 
+		 *
 		 * -spyoung
 		 */
 		Calendar calendar = GregorianCalendar.getInstance();
 		calendar.setTime(time);
-		
+
 		final String txt = calendar.get(Calendar.HOUR_OF_DAY) + ":"  //$NON-NLS-1$
 			+ calendar.get(Calendar.MINUTE) + ":" + calendar.get(Calendar.SECOND) + " " + msg + "\n"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 
-		AspectJUIPlugin.getDefault().getDisplay().asyncExec(new Runnable() {
-			public void run() {
-				appendEventText(txt, category);
-			}
-		});
+		AspectJUIPlugin.getDefault().getDisplay().asyncExec(() -> appendEventText(txt, category));
 	}
 
 	private void appendEventText(String msg, int category) {
@@ -155,7 +151,7 @@ public class EventTraceView extends ViewPart
 		if (display == null) {
 			return;
 		}
-		
+
 		StyleRange styleRange = new StyleRange();
 		styleRange.font = font;
 		styleRange.start = text.getText().length();
@@ -174,31 +170,31 @@ public class EventTraceView extends ViewPart
 		} else {
 			styleRange.foreground = display.getSystemColor(SWT.COLOR_BLACK);
 		}
-		
+
 		text.append( msg );
-		text.setStyleRange(styleRange);	
+		text.setStyleRange(styleRange);
         text.setTopIndex(text.getLineCount() - 1);
 	}
-	
+
 	private void makeActions() {
         clearEventTraceAction = new ClearEventTraceAction(text);
         printModelAction = new PrintCrossCuttingModelAction();
-		
+
 		String dlogTitle = UIMessages.eventTrace_filter_dialog_title;
-		String dlogMessage = UIMessages.eventTrace_filter_dialog_message;		
-		List populatingList = Arrays.asList(DebugTracing.categoryNames);		
+		String dlogMessage = UIMessages.eventTrace_filter_dialog_message;
+		List populatingList = Arrays.asList(DebugTracing.categoryNames);
 
 		List checkedList = AspectJPreferences.getEventTraceCheckedList();
-		
+
 		List defaultList = new ArrayList();
 		defaultList.add(DebugTracing.categoryNames[0]);
 	    defaultList.add(DebugTracing.categoryNames[3]);
-		
+
 	    if (checkedList == null){
 	    	checkedList = new ArrayList(defaultList);
 	    }
 	    DebugTracing.setDebugCategories(checkedList);
-	    
+
 		filterAction = new FilterTraceAction(getSite().getShell(),
 				populatingList, checkedList, defaultList, dlogTitle,
 				dlogMessage, UIMessages.eventTrace_filter_action_tooltip);

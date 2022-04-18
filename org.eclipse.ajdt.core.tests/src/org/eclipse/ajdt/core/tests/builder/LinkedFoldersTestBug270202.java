@@ -3,8 +3,8 @@
  * program and the accompanying materials are made available under the terms of
  * the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
- * 
- * Contributors: SpringSource - initial API and implementation 
+ *
+ * Contributors: SpringSource - initial API and implementation
  *              Andrew Eisenberg
  ******************************************************************************/
 package org.eclipse.ajdt.core.tests.builder;
@@ -28,9 +28,9 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.jdt.core.IJavaElement;
 
 /**
- * Tests that linked folders are properly handled by AJDT and aspectj when 
+ * Tests that linked folders are properly handled by AJDT and aspectj when
  * handles are being created.
- * 
+ *
  * @author andrew
  *
  */
@@ -40,13 +40,13 @@ public class LinkedFoldersTestBug270202 extends AJDTCoreTestCase {
     private IFile linkedFile;
     private IFile nonLinkedFile1;
     private IFile nonLinkedFile2;
-    
+
     protected void setUp() throws Exception {
         super.setUp();
-        
+
         Utils.setAutobuilding(false);
         project = createPredefinedProject("Bug270202");
-        
+
         // now set up the linked folder
         // line in .classpath already exists, so
         // just need to create the link
@@ -60,15 +60,15 @@ public class LinkedFoldersTestBug270202 extends AJDTCoreTestCase {
         nonLinkedFile1 = project.getFile("src1/q/AClass.java");
         nonLinkedFile2 = project.getFile("src2/r/AnotherClass.java");
     }
-    
+
     protected void tearDown() throws Exception {
         super.tearDown();
         Utils.setAutobuilding(true);
     }
-    
-    public void testGetSourceFolderForLinkedFile() throws Exception {
-        assertEquals("Linked source folder not set up properly", 
-                project.getFolder("src").getLocation().toOSString(), 
+
+    public void testGetSourceFolderForLinkedFile() {
+        assertEquals("Linked source folder not set up properly",
+                project.getFolder("src").getLocation().toOSString(),
                 project.getFolder("raw_location").getLocation().toOSString());
         IOutputLocationManager locationManager = AspectJPlugin.getDefault().getCompilerFactory()
                 .getCompilerForProject(project).getCompilerConfiguration().getOutputLocationManager();
@@ -76,22 +76,22 @@ public class LinkedFoldersTestBug270202 extends AJDTCoreTestCase {
         assertEquals("Source folder 'src' not found", "src", sourceFolderStr);
     }
 
-    public void testGetSourceFolderForNonLinkedFile1() throws Exception {
+    public void testGetSourceFolderForNonLinkedFile1() {
         IOutputLocationManager locationManager = AspectJPlugin.getDefault().getCompilerFactory()
                 .getCompilerForProject(project).getCompilerConfiguration().getOutputLocationManager();
         String sourceFolderStr = locationManager.getSourceFolderForFile(new File(nonLinkedFile1.getLocation().toOSString()));
         assertEquals("Source folder 'src1' not found", "src1", sourceFolderStr);
     }
-    
-    public void testGetSourceFolderForNonLinkedFile2() throws Exception {
+
+    public void testGetSourceFolderForNonLinkedFile2() {
         IOutputLocationManager locationManager = AspectJPlugin.getDefault().getCompilerFactory()
                 .getCompilerForProject(project).getCompilerConfiguration().getOutputLocationManager();
         String sourceFolderStr = locationManager.getSourceFolderForFile(new File(nonLinkedFile2.getLocation().toOSString()));
         assertEquals("Source folder 'src2' not found", "src2", sourceFolderStr);
     }
-    
-    
-    public void testHandlesInsideLinkedFolders() throws Exception {
+
+
+    public void testHandlesInsideLinkedFolders() {
         IJavaElement ije = AspectJCore.create(linkedFile);
         assertTrue("Compilation unit should exist " + ije.getHandleIdentifier(), ije.exists());
         AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForProject(project);

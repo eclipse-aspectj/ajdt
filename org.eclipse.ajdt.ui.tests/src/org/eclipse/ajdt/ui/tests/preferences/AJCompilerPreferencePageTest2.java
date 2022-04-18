@@ -3,8 +3,8 @@
  * program and the accompanying materials are made available under the terms of
  * the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
- * 
- * Contributors: IBM Corporation - initial API and implementation 
+ *
+ * Contributors: IBM Corporation - initial API and implementation
  * 				 Helen Hawkins   - initial version
  ******************************************************************************/
 package org.eclipse.ajdt.ui.tests.preferences;
@@ -51,11 +51,11 @@ public class AJCompilerPreferencePageTest2 extends UITestCase {
 
 	/**
 	 * Change the value of one of the buttons
-	 * 
+	 *
 	 * 1. Press "Apply" and "OK" to rebuild now ==> expect build 2. Press "OK"
 	 * and "OK" to rebuild now ==> don't expect build
 	 */
-	public void testPerformApplyAndBuild() throws Exception {
+	public void testPerformApplyAndBuild() {
 		setUseProjectSettings();
 		// make a change on the page which should result in asking
 		// whether the user wants to do a build
@@ -91,11 +91,11 @@ public class AJCompilerPreferencePageTest2 extends UITestCase {
 
 	/**
 	 * Change the value of one of the buttons
-	 * 
+	 *
 	 * 1. Press "Apply" and "Cancel" to not rebuild now ==> don't expect build
 	 * 2. Press "OK" and "Cancel" to not rebuild now ==> don't expect build
 	 */
-	public void testPerformApplyAndDontBuild() throws Exception {
+	public void testPerformApplyAndDontBuild() {
 		setUseProjectSettings();
 		// make a change on the page which should result in asking
 		// whether the user wants to do a build
@@ -132,11 +132,11 @@ public class AJCompilerPreferencePageTest2 extends UITestCase {
 
 	/**
 	 * Change the value of one of the buttons
-	 * 
+	 *
 	 * 1. Press "Apply" and "Cancel" to not rebuild now ==> don't expect build
 	 * 2. Press "OK" and "OK" to rebuild now ==> expect build
 	 */
-	public void testPerformApplyAndDontBuild_2() throws Exception {
+	public void testPerformApplyAndDontBuild_2() {
 		setUseProjectSettings();
 		// make a change on the page which should result in asking
 		// whether the user wants to do a build
@@ -204,7 +204,7 @@ public class AJCompilerPreferencePageTest2 extends UITestCase {
 	 */
 	public void testChangeUseWorkspaceSettingsAndApply() {
 	    setUseProjectSettings();
-	    
+
 		page.setIsUsingProjectSettings(true);
 		page.setBuildNow(true);
 		page.performApply();

@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2010 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     SpringSource - initial API and implementation
  *     Andrew Eisenberg   - iniital version
@@ -24,10 +24,10 @@ import org.eclipse.core.runtime.CoreException;
 
 /**
  * @author andrew eisenberg
- * Test bug 329190 that jars from a classpath container are properly placed in the in path out folder 
+ * Test bug 329190 that jars from a classpath container are properly placed in the in path out folder
  */
 public class InpathOutFolderTest2 extends UITestCase {
-    
+
 
 	protected void setUp() throws Exception {
 		super.setUp();
@@ -42,27 +42,25 @@ public class InpathOutFolderTest2 extends UITestCase {
     	    IProject pluginProjectWithInpathOutFolder = createPredefinedProject("InPathOutFolderPluginTesting"); //$NON-NLS-1$
     	    SynchronizationUtils.joinBackgroudActivities();
     	    pluginProjectWithInpathOutFolder.build(IncrementalProjectBuilder.FULL_BUILD, null);
-    	    
+
     	    IFolder out = pluginProjectWithInpathOutFolder.getFolder("out");
-    	    
+
     	    SynchronizationUtils.joinBackgroudActivities();
     	    // should not need to refresh
     	    out.refreshLocal(IResource.DEPTH_INFINITE, null);
-    	    
+
     	    IFile joinPointClass = out.getFile("org/aspectj/lang/JoinPoint.class");
     	    if (! joinPointClass.exists()) {
     	        System.out.println("Out folder: " + out.getLocation());
     	        System.out.println("All resources in project:");
-    	        IResourceVisitor visitor = new IResourceVisitor() {
-                    public boolean visit(IResource resource) throws CoreException {
-                        System.out.println("Resource: " + resource.getLocation());
-                        return true;
-                    }
-                };
+    	        IResourceVisitor visitor = resource -> {
+                  System.out.println("Resource: " + resource.getLocation());
+                  return true;
+              };
                 pluginProjectWithInpathOutFolder.accept(visitor);
     	        fail("AspectJ RT should exist in the in path out folder");
     	    }
-            
+
             pluginProjectWithInpathOutFolder.build(IncrementalProjectBuilder.CLEAN_BUILD, null);
             SynchronizationUtils.joinBackgroudActivities();
 

@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2010 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Kris De Volder, Andrew Eisenberg - initial implementation
  *******************************************************************************/
@@ -37,28 +37,27 @@ public class FieldIntertypeElement extends IntertypeElement implements IField {
     public char getHandleMementoDelimiter() {
         return AspectElement.JEM_ITD_FIELD;
     }
-    
+
     @Override
     public IMember createMockDeclaration(IType parent) {
         try {
             final IntertypeElementInfo info = (IntertypeElementInfo) getElementInfo();
-            IField itd = new SourceField((JavaElement) parent, getTargetName()) {
-                protected Object createElementInfo() {
-                    /* AJDT 1.7 */
-                    ITDSourceFieldElementInfo newInfo = new ITDSourceFieldElementInfo(FieldIntertypeElement.this, info.getChildren());
-                    newInfo.setFlags(CompilationUnitTools.getPublicModifierCode(info));
-                    newInfo.setNameSourceEnd(info.getNameSourceEnd());
-                    newInfo.setNameSourceStart(info.getNameSourceStart());
-                    newInfo.setTypeName(getQualifiedReturnTypeName(info));
-                    newInfo.setSourceRangeStart(info.getSourceRange().getOffset());
-                    newInfo.setSourceRangeEnd(info.getSourceRange().getOffset() + info.getSourceRange().getLength());
-                    return newInfo;
-                }
-                public boolean exists() {
-                    return true;
-                }
-            };
-            return itd;
+          return new SourceField((JavaElement) parent, getTargetName()) {
+              protected Object createElementInfo() {
+                  /* AJDT 1.7 */
+                  ITDSourceFieldElementInfo newInfo = new ITDSourceFieldElementInfo(FieldIntertypeElement.this, info.getChildren());
+                  newInfo.setFlags(CompilationUnitTools.getPublicModifierCode(info));
+                  newInfo.setNameSourceEnd(info.getNameSourceEnd());
+                  newInfo.setNameSourceStart(info.getNameSourceStart());
+                  newInfo.setTypeName(getQualifiedReturnTypeName(info));
+                  newInfo.setSourceRangeStart(info.getSourceRange().getOffset());
+                  newInfo.setSourceRangeEnd(info.getSourceRange().getOffset() + info.getSourceRange().getLength());
+                  return newInfo;
+              }
+              public boolean exists() {
+                  return true;
+              }
+          };
         } catch (JavaModelException e) {
         }
         return null;

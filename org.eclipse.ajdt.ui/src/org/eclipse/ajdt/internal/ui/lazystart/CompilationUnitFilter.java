@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Luzius Meisser - initial implementation
  *******************************************************************************/
@@ -39,25 +39,25 @@ import org.eclipse.swt.widgets.Display;
  * referred to, the plugins are then activated.
  */
 /**
- * 
+ *
  * To prevent the .aj files to be displayed twice (as IFile and as ICompilationUnit),
  * we need to filter the IFile if an according ICompilationUnit exists.
- * 
+ *
  * Side effect of filter: prevents AJCompilationUnits from disappearing when jdt
- * refreshes the javamodel. See comment in select method. 
- * 
+ * refreshes the javamodel. See comment in select method.
+ *
  * @author Luzius Meisser
- * 
+ *
  */
 public class CompilationUnitFilter extends ViewerFilter {
-	
+
 	public static final String ID = "org.eclipse.ajdt.javamodel.CompilationUnitFilter"; //$NON-NLS-1$
 	public static final String FILTER_DIALOG_ID = "DontInformUserAboutFileFilter"; //$NON-NLS-1$
-	
+
 	public CompilationUnitFilter(){
 		super();
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.ViewerFilter#select(org.eclipse.jface.viewers.Viewer, java.lang.Object, java.lang.Object)
 	 */
@@ -66,7 +66,7 @@ public class CompilationUnitFilter extends ViewerFilter {
 		if (!Utils.isBundleActive()) {
 			return true;
 		}
-		
+
 		if (AspectJPlugin.USING_CU_PROVIDER) {
 			return true;
 		}
@@ -93,10 +93,10 @@ public class CompilationUnitFilter extends ViewerFilter {
 				// can be ignored
 			}
 		}
-			
+
 		return true;
 	}
-	
+
 	//checks if this FileFilter is enabled and if not, it tells user to do so
 	//(It seems to be difficult to enable it programmatically since the package explorer loads
 	//its preferences before we get called)
@@ -107,9 +107,9 @@ public class CompilationUnitFilter extends ViewerFilter {
 
 		//checks if the javaStore has been initialized
 		if (isRelevant(javaStore)){
-		
+
 		if (!javaStore.contains(CompilationUnitFilter.ID) || !javaStore.getBoolean(CompilationUnitFilter.ID)) {
-			
+
 			final IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();
 			if (!store.contains(FILTER_DIALOG_ID) || !store.getBoolean(FILTER_DIALOG_ID)){
 
@@ -118,19 +118,17 @@ public class CompilationUnitFilter extends ViewerFilter {
 
 				public IStatus run(IProgressMonitor m) {
 					final Display display = AspectJUIPlugin.getDefault().getDisplay();
-					
-					Runnable myRun = new Runnable() {
-						public void run() {
-							MessageDialogWithToggle md = MessageDialogWithToggle
-									.openInformation(
-											display.getActiveShell(),
-											UIMessages.FileFilterDialog_Title,
-											UIMessages.FileFilterDialog_Message,
-											UIMessages.FileFilterDialog_CheckboxCaption,
-											true, null,	null);
-							store.setValue(FILTER_DIALOG_ID, md.getToggleState());
-						}
-					};
+
+					Runnable myRun = () -> {
+            MessageDialogWithToggle md = MessageDialogWithToggle
+                .openInformation(
+                    display.getActiveShell(),
+                    UIMessages.FileFilterDialog_Title,
+                    UIMessages.FileFilterDialog_Message,
+                    UIMessages.FileFilterDialog_CheckboxCaption,
+                    true, null,	null);
+            store.setValue(FILTER_DIALOG_ID, md.getToggleState());
+          };
 					display.asyncExec(myRun);
 					return Status.OK_STATUS;
 				}
@@ -142,7 +140,7 @@ public class CompilationUnitFilter extends ViewerFilter {
 		}
 		}
 	}
-	
+
 	private static boolean isRelevant(IPreferenceStore javaStore) {
 		//XXX: likely to be different in post 3.0 releases of eclipse!!
 		return javaStore.contains("CustomFiltersActionGroup." + //$NON-NLS-1$

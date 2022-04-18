@@ -5,7 +5,7 @@ Refactoring Tests
 Test3 - Rename excluded files
 -----------------------------
 
- a.	Right click on a couple of files and click “Exclude from ‘…’ configuration”.
+ a.	Right click on a couple of files and click â€œExclude from â€˜â€¦â€™ configurationâ€.
  b.	Open the active configuration in the editor and ensure that the files are
     listed individually in the exclude list (on the source tab).
  c.	Right click on the selection again and convert the file extensions.  Ensure
@@ -29,7 +29,7 @@ Test4 - Rename file extensions for a whole project
  d.	Exclude some of your files from the build configuration, (Right click on a selection
 	of files and select 'AspectJ Tools > Exclude from ### Configuration').
 	Repeat steps a-c both with the:
-		"Include files not included in the active build configuration”
+		"Include files not included in the active build configurationâ€
 		- Checkbox CHECKED in the "Convert File Extensions" dialog
 	Ensure that ALL file extensions are changed.
     			(REF_9)
@@ -48,7 +48,7 @@ Test4 - Rename file extensions for a whole project
   				(REF_12)
   				
  f.	Repeat step d with the:
-		“Update all build configurations”
+		â€œUpdate all build configurationsâ€
 		- Checkbox UNCHECKED in the "Convert File Extensions" dialog
 	Ensure that the build configurations do not change.
   				(REF_13)
@@ -60,10 +60,10 @@ Test5 - Bug 92482: Rename of .aj file fails in package explorer
  b. Expand the Bean Example in the package explorer
  c. Right click on "BoundPoint.aj" to bring up the Context Menu
  d. Select: 'Context Menu > Rename...' NOT 'Context Menu > Refactor > Rename...'
- e. A "Rename Resource" dialog appears with “BoundPoint.aj” in the editable text field
+ e. A "Rename Resource" dialog appears with â€œBoundPoint.ajâ€ in the editable text field
 				(REF_14)
 				
- f. Choose to rename “BoundPoint.aj” to “BoundPoint1.aj” and click "OK"
+ f. Choose to rename â€œBoundPoint.ajâ€ to â€œBoundPoint1.ajâ€ and click "OK"
  g. The file should be renamed correctly
 				(REF_15)
 				

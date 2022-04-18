@@ -14,7 +14,6 @@ package org.eclipse.contribution.jdt.itdawareness;
 import org.eclipse.contribution.jdt.JDTWeavingPlugin;
 import org.eclipse.contribution.jdt.preferences.WeavableProjectListener;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.internal.corext.refactoring.rename.RenameFieldProcessor;

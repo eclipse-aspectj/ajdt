@@ -57,19 +57,16 @@ public class AdaptableObject implements IAdaptable {
             return false;
         AdaptableObject other = (AdaptableObject) obj;
         if (o == null) {
-            if (other.o != null)
-                return false;
-        } else if (!o.equals(other.o))
-            return false;
-        return true;
+          return other.o == null;
+        } else
+          return o.equals(other.o);
     }
 
     @Override
     public String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("AdaptableObject [o=");
-        builder.append(o);
-        builder.append("]");
-        return builder.toString();
+      String builder = "AdaptableObject [o=" +
+                       o +
+                       "]";
+        return builder;
     }
 }

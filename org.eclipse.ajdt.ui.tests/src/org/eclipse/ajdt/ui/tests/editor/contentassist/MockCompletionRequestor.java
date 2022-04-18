@@ -25,7 +25,7 @@ import org.eclipse.jdt.core.CompletionRequestor;
  */
 class MockCompletionRequestor extends CompletionRequestor {
 
-    List<CompletionProposal> accepted = new LinkedList<CompletionProposal>();
+    List<CompletionProposal> accepted = new LinkedList<>();
 
     public void accept(CompletionProposal proposal) {
     	System.out.println("Accepting proposal: "+proposal);
@@ -49,13 +49,12 @@ class MockCompletionRequestor extends CompletionRequestor {
     }
 
     public String toString() {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append("Accepted completion proposals:\n");
         if (accepted.size() > 0) {
-            for (Iterator iterator = accepted.iterator(); iterator.hasNext();) {
-                CompletionProposal proposal = (CompletionProposal) iterator.next();
-                sb.append("\t" + proposal.toString() + "\n");
-            }
+          for (CompletionProposal proposal : accepted) {
+            sb.append("\t").append(proposal.toString()).append("\n");
+          }
         } else {
             sb.append("\t<none>\n");
         }

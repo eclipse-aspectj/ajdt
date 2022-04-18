@@ -107,12 +107,12 @@ public class BuildClasspathResolver {
       IPath path = entry.getPath();
       Object target = JavaModel.getTarget(path, true);
       if (target == null)
-        continue nextEntry;
+        continue;
 
       switch (entry.getEntryKind()) {
         case IClasspathEntry.CPE_SOURCE:
           if (!(target instanceof IContainer))
-            continue nextEntry;
+            continue;
           IPath outputPath = entry.getOutputLocation() != null
             ? entry.getOutputLocation()
             : javaProject.getOutputLocation();
@@ -130,14 +130,14 @@ public class BuildClasspathResolver {
           }
           sLocations.add(
             ClasspathLocation.forSourceFolder((IContainer) target, outputFolder, entry.fullInclusionPatternChars(), entry.fullExclusionPatternChars()));
-          continue nextEntry;
+          continue;
 
         case IClasspathEntry.CPE_PROJECT:
           if (!(target instanceof IProject))
-            continue nextEntry;
+            continue;
           IProject prereqProject = (IProject) target;
           if (!JavaProject.hasJavaNature(prereqProject))
-            continue nextEntry; // if project doesn't have java nature or is not accessible
+            continue; // if project doesn't have java nature or is not accessible
 
           JavaProject prereqJavaProject = (JavaProject) JavaCore.create(prereqProject);
           IClasspathEntry[] prereqClasspathEntries = prereqJavaProject.getRawClasspath();
@@ -147,7 +147,7 @@ public class BuildClasspathResolver {
             if (prereqEntry.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
               Object prereqTarget = JavaModel.getTarget(prereqEntry.getPath(), true);
               if (!(prereqTarget instanceof IContainer))
-                continue nextPrereqEntry;
+                continue;
               IPath prereqOutputPath = prereqEntry.getOutputLocation() != null
                 ? prereqEntry.getOutputLocation()
                 : prereqJavaProject.getOutputLocation();
@@ -177,7 +177,7 @@ public class BuildClasspathResolver {
               }
             }
           }
-          continue nextEntry;
+          continue;
 
         case IClasspathEntry.CPE_LIBRARY:
           if (target instanceof IResource) {
@@ -185,7 +185,7 @@ public class BuildClasspathResolver {
             ClasspathLocation bLocation = null;
             if (resource instanceof IFile) {
               if (!(org.eclipse.jdt.internal.compiler.util.Util.isPotentialZipArchive(path.lastSegment())))
-                continue nextEntry;
+                continue;
               AccessRuleSet accessRuleSet = JavaCore.IGNORE.equals(javaProject.getOption(JavaCore.COMPILER_PB_FORBIDDEN_REFERENCE, true))
                 ? null
                 : entry.getAccessRuleSet();
@@ -214,13 +214,12 @@ public class BuildClasspathResolver {
           }
           else if (target instanceof File) {
             if (!(org.eclipse.jdt.internal.compiler.util.Util.isPotentialZipArchive(path.lastSegment())))
-              continue nextEntry;
+              continue;
             AccessRuleSet accessRuleSet = JavaCore.IGNORE.equals(javaProject.getOption(JavaCore.COMPILER_PB_FORBIDDEN_REFERENCE, true))
               ? null
               : entry.getAccessRuleSet();
             bLocations.add(ClasspathLocation.forLibrary(path.toString(), accessRuleSet));
           }
-          continue nextEntry;
       }
     }
 

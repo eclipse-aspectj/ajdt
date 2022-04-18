@@ -100,46 +100,46 @@ public class AJModelTest3 extends AJDTCoreTestCase {
 
 		List<String> toFind = new ArrayList<>();
 		List<String> toMatch = new ArrayList<>();
-		for (int i = 0; i < results.length; i++) {
-			toFind.add(results[i][0].intern());
-			toMatch.add(results[i][1].intern());
-		}
+    for (String[] result : results) {
+      toFind.add(result[0].intern());
+      toMatch.add(result[1].intern());
+    }
 
 		Set<Integer> keys = annotationsMap.keySet();
-		for (Iterator<Integer> it = keys.iterator(); it.hasNext();) {
-			Integer key = it.next();
-			List<IProgramElement> annotations = annotationsMap.get(key);
-			for (Iterator<IProgramElement> it2 = annotations.iterator(); it2.hasNext();) {
-				IProgramElement pe = it2.next();
-				String peName = pe.toLabelString(false).intern();
+    for (Integer key : keys) {
+      List<IProgramElement> annotations = annotationsMap.get(key);
+      for (IProgramElement pe : annotations) {
+        String peName = pe.toLabelString(false).intern();
 
-				IJavaElement je = model.programElementToJavaElement(pe);
-				if (je == null) {
-					fail("je is null"); //$NON-NLS-1$
-				}
-				String jaName = je.getElementName();
-				int index = toFind.indexOf(peName);
-				if (index == -1) {
-					fail("Unexpected additional IProgramElement name found: " + peName); //$NON-NLS-1$
-				} else {
-					String expected = toMatch.get(index);
-					if (expected.equals(jaName)) {
-						toFind.remove(index);
-						toMatch.remove(index);
-					} else {
-						fail("Incorrect corresponding Java element. Found: " + jaName + " Expected: " + expected); //$NON-NLS-1$ //$NON-NLS-2$
-					}
-				}
-			}
-		}
+        IJavaElement je = model.programElementToJavaElement(pe);
+        if (je == null) {
+          fail("je is null"); //$NON-NLS-1$
+        }
+        String jaName = je.getElementName();
+        int index = toFind.indexOf(peName);
+        if (index == -1) {
+          fail("Unexpected additional IProgramElement name found: " + peName); //$NON-NLS-1$
+        }
+        else {
+          String expected = toMatch.get(index);
+          if (expected.equals(jaName)) {
+            toFind.remove(index);
+            toMatch.remove(index);
+          }
+          else {
+            fail("Incorrect corresponding Java element. Found: " + jaName + " Expected: " + expected); //$NON-NLS-1$ //$NON-NLS-2$
+          }
+        }
+      }
+    }
 
 		// check that we found everything we were looking for
 		if (toFind.size() > 0) {
 			String missing = ""; //$NON-NLS-1$
-			for (int j = 0; j < toFind.size(); j++) {
-				missing += System.getProperty("line.separator"); //$NON-NLS-1$
-				missing += toFind.get(j);
-			}
+      for (String s : toFind) {
+        missing += System.getProperty("line.separator"); //$NON-NLS-1$
+        missing += s;
+      }
 			fail("Did not find all expected IProgramElement names. Missing: " + missing); //$NON-NLS-1$
 		}
 	}

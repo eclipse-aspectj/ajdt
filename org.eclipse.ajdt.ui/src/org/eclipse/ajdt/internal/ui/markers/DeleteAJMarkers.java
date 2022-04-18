@@ -20,14 +20,14 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubProgressMonitor;
 
 public class DeleteAJMarkers {
-    private IProject project;
+    private final IProject project;
     private final IFile[] sourceFiles;
 
     public DeleteAJMarkers(IProject project) {
         this.project = project;
         this.sourceFiles = null;
     }
-    
+
     /**
      * @deprecated Use {@link DeleteAJMarkers#DeleteAJMarkers(IProject, IFile[])} instead
      */
@@ -39,9 +39,9 @@ public class DeleteAJMarkers {
         this.project = project;
         this.sourceFiles = sourceFiles;
     }
-    
-    
-    
+
+
+
     protected IStatus run(IProgressMonitor monitor) {
         try {
             AJLog.logStart("Delete markers: " + project.getName());
@@ -53,14 +53,14 @@ public class DeleteAJMarkers {
             AJLog.logEnd(AJLog.BUILDER, "Delete markers: " + project.getName(), "Finished deleting markers for " + project.getName());
             return Status.OK_STATUS;
         } catch(CoreException e) {
-            return new Status(IStatus.ERROR, AspectJUIPlugin.PLUGIN_ID, 
+            return new Status(IStatus.ERROR, AspectJUIPlugin.PLUGIN_ID,
                     "Error while deleting markers from project " + project.getName(), e);
         }
     }
-    
+
     /**
      * Delete the advice markers for a project
-     * @throws CoreException 
+     * @throws CoreException
      */
     public void deleteAllMarkers(IProgressMonitor monitor) throws CoreException {
         SubProgressMonitor subMonitor = new SubProgressMonitor(monitor, 4);
@@ -79,7 +79,7 @@ public class DeleteAJMarkers {
             throw new OperationCanceledException();
         }
 
-        
+
         try {
             subMonitor.subTask("Delete advice markers");
             project.deleteMarkers(
@@ -124,49 +124,48 @@ public class DeleteAJMarkers {
         subMonitor.done();
     }
 
-    
+
     private void deleteMarkersForFiles(IProgressMonitor monitor) throws CoreException {
         IWorkspace workspace= ResourcesPlugin.getWorkspace();
         SubProgressMonitor subMonitor = new SubProgressMonitor(monitor, sourceFiles.length * 4);
-        for (int i = 0; i < sourceFiles.length; i++) {
-            IFile file = sourceFiles[i];
-            if (file.exists() && CoreUtils.ASPECTJ_SOURCE_FILTER.accept(file.getName())) {
-                subMonitor.subTask("Delete markers for " + file.getName());
-                file.deleteMarkers(IAJModelMarker.ADVICE_MARKER,
-                        true, IResource.DEPTH_INFINITE);
-                subMonitor.worked(1);
+      for (IFile file : sourceFiles) {
+        if (file.exists() && CoreUtils.ASPECTJ_SOURCE_FILTER.accept(file.getName())) {
+          subMonitor.subTask("Delete markers for " + file.getName());
+          file.deleteMarkers(IAJModelMarker.ADVICE_MARKER,
+            true, IResource.DEPTH_INFINITE);
+          subMonitor.worked(1);
 
-                if (subMonitor.isCanceled()) {
-                    throw new OperationCanceledException();
-                }
-                
-                file.deleteMarkers(
-                        IAJModelMarker.SOURCE_ADVICE_MARKER, true,
-                        IResource.DEPTH_INFINITE);
-                subMonitor.worked(1);
+          if (subMonitor.isCanceled()) {
+            throw new OperationCanceledException();
+          }
 
-                if (subMonitor.isCanceled()) {
-                    throw new OperationCanceledException();
-                }
+          file.deleteMarkers(
+            IAJModelMarker.SOURCE_ADVICE_MARKER, true,
+            IResource.DEPTH_INFINITE);
+          subMonitor.worked(1);
 
-                file.deleteMarkers(
-                        IAJModelMarker.DECLARATION_MARKER, true,
-                        IResource.DEPTH_INFINITE);
-                subMonitor.worked(1);
-                
-                if (subMonitor.isCanceled()) {
-                    throw new OperationCanceledException();
-                }
+          if (subMonitor.isCanceled()) {
+            throw new OperationCanceledException();
+          }
 
-                file.deleteMarkers(IAJModelMarker.CUSTOM_MARKER,
-                        true, IResource.DEPTH_INFINITE);
-                subMonitor.worked(1);
+          file.deleteMarkers(
+            IAJModelMarker.DECLARATION_MARKER, true,
+            IResource.DEPTH_INFINITE);
+          subMonitor.worked(1);
 
-                if (subMonitor.isCanceled()) {
-                    throw new OperationCanceledException();
-                }
-            }
+          if (subMonitor.isCanceled()) {
+            throw new OperationCanceledException();
+          }
+
+          file.deleteMarkers(IAJModelMarker.CUSTOM_MARKER,
+            true, IResource.DEPTH_INFINITE);
+          subMonitor.worked(1);
+
+          if (subMonitor.isCanceled()) {
+            throw new OperationCanceledException();
+          }
         }
+      }
         subMonitor.done();
     }
 

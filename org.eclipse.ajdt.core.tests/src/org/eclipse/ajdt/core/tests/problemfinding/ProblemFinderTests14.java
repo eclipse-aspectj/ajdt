@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2009 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *      Andrew Eisenberg - Initial implementation
  *******************************************************************************/
@@ -34,10 +34,10 @@ import org.eclipse.jdt.internal.core.DefaultWorkingCopyOwner;
 
 /**
  * Tests AJCompilationUnitProblemFinder and ITDAwareness
- * 
- * Tests that No arg constructors can be ITD-ed into 
+ *
+ * Tests that No arg constructors can be ITD-ed into
  * classes that use the default constructor.  See bug 280385
- * 
+ *
  * @author andrew
  *
  */
@@ -48,45 +48,43 @@ public class ProblemFinderTests14 extends AJDTCoreTestCase {
         super.setUp();
         proj = createPredefinedProject("Bug280385NoArgConstructors"); //$NON-NLS-1$
         joinBackgroudActivities();
-        
+
         IFolder src = proj.getFolder("src");
-        
-        IResourceVisitor visitor = new IResourceVisitor() {
-            public boolean visit(IResource resource) throws CoreException {
-                if (resource.getType() == IResource.FILE && 
-                        (resource.getName().endsWith("java") ||
-                                resource.getName().endsWith("aj"))) {
-                    allCUnits.add(createUnit((IFile) resource));
-                }
-                return true;
+
+        IResourceVisitor visitor = resource -> {
+            if (resource.getType() == IResource.FILE &&
+                    (resource.getName().endsWith("java") ||
+                            resource.getName().endsWith("aj"))) {
+                allCUnits.add(createUnit((IFile) resource));
             }
+            return true;
         };
         src.accept(visitor);
-        
+
         joinBackgroudActivities();
         setAutobuilding(false);
-        
+
     }
-    
+
     private ICompilationUnit createUnit(IFile file) {
         return (ICompilationUnit) AspectJCore.create(file);
     }
-    
+
     protected void tearDown() throws Exception {
         super.tearDown();
         setAutobuilding(true);
     }
 
     public void testProblemFindingAll() throws Exception {
-        StringBuffer sb = new StringBuffer();
-        for (Iterator cunitIter = allCUnits.iterator(); cunitIter.hasNext();) {
-            sb.append(problemFind((ICompilationUnit) cunitIter.next()));
-        }
+        StringBuilder sb = new StringBuilder();
+      for (Object allCUnit : allCUnits) {
+        sb.append(problemFind((ICompilationUnit) allCUnit));
+      }
         if (sb.length() > 0) {
             fail(sb.toString());
         }
     }
-    
+
     private String problemFind(ICompilationUnit unit) throws Exception {
         HashMap problems = doFind(unit);
         MockProblemRequestor.filterAllWarningProblems(problems);
@@ -100,17 +98,17 @@ public class ProblemFinderTests14 extends AJDTCoreTestCase {
             throws JavaModelException {
         HashMap problems = new HashMap();
         if (unit instanceof AJCompilationUnit) {
-            AJCompilationUnitProblemFinder.processAJ((AJCompilationUnit) unit, 
-                    AJWorkingCopyOwner.INSTANCE, problems, true, 
+            AJCompilationUnitProblemFinder.processAJ((AJCompilationUnit) unit,
+                    AJWorkingCopyOwner.INSTANCE, problems, true,
                     ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
         } else {
             // Requires JDT Weaving
             CompilationUnitProblemFinder.process((CompilationUnit) unit, null,
-                    DefaultWorkingCopyOwner.PRIMARY, problems, true, 
+                    DefaultWorkingCopyOwner.PRIMARY, problems, true,
                     ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
         }
         return problems;
     }
 
-    
+
 }

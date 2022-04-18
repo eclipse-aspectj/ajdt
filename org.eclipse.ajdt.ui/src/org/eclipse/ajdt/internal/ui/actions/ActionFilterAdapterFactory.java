@@ -5,17 +5,15 @@ import org.eclipse.core.runtime.IAdapterFactory;
 import org.eclipse.ui.IActionFilter;
 
 public class ActionFilterAdapterFactory implements IAdapterFactory {
+  @Override
+  public <T> T getAdapter(Object adaptableObject, Class<T> adapterType) {
+    if (adapterType == IActionFilter.class && adaptableObject instanceof AspectJMemberElement)
+      return adapterType.cast(new AspectElementActionFilter());
+    return null;
+  }
 
-    public Object getAdapter(Object adaptableObject, Class adapterType) {
-        if (adapterType == IActionFilter.class && adaptableObject instanceof AspectJMemberElement) {
-            return new AspectElementActionFilter();
-        }
-        return null;
-    }
-
-    public Class[] getAdapterList() {
-        return new Class[] { IActionFilter.class };
-    }
-
-
+  @Override
+  public Class<?>[] getAdapterList() {
+    return new Class<?>[] { IActionFilter.class };
+  }
 }

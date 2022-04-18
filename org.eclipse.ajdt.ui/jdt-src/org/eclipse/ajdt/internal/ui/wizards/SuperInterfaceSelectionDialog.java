@@ -48,12 +48,12 @@ public class SuperInterfaceSelectionDialog extends OpenTypeSelectionDialog {
 
 	private static final int ADD_ID= IDialogConstants.CLIENT_ID + 1;
 
-	private NewTypeWizardPage fTypeWizardPage;
-	private List fOldContent;
+	private final NewTypeWizardPage fTypeWizardPage;
+	private final List fOldContent;
 
 	/**
 	 * Creates new instance of SuperInterfaceSelectionDialog
-	 * 
+	 *
 	 * @param parent
 	 *            shell to parent the dialog on
 	 * @param context
@@ -73,7 +73,7 @@ public class SuperInterfaceSelectionDialog extends OpenTypeSelectionDialog {
 		setStatusLineAboveButtons(true);
 	}
 
-	/* (non-Javadoc) 
+	/* (non-Javadoc)
 	 * @see org.eclipse.ui.dialogs.SelectionDialog#createButtonsForButtonBar(org.eclipse.swt.widgets.Composite)
 	 */
 	protected void createButtonsForButtonBar(Composite parent) {
@@ -141,22 +141,22 @@ public class SuperInterfaceSelectionDialog extends OpenTypeSelectionDialog {
 		StructuredSelection selection= getSelectedItems();
 		if (selection == null)
 			return;
-		for (Iterator iter= selection.iterator(); iter.hasNext();) {
-			Object obj= iter.next();
-			if (obj instanceof TypeNameMatch) {
-				accessedHistoryItem(obj);
-				TypeNameMatch type= (TypeNameMatch) obj;
-				String qualifiedName= getNameWithTypeParameters(type.getType());
-				String message;
+    for (Object obj : selection) {
+      if (obj instanceof TypeNameMatch) {
+        accessedHistoryItem(obj);
+        TypeNameMatch type = (TypeNameMatch) obj;
+        String qualifiedName = getNameWithTypeParameters(type.getType());
+        String message;
 
-				if (fTypeWizardPage.addSuperInterface(qualifiedName)) {
-					message= Messages.format(NewWizardMessages.SuperInterfaceSelectionDialog_interfaceadded_info, BasicElementLabels.getJavaElementName(qualifiedName));
-				} else {
-					message= Messages.format(NewWizardMessages.SuperInterfaceSelectionDialog_interfacealreadyadded_info, BasicElementLabels.getJavaElementName(qualifiedName));
-				}
-				updateStatus(new StatusInfo(IStatus.INFO, message));
-			}
-		}
+        if (fTypeWizardPage.addSuperInterface(qualifiedName)) {
+          message = Messages.format(NewWizardMessages.SuperInterfaceSelectionDialog_interfaceadded_info, BasicElementLabels.getJavaElementName(qualifiedName));
+        }
+        else {
+          message = Messages.format(NewWizardMessages.SuperInterfaceSelectionDialog_interfacealreadyadded_info, BasicElementLabels.getJavaElementName(qualifiedName));
+        }
+        updateStatus(new StatusInfo(IStatus.INFO, message));
+      }
+    }
 	}
 
 	/*
@@ -196,7 +196,7 @@ public class SuperInterfaceSelectionDialog extends OpenTypeSelectionDialog {
 		}
 	}
 
-	
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.jdt.internal.ui.dialogs.OpenTypeSelectionDialog2#configureShell(org.eclipse.swt.widgets.Shell)
 	 */
@@ -204,7 +204,7 @@ public class SuperInterfaceSelectionDialog extends OpenTypeSelectionDialog {
 		super.configureShell(newShell);
 		PlatformUI.getWorkbench().getHelpSystem().setHelp(newShell, IJavaHelpContextIds.SUPER_INTERFACE_SELECTION_DIALOG);
 	}
-	
+
 	public static String getNameWithTypeParameters(IType type) {
 		String superName= type.getFullyQualifiedName('.');
 		if (!JavaModelUtil.is50OrHigher(type.getJavaProject())) {
@@ -213,7 +213,7 @@ public class SuperInterfaceSelectionDialog extends OpenTypeSelectionDialog {
 		try {
 			ITypeParameter[] typeParameters= type.getTypeParameters();
 			if (typeParameters.length > 0) {
-				StringBuffer buf= new StringBuffer(superName);
+				StringBuilder buf= new StringBuilder(superName);
 				buf.append('<');
 				for (int k= 0; k < typeParameters.length; k++) {
 					if (k != 0) {
@@ -228,7 +228,7 @@ public class SuperInterfaceSelectionDialog extends OpenTypeSelectionDialog {
 			// ignore
 		}
 		return superName;
-		
+
 	}
-	
+
 }

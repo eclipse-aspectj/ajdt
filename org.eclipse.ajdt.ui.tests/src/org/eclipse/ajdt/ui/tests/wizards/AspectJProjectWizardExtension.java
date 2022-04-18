@@ -20,7 +20,7 @@ import org.eclipse.swt.widgets.Composite;
 import java.lang.reflect.Field;
 
 public class AspectJProjectWizardExtension extends AspectJProjectWizard {
-  private String projectName;
+  private final String projectName;
 
   public AspectJProjectWizardExtension(String projectName) {
     this.projectName = projectName;

@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -55,7 +55,7 @@ import org.eclipse.ui.texteditor.ITextEditor;
 public class JavaCorrectionAssistant extends QuickAssistAssistant {
 
 	private ITextViewer fViewer;
-	private ITextEditor fEditor;
+	private final ITextEditor fEditor;
 	private Position fPosition;
 	private Annotation[] fCurrentAnnotations;
 
@@ -95,11 +95,7 @@ public class JavaCorrectionAssistant extends QuickAssistAssistant {
 
 
 	private IInformationControlCreator getInformationControlCreator() {
-		return new IInformationControlCreator() {
-			public IInformationControl createInformationControl(Shell parent) {
-				return new DefaultInformationControl(parent, new HTMLTextPresenter());
-			}
-		};
+		return parent -> new DefaultInformationControl(parent, new HTMLTextPresenter());
 	}
 
 	private static Color getColor(IPreferenceStore store, String key, IColorManager manager) {
@@ -151,7 +147,7 @@ public class JavaCorrectionAssistant extends QuickAssistAssistant {
 	public String showPossibleQuickAssists() {
 		fPosition= null;
 		fCurrentAnnotations= null;
-		
+
 		if (fViewer == null || fViewer.getDocument() == null)
 			// Let superclass deal with this
 			return super.showPossibleQuickAssists();
@@ -163,7 +159,7 @@ public class JavaCorrectionAssistant extends QuickAssistAssistant {
 			int currOffset= selectedRange.x;
 			int currLength= selectedRange.y;
 			boolean goToClosest= (currLength == 0);
-			
+
 			int newOffset= collectQuickFixableAnnotations(fEditor, currOffset, goToClosest, resultingAnnotations);
 			if (newOffset != currOffset) {
 				storePosition(currOffset, currLength);
@@ -173,12 +169,12 @@ public class JavaCorrectionAssistant extends QuickAssistAssistant {
 		} catch (BadLocationException e) {
 			JavaPlugin.log(e);
 		}
-		fCurrentAnnotations= (Annotation[]) resultingAnnotations.toArray(new Annotation[resultingAnnotations.size()]);
+		fCurrentAnnotations= (Annotation[]) resultingAnnotations.toArray(new Annotation[0]);
 
 		return super.showPossibleQuickAssists();
 	}
-	
-	
+
+
 	private static IRegion getRegionOfInterest(ITextEditor editor, int invocationLocation) throws BadLocationException {
 		IDocumentProvider documentProvider= editor.getDocumentProvider();
 		if (documentProvider == null) {
@@ -190,15 +186,15 @@ public class JavaCorrectionAssistant extends QuickAssistAssistant {
 		}
 		return document.getLineInformationOfOffset(invocationLocation);
 	}
-	
+
 	public static int collectQuickFixableAnnotations(ITextEditor editor, int invocationLocation, boolean goToClosest, ArrayList resultingAnnotations) throws BadLocationException {
 		IAnnotationModel model= JavaUI.getDocumentProvider().getAnnotationModel(editor.getEditorInput());
 		if (model == null) {
 			return invocationLocation;
 		}
-		
+
 		ensureUpdatedAnnotations(editor);
-		
+
 		Iterator iter= model.getAnnotationIterator();
 		if (goToClosest) {
 			IRegion lineInfo= getRegionOfInterest(editor, invocationLocation);
@@ -207,7 +203,7 @@ public class JavaCorrectionAssistant extends QuickAssistAssistant {
 			}
 			int rangeStart= lineInfo.getOffset();
 			int rangeEnd= rangeStart + lineInfo.getLength();
-			
+
 			ArrayList allAnnotations= new ArrayList();
 			ArrayList allPositions= new ArrayList();
 			int bestOffset= Integer.MAX_VALUE;
@@ -260,7 +256,7 @@ public class JavaCorrectionAssistant extends QuickAssistAssistant {
 			return invocationLocation;
 		} else if (bestOffset != invocationLocation) {
 			int newClosestPosition= computeBestOffset(posBegin, invocationLocation, bestOffset);
-			if (newClosestPosition != -1) { 
+			if (newClosestPosition != -1) {
 				if (newClosestPosition != bestOffset) { // new best
 					if (JavaCorrectionProcessor.hasCorrections(annot)) { // only jump to it if there are proposals
 						return newClosestPosition;

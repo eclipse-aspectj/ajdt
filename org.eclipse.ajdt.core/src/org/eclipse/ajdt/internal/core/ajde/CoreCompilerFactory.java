@@ -25,7 +25,7 @@ import org.eclipse.core.resources.IProject;
  */
 public class CoreCompilerFactory implements ICompilerFactory {
 
-	private Map<IProject, AjCompiler> compilerMap = new HashMap<>();
+	private final Map<IProject, AjCompiler> compilerMap = new HashMap<>();
 
 	/**
 	 * If have already created an AjCompiler for the given project
@@ -33,7 +33,7 @@ public class CoreCompilerFactory implements ICompilerFactory {
 	 */
 	public AjCompiler getCompilerForProject(IProject project) {
 		if (compilerMap.get(project) != null) {
-			return (AjCompiler) compilerMap.get(project);
+			return compilerMap.get(project);
 		}
 		AjCompiler compiler = createCompiler(project);
 		compilerMap.put(project,compiler);
@@ -41,12 +41,11 @@ public class CoreCompilerFactory implements ICompilerFactory {
 	}
 
     protected AjCompiler createCompiler(IProject project) {
-        AjCompiler compiler = new AjCompiler(
-				project.getName(),
-				new CoreCompilerConfiguration(project),
-				new CoreBuildProgressMonitor(project),
-				new CoreBuildMessageHandler());
-        return compiler;
+      return new AjCompiler(
+      project.getName(),
+      new CoreCompilerConfiguration(project),
+      new CoreBuildProgressMonitor(project),
+      new CoreBuildMessageHandler());
     }
 
 	/**
@@ -54,7 +53,7 @@ public class CoreCompilerFactory implements ICompilerFactory {
 	 */
 	public void removeCompilerForProject(IProject project) {
         // firstly clean up any state associated with the compiler
-	    AjCompiler compiler = (AjCompiler) compilerMap.get(project);
+	    AjCompiler compiler = compilerMap.get(project);
 	    if (compiler != null) {
             compiler.clearLastState();
             // remove compiler from the map

@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2008 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *      Andrew Eisenberg - Initial implementation
  *******************************************************************************/
@@ -39,9 +39,9 @@ import org.eclipse.ui.internal.views.log.LogView;
 
 /**
  * Tests AJCompilationUnitProblemFinder and ITDAwareness
- * 
+ *
  * Various issues found during proofreading AspectJ In Action 2 Edition
- * 
+ *
  * @author andrew
  *
  */
@@ -53,34 +53,32 @@ public class ProblemFinderTests10 extends UITestCase {
         super.setUp();
         proj = createPredefinedProject("AJIA 2nd Edition"); //$NON-NLS-1$
         waitForJobsToComplete();
-        
+
         IFolder src = proj.getFolder("src");
-        
-        IResourceVisitor visitor = new IResourceVisitor() {
-            public boolean visit(IResource resource) throws CoreException {
-                if (resource.getType() == IResource.FILE && 
-                        (resource.getName().endsWith("java") ||
-                                resource.getName().endsWith("aj"))) {
-                    if (resource.getName().equals("ErrorClass.aj")) {
-                        errorUnit = createUnit((IFile) resource);
-                    } else {
-                        allCUnits.add(createUnit((IFile) resource));
-                    }
+
+        IResourceVisitor visitor = resource -> {
+            if (resource.getType() == IResource.FILE &&
+                    (resource.getName().endsWith("java") ||
+                            resource.getName().endsWith("aj"))) {
+                if (resource.getName().equals("ErrorClass.aj")) {
+                    errorUnit = createUnit((IFile) resource);
+                } else {
+                    allCUnits.add(createUnit((IFile) resource));
                 }
-                return true;
             }
+            return true;
         };
         src.accept(visitor);
-        
+
         waitForJobsToComplete();
         setAutobuilding(false);
-        
+
     }
-    
+
     private ICompilationUnit createUnit(IFile file) {
         return (ICompilationUnit) AspectJCore.create(file);
     }
-    
+
     protected void tearDown() throws Exception {
         super.tearDown();
         setAutobuilding(true);
@@ -96,12 +94,12 @@ public class ProblemFinderTests10 extends UITestCase {
         if (view instanceof LogView) {
             LogView logView = (LogView) view;
             int logCount = logView.getElements().length;
-    
+
             doFind(errorUnit);
-            
+
             int newLogCount = logView.getElements().length;
             if (newLogCount != logCount) {
-                StringBuffer sb = new StringBuffer();
+                StringBuilder sb = new StringBuilder();
                 AbstractEntry[] entries = logView.getElements();
                 for (int i = logCount; i < entries.length; i++) {
                     AbstractEntry entry = entries[i];
@@ -109,27 +107,27 @@ public class ProblemFinderTests10 extends UITestCase {
                         LogEntry logEntry = (LogEntry) entry;
                         sb.append(logEntry.getMessage());
                     } else {
-                        sb.append("\n\t" + entry);
+                        sb.append("\n\t").append(entry);
                     }
-                    fail("Should not have thrown any exceptions while problem finding.  Instead found:" + sb.toString());
+                    fail("Should not have thrown any exceptions while problem finding.  Instead found:" + sb);
                 }
             }
         } else {
             fail("Could not find error log view");
         }
-       
+
     }
-    
+
     public void testProblemFindingAll() throws Exception {
-        StringBuffer sb = new StringBuffer();
-        for (Iterator cunitIter = allCUnits.iterator(); cunitIter.hasNext();) {
-            sb.append(problemFind((ICompilationUnit) cunitIter.next()));
-        }
+        StringBuilder sb = new StringBuilder();
+      for (Object allCUnit : allCUnits) {
+        sb.append(problemFind((ICompilationUnit) allCUnit));
+      }
         if (sb.length() > 0) {
             fail(sb.toString());
         }
     }
-    
+
     private String problemFind(ICompilationUnit unit) throws Exception {
         HashMap problems = doFind(unit);
         MockProblemRequestor.filterAllWarningProblems(problems);
@@ -143,17 +141,17 @@ public class ProblemFinderTests10 extends UITestCase {
             throws JavaModelException {
         HashMap problems = new HashMap();
         if (unit instanceof AJCompilationUnit) {
-            AJCompilationUnitProblemFinder.processAJ((AJCompilationUnit) unit, 
-                    AJWorkingCopyOwner.INSTANCE, problems, true, 
+            AJCompilationUnitProblemFinder.processAJ((AJCompilationUnit) unit,
+                    AJWorkingCopyOwner.INSTANCE, problems, true,
                     ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
         } else {
             // Requires JDT Weaving
             CompilationUnitProblemFinder.process((CompilationUnit) unit, null,
-                    DefaultWorkingCopyOwner.PRIMARY, problems, true, 
+                    DefaultWorkingCopyOwner.PRIMARY, problems, true,
                     ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
         }
         return problems;
     }
 
-    
+
 }

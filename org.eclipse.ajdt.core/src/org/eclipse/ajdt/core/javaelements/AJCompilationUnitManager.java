@@ -49,7 +49,7 @@ public class AJCompilationUnitManager {
 
 	public final static AJCompilationUnitManager INSTANCE = new AJCompilationUnitManager();
 
-	private HashMap<IFile, AJCompilationUnit> compilationUnitStore = new HashMap<>();
+	private final HashMap<IFile, AJCompilationUnit> compilationUnitStore = new HashMap<>();
 
 	public AJCompilationUnit getAJCompilationUnit(IFile file) {
 		AJCompilationUnit unit = getAJCompilationUnitFromCache(file);
@@ -98,7 +98,7 @@ public class AJCompilationUnitManager {
 	//returns true if it was already there, and false if it needed to be inserted
 	public boolean ensureUnitIsInModel(AJCompilationUnit unit) throws JavaModelException{
 		//ensure unit is in the model
-		OpenableElementInfo info = (OpenableElementInfo) ((JavaElement) unit.getParent()).getElementInfo();
+		OpenableElementInfo info = (OpenableElementInfo) unit.getParent().getElementInfo();
 		IJavaElement[] elems = info.getChildren();
     for (IJavaElement element : elems) {
       if (element == unit)
@@ -159,8 +159,8 @@ public class AJCompilationUnitManager {
 			try {
 				// Fix for bug 106813 - check if the project is open first
 				if(file.getProject().isOpen()) {
-					OpenableElementInfo info = (OpenableElementInfo) ((JavaElement) unit
-							.getParent()).getElementInfo();
+					OpenableElementInfo info = (OpenableElementInfo) unit
+							.getParent().getElementInfo();
 					info.removeChild(unit);
 				}
 				JavaModelManager.getJavaModelManager().removeInfoAndChildren(
@@ -176,8 +176,8 @@ public class AJCompilationUnitManager {
 		AJCompilationUnit unit = new AJCompilationUnit(file);
 
 		try {
-			OpenableElementInfo info = (OpenableElementInfo) ((JavaElement) unit
-					.getParent()).getElementInfo();
+			OpenableElementInfo info = (OpenableElementInfo) unit
+					.getParent().getElementInfo();
 			info.removeChild(unit); // Remove identical CompilationUnit if it exists
 			info.addChild(unit);
 

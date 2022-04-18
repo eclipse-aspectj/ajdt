@@ -1,13 +1,13 @@
 /*******************************************************************************
  * Copyright (c) 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Helen Hawkins   - initial version 
+ *     Helen Hawkins   - initial version
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests.ajde;
 
@@ -23,7 +23,7 @@ import org.eclipse.core.runtime.Status;
  */
 public class AJDTErrorHandlerTest extends UITestCase {
 
-	public void testHandleAJDTErrorWithMessage() throws Exception {
+	public void testHandleAJDTErrorWithMessage() {
 		AJDTErrorHandler.setShowErrorDialogs(false);
 		String message = ""; //$NON-NLS-1$
 		try {
@@ -32,12 +32,11 @@ public class AJDTErrorHandlerTest extends UITestCase {
 		} catch (RuntimeException re) {
 			message = re.getMessage();
 		}
-		assertTrue("expected a runtime error with message 'fake error' when " + //$NON-NLS-1$
-				" testing error handling but didn't find one",  //$NON-NLS-1$
-				message.equals("org.eclipse.core.runtime.CoreException: fake CoreException")); //$NON-NLS-1$
+    assertEquals("expected a runtime error with message 'fake error' when " + //$NON-NLS-1$
+                 " testing error handling but didn't find one", "org.eclipse.core.runtime.CoreException: fake CoreException", message); //$NON-NLS-1$
 	}
-	
-	public void testHandleAJDTErrorWithMessageAndTitle() throws Exception {
+
+	public void testHandleAJDTErrorWithMessageAndTitle() {
 		AJDTErrorHandler.setShowErrorDialogs(false);
 		String message = ""; //$NON-NLS-1$
 		try {
@@ -46,9 +45,8 @@ public class AJDTErrorHandlerTest extends UITestCase {
 		} catch (RuntimeException re) {
 			message = re.getMessage();
 		}
-		assertTrue("expected a runtime error with message 'fake error' when " + //$NON-NLS-1$
-				" testing error handling but didn't find one",  //$NON-NLS-1$
-				message.equals("org.eclipse.core.runtime.CoreException: fake CoreException")); //$NON-NLS-1$
+    assertEquals("expected a runtime error with message 'fake error' when " + //$NON-NLS-1$
+                 " testing error handling but didn't find one", "org.eclipse.core.runtime.CoreException: fake CoreException", message); //$NON-NLS-1$
 	}
-	
+
 }

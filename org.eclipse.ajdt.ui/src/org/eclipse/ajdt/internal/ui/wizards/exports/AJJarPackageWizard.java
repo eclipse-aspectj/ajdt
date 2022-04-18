@@ -4,7 +4,7 @@
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -44,25 +44,25 @@ import org.eclipse.ui.IExportWizard;
 import org.eclipse.ui.IWorkbench;
 
 /**
- * Copied from JARPackageWizard to enable AspectJ projects to 
+ * Copied from JARPackageWizard to enable AspectJ projects to
  * export JARs correctly.
  * Changes marked with // AspectJ Change
  */
 public class AJJarPackageWizard extends Wizard implements IExportWizard {
-	private static String DIALOG_SETTINGS_KEY= "JarPackageWizard"; //$NON-NLS-1$
-	
+	private static final String DIALOG_SETTINGS_KEY= "JarPackageWizard"; //$NON-NLS-1$
+
 	private IStructuredSelection fSelection;
 	private AJJarPackageData fJarPackage;
 	private AJJarPackageWizardPage fJarPackageWizardPage;
-	private boolean fHasNewDialogSettings;
+	private final boolean fHasNewDialogSettings;
 	private boolean fInitializeFromJarPackage;
-	
+
 	/**
 	 * Creates a wizard for exporting workspace resources to a JAR file.
 	 */
 	public AJJarPackageWizard() {
 		IDialogSettings workbenchSettings= JavaPlugin.getDefault().getDialogSettings();
-		IDialogSettings section= workbenchSettings.getSection(DIALOG_SETTINGS_KEY); 
+		IDialogSettings section= workbenchSettings.getSection(DIALOG_SETTINGS_KEY);
 		if (section == null)
 			fHasNewDialogSettings= true;
 		else {
@@ -94,15 +94,15 @@ public class AJJarPackageWizard extends Wizard implements IExportWizard {
 		fSelection= getValidSelection();
 		fJarPackage= new AJJarPackageData();
 		setInitializeFromJarPackage(false);
-		setWindowTitle(JarPackagerMessages.JarPackageWizard_windowTitle); 
+		setWindowTitle(JarPackagerMessages.JarPackageWizard_windowTitle);
 		setDefaultPageImageDescriptor(JavaPluginImages.DESC_WIZBAN_JAR_PACKAGER);
 		setNeedsProgressMonitor(true);
 	}
-	
-	
+
+
     /**
      * Initializes this wizard from the given JAR package description.
-     * 
+     *
      * @param workbench
      *            the workbench which launched this wizard
      * @param jarPackage
@@ -132,14 +132,14 @@ public class AJJarPackageWizard extends Wizard implements IExportWizard {
 
 		if (!executeExportOperation(fJarPackage.createJarExportRunnable(getShell())))
 			return false;
-		
+
 		// Save the dialog settings
 		if (fHasNewDialogSettings) {
 			IDialogSettings workbenchSettings= JavaPlugin.getDefault().getDialogSettings();
 			IDialogSettings section= workbenchSettings.getSection(DIALOG_SETTINGS_KEY);
 			section= workbenchSettings.addNewSection(DIALOG_SETTINGS_KEY);
 			setDialogSettings(section);
-		}		
+		}
 		IWizardPage[] pages= getPages();
 		for (int i= 0; i < getPageCount(); i++) {
 			IWizardPage page= pages[i];
@@ -161,13 +161,13 @@ public class AJJarPackageWizard extends Wizard implements IExportWizard {
 			return false;
 		} catch (InvocationTargetException ex) {
 			if (ex.getTargetException() != null) {
-				ExceptionHandler.handle(ex, getShell(), JarPackagerMessages.JarPackageWizard_jarExportError_title, JarPackagerMessages.JarPackageWizard_jarExportError_message); 
+				ExceptionHandler.handle(ex, getShell(), JarPackagerMessages.JarPackageWizard_jarExportError_title, JarPackagerMessages.JarPackageWizard_jarExportError_message);
 				return false;
 			}
 		}
 		IStatus status= op.getStatus();
 		if (!status.isOK()) {
-			ErrorDialog.openError(getShell(), JarPackagerMessages.JarPackageWizard_jarExport_title, null, status); 
+			ErrorDialog.openError(getShell(), JarPackagerMessages.JarPackageWizard_jarExport_title, null, status);
 			return !(status.matches(IStatus.ERROR));
 		}
 		return true;
@@ -182,7 +182,7 @@ public class AJJarPackageWizard extends Wizard implements IExportWizard {
 	 * - Source package fragments and source packages fragement roots are ok
 	 * - Java elements below a CU are converted to their CU
 	 * - all other input elements are ignored
-	 * 
+	 *
 	 * @return a valid structured selection based on the current selection
 	 */
 	protected IStructuredSelection getValidSelection() {
@@ -190,16 +190,14 @@ public class AJJarPackageWizard extends Wizard implements IExportWizard {
 		if (currentSelection instanceof IStructuredSelection) {
 			IStructuredSelection structuredSelection= (IStructuredSelection)currentSelection;
 			List selectedElements= new ArrayList(structuredSelection.size());
-			Iterator iter= structuredSelection.iterator();
-			while (iter.hasNext()) {
-				Object selectedElement=  iter.next();
-				if (selectedElement instanceof IProject)
-					addProject(selectedElements, (IProject)selectedElement);
-				else if (selectedElement instanceof IResource)
-					addResource(selectedElements, (IResource)selectedElement);
-				else if (selectedElement instanceof IJavaElement)
-					addJavaElement(selectedElements, (IJavaElement)selectedElement);
-			}
+      for (Object selectedElement : structuredSelection) {
+        if (selectedElement instanceof IProject)
+          addProject(selectedElements, (IProject) selectedElement);
+        else if (selectedElement instanceof IResource)
+          addResource(selectedElements, (IResource) selectedElement);
+        else if (selectedElement instanceof IJavaElement)
+          addJavaElement(selectedElements, (IJavaElement) selectedElement);
+      }
 			return new StructuredSelection(selectedElements);
 		}
 		else

@@ -162,8 +162,7 @@ public class ExtraITDFinder implements IExtraMatchFinder<SearchPattern> {
     private List<SearchMatch> findExtraReferenceMatches(AJCompilationUnit unit, List<IntertypeElement> allRelevantItds, SearchPattern pattern, PossibleMatch match)
             throws JavaModelException {
         CompilationUnit ajDomUnit = getDom(unit);
-        List<SearchMatch> matches = walkITDs(ajDomUnit, allRelevantItds, pattern, match);
-        return matches;
+      return walkITDs(ajDomUnit, allRelevantItds, pattern, match);
     }
 
     /**
@@ -261,8 +260,7 @@ public class ExtraITDFinder implements IExtraMatchFinder<SearchPattern> {
 
     private char[] fullyQualifiedTargetTypeName(IntertypeElement itd) {
         IType targetType = itd.findTargetType();
-        char[] itdTargetTypeName = targetType == null ? new char[0] : targetType.getFullyQualifiedName().replace('$', '.').toCharArray();
-        return itdTargetTypeName;
+      return targetType == null ? new char[0] : targetType.getFullyQualifiedName().replace('$', '.').toCharArray();
     }
 
     private List<SearchMatch> walkITDs(CompilationUnit ajDomUnit,
@@ -286,10 +284,9 @@ public class ExtraITDFinder implements IExtraMatchFinder<SearchPattern> {
                 SearchPattern pattern, PossibleMatch possibleMatch) {
             ITDReferenceVisitor visitor = new ITDReferenceVisitor(itd,
                     pattern, possibleMatch.document.getParticipant());
-            Collection<SearchMatch> matches = visitor.doVisit(decl);
-            // tentative matches are found elsewhere
+      // tentative matches are found elsewhere
     //        matches.addAll(visitor.getTentativeMatches());
-            return matches;
+            return visitor.doVisit(decl);
         }
 
     private BodyDeclaration findITDInDom(CompilationUnit ajDomUnit,

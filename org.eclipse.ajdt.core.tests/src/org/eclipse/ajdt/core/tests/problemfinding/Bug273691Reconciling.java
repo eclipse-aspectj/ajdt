@@ -41,7 +41,7 @@ import org.eclipse.jdt.internal.core.DefaultWorkingCopyOwner;
  *
  */
 public class Bug273691Reconciling extends AJDTCoreTestCase {
-    List<ICompilationUnit> allCUnits = new ArrayList<ICompilationUnit>();
+    List<ICompilationUnit> allCUnits = new ArrayList<>();
     IProject proj;
     protected void setUp() throws Exception {
         super.setUp();
@@ -50,15 +50,13 @@ public class Bug273691Reconciling extends AJDTCoreTestCase {
 
         IFolder src = proj.getFolder("src");
 
-        IResourceVisitor visitor = new IResourceVisitor() {
-            public boolean visit(IResource resource) throws CoreException {
-                if (resource.getType() == IResource.FILE &&
-                        (resource.getName().endsWith("java") ||
-                                resource.getName().endsWith("aj"))) {
-                    allCUnits.add(createUnit((IFile) resource));
-                }
-                return true;
+        IResourceVisitor visitor = resource -> {
+            if (resource.getType() == IResource.FILE &&
+                    (resource.getName().endsWith("java") ||
+                            resource.getName().endsWith("aj"))) {
+                allCUnits.add(createUnit((IFile) resource));
             }
+            return true;
         };
         src.accept(visitor);
 
@@ -77,7 +75,7 @@ public class Bug273691Reconciling extends AJDTCoreTestCase {
     }
 
     public void testProblemFindingAll() throws Exception {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         for (ICompilationUnit unit : allCUnits) {
             sb.append(problemFind(unit));
         }

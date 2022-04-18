@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2005, 2007 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman - initial version
@@ -66,7 +66,7 @@ import org.eclipse.osgi.util.NLS;
 import org.osgi.framework.Bundle;
 
 /**
- * 
+ *
  */
 public class UIBuildListener implements IAJBuildListener {
 
@@ -76,41 +76,38 @@ public class UIBuildListener implements IAJBuildListener {
      */
     private HashMap outjars = null;
 
-    private ListenerList fListeners = new ListenerList();
+    private final ListenerList fListeners = new ListenerList();
 
     /* (non-Javadoc)
      * @see org.eclipse.ajdt.core.builder.AJBuildListener#preAJBuild(org.eclipse.core.resources.IProject)
      */
-    public void preAJBuild(int kind, IProject project, IProject[] requiredProjects) {       
+    public void preAJBuild(int kind, IProject project, IProject[] requiredProjects) {
         // checking to see if the current project has been marked as needing
         // a required project to be rebuilt.
         boolean haveClearedMarkers = false;
-        for (int i = 0; i < requiredProjects.length; i++) {
-            String referencedMessage = NLS.bind(UIMessages.buildPrereqsMessage, 
-                    requiredProjects[i].getName());
+      for (IProject requiredProject : requiredProjects) {
+        String referencedMessage = NLS.bind(UIMessages.buildPrereqsMessage,
+          requiredProject.getName());
 
-            if (projectAlreadyMarked(project, referencedMessage)) {
-                if (kind == IncrementalProjectBuilder.FULL_BUILD) {
-                    AJDTUtils.clearProjectMarkers(project, true);
-                    UIMessageHandler.clearOtherProjectMarkers(project);
-                } else {
-                    AJDTUtils.clearProjectMarkers(project, false);
-                }
-                markProject(project, referencedMessage);
-                haveClearedMarkers = true;
-            }
+        if (projectAlreadyMarked(project, referencedMessage)) {
+          if (kind == IncrementalProjectBuilder.FULL_BUILD) {
+            AJDTUtils.clearProjectMarkers(project, true);
+            UIMessageHandler.clearOtherProjectMarkers(project);
+          }
+          else {
+            AJDTUtils.clearProjectMarkers(project, false);
+          }
+          markProject(project, referencedMessage);
+          haveClearedMarkers = true;
         }
+      }
         if (!(haveClearedMarkers)) {
-            if (kind == IncrementalProjectBuilder.FULL_BUILD) {
-                AJDTUtils.clearProjectMarkers(project, true);
-            } else {
-                AJDTUtils.clearProjectMarkers(project, false);
-            }
+          AJDTUtils.clearProjectMarkers(project, kind == IncrementalProjectBuilder.FULL_BUILD);
             UIMessageHandler.clearOtherProjectMarkers(project);
         }
     }
 
-    
+
     /*
      * Check the inpath out folder to see if it exists.
      * If not, notify the user that the default out folder will be used instead
@@ -124,7 +121,7 @@ public class UIBuildListener implements IAJBuildListener {
             return;
         }
 
-        if (!pathExists(outFolder)) { 
+        if (!pathExists(outFolder)) {
             try {
                 IMarker errorMarker = project.createMarker(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER);
                 errorMarker.setAttribute(IMarker.MESSAGE, UIMessages.UIBuildListener_InvalidInpathOutFolderText + outFolder);
@@ -148,16 +145,15 @@ public class UIBuildListener implements IAJBuildListener {
                     IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER,
                     false, IResource.DEPTH_ZERO);
             if (problemMarkers.length > 0) {
-                for (int j = 0; j < problemMarkers.length; j++) {
-                    IMarker marker = problemMarkers[j];
-                    int markerSeverity = marker.getAttribute(IMarker.SEVERITY, -1);
-                    String markerMessage = marker.getAttribute(IMarker.MESSAGE, "no message"); //$NON-NLS-1$
-                    if (markerSeverity == IMarker.SEVERITY_ERROR) {
-                        if (markerMessage.equals(errorMessage)) {
-                            return true;
-                        }
-                    }
+              for (IMarker marker : problemMarkers) {
+                int markerSeverity = marker.getAttribute(IMarker.SEVERITY, -1);
+                String markerMessage = marker.getAttribute(IMarker.MESSAGE, "no message"); //$NON-NLS-1$
+                if (markerSeverity == IMarker.SEVERITY_ERROR) {
+                  if (markerMessage.equals(errorMessage)) {
+                    return true;
+                  }
                 }
+              }
             }
         } catch (CoreException e) {
             AJLog.log(AJLog.BUILDER,"build: Problem occured finding the markers for project " //$NON-NLS-1$
@@ -165,7 +161,7 @@ public class UIBuildListener implements IAJBuildListener {
         }
         return false;
     }
-    
+
     private void markProject(IProject project, String errorMessage) {
         try {
             IMarker errorMarker = project.createMarker(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER);
@@ -184,7 +180,7 @@ public class UIBuildListener implements IAJBuildListener {
         if (noSourceChanges) {
             return;
         }
-        
+
         // The message to feature in the problems view of depending projects
         String buildPrereqsMessage = NLS.bind(UIMessages.buildPrereqsMessage,
                 project.getName());
@@ -196,7 +192,7 @@ public class UIBuildListener implements IAJBuildListener {
         } else {
             removeMarkerOnReferencingProjects(project, buildPrereqsMessage);
         }
-        
+
         // Bug22258: Get the compiler monitor to display any issues with
         // that compile.
         IBuildMessageHandler messageHandler = AspectJPlugin.getDefault().getCompilerFactory()
@@ -208,10 +204,10 @@ public class UIBuildListener implements IAJBuildListener {
         // before returning, check to see if the project sent its output
         // to an outjar and if so, then update any depending projects
         checkOutJarEntry(project);
-        
+
         checkInpathOutFolder(project);
-        
-        
+
+
         // update the markers on files, but only the ones that have changed
         DeleteAndUpdateAJMarkersJob deleteUpdateMarkers;
         CoreCompilerConfiguration compilerConfig = getCompilerConfiguration(project);
@@ -222,69 +218,67 @@ public class UIBuildListener implements IAJBuildListener {
                 deleteUpdateMarkers.setPriority(Job.BUILD);
                 deleteUpdateMarkers.schedule();
                 break;
-                
+
             case IncrementalProjectBuilder.FULL_BUILD:
                 deleteUpdateMarkers = new DeleteAndUpdateAJMarkersJob(project);
                 deleteUpdateMarkers.setPriority(Job.BUILD);
                 deleteUpdateMarkers.schedule();
                 break;
-                
+
             case IncrementalProjectBuilder.AUTO_BUILD:
             case IncrementalProjectBuilder.INCREMENTAL_BUILD:
                 File[] touchedFiles = compilerConfig.getCompiledSourceFiles();
-                if (touchedFiles == null /* recreate all markers */ || 
+                if (touchedFiles == null /* recreate all markers */ ||
                         touchedFiles.length > 0) {
-                    
+
                     deleteUpdateMarkers = new DeleteAndUpdateAJMarkersJob(project, touchedFiles);
                     deleteUpdateMarkers.schedule();
                 }
         }
-         
+
         // sanity check the model if the event trace viewer is open
         if (DebugTracing.DEBUG_MODEL) {
             AJModelChecker.doModelCheckIfRequired(
                     AJProjectModelFactory.getInstance().getModelForProject(project));
         }
-        
+
         if (AspectJUIPlugin.getDefault().getDisplay().isDisposed()) {
             AJLog.log("Not updating vis, xref, or changes views as display is disposed!"); //$NON-NLS-1$
         } else {
             AspectJUIPlugin.getDefault().getDisplay().asyncExec(
-                new Runnable() {
-                    public void run() {
-                        AJLog.logStart("Update visualizer, xref, advice listeners for (separate thread): " + project.getName());
+              () -> {
+                  AJLog.logStart("Update visualizer, xref, advice listeners for (separate thread): " + project.getName());
 
-                        // TODO: can we determine whether there were
-                        // actually changes to the set of advised elements?
-                        Object[] listeners= fListeners.getListeners();
-                        for (int i= 0; i < listeners.length; i++) {
-                            ((IAdviceChangedListener) listeners[i]).adviceChanged();
-                        }
+                  // TODO: can we determine whether there were
+                  // actually changes to the set of advised elements?
+                  Object[] listeners= fListeners.getListeners();
+                for (Object listener : listeners) {
+                  ((IAdviceChangedListener) listener).adviceChanged();
+                }
 
-                        // refresh Cross References
-                        if (AspectJUIPlugin.usingXref) {
-                            XReferenceUIPlugin.refresh();
-                        }
+                  // refresh Cross References
+                  if (AspectJUIPlugin.usingXref) {
+                      XReferenceUIPlugin.refresh();
+                  }
 
-                        // refresh Visualiser
-                        if (AspectJUIPlugin.usingVisualiser) {
-                            Bundle vis = Platform
-                                    .getBundle(AspectJUIPlugin.VISUALISER_ID);
-                            // avoid activating the bundle if it's not active already
-                            if ((vis != null) && (vis.getState() == Bundle.ACTIVE)) {
-                                if (ProviderManager.getContentProvider() instanceof AJDTContentProvider) {
-                                    AJDTContentProvider provider = (AJDTContentProvider) ProviderManager
-                                            .getContentProvider();
-                                    provider.reset();
-                                    VisualiserPlugin.refresh();
-                                }
-                            }
-                        }
-                        AJLog.logEnd(AJLog.BUILDER, "Update visualizer, xref, advice listeners for (separate thread): " + project.getName());
-                    }
-                });
+                  // refresh Visualiser
+                  if (AspectJUIPlugin.usingVisualiser) {
+                      Bundle vis = Platform
+                              .getBundle(AspectJUIPlugin.VISUALISER_ID);
+                      // avoid activating the bundle if it's not active already
+                      if ((vis != null) && (vis.getState() == Bundle.ACTIVE)) {
+                          if (ProviderManager.getContentProvider() instanceof AJDTContentProvider) {
+                              AJDTContentProvider provider = (AJDTContentProvider) ProviderManager
+                                      .getContentProvider();
+                              provider.reset();
+                              VisualiserPlugin.refresh();
+                          }
+                      }
+                  }
+                  AJLog.logEnd(AJLog.BUILDER, "Update visualizer, xref, advice listeners for (separate thread): " + project.getName());
+              });
         }
-        
+
         // finally, create markers for extra problems coming from compilation participants
         for (Entry<IFile, List<CategorizedProblem>> problemsForFile : newProblems.entrySet()) {
             try {
@@ -292,7 +286,7 @@ public class UIBuildListener implements IAJBuildListener {
                 for(CategorizedProblem problem : problemsForFile.getValue()) {
                     String markerType = problem.getMarkerType();
                     IMarker marker = file.createMarker(markerType);
-        
+
                     String[] attributeNames = AbstractImageBuilder.JAVA_PROBLEM_MARKER_ATTRIBUTE_NAMES;
                     String[] extraAttributeNames = problem.getExtraMarkerAttributeNames();
                     int extraLength = extraAttributeNames == null ? 0 : extraAttributeNames.length;
@@ -305,26 +299,26 @@ public class UIBuildListener implements IAJBuildListener {
                         allNames = new String[standardLength + extraLength];
                         System.arraycopy(extraAttributeNames, 0, allNames, standardLength + 1, extraLength);
                     }
-        
+
                     Object[] allValues = new Object[allNames.length];
                     // standard attributes
                     int index = 0;
                     allValues[index++] = problem.getMessage(); // message
                     allValues[index++] = problem.isError() ? IMarker.SEVERITY_ERROR : IMarker.SEVERITY_WARNING; // severity
-                    allValues[index++] = new Integer(problem.getID()); // ID
-                    allValues[index++] = new Integer(problem.getSourceStart()); // start
+                    allValues[index++] = problem.getID(); // ID
+                    allValues[index++] = problem.getSourceStart(); // start
                     int end = problem.getSourceEnd();
-                    allValues[index++] = new Integer(end > 0 ? end + 1 : end); // end
-                    allValues[index++] = new Integer(problem.getSourceLineNumber()); // line
+                    allValues[index++] = end > 0 ? end + 1 : end; // end
+                    allValues[index++] = problem.getSourceLineNumber(); // line
                     allValues[index++] = Util.getProblemArgumentsForMarker(problem.getArguments()); // arguments
-                    allValues[index++] = new Integer(problem.getCategoryID()); // category ID
+                    allValues[index++] = problem.getCategoryID(); // category ID
                     // SOURCE_ID attribute for JDT problems
                     allValues[index++] = JavaBuilder.SOURCE_ID;
-                    
+
                     // optional extra attributes
                     if (extraLength > 0)
                         System.arraycopy(problem.getExtraMarkerAttributeValues(), 0, allValues, index, extraLength);
-    
+
                     marker.setAttributes(allNames, allValues);
                 }
             } catch (CoreException e) {
@@ -361,12 +355,11 @@ public class UIBuildListener implements IAJBuildListener {
      */
     private void markReferencingProjects(IProject project, String errorMessage) {
         IProject[] referencingProjects = getDependingProjects(project);
-        for (int i = 0; i < referencingProjects.length; i++) {
-            IProject referencingProject = referencingProjects[i];
-            if (!(projectAlreadyMarked(referencingProject, errorMessage))) {
-                markProject(referencingProject, errorMessage);
-            }
+      for (IProject referencingProject : referencingProjects) {
+        if (!(projectAlreadyMarked(referencingProject, errorMessage))) {
+          markProject(referencingProject, errorMessage);
         }
+      }
     }
 
     /**
@@ -378,26 +371,24 @@ public class UIBuildListener implements IAJBuildListener {
             String errorMessage) {
         try {
             IProject[] referencingProjects = getDependingProjects(project);
-            for (int i = 0; i < referencingProjects.length; i++) {
-                IProject referencingProject = referencingProjects[i];
-                IMarker[] problemMarkers = referencingProject.findMarkers(
-                        IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER,
-                        false, IResource.DEPTH_ZERO);
-                if (problemMarkers.length > 0) {
-                    for (int j = 0; j < problemMarkers.length; j++) {
-                        IMarker marker = problemMarkers[j];
-                        int markerSeverity = marker.getAttribute(
-                                IMarker.SEVERITY, -1);
-                        if (markerSeverity == IMarker.SEVERITY_ERROR) {
-                            String markerMessage = marker.getAttribute(
-                                    IMarker.MESSAGE, "no message"); //$NON-NLS-1$
-                            if (markerMessage.equals(errorMessage)) {
-                                marker.delete();
-                            }
-                        }
-                    }
+          for (IProject referencingProject : referencingProjects) {
+            IMarker[] problemMarkers = referencingProject.findMarkers(
+              IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER,
+              false, IResource.DEPTH_ZERO);
+            if (problemMarkers.length > 0) {
+              for (IMarker marker : problemMarkers) {
+                int markerSeverity = marker.getAttribute(
+                  IMarker.SEVERITY, -1);
+                if (markerSeverity == IMarker.SEVERITY_ERROR) {
+                  String markerMessage = marker.getAttribute(
+                    IMarker.MESSAGE, "no message"); //$NON-NLS-1$
+                  if (markerMessage.equals(errorMessage)) {
+                    marker.delete();
+                  }
                 }
+              }
             }
+          }
         } catch (CoreException e) {
             AJLog.log(AJLog.BUILDER,"build: Problem occured either finding the markers for project " //$NON-NLS-1$
                             + project.getName()
@@ -411,7 +402,7 @@ public class UIBuildListener implements IAJBuildListener {
      * depending projects to include this outjar (unless the classpath already
      * contains it). If the project hasn't specified an outjar then check
      * whether it did last time it was built. In this case, remove the oujar
-     * from the classpath of depending projects. 
+     * from the classpath of depending projects.
      */
     private void checkOutJarEntry(IProject project) {
         String outJar = AspectJUIPlugin.getDefault().getCompilerFactory().getCompilerForProject(project).getCompilerConfiguration().getOutJar();
@@ -429,10 +420,10 @@ public class UIBuildListener implements IAJBuildListener {
                     removeOutjarFromDependingProjects(project,oldEntry);
                     outjars.put(project,newEntry);
                     updateDependingProjectsWithJar(project,newEntry);
-                }               
+                }
             } else {
                 outjars.put(project,newEntry);
-                updateDependingProjectsWithJar(project,newEntry);                   
+                updateDependingProjectsWithJar(project,newEntry);
             }
         } else {
             if (outjars != null && outjars.containsKey(project)) {
@@ -450,49 +441,53 @@ public class UIBuildListener implements IAJBuildListener {
             IClasspathEntry unwantedEntry) {
         IProject[] dependingProjects = getDependingProjects(project);
 
-        for (int i = 0; i < dependingProjects.length; i++) {
-            IJavaProject javaProject = JavaCore.create(dependingProjects[i]);
-            if (javaProject == null)
-                continue;
-            try {
-                IClasspathEntry[] cpEntry = javaProject.getRawClasspath();
-                List newEntries = new ArrayList();
-                for (int j = 0; j < cpEntry.length; j++) {
-                    if(!cpEntry[j].equals(unwantedEntry)) {
-                        newEntries.add(cpEntry[j]);
-                    }
-                }
-                IClasspathEntry[] newCP = (IClasspathEntry[]) newEntries
-                        .toArray(new IClasspathEntry[newEntries.size()]);
-                javaProject.setRawClasspath(newCP, new NullProgressMonitor());
-            } catch (CoreException e) {
+      for (IProject dependingProject : dependingProjects) {
+        IJavaProject javaProject = JavaCore.create(dependingProject);
+        if (javaProject == null)
+          continue;
+        try {
+          IClasspathEntry[] cpEntry = javaProject.getRawClasspath();
+          List newEntries = new ArrayList();
+          for (IClasspathEntry iClasspathEntry : cpEntry) {
+            if (!iClasspathEntry.equals(unwantedEntry)) {
+              newEntries.add(iClasspathEntry);
             }
+          }
+          IClasspathEntry[] newCP = (IClasspathEntry[]) newEntries
+            .toArray(new IClasspathEntry[0]);
+          javaProject.setRawClasspath(newCP, new NullProgressMonitor());
         }
+        catch (CoreException e) {
+        }
+      }
     }
 
     private void updateDependingProjectsWithJar(IProject project, IClasspathEntry newEntry) {
         IProject[] dependingProjects = getDependingProjects(project);
-        
-        goThroughProjects: for (int i = 0; i < dependingProjects.length; i++) {
-            IJavaProject javaProject = JavaCore.create(dependingProjects[i]);
-            if (javaProject == null)
-                continue;
-            try {
-                IClasspathEntry[] cpEntry = javaProject.getRawClasspath();
-                List newEntries = new ArrayList();
-                for (int j = 0; j < cpEntry.length; j++) {
-                    if(cpEntry[j].equals(newEntry)) {
-                        continue goThroughProjects;
-                    } else {
-                        newEntries.add(cpEntry[j]);
-                    }
-                }
-                newEntries.add(newEntry);
-                IClasspathEntry[] newCP = (IClasspathEntry[]) newEntries
-                        .toArray(new IClasspathEntry[newEntries.size()]);
-                javaProject.setRawClasspath(newCP, new NullProgressMonitor());
-            } catch (CoreException e) {
+
+        goThroughProjects:
+        for (IProject dependingProject : dependingProjects) {
+          IJavaProject javaProject = JavaCore.create(dependingProject);
+          if (javaProject == null)
+            continue;
+          try {
+            IClasspathEntry[] cpEntry = javaProject.getRawClasspath();
+            List newEntries = new ArrayList();
+            for (IClasspathEntry iClasspathEntry : cpEntry) {
+              if (iClasspathEntry.equals(newEntry)) {
+                continue goThroughProjects;
+              }
+              else {
+                newEntries.add(iClasspathEntry);
+              }
             }
+            newEntries.add(newEntry);
+            IClasspathEntry[] newCP = (IClasspathEntry[]) newEntries
+              .toArray(new IClasspathEntry[0]);
+            javaProject.setRawClasspath(newCP, new NullProgressMonitor());
+          }
+          catch (CoreException e) {
+          }
         }
     }
 
@@ -503,21 +498,17 @@ public class UIBuildListener implements IAJBuildListener {
     private IProject[] getDependingProjects(IProject project) {
         IProject[] referencingProjects = project.getReferencingProjects();
         // this only gets the class folder depending projects
-        IProject[] classFolderReferences = (IProject[]) CoreUtils
+        IProject[] classFolderReferences = CoreUtils
                 .getDependingProjects(project).get(0);
         IProject[] dependingProjects = new IProject[referencingProjects.length
                 + classFolderReferences.length];
-        for (int i = 0; i < referencingProjects.length; i++) {
-            dependingProjects[i] = referencingProjects[i];
-        }
-        for (int i = 0; i < classFolderReferences.length; i++) {
-            dependingProjects[i + referencingProjects.length] = classFolderReferences[i];
-        }
+      System.arraycopy(referencingProjects, 0, dependingProjects, 0, referencingProjects.length);
+      System.arraycopy(classFolderReferences, 0, dependingProjects, 0 + referencingProjects.length, classFolderReferences.length);
         return dependingProjects;
     }
 
     private IPath getRelativePath(IProject project, String outJar) {
-        StringBuffer sb = new StringBuffer(outJar);
+        StringBuilder sb = new StringBuilder(outJar);
         int index = sb.lastIndexOf(project.getName());
         IPath path;
         if (index > 0) {
@@ -536,7 +527,7 @@ public class UIBuildListener implements IAJBuildListener {
             return root.findMember(path).exists();
         } else {
             return root.getFolder(path).exists();
-        }   
+        }
     }
-    
+
 }

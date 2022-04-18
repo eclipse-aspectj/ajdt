@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2005 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -78,37 +78,37 @@ import org.eclipse.ui.PlatformUI;
 // to allow use of a decorating label provider which will make use of our registered
 // decorator - so that we get the right icons in the in-place outline view.
 // not needed if/when eclipse bug 79489 is fixed
-// Note also that changes have been made to enable us to test this 
+// Note also that changes have been made to enable us to test this
 // programatically
 // Changes marked with // AspectJ Change
 /**
  * Show outline in light-weight control.
- * 
+ *
  * @since 2.1
  */
 public class AJOutlineInformationControl extends AbstractInformationControl {
-	
+
 	private KeyAdapter fKeyAdapter;
 	private OutlineContentProvider fOutlineContentProvider;
 	private IJavaElement fInput= null;
 
 	private OutlineSorter fOutlineSorter;
-	
+
 	private OutlineLabelProvider fInnerLabelProvider;
 	protected Color fForegroundColor;
-	
+
 	private boolean fShowOnlyMainType;
 	private LexicalSortingAction fLexicalSortingAction;
 	private SortByDefiningTypeAction fSortByDefiningTypeAction;
 	private ShowOnlyMainTypeAction fShowOnlyMainTypeAction;
-	private Map fTypeHierarchies= new HashMap();
+	private final Map fTypeHierarchies= new HashMap();
 
 	static class TextMessages {
 		public static String getString(String key) {
 			return "TextMessage"; //$NON-NLS-1$
 		}
 	}
-	
+
 	private class OutlineLabelProvider extends AppearanceAwareLabelProvider {
 
 		private boolean fShowDefiningType;
@@ -116,10 +116,10 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 		private OutlineLabelProvider() {
 			super(AppearanceAwareLabelProvider.DEFAULT_TEXTFLAGS |  JavaElementLabels.F_APP_TYPE_SIGNATURE, AppearanceAwareLabelProvider.DEFAULT_IMAGEFLAGS);
 		}
-		
+
 		/*
 		 * @see ILabelProvider#getText
-		 */ 	
+		 */
 		@Override
 		public String getText(Object element) {
 			String text= super.getText(element);
@@ -127,10 +127,9 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 				try {
 					IType type= getDefiningType(element);
 					if (type != null) {
-						StringBuffer buf= new StringBuffer(super.getText(type));
-						buf.append(JavaElementLabels.CONCAT_STRING);
-						buf.append(text);
-						return buf.toString();
+            String buf = super.getText(type) + JavaElementLabels.CONCAT_STRING +
+                         text;
+						return buf;
 					}
 				} catch (JavaModelException e) {
 				}
@@ -166,10 +165,10 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 		public boolean isShowDefiningType() {
 			return fShowDefiningType;
 		}
-		
+
 		private IType getDefiningType(Object element) throws JavaModelException {
 			int kind= ((IJavaElement) element).getElementType();
-		
+
 			if (kind != IJavaElement.METHOD && kind != IJavaElement.FIELD && kind != IJavaElement.INITIALIZER) {
 				return null;
 			}
@@ -219,7 +218,7 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 		}
 		return null;
 	}
-	
+
 	private class OutlineTreeViewer extends TreeViewer {
 
 		private boolean fIsFiltering= false;
@@ -237,8 +236,8 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 			int unfilteredChildren= result.length;
 			ViewerFilter[] filters = getFilters();
 			if (filters != null) {
-				for (int i= 0; i < filters.length; i++)
-					result = filters[i].filter(this, parent, result);
+        for (ViewerFilter filter : filters)
+          result = filter.filter(this, parent, result);
 			}
 			fIsFiltering= unfilteredChildren != result.length;
 			return result;
@@ -341,11 +340,10 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 				if (type.getDeclaringType() == null) {
 					ITypeHierarchy th= getSuperTypeHierarchy(type);
 					if (th != null) {
-						List children= new ArrayList();
-						IType[] superClasses= th.getAllSupertypes(type);
-						children.addAll(Arrays.asList(super.getChildren(type)));
-						for (int i= 0, scLength= superClasses.length; i < scLength; i++)
-							children.addAll(Arrays.asList(super.getChildren(superClasses[i])));
+            IType[] superClasses= th.getAllSupertypes(type);
+            List children = new ArrayList(Arrays.asList(super.getChildren(type)));
+            for (IType superClass : superClasses)
+              children.addAll(Arrays.asList(super.getChildren(superClass)));
 						return children.toArray();
 					}
 				}
@@ -405,17 +403,17 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 
 		private static final String STORE_GO_INTO_TOP_LEVEL_TYPE_CHECKED= "GoIntoTopLevelTypeAction.isChecked"; //$NON-NLS-1$
 
-		private TreeViewer fOutlineViewer;
+		private final TreeViewer fOutlineViewer;
 
 		private ShowOnlyMainTypeAction(TreeViewer outlineViewer) {
 			super(TextMessages.getString("JavaOutlineInformationControl.GoIntoTopLevelType.label"), IAction.AS_CHECK_BOX); //$NON-NLS-1$
 			setToolTipText(TextMessages.getString("JavaOutlineInformationControl.GoIntoTopLevelType.tooltip")); //$NON-NLS-1$
 			setDescription(TextMessages.getString("JavaOutlineInformationControl.GoIntoTopLevelType.description")); //$NON-NLS-1$
-			
+
 			JavaPluginImages.setLocalImageDescriptors(this, "gointo_toplevel_type.gif"); //$NON-NLS-1$
-			
+
 			AspectJUIPlugin.getDefault().getWorkbench().getHelpSystem().setHelp(this, IJavaHelpContextIds.GO_INTO_TOP_LEVEL_TYPE_ACTION);
-			
+
 			fOutlineViewer= outlineViewer;
 
 			boolean showclass= getDialogSettings().getBoolean(STORE_GO_INTO_TOP_LEVEL_TYPE_CHECKED);
@@ -485,13 +483,13 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 
 		private static final String STORE_LEXICAL_SORTING_CHECKED= "LexicalSortingAction.isChecked"; //$NON-NLS-1$
 
-		private TreeViewer fOutlineViewer;
+		private final TreeViewer fOutlineViewer;
 
 		private LexicalSortingAction(TreeViewer outlineViewer) {
 			super(TextMessages.getString("JavaOutlineInformationControl.LexicalSortingAction.label"), IAction.AS_CHECK_BOX); //$NON-NLS-1$
 			setToolTipText(TextMessages.getString("JavaOutlineInformationControl.LexicalSortingAction.tooltip")); //$NON-NLS-1$
 			setDescription(TextMessages.getString("JavaOutlineInformationControl.LexicalSortingAction.description")); //$NON-NLS-1$
-			
+
 			JavaPluginImages.setLocalImageDescriptors(this, "alphab_sort_co.gif"); //$NON-NLS-1$
 
 			fOutlineViewer= outlineViewer;
@@ -508,11 +506,7 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 
 		private void valueChanged(final boolean on, boolean store) {
 			setChecked(on);
-			BusyIndicator.showWhile(fOutlineViewer.getControl().getDisplay(), new Runnable() {
-				public void run() {
-					fOutlineViewer.refresh(false);
-				}
-			});
+			BusyIndicator.showWhile(fOutlineViewer.getControl().getDisplay(), () -> fOutlineViewer.refresh(false));
 
 			if (store)
 				getDialogSettings().put(STORE_LEXICAL_SORTING_CHECKED, on);
@@ -524,9 +518,9 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 
 		private static final String STORE_SORT_BY_DEFINING_TYPE_CHECKED= "SortByDefiningType.isChecked"; //$NON-NLS-1$
 
-		private TreeViewer fOutlineViewer;
-		
-		/** 
+		private final TreeViewer fOutlineViewer;
+
+		/**
 		 * Creates the action.
 		 *
 		 * @param outlineViewer the outline viewer
@@ -535,36 +529,34 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 			super(TextMessages.getString("JavaOutlineInformationControl.SortByDefiningTypeAction.label")); //$NON-NLS-1$
 			setDescription(TextMessages.getString("JavaOutlineInformationControl.SortByDefiningTypeAction.description")); //$NON-NLS-1$
 			setToolTipText(TextMessages.getString("JavaOutlineInformationControl.SortByDefiningTypeAction.tooltip")); //$NON-NLS-1$
-			
+
 			JavaPluginImages.setLocalImageDescriptors(this, "definingtype_sort_co.gif"); //$NON-NLS-1$
 
 			fOutlineViewer= outlineViewer;
-			
+
 			AspectJUIPlugin.getDefault().getWorkbench().getHelpSystem().setHelp(this, IJavaHelpContextIds.SORT_BY_DEFINING_TYPE_ACTION);
-	 
+
 			boolean state= getDialogSettings().getBoolean(STORE_SORT_BY_DEFINING_TYPE_CHECKED);
 			setChecked(state);
 			fInnerLabelProvider.setShowDefiningType(state);
 		}
-		
+
 		/*
 		 * @see Action#actionPerformed
 		 */
 		@Override
 		public void run() {
-			BusyIndicator.showWhile(fOutlineViewer.getControl().getDisplay(), new Runnable() {
-				public void run() {
-					fInnerLabelProvider.setShowDefiningType(isChecked());
-					getDialogSettings().put(STORE_SORT_BY_DEFINING_TYPE_CHECKED, isChecked());
+			BusyIndicator.showWhile(fOutlineViewer.getControl().getDisplay(), () -> {
+        fInnerLabelProvider.setShowDefiningType(isChecked());
+        getDialogSettings().put(STORE_SORT_BY_DEFINING_TYPE_CHECKED, isChecked());
 
-					fOutlineViewer.refresh(true);
+        fOutlineViewer.refresh(true);
 
-					// reveal selection
-					Object selectedElement= getSelectedElement();
-					if (selectedElement != null)
-						fOutlineViewer.reveal(selectedElement);
-				}
-			});
+        // reveal selection
+        Object selectedElement= getSelectedElement();
+        if (selectedElement != null)
+          fOutlineViewer.reveal(selectedElement);
+      });
 		}
 	}
 
@@ -618,12 +610,12 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 		IDecoratorManager decoratorMgr= PlatformUI.getWorkbench().getDecoratorManager();
 		if (decoratorMgr.getEnabled("org.eclipse.jdt.ui.override.decorator")) //$NON-NLS-1$
 			fInnerLabelProvider.addLabelDecorator(new OverrideIndicatorLabelDecorator(null));
-		
+
 		// AspectJ Change begin
 		//treeViewer.setLabelProvider(fInnerLabelProvider);
 		treeViewer.setLabelProvider(new DecoratingJavaLabelProvider(fInnerLabelProvider));
 		// AspectJ Change end
-		
+
 		fLexicalSortingAction= new LexicalSortingAction(treeViewer);
 		fSortByDefiningTypeAction= new SortByDefiningTypeAction(treeViewer);
 		fShowOnlyMainTypeAction= new ShowOnlyMainTypeAction(treeViewer);
@@ -698,13 +690,13 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 //					KeySequence[] sequences= getInvokingCommandKeySequences();
 					if (sequences == null)
 						return;
-					for (int i= 0; i < sequences.length; i++) {
-						if (sequences[i].equals(keySequence)) {
-							e.doit= false;
-							toggleShowInheritedMembers();
-							return;
-						}
-					}
+          for (TriggerSequence sequence : sequences) {
+            if (sequence.equals(keySequence)) {
+              e.doit = false;
+              toggleShowInheritedMembers();
+              return;
+            }
+          }
 				}
 			};
 		}
@@ -735,14 +727,14 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 	@Override
 	protected void fillViewMenu(IMenuManager viewMenu) {
 		super.fillViewMenu(viewMenu);
-		viewMenu.add(fShowOnlyMainTypeAction); 
+		viewMenu.add(fShowOnlyMainTypeAction);
 
 		viewMenu.add(new Separator("Sorters")); //$NON-NLS-1$
 		viewMenu.add(fLexicalSortingAction);
 
 		viewMenu.add(fSortByDefiningTypeAction);
 	}
-	
+
 	private ITypeHierarchy getSuperTypeHierarchy(IType type) {
 		ITypeHierarchy th= (ITypeHierarchy)fTypeHierarchies.get(type);
 		if (th == null) {
@@ -767,11 +759,11 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 
 		return editor.getEditorSite().getActionBars().getStatusLineManager().getProgressMonitor();
 	}
-	
+
 	// AspectJ Change begin
 	// adding this for testing purposes (bug 80239)
 	private static AJOutlineInformationControl infoControl;
-	
+
 	/**
 	 * Returns the instance of this class - this method
 	 * is for testing purposes and is not part of the published

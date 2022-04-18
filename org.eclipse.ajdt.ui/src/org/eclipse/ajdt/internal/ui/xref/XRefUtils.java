@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -26,10 +26,10 @@ public class XRefUtils {
 	 * If an Aspect is opened in the Aspect Editor and the 'Cross References'
 	 * view is NOT already open, it may be automatically opened for the user. A
 	 * dialog will be displayed, asking the user:
-	 * 
+	 *
 	 * a) if they want the view to be opened b) if they would like the view to
 	 * be opened every time an Aspect is opened
-	 * 
+	 *
 	 * -spyoung
 	 */
 	public static void autoOpenXRefView() {
@@ -127,11 +127,11 @@ public class XRefUtils {
 		IViewReference[] views = AspectJUIPlugin.getDefault()
 				.getActiveWorkbenchWindow().getActivePage().getViewReferences();
 		if (views != null) {
-			for (int i = 0; i < views.length; i++) {
-				if (XReferenceView.ID.equals(views[i].getId())) {
-					return true;
-				}
-			}
+      for (IViewReference view : views) {
+        if (XReferenceView.ID.equals(view.getId())) {
+          return true;
+        }
+      }
 		}
 		return false;
 	}

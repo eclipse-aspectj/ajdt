@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman  - initial version
@@ -31,7 +31,7 @@ public class BuildConfigTest extends AJDTCoreTestCase {
 	/**
 	 * Test that getIncludedSourceFiles returns the complete set of source files
 	 * in a project
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	public void testGetIncludedSourceFiles() throws Exception {
@@ -57,7 +57,7 @@ public class BuildConfigTest extends AJDTCoreTestCase {
 	/**
 	 * Test that getIncludedSourceFiles returns the complete set of source files
 	 * in a project
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	public void testGetIncludedSourceFilesBug153597() throws Exception {
@@ -65,16 +65,14 @@ public class BuildConfigTest extends AJDTCoreTestCase {
 		Set<IFile> files = BuildConfig.getIncludedSourceFiles(project);
 		assertNotNull(
 				"BuildConfig.getIncludedSourceFiles should not return null", files); //$NON-NLS-1$
-		List<IFile> asList = new ArrayList<IFile>(files);
-		Collections.sort(asList, new Comparator<IFile>() {
-			public int compare(IFile o1, IFile o2) {
-				String s1 = o1.getProjectRelativePath()
-						.toPortableString();
-				String s2 = o2.getProjectRelativePath()
-						.toPortableString();
-				return s1.compareTo(s2);
-			}
-		});
+		List<IFile> asList = new ArrayList<>(files);
+		asList.sort((o1, o2) -> {
+      String s1 = o1.getProjectRelativePath()
+        .toPortableString();
+      String s2 = o2.getProjectRelativePath()
+        .toPortableString();
+      return s1.compareTo(s2);
+    });
 
 		assertTrue(
 				"BuildConfig.getIncludedSourceFiles should have returned at least one item", files.size() >= 1); //$NON-NLS-1$
@@ -98,7 +96,7 @@ public class BuildConfigTest extends AJDTCoreTestCase {
 	/**
 	 * Test that isIncluded returns true for source files on the build path,
 	 * false otherwise
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	public void testIsIncluded() throws Exception {

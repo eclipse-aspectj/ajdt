@@ -38,15 +38,15 @@ import org.eclipse.jdt.internal.compiler.ast.TrueLiteral;
  */
 public class CompilerASTNodeCompatibilityWrapper implements NoFFDC {
 
-    public static TrueLiteral createJDTTrueLiteral(org.aspectj.org.eclipse.jdt.internal.compiler.ast.TrueLiteral ajdtLiteral) throws IllegalArgumentException, SecurityException, IllegalAccessException, InvocationTargetException, ClassNotFoundException, InstantiationException, NoSuchMethodException {
+    public static TrueLiteral createJDTTrueLiteral(org.aspectj.org.eclipse.jdt.internal.compiler.ast.TrueLiteral ajdtLiteral) throws IllegalArgumentException, SecurityException {
         return new TrueLiteral(ajdtLiteral.sourceStart, ajdtLiteral.sourceEnd);
     }
 
-    public static FalseLiteral createJDTFalseLiteral(org.aspectj.org.eclipse.jdt.internal.compiler.ast.FalseLiteral ajdtLiteral) throws IllegalArgumentException, SecurityException, IllegalAccessException, InvocationTargetException, ClassNotFoundException, InstantiationException, NoSuchMethodException {
+    public static FalseLiteral createJDTFalseLiteral(org.aspectj.org.eclipse.jdt.internal.compiler.ast.FalseLiteral ajdtLiteral) throws IllegalArgumentException, SecurityException {
         return new FalseLiteral(ajdtLiteral.sourceStart, ajdtLiteral.sourceEnd);
     }
 
-    public static NullLiteral createJDTNullLiteral(org.aspectj.org.eclipse.jdt.internal.compiler.ast.NullLiteral ajdtLiteral) throws IllegalArgumentException, SecurityException, IllegalAccessException, InvocationTargetException, ClassNotFoundException, InstantiationException, NoSuchMethodException {
+    public static NullLiteral createJDTNullLiteral(org.aspectj.org.eclipse.jdt.internal.compiler.ast.NullLiteral ajdtLiteral) throws IllegalArgumentException, SecurityException {
         return new NullLiteral(ajdtLiteral.sourceStart, ajdtLiteral.sourceEnd);
     }
 

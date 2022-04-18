@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Sian January - initial implementation
  *******************************************************************************/
@@ -73,20 +73,20 @@ public class AJMarkersDialog extends Dialog {
 
 	private Table table;
 	private boolean pageChanged = false;
-	private IProject project;
-	private Map tableItemsToAspects = new HashMap();
-	private List aspectNames = new ArrayList();
+	private final IProject project;
+	private final Map tableItemsToAspects = new HashMap();
+	private final List aspectNames = new ArrayList();
 	private Image[] images16x16;
-	
+
 	private List imagesToDispose;
-	
-	private Image defaultImage = AspectJImages.instance().getRegistry().get(AspectJImages.ADVICE.getImageDescriptor());
-	
+
+	private final Image defaultImage = AspectJImages.instance().getRegistry().get(AspectJImages.ADVICE.getImageDescriptor());
+
 	protected void configureShell(Shell newShell) {
 		super.configureShell(newShell);
 		newShell.setText(UIMessages.AJMarkersDialog_configure_title);
 	}
-	
+
 	public AJMarkersDialog(Shell parentShell, IProject project) {
 		super(parentShell);
 		images16x16 = new Image[CustomMarkerImageProvider.sampleImageDescriptors.length];
@@ -102,8 +102,8 @@ public class AJMarkersDialog extends Dialog {
 		super(parentShell);
 		this.project = project;
 	}
-	
-	
+
+
 
 	protected Control createDialogArea(Composite parent) {
 		Composite composite = new Composite(parent, SWT.NONE);
@@ -148,9 +148,9 @@ public class AJMarkersDialog extends Dialog {
 		table.addSelectionListener(new SelectionAdapter(){
 			public void widgetDefaultSelected(SelectionEvent e) {
 				edit(table);
-			};
-			
-			public void widgetSelected(SelectionEvent e) {
+			}
+
+      public void widgetSelected(SelectionEvent e) {
 				editButton.setEnabled(true);
 			}
 		});
@@ -163,49 +163,52 @@ public class AJMarkersDialog extends Dialog {
 		aspectsColumn.setWidth(aspectsColumn.getWidth() + 20);
 		return composite;
 	}
-	
+
 	private void addAspects(Table table) throws CoreException {
 		List ajcus = AJCompilationUnitManager.INSTANCE.getAJCompilationUnits(JavaCore.create(project));
-		for (Iterator iter = ajcus.iterator(); iter.hasNext();) {
-			AJCompilationUnit unit = (AJCompilationUnit) iter.next();
-			IType[] types = unit.getAllTypes();
-			for (int j = 0; j < types.length; j++) {
-				IType type = types[j];
-				if (type instanceof AspectElement) {
-					String fullyQualifiedAspectName = getFullyQualifiedAspectName(type);
-					String aspectName = getAspectDisplayName(type);
-					aspectNames.add(aspectName);
-					TableItem tableItem = new TableItem(table, SWT.None);
-					tableItemsToAspects.put(tableItem, type);
-					tableItem.setText(0, aspectName);
-					tableItem.setImage(getAspectImage(type));
-					String savedValue = AspectJPreferences.getSavedIcon(project, fullyQualifiedAspectName);
-					if(savedValue == null || savedValue.trim().equals("")) { //$NON-NLS-1$
-						tableItem.setText(1, DEFAULT_MARKERS);
-						tableItem.setImage(1, defaultImage);
-					} else if (savedValue.equals(NO_MARKERS)) {
-						tableItem.setText(1, NO_MARKERS);
-					} else if (savedValue.startsWith(SAMPLE)) {
-						int index = getSampleIndex(savedValue);
-						tableItem.setImage(1, images16x16[index]);
-						tableItem.setText(1, CustomMarkerImageProvider.sampleImageNames[index]);
-						tableItem.setData(CustomMarkerImageProvider.sampleImageLocations[index]);							
-					} else {
-						Image image = create16x16Image(CustomMarkerImageProvider.getImage(savedValue)); 
-						if(image == null) {
-							tableItem.setText(1, DEFAULT_MARKERS);
-							tableItem.setImage(1, defaultImage);
-						} else {
-							tableItem.setImage(1, image);
-							tableItem.setText(1, savedValue.substring(savedValue.lastIndexOf('/') + 1));
-							tableItem.setData(savedValue);
-						}
-					}
-				}
-			}
-		}		
+    for (Object o : ajcus) {
+      AJCompilationUnit unit = (AJCompilationUnit) o;
+      IType[] types = unit.getAllTypes();
+      for (IType type : types) {
+        if (type instanceof AspectElement) {
+          String fullyQualifiedAspectName = getFullyQualifiedAspectName(type);
+          String aspectName = getAspectDisplayName(type);
+          aspectNames.add(aspectName);
+          TableItem tableItem = new TableItem(table, SWT.None);
+          tableItemsToAspects.put(tableItem, type);
+          tableItem.setText(0, aspectName);
+          tableItem.setImage(getAspectImage(type));
+          String savedValue = AspectJPreferences.getSavedIcon(project, fullyQualifiedAspectName);
+          if (savedValue == null || savedValue.trim().equals("")) { //$NON-NLS-1$
+            tableItem.setText(1, DEFAULT_MARKERS);
+            tableItem.setImage(1, defaultImage);
+          }
+          else if (savedValue.equals(NO_MARKERS)) {
+            tableItem.setText(1, NO_MARKERS);
+          }
+          else if (savedValue.startsWith(SAMPLE)) {
+            int index = getSampleIndex(savedValue);
+            tableItem.setImage(1, images16x16[index]);
+            tableItem.setText(1, CustomMarkerImageProvider.sampleImageNames[index]);
+            tableItem.setData(CustomMarkerImageProvider.sampleImageLocations[index]);
+          }
+          else {
+            Image image = create16x16Image(CustomMarkerImageProvider.getImage(savedValue));
+            if (image == null) {
+              tableItem.setText(1, DEFAULT_MARKERS);
+              tableItem.setImage(1, defaultImage);
+            }
+            else {
+              tableItem.setImage(1, image);
+              tableItem.setText(1, savedValue.substring(savedValue.lastIndexOf('/') + 1));
+              tableItem.setData(savedValue);
+            }
+          }
+        }
+      }
+    }
 	}
-	
+
 	private Image getAspectImage(IType type) {
 		int flags = Flags.AccPublic;
 		try {
@@ -229,10 +232,10 @@ public class AJMarkersDialog extends Dialog {
 			return type.getElementName() + " - " + UIMessages.AJMarkersDialog_defaultPackage;	 //$NON-NLS-1$
 		} else {
 			String name = type.getPackageFragment().getElementName();
-			for (int i = 0; i < enclosingTypes.length; i++) {
-				name += "."; //$NON-NLS-1$
-				name += new String(enclosingTypes[i]);
-			}
+      for (char[] enclosingType : enclosingTypes) {
+        name += "."; //$NON-NLS-1$
+        name += new String(enclosingType);
+      }
 			return type.getElementName() + " - " + name; //$NON-NLS-1$
 		}
 	}
@@ -243,59 +246,60 @@ public class AJMarkersDialog extends Dialog {
 		if(name != null && !name.equals("")) { //$NON-NLS-1$
 			name += "."; //$NON-NLS-1$
 		}
-		for (int i = 0; i < enclosingTypes.length; i++) {
-			name += new String(enclosingTypes[i]);
-			name += "."; //$NON-NLS-1$
-		}
+    for (char[] enclosingType : enclosingTypes) {
+      name += new String(enclosingType);
+      name += "."; //$NON-NLS-1$
+    }
 		name += type.getElementName();
 		return name;
 	}
-     
+
 	protected void okPressed() {
 		TableItem[] items = table.getItems();
-		for (int i = 0; i < items.length; i++) {
-			TableItem item = items[i];
-			AspectElement aspectEl = (AspectElement) tableItemsToAspects.get(item);
-			if (aspectEl != null) {
-				String fullyQualifiedName = getFullyQualifiedAspectName(aspectEl);
-				String text = item.getText(1);
-				if (text == DEFAULT_MARKERS) {
-					AspectJPreferences.setSavedIcon(project, fullyQualifiedName, null);
-				} else if (text == NO_MARKERS) {
-					AspectJPreferences.setSavedIcon(project, fullyQualifiedName, NO_MARKERS);
-				} else {
-					AspectJPreferences.setSavedIcon(project, fullyQualifiedName, (String)item.getData());
-				}
-			}
-		}
+    for (TableItem item : items) {
+      AspectElement aspectEl = (AspectElement) tableItemsToAspects.get(item);
+      if (aspectEl != null) {
+        String fullyQualifiedName = getFullyQualifiedAspectName(aspectEl);
+        String text = item.getText(1);
+        if (text == DEFAULT_MARKERS) {
+          AspectJPreferences.setSavedIcon(project, fullyQualifiedName, null);
+        }
+        else if (text == NO_MARKERS) {
+          AspectJPreferences.setSavedIcon(project, fullyQualifiedName, NO_MARKERS);
+        }
+        else {
+          AspectJPreferences.setSavedIcon(project, fullyQualifiedName, (String) item.getData());
+        }
+      }
+    }
 		if(pageChanged) {
 			Job deleteUpdateMarkers = new DeleteAndUpdateAJMarkersJob(project);
             deleteUpdateMarkers.setPriority(Job.BUILD);
 			deleteUpdateMarkers.schedule();
 		}
 		super.okPressed();
-		for (Iterator iter = imagesToDispose.iterator(); iter.hasNext();) {
-			Image image = (Image) iter.next();
-			image.dispose();
-		}
-		images16x16 = null;
-		imagesToDispose = null;
-	} 
-	
-	protected void cancelPressed() {
-		super.cancelPressed();
-		for (Iterator iter = imagesToDispose.iterator(); iter.hasNext();) {
-			Image image = (Image) iter.next();
-			image.dispose();
-		}
+    for (Object o : imagesToDispose) {
+      Image image = (Image) o;
+      image.dispose();
+    }
 		images16x16 = null;
 		imagesToDispose = null;
 	}
-	
-	
+
+	protected void cancelPressed() {
+		super.cancelPressed();
+    for (Object o : imagesToDispose) {
+      Image image = (Image) o;
+      image.dispose();
+    }
+		images16x16 = null;
+		imagesToDispose = null;
+	}
 
 
-    
+
+
+
     private void edit(final Table table) {
 		MarkerSelectionDialog dialog = new MarkerSelectionDialog(getShell(), project, (String) table.getSelection()[0].getData(), table.getSelection()[0].getText(0), aspectNames);
 		dialog.create();
@@ -305,13 +309,13 @@ public class AJMarkersDialog extends Dialog {
 			String aspectName = dialog.getAspectName();
 			if(!(table.getSelection()[0]).getText(0).equals(aspectName)) {
 				Set items = tableItemsToAspects.keySet();
-				for (Iterator iter = items.iterator(); iter.hasNext();) {
-					TableItem item = (TableItem) iter.next();
-					if(item.getText(0).equals(aspectName)) {
-						table.setSelection(item);
-						break;
-					}
-				}
+        for (Object o : items) {
+          TableItem item = (TableItem) o;
+          if (item.getText(0).equals(aspectName)) {
+            table.setSelection(item);
+            break;
+          }
+        }
 			}
 			if(selection == null) {
 				table.getSelection()[0].setText(1, DEFAULT_MARKERS);
@@ -321,7 +325,7 @@ public class AJMarkersDialog extends Dialog {
 				table.getSelection()[0].setText(1, NO_MARKERS);
 				table.getSelection()[0].setImage(1, null);
 				table.getSelection()[0].setData(NO_MARKERS);
-			} else if(selection.startsWith(SAMPLE)) { 
+			} else if(selection.startsWith(SAMPLE)) {
 				int index = getSampleIndex(selection);
 				table.getSelection()[0].setText(1, CustomMarkerImageProvider.sampleImageNames[index]);
 				table.getSelection()[0].setImage(1, images16x16[index]);
@@ -329,7 +333,7 @@ public class AJMarkersDialog extends Dialog {
 			} else {
 				table.getSelection()[0].setText(1, selection.substring(selection.lastIndexOf('/') + 1));
 				table.getSelection()[0].setImage(1, create16x16Image(CustomMarkerImageProvider.getImage(selection)));
-				table.getSelection()[0].setData(selection);			
+				table.getSelection()[0].setData(selection);
 			}
 			table.layout();
 		}
@@ -337,10 +341,9 @@ public class AJMarkersDialog extends Dialog {
 
 	private int getSampleIndex(String selection) {
 		String[] split = selection.split("_"); //$NON-NLS-1$
-		int index = Integer.parseInt(split[1]);
-		return index;
+    return Integer.parseInt(split[1]);
 	}
-	
+
 	private Image create16x16Image(Image orig) {
 		Image img = new Image(orig.getDevice(), 16, 16);
 		GC gc = new GC(img);
@@ -358,20 +361,20 @@ public class AJMarkersDialog extends Dialog {
 	 * a partcular aspect.
 	 */
 	public class MarkerSelectionDialog extends Dialog {
-		
+
     	/**
     	 * Override to set the title
     	 */
     	protected void configureShell(Shell shell) {
     	   super.configureShell(shell);
     	   shell.setText(UIMessages.AJMarkersPropertyPage_select_icon);
-    	}	
-    	
+    	}
+
 		private String selection;
 		private String aspectName;
-		private IProject project;
-		private List aspects;
-		
+		private final IProject project;
+		private final List aspects;
+
 		protected MarkerSelectionDialog(Shell shell, IProject project, String selection, String aspectName, List aspects) {
 			super(shell);
 			this.project = project;
@@ -395,10 +398,10 @@ public class AJMarkersDialog extends Dialog {
 			Label aspectLabel = new Label(composite, SWT.NONE);
 			aspectLabel.setText(UIMessages.AJMarkersDialog_aspect);
 			final Combo aspectCombo = new Combo(composite, SWT.BORDER | SWT.READ_ONLY);
-			for (Iterator iter = aspects.iterator(); iter.hasNext();) {
-				String aspectNameStr = (String) iter.next();
-				aspectCombo.add(aspectNameStr);
-			}
+      for (Object aspect : aspects) {
+        String aspectNameStr = (String) aspect;
+        aspectCombo.add(aspectNameStr);
+      }
 			aspectCombo.select(aspectCombo.indexOf(aspectName));
 			gd = new GridData(GridData.FILL_HORIZONTAL | GridData.GRAB_HORIZONTAL | GridData.FILL_VERTICAL | GridData.GRAB_VERTICAL);
 			gd.widthHint = 250;
@@ -441,7 +444,7 @@ public class AJMarkersDialog extends Dialog {
 				if(CustomMarkerImageProvider.sampleImageLocations[i].equals(selection)) {
 					table.setSelection(item);
 				}
-			}		
+			}
 			column.pack();
 			table.addSelectionListener(new SelectionAdapter(){
 				public void widgetSelected(SelectionEvent e) {
@@ -450,7 +453,7 @@ public class AJMarkersDialog extends Dialog {
 					selection = (String) items[selected].getData();
 					getButton(IDialogConstants.OK_ID).setEnabled(true);
 				}
-				
+
 				public void widgetDefaultSelected(SelectionEvent e) {
 					int selected = table.getSelectionIndex();
 					TableItem[] items = table.getItems();
@@ -458,7 +461,7 @@ public class AJMarkersDialog extends Dialog {
 					getButton(IDialogConstants.OK_ID).setEnabled(true);
 					okPressed();
 				}
-			});		
+			});
 			table.setLayoutData(new GridData(GridData.FILL_BOTH));
 			Button browseIconButton = new Button(composite, SWT.PUSH);
 			browseIconButton.setText(UIMessages.AJMarkersPropertyPage_browse);
@@ -471,13 +474,13 @@ public class AJMarkersDialog extends Dialog {
 						selection = dialog.getFileLocation();
 						boolean alreadyThere = false;
 						TableItem[] items = table.getItems();
-						for (int i = 0; i < items.length; i++) {
-							if(selection.equals(items[i].getData())) {
-								alreadyThere = true;
-								table.setSelection(items[i]);
-								break;
-							}
-						}
+            for (TableItem item : items) {
+              if (selection.equals(item.getData())) {
+                alreadyThere = true;
+                table.setSelection(item);
+                break;
+              }
+            }
 						if (!alreadyThere) {
 							TableItem tableItem = new TableItem(table, SWT.NONE, 2);
 							tableItem.setText(dialog.getFileName());
@@ -488,11 +491,11 @@ public class AJMarkersDialog extends Dialog {
 						}
 						getButton(IDialogConstants.OK_ID).setEnabled(true);
 					}
-				}	
-			});	
+				}
+			});
 			return composite;
 		}
-		
+
 		public String getSelection() {
 			return selection;
 		}
@@ -501,16 +504,16 @@ public class AJMarkersDialog extends Dialog {
 			return aspectName;
 		}
 	}
-	
+
 	/**
 	 * Dialog used to select gif or png image files from the project
 	 */
 	public class MarkerImageSelectionDialog extends Dialog {
-		
+
     	private String selection;
     	private String fileName;
-		private IProject project;
-		
+		private final IProject project;
+
 		protected MarkerImageSelectionDialog(Shell parentShell, IProject project) {
 			super(parentShell);
 			this.project = project;
@@ -530,15 +533,15 @@ public class AJMarkersDialog extends Dialog {
     	protected void configureShell(Shell shell) {
     	   super.configureShell(shell);
     	   shell.setText(UIMessages.AJMarkersPropertyPage_select_icon);
-    	}	
-    	
+    	}
+
 		protected Control createDialogArea(Composite parent) {
 			Composite composite = new Composite(parent, SWT.NONE);
 			composite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.GRAB_HORIZONTAL | GridData.FILL_VERTICAL | GridData.GRAB_VERTICAL));
 			GridLayout gl = new GridLayout(1, false);
 			gl.marginHeight = 10;
 			gl.marginWidth = 10;
-			composite.setLayout(gl);		
+			composite.setLayout(gl);
 			final Tree tree = new Tree(composite, SWT.BORDER | SWT.SINGLE);
 			GridData gd = new GridData(GridData.FILL_HORIZONTAL | GridData.GRAB_HORIZONTAL | GridData.FILL_VERTICAL | GridData.GRAB_VERTICAL);
 			gd.heightHint = 150;
@@ -551,7 +554,7 @@ public class AJMarkersDialog extends Dialog {
 					fileName = getNameForItem(tree.getSelection()[0]);
 					getButton(IDialogConstants.OK_ID).setEnabled(selection != null);
 				}
-				
+
 				public void widgetDefaultSelected(SelectionEvent e) {
 					selection = getSelectionForItem(tree.getSelection()[0]);
 					fileName = getNameForItem(tree.getSelection()[0]);
@@ -563,21 +566,21 @@ public class AJMarkersDialog extends Dialog {
 			});
 			return composite;
 		}
-		
+
 		private String getNameForItem(TreeItem item) {
 			if(item.getData() instanceof IFile) {
 				return ((IFile)item.getData()).getName();
 			}
 			return null;
 		}
-		
+
 		private String getSelectionForItem(TreeItem item) {
 			if(item.getData() instanceof IFile) {
 				return ((IFile)item.getData()).getFullPath().toString();
 			}
 			return null;
 		}
-		
+
 		private void fillTree(IProject project, Tree tree) {
 			TreeViewer viewer = new TreeViewer(tree);
 			viewer.setContentProvider(new ITreeContentProvider(){
@@ -587,12 +590,11 @@ public class AJMarkersDialog extends Dialog {
 						try {
 							IResource[] members = ((IContainer)parentElement).members();
 							List children = new ArrayList();
-							for (int i = 0; i < members.length; i++) {
-								IResource resource = members[i];
-								if(resource instanceof IContainer || resource.getFileExtension().equals("gif") || resource.getFileExtension().equals("png")) { //$NON-NLS-1$ //$NON-NLS-2$
-									children.add(resource);
-								}
-							}
+              for (IResource resource : members) {
+                if (resource instanceof IContainer || resource.getFileExtension().equals("gif") || resource.getFileExtension().equals("png")) { //$NON-NLS-1$ //$NON-NLS-2$
+                  children.add(resource);
+                }
+              }
 							return children.toArray();
 						} catch (CoreException e) {
 						}
@@ -617,10 +619,10 @@ public class AJMarkersDialog extends Dialog {
 					} else return (getChildren(inputElement));
 				}
 
-				public void dispose() {					
+				public void dispose() {
 				}
 
-				public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {				
+				public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
 				}
 
 			});
@@ -630,7 +632,7 @@ public class AJMarkersDialog extends Dialog {
 
 		protected String getSelection() {
 			return selection;
-		}    	
-	} 
+		}
+	}
 
 }

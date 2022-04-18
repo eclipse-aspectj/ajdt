@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2010 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Kris De Volder - initial API and implementation
  *******************************************************************************/
@@ -20,8 +20,8 @@ import org.eclipse.jface.viewers.ViewerCell;
  * @author kdvolder
  */
 public abstract class JavaCellLabelProvider extends CellLabelProvider {
-	
-	private JavaUILabelProvider javaLabelProvider;
+
+	private final JavaUILabelProvider javaLabelProvider;
 
 	/**
 	 * Rather than have every cell in the table create its onw JavaUILabelProvider,
@@ -30,12 +30,12 @@ public abstract class JavaCellLabelProvider extends CellLabelProvider {
 	public JavaCellLabelProvider(JavaUILabelProvider javaLabelProvider) {
 		this.javaLabelProvider = javaLabelProvider;
 	}
-	
+
 	/**
 	 * Each column in a table displays some data that is somehow derived from the element
 	 * Object that is associated with that line in the table.
 	 * <p>
-	 * You must implement this method to extract the column data from a row element. 
+	 * You must implement this method to extract the column data from a row element.
 	 */
 	public abstract Object getColumnData(Object element);
 

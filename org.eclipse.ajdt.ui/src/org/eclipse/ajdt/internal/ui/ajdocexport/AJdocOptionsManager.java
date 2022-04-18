@@ -1,14 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Sebastian Davids <sdavids@gmx.de> bug 38692
- *     Luzius Meisser  - adjusted for ajdoc 
+ *     Luzius Meisser  - adjusted for ajdoc
  *     Helen Hawkins   - updated for Eclipse 3.1 (bug 109484)
  *******************************************************************************/
 package org.eclipse.ajdt.internal.ui.ajdocexport;
@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.StringTokenizer;
@@ -68,13 +69,13 @@ import org.xml.sax.SAXException;
  * Changes marked with // AspectJ Extension
  */
 public class AJdocOptionsManager {
-	private IFile fXmlfile;
+	private final IFile fXmlfile;
 
-	private StatusInfo fWizardStatus;
+	private final StatusInfo fWizardStatus;
 
 	private String[] fJavadocCommandHistory;
-	
-	
+
+
 	private IJavaElement[] fSelectedElements;
 	private IJavaElement[] fInitialElements;
 
@@ -87,7 +88,7 @@ public class AJdocOptionsManager {
 	private String fVMParams;
 	private String fOverview;
 	private String fTitle;
-	
+
 	private String[] fHRefs;
 
 	private IPath[] fSourcepath;
@@ -102,12 +103,12 @@ public class AJdocOptionsManager {
 	private boolean fAuthor;
 	private boolean fVersion;
 	private boolean fUse;
-	
+
 	private String fSource;
 
 	private boolean fOpenInBrowser;
-	
-	private RecentSettingsStore fRecentSettings;
+
+	private final RecentSettingsStore fRecentSettings;
 
 	//add-on for multi-project version
 	private String fDestination;
@@ -134,7 +135,7 @@ public class AJdocOptionsManager {
 	public final String SOURCEPATH= "sourcepath"; //$NON-NLS-1$
 	public final String CLASSPATH= "classpath"; //$NON-NLS-1$
 	public final String DESTINATION= "destdir"; //$NON-NLS-1$
-	public final String OPENINBROWSER= "openinbrowser"; //$NON-NLS-1$	
+	public final String OPENINBROWSER= "openinbrowser"; //$NON-NLS-1$
 
 	public final String VISIBILITY= "access"; //$NON-NLS-1$
 	public final String PACKAGENAMES= "packagenames"; //$NON-NLS-1$
@@ -150,32 +151,32 @@ public class AJdocOptionsManager {
 	public final String FROMSTANDARD= "fromStandard"; //$NON-NLS-1$
 	public final String ANTPATH= "antpath"; //$NON-NLS-1$
 	public final String SOURCE= "source"; //$NON-NLS-1$
-	
+
 	// AspectJ Extension - changing JAVADOC to AJDOC
 	private final String SECTION_AJDOC= "ajdoc"; //$NON-NLS-1$
 	private static final String AJDOC_COMMAND_HISTORY= "ajdoc_command_history"; //$NON-NLS-1$
 /*	private final String SECTION_JAVADOC= "javadoc"; //$NON-NLS-1$
 
 	private static final String JAVADOC_COMMAND_HISTORY= "javadoc_command_history"; //$NON-NLS-1$
-*/	
+*/
 	public AJdocOptionsManager(IFile xmlJavadocFile, IDialogSettings dialogSettings, List currSelection) {
 		fXmlfile= xmlJavadocFile;
 		fWizardStatus= new StatusInfo();
 
         // AspectJ Extension begin - changing javadoc to ajdoc
-		IDialogSettings ajdocSection= dialogSettings.getSection(SECTION_AJDOC); 
-		
-		String commandHistory= null; 
+		IDialogSettings ajdocSection= dialogSettings.getSection(SECTION_AJDOC);
+
+		String commandHistory= null;
 		if (ajdocSection != null) {
 			commandHistory= ajdocSection.get(AJDOC_COMMAND_HISTORY);
 		}
 		if (commandHistory == null || commandHistory.length() == 0) {
-			commandHistory= initJavadocCommandDefault(); 
+			commandHistory= initJavadocCommandDefault();
 		}
 		fJavadocCommandHistory= arrayFromFlatString(commandHistory);
-		
+
 		fRecentSettings= new RecentSettingsStore(ajdocSection);
-		
+
 		if (xmlJavadocFile != null) {
 			try {
 				JavadocReader reader= new JavadocReader(xmlJavadocFile.getContents());
@@ -184,15 +185,15 @@ public class AJdocOptionsManager {
 					loadFromXML(element);
 					return;
 				}
-				fWizardStatus.setWarning(JavadocExportMessages.JavadocOptionsManager_antfileincorrectCE_warning); 
+				fWizardStatus.setWarning(JavadocExportMessages.JavadocOptionsManager_antfileincorrectCE_warning);
 			} catch (CoreException e) {
 				JavaPlugin.log(e);
 				fWizardStatus.setWarning(JavadocExportMessages.JavadocOptionsManager_antfileincorrectCE_warning);
 			} catch (IOException e) {
 				JavaPlugin.log(e);
-				fWizardStatus.setWarning(JavadocExportMessages.JavadocOptionsManager_antfileincorrectIOE_warning); 
+				fWizardStatus.setWarning(JavadocExportMessages.JavadocOptionsManager_antfileincorrectIOE_warning);
 			} catch (SAXException e) {
-				fWizardStatus.setWarning(JavadocExportMessages.JavadocOptionsManager_antfileincorrectSAXE_warning); 
+				fWizardStatus.setWarning(JavadocExportMessages.JavadocOptionsManager_antfileincorrectSAXE_warning);
 			}
 		}
 		if (ajdocSection != null) {
@@ -210,24 +211,25 @@ public class AJdocOptionsManager {
 	 */
 	private IJavaProject getSingleProjectFromInitialSelection() {
 		IJavaProject res= null;
-		for (int i= 0; i < fInitialElements.length; i++) {
-			IJavaProject curr= fInitialElements[i].getJavaProject();
-			if (res == null) {
-				res= curr;
-			} else if (!res.equals(curr)) {
-				return null;
-			}
-		}
+    for (IJavaElement fInitialElement : fInitialElements) {
+      IJavaProject curr = fInitialElement.getJavaProject();
+      if (res == null) {
+        res = curr;
+      }
+      else if (!res.equals(curr)) {
+        return null;
+      }
+    }
 		if (res != null && res.isOpen()) {
 			return res;
 		}
 		return null;
 	}
-	
-	
+
+
 	private void loadFromDialogStore(IDialogSettings settings, List sel) {
 		fInitialElements= getInitialElementsFromSelection(sel);
-		
+
 		IJavaProject project= getSingleProjectFromInitialSelection();
 
 		fAccess= settings.get(VISIBILITY);
@@ -246,7 +248,7 @@ public class AJdocOptionsManager {
 			fDocletname= ""; //$NON-NLS-1$
 		}
 
-		
+
 		if (project != null) {
 			fAntpath= getRecentSettings().getAntpath(project);
 		} else {
@@ -256,7 +258,7 @@ public class AJdocOptionsManager {
 			}
 		}
 
-		
+
 		if (project != null) {
 			fDestination= getRecentSettings().getDestination(project);
 		} else {
@@ -277,7 +279,7 @@ public class AJdocOptionsManager {
 		fVMParams= settings.get(VMOPTIONS);
 		if (fVMParams == null)
 			fVMParams= ""; //$NON-NLS-1$
-		
+
 		fAdditionalParams= settings.get(EXTRAOPTIONS);
 		if (fAdditionalParams == null)
 			fAdditionalParams= ""; //$NON-NLS-1$
@@ -296,12 +298,12 @@ public class AJdocOptionsManager {
 		fNotree= loadBoolean(settings.get(NOTREE));
 		fSplitindex= loadBoolean(settings.get(SPLITINDEX));
 		fOpenInBrowser= loadBoolean(settings.get(OPENINBROWSER));
-		
+
 		fSource= settings.get(SOURCE);
 		if (project != null) {
 			fSource= project.getOption(JavaCore.COMPILER_SOURCE, true);
 		}
-		
+
 		if (project != null) {
 			fHRefs= getRecentSettings().getHRefs(project);
 		} else {
@@ -313,7 +315,7 @@ public class AJdocOptionsManager {
 	//loads defaults for wizard (nothing is stored)
 	private void loadDefaults(List sel) {
 		fInitialElements= getInitialElementsFromSelection(sel);
-		
+
 		IJavaProject project= getSingleProjectFromInitialSelection();
 
 		if (project != null) {
@@ -325,7 +327,7 @@ public class AJdocOptionsManager {
 			fDestination= ""; //$NON-NLS-1$
 			fHRefs= new String[0];
 		}
-		
+
 		fAccess= PUBLIC;
 
 		fDocletname= ""; //$NON-NLS-1$
@@ -368,7 +370,7 @@ public class AJdocOptionsManager {
 		fDocletname= ""; //$NON-NLS-1$
 		fDocletpath= ""; //$NON-NLS-1$
 
-		if (destination.length() == 0) { 
+		if (destination.length() == 0) {
 			NodeList list= element.getChildNodes();
 			for (int i= 0; i < list.getLength(); i++) {
 				Node child= list.item(i);
@@ -385,9 +387,9 @@ public class AJdocOptionsManager {
 				}
 			}
 		}
-		
+
 		fInitialElements= getSelectedElementsFromAnt(element);
-		
+
 
 		//find all the links stored in the ant script
 		NodeList children= element.getChildNodes();
@@ -408,30 +410,30 @@ public class AJdocOptionsManager {
 
 		fStylesheet= element.getAttribute(STYLESHEETFILE);
 		fTitle= element.getAttribute(TITLE);
-		
 
-		StringBuffer additionals= new StringBuffer();
-		StringBuffer vmargs= new StringBuffer();
+
+		StringBuilder additionals= new StringBuilder();
+		StringBuilder vmargs= new StringBuilder();
 		String extraOptions= element.getAttribute(EXTRAOPTIONS);
 		if (extraOptions.length() > 0) {
 			ExecutionArguments tokens= new ExecutionArguments("", extraOptions); //$NON-NLS-1$
 			String[] args= tokens.getProgramArgumentsArray();
 
 			boolean vmarg= false;
-			for (int i= 0; i < args.length; i++) {
-				String curr= args[i];
-				if (curr.length() > 0 && curr.charAt(0) == '-') {
-					// an command
-					vmarg=(curr.length() > 1 && curr.charAt(1) == 'J');
-				}
-				if (vmarg) {
-					vmargs.append(curr).append(' ');
-				} else {
-					additionals.append(curr).append(' ');
-				}
-			}
+      for (String curr : args) {
+        if (curr.length() > 0 && curr.charAt(0) == '-') {
+          // an command
+          vmarg = (curr.length() > 1 && curr.charAt(1) == 'J');
+        }
+        if (vmarg) {
+          vmargs.append(curr).append(' ');
+        }
+        else {
+          additionals.append(curr).append(' ');
+        }
+      }
 		}
-		
+
 		fAdditionalParams= additionals.toString();
 		fVMParams= vmargs.toString();
 		fOverview= element.getAttribute(OVERVIEW);
@@ -445,15 +447,15 @@ public class AJdocOptionsManager {
 		fNoindex= loadBoolean(element.getAttribute(NOINDEX));
 		fNotree= loadBoolean(element.getAttribute(NOTREE));
 		fSplitindex= loadBoolean(element.getAttribute(SPLITINDEX));
-		
-		fSource= element.getAttribute(SOURCE); 
+
+		fSource= element.getAttribute(SOURCE);
 	}
 
 	/*
 	 * Method creates an absolute path to the project. If the path is already
 	 * absolute it returns the path. If it encounters any difficulties in
 	 * creating the absolute path, the method returns null.
-	 * 
+	 *
 	 * @param path
 	 * @return IPath
 	 */
@@ -470,26 +472,24 @@ public class AJdocOptionsManager {
 		}
 		return path;
 	}
-	
+
 	private IContainer[] getSourceContainers(Element element) {
 		String sourcePaths= element.getAttribute(SOURCEPATH);
 		StringTokenizer tokenizer= new StringTokenizer(sourcePaths, String.valueOf(File.pathSeparatorChar));
 		ArrayList res= new ArrayList();
-		
+
 		IWorkspaceRoot root= ResourcesPlugin.getWorkspace().getRoot();
-		
+
 		while (tokenizer.hasMoreTokens()) {
 			IPath path= makeAbsolutePathFromRelative(new Path(tokenizer.nextToken().trim()));
 			if (path != null) {
 				IContainer[] containers= root.findContainersForLocation(path);
-				for (int i= 0; i < containers.length; i++) {
-					res.add(containers[i]);
-				}
+        Collections.addAll(res, containers);
 			}
 		}
-		return (IContainer[]) res.toArray(new IContainer[res.size()]);
+		return (IContainer[]) res.toArray(new IContainer[0]);
 	}
-	
+
 
 	private IJavaElement[] getSelectedElementsFromAnt(Element element) {
 		List res= new ArrayList();
@@ -498,20 +498,19 @@ public class AJdocOptionsManager {
 		String packagenames= element.getAttribute(PACKAGENAMES);
 		if (packagenames != null) {
 			IContainer[] containers= getSourceContainers(element);
-			
+
 			StringTokenizer tokenizer= new StringTokenizer(packagenames, ","); //$NON-NLS-1$
 			while (tokenizer.hasMoreTokens()) {
 				IPath relPackagePath= new Path(tokenizer.nextToken().trim().replace('.', '/'));
-				for (int i= 0; i < containers.length; i++) {
-					IContainer curr= containers[i];
-					IResource resource= curr.findMember(relPackagePath);
-					if (resource != null) {
-						IJavaElement javaElem= JavaCore.create(resource);
-						if (javaElem instanceof IPackageFragment) {
-							res.add(javaElem);
-						}
-					}
-				}
+        for (IContainer curr : containers) {
+          IResource resource = curr.findMember(relPackagePath);
+          if (resource != null) {
+            IJavaElement javaElem = JavaCore.create(resource);
+            if (javaElem instanceof IPackageFragment) {
+              res.add(javaElem);
+            }
+          }
+        }
 			}
 		}
 
@@ -519,7 +518,7 @@ public class AJdocOptionsManager {
 		String sourcefiles= element.getAttribute(SOURCEFILES);
 		if (sourcefiles != null) {
 			IWorkspaceRoot root= ResourcesPlugin.getWorkspace().getRoot();
-			
+
 			StringTokenizer tokenizer= new StringTokenizer(sourcefiles, ","); //$NON-NLS-1$
 			while (tokenizer.hasMoreTokens()) {
 				String name= tokenizer.nextToken().trim();
@@ -528,17 +527,17 @@ public class AJdocOptionsManager {
 					//if unable to create an absolute path the the resource skip it
 					if (path != null) {
 						IFile[] files= root.findFilesForLocation(path);
-						for (int i= 0; i < files.length; i++) {
-							IJavaElement el= JavaCore.createCompilationUnitFrom(files[i]);
-							if (el != null) {
-								res.add(el);
-							}
-						}
+            for (IFile file : files) {
+              IJavaElement el = JavaCore.createCompilationUnitFrom(file);
+              if (el != null) {
+                res.add(el);
+              }
+            }
 					}
 				}
 			}
 		}
-		return (IJavaElement[]) res.toArray(new IJavaElement[res.size()]);
+		return (IJavaElement[]) res.toArray(new IJavaElement[0]);
 	}
 
 	/**
@@ -548,7 +547,7 @@ public class AJdocOptionsManager {
 		return fJavadocCommandHistory;
 	}
 
-	
+
 	//it is possible that the package list is empty
 	public StatusInfo getWizardStatus() {
 		return fWizardStatus;
@@ -597,7 +596,7 @@ public class AJdocOptionsManager {
 	public String getAdditionalParams() {
 		return fAdditionalParams;
 	}
-	
+
 	public String getVMParams() {
 		return fVMParams;
 	}
@@ -617,49 +616,49 @@ public class AJdocOptionsManager {
 	public boolean doOpenInBrowser() {
 		return fOpenInBrowser;
 	}
-	
+
 	public String[] getHRefs() {
 		return fHRefs;
 	}
 
 	public boolean getBoolean(String flag) {
 
-		if (flag.equals(AUTHOR))
-			return fAuthor;
-		else if (flag.equals(VERSION))
-			return fVersion;
-		else if (flag.equals(USE))
-			return fUse;
-		else if (flag.equals(NODEPRECATED))
-			return fNodeprecated;
-		else if (flag.equals(NODEPRECATEDLIST))
-			return fNoDeprecatedlist;
-		else if (flag.equals(NOINDEX))
-			return fNoindex;
-		else if (flag.equals(NOTREE))
-			return fNotree;
-		else if (flag.equals(SPLITINDEX))
-			return fSplitindex;
-		else if (flag.equals(NONAVBAR))
-			return fNonavbar;
-		else
-			return false;
+    switch (flag) {
+      case AUTHOR:
+        return fAuthor;
+      case VERSION:
+        return fVersion;
+      case USE:
+        return fUse;
+      case NODEPRECATED:
+        return fNodeprecated;
+      case NODEPRECATEDLIST:
+        return fNoDeprecatedlist;
+      case NOINDEX:
+        return fNoindex;
+      case NOTREE:
+        return fNotree;
+      case SPLITINDEX:
+        return fSplitindex;
+      case NONAVBAR:
+        return fNonavbar;
+      default:
+        return false;
+    }
 	}
 
 	private boolean loadBoolean(String value) {
 
-		if (value == null || value.length() == 0) 
+		if (value == null || value.length() == 0)
 			return false;
 		else {
-			if (value.equals("true")) //$NON-NLS-1$
-				return true;
-			else
-				return false;
+      //$NON-NLS-1$
+      return value.equals("true");
 		}
 	}
-	
+
 	private String flatPathList(IPath[] paths) {
-		StringBuffer buf= new StringBuffer();
+		StringBuilder buf= new StringBuilder();
 		for (int i= 0; i < paths.length; i++) {
 			if (i > 0) {
 				buf.append(File.pathSeparatorChar);
@@ -668,9 +667,9 @@ public class AJdocOptionsManager {
 		}
 		return buf.toString();
 	}
-	
+
 	private String flatStringList(String[] paths) {
-		StringBuffer buf= new StringBuffer();
+		StringBuilder buf= new StringBuilder();
 		for (int i= 0; i < paths.length; i++) {
 			if (i > 0) {
 				buf.append(File.pathSeparatorChar);
@@ -679,7 +678,7 @@ public class AJdocOptionsManager {
 		}
 		return buf.toString();
 	}
-	
+
 	private String[] arrayFromFlatString(String str) {
 		StringTokenizer tok= new StringTokenizer(str, File.pathSeparator);
 		String[] res= new String[tok.countTokens()];
@@ -688,13 +687,13 @@ public class AJdocOptionsManager {
 		}
 		return res;
 	}
-	
+
 
 	public void getArgumentArray(List vmArgs, List toolArgs) {
 
 		//bug 38692
 		vmArgs.add(getJavadocCommandHistory()[0]);
-		
+
 		if (fFromStandard) {
 			toolArgs.add("-d"); //$NON-NLS-1$
 			toolArgs.add(fDestination);
@@ -704,12 +703,12 @@ public class AJdocOptionsManager {
 			toolArgs.add("-docletpath"); //$NON-NLS-1$
 			toolArgs.add(fDocletpath);
 		}
-		
+
 		if (fSourcepath.length > 0) {
 			toolArgs.add("-sourcepath"); //$NON-NLS-1$
 			toolArgs.add(flatPathList(fSourcepath));
 		}
-		
+
 		if (fClasspath.length > 0) {
 			toolArgs.add("-classpath"); //$NON-NLS-1$
 			toolArgs.add(flatPathList(fClasspath));
@@ -719,9 +718,9 @@ public class AJdocOptionsManager {
 		if (fFromStandard) {
 			if (fSource.length() > 0 && !fSource.equals("-")) { //$NON-NLS-1$
 				toolArgs.add("-source"); //$NON-NLS-1$
-				toolArgs.add(fSource); 
+				toolArgs.add(fSource);
 			}
-			
+
 			// AspectJ Extension - commenting out unsupported -use option (in aj)
 			/*if (fUse)
 				toolArgs.add("-use"); //$NON-NLS-1$ */
@@ -742,57 +741,52 @@ public class AJdocOptionsManager {
 			if (fSplitindex)
 				toolArgs.add("-splitindex"); //$NON-NLS-1$
 
-			if (fTitle.length() != 0) { 
+			if (fTitle.length() != 0) {
 				toolArgs.add("-doctitle"); //$NON-NLS-1$
 				toolArgs.add(fTitle);
 			}
 
 
-			if (fStylesheet.length() != 0) { 
+			if (fStylesheet.length() != 0) {
 				toolArgs.add("-stylesheetfile"); //$NON-NLS-1$
 				toolArgs.add(fStylesheet);
 			}
-			
-			for (int i= 0; i < fHRefs.length; i++) {
-				toolArgs.add("-link"); //$NON-NLS-1$
-				toolArgs.add(fHRefs[i]);
-			}
-			
+
+      for (String fHRef : fHRefs) {
+        toolArgs.add("-link"); //$NON-NLS-1$
+        toolArgs.add(fHRef);
+      }
+
 		} //end standard options
 
 		if (fAdditionalParams.length() + fVMParams.length() != 0) {
-			ExecutionArguments tokens= new ExecutionArguments(fVMParams, fAdditionalParams); 
+			ExecutionArguments tokens= new ExecutionArguments(fVMParams, fAdditionalParams);
 			String[] vmArgsArray= tokens.getVMArgumentsArray();
-			for (int i= 0; i < vmArgsArray.length; i++) {
-				vmArgs.add(vmArgsArray[i]);
-			}
+      Collections.addAll(vmArgs, vmArgsArray);
 			String[] argsArray= tokens.getProgramArgumentsArray();
-			for (int i= 0; i < argsArray.length; i++) {
-				toolArgs.add(argsArray[i]);
-			}
+      Collections.addAll(toolArgs, argsArray);
 		}
 		// AspectJ Extension - don't add proxy options
 		//addProxyOptions(vmArgs);
-		
-		if (fOverview.length() != 0) { 
+
+		if (fOverview.length() != 0) {
 			toolArgs.add("-overview"); //$NON-NLS-1$
 			toolArgs.add(fOverview);
 		}
 
-		for (int i= 0; i < fSelectedElements.length; i++) {
-			IJavaElement curr= fSelectedElements[i];
-			// AspectJ Extension - we need to get the included files from the build configuration
-			if (curr instanceof IJavaProject) {
-				IJavaProject jp = (IJavaProject)curr;
-				Set<IFile> files = BuildConfig.getIncludedSourceFiles(jp.getProject());
-				for (IFile f : files) {
-					toolArgs.add(f.getLocation().toOSString());
-				}
-			}
-			// AspectJ Extension end
-		}
+    for (IJavaElement curr : fSelectedElements) {
+      // AspectJ Extension - we need to get the included files from the build configuration
+      if (curr instanceof IJavaProject) {
+        IJavaProject jp = (IJavaProject) curr;
+        Set<IFile> files = BuildConfig.getIncludedSourceFiles(jp.getProject());
+        for (IFile f : files) {
+          toolArgs.add(f.getLocation().toOSString());
+        }
+      }
+      // AspectJ Extension end
+    }
 	}
-	
+
 	// AspectJ Extension - commenting out unused code
 /*	private void addProxyOptions(List vmOptions) {
 		// bug 74132
@@ -808,13 +802,13 @@ public class AJdocOptionsManager {
 		if (proxyHost != null) {
 			vmOptions.add(hostPrefix + proxyHost); //$NON-NLS-1$
 		}
-		
+
 		String proxyPort= System.getProperty("http.proxyPort"); //$NON-NLS-1$
 		if (proxyPort != null) {
 			vmOptions.add(portPrefix + proxyPort); //$NON-NLS-1$
 		}
 	}
-*/	
+*/
 
 	public File createXML(IJavaProject[] projects) throws CoreException {
 		FileOutputStream objectStreamOutput= null;
@@ -827,31 +821,26 @@ public class AJdocOptionsManager {
 
 				IPath antPath= Path.fromOSString(antpath);
 				IPath antDir= antPath.removeLastSegments(1);
-				
+
 				IPath basePath= null;
 				IWorkspaceRoot root= ResourcesPlugin.getWorkspace().getRoot();
 				if (root.findFilesForLocation(antPath).length > 0) {
 					basePath= antDir; // only do relative path if ant file is stored in the workspace
 				}
-				
+
 				antDir.toFile().mkdirs();
-			
+
 				objectStreamOutput= new FileOutputStream(file);
 				// AspectJ Extension - changing JavadocWriter to AJdocWriter
 				AJdocWriter writer= new AJdocWriter(objectStreamOutput, basePath, projects);
 				writer.writeXML(this);
 				return file;
 			}
-		} catch (IOException e) {
+		} catch (IOException | TransformerException | ParserConfigurationException e) {
 			String message= JavadocExportMessages.JavadocOptionsManager_createXM_error;
 			throw new CoreException(JavaUIStatus.createError(IStatus.ERROR, message, e));
-		} catch (ParserConfigurationException e) {
-			String message= JavadocExportMessages.JavadocOptionsManager_createXM_error;  
-			throw new CoreException(JavaUIStatus.createError(IStatus.ERROR, message, e));
-		} catch (TransformerException e) {
-			String message= JavadocExportMessages.JavadocOptionsManager_createXM_error; 
-			throw new CoreException(JavaUIStatus.createError(IStatus.ERROR, message, e));
-		} finally {
+		}
+    finally {
 			if (objectStreamOutput != null) {
 				try {
 					objectStreamOutput.close();
@@ -873,10 +862,10 @@ public class AJdocOptionsManager {
 			//IPreferenceStore store= PreferenceConstants.getPreferenceStore();
 			//store.setValue(PreferenceConstants.JAVADOC_COMMAND, fJavadocCommandHistory[0]);
 			IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();
-			store.setValue(AspectJPreferences.AJDOC_COMMAND,fJavadocCommandHistory[0]);			
+			store.setValue(AspectJPreferences.AJDOC_COMMAND,fJavadocCommandHistory[0]);
 		}
-		
-		
+
+
 		settings.put(FROMSTANDARD, fFromStandard);
 
 		settings.put(DOCLETNAME, fDocletname);
@@ -896,19 +885,19 @@ public class AJdocOptionsManager {
 		settings.put(OPENINBROWSER, fOpenInBrowser);
 		settings.put(SOURCE, fSource);
 
-		if (fAntpath.length() != 0) 
+		if (fAntpath.length() != 0)
 			settings.put(ANTPATH, fAntpath);
-		if (fDestination.length() != 0) 
+		if (fDestination.length() != 0)
 			settings.put(DESTINATION, fDestination);
-		if (fAdditionalParams.length() != 0) 
+		if (fAdditionalParams.length() != 0)
 			settings.put(EXTRAOPTIONS, fAdditionalParams);
-		if (fVMParams.length() != 0) 
+		if (fVMParams.length() != 0)
 			settings.put(VMOPTIONS, fVMParams);
-		if (fOverview.length() != 0) 
+		if (fOverview.length() != 0)
 			settings.put(OVERVIEW, fOverview);
-		if (fStylesheet.length() != 0) 
+		if (fStylesheet.length() != 0)
 			settings.put(STYLESHEETFILE, fStylesheet);
-		if (fTitle.length() != 0) 
+		if (fTitle.length() != 0)
 			settings.put(TITLE, fTitle);
 
 		if (checkedProjects.length == 1) {
@@ -916,7 +905,7 @@ public class AJdocOptionsManager {
 		}
 		getRecentSettings().store(settings);
 	}
-		
+
 	public void setJavadocCommandHistory(String[] javadocCommandHistory) {
 		fJavadocCommandHistory= javadocCommandHistory;
 	}
@@ -947,7 +936,7 @@ public class AJdocOptionsManager {
 	public void setAdditionalParams(String params) {
 		fAdditionalParams= params;
 	}
-	
+
 	public void setVMParams(String params) {
 		fVMParams= params;
 	}
@@ -978,60 +967,72 @@ public class AJdocOptionsManager {
 	public void setOpenInBrowser(boolean openInBrowser) {
 		fOpenInBrowser= openInBrowser;
 	}
-	
+
 	public void setHRefs(String[] hrefs) {
 		fHRefs= hrefs;
 	}
 
 	public void setBoolean(String flag, boolean value) {
 
-		if (flag.equals(AUTHOR))
-			fAuthor= value;
-		else if (flag.equals(USE))
-			fUse= value;
-		else if (flag.equals(VERSION))
-			fVersion= value;
-		else if (flag.equals(NODEPRECATED))
-			fNodeprecated= value;
-		else if (flag.equals(NODEPRECATEDLIST))
-			fNoDeprecatedlist= value;
-		else if (flag.equals(NOINDEX))
-			fNoindex= value;
-		else if (flag.equals(NOTREE))
-			fNotree= value;
-		else if (flag.equals(SPLITINDEX))
-			fSplitindex= value;
-		else if (flag.equals(NONAVBAR))
-			fNonavbar= value;
+    switch (flag) {
+      case AUTHOR:
+        fAuthor = value;
+        break;
+      case USE:
+        fUse = value;
+        break;
+      case VERSION:
+        fVersion = value;
+        break;
+      case NODEPRECATED:
+        fNodeprecated = value;
+        break;
+      case NODEPRECATEDLIST:
+        fNoDeprecatedlist = value;
+        break;
+      case NOINDEX:
+        fNoindex = value;
+        break;
+      case NOTREE:
+        fNotree = value;
+        break;
+      case SPLITINDEX:
+        fSplitindex = value;
+        break;
+      case NONAVBAR:
+        fNonavbar = value;
+        break;
+    }
 	}
-	
+
 	public void setSource(String source) {
 		fSource= source;
 	}
-	
+
 	public String getSource() {
 		return fSource;
 	}
 
 	private IJavaElement[] getInitialElementsFromSelection(List candidates) {
 		ArrayList res= new ArrayList();
-		for (int i= 0; i < candidates.size(); i++) {
-			try {
-				IJavaElement elem= getSelectableJavaElement(candidates.get(i));
-				if (elem != null) {
-					res.add(elem);
-				}
-			} catch (JavaModelException ignore) {
-				// ignore this
-			}
-		}
-		return (IJavaElement[]) res.toArray(new IJavaElement[res.size()]);
+    for (Object candidate : candidates) {
+      try {
+        IJavaElement elem = getSelectableJavaElement(candidate);
+        if (elem != null) {
+          res.add(elem);
+        }
+      }
+      catch (JavaModelException ignore) {
+        // ignore this
+      }
+    }
+		return (IJavaElement[]) res.toArray(new IJavaElement[0]);
 	}
 
 	private IJavaElement getSelectableJavaElement(Object obj) throws JavaModelException {
 		IJavaElement je= null;
 		if (obj instanceof IAdaptable) {
-			je= (IJavaElement) ((IAdaptable) obj).getAdapter(IJavaElement.class);
+			je= ((IAdaptable) obj).getAdapter(IJavaElement.class);
 		}
 
 		if (je != null) {
@@ -1065,11 +1066,8 @@ public class AJdocOptionsManager {
 	}
 
 	private boolean isValidProject(IJavaProject project) throws JavaModelException {
-		if (project != null && project.exists() && project.isOpen()) {
-			return true;
-		}
-		return false;
-	}
+    return project != null && project.exists() && project.isOpen();
+  }
 
 	private boolean containsCompilationUnits(IPackageFragmentRoot root) throws JavaModelException {
 		if (root.getKind() != IPackageFragmentRoot.K_SOURCE) {
@@ -1077,14 +1075,14 @@ public class AJdocOptionsManager {
 		}
 
 		IJavaElement[] elements= root.getChildren();
-		for (int i= 0; i < elements.length; i++) {
-			if (elements[i] instanceof IPackageFragment) {
-				IPackageFragment fragment= (IPackageFragment) elements[i];
-				if (containsCompilationUnits(fragment)) {
-					return true;
-				}
-			}
-		}
+    for (IJavaElement element : elements) {
+      if (element instanceof IPackageFragment) {
+        IPackageFragment fragment = (IPackageFragment) element;
+        if (containsCompilationUnits(fragment)) {
+          return true;
+        }
+      }
+    }
 		return false;
 	}
 
@@ -1103,24 +1101,24 @@ public class AJdocOptionsManager {
 		fRecentSettings.setProjectSettings(project, fDestination, fAntpath, fHRefs);
 	}
 
-	
+
 	private static String initJavadocCommandDefault() {
 		// AspectJ Extension - using our own preference store
 		//IPreferenceStore store= JavaPlugin.getDefault().getPreferenceStore();
-		IPreferenceStore store= AspectJUIPlugin.getDefault().getPreferenceStore();	
+		IPreferenceStore store= AspectJUIPlugin.getDefault().getPreferenceStore();
 		String cmd= store.getString(PreferenceConstants.JAVADOC_COMMAND);	// old location
 		if (cmd != null && cmd.length() > 0) {
 			store.setToDefault(PreferenceConstants.JAVADOC_COMMAND);
 			return cmd;
 		}
-		
+
 		File file= findJavaDocCommand();
 		if (file != null) {
 			return file.getPath();
 		}
 		return ""; //$NON-NLS-1$
 	}
-	
+
 
 	private static File findJavaDocCommand() {
 		IVMInstall install= JavaRuntime.getDefaultVMInstall();
@@ -1130,18 +1128,17 @@ public class AJdocOptionsManager {
 				return res;
 			}
 		}
-		
+
 		IVMInstallType[] jreTypes= JavaRuntime.getVMInstallTypes();
-		for (int i= 0; i < jreTypes.length; i++) {
-			IVMInstallType jreType= jreTypes[i];
-			IVMInstall[] installs= jreType.getVMInstalls();
-			for (int k= 0; k < installs.length; k++) {
-				File res= getCommand(installs[k]);
-				if (res != null) {
-					return res;
-				}
-			}
-		}
+    for (IVMInstallType jreType : jreTypes) {
+      IVMInstall[] installs = jreType.getVMInstalls();
+      for (IVMInstall ivmInstall : installs) {
+        File res = getCommand(ivmInstall);
+        if (res != null) {
+          return res;
+        }
+      }
+    }
 		return null;
 	}
 

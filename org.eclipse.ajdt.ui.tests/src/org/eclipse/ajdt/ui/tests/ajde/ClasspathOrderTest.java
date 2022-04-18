@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Matt Chapman - initial version
  *******************************************************************************/
@@ -32,7 +32,7 @@ import org.eclipse.ui.texteditor.ITextEditor;
  * chance that the classpath order could be changed, but in such a way that the
  * test still passes. However this is a more real-world test than just
  * performing string operations on the classpath.
- * 
+ *
  * @author mchapman
  */
 public class ClasspathOrderTest extends UITestCase {
@@ -47,7 +47,7 @@ public class ClasspathOrderTest extends UITestCase {
 		project = createPredefinedProject("ClasspathOrdering"); //$NON-NLS-1$
 	}
 
-	
+
 	public void testClasspathOrder() throws Exception {
 		assertFalse(
 				"ClasspathOrdering project shouldn't yet have AspectJ nature", //$NON-NLS-1$
@@ -67,7 +67,7 @@ public class ClasspathOrderTest extends UITestCase {
 		for (int i = 0; !foundError && (i < markers.length); i++) {
 			IMarker m = markers[i];
 			Integer sev = (Integer) m.getAttribute(IMarker.SEVERITY);
-			if (sev.intValue() == IMarker.SEVERITY_ERROR) {
+			if (sev == IMarker.SEVERITY_ERROR) {
 				foundError = true;
 			}
 		}
@@ -85,7 +85,7 @@ public class ClasspathOrderTest extends UITestCase {
 		for (int i = 0; !foundError && (i < markers.length); i++) {
 			IMarker m = markers[i];
 			Integer sev = (Integer) m.getAttribute(IMarker.SEVERITY);
-			if (sev.intValue() == IMarker.SEVERITY_ERROR) {
+			if (sev == IMarker.SEVERITY_ERROR) {
 				foundError = true;
 			}
 		}

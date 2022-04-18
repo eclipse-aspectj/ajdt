@@ -34,7 +34,7 @@ public class AJDTEventTraceConsole extends TextConsole {
     final static Token BUILDER_TOKEN = new Token(BUILDER);
     final static Token BUILD_CLASSPATH_TOKEN = new Token(BUILD_CLASSPATH);
 
-    
+
     final static RuleBasedPartitionScanner scanner = new RuleBasedPartitionScanner();
     {
         scanner.setPredicateRules(new IPredicateRule[] {
@@ -49,7 +49,7 @@ public class AJDTEventTraceConsole extends TextConsole {
     class AJDTEventTraceConsolePartitioner extends FastPartitioner implements IConsoleDocumentPartitioner {
 
         Set styles = new HashSet();
-        
+
         public AJDTEventTraceConsolePartitioner() {
             super(scanner, new String[] {COMPILER, BUILDER, BUILD_CLASSPATH});
             getDocument().setDocumentPartitioner(this);
@@ -60,55 +60,53 @@ public class AJDTEventTraceConsole extends TextConsole {
         }
 
         public StyleRange[] getStyleRanges(int offset, int length) {
-            ITypedRegion regions[] = computePartitioning(offset, length);
+            ITypedRegion[] regions = computePartitioning(offset, length);
             StyleRange[] styles = new StyleRange[regions.length];
             for (int i = 0; i < regions.length; i++) {
                 if (COMPILER.equals(regions[i].getType())) {
-                    styles[i] = new StyleRange(offset, length, 
+                    styles[i] = new StyleRange(offset, length,
                             Display.getDefault().getSystemColor(SWT.COLOR_DARK_GREEN),
                             null);
                 } else if (BUILDER.equals(regions[i].getType())) {
-                    styles[i] = new StyleRange(offset, length, 
+                    styles[i] = new StyleRange(offset, length,
                             Display.getDefault().getSystemColor(SWT.COLOR_DARK_BLUE),
                             null);
                 } else if (BUILD_CLASSPATH.equals(regions[i].getType())) {
-                    styles[i] = new StyleRange(offset, length, 
+                    styles[i] = new StyleRange(offset, length,
                             Display.getDefault().getSystemColor(SWT.COLOR_DARK_RED),
                             null);
                 } else {
-                    styles[i] = new StyleRange(offset, length, 
+                    styles[i] = new StyleRange(offset, length,
                             null, null);
                 }
             }
             return styles;
         }
-        
+
         void addStyle(StyleRange style) {
             styles.add(style);
         }
-        
+
         void clear() {
             styles.clear();
         }
 
     }
-    
+
     public void clearConsole() {
         super.clearConsole();
         ((AJDTEventTraceConsolePartitioner) getPartitioner()).clear();
     }
 
-    private AJDTEventTraceConsolePartitioner partitioner = new AJDTEventTraceConsolePartitioner();
-    private IPropertyChangeListener propertyListener = new IPropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent event) {
-            String property = event.getProperty();
-            if (property.equals(IDebugUIConstants.PREF_CONSOLE_FONT)) {
-                setFont(JFaceResources.getFont(IDebugUIConstants.PREF_CONSOLE_FONT));
-            }
+    private final AJDTEventTraceConsolePartitioner partitioner = new AJDTEventTraceConsolePartitioner();
+    private final IPropertyChangeListener propertyListener = event -> {
+        String property = event.getProperty();
+        if (property.equals(IDebugUIConstants.PREF_CONSOLE_FONT)) {
+            setFont(JFaceResources.getFont(IDebugUIConstants.PREF_CONSOLE_FONT));
         }
     };
 
-    
+
     public AJDTEventTraceConsole() {
         super("AJDT Event Trace Console", CONSOLE_TYPE, null, true);
         Font font = JFaceResources.getFont(IDebugUIConstants.PREF_CONSOLE_FONT);
@@ -144,9 +142,9 @@ public class AJDTEventTraceConsole extends TextConsole {
     public IPageBookViewPage createPage(IConsoleView view) {
         return new AJDTEventTraceConsolePage(this, view);
     }
-    
-    
-    
+
+
+
     /**
      * @see org.eclipse.ui.console.AbstractConsole#getHelpContextId()
      */

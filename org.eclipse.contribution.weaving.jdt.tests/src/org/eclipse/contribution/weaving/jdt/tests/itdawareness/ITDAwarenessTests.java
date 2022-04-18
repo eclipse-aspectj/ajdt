@@ -106,7 +106,7 @@ public class ITDAwarenessTests extends WeavingTestCase {
         IFile nothingJava = java.getFile("src/nothing/Nothing.java");
         ICompilationUnit nothingCU = (ICompilationUnit) JavaCore.create(nothingJava);
         CompilationUnitProblemFinder.process((CompilationUnit) nothingCU, null,
-                DefaultWorkingCopyOwner.PRIMARY, new HashMap(), true,
+                DefaultWorkingCopyOwner.PRIMARY, new HashMap<>(), true,
                 ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
 
         assertFalse("Should not have triggered problem finding through the aspects", nameEnvironmentProvider.problemFindingDone);
@@ -117,7 +117,7 @@ public class ITDAwarenessTests extends WeavingTestCase {
         IFile nothingMock = mock.getFile("src/nothing/Nothing.java");
         ICompilationUnit nothingCU = (ICompilationUnit) JavaCore.create(nothingMock);
         CompilationUnitProblemFinder.process((CompilationUnit) nothingCU, null,
-                DefaultWorkingCopyOwner.PRIMARY, new HashMap(), true,
+                DefaultWorkingCopyOwner.PRIMARY, new HashMap<>(), true,
                 ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
 
         assertTrue("Should have triggered problem finding through the aspects", nameEnvironmentProvider.problemFindingDone);
@@ -134,11 +134,11 @@ public class ITDAwarenessTests extends WeavingTestCase {
         // result can be 1 or 2 proposals.
         // Looks like the important processors are the JavaNoTypeCompletionProposalComputer and the JavaAllCompletionProposalComputer
         if (completions.length < 1 || completions.length > 3) {
-            StringBuffer sb = new StringBuffer();
-            for (int i = 0; i < completions.length; i++) {
-                sb.append("\n" + completions[i].getDisplayString());
-            }
-            fail("Should have found 1, 2, or 3 completion proposals, but instead found: " + completions.length + sb.toString());
+            StringBuilder sb = new StringBuilder();
+          for (ICompletionProposal completion : completions) {
+            sb.append("\n" + completion.getDisplayString());
+          }
+            fail("Should have found 1, 2, or 3 completion proposals, but instead found: " + completions.length + sb);
         }
         assertFalse("Should not have triggered the content assist through the aspect", contentAssistProvider.contentAssistDone);
     }

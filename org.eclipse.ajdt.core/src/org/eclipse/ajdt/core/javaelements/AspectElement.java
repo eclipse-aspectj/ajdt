@@ -89,8 +89,7 @@ public class AspectElement extends SourceType implements IAspectJElement {
 
     public IMethod createMethod(String contents, IJavaElement sibling,
             boolean force, IProgressMonitor monitor) throws JavaModelException {
-        IMethod result = super.createMethod(contents, sibling, force, monitor);
-        return result;
+      return super.createMethod(contents, sibling, force, monitor);
     }
 
     public AspectElement(JavaElement parent, String name) {

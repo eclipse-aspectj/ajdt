@@ -22,11 +22,11 @@ include this file and the problem markers should be cleared. (BC_3)
 Now apply the tracev1.ajproperties configuration. The packages "tracing" 
 and "tracing.version1" should now be included. (BC_4)
 	
-(bug 77261) Create a new top level folder (NOT a source folder)_called “nonsrc”, and copy a 
+(bug 77261) Create a new top level folder (NOT a source folder)_called â€œnonsrcâ€, and copy a 
 source file into it.	The copied file should be shown to be excluded from the build configuration
 Right-click the new file to display the context menu	It should NOT be possible to include 
-this file – the include option must be disabled, or absent.
-Now make “nonsrc” into a source file (right click > Build Path > Use as Source Folder)	
+this file â€“ the include option must be disabled, or absent.
+Now make â€œnonsrcâ€ into a source file (right click > Build Path > Use as Source Folder)	
 It should now be possible to include and then exclude this file  (BC_5)
 	
 (bug 77179) Remove AspectJ nature from the project	

@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman  - initial version
@@ -27,13 +27,14 @@ public class AJRelationshipManagerTest extends AJDTCoreTestCase {
 		// check for a couple of well known relationships
 		boolean foundAdvisedBy = false;
 		boolean foundDeclaredOn = false;
-		for (int i = 0; i < allRels.length; i++) {
-			if (allRels[i] == AJRelationshipManager.ADVISED_BY) {
-				foundAdvisedBy = true;
-			} else if (allRels[i] == AJRelationshipManager.DECLARED_ON) {
-				foundDeclaredOn = true;
-			}
-		}
+    for (AJRelationshipType allRel : allRels) {
+      if (allRel == AJRelationshipManager.ADVISED_BY) {
+        foundAdvisedBy = true;
+      }
+      else if (allRel == AJRelationshipManager.DECLARED_ON) {
+        foundDeclaredOn = true;
+      }
+    }
 		assertTrue(
 				"Didn't found advised by relationship type in all relationship types", //$NON-NLS-1$
 				foundAdvisedBy);
@@ -68,14 +69,14 @@ public class AJRelationshipManagerTest extends AJDTCoreTestCase {
 		// check that inverse(inverse(rel)) == rel
 		AJRelationshipType[] allRels = AJRelationshipManager
 				.getAllRelationshipTypes();
-		for (int i = 0; i < allRels.length; i++) {
-			AJRelationshipType inv = AJRelationshipManager
-					.getInverseRelationship(allRels[i]);
-			AJRelationshipType inv2 = AJRelationshipManager
-					.getInverseRelationship(inv);
-			assertEquals(
-					"Getting inverse of inverse should give original relationship type", //$NON-NLS-1$
-					allRels[i], inv2);
-		}
+    for (AJRelationshipType allRel : allRels) {
+      AJRelationshipType inv = AJRelationshipManager
+        .getInverseRelationship(allRel);
+      AJRelationshipType inv2 = AJRelationshipManager
+        .getInverseRelationship(inv);
+      assertEquals(
+        "Getting inverse of inverse should give original relationship type", //$NON-NLS-1$
+        allRel, inv2);
+    }
 	}
 }

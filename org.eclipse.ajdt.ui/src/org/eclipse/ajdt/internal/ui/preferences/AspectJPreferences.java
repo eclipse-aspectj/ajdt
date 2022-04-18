@@ -86,10 +86,10 @@ public class AspectJPreferences {
 	public static final String VALUE_ENABLED = JavaCore.ENABLED;
 
 	public static final String VALUE_DISABLED = JavaCore.DISABLED;
-	
+
 	// bug 90174 - leave these as strings to keep the code simple
 	public static final String VALUE_TRUE = "true"; //$NON-NLS-1$
-	
+
 	public static final String VALUE_FALSE = "false"; //$NON-NLS-1$
 
 	// project-scope preference to indicate if project-specific settings are in
@@ -118,23 +118,23 @@ public class AspectJPreferences {
 	public static final String OPTION_ReportNoInterfaceCtorJoinpoint = "org.aspectj.ajdt.core.compiler.lint.NoInterfaceCtorJoinpoint"; //$NON-NLS-1$
 
 	public static final String OPTION_runtimeExceptionNotSoftened = "org.aspectj.ajdt.core.compiler.lint.runtimeExceptionNotSoftened"; //$NON-NLS-1$
-	
+
 	public static final String OPTION_multipleAdviceStoppingLazyTJP = "org.aspectj.ajdt.core.compiler.lint.multipleAdviceStoppingLazyTjp"; //$NON-NLS-1$
-	
+
 	public static final String OPTION_noGuardForLazyTjp = "org.aspectj.ajdt.core.compiler.lint.noGuardForLazyTjp"; //$NON-NLS-1$
-	
+
 	public static final String OPTION_noExplicitConstructorCall = "org.aspectj.ajdt.core.compiler.lint.noExplicitConstructorCall"; //$NON-NLS-1$
-	
+
 	public static final String OPTION_aspectExcludedByConfiguration ="org.aspectj.ajdt.core.complier.lint.aspectExcludedByConfiguration";  //$NON-NLS-1$
-	
+
 	public static final String OPTION_unorderedAdviceAtShadow ="org.aspectj.ajdt.core.compiler.lint.unorderedAdviceAtShadow"; //$NON-NLS-1$
 
 	public static final String OPTION_cantFindType = "org.aspectj.ajdt.core.compiler.lint.cantFindType"; //$NON-NLS-1$
 
 	public static final String OPTION_calculatingSerialVersionUID = "org.aspectj.ajdt.core.compiler.lint.calculatingSerialVersionUID"; //$NON-NLS-1$
 
-	public static final String OPTION_cantFindTypeAffectingJPMatch = "org.aspectj.ajdt.core.compiler.lint.cantFindTypeAffectingJPMatch"; //$NON-NLS-1$	
-	
+	public static final String OPTION_cantFindTypeAffectingJPMatch = "org.aspectj.ajdt.core.compiler.lint.cantFindTypeAffectingJPMatch"; //$NON-NLS-1$
+
 	// AspectJ 5 Lint Options
 	public static final String OPTION_noJoinpointsForBridgeMethods = "org.aspectj.ajdt.core.compiler.lint.noJoinpointsForBridgeMethods"; //$NON-NLS-1$
 
@@ -151,9 +151,9 @@ public class AspectJPreferences {
 	public static final String OPTION_elementAlreadyAnnotated = "org.aspectj.ajdt.core.compiler.lint.elementAlreadyAnnotated"; //$NON-NLS-1$
 
 	public static final String OPTION_unmatchedTargetKind = "org.aspectj.ajdt.core.compiler.lint.unmatchedTargetKind";  //$NON-NLS-1$
-	
+
 	public static final String OPTION_uncheckedArgument = "org.aspectj.ajdt.core.compiler.lint.uncheckedArgument"; //$NON-NLS-1$
-	
+
 	public static final String OPTION_uncheckedAdviceConversion = "org.aspectj.ajdt.core.compiler.lint.uncheckedAdviceConversion";	 //$NON-NLS-1$
 
 	public static final String OPTION_swallowedExceptionInCatchBlock = "org.aspectj.ajdt.core.compiler.lint.swallowedExceptionInCatchBlock";	 //$NON-NLS-1$
@@ -170,12 +170,12 @@ public class AspectJPreferences {
 	public static final String OPTION_Outxml = "org.aspectj.ajdt.core.compiler.weaver.outxml"; //$NON-NLS-1$
 
 	public static final String OPTION_verbose = "org.aspectj.ajdt.core.compiler.weaver.verbose"; //$NON-NLS-1$
-	
+
 	public static final String OPTION_timers = "org.aspectj.ajdt.core.compiler.weaver.timers"; //$NON-NLS-1$
-	
+
 	// Preferences for Changes View
 	public static final String CHANGES_VIEW_PROPAGATE_UP = "org.eclipse.ajdt.ui.preferences.propagateup"; //$NON-NLS-1$
-	
+
 	public static final String CHANGES_VIEW_COMPARE_PREV = "org.eclipse.ajdt.ui.preferences.compareprev"; //$NON-NLS-1$
 
 	// Other compiler options
@@ -184,7 +184,7 @@ public class AspectJPreferences {
 	static final String OPTION_WeaveMessages = "org.aspectj.ajdt.core.compiler.BuildOptions.showweavemessages"; //$NON-NLS-1$
 
 	// map preference keys to corresponding options for the properties file
-	private static String[][] lintKeysName = {
+	private static final String[][] lintKeysName = {
 			{ OPTION_ReportInvalidAbsoluteTypeName, "invalidAbsoluteTypeName" }, //$NON-NLS-1$
 			{ OPTION_ReportInvalidWildcardTypeName, "invalidWildcardTypeName" }, //$NON-NLS-1$
 			{ OPTION_ReportUnresolvableMember, "unresolvableMember" }, //$NON-NLS-1$
@@ -222,7 +222,7 @@ public class AspectJPreferences {
 	};
 
 	// name of the file to write the Xlint options to
-	private static String XlintProperties = "Xlint.properties"; //$NON-NLS-1$
+	private static final String XlintProperties = "Xlint.properties"; //$NON-NLS-1$
 
 	/**
 	 * A named preference that holds the path of the AJdoc command (tools.jar)
@@ -236,17 +236,17 @@ public class AspectJPreferences {
 	// XReference Provider
 	public static final String XREF_CHECKED_FILTERS = "org.eclipse.ajdt.internal.ui.xref.checked.filters"; //$NON-NLS-1$
 	public static final String XREF_CHECKED_FILTERS_INPLACE = "org.eclipse.ajdt.internal.ui.xref.checked.filters.inplace"; //$NON-NLS-1$
-	
+
 	// Should the 'Cross Reference' view be opened automatically upon opening an aspect
 	public static final String AUTO_OPEN_CROSS_REF_VIEW = "autoOpenCrossReferenceView"; //$NON-NLS-1$
-	
+
 	// Should the user be prompted every time they open an aspect, re: auto-opening
 	// the 'xref view'?
 	public static final String PROMPT_FOR_AUTO_OPEN_CROSS_REF_VIEW = "promptForAutoOpenCrossReference"; //$NON-NLS-1$
-	
+
 	//Event Trace View
 	public static final String EVENT_CHECKED_FILTERS = "org.eclipse.ajdt.internal.ui.tracing.checked.filters"; //$NON-NLS-1$
-	
+
 		public static String getFileExt() {
 		return ".aj";  //$NON-NLS-1$
 	}
@@ -270,7 +270,7 @@ public class AspectJPreferences {
 		store.setDefault(AspectJPreferences.AUTO_OPEN_CROSS_REF_VIEW, true);
 		store.setDefault(AspectJPreferences.PROMPT_FOR_AUTO_OPEN_CROSS_REF_VIEW, true);
 	}
-		
+
 	public static String getLintOptions(IProject thisProject) {
 		File optsFile = AspectJUIPlugin.getDefault().getStateLocation().append(
 				XlintProperties).toFile();
@@ -290,7 +290,7 @@ public class AspectJPreferences {
 			handler.dontIgnore(IMessage.WEAVEINFO);
 		} else {
 			value = VALUE_FALSE;
-			handler.ignore(IMessage.WEAVEINFO);			
+			handler.ignore(IMessage.WEAVEINFO);
 		}
 		if(isUsingProjectSettings(project)) {
 			IScopeContext projectScope = new ProjectScope(project);
@@ -301,7 +301,7 @@ public class AspectJPreferences {
 			store.setValue(OPTION_WeaveMessages,value);
 		}
 	}
-	
+
 	public static boolean isUsingProjectSettings(IProject project) {
 		IScopeContext projectScope = new ProjectScope(project);
 		IEclipsePreferences projectNode = projectScope
@@ -316,7 +316,7 @@ public class AspectJPreferences {
 			boolean isUsingProjectSettings) {
 		setUsingProjectSettings(project,isUsingProjectSettings,true);
 	}
-	
+
 	public static void setUsingProjectSettings(IProject project,
 			boolean isUsingProjectSettings,
 			boolean overwriteExistingProjectSettings) {
@@ -329,7 +329,7 @@ public class AspectJPreferences {
 				AJCompilerPreferencePage.setProjectDefaults(projectNode);
 			} else {
 				AJCompilerPreferencePage.setProjectDefaultsIfValueNotAlreadySet(projectNode);
-			}						
+			}
 		} else {
 			projectNode.remove(OPTION_UseProjectSettings);
 			AJCompilerPreferencePage.removeProjectValues(projectNode);
@@ -342,14 +342,14 @@ public class AspectJPreferences {
 		} catch (BackingStoreException e) {
 		}
 	}
-	
+
 	public static String getSavedIcon(IProject project, String aspect) {
 		IScopeContext projectScope = new ProjectScope(project);
 		IEclipsePreferences projectNode = projectScope
 				.getNode(AspectJUIPlugin.PLUGIN_ID);
-		return projectNode.get(aspect, null);	
+		return projectNode.get(aspect, null);
 	}
-	
+
 	public static void setSavedIcon(IProject project, String aspect, String iconLocation) {
 		IScopeContext projectScope = new ProjectScope(project);
 		IEclipsePreferences projectNode = projectScope
@@ -362,22 +362,22 @@ public class AspectJPreferences {
 		try {
 			projectNode.flush();
 		} catch (BackingStoreException e) {
-		}		
+		}
 	}
 
 	private static void writeLintOptionsFile(IProject thisProject, File optsFile) {
 		try {
 			FileWriter writer = new FileWriter(optsFile);
 
-			for (int i = 0; i < lintKeysName.length; i++) {
-				String value = getStringPrefValue(thisProject,
-						lintKeysName[i][0]);
-				if (value.equals("")) {  //$NON-NLS-1$
-					value = VALUE_WARNING;
-				}
-				writer.write(lintKeysName[i][1] + " = " + value); //$NON-NLS-1$
-				writer.write(System.getProperty("line.separator")); //$NON-NLS-1$
-			}
+      for (String[] strings : lintKeysName) {
+        String value = getStringPrefValue(thisProject,
+          strings[0]);
+        if (value.equals("")) {  //$NON-NLS-1$
+          value = VALUE_WARNING;
+        }
+        writer.write(strings[1] + " = " + value); //$NON-NLS-1$
+        writer.write(System.getProperty("line.separator")); //$NON-NLS-1$
+      }
 			writer.close();
 		} catch (IOException e) {
 		}
@@ -412,7 +412,7 @@ public class AspectJPreferences {
 
 	/**
 	 * Helper set method
-	 * 
+	 *
 	 * @param ask
 	 *            true if the user wants to be asked again about having auto
 	 *            import of aspectj runtime library upon adding aspectj nature
@@ -427,7 +427,7 @@ public class AspectJPreferences {
 	/**
 	 * Helper get method used to determine whether to ask the user if they want
 	 * to auto import the aspectj runtime library from the appropriate plugin.
-	 * 
+	 *
 	 * @return boolean true if user is to be asked
 	 */
 	static public boolean askPDEAutoImport() {
@@ -447,7 +447,7 @@ public class AspectJPreferences {
                 .getPreferenceStore();
         return store.getBoolean(PDE_AUTO_IMPORT_CONFIG_DONE);
     }
-    
+
 	static public void setDoPDEAutoImport(boolean doImport) {
 		IPreferenceStore store = AspectJUIPlugin.getDefault()
 				.getPreferenceStore();
@@ -462,7 +462,7 @@ public class AspectJPreferences {
 
 	/**
 	 * Helper set method
-	 * 
+	 *
 	 * @param ask
 	 *            true if the user wants to be asked again about having auto
 	 *            removal of aspectj runtime library import upon removing aspectj nature
@@ -473,12 +473,12 @@ public class AspectJPreferences {
 				.getPreferenceStore();
 		store.setValue(ASK_PDE_AUTO_REMOVE_IMPORT, ask);
 	}
-	
+
 	/**
 	 * Helper get method used to determine whether to ask the user if they want
-	 * to automatically remove the the aspectj runtime library import from the 
+	 * to automatically remove the the aspectj runtime library import from the
 	 * appropriate plugin.
-	 * 
+	 *
 	 * @return boolean true if user is to be asked
 	 */
 	static public boolean askPDEAutoRemoveImport() {
@@ -510,7 +510,7 @@ public class AspectJPreferences {
 				.getPreferenceStore();
 		return store.getBoolean(DO_PDE_AUTO_REMOVE_IMPORT);
 	}
-	
+
 	// Project scope preferences
 
 	public static void setCompilerOptions(IProject project, String value) {
@@ -535,18 +535,16 @@ public class AspectJPreferences {
 	}
 
 	public static String getCompilerOptions(IProject project) {
-		String compilerOptions = getStringPrefValue(project, COMPILER_OPTIONS);
-		return compilerOptions; 
+    return getStringPrefValue(project, COMPILER_OPTIONS);
 	}
-	
+
 	public static String getStringPrefValue(IProject project, String key) {
 		if (isUsingProjectSettings(project)) {
 			IScopeContext projectScope = new ProjectScope(project);
 			IEclipsePreferences projectNode = projectScope
 					.getNode(AspectJPlugin.PLUGIN_ID);
-			String v = projectNode.get(key, ""); //$NON-NLS-1$
-			return v;
-		} 
+      return projectNode.get(key, "");
+		}
 		IPreferenceStore store = AspectJUIPlugin.getDefault()
 				.getPreferenceStore();
 		return store.getString(key);
@@ -557,17 +555,16 @@ public class AspectJPreferences {
 			IScopeContext projectScope = new ProjectScope(project);
 			IEclipsePreferences projectNode = projectScope
 					.getNode(AspectJPlugin.PLUGIN_ID);
-			boolean v = projectNode.getBoolean(key, false);
-			return v;
-		} 
+      return projectNode.getBoolean(key, false);
+		}
 		IPreferenceStore store = AspectJUIPlugin.getDefault()
 					.getPreferenceStore();
 		return store.getBoolean(key);
 	}
-	
+
 	public static void setCheckedFilters(List<String> l) {
 
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		sb.append("set: "); //$NON-NLS-1$
 		for (Iterator<String> iter = l.iterator(); iter.hasNext();) {
 			String name = iter.next();
@@ -589,7 +586,7 @@ public class AspectJPreferences {
 			return null;
 		}
 		xRefCheckedFilters = xRefCheckedFilters.substring("set: ".length()); //$NON-NLS-1$
-		List<String> checkedList = new ArrayList<String>();
+		List<String> checkedList = new ArrayList<>();
 		StringTokenizer tokenizer = new StringTokenizer(xRefCheckedFilters, ","); //$NON-NLS-1$
 		while (tokenizer.hasMoreTokens()) {
 			checkedList.add(tokenizer.nextToken());
@@ -598,7 +595,7 @@ public class AspectJPreferences {
 	}
 
 	public static void setEventTraceList(List<String> l) {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		sb.append("set: "); //$NON-NLS-1$
 		for (Iterator<String> iter = l.iterator(); iter.hasNext();) {
 			String name = iter.next();
@@ -620,7 +617,7 @@ public class AspectJPreferences {
 			return null;
 		}
 		eventTraceCheckedFilters = eventTraceCheckedFilters.substring("set: ".length()); //$NON-NLS-1$
-		List<String> checkedList = new ArrayList<String>();
+		List<String> checkedList = new ArrayList<>();
 		StringTokenizer tokenizer = new StringTokenizer(eventTraceCheckedFilters, ","); //$NON-NLS-1$
 		while (tokenizer.hasMoreTokens()) {
 			checkedList.add(tokenizer.nextToken());
@@ -629,7 +626,7 @@ public class AspectJPreferences {
 	}
 
 	public static void setCheckedInplaceFilters(List<String> l) {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		sb.append("set: "); //$NON-NLS-1$
 		for (Iterator<String> iter = l.iterator(); iter.hasNext();) {
 			String name = iter.next();
@@ -652,12 +649,12 @@ public class AspectJPreferences {
 			return null;
 		}
 		xRefCheckedFilters = xRefCheckedFilters.substring("set: ".length()); //$NON-NLS-1$
-		List<String> checkedList = new ArrayList<String>();
+		List<String> checkedList = new ArrayList<>();
 		StringTokenizer tokenizer = new StringTokenizer(xRefCheckedFilters, ","); //$NON-NLS-1$
 		while (tokenizer.hasMoreTokens()) {
 			checkedList.add(tokenizer.nextToken());
 		}
 		return checkedList;
 	}
-	
+
 }

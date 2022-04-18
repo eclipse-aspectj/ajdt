@@ -134,8 +134,7 @@ public abstract aspect PluginFFDC extends FFDC {
             fieldValuesArray = new IStatus[] {};
         }
 
-        IStatus result = new MultiStatus(getPluginId(),IStatus.INFO,fieldValuesArray,message,null);
-        return result;
+      return new MultiStatus(getPluginId(),IStatus.INFO,fieldValuesArray,message,null);
     }
 
     private static String safeToString (Object obj) {

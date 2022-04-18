@@ -17,18 +17,13 @@ import org.eclipse.jdt.core.IBuffer;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.search.SearchDocument;
-import org.eclipse.jdt.internal.compiler.CompilationResult;
-import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.eclipse.jdt.internal.compiler.env.IBinaryType;
 import org.eclipse.jdt.internal.compiler.env.ICompilationUnit;
-import org.eclipse.jdt.internal.compiler.parser.Scanner;
 import org.eclipse.jdt.internal.core.BasicCompilationUnit;
 import org.eclipse.jdt.internal.core.BinaryType;
 import org.eclipse.jdt.internal.core.SourceMapper;
 import org.eclipse.jdt.internal.core.search.indexing.SourceIndexer;
 import org.eclipse.jdt.internal.core.search.indexing.SourceIndexerRequestor;
-import org.eclipse.jdt.internal.corext.fix.CleanUpRefactoring;
-import org.eclipse.jdt.internal.corext.fix.CleanUpRefactoring.CleanUpChange;
 
 public privileged aspect SourceTransformerAspect {
 
@@ -116,8 +111,7 @@ public privileged aspect SourceTransformerAspect {
             ISourceTransformer transformer = SourceTransformerRegistry.getInstance().getSelector(extension);
             if (transformer != null) {
                 try {
-                    IBuffer buffer = transformer.ensureRealBuffer(unit);
-                    return buffer;
+                  return transformer.ensureRealBuffer(unit);
                 } catch (Throwable t) {
                     JDTWeavingPlugin.logException(t);
                 }

@@ -11,6 +11,7 @@
 package org.eclipse.ajdt.core.builder;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.core.resources.IFile;
@@ -93,9 +94,7 @@ public class AJCompilationParticipantResult extends BuildContext {
         if (problems == null) {
             problems = new ArrayList<>(length);
         }
-      for (CategorizedProblem newProblem : newProblems) {
-        problems.add(newProblem);
-      }
+      problems.addAll(Arrays.asList(newProblems));
     }
 
     public List<CategorizedProblem> getProblems() {

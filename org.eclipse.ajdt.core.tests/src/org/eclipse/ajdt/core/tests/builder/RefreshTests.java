@@ -51,7 +51,7 @@ public class RefreshTests extends AJDTCoreTestCase {
 
     class DeltaListener implements IResourceChangeListener {
 
-        List<IResource> changed = new ArrayList<IResource>();
+        List<IResource> changed = new ArrayList<>();
 
         void resetChanged() {
             changed.clear();
@@ -63,14 +63,12 @@ public class RefreshTests extends AJDTCoreTestCase {
 
         public void resourceChanged(IResourceChangeEvent event) {
             try {
-                event.getDelta().accept(new IResourceDeltaVisitor() {
-                    public boolean visit(IResourceDelta delta) throws CoreException {
-                        if (delta.getAffectedChildren().length > 0) {
-                            return true;
-                        } else {
-                            changed.add(delta.getResource());
-                            return false;
-                        }
+                event.getDelta().accept(delta -> {
+                    if (delta.getAffectedChildren().length > 0) {
+                        return true;
+                    } else {
+                        changed.add(delta.getResource());
+                        return false;
                     }
                 });
             } catch (CoreException e) {

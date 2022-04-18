@@ -44,11 +44,10 @@ public class MethodIntertypeElement extends IntertypeElement
 
     @Override
     protected Object createElementInfo() {
-        IntertypeElementInfo result = (IntertypeElementInfo) super.createElementInfo();
-//      if (result.getAJKind()!=Kind.INTER_TYPE_FIELD) {
+      //      if (result.getAJKind()!=Kind.INTER_TYPE_FIELD) {
 //          throw new JavaModelException("Element exists, but is not a field: "+this);
 //      }
-        return result;
+        return (IntertypeElementInfo) super.createElementInfo();
     }
 
     public IMember createMockDeclaration(IType parent) {
@@ -58,54 +57,52 @@ public class MethodIntertypeElement extends IntertypeElement
             boolean isMethod = info.getAJKind() == IProgramElement.Kind.INTER_TYPE_METHOD;
 
             if (isConstructor) {
-                IMethod itd = new SourceMethod(
-                        (JavaElement) parent,
-                        parent.getElementName(),
-                        this.getQualifiedParameterTypes()) {
-                    protected Object createElementInfo() {
-                        /* AJDT 1.7 */
-                        ITDSourceConstructorElementInfo newInfo = new ITDSourceConstructorElementInfo(MethodIntertypeElement.this, info.getChildren());
-                        newInfo.setFlags(CompilationUnitTools.getPublicModifierCode(info));
-                        newInfo.setNameSourceEnd(info.getNameSourceEnd());
-                        newInfo.setNameSourceStart(info.getNameSourceStart());
-                        newInfo.setArgumentNames(info.getArgumentNames(), getParamNum());
-                        newInfo.setSourceRangeStart(info.getSourceRange().getOffset());
-                        newInfo.setSourceRangeEnd(info.getSourceRange().getOffset() + info.getSourceRange().getLength());
-                        newInfo.setTypeParameters(createTypeParameters(null));
-                        newInfo.setArguments(info.getArguments());
-                        return newInfo;
+              return new SourceMethod(
+                      (JavaElement) parent,
+                      parent.getElementName(),
+                      MethodIntertypeElement.this.getQualifiedParameterTypes()) {
+                  protected Object createElementInfo() {
+                      /* AJDT 1.7 */
+                      ITDSourceConstructorElementInfo newInfo = new ITDSourceConstructorElementInfo(MethodIntertypeElement.this, info.getChildren());
+                      newInfo.setFlags(CompilationUnitTools.getPublicModifierCode(info));
+                      newInfo.setNameSourceEnd(info.getNameSourceEnd());
+                      newInfo.setNameSourceStart(info.getNameSourceStart());
+                      newInfo.setArgumentNames(info.getArgumentNames(), getParamNum());
+                      newInfo.setSourceRangeStart(info.getSourceRange().getOffset());
+                      newInfo.setSourceRangeEnd(info.getSourceRange().getOffset() + info.getSourceRange().getLength());
+                      newInfo.setTypeParameters(createTypeParameters(null));
+                      newInfo.setArguments(info.getArguments());
+                      return newInfo;
 
-                    }
-                    public boolean exists() {
-                        return true;
-                    }
-                };
-                return itd;
+                  }
+                  public boolean exists() {
+                      return true;
+                  }
+              };
             } else if (isMethod) {
-                IMethod itd = new SourceMethod(
-                        (JavaElement) parent,
-                        getTargetName(),
-                        this.getQualifiedParameterTypes()) {
-                    protected Object createElementInfo() {
-                        /* AJDT 1.7 */
-                        ITDSourceMethodElementInfo newInfo = new ITDSourceMethodElementInfo(MethodIntertypeElement.this, info.getChildren());
-                        newInfo.setReturnType(getQualifiedReturnTypeName(info));
-                        newInfo.setFlags(CompilationUnitTools.getPublicModifierCode(info));
-                        newInfo.setNameSourceEnd(info.getNameSourceEnd());
-                        newInfo.setNameSourceStart(info.getNameSourceStart());
-                        newInfo.setArgumentNames(info.getArgumentNames(), getParamNum());
-                        newInfo.setSourceRangeStart(info.getSourceRange().getOffset());
-                        newInfo.setSourceRangeEnd(info.getSourceRange().getOffset() + info.getSourceRange().getLength());
-                        newInfo.setTypeParameters(createTypeParameters(null));
-                        newInfo.setArguments(info.getArguments());
-                        return newInfo;
+              return new SourceMethod(
+                      (JavaElement) parent,
+                      getTargetName(),
+                      MethodIntertypeElement.this.getQualifiedParameterTypes()) {
+                  protected Object createElementInfo() {
+                      /* AJDT 1.7 */
+                      ITDSourceMethodElementInfo newInfo = new ITDSourceMethodElementInfo(MethodIntertypeElement.this, info.getChildren());
+                      newInfo.setReturnType(getQualifiedReturnTypeName(info));
+                      newInfo.setFlags(CompilationUnitTools.getPublicModifierCode(info));
+                      newInfo.setNameSourceEnd(info.getNameSourceEnd());
+                      newInfo.setNameSourceStart(info.getNameSourceStart());
+                      newInfo.setArgumentNames(info.getArgumentNames(), getParamNum());
+                      newInfo.setSourceRangeStart(info.getSourceRange().getOffset());
+                      newInfo.setSourceRangeEnd(info.getSourceRange().getOffset() + info.getSourceRange().getLength());
+                      newInfo.setTypeParameters(createTypeParameters(null));
+                      newInfo.setArguments(info.getArguments());
+                      return newInfo;
 
-                    }
-                    public boolean exists() {
-                        return true;
-                    }
-                };
-                return itd;
+                  }
+                  public boolean exists() {
+                      return true;
+                  }
+              };
             }
         } catch (JavaModelException e) {
         }
@@ -149,8 +146,7 @@ public class MethodIntertypeElement extends IntertypeElement
                         newNames.add(("arg" + i).toCharArray());
                     }
                 }
-                super.setArgumentNames((char[][])
-                        newNames.toArray(new char[newNames.size()][]));
+                super.setArgumentNames(newNames.toArray(new char[newNames.size()][]));
             }
         }
 
@@ -222,8 +218,7 @@ public class MethodIntertypeElement extends IntertypeElement
                         newNames.add(("arg" + i).toCharArray());
                     }
                 }
-                super.setArgumentNames((char[][])
-                        newNames.toArray(new char[newNames.size()][]));
+                super.setArgumentNames(newNames.toArray(new char[newNames.size()][]));
             }
         }
 

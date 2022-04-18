@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2005 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman  - initial version
@@ -57,20 +57,18 @@ import org.eclipse.ui.PlatformUI;
  * Mainly copied from AbstractJavaModelTests in org.eclipse.jdt.core.tests.model
  */
 public class WeavingTestCase extends TestCase {
-    
+
     protected IProgressMonitor monitor = new DumbProgressMonitor();
 
 	public void tearDown() throws Exception {
 		IProject[] allProjects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
-		for (int i = 0; i < allProjects.length; i++) {
-			IProject project = allProjects[i];
-			deleteProject(project,false);
-		}
+    for (IProject project : allProjects) {
+      deleteProject(project, false);
+    }
 		allProjects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
-		for (int i = 0; i < allProjects.length; i++) {
-			IProject project = allProjects[i];
-			deleteProject(project,true);
-		}
+    for (IProject project : allProjects) {
+      deleteProject(project, true);
+    }
 	}
 
 	/**
@@ -79,19 +77,19 @@ public class WeavingTestCase extends TestCase {
 	public IWorkspace getWorkspace() {
 		return ResourcesPlugin.getWorkspace();
 	}
-	
+
 	public IWorkspaceRoot getWorkspaceRoot() {
 		return getWorkspace().getRoot();
 	}
-	
-	
+
+
 	protected IProject createPredefinedProject(final String projectName) throws CoreException, IOException {
 		IJavaProject jp = setUpJavaProject(projectName);
 		jp.setOption("org.eclipse.jdt.core.compiler.problem.missingSerialVersion", "ignore"); //$NON-NLS-1$ //$NON-NLS-2$
 		jp.getProject().build(IncrementalProjectBuilder.FULL_BUILD,null);
 		return jp.getProject();
 	}
-	
+
 	/**
 	 * Create a named project, optionally turn of some irritating options that can clog up the output and then build it
 	 */
@@ -103,34 +101,31 @@ public class WeavingTestCase extends TestCase {
 			jp.setOption("org.eclipse.jdt.core.compiler.taskTags","");//$NON-NLS-1$ //$NON-NLS-2$ // $NON-NLS-2$
 		}
 		jp.getProject().build(IncrementalProjectBuilder.FULL_BUILD,null);
-		return jp.getProject();		
+		return jp.getProject();
 	}
-	
-	
+
+
 	protected IJavaProject setUpJavaProject(final String projectName) throws CoreException, IOException {
 		return setUpJavaProject(projectName, "1.5"); //$NON-NLS-1$
 	}
-	
+
 	protected IJavaProject setUpJavaProject(final String projectName, String compliance) throws CoreException, IOException {
 		// copy files in project from source workspace to target workspace
 		String sourceWorkspacePath = getSourceWorkspacePath();
 		String targetWorkspacePath = getWorkspaceRoot().getLocation().toFile().getCanonicalPath();
 		copyDirectory(new File(sourceWorkspacePath, projectName), new File(targetWorkspacePath, projectName));
-		
+
 		// create project
 		final IProject project = getWorkspaceRoot().getProject(projectName);
-		IWorkspaceRunnable populate = new IWorkspaceRunnable() {
-			public void run(IProgressMonitor monitor) throws CoreException {
-				project.create(null);
-				project.open(null);
-			}
-		};
+		IWorkspaceRunnable populate = monitor -> {
+      project.create(null);
+      project.open(null);
+    };
 		getWorkspace().run(populate, null);
-		
-		IJavaProject javaProject = JavaCore.create(project);
-		return javaProject;
+
+    return JavaCore.create(project);
 	}
-	
+
 	   /**
      * Returns the OS path to the directory that contains this plugin.
      */
@@ -143,13 +138,13 @@ public class WeavingTestCase extends TestCase {
         }
         return null;
     }
-    
+
     public String getSourceWorkspacePath() {
         return getPluginDirectoryPath() +  java.io.File.separator + "workspace"; //$NON-NLS-1$
     }
 
-	
-	
+
+
 	// A dumb progressmonitor we can use - if we dont pass one it may create a UI one...
 	static class DumbProgressMonitor implements IProgressMonitor {
 
@@ -168,7 +163,7 @@ public class WeavingTestCase extends TestCase {
 		public void subTask(String name) {/*dontcare*/}
 
 		public void worked(int work) {/*dontcare*/}
-		
+
 	}
 
 	/**
@@ -180,32 +175,33 @@ public class WeavingTestCase extends TestCase {
 		}
 		File[] files = source.listFiles();
 		if (files == null) return;
-		for (int i = 0; i < files.length; i++) {
-			File sourceChild = files[i];
-			String name =  sourceChild.getName();
-			if (name.equals("CVS")) continue; //$NON-NLS-1$
-			File targetChild = new File(target, name);
-			if (sourceChild.isDirectory()) {
-				copyDirectory(sourceChild, targetChild);
-			} else {
-				copy(sourceChild, targetChild);
-			}
-		}
+    for (File sourceChild : files) {
+      String name = sourceChild.getName();
+      if (name.equals("CVS"))
+        continue; //$NON-NLS-1$
+      File targetChild = new File(target, name);
+      if (sourceChild.isDirectory()) {
+        copyDirectory(sourceChild, targetChild);
+      }
+      else {
+        copy(sourceChild, targetChild);
+      }
+    }
 	}
-	
+
 	/**
 	 * Copy file from src (path to the original file) to dest (path to the destination file).
 	 */
 	public void copy(File src, File dest) throws IOException {
 		// read source bytes
 		byte[] srcBytes = this.read(src);
-		
+
 		// write bytes to dest
 		FileOutputStream out = new FileOutputStream(dest);
 		out.write(srcBytes);
 		out.close();
 	}
-	
+
 	public byte[] read(java.io.File file) throws java.io.IOException {
 		int fileLength;
 		byte[] fileBytes = new byte[fileLength = (int) file.length()];
@@ -219,8 +215,8 @@ public class WeavingTestCase extends TestCase {
 		stream.close();
 		return fileBytes;
 	}
-	
-	
+
+
 	protected IProject getProject(String project) {
 		return getWorkspaceRoot().getProject(project);
 	}
@@ -231,11 +227,11 @@ public class WeavingTestCase extends TestCase {
 		}
 		deleteResource(project,force);
 	}
-	
+
 	protected void deleteProject(String projectName) throws CoreException {
 		deleteProject(this.getProject(projectName),true);
 	}
-	
+
 	/**
 	 * Delete this resource.
 	 */
@@ -281,18 +277,18 @@ public class WeavingTestCase extends TestCase {
 			throw lastException;
 		}
 	}
-	
+
    protected void waitForJobsToComplete(){
         SynchronizationUtils.joinBackgroudActivities();
     }
-   
+
    private void ensureExists(IFolder folder) throws CoreException {
        if (folder.getParent().getType() == IResource.FOLDER && !folder.getParent().exists()) {
            ensureExists((IFolder) folder.getParent());
        }
        folder.create(false, true, null);
    }
-   
+
    private IPackageFragmentRoot createDefaultSourceFolder(IJavaProject javaProject) throws CoreException {
        IProject project = javaProject.getProject();
        IFolder folder = project.getFolder("src");
@@ -302,11 +298,10 @@ public class WeavingTestCase extends TestCase {
                .getResolvedClasspath(false);
        final IPackageFragmentRoot root = javaProject
                .getPackageFragmentRoot(folder);
-       for (int i = 0; i < entries.length; i++) {
-           final IClasspathEntry entry = entries[i];
-           if (entry.getPath().equals(folder.getFullPath()))
-               return root;
-       }
+     for (final IClasspathEntry entry : entries) {
+       if (entry.getPath().equals(folder.getFullPath()))
+         return root;
+     }
        IClasspathEntry[] oldEntries = javaProject.getRawClasspath();
        IClasspathEntry[] newEntries = new IClasspathEntry[oldEntries.length + 1];
        System.arraycopy(oldEntries, 0, newEntries, 0, oldEntries.length);
@@ -326,15 +321,13 @@ public class WeavingTestCase extends TestCase {
 
    public ICompilationUnit createCompilationUnit(IPackageFragment pack, String cuName,
            String source) throws JavaModelException {
-       StringBuffer buf = new StringBuffer();
-       buf.append(source);
-       ICompilationUnit unit = pack.createCompilationUnit(cuName,
-               buf.toString(), false, null);
+     ICompilationUnit unit = pack.createCompilationUnit(cuName,
+       source, false, null);
        waitForManualBuild();
        waitForAutoBuild();
        return unit;
    }
-   
+
    public ICompilationUnit createCompilationUnitAndPackage(String packageName, String fileName,
            String source, IJavaProject javaProject) throws CoreException {
        return createCompilationUnit(createPackage(packageName, javaProject), fileName, source);
@@ -371,27 +364,27 @@ public class WeavingTestCase extends TestCase {
            fail("Expecting no problems for project " + project.getName() + ", but found:\n\n" + problems);
        }
    }
-   
+
    public String getProblems(IProject project) throws CoreException {
        IMarker[] markers = project.findMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, true, IResource.DEPTH_INFINITE);
-       StringBuffer sb = new StringBuffer();
+       StringBuilder sb = new StringBuilder();
        if (markers == null || markers.length == 0) {
            return null;
        }
        boolean errorFound = false;
        sb.append("Problems:\n");
-       for (int i = 0; i < markers.length; i++) {
-           if (((Integer) markers[i].getAttribute(IMarker.SEVERITY)).intValue() == IMarker.SEVERITY_ERROR) {
-               sb.append("  ");
-               sb.append(markers[i].getResource().getName()).append(" : ");
-               sb.append(markers[i].getAttribute(IMarker.LINE_NUMBER)).append(" : ");
-               sb.append(markers[i].getAttribute(IMarker.MESSAGE)).append("\n");
-               errorFound = true;
-           }
+     for (IMarker marker : markers) {
+       if (((Integer) marker.getAttribute(IMarker.SEVERITY)).intValue() == IMarker.SEVERITY_ERROR) {
+         sb.append("  ");
+         sb.append(marker.getResource().getName()).append(" : ");
+         sb.append(marker.getAttribute(IMarker.LINE_NUMBER)).append(" : ");
+         sb.append(marker.getAttribute(IMarker.MESSAGE)).append("\n");
+         errorFound = true;
        }
+     }
        return errorFound ? sb.toString() : null;
    }
-   
+
    public static void waitForAutoBuild() {
        waitForJobFamily(ResourcesPlugin.FAMILY_AUTO_BUILD);
    }
@@ -404,7 +397,7 @@ public class WeavingTestCase extends TestCase {
    public static void waitForManualRefresh() {
        waitForJobFamily(ResourcesPlugin.FAMILY_MANUAL_REFRESH);
    }
-   
+
    public static void waitForJobFamily(Object family) {
        boolean wasInterrupted = false;
        do {
@@ -416,10 +409,10 @@ public class WeavingTestCase extends TestCase {
            } catch (InterruptedException e) {
                wasInterrupted = true;
            }
-       } while (wasInterrupted);       
-       
+       } while (wasInterrupted);
+
    }
-   
+
    public static void joinBackgroudActivities()  {
        waitForAutoBuild();
        waitForManualBuild();
@@ -434,7 +427,7 @@ public class WeavingTestCase extends TestCase {
 //Adapted from org.eclipse.jdt.ui.tests.performance.JdtPerformanceTestCase
 class SynchronizationUtils {
 
-        
+
     public static void joinBackgroudActivities()  {
         // Join Building
         boolean interrupted= true;
@@ -456,7 +449,7 @@ class SynchronizationUtils {
             } catch (InterruptedException e) {
                 wasInterrupted = true;
             }
-        } while (wasInterrupted);   
+        } while (wasInterrupted);
         // Join jobs
         joinJobs(100, 0, 500);
     }
@@ -467,7 +460,7 @@ class SynchronizationUtils {
         runEventQueue();
         while (System.currentTimeMillis() < startTime)
             runEventQueue(intervalTime);
-        
+
         long endTime= maxTime > 0  && maxTime < Long.MAX_VALUE ? System.currentTimeMillis() + maxTime : Long.MAX_VALUE;
         boolean calm= allJobsQuiet();
         while (!calm && System.currentTimeMillis() < endTime) {
@@ -476,36 +469,36 @@ class SynchronizationUtils {
         }
         return calm;
     }
-    
+
     private static void sleep(int intervalTime) {
         try {
             Thread.sleep(intervalTime);
         } catch (InterruptedException e) {
         }
     }
-    
+
     private static boolean allJobsQuiet() {
         IJobManager jobManager= Job.getJobManager();
         Job[] jobs= jobManager.find(null);
-        for (int i= 0; i < jobs.length; i++) {
-            Job job= jobs[i];
-            int state= job.getState();
-            //ignore jobs we don't care about
-            if (!job.getName().equals("Flush Cache Job") &&  //$NON-NLS-1$
-                    !job.getName().equals("Usage Data Event consumer") &&  //$NON-NLS-1$
-                    (state == Job.RUNNING || state == Job.WAITING)) {
-                return false;
-            }
+      for (Job job : jobs) {
+        int state = job.getState();
+        //ignore jobs we don't care about
+        if (!job.getName().equals("Flush Cache Job") &&  //$NON-NLS-1$
+            !job.getName().equals("Usage Data Event consumer") &&  //$NON-NLS-1$
+            (state == Job.RUNNING || state == Job.WAITING))
+        {
+          return false;
         }
+      }
         return true;
     }
-    
+
     private static void runEventQueue() {
         IWorkbenchWindow window= PlatformUI.getWorkbench().getActiveWorkbenchWindow();
         if (window != null)
             runEventQueue(window.getShell());
     }
-    
+
     private static void runEventQueue(Shell shell) {
         try {
             while (shell.getDisplay().readAndDispatch()) {
@@ -515,7 +508,7 @@ class SynchronizationUtils {
             System.err.println(e);
         }
     }
-    
+
     private static void runEventQueue(long minTime) {
         long nextCheck= System.currentTimeMillis() + minTime;
         while (System.currentTimeMillis() < nextCheck) {

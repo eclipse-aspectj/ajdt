@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman    - initial version
@@ -33,8 +33,8 @@ public class FilterTraceAction extends Action {
 	private static String dialogTitle;
 	private static String dialogMessage;
 
-	private Shell parentShell;
-	private String tooltipText;
+	private final Shell parentShell;
+	private final String tooltipText;
 
 	public FilterTraceAction(Shell shell, List items,
 			List checkedItems, List defaultItems, String dlogTitle,
@@ -55,13 +55,13 @@ public class FilterTraceAction extends Action {
 
 	/**
 	 * Fills the given view menu with the entries managed by the group.
-	 * 
+	 *
 	 * @param viewMenu
 	 *            the menu to fill
 	 */
 	public void fillViewMenu(IMenuManager viewMenu) {
 	}
-	
+
 	protected List getCheckedList() {
 		return checkedList;
 	}

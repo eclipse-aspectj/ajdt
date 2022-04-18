@@ -1,13 +1,13 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2003, 2005 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Luzius Meisser  - adjusted for ajdoc 
+ *     Luzius Meisser  - adjusted for ajdoc
  *     Helen Hawkins   - updated for Eclipse 3.1 (bug 109484)
  *******************************************************************************/
 package org.eclipse.ajdt.internal.ui.ajdocexport;
@@ -52,7 +52,7 @@ public class AJdocProjectContentProvider implements ITreeContentProvider {
 		} */
 		return new Object[0];
 	}
-	
+
 	/*
 	 * @see IStructuredContentProvider#getElements(Object)
 	 */
@@ -62,11 +62,11 @@ public class AJdocProjectContentProvider implements ITreeContentProvider {
 			// AspectJ Extension begin - only return aspectj projects
 			IJavaProject[] javaprojects = JavaCore.create(root).getJavaProjects();
 			List ajProjects = new ArrayList(javaprojects.length);
-			for (int i=0; i<javaprojects.length; i++){
-				if (AspectJPlugin.isAJProject(javaprojects[i].getProject())) {
-					ajProjects.add(javaprojects[i]);
-				}
-			}
+      for (IJavaProject javaproject : javaprojects) {
+        if (AspectJPlugin.isAJProject(javaproject.getProject())) {
+          ajProjects.add(javaproject);
+        }
+      }
 			return ajProjects.toArray();
 			// AspectJ Extension end
 		} catch (JavaModelException e) {
@@ -79,7 +79,7 @@ public class AJdocProjectContentProvider implements ITreeContentProvider {
 	 * @see ITreeContentProvider#getParent(Object)
 	 */
 	public Object getParent(Object element) {
-		
+
 		IJavaElement parent= ((IJavaElement)element).getParent();
 		if (parent instanceof IPackageFragmentRoot) {
 			IPackageFragmentRoot root= (IPackageFragmentRoot) parent;

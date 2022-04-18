@@ -82,14 +82,11 @@ public class XReferenceProviderManagerTest extends TestCase {
 
 	private boolean containsProvider(List<? extends XReferenceProviderDefinition> providers, String label) {
 		boolean contains = false;
-		Iterator<? extends XReferenceProviderDefinition> itor = providers.iterator();
-		while (itor.hasNext()) {
-			XReferenceProviderDefinition xrdef =
-        itor.next();
-			if (xrdef.getLabel().compareTo(label) == 0) {
-				contains = true;
-			}
-		}
+    for (XReferenceProviderDefinition xrdef : providers) {
+      if (xrdef.getLabel().compareTo(label) == 0) {
+        contains = true;
+      }
+    }
 		return contains;
 	}
 
@@ -97,7 +94,7 @@ public class XReferenceProviderManagerTest extends TestCase {
 		XReferenceProviderManager manager =
 			XReferenceProviderManager.getManager();
 		boolean currentValue = manager.getIsInplace();
-		if (currentValue == true) {
+		if (currentValue) {
 			manager.setIsInplace(false);
 			assertFalse("isInplace has not been set correctly", manager.getIsInplace()); //$NON-NLS-1$
 		} else {

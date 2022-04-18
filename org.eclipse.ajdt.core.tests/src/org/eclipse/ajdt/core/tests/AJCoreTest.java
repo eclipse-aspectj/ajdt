@@ -257,29 +257,27 @@ public class AJCoreTest extends AJDTCoreTestCase {
 			// and the test would blindly pass without this check
 			fail("No relationships found for project " + project.getName()); //$NON-NLS-1$
 		}
-		for (Iterator<IRelationship> iter = allRels.iterator(); iter.hasNext();) {
-			IRelationship rel = iter.next();
-			HandleTestUtils.checkAJHandle(rel.getSourceHandle(), model);
-			for (Iterator<String> targetIter = rel.getTargets().iterator(); targetIter.hasNext();) {
-                String handle = targetIter.next();
-                HandleTestUtils.checkAJHandle(handle, model);
-            }
-		}
+    for (IRelationship rel : allRels) {
+      HandleTestUtils.checkAJHandle(rel.getSourceHandle(), model);
+      for (String handle : rel.getTargets()) {
+        HandleTestUtils.checkAJHandle(handle, model);
+      }
+    }
 	}
 
 	private void compareWithHandles(String[][] testHandles) {
-		for (int i = 0; i < testHandles.length; i++) {
-			IJavaElement el = AspectJCore.create(testHandles[i][0]);
-			assertEquals(
-					"Handle identifier of created element doesn't match original", //$NON-NLS-1$
-					testHandles[i][0], el.getHandleIdentifier());
-			assertEquals("Name of created element doesn't match expected", //$NON-NLS-1$
-					testHandles[i][1], el.getElementName());
-			assertEquals(
-					"Name of created element resource doesn't match expected", //$NON-NLS-1$
-					testHandles[i][2], el.getResource().getName());
-			assertEquals("Created element is not of the expected class type", //$NON-NLS-1$
-					testHandles[i][3], getSimpleClassName(el));
-		}
+    for (String[] testHandle : testHandles) {
+      IJavaElement el = AspectJCore.create(testHandle[0]);
+      assertEquals(
+        "Handle identifier of created element doesn't match original", //$NON-NLS-1$
+        testHandle[0], el.getHandleIdentifier());
+      assertEquals("Name of created element doesn't match expected", //$NON-NLS-1$
+        testHandle[1], el.getElementName());
+      assertEquals(
+        "Name of created element resource doesn't match expected", //$NON-NLS-1$
+        testHandle[2], el.getResource().getName());
+      assertEquals("Created element is not of the expected class type", //$NON-NLS-1$
+        testHandle[3], getSimpleClassName(el));
+    }
 	}
 }

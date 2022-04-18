@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Matt Chapman - initial implementation
  *******************************************************************************/
@@ -91,14 +91,14 @@ import com.ibm.icu.text.Collator;
 
 
 /**
- * Copied from OrganizeImportsAction - all occurrences of OrganizeImportsOperation 
+ * Copied from OrganizeImportsAction - all occurrences of OrganizeImportsOperation
  * replaced with AJOrganizeImportsOperation
- * 
+ *
  */
 public class AJOrganizeImportsAction extends SelectionDispatchAction {
 
 	private static final OrganizeImportComparator ORGANIZE_IMPORT_COMPARATOR= new OrganizeImportComparator();
-	
+
 	private JavaEditor fEditor;
 	/** <code>true</code> if the query dialog is showing. */
 	private boolean fIsQueryShowing= false;
@@ -119,48 +119,48 @@ public class AJOrganizeImportsAction extends SelectionDispatchAction {
 				action.setEnabled(false);
 		}
 	}
-	
+
 	private static final class OrganizeImportComparator implements Comparator, Serializable {
-		
+
 		private static final long serialVersionUID = -4396300340833288667L;
 
         public int compare(Object o1, Object o2) {
-			if (((String)o1).equals(o2))
+			if (o1.equals(o2))
 				return 0;
-			
+
 			History history= QualifiedTypeNameHistory.getDefault();
-			
+
 			int pos1= history.getPosition(o1);
 			int pos2= history.getPosition(o2);
-			
+
 			if (pos1 == pos2)
 				return Collator.getInstance().compare(o1, o2);
-			
+
 			if (pos1 > pos2) {
 				return -1;
 			} else {
 				return 1;
 			}
 		}
-		
+
 	}
 
 	/**
 	 * Creates a new <code>AJOrganizeImportsAction</code>. The action requires
 	 * that the selection provided by the site's selection provider is of type <code>
 	 * org.eclipse.jface.viewers.IStructuredSelection</code>.
-	 * 
+	 *
 	 * @param site the site providing context information for this action
 	 */
 	public AJOrganizeImportsAction(IWorkbenchSite site) {
 		super(site);
-		setText(ActionMessages.OrganizeImportsAction_label); 
-		setToolTipText(ActionMessages.OrganizeImportsAction_tooltip); 
-		setDescription(ActionMessages.OrganizeImportsAction_description); 
+		setText(ActionMessages.OrganizeImportsAction_label);
+		setToolTipText(ActionMessages.OrganizeImportsAction_tooltip);
+		setDescription(ActionMessages.OrganizeImportsAction_description);
 
-		PlatformUI.getWorkbench().getHelpSystem().setHelp(this, IJavaHelpContextIds.ORGANIZE_IMPORTS_ACTION);					
+		PlatformUI.getWorkbench().getHelpSystem().setHelp(this, IJavaHelpContextIds.ORGANIZE_IMPORTS_ACTION);
 	}
-	
+
 	/**
 	 * Note: This constructor is for internal use only. Clients should not call this constructor.
 	 * @param editor the Java editor
@@ -170,7 +170,7 @@ public class AJOrganizeImportsAction extends SelectionDispatchAction {
 		fEditor= editor;
 		setEnabled(getCompilationUnit(fEditor) != null);
 	}
-	
+
 	/* (non-Javadoc)
 	 * Method declared on SelectionDispatchAction.
 	 */
@@ -178,7 +178,7 @@ public class AJOrganizeImportsAction extends SelectionDispatchAction {
 	public void selectionChanged(ITextSelection selection) {
 		setEnabled(getCompilationUnit(fEditor) != null);
 	}
-	
+
 	/* (non-Javadoc)
 	 * Method declared on SelectionDispatchAction.
 	 */
@@ -186,59 +186,60 @@ public class AJOrganizeImportsAction extends SelectionDispatchAction {
 	public void selectionChanged(IStructuredSelection selection) {
 		setEnabled(isEnabled(selection));
 	}
-	
+
 	private ICompilationUnit[] getCompilationUnits(IStructuredSelection selection) {
 		HashSet result= new HashSet();
 		Object[] selected= selection.toArray();
-		for (int i= 0; i < selected.length; i++) {
-			try {
-				if (selected[i] instanceof IJavaElement) {
-					IJavaElement elem= (IJavaElement) selected[i];
-					if (elem.exists()) {
-					
-						switch (elem.getElementType()) {
-							case IJavaElement.TYPE:
-								if (elem.getParent().getElementType() == IJavaElement.COMPILATION_UNIT) {
-									result.add(elem.getParent());
-								}
-								break;						
-							case IJavaElement.COMPILATION_UNIT:
-								result.add(elem);
-								break;
-							case IJavaElement.IMPORT_CONTAINER:
-								result.add(elem.getParent());
-								break;							
-							case IJavaElement.PACKAGE_FRAGMENT:
-								collectCompilationUnits((IPackageFragment) elem, result);
-								break;
-							case IJavaElement.PACKAGE_FRAGMENT_ROOT:
-								collectCompilationUnits((IPackageFragmentRoot) elem, result);
-								break;
-							case IJavaElement.JAVA_PROJECT:
-								IPackageFragmentRoot[] roots= ((IJavaProject) elem).getPackageFragmentRoots();
-								for (int k= 0; k < roots.length; k++) {
-									collectCompilationUnits(roots[k], result);
-								}
-								break;			
-						}
-					}
-				} else if (selected[i] instanceof LogicalPackage) {
-					IPackageFragment[] packageFragments= ((LogicalPackage)selected[i]).getFragments();
-					for (int k= 0; k < packageFragments.length; k++) {
-						IPackageFragment pack= packageFragments[k];
-						if (pack.exists()) {
-							collectCompilationUnits(pack, result);
-						}
-					}
-				}
-			} catch (JavaModelException e) {
-				if (JavaModelUtil.isExceptionToBeLogged(e))
-					JavaPlugin.log(e);
-			}
-		}
-		return (ICompilationUnit[]) result.toArray(new ICompilationUnit[result.size()]);
+    for (Object o : selected) {
+      try {
+        if (o instanceof IJavaElement) {
+          IJavaElement elem = (IJavaElement) o;
+          if (elem.exists()) {
+
+            switch (elem.getElementType()) {
+              case IJavaElement.TYPE:
+                if (elem.getParent().getElementType() == IJavaElement.COMPILATION_UNIT) {
+                  result.add(elem.getParent());
+                }
+                break;
+              case IJavaElement.COMPILATION_UNIT:
+                result.add(elem);
+                break;
+              case IJavaElement.IMPORT_CONTAINER:
+                result.add(elem.getParent());
+                break;
+              case IJavaElement.PACKAGE_FRAGMENT:
+                collectCompilationUnits((IPackageFragment) elem, result);
+                break;
+              case IJavaElement.PACKAGE_FRAGMENT_ROOT:
+                collectCompilationUnits((IPackageFragmentRoot) elem, result);
+                break;
+              case IJavaElement.JAVA_PROJECT:
+                IPackageFragmentRoot[] roots = ((IJavaProject) elem).getPackageFragmentRoots();
+                for (IPackageFragmentRoot root : roots) {
+                  collectCompilationUnits(root, result);
+                }
+                break;
+            }
+          }
+        }
+        else if (o instanceof LogicalPackage) {
+          IPackageFragment[] packageFragments = ((LogicalPackage) o).getFragments();
+          for (IPackageFragment pack : packageFragments) {
+            if (pack.exists()) {
+              collectCompilationUnits(pack, result);
+            }
+          }
+        }
+      }
+      catch (JavaModelException e) {
+        if (JavaModelUtil.isExceptionToBeLogged(e))
+          JavaPlugin.log(e);
+      }
+    }
+		return (ICompilationUnit[]) result.toArray(new ICompilationUnit[0]);
 	}
-	
+
 	private void collectCompilationUnits(IPackageFragment pack, Collection result) throws JavaModelException {
 		result.addAll(Arrays.asList(pack.getCompilationUnits()));
 	}
@@ -246,48 +247,50 @@ public class AJOrganizeImportsAction extends SelectionDispatchAction {
 	private void collectCompilationUnits(IPackageFragmentRoot root, Collection result) throws JavaModelException {
 		if (root.getKind() == IPackageFragmentRoot.K_SOURCE) {
 			IJavaElement[] children= root.getChildren();
-			for (int i= 0; i < children.length; i++) {
-				collectCompilationUnits((IPackageFragment) children[i], result);
-			}
+      for (IJavaElement child : children) {
+        collectCompilationUnits((IPackageFragment) child, result);
+      }
 		}
-	}	
-	
-	
+	}
+
+
 	private boolean isEnabled(IStructuredSelection selection) {
 		Object[] selected= selection.toArray();
-		for (int i= 0; i < selected.length; i++) {
-			try {
-				if (selected[i] instanceof IJavaElement) {
-					IJavaElement elem= (IJavaElement) selected[i];
-					if (elem.exists()) {
-						switch (elem.getElementType()) {
-							case IJavaElement.TYPE:
-								return elem.getParent().getElementType() == IJavaElement.COMPILATION_UNIT; // for browsing perspective
-							case IJavaElement.COMPILATION_UNIT:
-								return true;
-							case IJavaElement.IMPORT_CONTAINER:
-								return true;
-							case IJavaElement.PACKAGE_FRAGMENT:
-							case IJavaElement.PACKAGE_FRAGMENT_ROOT:
-								IPackageFragmentRoot root= (IPackageFragmentRoot) elem.getAncestor(IJavaElement.PACKAGE_FRAGMENT_ROOT);
-								return (root.getKind() == IPackageFragmentRoot.K_SOURCE);
-							case IJavaElement.JAVA_PROJECT:
-								// https://bugs.eclipse.org/bugs/show_bug.cgi?id=65638
-								return true;
-						}
-					}
-				} else if (selected[i] instanceof LogicalPackage) {
-					return true;
-				}
-			} catch (JavaModelException e) {
-				if (!e.isDoesNotExist()) {
-					JavaPlugin.log(e);
-				}
-			}
-		}
+    for (Object o : selected) {
+      try {
+        if (o instanceof IJavaElement) {
+          IJavaElement elem = (IJavaElement) o;
+          if (elem.exists()) {
+            switch (elem.getElementType()) {
+              case IJavaElement.TYPE:
+                return elem.getParent().getElementType() == IJavaElement.COMPILATION_UNIT; // for browsing perspective
+              case IJavaElement.COMPILATION_UNIT:
+                return true;
+              case IJavaElement.IMPORT_CONTAINER:
+                return true;
+              case IJavaElement.PACKAGE_FRAGMENT:
+              case IJavaElement.PACKAGE_FRAGMENT_ROOT:
+                IPackageFragmentRoot root = (IPackageFragmentRoot) elem.getAncestor(IJavaElement.PACKAGE_FRAGMENT_ROOT);
+                return (root.getKind() == IPackageFragmentRoot.K_SOURCE);
+              case IJavaElement.JAVA_PROJECT:
+                // https://bugs.eclipse.org/bugs/show_bug.cgi?id=65638
+                return true;
+            }
+          }
+        }
+        else if (o instanceof LogicalPackage) {
+          return true;
+        }
+      }
+      catch (JavaModelException e) {
+        if (!e.isDoesNotExist()) {
+          JavaPlugin.log(e);
+        }
+      }
+    }
 		return false;
 	}
-	
+
 	/* (non-Javadoc)
 	 * Method declared on SelectionDispatchAction.
 	 */
@@ -301,10 +304,9 @@ public class AJOrganizeImportsAction extends SelectionDispatchAction {
 
 	private static ICompilationUnit getCompilationUnit(JavaEditor editor) {
 		IWorkingCopyManager manager= JavaPlugin.getDefault().getWorkingCopyManager();
-		ICompilationUnit cu= manager.getWorkingCopy(editor.getEditorInput());
-		return cu;
+    return manager.getWorkingCopy(editor.getEditorInput());
 	}
-	
+
 	/* (non-Javadoc)
 	 * Method declared on SelectionDispatchAction.
 	 */
@@ -326,150 +328,140 @@ public class AJOrganizeImportsAction extends SelectionDispatchAction {
 	 */
 	public void runOnMultiple(final ICompilationUnit[] cus) {
 		try {
-			String message= "Problems while organizing imports on some compilation units. See 'Details' for more information."; 
+			String message= "Problems while organizing imports on some compilation units. See 'Details' for more information.";
 			final MultiStatus status= new MultiStatus(JavaUI.ID_PLUGIN, IStatus.OK, message, null);
-			
+
 			IProgressService progressService= PlatformUI.getWorkbench().getProgressService();
-			progressService.run(true, true, new WorkbenchRunnableAdapter(new IWorkspaceRunnable() {
-				public void run(IProgressMonitor monitor) {
-					doRunOnMultiple(cus, status, monitor);
-				}
-			})); // workspace lock
+			progressService.run(true, true, new WorkbenchRunnableAdapter(monitor -> doRunOnMultiple(cus, status, monitor))); // workspace lock
 			if (!status.isOK()) {
-				String title= "Organize Imports"; 
+				String title= "Organize Imports";
 				ErrorDialog.openError(getShell(), title, null, status);
 			}
 		} catch (InvocationTargetException e) {
-			ExceptionHandler.handle(e, getShell(), ActionMessages.OrganizeImportsAction_error_title, ActionMessages.OrganizeImportsAction_error_message); 
+			ExceptionHandler.handle(e, getShell(), ActionMessages.OrganizeImportsAction_error_title, ActionMessages.OrganizeImportsAction_error_message);
 		} catch (InterruptedException e) {
 			// Canceled by user
-		}		
-		
+		}
+
 	}
-	
+
 	static final class OrganizeImportError extends RuntimeException {
 		private static final long serialVersionUID= 1L;
 	}
-	
+
 	private void doRunOnMultiple(ICompilationUnit[] cus, MultiStatus status, IProgressMonitor monitor) throws OperationCanceledException {
 		if (monitor == null) {
 			monitor= new NullProgressMonitor();
-		}	
-		monitor.setTaskName("Organizing imports..."); 
-	
+		}
+		monitor.setTaskName("Organizing imports...");
+
 		monitor.beginTask("", cus.length); //$NON-NLS-1$
 		try {
-			IChooseImportQuery query= new IChooseImportQuery() {
-				public TypeNameMatch[] chooseImports(TypeNameMatch[][] openChoices, ISourceRange[] ranges) {
-					throw new OrganizeImportError();
-				}
-			};
+			IChooseImportQuery query= (openChoices, ranges) -> {
+        throw new OrganizeImportError();
+      };
 			IJavaProject lastProject= null;
-			
-	
-			for (int i= 0; i < cus.length; i++) {
-				ICompilationUnit cu= cus[i];
-				if (testOnBuildPath(cu, status)) {
-					if (lastProject == null || !lastProject.equals(cu.getJavaProject())) {
-						lastProject= cu.getJavaProject();
-					}
-					CodeGenerationSettings settings= JavaPreferencesSettings.getCodeGenerationSettings(lastProject);
 
-					
-					String cuLocation= cu.getPath().makeRelative().toString();
-					
-					monitor.subTask(cuLocation);
+      for (ICompilationUnit cu : cus) {
+        if (testOnBuildPath(cu, status)) {
+          if (lastProject == null || !lastProject.equals(cu.getJavaProject())) {
+            lastProject = cu.getJavaProject();
+          }
+          CodeGenerationSettings settings = JavaPreferencesSettings.getCodeGenerationSettings(lastProject);
 
-					try {
-						boolean save= !cu.isWorkingCopy();
-						if (!save) {
-							ITextFileBuffer textFileBuffer= FileBuffers.getTextFileBufferManager().getTextFileBuffer(cu.getPath());
-							save= textFileBuffer != null && !textFileBuffer.isDirty(); // save when not dirty
-						}
-						
-						AJOrganizeImportsOperation op= new AJOrganizeImportsOperation(cu, null, settings.importIgnoreLowercase, save, true, query);
-						runInSync(op, cuLocation, status, monitor);
+          String cuLocation = cu.getPath().makeRelative().toString();
 
-						IProblem parseError= op.getParseError();
-						if (parseError != null) {
-							String message= Messages.format(ActionMessages.OrganizeImportsAction_multi_error_parse, cuLocation); 
-							status.add(new Status(IStatus.INFO, JavaUI.ID_PLUGIN, IStatus.ERROR, message, null));
-						} 	
-					} catch (CoreException e) {
-						JavaPlugin.log(e);
-						String message= Messages.format("{0}: Unexpected error. See log for details.", e.getStatus().getMessage()); 
-						status.add(new Status(IStatus.ERROR, JavaUI.ID_PLUGIN, IStatus.ERROR, message, null));					
-					}
+          monitor.subTask(cuLocation);
 
-					if (monitor.isCanceled()) {
-						throw new OperationCanceledException();
-					}
-				}
-			}
+          try {
+            boolean save = !cu.isWorkingCopy();
+            if (!save) {
+              ITextFileBuffer textFileBuffer = FileBuffers.getTextFileBufferManager().getTextFileBuffer(cu.getPath());
+              save = textFileBuffer != null && !textFileBuffer.isDirty(); // save when not dirty
+            }
+
+            AJOrganizeImportsOperation op = new AJOrganizeImportsOperation(cu, null, settings.importIgnoreLowercase, save, true, query);
+            runInSync(op, cuLocation, status, monitor);
+
+            IProblem parseError = op.getParseError();
+            if (parseError != null) {
+              String message = Messages.format(ActionMessages.OrganizeImportsAction_multi_error_parse, cuLocation);
+              status.add(new Status(IStatus.INFO, JavaUI.ID_PLUGIN, IStatus.ERROR, message, null));
+            }
+          }
+          catch (CoreException e) {
+            JavaPlugin.log(e);
+            String message = Messages.format("{0}: Unexpected error. See log for details.", e.getStatus().getMessage());
+            status.add(new Status(IStatus.ERROR, JavaUI.ID_PLUGIN, IStatus.ERROR, message, null));
+          }
+
+          if (monitor.isCanceled()) {
+            throw new OperationCanceledException();
+          }
+        }
+      }
 		} finally {
 			monitor.done();
 		}
 	}
-	
+
 	private boolean testOnBuildPath(ICompilationUnit cu, MultiStatus status) {
 		IJavaProject project= cu.getJavaProject();
 		if (!project.isOnClasspath(cu)) {
 			String cuLocation= cu.getPath().makeRelative().toString();
-			String message= Messages.format("{0}: Compilation unit not on build path. No changes applied.", cuLocation); 
+			String message= Messages.format("{0}: Compilation unit not on build path. No changes applied.", cuLocation);
 			status.add(new Status(IStatus.INFO, JavaUI.ID_PLUGIN, IStatus.ERROR, message, null));
 			return false;
 		}
 		return true;
 	}
-	
-		
+
+
 	private void runInSync(final AJOrganizeImportsOperation op, final String cuLocation, final MultiStatus status, final IProgressMonitor monitor) {
-		Runnable runnable= new Runnable() {
-			public void run() {
-				try {
-					op.run(new SubProgressMonitor(monitor, 1));
-				} catch (ValidateEditException e) {
-					status.add(e.getStatus());
-				} catch (CoreException e) {
-					JavaPlugin.log(e);
-					String message= Messages.format("{0}: Unexpected error. See log for details.", e.getStatus().getMessage()); 
-					status.add(new Status(IStatus.ERROR, JavaUI.ID_PLUGIN, IStatus.ERROR, message, null));					
-				} catch (OrganizeImportError e) {
-					String message= Messages.format(ActionMessages.OrganizeImportsAction_multi_error_unresolvable, cuLocation); 
-					status.add(new Status(IStatus.INFO, JavaUI.ID_PLUGIN, IStatus.ERROR, message, null));
-				} catch (OperationCanceledException e) {
-					// Canceled
-					monitor.setCanceled(true);
-				}
-			}
-		};
+		Runnable runnable= () -> {
+      try {
+        op.run(new SubProgressMonitor(monitor, 1));
+      } catch (ValidateEditException e) {
+        status.add(e.getStatus());
+      } catch (CoreException e) {
+        JavaPlugin.log(e);
+        String message= Messages.format("{0}: Unexpected error. See log for details.", e.getStatus().getMessage());
+        status.add(new Status(IStatus.ERROR, JavaUI.ID_PLUGIN, IStatus.ERROR, message, null));
+      } catch (OrganizeImportError e) {
+        String message= Messages.format(ActionMessages.OrganizeImportsAction_multi_error_unresolvable, cuLocation);
+        status.add(new Status(IStatus.INFO, JavaUI.ID_PLUGIN, IStatus.ERROR, message, null));
+      } catch (OperationCanceledException e) {
+        // Canceled
+        monitor.setCanceled(true);
+      }
+    };
 		getShell().getDisplay().syncExec(runnable);
 	}
-				
+
 
 	/**
 	 * Note: This method is for internal use only. Clients should not call this method.
 	 * @param cu The compilation unit to process
 	 */
 	public void run(ICompilationUnit cu) {
-		if (!ElementValidator.check(cu, getShell(), ActionMessages.OrganizeImportsAction_error_title, fEditor != null)) 
+		if (!ElementValidator.check(cu, getShell(), ActionMessages.OrganizeImportsAction_error_title, fEditor != null))
 			return;
 		if (!ActionUtil.isProcessable(getShell(), cu))
 			return;
-		
+
 		IEditingSupport helper= createViewerHelper();
 		try {
 			CodeGenerationSettings settings= JavaPreferencesSettings.getCodeGenerationSettings(cu.getJavaProject());
-			
+
 			if (fEditor == null && EditorUtility.isOpenInEditor(cu) == null) {
 				IEditorPart editor= EditorUtility.openInEditor(cu);
 				if (editor instanceof JavaEditor) {
 					fEditor= (JavaEditor) editor;
-				}			
+				}
 			}
 			CompilationUnit astRoot = CoreASTProvider.getInstance().getAST(cu, CoreASTProvider.WAIT_ACTIVE_ONLY, null);
 			AJOrganizeImportsOperation op= new AJOrganizeImportsOperation(cu, astRoot, settings.importIgnoreLowercase, !cu.isWorkingCopy(), true, createChooseImportQuery());
-		
+
 			IRewriteTarget target= null;
 			if (fEditor != null) {
 				target= fEditor.getAdapter(IRewriteTarget.class);
@@ -477,7 +469,7 @@ public class AJOrganizeImportsAction extends SelectionDispatchAction {
 					target.beginCompoundChange();
 				}
 			}
-			
+
 			IProgressService progressService= PlatformUI.getWorkbench().getProgressService();
 			IRunnableContext context= getSite().getWorkbenchWindow();
 			if (context == null) {
@@ -488,8 +480,8 @@ public class AJOrganizeImportsAction extends SelectionDispatchAction {
 				progressService.runInUI(context, new WorkbenchRunnableAdapter(op, op.getScheduleRule()), op.getScheduleRule());
 				IProblem parseError= op.getParseError();
 				if (parseError != null) {
-					String message= Messages.format(ActionMessages.OrganizeImportsAction_single_error_parse, parseError.getMessage()); 
-					MessageDialog.openInformation(getShell(), ActionMessages.OrganizeImportsAction_error_title, message); 
+					String message= Messages.format(ActionMessages.OrganizeImportsAction_single_error_parse, parseError.getMessage());
+					MessageDialog.openInformation(getShell(), ActionMessages.OrganizeImportsAction_error_title, message);
 					if (fEditor != null && parseError.getSourceStart() != -1) {
 						fEditor.selectAndReveal(parseError.getSourceStart(), parseError.getSourceEnd() - parseError.getSourceStart() + 1);
 					}
@@ -499,7 +491,7 @@ public class AJOrganizeImportsAction extends SelectionDispatchAction {
 					}
 				}
 			} catch (InvocationTargetException e) {
-				ExceptionHandler.handle(e, getShell(), ActionMessages.OrganizeImportsAction_error_title, ActionMessages.OrganizeImportsAction_error_message); 
+				ExceptionHandler.handle(e, getShell(), ActionMessages.OrganizeImportsAction_error_title, ActionMessages.OrganizeImportsAction_error_message);
 			} catch (InterruptedException e) {
 			} finally {
 				deregisterHelper(helper);
@@ -507,34 +499,30 @@ public class AJOrganizeImportsAction extends SelectionDispatchAction {
 					target.endCompoundChange();
 				}
 			}
-		} catch (CoreException e) {	
-			ExceptionHandler.handle(e, getShell(), ActionMessages.OrganizeImportsAction_error_title, ActionMessages.OrganizeImportsAction_error_message); 
+		} catch (CoreException e) {
+			ExceptionHandler.handle(e, getShell(), ActionMessages.OrganizeImportsAction_error_title, ActionMessages.OrganizeImportsAction_error_message);
 		}
 	}
-	
+
 	private String getOrganizeInfo(AJOrganizeImportsOperation op) {
 		int nImportsAdded= op.getNumberOfImportsAdded();
 		if (nImportsAdded >= 0) {
-			return Messages.format(ActionMessages.OrganizeImportsAction_summary_added, String.valueOf(nImportsAdded)); 
+			return Messages.format(ActionMessages.OrganizeImportsAction_summary_added, String.valueOf(nImportsAdded));
 		} else {
-			return Messages.format(ActionMessages.OrganizeImportsAction_summary_removed, String.valueOf(-nImportsAdded)); 
+			return Messages.format(ActionMessages.OrganizeImportsAction_summary_removed, String.valueOf(-nImportsAdded));
 		}
 	}
-		
+
 	private IChooseImportQuery createChooseImportQuery() {
-		return new IChooseImportQuery() {
-			public TypeNameMatch[] chooseImports(TypeNameMatch[][] openChoices, ISourceRange[] ranges) {
-				return doChooseImports(openChoices, ranges);
-			}
-		};
+		return (openChoices, ranges) -> doChooseImports(openChoices, ranges);
 	}
-	
+
 	private TypeNameMatch[] doChooseImports(TypeNameMatch[][] openChoices, final ISourceRange[] ranges) {
 		// remember selection
 		ISelection sel= fEditor != null ? fEditor.getSelectionProvider().getSelection() : null;
 		TypeNameMatch[] result= null;
 		ILabelProvider labelProvider= new TypeNameMatchLabelProvider(TypeNameMatchLabelProvider.SHOW_FULLYQUALIFIED);
-		
+
 		MultiElementListSelectionDialog dialog= new MultiElementListSelectionDialog(getShell(), labelProvider) {
 			@Override
 			protected void handleSelectionChanged() {
@@ -544,12 +532,12 @@ public class AJOrganizeImportsAction extends SelectionDispatchAction {
 			}
 		};
 		fIsQueryShowing= true;
-		dialog.setTitle(ActionMessages.OrganizeImportsAction_selectiondialog_title); 
+		dialog.setTitle(ActionMessages.OrganizeImportsAction_selectiondialog_title);
 		dialog.setMessage(ActionMessages.OrganizeImportsAction_selectiondialog_message);
 		dialog.setElements(openChoices);
 		dialog.setComparator(ORGANIZE_IMPORT_COMPARATOR);
 		if (dialog.open() == Window.OK) {
-			Object[] res= dialog.getResult();			
+			Object[] res= dialog.getResult();
 			result= new TypeNameMatch[res.length];
 			for (int i= 0; i < res.length; i++) {
 				Object[] array= (Object[]) res[i];
@@ -567,14 +555,14 @@ public class AJOrganizeImportsAction extends SelectionDispatchAction {
 		fIsQueryShowing= false;
 		return result;
 	}
-	
+
 	private void doListSelectionChanged(int page, ISourceRange[] ranges) {
 		if (fEditor != null && ranges != null && page >= 0 && page < ranges.length) {
 			ISourceRange range= ranges[page];
 			fEditor.selectAndReveal(range.getOffset(), range.getLength());
 		}
 	}
-	
+
 	private void setStatusBarMessage(String message) {
 		IEditorActionBarContributor contributor= fEditor.getEditorSite().getActionBarContributor();
 		if (contributor instanceof EditorActionBarContributor) {
@@ -582,7 +570,7 @@ public class AJOrganizeImportsAction extends SelectionDispatchAction {
 			manager.setMessage(message);
 		}
 	}
-	
+
 	private IEditingSupport createViewerHelper() {
 		return new IEditingSupport() {
 			public boolean isOriginator(DocumentEvent event, IRegion subjectRegion) {
@@ -591,10 +579,10 @@ public class AJOrganizeImportsAction extends SelectionDispatchAction {
 			public boolean ownsFocusShell() {
 				return fIsQueryShowing;
 			}
-			
+
 		};
 	}
-	
+
 	private void registerHelper(IEditingSupport helper) {
 		if (fEditor == null)
 			return;

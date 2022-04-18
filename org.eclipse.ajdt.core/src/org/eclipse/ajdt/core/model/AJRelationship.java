@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2005 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman - initial version
@@ -17,7 +17,7 @@ import org.eclipse.jdt.core.IJavaElement;
 /**
  * See bug 253245
  * This class is a facade and only used for backwards compatibility for the SpringIDE
- * 
+ *
  * @deprecated
  */
 public class AJRelationship {
@@ -26,12 +26,12 @@ public class AJRelationship {
 
 	private IJavaElement target;
 
-	private AJRelationshipType relationship;
+	private final AJRelationshipType relationship;
 
-	private boolean runtimeTest;
-	
+	private final boolean runtimeTest;
+
 	/**
-	 * @deprecated 
+	 * @deprecated
 	 */
 	public AJRelationship(IJavaElement source, AJRelationshipType relationship,
 			IJavaElement target, boolean runtimeTest) {
@@ -42,14 +42,14 @@ public class AJRelationship {
 	}
 
     /**
-     * @deprecated 
+     * @deprecated
      */
 	public IJavaElement getSource() {
 		return source;
 	}
 
     /**
-     * @deprecated 
+     * @deprecated
      */
 	public IJavaElement getTarget() {
 		return target;
@@ -64,7 +64,7 @@ public class AJRelationship {
 	}
 
     /**
-     * @deprecated 
+     * @deprecated
      */
 	public AJRelationshipType getRelationship() {
 		return relationship;
@@ -76,7 +76,7 @@ public class AJRelationship {
 	}
 
     /**
-     * @deprecated 
+     * @deprecated
      */
 	public boolean hasRuntimeTest() {
 		return runtimeTest;

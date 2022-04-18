@@ -174,7 +174,7 @@ public class AspectRenameParticipant extends RenameParticipant {
           editList.addAll(Arrays.asList(aspectChanges));
         }
       }
-        return (TextEdit[]) editList.toArray(new TextEdit[editList.size()]);
+        return editList.toArray(new TextEdit[0]);
     }
 
     private ReplaceEdit[] searchForReferenceInPointcut(AspectElement aspect, String name, String newName)
@@ -187,7 +187,7 @@ public class AspectRenameParticipant extends RenameParticipant {
         for (IAspectJElement element : elementsToSearch) {
             if (element instanceof ISourceReference) {
                 ajcu.requestOriginalContentMode();
-                String src = ((ISourceReference) element).getSource();
+                String src = element.getSource();
                 int elementStart = element.getSourceRange().getOffset();
                 ajcu.discardOriginalContentMode();
                 if (src == null) {
@@ -207,7 +207,7 @@ public class AspectRenameParticipant extends RenameParticipant {
                 }
             }
         }
-        return (ReplaceEdit[]) replaceEdits.toArray(new ReplaceEdit[0]);
+        return replaceEdits.toArray(new ReplaceEdit[0]);
     }
 
 

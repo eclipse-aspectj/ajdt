@@ -26,10 +26,10 @@ import org.eclipse.core.runtime.Path;
  */
 public class Bug279974Tests extends AJDTCoreTestCase {
 
-    protected void setUp() throws Exception {
+    protected void setUp() {
     }
 
-    protected void tearDown() throws Exception {
+    protected void tearDown() {
     }
 
     static class MockAJCompilationUnit extends AJCompilationUnit {
@@ -58,78 +58,78 @@ public class Bug279974Tests extends AJDTCoreTestCase {
     }
 
 
-    public void testPosIsAtDottedExpression1() throws Exception {
+    public void testPosIsAtDottedExpression1() {
         expectingTrue("foo.<here>");
     }
-    public void testPosIsAtDottedExpression2() throws Exception {
+    public void testPosIsAtDottedExpression2() {
         expectingTrue("foo.b<here>");
     }
-    public void testPosIsAtDottedExpression3() throws Exception {
+    public void testPosIsAtDottedExpression3() {
         expectingTrue("foo.     <here>");
     }
-    public void testPosIsAtDottedExpression4() throws Exception {
+    public void testPosIsAtDottedExpression4() {
         expectingTrue("foo.  b<here>");
     }
-    public void testPosIsAtDottedExpression5() throws Exception {
+    public void testPosIsAtDottedExpression5() {
         expectingTrue("fdsdsa  foo.     <here>");
     }
-    public void testPosIsAtDottedExpression6() throws Exception {
+    public void testPosIsAtDottedExpression6() {
         expectingTrue("fadsfdsdfs  foo.  b<here>");
     }
-    public void testPosIsAtDottedExpression7() throws Exception {
+    public void testPosIsAtDottedExpression7() {
         expectingTrue("?foo.     <here>");
     }
-    public void testPosIsAtDottedExpression8() throws Exception {
+    public void testPosIsAtDottedExpression8() {
         expectingTrue("?foo.  b<here>");
     }
-    public void testPosIsAtDottedExpression9() throws Exception {
+    public void testPosIsAtDottedExpression9() {
         expectingTrue("this.foo.b<here>");
     }
 
 
-    public void testPosIsAtDottedExpressionFalse1() throws Exception {
+    public void testPosIsAtDottedExpressionFalse1() {
         expectingFalse("b<here>");
     }
-    public void testPosIsAtDottedExpressionFalse2() throws Exception {
+    public void testPosIsAtDottedExpressionFalse2() {
         expectingFalse("b<here>");
     }
-    public void testPosIsAtDottedExpressionFalse3() throws Exception {
+    public void testPosIsAtDottedExpressionFalse3() {
         expectingFalse("  b<here>");
     }
-    public void testPosIsAtDottedExpressionFalse4() throws Exception {
+    public void testPosIsAtDottedExpressionFalse4() {
         expectingFalse("  this<here>");
     }
-    public void testPosIsAtDottedExpressionFalse5() throws Exception {
+    public void testPosIsAtDottedExpressionFalse5() {
         expectingFalse("this<here>");
     }
-    public void testPosIsAtDottedExpressionFalse6() throws Exception {
+    public void testPosIsAtDottedExpressionFalse6() {
         expectingFalse("fdadsfd  b<here>");
     }
-    public void testPosIsAtDottedExpressionFalse7() throws Exception {
+    public void testPosIsAtDottedExpressionFalse7() {
         expectingFalse("fsdfdsafdas  this<here>");
     }
-    public void testPosIsAtDottedExpressionFalse8() throws Exception {
+    public void testPosIsAtDottedExpressionFalse8() {
         expectingFalse("?b<here>");
     }
-    public void testPosIsAtDottedExpressionFalse9() throws Exception {
+    public void testPosIsAtDottedExpressionFalse9() {
         expectingFalse("?<here>");
     }
-    public void testPosIsAtDottedExpressionFalse10() throws Exception {
+    public void testPosIsAtDottedExpressionFalse10() {
         expectingFalse("?this<here>");
     }
-    public void testPosIsAtDottedExpressionFalse11() throws Exception {
+    public void testPosIsAtDottedExpressionFalse11() {
         expectingFalse("this   <here>");
     }
-    public void testPosIsAtDottedExpressionFalse12() throws Exception {
+    public void testPosIsAtDottedExpressionFalse12() {
         expectingFalse("this.<here>");
     }
-    public void testPosIsAtDottedExpressionFalse13() throws Exception {
+    public void testPosIsAtDottedExpressionFalse13() {
         expectingFalse("this.f<here>");
     }
-    public void testPosIsAtDottedExpressionFalse14() throws Exception {
+    public void testPosIsAtDottedExpressionFalse14() {
         expectingFalse("this . <here>");
     }
-    public void testPosIsAtDottedExpressionFalse15() throws Exception {
+    public void testPosIsAtDottedExpressionFalse15() {
         expectingFalse("this . f<here>");
     }
 }

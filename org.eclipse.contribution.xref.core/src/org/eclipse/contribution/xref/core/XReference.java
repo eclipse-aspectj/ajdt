@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Helen Hawkins   - iniital version
@@ -24,10 +24,10 @@ import org.eclipse.core.runtime.IAdaptable;
  */
 public class XReference implements IXReference {
 
-	private String name;
-	private Set<IAdaptable> associates;
-	
-	
+	private final String name;
+	private final Set<IAdaptable> associates;
+
+
 	/**
 	 * Creates a new cross reference with the given (user-visible) name and
 	 * an empty set of associates.
@@ -35,9 +35,9 @@ public class XReference implements IXReference {
 	 */
 	public XReference(String name) {
 		this.name = name;
-		associates = new HashSet<IAdaptable>();
+		associates = new HashSet<>();
 	}
-	
+
 	/**
 	 * Creates a new cross reference with the given (user-visible) name and
 	 * the given set of associates. For example, "extends", {java.lang.O
@@ -46,19 +46,19 @@ public class XReference implements IXReference {
 	 */
 	public XReference(String name, Set<IAdaptable> to) {
 		this.name = name;
-		this.associates = new HashSet<IAdaptable>(to);
+		this.associates = new HashSet<>(to);
 	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.contributions.xref.core.IXReference#getName()
 	 */
 	public String getName() { return name; }
-	
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.contributions.xref.core.IXReference#getAssociates()
 	 */
 	public Iterator<IAdaptable> getAssociates() { return associates.iterator(); }
-	
+
 	/**
 	 * Add an associate (object connected via this reference)
 	 * @param o the object to be associated
@@ -66,7 +66,7 @@ public class XReference implements IXReference {
 	public void addAssociate( IAdaptable o ) {
 		associates.add(o);
 	}
-	
+
 	/**
 	 * Remove an associate from this reference
 	 * @param o the object to be disassociated
@@ -74,5 +74,5 @@ public class XReference implements IXReference {
 	public void removeAssociate( IAdaptable o ) {
 		associates.remove(o);
 	}
-	
+
 }

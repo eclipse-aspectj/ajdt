@@ -3,8 +3,8 @@
  * program and the accompanying materials are made available under the terms of
  * the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
- * 
- * Contributors: IBM Corporation - initial API and implementation 
+ *
+ * Contributors: IBM Corporation - initial API and implementation
  * 				 Helen Hawkins   - iniital version
  ******************************************************************************/
 package org.eclipse.ajdt.internal.ui.refactoring;
@@ -32,7 +32,7 @@ public class RenamingUtils {
 	/**
 	 * Utility method - Rename a single file's extension. Add the old and new
 	 * names to the map supplied.
-	 * 
+	 *
 	 * @param newExtensionIsAJ
 	 * @param file
 	 * @param monitor
@@ -46,7 +46,7 @@ public class RenamingUtils {
 		}
 		String oldName = file.getName();
 		String nameWithoutExtension = oldName
-				.substring(0, oldName.indexOf('.')); 
+				.substring(0, oldName.indexOf('.'));
 		String newExtension = newExtensionIsAJ ? ".aj" : ".java"; //$NON-NLS-1$ //$NON-NLS-2$
 		RenameResourceChange change = new RenameResourceChange(file.getFullPath(),
 				nameWithoutExtension + newExtension);
@@ -61,42 +61,44 @@ public class RenamingUtils {
 	public static void updateBuildConfigurations(Map oldNamesToNewNames,
 			IProject project, IProgressMonitor monitor) {
 		List buildConfigs = AJProperties.getAJPropertiesFiles(project);
-		for (Iterator iter = buildConfigs.iterator(); iter.hasNext();) {
-			IFile buildConfig = (IFile) iter.next();
-			BufferedReader br = null;
-			try {
-				br = new BufferedReader(new InputStreamReader(buildConfig
-						.getContents()));
-			} catch (CoreException e) {
-				continue;
-			}
-			StringBuffer sb = new StringBuffer();
-			try {
-				String line = br.readLine();
-				while (line != null) {
-					for (Iterator iter2 = oldNamesToNewNames.keySet()
-							.iterator(); iter2.hasNext();) {
-						String oldName = (String) iter2.next();
-						String newName = (String) oldNamesToNewNames
-								.get(oldName);
-						line = line.replaceAll(oldName, newName);
-					}
-					sb.append(line);
-					sb.append(System.getProperty("line.separator")); //$NON-NLS-1$
-					line = br.readLine();
-				}
-				StringReader reader = new StringReader(sb.toString());
-				buildConfig.setContents(new ReaderInputStream(reader), true,
-						true, monitor);
-			} catch (IOException ioe) {
-			} catch (CoreException e) {
-			} finally {
-				try {
-					br.close();
-				} catch (IOException ioe) {
-				}
-			}
-		}
+    for (Object config : buildConfigs) {
+      IFile buildConfig = (IFile) config;
+      BufferedReader br = null;
+      try {
+        br = new BufferedReader(new InputStreamReader(buildConfig
+          .getContents()));
+      }
+      catch (CoreException e) {
+        continue;
+      }
+      StringBuilder sb = new StringBuilder();
+      try {
+        String line = br.readLine();
+        while (line != null) {
+          for (Object o : oldNamesToNewNames.keySet()) {
+            String oldName = (String) o;
+            String newName = (String) oldNamesToNewNames
+              .get(oldName);
+            line = line.replaceAll(oldName, newName);
+          }
+          sb.append(line);
+          sb.append(System.getProperty("line.separator")); //$NON-NLS-1$
+          line = br.readLine();
+        }
+        StringReader reader = new StringReader(sb.toString());
+        buildConfig.setContents(new ReaderInputStream(reader), true,
+          true, monitor);
+      }
+      catch (IOException | CoreException ioe) {
+      }
+      finally {
+        try {
+          br.close();
+        }
+        catch (IOException ioe) {
+        }
+      }
+    }
 	}
-	
+
 }

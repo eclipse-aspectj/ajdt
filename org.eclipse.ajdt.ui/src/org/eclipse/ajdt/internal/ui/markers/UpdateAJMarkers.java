@@ -3,7 +3,7 @@
  * program and the accompanying materials are made available under the terms of
  * the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors: Sian January - initial version
  *               Matt Chapman - add source of advice markers
  ******************************************************************************/
@@ -58,10 +58,10 @@ public class UpdateAJMarkers {
 	private final IFile[] sourceFiles;
     private int fileCount;
     private int markerCount;
-	
+
 	/**
 	 * To update markers for the entire project
-	 * 
+	 *
      * @param project the poject that needs updating
 	 */
     public UpdateAJMarkers(IProject project) {
@@ -73,35 +73,35 @@ public class UpdateAJMarkers {
     }
     /**
      * to update markers for the given files only.
-     * 
+     *
      * @param project the poject that needs updating
-     * 
-     * @param sourceFiles List of Strings of absolute paths of files that 
-     * need updating 
-     * 
+     *
+     * @param sourceFiles List of Strings of absolute paths of files that
+     * need updating
+     *
      * @deprecated Use {@link UpdateAJMarkers#UpdateAJMarkers(IProject, IFile[])} instead
      */
     public UpdateAJMarkers(IProject project, File[] sourceFiles) {
         this.model = AJProjectModelFactory.getInstance().getModelForProject(project);
         this.project = project;
-        this.sourceFiles = DeleteAndUpdateAJMarkersJob.javaFileToIFile(sourceFiles, project);        
+        this.sourceFiles = DeleteAndUpdateAJMarkersJob.javaFileToIFile(sourceFiles, project);
     }
-    
+
     /**
      * to update markers for the given files only.
-     * 
+     *
      * @param project the poject that needs updating
-     * 
-     * @param sourceFiles List of Strings of absolute paths of files that 
-     * need updating 
-     * 
+     *
+     * @param sourceFiles List of Strings of absolute paths of files that
+     * need updating
+     *
      */
     public UpdateAJMarkers(IProject project, IFile[] sourceFiles) {
         this.model = AJProjectModelFactory.getInstance().getModelForProject(project);
         this.project = project;
-        this.sourceFiles = sourceFiles;        
+        this.sourceFiles = sourceFiles;
     }
-	
+
 	protected IStatus run(IProgressMonitor monitor) {
         AJLog.logStart("Create markers: " + project.getName());
         if (sourceFiles != null) {
@@ -113,8 +113,8 @@ public class UpdateAJMarkers {
         AJLog.log(AJLog.BUILDER, "Created " + markerCount + " markers in " + fileCount + " files");
         return Status.OK_STATUS;
     }
-	
-	
+
+
     /**
 	 * creates new markers for an entire project
 	 */
@@ -127,61 +127,61 @@ public class UpdateAJMarkers {
             IPackageFragmentRoot[] fragRoots = jProject.getPackageFragmentRoots();
             SubProgressMonitor subMonitor = new SubProgressMonitor(monitor, fragRoots.length);
             subMonitor.beginTask("Add markers for " + project.getName(), fragRoots.length);
-            for (int i = 0; i < fragRoots.length; i++) {
-                if (fragRoots[i].getKind() == IPackageFragmentRoot.K_SOURCE) {
-                    IJavaElement[] frags = fragRoots[i].getChildren();
-                    for (int j = 0; j < frags.length; j++) {
-                        Set<String> completedCUNames = new HashSet<String>(frags.length, 1.0f);
-                        IJavaElement[] cus = ((IPackageFragment) frags[j]).getChildren();
-                        for (int k = 0; k < cus.length; k++) {
-                            // ignore any class files in the source folder (Bug 258698)
-                            if (cus[k].getElementType() == IJavaElement.COMPILATION_UNIT) {
-                                // ignore duplicate compilation units
-                                IResource resource = cus[k].getResource();
-                                if (!completedCUNames.contains(resource.getName())) {
-                                    subMonitor.subTask("Add markers for " + cus[k].getElementName());
-                                    addMarkersForFile((ICompilationUnit) cus[k], ((ICompilationUnit) cus[k]).getResource());
-                                    completedCUNames.add(resource.getName());
-                                    fileCount++;
-                                }
-                                if (subMonitor.isCanceled()) {
-                                    throw new OperationCanceledException();
-                                }
-                            }
-                        }
-                    }
-                    subMonitor.worked(1);
+        for (IPackageFragmentRoot fragRoot : fragRoots) {
+          if (fragRoot.getKind() == IPackageFragmentRoot.K_SOURCE) {
+            IJavaElement[] frags = fragRoot.getChildren();
+            for (IJavaElement frag : frags) {
+              Set<String> completedCUNames = new HashSet<String>(frags.length, 1.0f);
+              IJavaElement[] cus = ((IPackageFragment) frag).getChildren();
+              for (IJavaElement iJavaElement : cus) {
+                // ignore any class files in the source folder (Bug 258698)
+                if (iJavaElement.getElementType() == IJavaElement.COMPILATION_UNIT) {
+                  // ignore duplicate compilation units
+                  IResource resource = iJavaElement.getResource();
+                  if (!completedCUNames.contains(resource.getName())) {
+                    subMonitor.subTask("Add markers for " + iJavaElement.getElementName());
+                    addMarkersForFile((ICompilationUnit) iJavaElement, ((ICompilationUnit) iJavaElement).getResource());
+                    completedCUNames.add(resource.getName());
+                    fileCount++;
+                  }
+                  if (subMonitor.isCanceled()) {
+                    throw new OperationCanceledException();
+                  }
                 }
-            }
-        } catch (JavaModelException e) {
-        }
-	    
-	}
-	
-	
-	private void addMarkersForFiles(IProgressMonitor monitor) {
-	    SubProgressMonitor subMonitor = new SubProgressMonitor(monitor, sourceFiles.length);
-        for (int i = 0; i < sourceFiles.length; i++) {
-            IJavaElement unit = JavaCore.create(sourceFiles[i]);
-            if (unit != null && unit.exists() && unit instanceof ICompilationUnit) {
-                subMonitor.subTask("Add markers for " + unit.getElementName());
-                addMarkersForFile((ICompilationUnit) unit, sourceFiles[i]);
-                fileCount++;
-            }
-            if (subMonitor.isCanceled()) {
-                throw new OperationCanceledException();
+              }
             }
             subMonitor.worked(1);
+          }
         }
+        } catch (JavaModelException e) {
+        }
+
+	}
+
+
+	private void addMarkersForFiles(IProgressMonitor monitor) {
+	    SubProgressMonitor subMonitor = new SubProgressMonitor(monitor, sourceFiles.length);
+    for (IFile sourceFile : sourceFiles) {
+      IJavaElement unit = JavaCore.create(sourceFile);
+      if (unit != null && unit.exists() && unit instanceof ICompilationUnit) {
+        subMonitor.subTask("Add markers for " + unit.getElementName());
+        addMarkersForFile((ICompilationUnit) unit, sourceFile);
+        fileCount++;
+      }
+      if (subMonitor.isCanceled()) {
+        throw new OperationCanceledException();
+      }
+      subMonitor.worked(1);
     }
-	
-	
-	
+    }
+
+
+
     private void addMarkersForFile(ICompilationUnit cu, IResource resource) {
-	    Map<Integer,List<IRelationship>> annotationMap = 
+	    Map<Integer,List<IRelationship>> annotationMap =
 	        model.getRelationshipsForFile(cu);
 	    for (Entry<Integer,List<IRelationship>> entry : annotationMap.entrySet()) {
-            createMarker(resource, entry.getKey().intValue(), entry.getValue());
+            createMarker(resource, entry.getKey(), entry.getValue());
             markerCount++;
         }
     }
@@ -202,7 +202,7 @@ public class UpdateAJMarkers {
                 // each target may be of a different type
                 List<String> targets = relationship.getTargets();
                 for (String target : targets) {
-                    String markerTypeForRelationship = 
+                    String markerTypeForRelationship =
                         getMarkerTypeForRelationship(relationship, target);
                     if (markerTypeForRelationship != null) {
                         if (markerType == null) {
@@ -215,7 +215,7 @@ public class UpdateAJMarkers {
                 }
             }
         } // end for
-        
+
         // Create the marker
         if (markerType != null) {
             try {
@@ -247,8 +247,8 @@ public class UpdateAJMarkers {
         }
         return numTargets;
     }
-	
-	private void createCustomMarker(IResource resource, String customMarkerType, 
+
+	private void createCustomMarker(IResource resource, String customMarkerType,
 	        int lineNumber, IRelationship relationship) {
         if (! customMarkerType.equals(AJMarkersDialog.NO_MARKERS)) {
             try {
@@ -270,7 +270,7 @@ public class UpdateAJMarkers {
 
     /**
      * Get the marker type that should be used for the given relationship
-     * 
+     *
      * @param relationship
      * @param target
      * @return
@@ -279,111 +279,145 @@ public class UpdateAJMarkers {
         String name = relationship.getName();
         boolean runtimeTest = relationship.hasRuntimeTest();
         String markerType;
-        if (name.equals(AsmRelationshipProvider.ADVISED_BY)) {
-            IProgramElement advice = model.getProgramElement(target);
-            AdviceKind ak;
-            if (advice.getExtraInfo() != null) {
-                ak = AdviceKind.stringToKind(advice.getExtraInfo().getExtraAdviceInformation());
-            } else {
-                ak = null;
+      switch (name) {
+        case AsmRelationshipProvider.ADVISED_BY: {
+          IProgramElement advice = model.getProgramElement(target);
+          AdviceKind ak;
+          if (advice.getExtraInfo() != null) {
+            ak = AdviceKind.stringToKind(advice.getExtraInfo().getExtraAdviceInformation());
+          }
+          else {
+            ak = null;
+          }
+          if (runtimeTest) {
+            if (ak == null) {
+              markerType = IAJModelMarker.DYNAMIC_ADVICE_MARKER;
             }
-            if (runtimeTest) {
-                if (ak == null) {
-                    markerType = IAJModelMarker.DYNAMIC_ADVICE_MARKER;
-                } else if (ak == AdviceKind.Before) {
-                    markerType = IAJModelMarker.DYNAMIC_BEFORE_ADVICE_MARKER;
-                } else if (ak == AdviceKind.After || 
-                           ak == AdviceKind.AfterReturning ||
-                           ak == AdviceKind.AfterThrowing) {
-                    markerType = IAJModelMarker.DYNAMIC_AFTER_ADVICE_MARKER;
-                } else if (ak == AdviceKind.Around) {
-                    markerType = IAJModelMarker.DYNAMIC_AROUND_ADVICE_MARKER;
-                } else {
-                    markerType = IAJModelMarker.DYNAMIC_ADVICE_MARKER;
-                }
-            } else { // no runtime test
-                if (ak == null) {
-                    markerType = IAJModelMarker.ADVICE_MARKER;
-                } else if (ak == AdviceKind.Before) {
-                    markerType = IAJModelMarker.BEFORE_ADVICE_MARKER;
-                } else if (ak == AdviceKind.After || 
-                           ak == AdviceKind.AfterReturning ||
-                           ak == AdviceKind.AfterThrowing) {
-                    markerType = IAJModelMarker.AFTER_ADVICE_MARKER;
-                } else if (ak == AdviceKind.Around) {
-                    markerType = IAJModelMarker.AROUND_ADVICE_MARKER;
-                } else {
-                    markerType = IAJModelMarker.ADVICE_MARKER;
-                }
+            else if (ak == AdviceKind.Before) {
+              markerType = IAJModelMarker.DYNAMIC_BEFORE_ADVICE_MARKER;
             }
-        } else if (name.equals(AsmRelationshipProvider.ADVISES)) {
-            IProgramElement advice = model.getProgramElement(relationship.getSourceHandle());
-            AdviceKind ak;
-            if (advice.getExtraInfo() != null) {
-                ak = AdviceKind.stringToKind(advice.getExtraInfo().getExtraAdviceInformation());
-            } else {
-                ak = null;
-                // hmmm...sometmes ExtradviceInformtion is null.  
-                // try to get the advice kind by the name
-                if (advice.getName().startsWith("before")) {
-                    ak = AdviceKind.Before;
-                } else if (advice.getName().startsWith("after")) {
-                    ak = AdviceKind.After;
-                } else if (advice.getName().startsWith("around")) {
-                    ak = AdviceKind.Around;
-                }
+            else if (ak == AdviceKind.After ||
+                     ak == AdviceKind.AfterReturning ||
+                     ak == AdviceKind.AfterThrowing)
+            {
+              markerType = IAJModelMarker.DYNAMIC_AFTER_ADVICE_MARKER;
             }
-            if (runtimeTest) {
-                if (ak == null) {
-                    markerType = IAJModelMarker.SOURCE_DYNAMIC_ADVICE_MARKER;
-                } else if (ak == AdviceKind.Before) {
-                    markerType = IAJModelMarker.SOURCE_DYNAMIC_BEFORE_ADVICE_MARKER;
-                } else if (ak == AdviceKind.After || 
-                           ak == AdviceKind.AfterReturning ||
-                           ak == AdviceKind.AfterThrowing) {
-                    markerType = IAJModelMarker.SOURCE_DYNAMIC_AFTER_ADVICE_MARKER;
-                } else if (ak == AdviceKind.Around) {
-                    markerType = IAJModelMarker.SOURCE_DYNAMIC_AROUND_ADVICE_MARKER;
-                } else {
-                    markerType = IAJModelMarker.SOURCE_DYNAMIC_ADVICE_MARKER;
-                }
-
-            } else { // no runtime test 
-                if (ak == null) {
-                    markerType = IAJModelMarker.SOURCE_ADVICE_MARKER;
-                } else if (ak == AdviceKind.Before) {
-                    markerType = IAJModelMarker.SOURCE_BEFORE_ADVICE_MARKER;
-                } else if (ak == AdviceKind.After || 
-                           ak == AdviceKind.AfterReturning ||
-                           ak == AdviceKind.AfterThrowing) {
-                    markerType = IAJModelMarker.SOURCE_AFTER_ADVICE_MARKER;
-                } else if (ak == AdviceKind.Around) {
-                    markerType = IAJModelMarker.SOURCE_AROUND_ADVICE_MARKER;
-                } else {
-                    markerType = IAJModelMarker.SOURCE_ADVICE_MARKER;
-                }
+            else if (ak == AdviceKind.Around) {
+              markerType = IAJModelMarker.DYNAMIC_AROUND_ADVICE_MARKER;
             }
-        } else if (name.equals(AsmRelationshipProvider.ANNOTATED_BY) || 
-                   name.equals(AsmRelationshipProvider.SOFTENED_BY)  ||
-                   name.equals(AsmRelationshipProvider.INTER_TYPE_DECLARED_BY)) {
-            // note that we ignore MATCHES_DECLARE because that is taken care of
-            // by error and warning markers
-            markerType = IAJModelMarker.ITD_MARKER;
-        } else if (name.equals(AsmRelationshipProvider.ANNOTATES) ||
-                   name.equals(AsmRelationshipProvider.INTER_TYPE_DECLARES) ||
-                   name.equals(AsmRelationshipProvider.SOFTENS) ||
-                   name.equals(AsmRelationshipProvider.MATCHED_BY)) {
-            markerType = IAJModelMarker.SOURCE_ITD_MARKER;
-            
-        } else {
-            markerType = null;
+            else {
+              markerType = IAJModelMarker.DYNAMIC_ADVICE_MARKER;
+            }
+          }
+          else { // no runtime test
+            if (ak == null) {
+              markerType = IAJModelMarker.ADVICE_MARKER;
+            }
+            else if (ak == AdviceKind.Before) {
+              markerType = IAJModelMarker.BEFORE_ADVICE_MARKER;
+            }
+            else if (ak == AdviceKind.After ||
+                     ak == AdviceKind.AfterReturning ||
+                     ak == AdviceKind.AfterThrowing)
+            {
+              markerType = IAJModelMarker.AFTER_ADVICE_MARKER;
+            }
+            else if (ak == AdviceKind.Around) {
+              markerType = IAJModelMarker.AROUND_ADVICE_MARKER;
+            }
+            else {
+              markerType = IAJModelMarker.ADVICE_MARKER;
+            }
+          }
+          break;
         }
+        case AsmRelationshipProvider.ADVISES: {
+          IProgramElement advice = model.getProgramElement(relationship.getSourceHandle());
+          AdviceKind ak;
+          if (advice.getExtraInfo() != null) {
+            ak = AdviceKind.stringToKind(advice.getExtraInfo().getExtraAdviceInformation());
+          }
+          else {
+            ak = null;
+            // hmmm...sometmes ExtradviceInformtion is null.
+            // try to get the advice kind by the name
+            if (advice.getName().startsWith("before")) {
+              ak = AdviceKind.Before;
+            }
+            else if (advice.getName().startsWith("after")) {
+              ak = AdviceKind.After;
+            }
+            else if (advice.getName().startsWith("around")) {
+              ak = AdviceKind.Around;
+            }
+          }
+          if (runtimeTest) {
+            if (ak == null) {
+              markerType = IAJModelMarker.SOURCE_DYNAMIC_ADVICE_MARKER;
+            }
+            else if (ak == AdviceKind.Before) {
+              markerType = IAJModelMarker.SOURCE_DYNAMIC_BEFORE_ADVICE_MARKER;
+            }
+            else if (ak == AdviceKind.After ||
+                     ak == AdviceKind.AfterReturning ||
+                     ak == AdviceKind.AfterThrowing)
+            {
+              markerType = IAJModelMarker.SOURCE_DYNAMIC_AFTER_ADVICE_MARKER;
+            }
+            else if (ak == AdviceKind.Around) {
+              markerType = IAJModelMarker.SOURCE_DYNAMIC_AROUND_ADVICE_MARKER;
+            }
+            else {
+              markerType = IAJModelMarker.SOURCE_DYNAMIC_ADVICE_MARKER;
+            }
+
+          }
+          else { // no runtime test
+            if (ak == null) {
+              markerType = IAJModelMarker.SOURCE_ADVICE_MARKER;
+            }
+            else if (ak == AdviceKind.Before) {
+              markerType = IAJModelMarker.SOURCE_BEFORE_ADVICE_MARKER;
+            }
+            else if (ak == AdviceKind.After ||
+                     ak == AdviceKind.AfterReturning ||
+                     ak == AdviceKind.AfterThrowing)
+            {
+              markerType = IAJModelMarker.SOURCE_AFTER_ADVICE_MARKER;
+            }
+            else if (ak == AdviceKind.Around) {
+              markerType = IAJModelMarker.SOURCE_AROUND_ADVICE_MARKER;
+            }
+            else {
+              markerType = IAJModelMarker.SOURCE_ADVICE_MARKER;
+            }
+          }
+          break;
+        }
+        case AsmRelationshipProvider.ANNOTATED_BY:
+        case AsmRelationshipProvider.SOFTENED_BY:
+        case AsmRelationshipProvider.INTER_TYPE_DECLARED_BY:
+          // note that we ignore MATCHES_DECLARE because that is taken care of
+          // by error and warning markers
+          markerType = IAJModelMarker.ITD_MARKER;
+          break;
+        case AsmRelationshipProvider.ANNOTATES:
+        case AsmRelationshipProvider.INTER_TYPE_DECLARES:
+        case AsmRelationshipProvider.SOFTENS:
+        case AsmRelationshipProvider.MATCHED_BY:
+          markerType = IAJModelMarker.SOURCE_ITD_MARKER;
+
+          break;
+        default:
+          markerType = null;
+          break;
+      }
         return markerType;
     }
 
 
 	private String getMultipleMarkersLabel(int number) {
-		return number + " " + UIMessages.AspectJMarkersAtLine; //$NON-NLS-1$	
+		return number + " " + UIMessages.AspectJMarkersAtLine; //$NON-NLS-1$
 	}
 
     private String getMarkerLabel(List<IRelationship> relationships) {
@@ -394,22 +428,22 @@ public class UpdateAJMarkers {
             }
         }
         return "<none>";
-    }        
-        
+    }
+
     /**
      * Get a label for the given relationship
-     * 
+     *
      * @param relationship
      * @return
      */
     private String getMarkerLabel(IRelationship relationship) {
         IProgramElement target = model.getProgramElement(
-                (String) relationship.getTargets().get(0));
+          relationship.getTargets().get(0));
         return relationship.getName()
                 + " " //$NON-NLS-1$
-                + (target != null ? target.toLinkLabelString(false) : "null") 
+                + (target != null ? target.toLinkLabelString(false) : "null")
                 + (relationship.hasRuntimeTest() ? " " + //$NON-NLS-1$
-                        UIMessages.AspectJEditor_runtimetest 
+                        UIMessages.AspectJEditor_runtimetest
                         : ""); //$NON-NLS-1$
     }
 
@@ -420,7 +454,7 @@ public class UpdateAJMarkers {
 	private String getCustomMarker(IRelationship relationship) {
 	    // get the element in the aspect, it is source or target depending
 	    // on the kind of relationship
-        List<IJavaElement> aspectEntities = new ArrayList<IJavaElement>();
+        List<IJavaElement> aspectEntities = new ArrayList<>();
         if (relationship.isAffects()) {
             aspectEntities.add(model.programElementToJavaElement(relationship.getSourceHandle()));
         } else {
@@ -446,11 +480,11 @@ public class UpdateAJMarkers {
         return null;
     }
 
-	
+
    /**
 	 * Two or more markers on the same line - get the most approriate marker
 	 * type to display
-	 * 
+	 *
 	 * @param firstMarkerType
 	 * @param secondMarkerType
 	 * @param runtimeTest
@@ -458,23 +492,23 @@ public class UpdateAJMarkers {
 	 */
 	private String getCombinedMarkerType(String firstMarkerType,
 			String secondMarkerType, boolean runtimeTest) {
-	        
-	    if (firstMarkerType.indexOf("source") != -1 && secondMarkerType.indexOf("source") != -1) { //$NON-NLS-1$ //$NON-NLS-2$
+
+	    if (firstMarkerType.contains("source") && secondMarkerType.contains("source")) { //$NON-NLS-1$ //$NON-NLS-2$
 	        // around advice trumps before and after
-	        if (firstMarkerType.indexOf("around") != -1 || secondMarkerType.indexOf("around") != -1) { //$NON-NLS-1$ //$NON-NLS-2$
+	        if (firstMarkerType.contains("around") || secondMarkerType.contains("around")) { //$NON-NLS-1$ //$NON-NLS-2$
 	            return runtimeTest ? IAJModelMarker.SOURCE_DYNAMIC_AROUND_ADVICE_MARKER
                         : IAJModelMarker.SOURCE_AROUND_ADVICE_MARKER;
 	        } else {
 	            return runtimeTest ? IAJModelMarker.SOURCE_DYNAMIC_ADVICE_MARKER
 	                    : IAJModelMarker.SOURCE_ADVICE_MARKER;
 	        }
-		} else if (firstMarkerType.indexOf("source") != -1 || secondMarkerType.indexOf("source") != -1) { //$NON-NLS-1$ //$NON-NLS-2$ 
+		} else if (firstMarkerType.contains("source") || secondMarkerType.contains("source")) { //$NON-NLS-1$ //$NON-NLS-2$
             // being source and target trumps around, before, and after
 			return runtimeTest ? IAJModelMarker.DYNAMIC_SOURCE_AND_TARGET_MARKER
 					: IAJModelMarker.SOURCE_AND_TARGET_MARKER;
 		} else {
             // around advice trumps before and after
-            if (firstMarkerType.indexOf("around") != -1 || secondMarkerType.indexOf("around") != -1) { //$NON-NLS-1$ //$NON-NLS-2$
+            if (firstMarkerType.contains("around") || secondMarkerType.contains("around")) { //$NON-NLS-1$ //$NON-NLS-2$
                 return runtimeTest ? IAJModelMarker.DYNAMIC_AROUND_ADVICE_MARKER
                         : IAJModelMarker.AROUND_ADVICE_MARKER;
             } else {

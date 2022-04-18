@@ -4,8 +4,8 @@ Bug 72007
 
 1. Install new copies of eclipse and ajdt and check out "Hello World Java Plugin" 
 from "org.eclipse.ajdt.tests/test projects" on the Eclipse CVS repository. 
-Launch a runtime workbench and click ‘Sample Menu’ > ‘Sample Action’ to verify the 
-plugin is working. You should see a dialog box containing the text “Hello Eclipse”. (PLUG_1)
+Launch a runtime workbench and click â€˜Sample Menuâ€™ > â€˜Sample Actionâ€™ to verify the 
+plugin is working. You should see a dialog box containing the text â€œHello Eclipseâ€. (PLUG_1)
 
 2. Switch to the java perspective and open "Hello World Java Plugin" and then open its 
 plugin.xml file. Click the dependencies tab which is found at the bottom of the new

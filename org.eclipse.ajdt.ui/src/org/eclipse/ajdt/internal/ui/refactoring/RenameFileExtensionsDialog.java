@@ -3,9 +3,9 @@
  * program and the accompanying materials are made available under the terms of
  * the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors: Sian January - initial version
- * ... 
+ * ...
  ******************************************************************************/
 
 package org.eclipse.ajdt.internal.ui.refactoring;
@@ -48,7 +48,7 @@ import org.eclipse.ui.actions.WorkspaceModifyDelegatingOperation;
 public class RenameFileExtensionsDialog extends Dialog {
 
 	// The project
-	private IProject project;
+	private final IProject project;
 
 	private Button convertAllToJavaButton;
 
@@ -128,7 +128,7 @@ public class RenameFileExtensionsDialog extends Dialog {
 	 * Convert aspects' file extensions to .aj, and classes and interfaces to
 	 * .java. Also converts files containing any inner aspects or pointcuts to
 	 * .aj.
-	 * 
+	 *
 	 * @param includeNotBuiltFiles -
 	 *            include files not included in the active build configuration.
 	 * @param monitor -
@@ -138,74 +138,76 @@ public class RenameFileExtensionsDialog extends Dialog {
 	 */
 	private void convertAspectsToAJAndOthersToJava(
 			final boolean includeNonBuiltFiles, final boolean updateBuildConfigs) {
-		IRunnableWithProgress runnable = new IRunnableWithProgress() {
-			public void run(IProgressMonitor monitor) {				
-				IJavaProject jp = JavaCore.create(project);
-				try {
-					IPackageFragment[] packages = jp.getPackageFragments();
-					monitor
-							.beginTask(UIMessages.Refactoring_ConvertingFileExtensions,
-									packages.length);
-					// map of old to new names - needed to update build config
-					// files.
-					Map oldToNewNames = new HashMap();
-					for (int i = 0; i < packages.length; i++) {
-						if (!(packages[i].isReadOnly())) {
-							try {
-								ICompilationUnit[] files = packages[i]
-										.getCompilationUnits();
-								for (int j = 0; j < files.length; j++) {
+		IRunnableWithProgress runnable = monitor -> {
+      IJavaProject jp = JavaCore.create(project);
+      try {
+        IPackageFragment[] packages = jp.getPackageFragments();
+        monitor
+            .beginTask(UIMessages.Refactoring_ConvertingFileExtensions,
+                packages.length);
+        // map of old to new names - needed to update build config
+        // files.
+        Map oldToNewNames = new HashMap();
+for (IPackageFragment aPackage : packages) {
+if (!(aPackage.isReadOnly())) {
+try {
+ICompilationUnit[] files = aPackage
+.getCompilationUnits();
+for (ICompilationUnit file : files) {
 
-									IResource resource = files[j].getResource();
+IResource resource = file.getResource();
 
-									if (!includeNonBuiltFiles
-											&& !(BuildConfig
-													.isIncluded(resource))) {
-										// do not rename this file if it is not
-										// active
-										continue;
-									}
+if (!includeNonBuiltFiles
+&& !(BuildConfig
+.isIncluded(resource)))
+{
+// do not rename this file if it is not
+// active
+continue;
+}
 
-									boolean isAspect = CodeChecker.containsAspectJConstructs((IFile)resource);
-									if (!isAspect
-											&& resource.getFileExtension()
-													.equals("aj")) { //$NON-NLS-1$								
-									    RenamingUtils.renameFile(false, resource, monitor,
-												oldToNewNames);
-									} else if (isAspect
-											&& resource.getFileExtension()
-													.equals("java")) { //$NON-NLS-1$
-									    RenamingUtils.renameFile(true, resource, monitor,
-												oldToNewNames);
-									}
-								}
-							} catch (JavaModelException e) {
-							}
-						}
-						monitor.worked(1);
-					}
-					if (updateBuildConfigs) {
-					    RenamingUtils.updateBuildConfigurations(oldToNewNames, project,
-								monitor);
-					}
-				} catch (JavaModelException e) {
-				}
-			}
-		};
+boolean isAspect = CodeChecker.containsAspectJConstructs((IFile) resource);
+if (!isAspect
+&& resource.getFileExtension()
+.equals("aj"))
+{ //$NON-NLS-1$
+RenamingUtils.renameFile(false, resource, monitor,
+oldToNewNames);
+}
+else if (isAspect
+&& resource.getFileExtension()
+.equals("java"))
+{ //$NON-NLS-1$
+RenamingUtils.renameFile(true, resource, monitor,
+oldToNewNames);
+}
+}
+}
+catch (JavaModelException e) {
+}
+}
+monitor.worked(1);
+}
+        if (updateBuildConfigs) {
+            RenamingUtils.updateBuildConfigurations(oldToNewNames, project,
+              monitor);
+        }
+      } catch (JavaModelException e) {
+      }
+    };
 
 		IRunnableWithProgress op = new WorkspaceModifyDelegatingOperation(
 				runnable);
 		try {
 			new ProgressMonitorDialog(getShell()).run(true, true, op);
-		} catch (InvocationTargetException e) {
-		} catch (InterruptedException e) {
+		} catch (InvocationTargetException | InterruptedException e) {
 		}
-	}
+  }
 
 
 	/**
 	 * Convert all the extensions for files in a project
-	 * 
+	 *
 	 * @param convertToAJ -
 	 *            if true convert to .aj, otherwise convert to .java
 	 * @param includeNotBuiltFiles -
@@ -216,62 +218,62 @@ public class RenameFileExtensionsDialog extends Dialog {
 	private void convertAllExtensions(final boolean convertToAJ,
 			final boolean includeNotBuiltFiles, final boolean updateBuildConfigs) {
 
-		IRunnableWithProgress runnable = new IRunnableWithProgress() {
-			public void run(IProgressMonitor monitor) {
-				IJavaProject jp = JavaCore.create(project);
-				try {
-					IPackageFragment[] packages = jp.getPackageFragments();
-					monitor
-							.beginTask(UIMessages.Refactoring_ConvertingFileExtensions,
-									packages.length);
+		IRunnableWithProgress runnable = monitor -> {
+      IJavaProject jp = JavaCore.create(project);
+      try {
+        IPackageFragment[] packages = jp.getPackageFragments();
+        monitor
+            .beginTask(UIMessages.Refactoring_ConvertingFileExtensions,
+                packages.length);
 
-					// Map of old to new names - needed to update build config
-					// files.
-					Map oldNamesToNewNames = new HashMap();
-					for (int i = 0; i < packages.length; i++) {
-						if (!(packages[i].isReadOnly())) {
-							try {
-								ICompilationUnit[] files = packages[i]
-										.getCompilationUnits();
-								for (int j = 0; j < files.length; j++) {
-									IResource resource = files[j].getResource();
-									if (!includeNotBuiltFiles
-											&& !(BuildConfig.isIncluded(resource))) {
-										// do not rename this file if it is not
-										// active
-										continue;
-									}
-									if ((!convertToAJ && resource
-											.getFileExtension().equals("aj")) //$NON-NLS-1$
-											|| (convertToAJ && resource
-													.getFileExtension().equals(
-															"java"))) { //$NON-NLS-1$
-									    RenamingUtils.renameFile(convertToAJ, resource,
-												monitor, oldNamesToNewNames);
-									}
-								}
-							} catch (JavaModelException e) {
-							}
-						}
-						monitor.worked(1);
-					}
-					if (updateBuildConfigs) {
-					    RenamingUtils.updateBuildConfigurations(oldNamesToNewNames, project,
-								monitor);
-					}
-				} catch (JavaModelException e) {
-				}
-			}
-		};
+        // Map of old to new names - needed to update build config
+        // files.
+        Map oldNamesToNewNames = new HashMap();
+for (IPackageFragment aPackage : packages) {
+if (!(aPackage.isReadOnly())) {
+try {
+ICompilationUnit[] files = aPackage
+.getCompilationUnits();
+for (ICompilationUnit file : files) {
+IResource resource = file.getResource();
+if (!includeNotBuiltFiles
+&& !(BuildConfig.isIncluded(resource)))
+{
+// do not rename this file if it is not
+// active
+continue;
+}
+if ((!convertToAJ && resource
+.getFileExtension().equals("aj")) //$NON-NLS-1$
+|| (convertToAJ && resource
+.getFileExtension().equals(
+"java")))
+{ //$NON-NLS-1$
+RenamingUtils.renameFile(convertToAJ, resource,
+monitor, oldNamesToNewNames);
+}
+}
+}
+catch (JavaModelException e) {
+}
+}
+monitor.worked(1);
+}
+        if (updateBuildConfigs) {
+            RenamingUtils.updateBuildConfigurations(oldNamesToNewNames, project,
+              monitor);
+        }
+      } catch (JavaModelException e) {
+      }
+    };
 
 		IRunnableWithProgress op = new WorkspaceModifyDelegatingOperation(
 				runnable);
 		try {
 			new ProgressMonitorDialog(getShell()).run(true, true, op);
-		} catch (InvocationTargetException e) {
-		} catch (InterruptedException e) {
+		} catch (InvocationTargetException | InterruptedException e) {
 		}
 
-	}
+  }
 
 }

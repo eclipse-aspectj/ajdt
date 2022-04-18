@@ -110,7 +110,7 @@ public class AJCompilationUnitTest extends AbstractTestCase {
         assertEquals("Aspect3 should be fourth aspect in " + unit2, "Aspect3", aspects[3].getElementName());
     }
 
-    public void testGetAllAspectsJava() throws Exception {
+    public void testGetAllAspectsJava() {
         ICompilationUnit unit2 = JavaCore
             .createCompilationUnitFrom(this.myProject.getFile("src/Aspect3.java"));
         Set<IType> /*IJavaElement*/ aspects = AJProjectModelFactory.getInstance().getModelForJavaElement(unit2)
@@ -118,12 +118,11 @@ public class AJCompilationUnitTest extends AbstractTestCase {
 
         assertEquals("Should have found 4 aspects in " + unit2, 4, aspects.size());
         boolean found = false;
-        for (Iterator<IType> aspectIter = aspects.iterator(); aspectIter.hasNext();) {
-            IType type = aspectIter.next();
-            if (type.getElementName().equals("Aspect3")) {
-                found = true;
-            }
+      for (IType type : aspects) {
+        if (type.getElementName().equals("Aspect3")) {
+          found = true;
         }
+      }
         assertTrue("Aspect3 should be in " + unit2, found);
 
         foundAspect("Aspect3", unit2, aspects);
@@ -135,12 +134,11 @@ public class AJCompilationUnitTest extends AbstractTestCase {
     private void foundAspect(String name, ICompilationUnit unit2, Set<IType> aspects) {
         boolean found;
         found = false;
-        for (Iterator<IType> aspectIter = aspects.iterator(); aspectIter.hasNext();) {
-            IType type = aspectIter.next();
-            if (type.getElementName().equals(name)) {
-                found = true;
-            }
+      for (IType type : aspects) {
+        if (type.getElementName().equals(name)) {
+          found = true;
         }
+      }
         assertTrue(name + " should be in " + unit2, found);
     }
 

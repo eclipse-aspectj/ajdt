@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Luzius Meisser - adjustements for AJDT
@@ -32,16 +32,16 @@ import org.eclipse.text.edits.TextEdit;
 
 /**
  * Code copied from JavaFormattingStrategy unless marked with '//AJDT change'
- * 
+ *
  * @author Luzius Meisser
  */
 public class AJFormattingStrategy extends ContextBasedFormattingStrategy {
 
 	/** Documents to be formatted by this strategy */
-	private final LinkedList<IDocument> fDocuments = new LinkedList<IDocument>();
+	private final LinkedList<IDocument> fDocuments = new LinkedList<>();
 
 	/** Partitions to be formatted by this strategy */
-	private final LinkedList<TypedPosition> fPartitions = new LinkedList<TypedPosition>();
+	private final LinkedList<TypedPosition> fPartitions = new LinkedList<>();
 
 	/**
 	 * Creates a new java formatting strategy.
@@ -63,14 +63,14 @@ public class AJFormattingStrategy extends ContextBasedFormattingStrategy {
 		if (document != null && partition != null) {
 			try {
 				// AJDT change start
-				
+
 				//get the document contents and convert them into java syntax
 				String content = document.get();
 				AspectsConvertingParser pars = new AspectsConvertingParser(
 						content.toCharArray());
 				ArrayList<Replacement> changes = pars.convert(ConversionOptions.CONSTANT_SIZE);
 				content = new String(pars.content);
-				
+
 				@SuppressWarnings("unchecked")
                 final TextEdit edit = CodeFormatterUtil.reformat(
 						CodeFormatter.K_COMPILATION_UNIT | CodeFormatter.F_INCLUDE_COMMENTS, content, partition
@@ -78,26 +78,24 @@ public class AJFormattingStrategy extends ContextBasedFormattingStrategy {
 						TextUtilities.getDefaultLineDelimiter(document),
 						getPreferences());
 
-				
+
 
 				if (edit != null) {
 					//remove the edits for areas that have been changed by us (the "AspectJ code areas")
 					if (changes.size() > 0){
 					TextEdit[] edits = edit.getChildren();
-					for (int i = 0; i < edits.length; i++) {
-						TextEdit edit2 = edits[i];
-						boolean conflict = AspectsConvertingParser.conflictsWithAJEdit(
-								edit2.getOffset(), edit2.getLength(), changes);
-						if (conflict) {
-							edit.removeChild(edit2);
-							continue;
-						}				
-					}
+            for (TextEdit edit2 : edits) {
+              boolean conflict = AspectsConvertingParser.conflictsWithAJEdit(
+                edit2.getOffset(), edit2.getLength(), changes);
+              if (conflict) {
+                edit.removeChild(edit2);
+              }
+            }
 					}
 					//apply remaining edits
 					edit.apply(document);
 				}
-				
+
 				 //AJDT change stop
 
 			} catch (MalformedTreeException exception) {

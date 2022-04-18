@@ -14,13 +14,6 @@
 
 package org.eclipse.ajdt.ui.tests.testutils;
 
-import junit.framework.TestCase;
-
-import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
-import org.eclipse.ajdt.ui.tests.UITestCase;
-import org.eclipse.ajdt.ui.tests.ajde.UICompilerFactoryTests;
-import org.eclipse.ajdt.ui.tests.javamodel.Bug154339Test;
-
 public aspect Enforcement {
 
 	declare error: execution(* TestCase+.*(..))

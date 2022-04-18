@@ -98,7 +98,7 @@ public class AJDTUtils {
 
     private static final int SMALL_ICONS_MASK = 0x020;
 
-    private static Hashtable<String,ImageDescriptor> imageDescriptorCache = new Hashtable<String,ImageDescriptor>();
+    private static final Hashtable<String,ImageDescriptor> imageDescriptorCache = new Hashtable<>();
 
     private static Job refreshJob;
 
@@ -129,7 +129,7 @@ public class AJDTUtils {
         Point size = useSmallSize(decorations) ? SMALL_SIZE : BIG_SIZE;
         // Check the image descriptor cache
         String key = base.toString() + ":::" + decorations + ":::" //$NON-NLS-1$ //$NON-NLS-2$
-                + size.toString();
+                     + size;
         // Example key is
         // "URLImageDescriptor(platform:/plugin/org.aspectj.ajde_1.1.0/icons/structure/file-lst.gif):::0:::Point
         // {22, 16}"
@@ -172,8 +172,7 @@ public class AJDTUtils {
         };
         try {
             op.run(null);
-        } catch (InvocationTargetException ex) {
-        } catch (InterruptedException e) {
+        } catch (InvocationTargetException | InterruptedException ex) {
         }
     }
 
@@ -273,13 +272,13 @@ public class AJDTUtils {
         IEditorReference[] eRefs = PlatformUI.getWorkbench()
                 .getActiveWorkbenchWindow().getActivePage()
                 .getEditorReferences();
-        for (int i = 0; i < eRefs.length; i++) {
-            IEditorReference er = eRefs[i];
-            if (er.getId().equals(IPDEUIConstants.MANIFEST_EDITOR_ID)
-                    && er.getPartName().equals(pluginId)) {
-                return true;
-            }
-        }// end for
+      for (IEditorReference er : eRefs) {
+        if (er.getId().equals(IPDEUIConstants.MANIFEST_EDITOR_ID)
+            && er.getPartName().equals(pluginId))
+        {
+          return true;
+        }
+      }// end for
 
         return false;
     }
@@ -307,29 +306,24 @@ public class AJDTUtils {
             return;
         }
         boolean defaultOutputLocationIsSrcFolder = false;
-        List<IPath> extraOutputLocations = new ArrayList<IPath>();
-        List<IClasspathEntry> srcFolders = new ArrayList<IClasspathEntry>();
+        List<IPath> extraOutputLocations = new ArrayList<>();
+        List<IClasspathEntry> srcFolders = new ArrayList<>();
         IClasspathEntry[] cpe = jp.getRawClasspath();
-        for (int i = 0; i < cpe.length; i++) {
-            if (cpe[i].getEntryKind() == IClasspathEntry.CPE_SOURCE) {
-                srcFolders.add(cpe[i]);
-                IPath output = cpe[i].getOutputLocation();
-                if(output != null) {
-                    extraOutputLocations.add(output);
-                }
-            }
+      for (IClasspathEntry iClasspathEntry : cpe) {
+        if (iClasspathEntry.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
+          srcFolders.add(iClasspathEntry);
+          IPath output = iClasspathEntry.getOutputLocation();
+          if (output != null) {
+            extraOutputLocations.add(output);
+          }
         }
+      }
         for (IClasspathEntry entry : srcFolders) {
             IPath path = entry.getPath();
             if(path.equals(defaultOutputLocation)) {
                 defaultOutputLocationIsSrcFolder = true;
             }
-            for (Iterator<IPath> iterator = extraOutputLocations.iterator(); iterator.hasNext();) {
-                IPath outputPath = iterator.next();
-                if(outputPath.equals(path)) {
-                    iterator.remove();
-                }
-            }
+          extraOutputLocations.removeIf(outputPath -> outputPath.equals(path));
         }
         boolean ajFilesFound = false;
         if(!defaultOutputLocationIsSrcFolder) {
@@ -369,15 +363,15 @@ public class AJDTUtils {
     private static boolean containsAJFiles(IResource resource) {
         if(resource instanceof IFile && resource.getName().endsWith(".aj")) { //$NON-NLS-1$
             return true;
-        } else if (resource instanceof IFolder && ((IFolder)resource).exists()) {
+        } else if (resource instanceof IFolder && resource.exists()) {
             IResource[] members;
             try {
                 members = ((IFolder)resource).members();
-                for (int i = 0; i < members.length; i++) {
-                    if(containsAJFiles(members[i])) {
-                        return true;
-                    }
+              for (IResource member : members) {
+                if (containsAJFiles(member)) {
+                  return true;
                 }
+              }
             } catch (CoreException e) {}
         }
         return false;
@@ -429,36 +423,31 @@ public class AJDTUtils {
 
             IProject[] refProjects = project.getReferencingProjects();
             // only get the class folder depending projects here
-            IProject[] classFolderReferences = (IProject[]) CoreUtils.getDependingProjects(
+            IProject[] classFolderReferences = CoreUtils.getDependingProjects(
                     project).get(0);
             IProject[] referencingProjects = new IProject[refProjects.length
                     + classFolderReferences.length];
-            for (int i = 0; i < refProjects.length; i++) {
-                referencingProjects[i] = refProjects[i];
-            }
-            for (int i = 0; i < classFolderReferences.length; i++) {
-                referencingProjects[i + refProjects.length] = classFolderReferences[i];
-            }
+          System.arraycopy(refProjects, 0, referencingProjects, 0, refProjects.length);
+          System.arraycopy(classFolderReferences, 0, referencingProjects, 0 + refProjects.length, classFolderReferences.length);
 
-            for (int i = 0; i < referencingProjects.length; i++) {
-                IProject referencingProject = referencingProjects[i];
-                IMarker[] problemMarkers = referencingProject.findMarkers(
-                        IMarker.PROBLEM, false, IResource.DEPTH_INFINITE);
-                if (problemMarkers.length > 0) {
-                    for (int j = 0; j < problemMarkers.length; j++) {
-                        IMarker marker = problemMarkers[j];
-                        int markerSeverity = marker.getAttribute(
-                                IMarker.SEVERITY, -1);
-                        String markerMessage = marker.getAttribute(
-                                IMarker.MESSAGE, UIMessages.AJDTUtils_no_message);
+          for (IProject referencingProject : referencingProjects) {
+            IMarker[] problemMarkers = referencingProject.findMarkers(
+              IMarker.PROBLEM, false, IResource.DEPTH_INFINITE);
+            if (problemMarkers.length > 0) {
+              for (IMarker marker : problemMarkers) {
+                int markerSeverity = marker.getAttribute(
+                  IMarker.SEVERITY, -1);
+                String markerMessage = marker.getAttribute(
+                  IMarker.MESSAGE, UIMessages.AJDTUtils_no_message);
 
-                        if (markerSeverity == IMarker.SEVERITY_ERROR
-                                && markerMessage.equals(errorMessage)) {
-                            marker.delete();
-                        }
-                    }
+                if (markerSeverity == IMarker.SEVERITY_ERROR
+                    && markerMessage.equals(errorMessage))
+                {
+                  marker.delete();
                 }
+              }
             }
+          }
         } catch (CoreException e) {
         }
     }
@@ -471,13 +460,10 @@ public class AJDTUtils {
         IWorkbenchWindow window = AspectJUIPlugin.getDefault().getWorkbench()
                 .getActiveWorkbenchWindow();
 
-        boolean autoImport = false;
-        if (!prompt || (AspectJPreferences.askPDEAutoImport() && confirmPDEAutoAddImport(window))
-                || (AspectJPreferences.doPDEAutoImport())) {
-            autoImport = true;
-        }
+        boolean autoImport = !prompt || (AspectJPreferences.askPDEAutoImport() && confirmPDEAutoAddImport(window))
+                             || (AspectJPreferences.doPDEAutoImport());
 
-        if (autoImport) {
+      if (autoImport) {
             importRuntimePlugin(manEd);
         } else {
             MessageDialog
@@ -568,15 +554,14 @@ public class AJDTUtils {
         IEditorReference[] eRefs = PlatformUI.getWorkbench()
                 .getActiveWorkbenchWindow().getActivePage()
                 .getEditorReferences();
-        for (int i = 0; i < eRefs.length; i++) {
-            IEditorReference er = eRefs[i];
-            if (er.getId().equals(IPDEUIConstants.MANIFEST_EDITOR_ID)
-                    && er.getPartName().equals(pluginId)) {
-                IEditorReference manEdRef = er;
-                manEd = (ManifestEditor) manEdRef.getPart(true);
-                break;
-            }
-        }// end for
+      for (IEditorReference er : eRefs) {
+        if (er.getId().equals(IPDEUIConstants.MANIFEST_EDITOR_ID)
+            && er.getPartName().equals(pluginId))
+        {
+          manEd = (ManifestEditor) er.getPart(true);
+          break;
+        }
+      }// end for
 
         return manEd;
     }
@@ -639,22 +624,23 @@ public class AJDTUtils {
         String[] prevNatures = description.getNatureIds();
         String[] newNatures = new String[prevNatures.length - 1];
         int newPosition = 0;
-        for (int i = 0; i < prevNatures.length; i++) {
-            if (!prevNatures[i].equals(Utils.ID_NATURE)) {
-                // guard against array out of bounds which will occur if we
-                // get to here in a project that DOES NOT have the aj nature
-                // (should never happen).
-                if (newPosition < newNatures.length) {
-                    newNatures[newPosition++] = prevNatures[i];
-                } else {
-                    // exception... attempt to remove ajnature from a project
-                    // that
-                    // doesn't have it. Leave the project natures unchanged.
-                    newNatures = prevNatures;
-                    break;
-                }// end else
-            }// end if
-        }// end for
+      for (String prevNature : prevNatures) {
+        if (!prevNature.equals(Utils.ID_NATURE)) {
+          // guard against array out of bounds which will occur if we
+          // get to here in a project that DOES NOT have the aj nature
+          // (should never happen).
+          if (newPosition < newNatures.length) {
+            newNatures[newPosition++] = prevNature;
+          }
+          else {
+            // exception... attempt to remove ajnature from a project
+            // that
+            // doesn't have it. Leave the project natures unchanged.
+            newNatures = prevNatures;
+            break;
+          }// end else
+        }// end if
+      }// end for
         description.setNatureIds(newNatures);
         project.setDescription(description, null);
 
@@ -710,22 +696,22 @@ public class AJDTUtils {
                 if (entry.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
                     IPath[] exc = entry.getExclusionPatterns();
                     if (exc != null) {
-                        List<IPath> removeList = new ArrayList<IPath>();
-                        for (int j = 0; j < exc.length; j++) {
-                            String ext = exc[j].getFileExtension();
-                            if ((ext != null) && ext.equals("aj")) { //$NON-NLS-1$
-                                removeList.add(exc[j]);
-                            }
+                        List<IPath> removeList = new ArrayList<>();
+                      for (IPath path : exc) {
+                        String ext = path.getFileExtension();
+                        if ((ext != null) && ext.equals("aj")) { //$NON-NLS-1$
+                          removeList.add(path);
                         }
+                      }
                         if (removeList.size() > 0) {
                             IPath[] exc2 = new IPath[exc.length
                                     - removeList.size()];
                             int ind = 0;
-                            for (int j = 0; j < exc.length; j++) {
-                                if (!removeList.contains(exc[j])) {
-                                    exc2[ind++] = exc[j];
-                                }
+                          for (IPath iPath : exc) {
+                            if (!removeList.contains(iPath)) {
+                              exc2[ind++] = iPath;
                             }
+                          }
                             IClasspathEntry classpathEntry = JavaCore
                                     .newSourceEntry(entry.getPath(), exc2);
                             cpEntry[i] = classpathEntry;
@@ -759,37 +745,39 @@ public class AJDTUtils {
             for (int i = 0; i < cpEntry.length; i++) {
                 IClasspathEntry entry = cpEntry[i];
                 if (entry.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
-                    List<IPath> excludeList = new ArrayList<IPath>();
+                    List<IPath> excludeList = new ArrayList<>();
                     IPackageFragmentRoot[] roots = jp
                             .findPackageFragmentRoots(entry);
-                    for (int j = 0; j < roots.length; j++) {
-                        IJavaElement[] rootFragments;
-                        try {
-                            rootFragments = roots[j].getChildren();
-                            for (int k = 0; k < rootFragments.length; k++) {
-                                if (rootFragments[k] instanceof IPackageFragment) {
-                                    IPackageFragment pack = (IPackageFragment) rootFragments[k];
-                                    ICompilationUnit[] files = pack
-                                            .getCompilationUnits();
-                                    for (int l = 0; l < files.length; l++) {
-                                        IResource resource = files[l]
-                                                .getResource();
-                                        if (resource.getFileExtension().equals(
-                                                "aj")) { //$NON-NLS-1$
-                                            IPath resPath = resource
-                                                    .getFullPath();
-                                            int seg = resPath
-                                                    .matchingFirstSegments(roots[j]
-                                                            .getPath());
-                                            excludeList.add(resPath
-                                                    .removeFirstSegments(seg));
-                                        }
-                                    }
-                                }
+                  for (IPackageFragmentRoot root : roots) {
+                    IJavaElement[] rootFragments;
+                    try {
+                      rootFragments = root.getChildren();
+                      for (IJavaElement rootFragment : rootFragments) {
+                        if (rootFragment instanceof IPackageFragment) {
+                          IPackageFragment pack = (IPackageFragment) rootFragment;
+                          ICompilationUnit[] files = pack
+                            .getCompilationUnits();
+                          for (ICompilationUnit file : files) {
+                            IResource resource = file
+                              .getResource();
+                            if (resource.getFileExtension().equals(
+                              "aj"))
+                            { //$NON-NLS-1$
+                              IPath resPath = resource
+                                .getFullPath();
+                              int seg = resPath
+                                .matchingFirstSegments(root
+                                  .getPath());
+                              excludeList.add(resPath
+                                .removeFirstSegments(seg));
                             }
-                        } catch (JavaModelException e) {
+                          }
                         }
+                      }
                     }
+                    catch (JavaModelException e) {
+                    }
+                  }
                     if (excludeList.size() > 0) {
                         IPath[] exc = new IPath[excludeList.size()];
                         excludeList.toArray(exc);
@@ -824,22 +812,21 @@ public class AJDTUtils {
                 //checks the classpath for plugin dependencies
                 IPackageFragmentRoot[] dependencies = JavaCore.create(project)
                         .getPackageFragmentRoots();
-                for (int i = 0; i < dependencies.length; i++) {
-                    if (dependencies[i].getElementName().equals(
-                            "aspectjrt.jar")) //$NON-NLS-1$
-                        return true;
-                }
+              for (IPackageFragmentRoot dependency : dependencies) {
+                if (dependency.getElementName().equals(
+                  "aspectjrt.jar")) //$NON-NLS-1$
+                  return true;
+              }
             } catch (JavaModelException e) {
             }
             return false;
         }
 
-        for (int i = 0; i < imports.length; i++) {
-            IPluginImport importObj = imports[i];
-            if (importObj.getId().equals(AspectJPlugin.RUNTIME_PLUGIN_ID)) {
-                return true;
-            }
+      for (IPluginImport importObj : imports) {
+        if (importObj.getId().equals(AspectJPlugin.RUNTIME_PLUGIN_ID)) {
+          return true;
         }
+      }
         return false;
     }
 
@@ -887,13 +874,12 @@ public class AJDTUtils {
         IPluginImport[] imports = model.getPluginBase().getImports();
         IPluginImport doomed = null;
 
-        for (int i = 0; i < imports.length; i++) {
-            IPluginImport importObj = imports[i];
-            if (importObj.getId().equals(importId)) {
-                doomed = importObj;
-                break;
-            }
-        }// end for
+      for (IPluginImport importObj : imports) {
+        if (importObj.getId().equals(importId)) {
+          doomed = importObj;
+          break;
+        }
+      }// end for
 
         if (doomed != null) {
             model.getPluginBase().remove(doomed);
@@ -912,7 +898,7 @@ public class AJDTUtils {
         String ajrtPath = CoreUtils.getAspectjrtClasspath();
         try {
             IClasspathEntry[] originalCP = javaProject.getRawClasspath();
-            ArrayList<IClasspathEntry> tempCP = new ArrayList<IClasspathEntry>();
+            ArrayList<IClasspathEntry> tempCP = new ArrayList<>();
 
             boolean changed = false;
 
@@ -920,31 +906,32 @@ public class AJDTUtils {
             // reference to aspectjrt.jar
             // replace it - I could look through each reference to check if it
             // is now invalid - but I don't ...
-            for (int i = 0; i < originalCP.length; i++) {
-                IPath path = originalCP[i].getPath();
-                if (path.toOSString().endsWith("aspectjrt.jar")) { //$NON-NLS-1$
-                    IClasspathEntry ajrtCP = JavaCore.newLibraryEntry(new Path(
-                            ajrtPath), // library location
-                            null, // no source
-                            null // no source
-                            );
-                    tempCP.add(ajrtCP);
-                    changed = true;
-                    AJLog.log("In project " //$NON-NLS-1$
-                            + current.getName() + " - replacing " //$NON-NLS-1$
-                            + originalCP[i].getPath() + " with " //$NON-NLS-1$
-                            + ajrtCP.getPath());
-                } else {
-                    tempCP.add(originalCP[i]);
-                }
-
+          for (IClasspathEntry iClasspathEntry : originalCP) {
+            IPath path = iClasspathEntry.getPath();
+            if (path.toOSString().endsWith("aspectjrt.jar")) { //$NON-NLS-1$
+              IClasspathEntry ajrtCP = JavaCore.newLibraryEntry(new Path(
+                  ajrtPath), // library location
+                null, // no source
+                null // no source
+              );
+              tempCP.add(ajrtCP);
+              changed = true;
+              AJLog.log("In project " //$NON-NLS-1$
+                        + current.getName() + " - replacing " //$NON-NLS-1$
+                        + iClasspathEntry.getPath() + " with " //$NON-NLS-1$
+                        + ajrtCP.getPath());
             }
+            else {
+              tempCP.add(iClasspathEntry);
+            }
+
+          }
 
             // Set the classpath with only those elements that survived the
             // above filtration process.
             if (changed) {
-                IClasspathEntry[] newCP = (IClasspathEntry[]) tempCP
-                        .toArray(new IClasspathEntry[tempCP.size()]);
+                IClasspathEntry[] newCP = tempCP
+                        .toArray(new IClasspathEntry[0]);
                 javaProject.setRawClasspath(newCP, new NullProgressMonitor());
             }
         } catch (JavaModelException e) {
@@ -1116,7 +1103,7 @@ public class AJDTUtils {
     public static char[][] getEnclosingTypes(IType startType) {
         char[][] enclosingTypes = new char[0][];
         IType type = startType.getDeclaringType();
-        List<char[]> enclosingTypeList = new ArrayList<char[]>();
+        List<char[]> enclosingTypeList = new ArrayList<>();
         while(type != null) {
             char[] typeName = type.getElementName().toCharArray();
             enclosingTypeList.add(0, typeName);

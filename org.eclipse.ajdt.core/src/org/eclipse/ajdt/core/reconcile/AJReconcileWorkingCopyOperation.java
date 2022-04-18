@@ -305,7 +305,7 @@ public class AJReconcileWorkingCopyOperation extends
               Util.log(exception, "Exception occurred in reconcile participant"); //$NON-NLS-1$
           }
 
-          public void run() throws Exception {
+          public void run() {
             participant.reconcile(context);
           }
         });

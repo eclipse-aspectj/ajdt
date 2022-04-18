@@ -55,14 +55,12 @@ public class RefreshTestsImprecise extends AJDTCoreTestCase {
 
         public void resourceChanged(IResourceChangeEvent event) {
             try {
-                event.getDelta().accept(new IResourceDeltaVisitor() {
-                    public boolean visit(IResourceDelta delta) throws CoreException {
-                        if (delta.getAffectedChildren().length > 0) {
-                            return true;
-                        } else {
-                            changed.add(delta.getResource().getFullPath().toPortableString());
-                            return false;
-                        }
+                event.getDelta().accept(delta -> {
+                    if (delta.getAffectedChildren().length > 0) {
+                        return true;
+                    } else {
+                        changed.add(delta.getResource().getFullPath().toPortableString());
+                        return false;
                     }
                 });
             } catch (CoreException e) {
@@ -98,7 +96,7 @@ public class RefreshTestsImprecise extends AJDTCoreTestCase {
         proj.getFile("src/Nothing2.aj").touch(null);
         Utils.sleep(1000);
         proj.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
-        Set<? extends String> filesChanged = listener.getChanged();
+        Set<String> filesChanged = listener.getChanged();
         assertTrue("Should have had at least 2 files changed " + filesChanged, 2 <= filesChanged.size());
         assertTrue("File should have been refreshed: /CopyDerived1/src/Nothing2.aj", filesChanged.contains("/CopyDerived1/src/Nothing2.aj"));
         assertTrue("File should have been refreshed: /CopyDerived1/bin/Nothing2.class", filesChanged.contains("/CopyDerived1/bin/Nothing2.class"));
@@ -109,7 +107,7 @@ public class RefreshTestsImprecise extends AJDTCoreTestCase {
         createFile("src/Nothing9.aj", "public aspect Nothing9 { }");
         Utils.sleep(1000);
         proj.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
-        Set<? extends String> filesChanged = listener.getChanged();
+        Set<String> filesChanged = listener.getChanged();
         assertTrue("Should have had at least 2 files changed " + filesChanged, 2 <= filesChanged.size());
         assertTrue("File should have been refreshed: /CopyDerived1/src/Nothing9.aj", filesChanged.contains("/CopyDerived1/src/Nothing9.aj"));
         assertTrue("File should have been refreshed: /CopyDerived1/bin/Nothing9.class", filesChanged.contains("/CopyDerived1/bin/Nothing9.class"));
@@ -120,7 +118,7 @@ public class RefreshTestsImprecise extends AJDTCoreTestCase {
         proj.getFile("src/Nothing2.aj").delete(true, null);
         Utils.sleep(1000);
         proj.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
-        Set<? extends String> filesChanged = listener.getChanged();
+        Set<String> filesChanged = listener.getChanged();
         assertTrue("Should have had at least 2 files changed " + filesChanged, 2 <= filesChanged.size());
         assertTrue("File should have been refreshed: /CopyDerived1/src/Nothing2.aj", filesChanged.contains("/CopyDerived1/src/Nothing2.aj"));
         assertTrue("File should have been refreshed: /CopyDerived1/bin/Nothing2.class", filesChanged.contains("/CopyDerived1/bin/Nothing2.class"));
@@ -130,7 +128,7 @@ public class RefreshTestsImprecise extends AJDTCoreTestCase {
         createFile("src/Nothing.java", "public class Nothing { int x; }" );
         Utils.sleep(1000);
         proj.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
-        Set<? extends String> filesChanged = listener.getChanged();
+        Set<String> filesChanged = listener.getChanged();
         assertTrue("Should have had at least 2 files changed " + filesChanged, 2 <= filesChanged.size());
         assertTrue("File should have been refreshed: /CopyDerived1/src/Nothing.java", filesChanged.contains("/CopyDerived1/src/Nothing.java"));
         assertTrue("File should have been refreshed: /CopyDerived1/bin/Nothing.class", filesChanged.contains("/CopyDerived1/bin/Nothing.class"));
@@ -141,7 +139,7 @@ public class RefreshTestsImprecise extends AJDTCoreTestCase {
         createFile("src/Nothing9.java", "public aspect Nothing9 { }");
         Utils.sleep(1000);
         proj.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
-        Set<? extends String> filesChanged = listener.getChanged();
+        Set<String> filesChanged = listener.getChanged();
         assertTrue("Should have had at least 2 files changed " + filesChanged, 2 <= filesChanged.size());
         assertTrue("File should have been refreshed: /CopyDerived1/src/Nothing9.java", filesChanged.contains("/CopyDerived1/src/Nothing9.java"));
         assertTrue("File should have been refreshed: /CopyDerived1/bin/Nothing9.class", filesChanged.contains("/CopyDerived1/bin/Nothing9.class"));
@@ -151,7 +149,7 @@ public class RefreshTestsImprecise extends AJDTCoreTestCase {
         proj.getFile("src/Nothing.java").delete(true, null);
         Utils.sleep(1000);
         proj.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
-        Set<? extends String> filesChanged = listener.getChanged();
+        Set<String> filesChanged = listener.getChanged();
         assertTrue("Should have had at least 2 files changed " + filesChanged, 2 <= filesChanged.size());
         assertTrue("File should have been refreshed: /CopyDerived1/src/Nothing.java", filesChanged.contains("/CopyDerived1/src/Nothing.java"));
         assertTrue("File should have been refreshed: /CopyDerived1/bin/Nothing.class", filesChanged.contains("/CopyDerived1/bin/Nothing.class"));
@@ -162,7 +160,7 @@ public class RefreshTestsImprecise extends AJDTCoreTestCase {
         proj.getFile("src/file.txt").touch(null);
         Utils.sleep(1000);
         proj.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
-        Set<? extends String> filesChanged = listener.getChanged();
+        Set<String> filesChanged = listener.getChanged();
         assertTrue("Should have had at least 2 files changed " + filesChanged, 2 <= filesChanged.size());
         assertTrue("File should have been refreshed: /CopyDerived1/src/file.txt", filesChanged.contains("/CopyDerived1/src/file.txt"));
         assertTrue("File should have been refreshed: /CopyDerived1/bin/file.txt", filesChanged.contains("/CopyDerived1/bin/file.txt"));
@@ -171,7 +169,7 @@ public class RefreshTestsImprecise extends AJDTCoreTestCase {
         createFile("src/file2.txt", "nothing");
         Utils.sleep(1000);
         proj.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
-        Set<? extends String> filesChanged = listener.getChanged();
+        Set<String> filesChanged = listener.getChanged();
         assertTrue("Should have had at least 2 files changed " + filesChanged, 2 <= filesChanged.size());
         assertTrue("File should have been refreshed: /CopyDerived1/src/file2.txt", filesChanged.contains("/CopyDerived1/src/file2.txt"));
         assertTrue("File should have been refreshed: /CopyDerived1/bin/file2.txt", filesChanged.contains("/CopyDerived1/bin/file2.txt"));
@@ -180,7 +178,7 @@ public class RefreshTestsImprecise extends AJDTCoreTestCase {
         proj.getFile("src/file.txt").delete(true, null);
         Utils.sleep(1000);
         proj.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
-        Set<? extends String> filesChanged = listener.getChanged();
+        Set<String> filesChanged = listener.getChanged();
         assertTrue("Should have had at least 2 files changed " + filesChanged, 2 <= filesChanged.size());
         assertTrue("File should have been refreshed: /CopyDerived1/src/file.txt", filesChanged.contains("/CopyDerived1/src/file.txt"));
         assertTrue("File should have been refreshed: /CopyDerived1/bin/file.txt", filesChanged.contains("/CopyDerived1/bin/file.txt"));
@@ -199,7 +197,7 @@ public class RefreshTestsImprecise extends AJDTCoreTestCase {
         createFolder("src/package2");
         Utils.sleep(1000);
         proj.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
-        Set<? extends String> filesChanged = listener.getChanged();
+        Set<String> filesChanged = listener.getChanged();
         assertTrue("Should have had at least 2 files changed " + filesChanged, 2 <= filesChanged.size());
         assertTrue("File should have been refreshed: /CopyDerived1/src/package2", filesChanged.contains("/CopyDerived1/src/package2"));
         assertTrue("File should have been refreshed: /CopyDerived1/bin/package2", filesChanged.contains("/CopyDerived1/bin/package2"));
@@ -210,7 +208,7 @@ public class RefreshTestsImprecise extends AJDTCoreTestCase {
         proj.getFolder("src/package1").delete(true, null);
         Utils.sleep(1000);
         proj.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
-        Set<? extends String> filesChanged = listener.getChanged();
+        Set<String> filesChanged = listener.getChanged();
         assertTrue("Should have had at least 2 files changed " + filesChanged, 6 <= filesChanged.size());
         assertTrue("File should have been refreshed: /CopyDerived1/src/package1/file.txt", filesChanged.contains("/CopyDerived1/src/package1/file.txt"));
         assertTrue("File should have been refreshed: /CopyDerived1/bin/package1/file.txt", filesChanged.contains("/CopyDerived1/bin/package1/file.txt"));

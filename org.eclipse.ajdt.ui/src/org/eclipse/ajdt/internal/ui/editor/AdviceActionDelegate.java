@@ -10,7 +10,7 @@ Contributors:
     Andy Clement, 1st Version, 7th October 2002
     Matt Chapman - add support for Go To Related Location entries
                  - add support for Advises entries
-    Sian January - support for "aspect declarations", "annotates", 
+    Sian January - support for "aspect declarations", "annotates",
     				"declared by" and "annotated by" menus
     Helen Hawkins - updated for new ajde interface (bug 148190)
 
@@ -135,29 +135,29 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 		    if (! (input instanceof IFileEditorInput)) {
 		        return;
 		    }
-			IFileEditorInput ifep =	(IFileEditorInput) input; 
+			IFileEditorInput ifep =	(IFileEditorInput) input;
 			IFile ifile = ifep.getFile();
-			
+
 			// Which line was right clicked in the ruler?
 			int linenumber = rulerInfo.getLineOfLastMouseButtonActivity();
-			Integer clickedLine = new Integer(linenumber+1);
+			Integer clickedLine = linenumber + 1;
 			ICompilationUnit cu;
 			if (ifile.getFileExtension().equals("aj")) { //$NON-NLS-1$
 				cu = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(ifile);
 			} else {
 				cu = (ICompilationUnit)JavaCore.create(ifile);
 			}
-			
+
 			if (cu == null) {
 			    // happens if the underlying resource has been deleted
 			    return;
 			}
 			AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(cu);
-			
+
 			boolean addedMenu = false;
 			if (model.hasModel()) {
 	            List<IJavaElement> javaElementsForLine = model
-                    .getJavaElementsForLine(cu, clickedLine.intValue());
+                    .getJavaElementsForLine(cu, clickedLine);
 
 	            addedMenu = createMenuForRelationshipType(javaElementsForLine, manager, addedMenu, AJRelationshipManager.ADVISES, model);
     			addedMenu = createMenuForRelationshipType(javaElementsForLine, manager, addedMenu, AJRelationshipManager.ADVISED_BY, model);
@@ -176,53 +176,52 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 			if(addedMenu) {
 			    createAJToolsMenu(manager);
 			}
-			
+
 			// This next part of the method is nasty.  For one thing, should be using
 			// handle identifiers, not source locations.
-			// Go through the problem markers 
-			IMarker probMarkers[] = ifile.findMarkers(IMarker.MARKER, true, 2);
+			// Go through the problem markers
+			IMarker[] probMarkers = ifile.findMarkers(IMarker.MARKER, true, 2);
             MenuManager problemSubmenu = null;
             boolean problemSubmenuInitialized = false;
             if (probMarkers != null && probMarkers.length != 0) {
-                 for (int j = 0; j < probMarkers.length; j++) {
-                    IMarker m = probMarkers[j];
-                    Object markerLine = m.getAttribute(IMarker.LINE_NUMBER);
-                    if (markerLine != null && markerLine.equals(clickedLine)) {
-                        int relCount = 0;
-                        String loc = (String) m
-                                .getAttribute(AspectJUIPlugin.RELATED_LOCATIONS_ATTRIBUTE_PREFIX
-                                        + (relCount++));
-                        if (loc != null) {
-                        	IProject project = ifile.getProject();
-                            // Build a new action for our menu for each extra
-                            // source location
-                            while (loc != null) {
-                                // decode the source location
-                                String[] s = loc.split(":::"); //$NON-NLS-1$
-                                String resName = s[0].substring(s[0]
-                                        .lastIndexOf(File.separator) + 1);
-                                String textLabel = NLS.bind(UIMessages.EditorRulerContextMenu_relatedLocation_message,
-                                                new String[] { resName, s[1] });
-                                RelatedLocationMenuAction ama = new RelatedLocationMenuAction(
-                                        textLabel, loc, project);
-                                // Initialize the submenu if we haven't done it
-                                // already.
-                                if (!problemSubmenuInitialized) {
-                                    problemSubmenu = new MenuManager(UIMessages.EditorRulerContextMenu_relatedLocations);
-                                    manager.add(problemSubmenu);
-                                    problemSubmenuInitialized = true;
-                                }
+              for (IMarker m : probMarkers) {
+                Object markerLine = m.getAttribute(IMarker.LINE_NUMBER);
+                if (markerLine != null && markerLine.equals(clickedLine)) {
+                  int relCount = 0;
+                  String loc = (String) m
+                    .getAttribute(AspectJUIPlugin.RELATED_LOCATIONS_ATTRIBUTE_PREFIX
+                                  + (relCount++));
+                  if (loc != null) {
+                    IProject project = ifile.getProject();
+                    // Build a new action for our menu for each extra
+                    // source location
+                    while (loc != null) {
+                      // decode the source location
+                      String[] s = loc.split(":::"); //$NON-NLS-1$
+                      String resName = s[0].substring(s[0]
+                                                        .lastIndexOf(File.separator) + 1);
+                      String textLabel = NLS.bind(UIMessages.EditorRulerContextMenu_relatedLocation_message,
+                        new String[] { resName, s[1] });
+                      RelatedLocationMenuAction ama = new RelatedLocationMenuAction(
+                        textLabel, loc, project);
+                      // Initialize the submenu if we haven't done it
+                      // already.
+                      if (!problemSubmenuInitialized) {
+                        problemSubmenu = new MenuManager(UIMessages.EditorRulerContextMenu_relatedLocations);
+                        manager.add(problemSubmenu);
+                        problemSubmenuInitialized = true;
+                      }
 
-                                // Add our new action to the submenu
-                                problemSubmenu.add(ama);
+                      // Add our new action to the submenu
+                      problemSubmenu.add(ama);
 
-                                loc = (String) m
-                                        .getAttribute(AspectJUIPlugin.RELATED_LOCATIONS_ATTRIBUTE_PREFIX
-                                                + (relCount++));
-                            }
-                        }
+                      loc = (String) m
+                        .getAttribute(AspectJUIPlugin.RELATED_LOCATIONS_ATTRIBUTE_PREFIX
+                                      + (relCount++));
                     }
+                  }
                 }
+              }
             }
         } catch (CoreException ce) {
         	AJDTErrorHandler.handleAJDTError(
@@ -249,18 +248,18 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
             }
         });
         manager.add(emptyAJrefs);
-    }	
-	
+    }
+
 	private void createAJToolsMenu(IMenuManager manager) {
 		MenuManager menu = new MenuManager(UIMessages.AdviceActionDelegate_ajtools);
 		manager.add(menu);
-		menu.add(new Action() {		
+		menu.add(new Action() {
 			public String getText() {
 				return UIMessages.AdviceActionDelegate_configure_markers;
 			}
-			
+
 			public void run() {
-				IResource resource = (IResource) ((IFileEditorInput)editor.getEditorInput()).getFile();
+				IResource resource = ((IFileEditorInput)editor.getEditorInput()).getFile();
 				if(resource != null) {
 					Shell shell = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getShell();
 					IProject project = resource.getProject();
@@ -272,7 +271,7 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param javaElements
 	 * @param manager
 	 * @param addedSeparator
@@ -290,50 +289,50 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 				for (IJavaElement el : relationships) {
 					if(!menuInitialized) {
 						menu = new MenuManager(relationshipType.getMenuName());
-						manager.add(menu);			
-						menuInitialized = true; 
+						manager.add(menu);
+						menuInitialized = true;
 					}
 					// link might be in a different project
 					String linkName = model.getJavaElementLinkName(el);
-					String extra = "";
+					StringBuilder extra = new StringBuilder();
 					// might be a declare parents instantiated in a concrete aspect
-					if (relationshipType == AJRelationshipManager.ASPECT_DECLARATIONS && 
+					if (relationshipType == AJRelationshipManager.ASPECT_DECLARATIONS &&
 					        el instanceof AspectElement && element instanceof IType) {
 					    IProgramElement ipe = model.javaElementToProgramElement(el);
 					    Map<String, List<String>> parentsMap = ipe.getDeclareParentsMap();
 					    if (parentsMap != null) {
 					        List<String> parents = parentsMap.get(((IType) element).getFullyQualifiedName());
 					        if (parents != null && parents.size() > 0) {
-					            extra = "declare parents: ";
+					            extra = new StringBuilder("declare parents: ");
 					            for (String parent : parents) {
-                                    extra += parent;
-                                    extra += ", ";
+                                    extra.append(parent);
+                                    extra.append(", ");
                                 }
-					            extra += "instantiated in ";
+					            extra.append("instantiated in ");
 					        }
 					    }
 					}
 					linkName = extra + linkName;
-					
+
 					menu.add(new MenuAction(el, linkName));
 				}
 			}
-		}		
+		}
 		return addedMenu;
 	}
 
 
 	/**
-	 * Inner class that represent an entry on the submenu for "Advised By >" 
+	 * Inner class that represent an entry on the submenu for "Advised By >"
 	 * or "Aspect Declarations >" or "Go To Related Location >"
 	 * - each Menu Action is a piece of advice or an ITD in affect on the current line.
 	 */
 	private static class MenuAction extends Action {
-	    private static ILabelProvider labelProvider =
+	    private static final ILabelProvider labelProvider =
 			new DecoratingJavaLabelProvider(new AppearanceAwareLabelProvider());
 
-	    private IJavaElement jumpLocation;
-		
+	    private final IJavaElement jumpLocation;
+
         /**
 		 * @param el
 		 */
@@ -345,41 +344,40 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 			}
 			jumpLocation = el;
 		}
-		
+
         public void run() {
             try {
                 JavaUI.openInEditor(jumpLocation);
-            } catch (PartInitException e) {
-            } catch (JavaModelException e) {
+            } catch (PartInitException | JavaModelException e) {
             }
         }
 	}
-	
-	
+
+
 
 	/**
-	 * Inner classes that represent an entry on the submenu for "Advised By >" 
+	 * Inner classes that represent an entry on the submenu for "Advised By >"
 	 * or "Aspect Declarations >" or "Go To Related Location >"
 	 * - each AJDTMenuAction is a piece of advice or an ITD in affect on the current line.
 	 * When each AJDTMenuAction is created, it is given a name (the advice in affect)
 	 * and a marker.  This is the advice marker attached to the line.  Both advice markers
-	 * and ITD markers are like normal markers but have an extra attribute: 
+	 * and ITD markers are like normal markers but have an extra attribute:
 	 * AspectJPlugin.SOURCE_LOCATION_ATTRIBUTE
 	 * This attribute has the format FFFF:::NNNN:::NNNN:::NNNN
 	 * - The FFFF is the file which contains the source of the advice or ITD in affect
 	 * - The other three NNNN fields are integers indicating (in order) the
 	 *   start line number of the advice in that file, the end line number of the
 	 *   advice in that file and the column number for the advice.
-	 * 
+	 *
 	 * I had to code it this way because you can't set arbitrary object values for
 	 * attributes.  Using the value of this attribute, the run() method for the
 	 * action can create a jump marker that points to the real advice definition
 	 * and jump to it.
 	 */
 	abstract class BaseAJDTMenuAction extends Action {
-		
-		private IProject project;
-		
+
+		private final IProject project;
+
         BaseAJDTMenuAction(String s, IProject project) {
             super(s);
             this.project = project;
@@ -405,7 +403,7 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 			if (r == null) {
 			    r = fileCache.findResource(filepath);
 			}
-			
+
 			// 159867: not able to navigate to a binary aspect
 			if (!r.exists()) {
 			    revealBinaryAspect(filepath, linenumber);
@@ -426,8 +424,7 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
                      * number is in a string) - it won't give you an error but
                      * will *not* be interpreted correctly.
                      */
-                    jumpMarker.setAttribute(IMarker.LINE_NUMBER, new Integer(
-                            linenumber).intValue());
+                    jumpMarker.setAttribute(IMarker.LINE_NUMBER, Integer.valueOf(linenumber).intValue());
 
                     try {
                         IDE.openEditor(AspectJUIPlugin.getDefault()
@@ -475,9 +472,8 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
                         IRegion region = getOffsetOfLine(linenumber, editor);
                         editor.selectAndReveal(region.getOffset(), region.getLength());
                         return;
-                    } 
-                } catch (JavaModelException e) {
-                } catch (PartInitException e) {
+                    }
+                } catch (JavaModelException | PartInitException e) {
                 }
             }
             report(UIMessages.AdviceActionDelegate_resource_not_found);
@@ -487,41 +483,38 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
             IDocument doc = editor.getDocumentProvider().getDocument(editor.getEditorInput());
             try {
                 return doc.getLineInformation(Integer.parseInt(linenumber)-1);
-            } catch (NumberFormatException e) {
-            } catch (BadLocationException e) {
+            } catch (NumberFormatException | BadLocationException e) {
             }
-            return null;
+          return null;
         }
     }
-	
+
 	class RelatedLocationMenuAction extends BaseAJDTMenuAction {
-	    private String jumpLocation;
-	    
+	    private final String jumpLocation;
+
 	    RelatedLocationMenuAction(String s, String jumpLocation, IProject project) {
 	        super(s,project);
 	        this.jumpLocation = jumpLocation;
 	        setImageDescriptor(JavaUI.getSharedImages().getImageDescriptor(ISharedImages.IMG_OBJS_CUNIT));
 	    }
-	    
+
 	       String getJumpLocation() {
 	           return jumpLocation;
 	       }
 	}
 
-	
+
 	protected void report(final String message) {
-		JDIDebugUIPlugin.getStandardDisplay().asyncExec(new Runnable() {
-			public void run() {
-				IEditorStatusLine fStatusLine = (IEditorStatusLine) editor.getAdapter(IEditorStatusLine.class);
-				if (fStatusLine != null) {
-					fStatusLine.setMessage(true, message, null);
-				}
-				if (message != null
-						&& JDIDebugUIPlugin.getActiveWorkbenchShell() != null) {
-					Display.getCurrent().beep();
-				}
-			}
-		});
+		JDIDebugUIPlugin.getStandardDisplay().asyncExec(() -> {
+      IEditorStatusLine fStatusLine = (IEditorStatusLine) editor.getAdapter(IEditorStatusLine.class);
+      if (fStatusLine != null) {
+        fStatusLine.setMessage(true, message, null);
+      }
+      if (message != null
+          && JDIDebugUIPlugin.getActiveWorkbenchShell() != null) {
+        Display.getCurrent().beep();
+      }
+    });
 	}
 
 }

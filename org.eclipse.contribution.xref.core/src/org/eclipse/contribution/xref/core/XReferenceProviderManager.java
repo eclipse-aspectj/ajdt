@@ -42,9 +42,9 @@ public class XReferenceProviderManager implements NoFFDC {
 	private XReferenceProviderManager() {
 		// By default assume the Cross Reference View requires its attention
 		isInplace = false;
-	};
+	}
 
-	public static XReferenceProviderManager getManager() {
+  public static XReferenceProviderManager getManager() {
 		if (theManager == null) {
 			theManager = new XReferenceProviderManager();
 		}
@@ -66,7 +66,7 @@ public class XReferenceProviderManager implements NoFFDC {
 	 * org.eclipse.contribution.xref.providers
 	 */
 	public List<IXReferenceProvider> getProvidersFor(IAdaptable o) {
-		List<IXReferenceProvider> providers = new ArrayList<IXReferenceProvider>();
+		List<IXReferenceProvider> providers = new ArrayList<>();
 		List<XReferenceProviderDefinition> registeredProviders = getRegisteredProviders();
 		for (XReferenceProviderDefinition element : registeredProviders) {
 			if (providesReferencesFor(o, element)) {
@@ -82,32 +82,33 @@ public class XReferenceProviderManager implements NoFFDC {
 	 */
 	public List<XReferenceProviderDefinition> getRegisteredProviders() {
 		if (providerList == null) {
-			providerList = new ArrayList<XReferenceProviderDefinition>();
+			providerList = new ArrayList<>();
 			IExtensionPoint exP =
 				Platform.getExtensionRegistry().getExtensionPoint(PROVIDERS_EXTENSION_POINT);
 			IExtension[] exs = exP.getExtensions();
 
-			for (int i = 0; i < exs.length; i++) {
-				IConfigurationElement[] ces = exs[i].getConfigurationElements();
-				for (IConfigurationElement ce : ces) {
-					try {
-						XReferenceProviderDefinition def =
-							new XReferenceProviderDefinition(ce);
-						providerList.add(def);
-					} catch (CoreException e) {
-						IStatus status =
-							new Status(
-								IStatus.WARNING,
-								XReferencePlugin.PLUGIN_ID,
-								XReferencePlugin.ERROR_BAD_PROVIDER,
-								"Could not load provider " //$NON-NLS-1$
-									+ ce.getAttribute("id"), //$NON-NLS-1$
-								e);
-						CoreException toLog = new CoreException(status);
-						XReferencePlugin.log(toLog);
-					}
-				}
-			}
+      for (IExtension ex : exs) {
+        IConfigurationElement[] ces = ex.getConfigurationElements();
+        for (IConfigurationElement ce : ces) {
+          try {
+            XReferenceProviderDefinition def =
+              new XReferenceProviderDefinition(ce);
+            providerList.add(def);
+          }
+          catch (CoreException e) {
+            IStatus status =
+              new Status(
+                IStatus.WARNING,
+                XReferencePlugin.PLUGIN_ID,
+                XReferencePlugin.ERROR_BAD_PROVIDER,
+                "Could not load provider " //$NON-NLS-1$
+                + ce.getAttribute("id"), //$NON-NLS-1$
+                e);
+            CoreException toLog = new CoreException(status);
+            XReferencePlugin.log(toLog);
+          }
+        }
+      }
 		}
 		return providerList;
 	}
@@ -123,11 +124,11 @@ public class XReferenceProviderManager implements NoFFDC {
 		    @SuppressWarnings("rawtypes")
             Class[] servedClasses = provider.getClasses();
 		    if (servedClasses != null) {
-		        for (int i = 0; i < servedClasses.length; i++) {
-		            if (servedClasses[i].isInstance(o)) {
-		                return true;
-		            }
-		        }
+          for (Class servedClass : servedClasses) {
+            if (servedClass.isInstance(o)) {
+              return true;
+            }
+          }
 			}
 		}
 		return false;

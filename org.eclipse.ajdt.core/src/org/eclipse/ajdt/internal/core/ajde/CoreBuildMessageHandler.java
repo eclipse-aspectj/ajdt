@@ -27,7 +27,7 @@ public class CoreBuildMessageHandler implements IBuildMessageHandler {
     // if AJDT is being run headless, then this message handler is active.  Otherwise, ignore any messages from the compiler.
     private static final boolean USE_LOG = Boolean.parseBoolean(System.getProperty("ajdt.showMessagesInLog", Boolean.FALSE.toString()));
 
-	private List<Kind> ignoring;
+	private final List<Kind> ignoring;
 
 	public CoreBuildMessageHandler() {
         ignoring = new ArrayList<>();

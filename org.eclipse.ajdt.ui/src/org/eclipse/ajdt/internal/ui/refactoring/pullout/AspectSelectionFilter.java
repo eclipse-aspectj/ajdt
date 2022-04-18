@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2010 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Kris De Volder - initial API and implementation
  *******************************************************************************/
@@ -22,13 +22,13 @@ import org.eclipse.jdt.ui.dialogs.TypeSelectionExtension;
 /**
  * This is a subclass of TypeSelectionExtension that can be used with
  * {@link JavaUI}.createTypeDialog to show only Aspects.
- * 
+ *
  * @author kdvolder
  */
 public class AspectSelectionFilter extends TypeSelectionExtension {
-	
-	private IJavaProject project;
-	private ITypeInfoFilterExtension theFilter = new ITypeInfoFilterExtension() {
+
+	private final IJavaProject project;
+	private final ITypeInfoFilterExtension theFilter = new ITypeInfoFilterExtension() {
 		public boolean select(ITypeInfoRequestor typeInfoRequestor) {
 			IType type;
 			try {
@@ -39,9 +39,9 @@ public class AspectSelectionFilter extends TypeSelectionExtension {
 			}
 		}
 	};
-	
-	public AspectSelectionFilter(IJavaProject project) { 
-		this.project = project; 
+
+	public AspectSelectionFilter(IJavaProject project) {
+		this.project = project;
 	}
 
 	@Override

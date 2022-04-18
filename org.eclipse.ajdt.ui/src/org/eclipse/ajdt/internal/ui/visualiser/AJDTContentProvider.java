@@ -3,7 +3,7 @@
  * program and the accompanying materials are made available under the terms of
  * the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors: Sian January - initial version
  ******************************************************************************/
 package org.eclipse.ajdt.internal.ui.visualiser;
@@ -50,7 +50,7 @@ public class AJDTContentProvider extends JDTContentProvider {
 
 	/**
 	 * Get all the groups to display.
-	 * 
+	 *
 	 * @see org.eclipse.contribution.visualiser.interfaces.IContentProvider#getAllGroups()
 	 */
 	public List<IGroup> getAllGroups() {
@@ -64,7 +64,7 @@ public class AJDTContentProvider extends JDTContentProvider {
 
 	/**
 	 * Get all the members to display.
-	 * 
+	 *
 	 * @see org.eclipse.contribution.visualiser.interfaces.IContentProvider#getAllMembers()
 	 */
 	public List<IMember> getAllMembers() {
@@ -85,16 +85,16 @@ public class AJDTContentProvider extends JDTContentProvider {
 
 		/*
 		 * What is the significance of this check?
-		 * 
+		 *
 		 * 'If we are not the current content provider, we don't need to bother
 		 * updating to reflect the new selection'?
-		 * 
+		 *
 		 * Yes, but what does it meant to be the current content provider? It's
 		 * not analagous to being the curerntly selected perspective.
-		 * 
+		 *
 		 * Also, this code still gets called, even when the Visualiser
 		 * perspective has been closed. Guess it's still loaded.
-		 * 
+		 *
 		 * -spyoung
 		 */
 
@@ -130,7 +130,7 @@ public class AJDTContentProvider extends JDTContentProvider {
 
 	/**
 	 * Get the data for the current selection.
-	 * 
+	 *
 	 * @param members -
 	 *            add members to the List being returned if true, otherwise add
 	 *            groups
@@ -150,11 +150,11 @@ public class AJDTContentProvider extends JDTContentProvider {
 				if (currentlySelectedJE.getElementType() == IJavaElement.JAVA_PROJECT) {
 					// Process contents of a Java project
 					IPackageFragment[] packageFragments = ((IJavaProject) currentlySelectedJE).getPackageFragments();
-					for (int i = 0; i < packageFragments.length; i++) {
-						if (!(packageFragments[i].isReadOnly())) {
-							addMembersAndGroups(newGroups, newMembers, packageFragments[i]);
-						}
-					}
+          for (IPackageFragment packageFragment : packageFragments) {
+            if (!(packageFragment.isReadOnly())) {
+              addMembersAndGroups(newGroups, newMembers, packageFragment);
+            }
+          }
 				} else if (currentlySelectedJE.getElementType() == IJavaElement.PACKAGE_FRAGMENT) {
 					// Process contents of a Java package(fragment)
 					IPackageFragment packageFragment = (IPackageFragment) currentlySelectedJE;
@@ -226,7 +226,7 @@ public class AJDTContentProvider extends JDTContentProvider {
 
 	/**
 	 * Override super to reset the colour list when the project changes.
-	 * 
+	 *
 	 * @see org.eclipse.contribution.visualiser.jdtImpl.JDTContentProvider#setCurrentProject(org.eclipse.jdt.core.IJavaProject)
 	 */
 	protected void setCurrentProject(IJavaProject newProject) {
@@ -251,7 +251,7 @@ public class AJDTContentProvider extends JDTContentProvider {
 
 	/**
 	 * Process a mouse click on a member
-	 * 
+	 *
 	 * @see org.eclipse.contribution.visualiser.interfaces.IContentProvider#processMouseclick(IMember,
 	 *      boolean, int)
 	 */
@@ -275,7 +275,7 @@ public class AJDTContentProvider extends JDTContentProvider {
 
 	/**
 	 * Get all JDT members for the given IPackageFragment (Java package)
-	 * 
+	 *
 	 * @param packageFragment
 	 * @return List of JDTMembers
 	 */
@@ -284,33 +284,37 @@ public class AJDTContentProvider extends JDTContentProvider {
 		try {
 			if (containsUsefulStuff(packageFragment)) {
 				IJavaElement[] javaElements = packageFragment.getChildren();
-				for (int j = 0; j < javaElements.length; j++) {
-					if (javaElements[j].getElementType() == IJavaElement.COMPILATION_UNIT) {
-						if (getIncludedFiles(packageFragment.getJavaProject().getProject()).contains(
-								javaElements[j].getResource())) {
+        for (IJavaElement javaElement : javaElements) {
+          if (javaElement.getElementType() == IJavaElement.COMPILATION_UNIT) {
+            if (getIncludedFiles(packageFragment.getJavaProject().getProject()).contains(
+              javaElement.getResource()))
+            {
 
-							// Bug 157776: Filter out duplicate compilation units here, not in calling methods
-							if (!IsWovenTester.isWeavingActive() && !(javaElements[j] instanceof AJCompilationUnit)
-									&& javaElements[j].getElementName() != null
-									&& javaElements[j].getElementName().endsWith(".aj")) { //$NON-NLS-1$
-								// Do nothing
-							} else {
-								String memberName = javaElements[j].getElementName();
-								if (!shouldIgnore(memberName)) {
-    								if (memberName.endsWith(".java")) { //$NON-NLS-1$
-    									memberName = memberName.substring(0, memberName.length() - 5);
-    								} else if (memberName.endsWith(".aj")) { //$NON-NLS-1$
-    									memberName = memberName.substring(0, memberName.length() - 3);
-    								}
-    								JDTMember member = new JDTMember(memberName, javaElements[j]);
-    								member.setSize(getLength((ICompilationUnit) javaElements[j]));
-    
-    								returningClasses.add(member);
-								}
-							}
-						}
-					}
-				}
+              // Bug 157776: Filter out duplicate compilation units here, not in calling methods
+              if (!IsWovenTester.isWeavingActive() && !(javaElement instanceof AJCompilationUnit)
+                  && javaElement.getElementName() != null
+                  && javaElement.getElementName().endsWith(".aj"))
+              { //$NON-NLS-1$
+                // Do nothing
+              }
+              else {
+                String memberName = javaElement.getElementName();
+                if (!shouldIgnore(memberName)) {
+                  if (memberName.endsWith(".java")) { //$NON-NLS-1$
+                    memberName = memberName.substring(0, memberName.length() - 5);
+                  }
+                  else if (memberName.endsWith(".aj")) { //$NON-NLS-1$
+                    memberName = memberName.substring(0, memberName.length() - 3);
+                  }
+                  JDTMember member = new JDTMember(memberName, javaElement);
+                  member.setSize(getLength((ICompilationUnit) javaElement));
+
+                  returningClasses.add(member);
+                }
+              }
+            }
+          }
+        }
 			}
 		} catch (JavaModelException jme) {
 		}
@@ -330,7 +334,7 @@ public class AJDTContentProvider extends JDTContentProvider {
 	 * Lazy initialisation method added to avoid null pointer problem(s!) which
 	 * were occurring due to assumed state of includedFiles variable which was
 	 * then compounded by the assumed state of the currentProject variable (!).
-	 * 
+	 *
 	 * -spyoung
 	 */
 	private Set<IFile> getIncludedFiles(IProject project) {

@@ -4,30 +4,30 @@ Wizard Tests
 1. AJDT Plugin Export Wizard - Export without source
 ----------------------------------------------------
 
- a.	Install AJDT and check out the “Hello World Plugin” project from
+ a.	Install AJDT and check out the â€œHello World Pluginâ€ project from
     org.eclipse.ajdt.tests/test projects on the Eclipse CVS repository.  Launch
-    a runtime workbench and click ‘Sample Menu’ > ‘Sample Action’ to verify the
-    plugin is working. You should see a dialog box containing the text “Hello
-    Eclipse and Hello from AspectJ”.
- b.	Right Click on the project then click ‘Export’.  Select ‘Deployable plug-ins
-    and fragments with AspectJ Support’, then click ‘Next’.
-    - The ‘Archive file:’ box within the "Export Declaration" area of the dialog
+    a runtime workbench and click â€˜Sample Menuâ€™ > â€˜Sample Actionâ€™ to verify the
+    plugin is working. You should see a dialog box containing the text â€œHello
+    Eclipse and Hello from AspectJâ€.
+ b.	Right Click on the project then click â€˜Exportâ€™.  Select â€˜Deployable plug-ins
+    and fragments with AspectJ Supportâ€™, then click â€˜Nextâ€™.
+    - The â€˜Archive file:â€™ box within the "Export Declaration" area of the dialog
       should be checked.
-    - Ensure that the ‘Include source code’ checkbox is unchecked.  Select an
+    - Ensure that the â€˜Include source codeâ€™ checkbox is unchecked.  Select an
       appropriate name and location for the zip file within the editable text field
-      associated with the ‘Archive file:’ box within the "Export Declaration" area
+      associated with the â€˜Archive file:â€™ box within the "Export Declaration" area
       of the dialog (e.g. C:\temp\helloworld.zip)
-    - Click ‘Finish’.
+    - Click â€˜Finishâ€™.
  c.	Open the zip file using WinZip or another archiving program.  Extract the
     contents to an appropriate directory (e.g. C:\temp).  This directory will now
-    contain a ‘plugins’ folder, which itself contains a folder with the name of your
+    contain a â€˜pluginsâ€™ folder, which itself contains a folder with the name of your
     plug-in (e.g. HelloWorld_1.0.0).  Open the JAR file in this folder.  Check that
     this JAR file contains the .CLASS files for any aspects you had in your project
     and that it contains no .AJ or .JAVA files.
     		(WIZ_1)
- d.	Test the plug-in by extracting the zip file into the ‘eclipse’ directory,
+ d.	Test the plug-in by extracting the zip file into the â€˜eclipseâ€™ directory,
     within the directory that you have Eclipse installed, then starting the workbench
-    and checking that the ‘Sample Menu’ and ‘Sample Action’ are present and work as
+    and checking that the â€˜Sample Menuâ€™ and â€˜Sample Actionâ€™ are present and work as
     described in a.
     		(WIZ_2)
  
@@ -35,18 +35,18 @@ Wizard Tests
 -------------------------------------------------
 
  a.	Check out the test plug-in project, as defined in part 1a above.
- b.	Right Click on the project in Eclipse then click ‘Export’.  Select ‘Deployable
-    plug-ins and fragments with AspectJ Support’, then click ‘Next’.
-    - The ‘Archive file:’ box within the "Export Declaration" area of the dialog
+ b.	Right Click on the project in Eclipse then click â€˜Exportâ€™.  Select â€˜Deployable
+    plug-ins and fragments with AspectJ Supportâ€™, then click â€˜Nextâ€™.
+    - The â€˜Archive file:â€™ box within the "Export Declaration" area of the dialog
       should be checked.
-    - Ensure that the ‘Include source code’ checkbox is checked.  Select an
+    - Ensure that the â€˜Include source codeâ€™ checkbox is checked.  Select an
       appropriate name and location for the zip file within the editable text field
-      associated with the ‘Archive file:’ box within the "Export Declaration" area
+      associated with the â€˜Archive file:â€™ box within the "Export Declaration" area
       of the dialog (e.g. C:\temp\helloworld.zip)
-    - Click ‘Finish’.
+    - Click â€˜Finishâ€™.
  c.	Open the zip file using WinZip or another archiving program.  Extract the contents
     to an appropriate directory (e.g. C:\temp).  This directory will now contain a
-    ‘plugins’ folder, which itself contains a folder with the name of your plug-in
+    â€˜pluginsâ€™ folder, which itself contains a folder with the name of your plug-in
     (e.g. HelloWorld_1.0.0).  Open the JAR file in this folder.  Check that this JAR
     file contains the .CLASS files for any aspects and classes you had in your project.  
     There should also be a zip file within the zip file created in b.  This should
@@ -86,52 +86,52 @@ public aspect HelloAspect {
 
 ---------------------------------------------------------------------------------
 
-3. AJDT JAR Export Wizard – Export generated class files
+3. AJDT JAR Export Wizard â€“ Export generated class files
 --------------------------------------------------------
  
  a.	If you have not already done so, create the test plug-in project as defined above
- b.	Right click on the project then click ‘Export’.  Select ‘JAR file with AspectJ
-    Support’, then click ‘Next’. Check ‘Export generated class files…’ and ensure that
-    ‘Export java source files…’ is not checked.  
+ b.	Right click on the project then click â€˜Exportâ€™.  Select â€˜JAR file with AspectJ
+    Supportâ€™, then click â€˜Nextâ€™. Check â€˜Export generated class filesâ€¦â€™ and ensure that
+    â€˜Export java source filesâ€¦â€™ is not checked.  
  c.	Select an appropriate location for the JAR file (e.g. C:\temp\hw.jar). Click
-    ‘Finish’.
+    â€˜Finishâ€™.
  d.	Open the JAR using WinZip or an equivalent tool.  It should contain
     HelloAspect.class, SampleAction.class and HelloWorldPlugin.class.  It may contain
     other resources, but should not contain HelloAspect.aj. (WIZ_5)
 
-4. AJDT JAR Export Wizard – Export output folders
+4. AJDT JAR Export Wizard â€“ Export output folders
 -------------------------------------------------
 
  a.	If you have not already done so, create the test plug-in project as defined above 
     (or use the copy you created for test 3.)
- b.	Right click on the project then click ‘Export’.  Select ‘JAR file with AspectJ
-    Support’, then click ‘Next’.  Check ‘Export all output folders…’ and ensure that
-    ‘Export java source files…’ is not checked.  
- c.	Select an appropriate location for the JAR file then click ‘Finish’.
+ b.	Right click on the project then click â€˜Exportâ€™.  Select â€˜JAR file with AspectJ
+    Supportâ€™, then click â€˜Nextâ€™.  Check â€˜Export all output foldersâ€¦â€™ and ensure that
+    â€˜Export java source filesâ€¦â€™ is not checked.  
+ c.	Select an appropriate location for the JAR file then click â€˜Finishâ€™.
  d.	Open the JAR.  It should contain HelloAspect.class, SampleAction.class and
     HelloWorldPlugin.class.  It should not contain HelloAspect.aj.  (WIZ_6)
 
-5. AJDT JAR Export Wizard – Export source
+5. AJDT JAR Export Wizard â€“ Export source
 -----------------------------------------
 
  a.	If you have not already done so, create the test plug-in project as defined above 
     (or use the copy you created for test 3 and 4)
- b.	Right click on the project then click ‘Export’.  Select ‘JAR file with AspectJ
-    Support’, then click ‘Next’. Check ‘Export java source files…’ and ensure that both
-    ‘Export all output folders…’ and ‘Export generated classes…’ are not checked.
- c.	Select an appropriate location for the JAR file then click ‘Finish’.
+ b.	Right click on the project then click â€˜Exportâ€™.  Select â€˜JAR file with AspectJ
+    Supportâ€™, then click â€˜Nextâ€™. Check â€˜Export java source filesâ€¦â€™ and ensure that both
+    â€˜Export all output foldersâ€¦â€™ and â€˜Export generated classesâ€¦â€™ are not checked.
+ c.	Select an appropriate location for the JAR file then click â€˜Finishâ€™.
  d.	Open the JAR.  It should contain HelloAspect.aj, SampleAction.java and
     HelloWorldPlugin.java. (WIZ_7)
 
-6. AJDT JAR Export Wizard – Export generated class files and source
+6. AJDT JAR Export Wizard â€“ Export generated class files and source
 -------------------------------------------------------------------
 
  a.	If you have not already done so, create the test plug-in project as defined above 
     (or use the copy you created for test 3, 4 and 5)
- b.	Right click on the project then click ‘Export’.  Select ‘JAR file with AspectJ
-    Support’, then click ‘Next’. Check ‘Export generated classes…’ and ‘Export java
-    source files…’.  
- c.	Select a location for the JAR then click ‘Finish’.
+ b.	Right click on the project then click â€˜Exportâ€™.  Select â€˜JAR file with AspectJ
+    Supportâ€™, then click â€˜Nextâ€™. Check â€˜Export generated classesâ€¦â€™ and â€˜Export java
+    source filesâ€¦â€™.  
+ c.	Select a location for the JAR then click â€˜Finishâ€™.
  d.	Open the JAR.  It should contain HelloAspect.aj, SampleAction.java,
     HelloWorldPlugin.java, HelloAspect.class, SampleAction.class and
     HelloWorldPlugin.class. (WIZ_8)

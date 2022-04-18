@@ -4,7 +4,7 @@
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors: Sian January - initial version
  * ...
  **********************************************************************/
@@ -34,32 +34,32 @@ public class AJMainMethodSearchEngineTest extends UITestCase {
         project = createPredefinedProject("Bug261745MainMethodTesting"); //$NON-NLS-1$
         jp = JavaCore.create(project);
     }
-	
-	
+
+
     public void testMainInClassWithAspect() throws Exception {
         IFile file = project.getFile("src/f/Main1.java");
         IJavaElement elt = AspectJCore.create(file);
         doSearch(elt, 1);
     }
-    
+
     public void testMainInAspect() throws Exception {
         IFile file = project.getFile("src/f/Main2.aj");
         IJavaElement elt = AspectJCore.create(file);
         doSearch(elt, 1);
     }
-    
+
     public void testMainInNestedClassInAJFile() throws Exception {
         IFile file = project.getFile("src/f/Main3.aj");
         IJavaElement elt = AspectJCore.create(file);
         doSearch(elt, 1);
     }
-    
+
     public void testMainInClass() throws Exception {
         IFile file = project.getFile("src/f/Main4.java");
         IJavaElement elt = AspectJCore.create(file);
         doSearch(elt, 1);
     }
-    
+
     /**
      * this is one that we can't find
      */
@@ -68,11 +68,11 @@ public class AJMainMethodSearchEngineTest extends UITestCase {
         IJavaElement elt = AspectJCore.create(file);
         doSearch(elt, 0);
     }
-    
+
     public void testMainInProject() throws Exception {
         doSearch(jp, 4);
     }
-    
+
     public void testMainInPackage() throws Exception {
         IFolder file = project.getFolder("src/f");
         IJavaElement elt = JavaCore.create(file);
@@ -85,9 +85,9 @@ public class AJMainMethodSearchEngineTest extends UITestCase {
         doSearch(elt, 4);
     }
 
-    
 
-    
+
+
 
     private void doSearch(IJavaElement elt, int expected) throws Exception {
         AJMainMethodSearchEngine searchEngine = new AJMainMethodSearchEngine();
@@ -95,12 +95,12 @@ public class AJMainMethodSearchEngineTest extends UITestCase {
         int constraints = IJavaSearchScope.SOURCES;
         IJavaSearchScope scope = SearchEngine.createJavaSearchScope(elements, constraints);
         IType[] results = searchEngine.searchMainMethodsIncludingAspects(new NullProgressMonitor(), scope, true);
-        assertTrue("There should be " + expected + 
-                " main method(s) found.  Instead found " + 
-                results, results.length == expected); //$NON-NLS-1$
+      assertEquals("There should be " + expected +
+                   " main method(s) found.  Instead found " +
+                   results, results.length, expected); //$NON-NLS-1$
     }
-    
-    
+
+
     /**
      * this is an old test case.  Keep it around even though it doesn't fit with the ones
      * above
@@ -110,25 +110,24 @@ public class AJMainMethodSearchEngineTest extends UITestCase {
 	    IJavaProject jp2 = JavaCore.create(project2);
 		IFile propertiesFile = project2.getFile("notrace.ajproperties"); //$NON-NLS-1$
 		assertNotNull(propertiesFile);
-		assertTrue(propertiesFile.exists());		
+		assertTrue(propertiesFile.exists());
 		BuildConfigurationUtils.applyBuildConfiguration(propertiesFile);
 		waitForJobsToComplete();
 		AJMainMethodSearchEngine searchEngine = new AJMainMethodSearchEngine();
 		IJavaElement[] elements = new IJavaElement[]{jp2};
-	
+
 		int constraints = IJavaSearchScope.SOURCES;
 		IJavaSearchScope scope = SearchEngine.createJavaSearchScope(elements, constraints);
 		Object[] results = searchEngine.searchMainMethodsIncludingAspects(new NullProgressMonitor(), scope, true);
-		assertTrue("There should be one result, found " + results.length, results.length == 1); //$NON-NLS-1$
+    assertEquals("There should be one result, found " + results.length, 1, results.length); //$NON-NLS-1$
 		propertiesFile = project2.getFile("tracev1.ajproperties"); //$NON-NLS-1$
 		assertNotNull(propertiesFile);
-		assertTrue(propertiesFile.exists());		
+		assertTrue(propertiesFile.exists());
 		BuildConfigurationUtils.applyBuildConfiguration(propertiesFile);
 		waitForJobsToComplete();
 		waitForJobsToComplete();
 		Object[] results2 = searchEngine.searchMainMethodsIncludingAspects(new NullProgressMonitor(), scope, true);
-		assertTrue("There should be two results, found " + results2.length, results2.length == 2); //$NON-NLS-1$
+    assertEquals("There should be two results, found " + results2.length, 2, results2.length); //$NON-NLS-1$
 	}
-	
-}
 
+}

@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -62,7 +62,7 @@ public class Bug162211Test extends UITestCase {
 	 * Test for bug 162211: Causing a full build should not cause problems for
 	 * Java projects
 	 */
-	public void testPerformApplyAndBuild() throws Exception {
+	public void testPerformApplyAndBuild() {
 		// make a change on the page which should result in asking
 		// whether the user wants to do a build
 		page.setButtonChanged();

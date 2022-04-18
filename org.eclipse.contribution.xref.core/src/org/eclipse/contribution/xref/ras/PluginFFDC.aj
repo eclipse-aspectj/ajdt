@@ -103,16 +103,15 @@ public abstract aspect PluginFFDC extends FFDC {
 		try {
 			Field[] fields = obj.getClass().getDeclaredFields();
 
-			for (int i = 0; i < fields.length; i++) {
-				Field field = fields[i];
-				field.setAccessible(true);
-				/* Omit static join point fields */
-				if (!sjpClass.isAssignableFrom(field.getType())) {
-					Object value = field.get(obj);
-					String fieldMessage = field.getName() + "=" + safeToString(value); //$NON-NLS-1$
-					fieldValues.add(new Status(IStatus.INFO,getPluginId(),IStatus.OK,fieldMessage,null));
-				}
-			}
+      for (Field field : fields) {
+        field.setAccessible(true);
+        /* Omit static join point fields */
+        if (!sjpClass.isAssignableFrom(field.getType())) {
+          Object value = field.get(obj);
+          String fieldMessage = field.getName() + "=" + safeToString(value); //$NON-NLS-1$
+          fieldValues.add(new Status(IStatus.INFO, getPluginId(), IStatus.OK, fieldMessage, null));
+        }
+      }
 
 			fieldValuesArray = new IStatus[fieldValues.size()];
 			fieldValues.toArray(fieldValuesArray);
@@ -121,13 +120,12 @@ public abstract aspect PluginFFDC extends FFDC {
 			fieldValuesArray = new IStatus[] {};
 		}
 
-		IStatus result = new MultiStatus(getPluginId(),IStatus.INFO,fieldValuesArray,message,null);
-		return result;
+    return new MultiStatus(getPluginId(),IStatus.INFO,fieldValuesArray,message,null);
 	}
 
 	private static String safeToString (Object obj) {
 		if (obj == null) return "null"; //$NON-NLS-1$
-		else if (obj instanceof String) return "\"" + obj.toString() + "\""; //$NON-NLS-1$ //$NON-NLS-2$
+		else if (obj instanceof String) return "\"" + obj + "\""; //$NON-NLS-1$ //$NON-NLS-2$
 		else return (obj.getClass() + "@" + obj.hashCode()); //$NON-NLS-1$
 	}
 }

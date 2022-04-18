@@ -7,14 +7,14 @@ projects in the workspace.
 
 1. Test searching for main methods
 
- a.	Click ‘Run’ > ‘Run…’.  Click on ‘AspectJ Application’ then click ‘New’.  Select the
+ a.	Click â€˜Runâ€™ > â€˜Runâ€¦â€™.  Click on â€˜AspectJ Applicationâ€™ then click â€˜Newâ€™.  Select the
     newly created configuration.
- b.	Select the ‘Main’ tab if not already selected.  Ensure that the project text box is
-    empty, then click ‘Search..’.  A dialog should appear containing five entries – three
+ b.	Select the â€˜Mainâ€™ tab if not already selected.  Ensure that the project text box is
+    empty, then click â€˜Search..â€™.  A dialog should appear containing five entries â€“ three
     aspects (CloneablePoint, ComparablePoint and HashablePoint) and two classes
     (ExampleMain and Point).  Ensure that the Aspects have the correct icons. (LAUNCH_1)
- c.	Select HashablePoint then click ‘OK’.  The project and class boxes on the main page
-    should have to correct details in and when ‘Run’ is pressed the output should be as
+ c.	Select HashablePoint then click â€˜OKâ€™.  The project and class boxes on the main page
+    should have to correct details in and when â€˜Runâ€™ is pressed the output should be as
     follows: (LAUNCH_2)
 
   p1 = (10.0, 10.0)[0.7853981633974483 : 14.142135623730951]
@@ -23,42 +23,42 @@ projects in the workspace.
   p2.hashCode() = 20
   Got: P1
 
- d.	Follow step a as above.  Select the ‘Main’ tab, then click ‘Browse’ and select
-    ‘Introduction’ example.  Click ‘OK’ and the project box should contain the text
-    “Introduction Example”.  Click Search again and the dialog should only show four
+ d.	Follow step a as above.  Select the â€˜Mainâ€™ tab, then click â€˜Browseâ€™ and select
+    â€˜Introductionâ€™ example.  Click â€˜OKâ€™ and the project box should contain the text
+    â€œIntroduction Exampleâ€.  Click Search again and the dialog should only show four
     entries (CloneablePoint, ComparablePoint, HashablePoint and Point). (LAUNCH_3)
- e.	Open the tracing example, right click on tracev1.ajproperties and select ‘Activate
-    this configuration’.  Follow steps a and b as above, except that the dialog should now
-    also contain a fourth aspect – TraceMyClasses. (LAUNCH_4)
+ e.	Open the tracing example, right click on tracev1.ajproperties and select â€˜Activate
+    this configurationâ€™.  Follow steps a and b as above, except that the dialog should now
+    also contain a fourth aspect â€“ TraceMyClasses. (LAUNCH_4)
 
 2. Test launcher shortcuts from the package explorer
 
  a.	Open the Tracing Example project and then right click on TraceMyClasses in the
-    tracing.version1 package. Click ‘Run’ > ‘AspectJ/Java Application’ and the class should
+    tracing.version1 package. Click â€˜Runâ€™ > â€˜AspectJ/Java Applicationâ€™ and the class should
     run with some tracing being output to the console.   (LAUNCH_5)
  b.	If you click on the arrow next to the run icon (green circle with a white arrow
-    inside it) on the toolbar you should see a ‘TraceMyClasses’ entry at the top of
+    inside it) on the toolbar you should see a â€˜TraceMyClassesâ€™ entry at the top of
     the list with an AspectJApplication icon.  If you repeat step a. you should still
-    just see the one ‘TraceMyClasses’ entry and no new entries since the last run.
+    just see the one â€˜TraceMyClassesâ€™ entry and no new entries since the last run.
     (LAUNCH_6)
- c.	Right click on the tracing.version1 package and then click ‘Run’
-    > ‘AspectJ/Java Application’.  TraceMyClasses should run as in a.
- d.	Right click on the Tracing Example project and then click ‘Run’
-    > ‘AspectJ/Java Application’. A dialog containing a number of classes should appear. 
+ c.	Right click on the tracing.version1 package and then click â€˜Runâ€™
+    > â€˜AspectJ/Java Applicationâ€™.  TraceMyClasses should run as in a.
+ d.	Right click on the Tracing Example project and then click â€˜Runâ€™
+    > â€˜AspectJ/Java Applicationâ€™. A dialog containing a number of classes should appear. 
     Check that the TraceMyClasses aspect is included in the list.  Click on TraceMyClasses
-    then click ‘OK’ and ensure that it runs as before. (LAUNCH_7)
+    then click â€˜OKâ€™ and ensure that it runs as before. (LAUNCH_7)
 
 3. Test launch shortcuts from the editor
 
- a.	Open TraceMyClasses in the editor.  Click ‘Run’ > ‘Run As’ >
-    ‘AspectJ/Java Application’.
+ a.	Open TraceMyClasses in the editor.  Click â€˜Runâ€™ > â€˜Run Asâ€™ >
+    â€˜AspectJ/Java Applicationâ€™.
     Check that the method runs as in part 2. (LAUNCH_8)
 
 
 4. Test Debugging
 
- a.	Click ‘Debug’ > ‘Debug..’ and ensure that ‘AspectJ/Java Application is one of the
-    options and that it works the same as in the “Run” dialog.  If you set a breakpoint
+ a.	Click â€˜Debugâ€™ > â€˜Debug..â€™ and ensure that â€˜AspectJ/Java Application is one of the
+    options and that it works the same as in the â€œRunâ€ dialog.  If you set a breakpoint
     in the main method of TraceMyClasses you should be prompted to swich to the Debug
     perspective when you debug it. (LAUNCH_9)
 
@@ -66,31 +66,31 @@ projects in the workspace.
 
  a.	Open the current build configuration file for the Tracing Example project.  Select the
     tracing.version1, tracing.version2 and tracing.version3 packages and save the file.
- b.	Click ‘Run’ > ‘Run..’, select ‘AspectJ/Java Application’ and then click ‘New’.
-    “Tracing Example” should be in the project text field.  If not click ‘Browse’ and then
-    select it.  Click ‘Search’.  The list should contain ExampleMain and TraceMyClasses. 
-    If you select TraceMyClasses you should see three packages in the lower list –
+ b.	Click â€˜Runâ€™ > â€˜Run..â€™, select â€˜AspectJ/Java Applicationâ€™ and then click â€˜Newâ€™.
+    â€œTracing Exampleâ€ should be in the project text field.  If not click â€˜Browseâ€™ and then
+    select it.  Click â€˜Searchâ€™.  The list should contain ExampleMain and TraceMyClasses. 
+    If you select TraceMyClasses you should see three packages in the lower list â€“
     tracing.version1, tracing.version2 and tracing.version3.  Select tracing.version3,
-    click ‘OK’ and ensure that the Main Class field is filled with the correct package
+    click â€˜OKâ€™ and ensure that the Main Class field is filled with the correct package
     name. (LAUNCH_10)
 
 
-For the following tests you will need to check out ‘Simple Project’ and ‘Tracing Aspect
-Project’ from the ‘test projects’ directory of the org.eclipse.ajdt.tests plug-in.
+For the following tests you will need to check out â€˜Simple Projectâ€™ and â€˜Tracing Aspect
+Projectâ€™ from the â€˜test projectsâ€™ directory of the org.eclipse.ajdt.tests plug-in.
 
 6. Test the aspect path support
 
- a.	Set up ‘Tracing Aspect Project’ to build into an jar file called tracing.jar (Right
-    Click on the project, click ‘Properties’., ‘AspectJ’ and type in “tracing.jar” in the
-    ‘Output jar’ text field.)  Rebuild the project.
- b.	Right click on ‘Simple Project’ then click properties.  Select ‘AspectJ Aspect Path’
-    and then click ‘Add Jars’ and choose tracing.jar from the ‘Tracing Aspect Project’
-    project.  Click ‘OK’, then click ‘OK again.  Build the project.
- c.	Click ‘Run’ > ‘Run..’, select ‘AspectJ/Java Application’ and then click ‘New’.  Enter
-    “Simple Project” in the project text field and “mainPackage.MainClass” in the main
-    class field.  Select the ‘Classpath’ tab and ensure that the ‘Aspect Path’ node
+ a.	Set up â€˜Tracing Aspect Projectâ€™ to build into an jar file called tracing.jar (Right
+    Click on the project, click â€˜Propertiesâ€™., â€˜AspectJâ€™ and type in â€œtracing.jarâ€ in the
+    â€˜Output jarâ€™ text field.)  Rebuild the project.
+ b.	Right click on â€˜Simple Projectâ€™ then click properties.  Select â€˜AspectJ Aspect Pathâ€™
+    and then click â€˜Add Jarsâ€™ and choose tracing.jar from the â€˜Tracing Aspect Projectâ€™
+    project.  Click â€˜OKâ€™, then click â€˜OK again.  Build the project.
+ c.	Click â€˜Runâ€™ > â€˜Run..â€™, select â€˜AspectJ/Java Applicationâ€™ and then click â€˜Newâ€™.  Enter
+    â€œSimple Projectâ€ in the project text field and â€œmainPackage.MainClassâ€ in the main
+    class field.  Select the â€˜Classpathâ€™ tab and ensure that the â€˜Aspect Pathâ€™ node
     contains tracing.jar as a child. (LAUNCH_11)
- d.	Click ‘Run’.  You should see the following output in the console: (LAUNCH_12)
+ d.	Click â€˜Runâ€™.  You should see the following output in the console: (LAUNCH_12)
 
   Entering a method
   Entering a method
@@ -102,12 +102,12 @@ Project’ from the ‘test projects’ directory of the org.eclipse.ajdt.tests plug-i
   Entering a method
   Method d
  
- e.	Click ‘Run’ > ‘Run..’ and delete the configuration you just created.  Click ‘Close’.
-    Right click on ‘MainClass’ in the ‘Simple Project’ project, then click ‘Run’
-    > ‘AspectJ/Java Application’. You should see the same output as part c in the console
+ e.	Click â€˜Runâ€™ > â€˜Run..â€™ and delete the configuration you just created.  Click â€˜Closeâ€™.
+    Right click on â€˜MainClassâ€™ in the â€˜Simple Projectâ€™ project, then click â€˜Runâ€™
+    > â€˜AspectJ/Java Applicationâ€™. You should see the same output as part c in the console
     window.
- f.	Repeat steps a-c.  Remove tracing.jar from the aspect path and rebuild.  Click ‘Run’ >
-    ‘Run As’ then select the configuration you just created.  Click on the ‘Classpath’ tab
+ f.	Repeat steps a-c.  Remove tracing.jar from the aspect path and rebuild.  Click â€˜Runâ€™ >
+    â€˜Run Asâ€™ then select the configuration you just created.  Click on the â€˜Classpathâ€™ tab
     and ensure that tracing.jar is no longer on the aspect path, or the classpath.
     (LAUNCH_13)
     

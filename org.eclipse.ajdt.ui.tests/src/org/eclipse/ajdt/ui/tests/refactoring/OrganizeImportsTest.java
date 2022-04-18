@@ -32,7 +32,7 @@ public class OrganizeImportsTest extends UITestCase {
             fail("Must be using JDT Weaving");
         }
     }
-    
+
     /**
      * Should not remove the aspect in the imports statement
      */
@@ -40,14 +40,14 @@ public class OrganizeImportsTest extends UITestCase {
         IProject proj = createPredefinedProject("Bug 188845"); //$NON-NLS-1$
         IFile concrete = proj.getFile("src/tmp/b/ConcreteAspect.aj"); //$NON-NLS-1$
         ICompilationUnit cu = (ICompilationUnit) AspectJCore.create(concrete);
-        
+
         JavaEditor editor = (JavaEditor) EditorUtility.openInEditor(cu);
-        
+
         assertEquals("Should start off with 2 import statements", 2, cu.getImportContainer().getChildren().length); //$NON-NLS-1$
         OrganizeImportsAction action = new OrganizeImportsAction(editor);
         action.run(cu);
         editor.doSave(null);
-        
+
         // hmmm...why do I need to do a full build here?  That's odd
         // If I don't, then I am getting some error markers.
         proj.build(org.eclipse.core.resources.IncrementalProjectBuilder.FULL_BUILD, null);
@@ -57,16 +57,16 @@ public class OrganizeImportsTest extends UITestCase {
 
         IMarker[] markers = concrete.findMarkers(IMarker.MARKER, true, IResource.DEPTH_INFINITE);
         if (markers.length > 0) {
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
             sb.append("No markers should have been found, but the following markers were found on A.aj:\n"); //$NON-NLS-1$
-            for (int i = 0; i < markers.length; i++) {
-                sb.append("\t" + markers[i].getAttribute(IMarker.MESSAGE) + "\n"); //$NON-NLS-1$ //$NON-NLS-2$
-            }
-            assertEquals(sb.toString(), 0, markers.length); 
+          for (IMarker marker : markers) {
+            sb.append("\t" + marker.getAttribute(IMarker.MESSAGE) + "\n"); //$NON-NLS-1$ //$NON-NLS-2$
+          }
+            assertEquals(sb.toString(), 0, markers.length);
         }
 
     }
-    
+
     /**
      * should add the LinkedList import statement in the proper location (not above the package declaration)
      */
@@ -74,9 +74,9 @@ public class OrganizeImportsTest extends UITestCase {
         IProject proj = createPredefinedProject("Bug 188845"); //$NON-NLS-1$
         IFile concrete = proj.getFile("src/tmp/b/ConcreteAspect2.aj"); //$NON-NLS-1$
         ICompilationUnit cu = (ICompilationUnit) AspectJCore.create(concrete);
-        
+
         JavaEditor editor = (JavaEditor) EditorUtility.openInEditor(cu);
-        
+
         assertEquals("Should start off with 2 import statements", 2, cu.getImportContainer().getChildren().length); //$NON-NLS-1$
         OrganizeImportsAction action = new OrganizeImportsAction(editor);
         action.run(cu);
@@ -87,15 +87,15 @@ public class OrganizeImportsTest extends UITestCase {
 
         IMarker[] markers = concrete.findMarkers(IMarker.MARKER, true, IResource.DEPTH_INFINITE);
         if (markers.length > 0) {
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
             sb.append("No markers should have been found, but the following markers were found on ConcreteAspect2.aj:\n"); //$NON-NLS-1$
-            for (int i = 0; i < markers.length; i++) {
-                sb.append("\t" + markers[i].getAttribute(IMarker.MESSAGE) + "\n"); //$NON-NLS-1$ //$NON-NLS-2$
-            }
-            assertEquals(sb.toString(), 0, markers.length); 
+          for (IMarker marker : markers) {
+            sb.append("\t" + marker.getAttribute(IMarker.MESSAGE) + "\n"); //$NON-NLS-1$ //$NON-NLS-2$
+          }
+            assertEquals(sb.toString(), 0, markers.length);
         }
     }
-    
+
     /**
      * static inner classes enclosed in an aspect should be imported with the enclosing aspect around it.
      */
@@ -106,24 +106,24 @@ public class OrganizeImportsTest extends UITestCase {
 
         IMarker[] markers = importer.findMarkers(IMarker.MARKER, true, IResource.DEPTH_INFINITE);
         if (markers.length > 1) {
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
             sb.append("Should start with 1 error, but the following markers were found on Importer.java:\n"); //$NON-NLS-1$
-            for (int i = 0; i < markers.length; i++) {
-                sb.append("\t" + markers[i].getAttribute(IMarker.MESSAGE) + "\n"); //$NON-NLS-1$ //$NON-NLS-2$
-            }
-            assertEquals(sb.toString(), 0, markers.length); 
+          for (IMarker marker : markers) {
+            sb.append("\t" + marker.getAttribute(IMarker.MESSAGE) + "\n"); //$NON-NLS-1$ //$NON-NLS-2$
+          }
+            assertEquals(sb.toString(), 0, markers.length);
         }
-        
+
         JavaEditor editor = (JavaEditor) EditorUtility.openInEditor(cu);
-        
+
         try {
             IImportContainer container = cu.getImportContainer();
             container.getChildren();
-            fail("Should not start off with an import container, but instead found:\n " + container.toString()); //$NON-NLS-1$
+            fail("Should not start off with an import container, but instead found:\n " + container); //$NON-NLS-1$
         } catch (JavaModelException e) {
             // expected
         }
-        
+
         OrganizeImportsAction action = new OrganizeImportsAction(editor);
         action.run(cu);
         editor.doSave(null);
@@ -137,14 +137,14 @@ public class OrganizeImportsTest extends UITestCase {
 
         markers = importer.findMarkers(IMarker.MARKER, true, IResource.DEPTH_INFINITE);
         if (markers.length > 0) {
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
             sb.append("No markers should have been found, but the following markers were found on Importer.java:\n"); //$NON-NLS-1$
-            for (int i = 0; i < markers.length; i++) {
-                sb.append("\t" + markers[i].getAttribute(IMarker.MESSAGE) + "\n"); //$NON-NLS-1$ //$NON-NLS-2$
-            }
-            assertEquals(sb.toString(), 0, markers.length); 
+          for (IMarker marker : markers) {
+            sb.append("\t" + marker.getAttribute(IMarker.MESSAGE) + "\n"); //$NON-NLS-1$ //$NON-NLS-2$
+          }
+            assertEquals(sb.toString(), 0, markers.length);
         }
     }
-    
-    
+
+
 }

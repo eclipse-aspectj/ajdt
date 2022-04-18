@@ -60,7 +60,7 @@ public class AJSerialVersionSubProcessor extends PotentialProgrammingProblemsFix
      * @param proposals
      *        the proposal collection to extend
      */
-    public static final void getSerialVersionProposals(final IInvocationContext context, final IProblemLocation location, final Collection proposals) {
+    public static void getSerialVersionProposals(final IInvocationContext context, final IProblemLocation location, final Collection proposals) {
 
         Assert.isNotNull(context);
         Assert.isNotNull(location);

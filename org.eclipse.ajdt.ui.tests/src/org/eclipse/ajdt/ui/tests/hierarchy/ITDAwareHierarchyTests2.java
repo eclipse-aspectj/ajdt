@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2010 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Andrew Eisenberg - initial version
  *******************************************************************************/
@@ -33,23 +33,23 @@ import org.eclipse.jdt.internal.core.search.indexing.IndexManager;
  */
 public class ITDAwareHierarchyTests2 extends UITestCase {
     IJavaProject proj;
-    
+
     // for some reason, the primary owner is from jdt ui, and this is giving us problems
     // set it to null, so that the ui plugin is not triggered here.
     WorkingCopyOwner primaryOwner;
-    
+
     protected void setUp() throws Exception {
         super.setUp();
         primaryOwner = DefaultWorkingCopyOwner.PRIMARY.primaryBufferProvider;
         DefaultWorkingCopyOwner.PRIMARY.primaryBufferProvider = null;
-        
+
         proj = JavaCore.create(createPredefinedProject("DefaultEmptyProject"));
-        
+
         // ensure the project is indexed so that hierarchy building can occur
         IndexManager manager = JavaModelManager.getIndexManager();
         manager.indexAll(proj.getProject());
     }
-    
+
     protected void tearDown() throws Exception {
         try {
             super.tearDown();
@@ -57,17 +57,17 @@ public class ITDAwareHierarchyTests2 extends UITestCase {
             DefaultWorkingCopyOwner.PRIMARY.primaryBufferProvider = primaryOwner;
         }
     }
-    
+
     public void testAbstractAspectWithDeclare() throws Exception {
-        ICompilationUnit[] units = createUnits(new String[] { "p" }, 
-                new String[] { "AbstractAspect.aj" }, 
+        ICompilationUnit[] units = createUnits(new String[] { "p" },
+                new String[] { "AbstractAspect.aj" },
                 new String[] {
                         "package p;\n" +
                         "public abstract aspect AbstractAspect {\n" +
                         "declare parents : Class extends X;\n" +
                         "declare parents : Class extends Y;\n" +
                         "}\n" +
-                        "aspect Aspect extends AbstractAspect {\n" + 
+                        "aspect Aspect extends AbstractAspect {\n" +
                         "    void something(X x) {\n" +
                         "       something(new Class());\n" +
                         "    }\n" +
@@ -80,7 +80,7 @@ public class ITDAwareHierarchyTests2 extends UITestCase {
                         "class Class { }" }, proj);
 
         IType clazz = units[0].getType("Class");
-        
+
         TypeHierarchy hierarchy = new TypeHierarchy(clazz, units, proj, false);
         hierarchy.refresh(null);
         IType[] allClasses = hierarchy.getAllClasses();
@@ -93,17 +93,17 @@ public class ITDAwareHierarchyTests2 extends UITestCase {
         arrayContains("X", allInterfaces);
         arrayContains("Y", allInterfaces);
     }
-    
+
     public void testAbstractGenericAspectWithDeclare() throws Exception {
-        ICompilationUnit[] units = createUnits(new String[] { "p" }, 
-                new String[] { "AbstractAspect.aj" }, 
+        ICompilationUnit[] units = createUnits(new String[] { "p" },
+                new String[] { "AbstractAspect.aj" },
                 new String[] {
                         "package p;\n" +
                         "public abstract aspect AbstractAspect<S, T> {\n" +
                         "declare parents : Class extends S;\n" +
                         "declare parents : Class extends T;\n" +
                         "}\n" +
-                        "aspect Aspect extends AbstractAspect<X, Y> {\n" + 
+                        "aspect Aspect extends AbstractAspect<X, Y> {\n" +
                         "    void something(X x) {\n" +
                         "       something(new Class());\n" +
                         "    }\n" +
@@ -116,7 +116,7 @@ public class ITDAwareHierarchyTests2 extends UITestCase {
                         "class Class { }" }, proj);
 
         IType clazz = units[0].getType("Class");
-        
+
         TypeHierarchy hierarchy = new TypeHierarchy(clazz, units, proj, false);
         hierarchy.refresh(null);
         IType[] allClasses = hierarchy.getAllClasses();
@@ -129,13 +129,13 @@ public class ITDAwareHierarchyTests2 extends UITestCase {
         arrayContains("X", allInterfaces);
         arrayContains("Y", allInterfaces);
     }
-    
-    
+
+
     private void arrayContains(String elementName, IType[] array) {
         boolean found = false;
-        for (int i = 0; i < array.length; i++) {
-            found |= array[i].getElementName().equals(elementName);
-        }
+      for (IType iType : array) {
+        found |= iType.getElementName().equals(elementName);
+      }
         if (!found) {
             fail("Searching for " + elementName + " in ITD aware type hierarchy, but not found");
         }

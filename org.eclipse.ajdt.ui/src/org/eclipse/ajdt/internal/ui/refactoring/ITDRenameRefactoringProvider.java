@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2009 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Andrew Eisenberg - initial API and implementation
  *******************************************************************************/
@@ -46,7 +46,7 @@ import org.eclipse.ui.internal.Workbench;
 /**
  * This is a UI class that ensures that the proper Refactoring
  * and wizard are invoked when rename is selected on an ITD.
- * 
+ *
  * @author Andrew Eisenberg
  * @created May 21, 2010
  */
@@ -54,12 +54,12 @@ public class ITDRenameRefactoringProvider implements IRefactoringProvider {
 
     static {
         // ensure the user interface manager is properly initialized
-        ReflectionUtils.executePrivateMethod(UserInterfaceManager.class, "put", 
+        ReflectionUtils.executePrivateMethod(UserInterfaceManager.class, "put",
                 new Class<?>[] { Class.class, Class.class, Class.class },
-                RenameUserInterfaceManager.getDefault(), new Object[] { 
+                RenameUserInterfaceManager.getDefault(), new Object[] {
                 ITDRenameRefactoringProcessor.class, RenameUserInterfaceStarter.class, RenameITDWizard.class });
     }
-    
+
     public boolean isInterestingElement(IJavaElement element) {
         return element instanceof IntertypeElement;
     }
@@ -67,10 +67,10 @@ public class ITDRenameRefactoringProvider implements IRefactoringProvider {
     public void performRefactoring(IJavaElement element, boolean lightweight) throws CoreException {
         RefactoringStatus status = new RefactoringStatus();
         JavaRenameProcessor processor = new ITDRenameRefactoringProcessor((IntertypeElement) element, status);
-        
+
         if (status.isOK()) {
-            final RenameSupport support = ReflectionUtils.executePrivateConstructor(RenameSupport.class, new Class[] { JavaRenameProcessor.class, String.class, int.class }, 
-                    new Object[] { processor, null, new Integer(RenameSupport.UPDATE_REFERENCES) });
+            final RenameSupport support = ReflectionUtils.executePrivateConstructor(RenameSupport.class, new Class[] { JavaRenameProcessor.class, String.class, int.class },
+                    new Object[] { processor, null, RenameSupport.UPDATE_REFERENCES });
             if (support != null && support.preCheck().isOK()) {
                 support.openDialog(getShell());
             }
@@ -81,9 +81,9 @@ public class ITDRenameRefactoringProvider implements IRefactoringProvider {
             }
         }
     }
-    
+
     /**
-     * Lightweight rename refactoring is often broken inside of {@link AJCompilationUnit}s, 
+     * Lightweight rename refactoring is often broken inside of {@link AJCompilationUnit}s,
      * so just disable it.
      * @param elt
      * @return true if the element is inside an {@link AJCompilationUnit}
@@ -122,9 +122,9 @@ public class ITDRenameRefactoringProvider implements IRefactoringProvider {
     public CompilationUnit createASTForRefactoring(ITypeRoot root) {
         if (root instanceof AJCompilationUnit) {
             AJCompilationUnit ajUnit = (AJCompilationUnit) root;
-            
-            // create a clone of the original ajUnit so that 
-            // an ast and its bindings can be created on the constant sized source 
+
+            // create a clone of the original ajUnit so that
+            // an ast and its bindings can be created on the constant sized source
             // code
             try {
                 ajUnit.requestOriginalContentMode();
@@ -140,7 +140,7 @@ public class ITDRenameRefactoringProvider implements IRefactoringProvider {
                 ASTNode result = parser.createAST(null);
                 return result instanceof CompilationUnit ? (CompilationUnit) result : null;
             } catch (JavaModelException e) {
-            } 
+            }
         }
         return null;
     }
@@ -149,7 +149,7 @@ public class ITDRenameRefactoringProvider implements IRefactoringProvider {
         IProject project = unit.getJavaProject().getProject();
         return AspectJPlugin.isAJProject(project);
     }
-    
+
     /**
      * Creates an AST for the given compilation unit with translated code.
      * The source locations of the created AST have been converted back so that they reflect the source locations
@@ -159,7 +159,7 @@ public class ITDRenameRefactoringProvider implements IRefactoringProvider {
         AspectsConvertingParser converter = new AspectsConvertingParser(contents.toCharArray());
         converter.setUnit(unit);
         final ArrayList<Replacement> replacements = converter.convert(ConversionOptions.CODE_COMPLETION);
-        
+
         ASTParser fParser = ASTParser.newParser(AST.JLS4);
         fParser.setResolveBindings(resolveBindings);
         fParser.setStatementsRecovery(statementsRecovery);

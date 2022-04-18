@@ -51,7 +51,7 @@ public class ITDReferenceVisitor extends AjASTVisitor {
      * of ITD variables
      */
     static class Scope {
-        private Set<String> varNames;
+        private final Set<String> varNames;
         final Scope parent;
 
         public Scope(Scope parent) {
@@ -73,15 +73,15 @@ public class ITDReferenceVisitor extends AjASTVisitor {
     }
 
     private Scope currentScope;
-    private IntertypeElement itd;
+    private final IntertypeElement itd;
     private FieldPattern fieldPattern;
     private MethodPattern methodPattern;
-    private SearchParticipant participant;
-    private List<SearchMatch> definitiveMatches;
+    private final SearchParticipant participant;
+    private final List<SearchMatch> definitiveMatches;
 
     // these are matches that we know about, but
     // may have arlready been reported by the requestor
-    private List<SearchMatch> tentativeMatches;
+    private final List<SearchMatch> tentativeMatches;
 
     public ITDReferenceVisitor(IntertypeElement itd, SearchPattern pattern, SearchParticipant participant) {
         this.itd = itd;

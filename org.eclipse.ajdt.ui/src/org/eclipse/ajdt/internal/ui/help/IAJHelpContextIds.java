@@ -19,14 +19,14 @@ import org.eclipse.ajdt.ui.AspectJUIPlugin;
  * This interface contains constants only; it is not intended to be implemented
  * or extended.
  * </p>
- * 
+ *
  */
 public interface IAJHelpContextIds {
-	
-	public static final String PREFIX= AspectJUIPlugin.PLUGIN_ID + '.';
-	
-	public static final String ASPECTJ_EDITOR= PREFIX + "aspectj_editor_context"; //$NON-NLS-1$
-	public static final String CROSSCUTTING_COMPARISON_VIEW= PREFIX + "crosscutting_comparison_view_context"; //$NON-NLS-1$
-	public static final String EVENT_TRACE_VIEW = PREFIX + "event_trace_view_context"; //$NON-NLS-1$
-	
+
+	String PREFIX= AspectJUIPlugin.PLUGIN_ID + '.';
+
+	String ASPECTJ_EDITOR= PREFIX + "aspectj_editor_context"; //$NON-NLS-1$
+	String CROSSCUTTING_COMPARISON_VIEW= PREFIX + "crosscutting_comparison_view_context"; //$NON-NLS-1$
+	String EVENT_TRACE_VIEW = PREFIX + "event_trace_view_context"; //$NON-NLS-1$
+
 }

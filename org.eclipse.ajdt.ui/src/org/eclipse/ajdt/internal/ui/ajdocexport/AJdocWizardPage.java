@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -86,7 +86,7 @@ public abstract class AJdocWizardPage extends NewElementWizardPage {
 		text.setLayoutData(gd);
 		return text;
 	}
-	
+
 	protected Combo createCombo(Composite composite, int style, String message, GridData gd) {
 		Combo combo= new Combo(composite, style);
 		if (message != null)
@@ -124,10 +124,10 @@ public abstract class AJdocWizardPage extends NewElementWizardPage {
 		}
 		return dir;
 	}
-	
+
 	protected static class EnableSelectionAdapter extends SelectionAdapter {
-		private Control[] fEnable;
-		private Control[] fDisable;
+		private final Control[] fEnable;
+		private final Control[] fDisable;
 
 		protected EnableSelectionAdapter(Control[] enable, Control[] disable) {
 			super();
@@ -136,12 +136,12 @@ public abstract class AJdocWizardPage extends NewElementWizardPage {
 		}
 
 		public void widgetSelected(SelectionEvent e) {
-			for (int i= 0; i < fEnable.length; i++) {
-				fEnable[i].setEnabled(true);
-			}
-			for (int i= 0; i < fDisable.length; i++) {
-				fDisable[i].setEnabled(false);
-			}
+      for (Control value : fEnable) {
+        value.setEnabled(true);
+      }
+      for (Control control : fDisable) {
+        control.setEnabled(false);
+      }
 			validate();
 		}
 		//copied from  WizardNewProjectCreationPage
@@ -159,10 +159,9 @@ public abstract class AJdocWizardPage extends NewElementWizardPage {
 
 		public void widgetSelected(SelectionEvent e) {
 
-			for (int i= 0; i < controls.length; i++) {
-				Control control= controls[i];
-				control.setEnabled(!control.getEnabled());
-			}
+      for (Control control : controls) {
+        control.setEnabled(!control.getEnabled());
+      }
 			validate();
 		}
 

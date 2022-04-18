@@ -1,13 +1,13 @@
 /*******************************************************************************
  * Copyright (c) 2004, 2005, 2008 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Andrew Eisenberg - factored out common code with AspectPathBlock 
+ *     Andrew Eisenberg - factored out common code with AspectPathBlock
  *                        into PathBlok
  *******************************************************************************/
 package org.eclipse.ajdt.internal.ui.wizards;
@@ -60,25 +60,25 @@ import org.eclipse.ui.views.navigator.ResourceComparator;
  *
  */
 public class InPathBlock extends PathBlock {
-    private StatusInfo fOutputFolderStatus;
-    private IPath fOutputLocationPath;    
+    private final StatusInfo fOutputFolderStatus;
+    private IPath fOutputLocationPath;
     private StringButtonDialogField fInpathOutputField;
     private ModifyListener FOutputPathModifyListener;
     private Text fOutputPathTextBox;
-    
+
     public InPathBlock(IStatusChangeListener context, int pageToShow) {
         super(context, pageToShow);
         fPathList.setLabelText(UIMessages.InPathBlock_inpath_label);
         fOutputFolderStatus= new StatusInfo();
     }
-    
-  
-  
-    
+
+
+
+
     public void init(IJavaProject jproject, IClasspathEntry[] inpathEntries) {
 
         setJavaProject(jproject);
-        
+
         List<CPListElement> newInPath = null;
 
         if (inpathEntries != null) {
@@ -86,7 +86,7 @@ public class InPathBlock extends PathBlock {
         }
 
         if (newInPath == null) {
-            newInPath = new ArrayList<CPListElement>();
+            newInPath = new ArrayList<>();
         }
 
         IProject project = jproject.getProject();
@@ -99,14 +99,14 @@ public class InPathBlock extends PathBlock {
             outputPath = new Path(outFolderStr);
         }
         changeInpathOutputText(outputPath);
-        
-        
+
+
         fPathList.setElements(newInPath);
 
         super.init();
     }
-    
- 
+
+
     protected void updateJavaBuildPathStatus() {
         super.updateJavaBuildPathStatus();
         updateOutputFolderStatus();
@@ -122,55 +122,53 @@ public class InPathBlock extends PathBlock {
 
         // return OK if output folder exists, or ERROR if folder is invalid.
         // path is relative to the workspace.
-        if (fOutputLocationPath.segmentCount() < 2 || 
+        if (fOutputLocationPath.segmentCount() < 2 ||
                 fOutputLocationPath.matchingFirstSegments(getJavaProject().getPath()) == 0) {
-            fOutputFolderStatus.setError(UIMessages.InPathBlock_outFolder_1 + 
+            fOutputFolderStatus.setError(UIMessages.InPathBlock_outFolder_1 +
                     fOutputLocationPath.toPortableString() + UIMessages.InPathBlock_outFolder_2);
             return;
 
         }
-        
-        
+
+
         IFolder outFolder = fWorkspaceRoot.getFolder(fOutputLocationPath);
         if (outFolder.exists()) {
             fOutputFolderStatus.setOK();
         } else {
-            fOutputFolderStatus.setError(UIMessages.InPathBlock_outFolder_3 + 
+            fOutputFolderStatus.setError(UIMessages.InPathBlock_outFolder_3 +
                     fOutputLocationPath.toPortableString() + UIMessages.InPathBlock_outFolder_4);
         }
     }
 
 
-    
-        
+
+
     protected void internalSetProjectPath(List<CPListElement> pathEntries,
             StringBuffer pathBuffer, StringBuffer contentKindBuffer,
             StringBuffer entryKindBuffer) {
         AspectJCorePreferences.setProjectInPath(getJavaProject().getProject(),pathBuffer.toString(),
                 contentKindBuffer.toString(), entryKindBuffer.toString());
-    }   
+    }
 
 
-    
+
     public TabItem tabContent(TabFolder folder){
         TabItem item = super.tabContent(folder);
-        
+
         // create the inpath outfolder
         Control control = item.getControl();
         if (control instanceof Composite) {
             Composite parent = (Composite) control;
-            
+
             // dummy label as a place holder in grid layout
             new Label(parent,SWT.LEFT | SWT.WRAP);
             Label label = new Label(parent,SWT.LEFT | SWT.WRAP);
             label.setText(UIMessages.InPathBlock_6);
-            
-            fInpathOutputField = new StringButtonDialogField(new IStringButtonAdapter() {
-                public void changeControlPressed(DialogField field) {
-                    IContainer container= chooseContainer(fOutputLocationPath);
-                    if (container != null) {
-                        changeInpathOutputText(container.getFullPath());
-                    }
+
+            fInpathOutputField = new StringButtonDialogField(field -> {
+                IContainer container= chooseContainer(fOutputLocationPath);
+                if (container != null) {
+                    changeInpathOutputText(container.getFullPath());
                 }
             });
             if (fOutputLocationPath != null) {
@@ -178,19 +176,14 @@ public class InPathBlock extends PathBlock {
             }
             fInpathOutputField.setButtonLabel(UIMessages.InPathBlock_Browse);
             fInpathOutputField.doFillIntoGrid(parent, 3);
-            FOutputPathModifyListener = new ModifyListener() {
-                public void modifyText(ModifyEvent e) {
-                    changeInpathOutputFolder();
-                }
-
-            };
+            FOutputPathModifyListener = e -> changeInpathOutputFolder();
             fOutputPathTextBox = fInpathOutputField.getTextControl(parent);
             fOutputPathTextBox.addModifyListener(FOutputPathModifyListener);
-            
+
         }
         return item;
     }
-    
+
     private void changeInpathOutputFolder() {
         String newText = fInpathOutputField.getText();
         if (newText.equals("")) { //$NON-NLS-1$
@@ -221,7 +214,7 @@ public class InPathBlock extends PathBlock {
         doStatusLineUpdate();
     }
 
-    
+
     // Borrowed from org.eclpse.jdt.internal.ui.wiaards.BuildPathsBlock
     private IContainer chooseContainer(IPath initPath) {
         Class[] acceptedClasses= new Class[] { IProject.class, IFolder.class };
@@ -229,11 +222,11 @@ public class InPathBlock extends PathBlock {
         IProject[] allProjects= fWorkspaceRoot.getProjects();
         ArrayList rejectedElements= new ArrayList(allProjects.length);
         IProject currProject= getJavaProject().getProject();
-        for (int i= 0; i < allProjects.length; i++) {
-            if (!allProjects[i].equals(currProject)) {
-                rejectedElements.add(allProjects[i]);
-            }
+      for (IProject allProject : allProjects) {
+        if (!allProject.equals(currProject)) {
+          rejectedElements.add(allProject);
         }
+      }
         ViewerFilter filter= new TypedViewerFilter(acceptedClasses, rejectedElements.toArray());
 
         ILabelProvider lp= new WorkbenchLabelProvider();
@@ -243,31 +236,31 @@ public class InPathBlock extends PathBlock {
         if (initPath != null) {
             initSelection= fWorkspaceRoot.findMember(initPath);
         }
-        
+
         FolderSelectionDialog dialog= new FolderSelectionDialog(getShell(), lp, cp);
-        dialog.setTitle(UIMessages.BuildPathsBlock_ChooseOutputFolderDialog_title); 
+        dialog.setTitle(UIMessages.BuildPathsBlock_ChooseOutputFolderDialog_title);
         dialog.setValidator(validator);
-        dialog.setMessage(UIMessages.BuildPathsBlock_ChooseOutputFolderDialog_description); 
+        dialog.setMessage(UIMessages.BuildPathsBlock_ChooseOutputFolderDialog_description);
         dialog.addFilter(filter);
         dialog.setInput(fWorkspaceRoot);
         dialog.setInitialSelection(initSelection);
         dialog.setComparator(new ResourceComparator(ResourceComparator.NAME));
-        
+
         if (dialog.open() == Window.OK) {
             return (IContainer)dialog.getFirstResult();
         }
         return null;
     }
-    
+
     protected String getBlockNote() {
         return UIMessages.InPathBlock_note;
     }
-    
+
     public String getBlockTitle() {
         return UIMessages.InPathBlock_tab_inpath_order;
     }
 
-    
+
     protected IStatus findMostSevereStatus() {
         return StatusUtil.getMostSevere(new IStatus[] { fPathStatus, fOutputFolderStatus, fJavaBuildPathStatus });
     }
@@ -275,8 +268,8 @@ public class InPathBlock extends PathBlock {
 
     public String getOutputFolder() {
         return fOutputLocationPath == null ? null : fOutputLocationPath.toPortableString();
-    }       
-    
+    }
+
     protected String getEncodedSettings() {
         StringBuffer settings =  new StringBuffer(super.getEncodedSettings());
         CPListElement.appendEncodePath(fOutputLocationPath, settings).append(';');

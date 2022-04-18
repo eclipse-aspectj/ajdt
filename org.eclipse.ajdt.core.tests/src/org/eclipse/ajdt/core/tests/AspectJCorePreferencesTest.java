@@ -3,8 +3,8 @@
  * program and the accompanying materials are made available under the terms of
  * the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
- * 
- * Contributors: IBM Corporation - initial API and implementation 
+ *
+ * Contributors: IBM Corporation - initial API and implementation
  * 				 Helen Hawkins   - iniital version
  ******************************************************************************/
 package org.eclipse.ajdt.core.tests;
@@ -20,7 +20,7 @@ import org.eclipse.core.resources.IProject;
 public class AspectJCorePreferencesTest extends AJDTCoreTestCase {
 
     IProject project;
-    
+
     /*
      * @see TestCase#setUp()
      */
@@ -42,7 +42,7 @@ public class AspectJCorePreferencesTest extends AJDTCoreTestCase {
     	AspectJCorePreferences.setProjectOutJar(project,""); //$NON-NLS-1$
     	outjar = AspectJCorePreferences.getProjectOutJar(project);
     	assertEquals("outjar should not be set","",outjar); //$NON-NLS-1$ //$NON-NLS-2$
-    	
+
     }
 
     public void testGetProjectAspectPath() {
@@ -57,11 +57,11 @@ public class AspectJCorePreferencesTest extends AJDTCoreTestCase {
     	AspectJCorePreferences.setProjectAspectPath(project,"","",""); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
     	String[] aspectPath = AspectJCorePreferences.getResolvedProjectAspectPath(project);
     	assertEquals("there should be 3 entries on the aspect path",3,aspectPath.length); //$NON-NLS-1$
-    	for (int i = 0; i < aspectPath.length; i++) {
-			assertEquals("should be empty string on aspectpath","",aspectPath[i]); //$NON-NLS-1$ //$NON-NLS-2$
-		}
+      for (String s : aspectPath) {
+        assertEquals("should be empty string on aspectpath", "", s); //$NON-NLS-1$ //$NON-NLS-2$
+      }
     	AspectJCorePreferences.setProjectAspectPath(project,"/CorePreferencesTestProject/hello.jar","2","1"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-    	aspectPath = AspectJCorePreferences.getResolvedProjectAspectPath(project);   	   	
+    	aspectPath = AspectJCorePreferences.getResolvedProjectAspectPath(project);
     	assertEquals("there should be 3 entries on the aspect path",3,aspectPath.length); //$NON-NLS-1$
     	assertTrue("hello.jar should be on the aspectpath",aspectPath[0].startsWith("/CorePreferencesTestProject/hello.jar")); //$NON-NLS-1$ //$NON-NLS-2$
     	assertTrue("Content kind should be BINARY",aspectPath[1].startsWith("2")); //$NON-NLS-1$ //$NON-NLS-2$
@@ -81,11 +81,11 @@ public class AspectJCorePreferencesTest extends AJDTCoreTestCase {
     	AspectJCorePreferences.setProjectInPath(project,"","",""); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
     	String[] inPath = AspectJCorePreferences.getResolvedProjectInpath(project);
     	assertEquals("there should be 3 entries on the inpath",3,inPath.length); //$NON-NLS-1$
-    	for (int i = 0; i < inPath.length; i++) {
-			assertEquals("should be empty string on inpath","",inPath[i]); //$NON-NLS-1$ //$NON-NLS-2$
-		}
+      for (String s : inPath) {
+        assertEquals("should be empty string on inpath", "", s); //$NON-NLS-1$ //$NON-NLS-2$
+      }
     	AspectJCorePreferences.setProjectInPath(project,"/CorePreferencesTestProject/test.jar","2","1"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-    	inPath = AspectJCorePreferences.getResolvedProjectInpath(project);   	   	
+    	inPath = AspectJCorePreferences.getResolvedProjectInpath(project);
     	assertEquals("there should be 3 entries on the inpath",3,inPath.length); //$NON-NLS-1$
     	assertTrue("test.jar should be on the inpath",inPath[0].startsWith("/CorePreferencesTestProject/test.jar")); //$NON-NLS-1$ //$NON-NLS-2$
     	assertTrue("Content kind should be BINARY",inPath[1].startsWith("2")); //$NON-NLS-1$ //$NON-NLS-2$

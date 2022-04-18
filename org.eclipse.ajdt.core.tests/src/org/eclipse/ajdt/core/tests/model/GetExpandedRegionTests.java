@@ -29,39 +29,39 @@ public class GetExpandedRegionTests extends AJDTCoreTestCase {
         }
     }
 
-    protected void setUp() throws Exception {
+    protected void setUp() {
         // don't instantiate the workspace
     }
 
-    protected void tearDown() throws Exception {
+    protected void tearDown() {
         // don't wipe the workspace clean
     }
 
-    public void testExpandedRegion() throws Exception {
+    public void testExpandedRegion() {
         validateExpandedRegion("gg ggg gggg", 0, 1, "gg");
     }
 
-    public void testExpandedRegion2() throws Exception {
+    public void testExpandedRegion2() {
         validateExpandedRegion("gg ggg gggg", 8, 3, "gggg");
     }
 
-    public void testExpandedRegion3() throws Exception {
+    public void testExpandedRegion3() {
         validateExpandedRegion("gg ggg gggg", 2, 3, "ggg");
     }
 
-    public void testExpandedRegion4() throws Exception {
+    public void testExpandedRegion4() {
         validateExpandedRegion("java.lang.Object", 4, 10, "Object");
     }
 
-    public void testExpandedRegion5() throws Exception {
+    public void testExpandedRegion5() {
         validateExpandedRegion("java lang Object", 4, 10, "Object");
     }
 
-    public void testExpandedRegion6() throws Exception {
+    public void testExpandedRegion6() {
         validateExpandedRegion("java.lang.Object", 4, 0, "java");
     }
 
-    public void testExpandedRegion7() throws Exception {
+    public void testExpandedRegion7() {
         validateExpandedRegion("java.lang.Object", 5, 0, "lang");
     }
 

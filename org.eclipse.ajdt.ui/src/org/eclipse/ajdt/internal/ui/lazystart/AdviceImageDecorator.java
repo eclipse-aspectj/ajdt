@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman - initial version
@@ -35,18 +35,18 @@ import org.eclipse.jface.viewers.LabelProviderChangedEvent;
  */
 public class AdviceImageDecorator implements ILightweightLabelDecorator {
 
-	private ListenerList fListeners;
-	
+	private ListenerList<ILabelProviderListener> fListeners;
+
 	private IAdviceChangedListener fAdviceChangedListener;
 
 	public void decorate(Object element, IDecoration decoration) {
-		// add the orange triangle to the icon if this method, 
+		// add the orange triangle to the icon if this method,
 		// class or aspect is advised
 		if ((element instanceof IMethod || element instanceof SourceType)) {
 			IJavaElement je = (IJavaElement) element;
 			IJavaProject jp = je.getJavaProject();
 			// only query the model if the element is in an AJ project
-			if ((jp != null) && Utils.isAJProject(jp.getProject()) && 
+			if ((jp != null) && Utils.isAJProject(jp.getProject()) &&
 			        !(je instanceof AspectJMemberElement)) {
 				if (AJProjectModelFactory.getInstance().getModelForJavaElement(je)
 				        .isAdvised(je)) {
@@ -59,36 +59,31 @@ public class AdviceImageDecorator implements ILightweightLabelDecorator {
 			}
 		}
 	}
-	
+
 	private void ensureAdviceListenerIsRegistered() {
 		if (fAdviceChangedListener == null) {
-			fAdviceChangedListener= new IAdviceChangedListener() {
-				public void adviceChanged() {
-					fireAdviceChanged();
-				}
-			};
+			fAdviceChangedListener= () -> fireAdviceChanged();
 			AJBuilder.addAdviceListener(fAdviceChangedListener);
 		}
 	}
 
 	public void addListener(ILabelProviderListener listener) {
 		if (fListeners == null) {
-			fListeners= new ListenerList();
+			fListeners= new ListenerList<>();
 		}
 		fListeners.add(listener);
 	}
-	
+
 
 	private void fireAdviceChanged() {
 		if (fListeners != null && !fListeners.isEmpty()) {
-			LabelProviderChangedEvent event= new LabelProviderChangedEvent(this);
-			Object[] listeners= fListeners.getListeners();
-			for (int i= 0; i < listeners.length; i++) {
-				((ILabelProviderListener) listeners[i]).labelProviderChanged(event);
-			}
+			LabelProviderChangedEvent event = new LabelProviderChangedEvent(this);
+			ILabelProviderListener[] listeners = (ILabelProviderListener[]) fListeners.getListeners();
+			for (ILabelProviderListener listener : listeners)
+				listener.labelProviderChanged(event);
 		}
 	}
-	
+
 	public void dispose() {
 		if (fAdviceChangedListener != null) {
 			AJBuilder.removeAdviceListener(fAdviceChangedListener);

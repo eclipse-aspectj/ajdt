@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2004 Linton Ye
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Linton Ye - initial version (bug 79313)
  *******************************************************************************/
@@ -30,16 +30,16 @@ import org.eclipse.ui.texteditor.TextOperationAction;
  */
 public class CodeFormatTest extends UITestCase {
 	IProject project;
-	
+
 	/*
 	 * @see TestCase#setUp()
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
 		project = createPredefinedProject("CodeFormat"); //$NON-NLS-1$
-		
+
 	}
-	
+
 	public void testCodeFormat() {
 	}
 	public void foo() {
@@ -48,15 +48,15 @@ public class CodeFormatTest extends UITestCase {
 		if(sourceFile==null) fail("Cannot open file:"+filename); //$NON-NLS-1$
 
 		ITextEditor editorPart = (ITextEditor)openFileInDefaultEditor(
-				(IFile)sourceFile, true);
+      sourceFile, true);
 		waitForJobsToComplete();
-		
+
 		IDocument document = editorPart.getDocumentProvider().getDocument(
 				editorPart.getEditorInput());
 		formatEditor(editorPart);
 		waitForJobsToComplete();
-		
-		// save the buffer		
+
+		// save the buffer
 		editorPart.doSave(null);
 		waitForJobsToComplete();
 
@@ -66,7 +66,7 @@ public class CodeFormatTest extends UITestCase {
 		verifyDoc4(document);
 		verifyDoc5(document);//bug78023
 
-		
+
 		try {
 			sourceFile.getProject().build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
 		} catch (CoreException e) {
@@ -113,7 +113,7 @@ public class CodeFormatTest extends UITestCase {
 
 		pointcut setter(Point p): call(void Point.set*(*))
 	&& target(p);
-	 
+
 		 * @param document
 		 */
 	private void verifyDoc1(IDocument document) {
@@ -215,7 +215,7 @@ public class CodeFormatTest extends UITestCase {
 				"privileged aspect BoundPoint {" //$NON-NLS-1$
 		};
 		verifyLines(document, lines, 23);
-		
+
 	}
 
 	/**

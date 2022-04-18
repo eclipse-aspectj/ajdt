@@ -1,13 +1,13 @@
 /*******************************************************************************
  * Copyright (c) 2005 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Matt Chapman  - initial version
- *     Helen Hawkins - testing compiler options are set correctly 
+ *     Helen Hawkins - testing compiler options are set correctly
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests.preferences;
 
@@ -31,7 +31,7 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jface.preference.IPreferenceStore;
 
 /**
- * Test AspectJPreferences. In particular, there are two 
+ * Test AspectJPreferences. In particular, there are two
  * mechanisms through which options can be set, one via Window > Preferences
  * and the other via right click > preferences. Where appropriate, the
  * methods in BuildOptionsAdapter are tested when options are set in both
@@ -43,7 +43,7 @@ public class AspectJPreferencesTest extends UITestCase {
 	IJavaProject jp;
 	IPreferenceStore prefStore;
 	IEclipsePreferences projectNode;
-	
+
 	/*
 	 * @see TestCase#setUp()
 	 */
@@ -54,7 +54,7 @@ public class AspectJPreferencesTest extends UITestCase {
 
 		prefStore = AspectJUIPlugin.getDefault().getPreferenceStore();
 		AJCompilerPreferencePage.initDefaults(prefStore);
-		
+
 		IScopeContext projectScope = new ProjectScope(project);
 		projectNode = projectScope.getNode(AspectJPlugin.PLUGIN_ID);
 
@@ -68,9 +68,9 @@ public class AspectJPreferencesTest extends UITestCase {
 		prefStore = null;
 		projectNode = null;
 	}
-	
-	public void testIsUsingProjectSettings() throws Exception {
-		boolean b1 = AspectJPreferences.isUsingProjectSettings(project);	
+
+	public void testIsUsingProjectSettings() {
+		boolean b1 = AspectJPreferences.isUsingProjectSettings(project);
 		assertFalse("by default, should not be using project compiler settings",b1); //$NON-NLS-1$
 		projectNode.putBoolean(AspectJPreferences.OPTION_UseProjectSettings, true);
 		b1 = AspectJPreferences.isUsingProjectSettings(project);
@@ -79,8 +79,8 @@ public class AspectJPreferencesTest extends UITestCase {
 		b1 = AspectJPreferences.isUsingProjectSettings(project);
 		assertFalse("project should now be using workbench compiler settings",b1); //$NON-NLS-1$
 	}
-	
-	public void testSetUsingProjectSettings() throws Exception {
+
+	public void testSetUsingProjectSettings() {
 		assertFalse("by default, should not be using project compiler settings", //$NON-NLS-1$
 				AspectJPreferences.isUsingProjectSettings(project));
 		AspectJPreferences.setUsingProjectSettings(project,true,true);
@@ -90,28 +90,28 @@ public class AspectJPreferencesTest extends UITestCase {
 		assertFalse("project should no longer be using project compiler settings", //$NON-NLS-1$
 				AspectJPreferences.isUsingProjectSettings(project));
 	}
-	
+
 	/**
-	 * This test ensures that any previously set project settings are not 
+	 * This test ensures that any previously set project settings are not
 	 * overwritten if say so, but they are as default.
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	public void testSetUsingProjectSettings2() throws Exception {
-		
+
 		assertFalse("by default, should not be using project compiler settings", //$NON-NLS-1$
 				AspectJPreferences.isUsingProjectSettings(project));
-		
+
 		projectNode.putBoolean(AspectJPreferences.OPTION_XHasMember,true);
-		
+
 		AspectJPreferences.setUsingProjectSettings(project,true,false);
 		boolean b1 = projectNode.getBoolean(AspectJPreferences.OPTION_XHasMember,false);
 		assertTrue("should not have reset OPTION_XHasMember to default",b1); //$NON-NLS-1$
-		
+
 		AspectJPreferences.setUsingProjectSettings(project,true);
 		b1 = projectNode.getBoolean(AspectJPreferences.OPTION_XHasMember,false);
 		assertFalse("should have reset OPTION_XHasMember to default",b1); //$NON-NLS-1$
-		
+
 		AspectJPreferences.setUsingProjectSettings(project,false);
 		try {
 			projectNode.keys();
@@ -122,8 +122,8 @@ public class AspectJPreferencesTest extends UITestCase {
 			// should clear all keys and consequently throw this exception.
 		}
 	}
-	
-	public void testGetShowWeaveMessagesOptionViaWorkbenchPreferences() throws Exception {
+
+	public void testGetShowWeaveMessagesOptionViaWorkbenchPreferences() {
 		assertFalse("default setting is not to show weave info", //$NON-NLS-1$
 				AspectJPreferences.getShowWeaveMessagesOption(project));
 		// know that when "show weave messages" is selected in the preference
@@ -133,13 +133,13 @@ public class AspectJPreferencesTest extends UITestCase {
 		AspectJPreferences.setShowWeaveMessagesOption(project,true);
 		assertTrue("have chosen to show weave info", //$NON-NLS-1$
 				AspectJPreferences.getShowWeaveMessagesOption(project));
-		
+
 		AspectJPreferences.setShowWeaveMessagesOption(project,false);
 		assertFalse("have chosen not to show weave info", //$NON-NLS-1$
 				AspectJPreferences.getShowWeaveMessagesOption(project));
 	}
-	
-	public void testGetShowWeaveMessagesOptionViaProjectPreferences() throws Exception {
+
+	public void testGetShowWeaveMessagesOptionViaProjectPreferences() {
 		AspectJPreferences.setUsingProjectSettings(project,true,true);
 
 		assertFalse("default setting is not to show weave info", //$NON-NLS-1$
@@ -152,42 +152,42 @@ public class AspectJPreferencesTest extends UITestCase {
 		AspectJPreferences.setShowWeaveMessagesOption(project,true);
 		assertTrue("have chosen to show weave info", //$NON-NLS-1$
 				AspectJPreferences.getShowWeaveMessagesOption(project));
-		
+
 		AspectJPreferences.setShowWeaveMessagesOption(project,false);
 		assertFalse("have chosen not to show weave info", //$NON-NLS-1$
 				AspectJPreferences.getShowWeaveMessagesOption(project));
 	}
-		
-	public void testGetAdvancedOptionViaWorkbenchPreferences() throws Exception {
+
+	public void testGetAdvancedOptionViaWorkbenchPreferences() {
 		assertFalse("should not be using project settings", //$NON-NLS-1$
 				AspectJPreferences.isUsingProjectSettings(project));
 		assertEquals("should have no advanced options set", //$NON-NLS-1$
 				" ",AspectJPreferences.getAdvancedOptions(project)); //$NON-NLS-1$
-	
+
 		prefStore.setValue(AspectJPreferences.OPTION_XSerializableAspects,true);
 		assertEquals("should have set -XSerializableAspects option", //$NON-NLS-1$
 				" -XserializableAspects ",  //$NON-NLS-1$
 				AspectJPreferences.getAdvancedOptions(project));
-		
+
 		prefStore.setValue(AspectJPreferences.OPTION_XSerializableAspects,false);
 		assertEquals("should have no advanced options set", //$NON-NLS-1$
 				" ",AspectJPreferences.getAdvancedOptions(project)); //$NON-NLS-1$
-		
+
 		prefStore.setValue(AspectJPreferences.OPTION_XNoInline,true);
 		assertEquals("should have set -XnoInline e option", //$NON-NLS-1$
 				" -XnoInline ",  //$NON-NLS-1$
 				AspectJPreferences.getAdvancedOptions(project));
-		
+
 		prefStore.setValue(AspectJPreferences.OPTION_XNotReweavable,true);
 		assertEquals("should have set -XnotReweavable option", //$NON-NLS-1$
 				" -XnoInline -XnotReweavable ",  //$NON-NLS-1$
 				AspectJPreferences.getAdvancedOptions(project));
-		
+
 		prefStore.setValue(AspectJPreferences.OPTION_XHasMember,true);
 		assertEquals("should have set -XhasMember option", //$NON-NLS-1$
 				" -XnoInline -XnotReweavable -XhasMember ",  //$NON-NLS-1$
 				AspectJPreferences.getAdvancedOptions(project));
-		
+
 		prefStore.setValue(AspectJPreferences.OPTION_XHasMember,false);
 		prefStore.setValue(AspectJPreferences.OPTION_XNotReweavable,false);
 		prefStore.setValue(AspectJPreferences.OPTION_XNoInline,false);
@@ -195,28 +195,28 @@ public class AspectJPreferencesTest extends UITestCase {
 				" ",AspectJPreferences.getAdvancedOptions(project)); //$NON-NLS-1$
 
 	}
-	
-	public void testGetAdvancedOptionViaProjectPreferences() throws Exception {
+
+	public void testGetAdvancedOptionViaProjectPreferences() {
 		AspectJPreferences.setUsingProjectSettings(project,true);
 		assertTrue("should be using project settings", //$NON-NLS-1$
 				AspectJPreferences.isUsingProjectSettings(project));
 		assertEquals("should have no advanced options set", //$NON-NLS-1$
 				" ",AspectJPreferences.getAdvancedOptions(project)); //$NON-NLS-1$
-		
+
 		projectNode.put(AspectJPreferences.OPTION_XSerializableAspects,"true")	;	 //$NON-NLS-1$
 		assertEquals("should have set -XSerializableAspects option", //$NON-NLS-1$
 				" -XserializableAspects ",  //$NON-NLS-1$
 				AspectJPreferences.getAdvancedOptions(project));
-				
+
 		projectNode.put(AspectJPreferences.OPTION_XSerializableAspects,"false")	;	 //$NON-NLS-1$
 		assertEquals("should have no advanced options set", //$NON-NLS-1$
 				" ",AspectJPreferences.getAdvancedOptions(project)); //$NON-NLS-1$
-		
+
 		projectNode.put(AspectJPreferences.OPTION_XNoInline,"true")	;			 //$NON-NLS-1$
 		assertEquals("should have set -XnoInline option", //$NON-NLS-1$
 				" -XnoInline ",  //$NON-NLS-1$
 				AspectJPreferences.getAdvancedOptions(project));
-		
+
 		projectNode.put(AspectJPreferences.OPTION_XNotReweavable,"true")	;			 //$NON-NLS-1$
 		assertEquals("should have set -XnotReweavable option", //$NON-NLS-1$
 				" -XnoInline -XnotReweavable ",  //$NON-NLS-1$
@@ -226,11 +226,11 @@ public class AspectJPreferencesTest extends UITestCase {
 		assertEquals("should have set -XhasMember option", //$NON-NLS-1$
 				" -XnoInline -XnotReweavable -XhasMember ",  //$NON-NLS-1$
 				AspectJPreferences.getAdvancedOptions(project));
-		
+
 		projectNode.put(AspectJPreferences.OPTION_XHasMember,"false")	;			 //$NON-NLS-1$
 		projectNode.put(AspectJPreferences.OPTION_XNotReweavable,"false")	;			 //$NON-NLS-1$
 		projectNode.put(AspectJPreferences.OPTION_XNoInline,"false")	;			 //$NON-NLS-1$
-		
+
 		assertEquals("should have no advanced options set", //$NON-NLS-1$
 				" ",AspectJPreferences.getAdvancedOptions(project)); //$NON-NLS-1$
 		AspectJPreferences.setUsingProjectSettings(project,false);
@@ -255,11 +255,11 @@ public class AspectJPreferencesTest extends UITestCase {
 			fail("Didn't find end quote in string returned from AspectJPreferences.getLintOptions(). Got: "+lint); //$NON-NLS-1$
 		}
 		String fileName = lint.substring(ind2+1,ind3);
-		
+
 		// check the file exists
 		File file = new File(fileName);
 		assertTrue("Xlintfile does not exist: "+file,file.exists()); //$NON-NLS-1$
-		
+
 		// now try to read from it and check for typeNotExposedToWeaver=warning
 		boolean gotWarning = checkXlintOption(file,"typeNotExposedToWeaver","warning"); //$NON-NLS-1$ //$NON-NLS-2$
 		assertTrue("Did not find typeNotExpostedToWeaver entry set to warning",gotWarning); //$NON-NLS-1$
@@ -270,17 +270,17 @@ public class AspectJPreferencesTest extends UITestCase {
 			// change option to ignore
 			AspectJPreferences.setUsingProjectSettings(project,false);
 			prefStore.setValue(AspectJPreferences.OPTION_ReportTypeNotExposedToWeaver,JavaCore.IGNORE);
-		
+
 			// recheck
 			checkXlintOption(file,"typeNotExposedToWeaver","ignore"); //$NON-NLS-1$ //$NON-NLS-2$
 			assertTrue("Did not find typeNotExpostedToWeaver entry set to ignore",gotWarning); //$NON-NLS-1$
 		} finally {
 			// restore settings
 			AspectJPreferences.setUsingProjectSettings(project,isProjectSettings);
-			prefStore.setValue(AspectJPreferences.OPTION_ReportTypeNotExposedToWeaver,original);		
+			prefStore.setValue(AspectJPreferences.OPTION_ReportTypeNotExposedToWeaver,original);
 		}
 	}
-	
+
 	public void testSetCompilerOptions() throws Exception {
 	    assertFalse("project shouldn't have any error markers", //$NON-NLS-1$
 	            ProjectDependenciesUtils.projectIsMarkedWithError(project,null));
@@ -293,10 +293,10 @@ public class AspectJPreferencesTest extends UITestCase {
 	    project.build(IncrementalProjectBuilder.FULL_BUILD, null);
 	    waitForJobsToComplete();
 	    assertFalse("project shouldn't have any error markers", //$NON-NLS-1$
-	            ProjectDependenciesUtils.projectIsMarkedWithError(project,null));    
+	            ProjectDependenciesUtils.projectIsMarkedWithError(project,null));
 	}
-	
-	public void testGetCompilerOptions() throws Exception {
+
+	public void testGetCompilerOptions() {
 	    AspectJPreferences.setCompilerOptions(project, "blah"); //$NON-NLS-1$
 	    String compilerOptions = AspectJPreferences.getCompilerOptions(project);
 	    assertEquals("should have \"blah\" as compiler options, instead has " + compilerOptions, //$NON-NLS-1$
@@ -308,15 +308,15 @@ public class AspectJPreferencesTest extends UITestCase {
 	            "", //$NON-NLS-1$
 	            compilerOptions);
 	}
-	
-	
+
+
 	private boolean checkXlintOption(File file, String option, String value) throws Exception {
 		boolean gotValue = false;
 		BufferedReader is = new BufferedReader(new FileReader(file));
 		String line = is.readLine();
 		while (line!=null) {
-			if (line.indexOf(option) != -1) {
-				if (line.indexOf(value) != -1) {
+			if (line.contains(option)) {
+				if (line.contains(value)) {
 					gotValue = true;
 				}
 			}

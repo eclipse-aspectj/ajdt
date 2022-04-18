@@ -1,11 +1,11 @@
 /********************************************************************
- * Copyright (c) 2006, 2012 Contributors. All rights reserved. 
- * This program and the accompanying materials are made available 
- * under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution and is available at 
- * http://eclipse.org/legal/epl-v10.html 
- *  
- * Contributors: IBM Corporation - initial API and implementation 
+ * Copyright (c) 2006, 2012 Contributors. All rights reserved.
+ * This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution and is available at
+ * http://eclipse.org/legal/epl-v10.html
+ *
+ * Contributors: IBM Corporation - initial API and implementation
  * 				 Helen Hawkins   - initial version
  *******************************************************************/
 package org.eclipse.ajdt.internal.ui.ajde;
@@ -29,17 +29,17 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.osgi.util.NLS;
 
 public class UIBuildProgressMonitor implements IAJCompilerMonitor {
-	
+
     /**
      * created lazily
      */
     private UIMessageHandler messageHandler = null;
-    
+
 	/**
      * Monitor progress against Ajde max
      */
     private int currentAjdeProgress;
-    
+
 	/**
 	 * Indicates whether the build is for one particular AspectJ project only
 	 * (i.e. caused by the build action button being clicked) or else is part of
@@ -47,11 +47,11 @@ public class UIBuildProgressMonitor implements IAJCompilerMonitor {
 	 * action).
 	 */
 	public static boolean isLocalBuild = false;
-	
+
     public UIBuildProgressMonitor(IProject project) {
         this.project = project;
     }
-    
+
     /**
      * Ajde informs us that a compilation has finished. We may under some
      * circumstances get multiple calls to finish. This method is marked
@@ -65,22 +65,20 @@ public class UIBuildProgressMonitor implements IAJCompilerMonitor {
 
         if (AspectJUIPlugin.getDefault().getDisplay().isDisposed())
         	AJLog.log("Not finishing with bpm, display is disposed!"); //$NON-NLS-1$
-        else 
-            AspectJUIPlugin.getDefault().getDisplay().asyncExec(new Runnable() {
-                public void run() {
+        else
+            AspectJUIPlugin.getDefault().getDisplay().asyncExec(() -> {
 
-                    if (monitor != null) {
-                        // ask the project to perform a refresh to pick up the
-                        // newly generated classfiles - bug 30462
-                        // It think during the processing in refreshOutputDir -
-                        // monitor can go null...
-                        //                    if (monitor!=null) monitor.setTaskName("");
-                        if (monitor != null)
-                            monitor.worked(AspectJUIPlugin.PROGRESS_MONITOR_MAX);
-                        if (monitor != null)
-                            monitor.done();
-                        monitor = null;
-                    }
+                if (monitor != null) {
+                    // ask the project to perform a refresh to pick up the
+                    // newly generated classfiles - bug 30462
+                    // It think during the processing in refreshOutputDir -
+                    // monitor can go null...
+                    //                    if (monitor!=null) monitor.setTaskName("");
+                    if (monitor != null)
+                        monitor.worked(AspectJUIPlugin.PROGRESS_MONITOR_MAX);
+                    if (monitor != null)
+                        monitor.done();
+                    monitor = null;
                 }
             });
     }
@@ -90,7 +88,7 @@ public class UIBuildProgressMonitor implements IAJCompilerMonitor {
         if (messageHandler == null) {
             messageHandler = ((UIMessageHandler)AspectJPlugin.getDefault().getCompilerFactory()
 				.getCompilerForProject(project).getMessageHandler());
-        } 
+        }
         return messageHandler;
     }
 
@@ -102,7 +100,7 @@ public class UIBuildProgressMonitor implements IAJCompilerMonitor {
 
 	public void setProgress(double percentDone) {
 		if (percentDone >= currentAjdeProgress) {
-            incrementProgressBarVal("setProgress() delegating to "); //$NON-NLS-1$			
+            incrementProgressBarVal("setProgress() delegating to "); //$NON-NLS-1$
 		}
 	}
 
@@ -116,16 +114,14 @@ public class UIBuildProgressMonitor implements IAJCompilerMonitor {
         // setProgressBarVal()
         // just loops calling this routine.
         if (monitor != null) {
-            AspectJUIPlugin.getDefault().getDisplay().asyncExec(new Runnable() {
-                public void run() {
-                    if (monitor != null)
-                        monitor.worked(1);
-                }
+            AspectJUIPlugin.getDefault().getDisplay().asyncExec(() -> {
+                if (monitor != null)
+                    monitor.worked(1);
             });
         }
     }
 
-    
+
     /**
 	 * Ajde wishes to display information about the progress of the compilation.
 	 */
@@ -138,7 +134,7 @@ public class UIBuildProgressMonitor implements IAJCompilerMonitor {
             reportedWovenMessages = true;
             AJLog.logEnd(AJLog.COMPILER, TimerLogEvent.FIRST_WOVEN);
         }
-        
+
         // means that a new compile is starting.  ensure that the
         // message handler removes all old problems
         if (text.startsWith("compiling source files")) {
@@ -152,16 +148,16 @@ public class UIBuildProgressMonitor implements IAJCompilerMonitor {
         // Each indicates that something has been processed and so will be
         // reported on later.  For this reason we remember that it has been
         // processed so that we can remove markers for it before adding
-        // any new ones.  
+        // any new ones.
         // FIXME ASC18022005 this isnt the nicest way to do this, it would be better
         // to ask the state what changed...
         if (text.startsWith("compiled: ") || text.startsWith("woven ")) { //$NON-NLS-1$ //$NON-NLS-2$
             // If a project contains a 'srclink' and that link is to a directory
-            // that isn't defined in another eclipse project, then we may get 
-        	// resource paths here that cannot be found in eclipse. So the 
+            // that isn't defined in another eclipse project, then we may get
+        	// resource paths here that cannot be found in eclipse. So the
         	// entry added to affectedResources will be null. However, as
             // this code is only used to ensure we tidy up markers, that does
-            // not matter - if it does not exist, it cannot have 
+            // not matter - if it does not exist, it cannot have
         	// outstanding markers.
             IPath resourcePath = null;
             if (text.startsWith("compiled: ")) { //$NON-NLS-1$
@@ -175,25 +171,23 @@ public class UIBuildProgressMonitor implements IAJCompilerMonitor {
             	}
             }
             URI location = new File(resourcePath.toPortableString()).toURI();
-            
+
             IFile[] files = fileCache.findFilesForURI(location);
             if (files != null) {
-                for (int i = 0; i < files.length; i++) {
-                    if (files[i].getProject().equals(project)) {
-                        getMessageHandler().addAffectedResource(files[i]);
-                    }
+              for (IFile file : files) {
+                if (file.getProject().equals(project)) {
+                  getMessageHandler().addAffectedResource(file);
                 }
+              }
             }
         }
 
         final String amendedText = removePrefix(text);
-        AJLog.log(AJLog.COMPILER_PROGRESS,"AJC: " + text); //$NON-NLS-1$ 
+        AJLog.log(AJLog.COMPILER_PROGRESS,"AJC: " + text); //$NON-NLS-1$
         if (monitor != null) {
-            AspectJUIPlugin.getDefault().getDisplay().asyncExec(new Runnable() {
-                public void run() {
-                    if (monitor != null)
-                        monitor.subTask(amendedText);
-                }
+            AspectJUIPlugin.getDefault().getDisplay().asyncExec(() -> {
+                if (monitor != null)
+                    monitor.subTask(amendedText);
             });
         }
 
@@ -207,22 +201,22 @@ public class UIBuildProgressMonitor implements IAJCompilerMonitor {
     private String removePrefix(String msg) {
         String ret = msg;
         IProject p = project;
-        
-        //Bug 150936                   
+
+        //Bug 150936
         if (p == null || p.getLocation() == null) {
         	AJLog.log("Could not find project location, " + p); //$NON-NLS-1$
         	return ret;
-        };
-        	
-        String projectLocation = p.getLocation().toOSString() + "\\"; //$NON-NLS-1$
-        
-        if (msg.indexOf(projectLocation) != -1) {
+        }
+
+      String projectLocation = p.getLocation().toOSString() + "\\"; //$NON-NLS-1$
+
+        if (msg.contains(projectLocation)) {
             ret = msg.substring(0, msg.indexOf(projectLocation))
                     + msg.substring(msg.indexOf(projectLocation)
                             + projectLocation.length());
         } else {
             projectLocation = projectLocation.replace('\\', '/');
-            if (msg.indexOf(projectLocation) != -1) {
+            if (msg.contains(projectLocation)) {
                 ret = msg.substring(0, msg.indexOf(projectLocation))
                         + msg.substring(msg.indexOf(projectLocation)
                                 + projectLocation.length());
@@ -240,7 +234,7 @@ public class UIBuildProgressMonitor implements IAJCompilerMonitor {
         }
 
         // chop (from x\y\z\a\b\C.java) to just (C.java)
-        if (ret.startsWith("woven") && ret.indexOf("(from") != -1) { //$NON-NLS-1$ //$NON-NLS-2$
+        if (ret.startsWith("woven") && ret.contains("(from")) { //$NON-NLS-1$ //$NON-NLS-2$
             int loc = ret.indexOf("(from"); //$NON-NLS-1$
             if (loc != -1) {
                 String fromPiece = ret.substring(loc);
@@ -260,19 +254,18 @@ public class UIBuildProgressMonitor implements IAJCompilerMonitor {
         }
         return ret;
     }
-    
+
 	public void begin() {
         currentAjdeProgress = 0;
         if (monitor != null) {
-            AspectJUIPlugin.getDefault().getDisplay().asyncExec(new Runnable() {
-                public void run() {
-                    if (monitor != null) {
-                        if (isLocalBuild) {
-                        	monitor.setTaskName(NLS.bind(UIMessages.CompilerMonitor_building_Project,project.getName()));
-                        }
-                    }// end if
-                }// end run method
-            });
+          // end run method
+          AspectJUIPlugin.getDefault().getDisplay().asyncExec(() -> {
+              if (monitor != null) {
+                  if (isLocalBuild) {
+                    monitor.setTaskName(NLS.bind(UIMessages.CompilerMonitor_building_Project,project.getName()));
+                  }
+              }// end if
+          });
         }	}
 
 	// --------------------- IAJCompilerMonitor impl -------------
@@ -280,22 +273,22 @@ public class UIBuildProgressMonitor implements IAJCompilerMonitor {
     /**
      * Project being built
      */
-    private IProject project;
-    
+    private final IProject project;
+
     /**
      * Which Eclipse IProgressMonitor should this CoreCompilerMonitor keep updating?
      */
     private IProgressMonitor monitor = null;
-    
+
     private boolean reportedCompiledMessages;
 
     private boolean reportedWovenMessages;
-    
+
     private boolean buildWasCancelled = false;
 
     private FileURICache fileCache;
 
-	
+
     /**
      * Called from the Builder to set up the compiler for a new build.
      */
@@ -319,5 +312,5 @@ public class UIBuildProgressMonitor implements IAJCompilerMonitor {
 		return buildWasCancelled;
 	}
 
-	
+
 }

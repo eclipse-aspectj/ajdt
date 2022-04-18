@@ -4,7 +4,7 @@
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors: Sian January - initial version
  * ...
  **********************************************************************/
@@ -24,7 +24,7 @@ import org.eclipse.ui.IActionDelegate;
  * AspectJ project.
  */
 public class RenameFileExtensionsAction implements IActionDelegate {
-	
+
 	private ISelection selection;
 
 	/* (non-Javadoc)
@@ -36,13 +36,13 @@ public class RenameFileExtensionsAction implements IActionDelegate {
 			if (struct.size() > 0) {
 				Object o = struct.getFirstElement();
 				if (o instanceof IAdaptable) {
-					IProject project = (IProject)((IAdaptable)o).getAdapter(IProject.class);
+					IProject project = ((IAdaptable)o).getAdapter(IProject.class);
 					if(project != null) {
 						RenameFileExtensionsDialog dialog = new RenameFileExtensionsDialog(AspectJUIPlugin.getDefault().getDisplay().getActiveShell(), project);
 						dialog.open();
 					}
 				}
-				
+
 			}
 		}
 	}

@@ -33,7 +33,7 @@ import org.eclipse.jdt.core.JavaModelException;
 public class JavaCompatibleBuffer implements IBuffer, IBufferChangedListener{
 
     private IBuffer realBuffer;
-    private IBuffer fakeBuffer;
+    private final IBuffer fakeBuffer;
 
     private ArrayList<AspectsConvertingParser.Replacement> insertionTable;
 
@@ -149,8 +149,8 @@ public class JavaCompatibleBuffer implements IBuffer, IBufferChangedListener{
     private void ensureUpToDate(){
         if (!upToDate) {
 
-            fakeBuffer.setContents((char[])realBuffer.getCharacters().clone());
-            AspectsConvertingParser conv = new AspectsConvertingParser((char[])realBuffer.getCharacters().clone());
+            fakeBuffer.setContents(realBuffer.getCharacters().clone());
+            AspectsConvertingParser conv = new AspectsConvertingParser(realBuffer.getCharacters().clone());
 
             IOpenable owner = getOwner();
             if (owner instanceof ICompilationUnit) {

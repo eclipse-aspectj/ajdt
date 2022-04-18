@@ -57,7 +57,7 @@ public class DeclareElement extends AspectJMemberElement{
                         parentTypeName = parentTypeName.replaceAll("\\$", "\\.");
                         typesConverted.add(parentTypeName);
                     }
-                    elementInfo.setTypes((String[]) typesConverted.toArray(new String[typesConverted.size()]));
+                    elementInfo.setTypes(typesConverted.toArray(new String[0]));
                 }
 
                 elementInfo.setAnnotationRemover(ipe.isAnnotationRemover());

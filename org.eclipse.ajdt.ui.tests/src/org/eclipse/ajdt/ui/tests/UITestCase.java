@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2005 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Sian January  - initial version
@@ -60,7 +60,7 @@ public abstract class UITestCase extends AJDTCoreTestCase {
 	public UITestCase(String name) {
 		super(name);
 	}
-	
+
 	public UITestCase() {
 		super();
 	}
@@ -69,18 +69,17 @@ public abstract class UITestCase extends AJDTCoreTestCase {
 		super.setUp();
 		AllUITests.setupAJDTPlugin();
 	}
-	
+
 	protected void tearDown() throws Exception {
 	    closeAllEditors();
 	    waitForJobsToComplete();
 	    ILaunchConfiguration[] launchConfigurations = DebugPlugin.getDefault().getLaunchManager().getLaunchConfigurations();
-	    for (int i = 0; i < launchConfigurations.length; i++) {
-	        ILaunchConfiguration configuration = launchConfigurations[i];
-	        configuration.delete();
-	    }
+    for (ILaunchConfiguration configuration : launchConfigurations) {
+      configuration.delete();
+    }
 		super.tearDown();
 	}
-	
+
 
 
 	/**
@@ -124,12 +123,12 @@ public abstract class UITestCase extends AJDTCoreTestCase {
 			IAction toggleAction= editorPart.getEditorSite().getActionBars().getGlobalActionHandler(ITextEditorActionDefinitionIds.TOGGLE_SHOW_SELECTED_ELEMENT_ONLY);
 			if (toggleAction != null && toggleAction.isEnabled() && toggleAction.isChecked()) {
 				if (toggleAction instanceof TextEditorAction) {
-					// Reset the action 
+					// Reset the action
 					((TextEditorAction)toggleAction).setEditor(null);
-					// Restore the action 
+					// Restore the action
 					((TextEditorAction)toggleAction).setEditor((ITextEditor)editorPart);
 				} else {
-					// Uncheck 
+					// Uncheck
 					toggleAction.run();
 					// Check
 					toggleAction.run();
@@ -138,7 +137,7 @@ public abstract class UITestCase extends AJDTCoreTestCase {
 		}
 	}
 
-	
+
 	protected void waitForJobsToComplete(){
 		SynchronizationUtils.joinBackgroudActivities();
 	}
@@ -166,7 +165,7 @@ public abstract class UITestCase extends AJDTCoreTestCase {
 		ps.setToDefault(AspectJPreferences.DO_PDE_AUTO_REMOVE_IMPORT);
 	}
 
-	
+
     protected String getTestBundleName() {
         return "org.eclipse.ajdt.ui.tests";
     }
@@ -176,10 +175,10 @@ public abstract class UITestCase extends AJDTCoreTestCase {
 	 */
 	protected void closeAllEditors() {
 		IEditorReference[] editors = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getActivePage().getEditorReferences();
-		for (int i = 0; i < editors.length; i++) {
-			IEditorPart editor = editors[i].getEditor(false);
-			editor.getEditorSite().getPage().closeEditor(editor, false);
-		}
+    for (IEditorReference iEditorReference : editors) {
+      IEditorPart editor = iEditorReference.getEditor(false);
+      editor.getEditorSite().getPage().closeEditor(editor, false);
+    }
 	}
 
 	/**
@@ -196,19 +195,20 @@ public abstract class UITestCase extends AJDTCoreTestCase {
 			return;
 		}
 		File[] files = f.listFiles();
-		for (int i = 0; i < files.length; i++) {
-			if (files[i].isDirectory()) {
-				deleteDir(files[i]);
-			} else {
-				files[i].delete();
-			}
-		}
+    for (File file : files) {
+      if (file.isDirectory()) {
+        deleteDir(file);
+      }
+      else {
+        file.delete();
+      }
+    }
 		f.delete();
 	}
-	
-	
+
+
 	protected String readFile(IFile file) throws Exception {
-		StringBuffer contents = new StringBuffer();
+		StringBuilder contents = new StringBuilder();
 		BufferedReader br = new BufferedReader(new InputStreamReader(file
 				.getContents()));
 		String line = br.readLine();
@@ -219,29 +219,29 @@ public abstract class UITestCase extends AJDTCoreTestCase {
 		br.close();
 		return contents.toString();
 	}
-	
+
 	protected IMarker[] getAllProblemViewMarkers() {
 		try {
 			ProblemsView problemsView = (ProblemsView) AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getActivePage().showView("org.eclipse.ui.views.ProblemView");        //$NON-NLS-1$
-			Method getAllMarkersMethod = ExtendedMarkersView.class.getDeclaredMethod("getAllMarkers", new Class[]{}); //$NON-NLS-1$
+			Method getAllMarkersMethod = ExtendedMarkersView.class.getDeclaredMethod("getAllMarkers"); //$NON-NLS-1$
 			getAllMarkersMethod.setAccessible(true);
 			return (IMarker[]) getAllMarkersMethod.invoke(problemsView, new Object[]{});
 		} catch(Exception e) {
 			fail("Could not get problem view markers: " + e.getMessage()); //$NON-NLS-1$
 			return null;
 		}
-		
+
 	}
 
     protected static String getConsoleViewContents() {
         ConsoleView cview = null;
         IViewReference[] views = AspectJUIPlugin.getDefault().getWorkbench()
                 .getActiveWorkbenchWindow().getActivePage().getViewReferences();
-        for (int i = 0; i < views.length; i++) {
-            if (views[i].getView(false) instanceof ConsoleView) {
-                cview = (ConsoleView) views[i].getView(false);
-            }
+      for (IViewReference view : views) {
+        if (view.getView(false) instanceof ConsoleView) {
+          cview = (ConsoleView) view.getView(false);
         }
+      }
         assertNotNull("Console view should be open", cview); //$NON-NLS-1$
         IOConsolePage page = (IOConsolePage) cview.getCurrentPage();
         TextViewer viewer = page.getViewer();
@@ -251,7 +251,7 @@ public abstract class UITestCase extends AJDTCoreTestCase {
     /**
      * Post a key event (equivalent to posting a key down event then a key up
      * event)
-     * 
+     *
      * @param c -
      *            the character to post
      */
@@ -262,7 +262,7 @@ public abstract class UITestCase extends AJDTCoreTestCase {
 
     /**
      * Post a key down event
-     * 
+     *
      * @param c -
      *            the character to post
      */
@@ -276,7 +276,7 @@ public abstract class UITestCase extends AJDTCoreTestCase {
 
     /**
      * Post a key up event
-     * 
+     *
      * @param c -
      *            the character to post
      */
@@ -291,7 +291,7 @@ public abstract class UITestCase extends AJDTCoreTestCase {
     /**
      * Post a key event (equivalent to posting a key down event then a key up
      * event)
-     * 
+     *
      * @param keyCode -
      *            one of the key codes defined int he SWT class
      */
@@ -302,7 +302,7 @@ public abstract class UITestCase extends AJDTCoreTestCase {
 
     /**
      * Post a key down event
-     * 
+     *
      * @param keyCode -
      *            one of the key codes defined int he SWT class
      */
@@ -316,7 +316,7 @@ public abstract class UITestCase extends AJDTCoreTestCase {
 
     /**
      * Post a key up event
-     * 
+     *
      * @param keyCode -
      *            one of the key codes defined int he SWT class
      */
@@ -328,7 +328,7 @@ public abstract class UITestCase extends AJDTCoreTestCase {
         sleep(10);
     }
 
-    
+
     protected void sleep() {
         try {
             Thread.sleep(2000);

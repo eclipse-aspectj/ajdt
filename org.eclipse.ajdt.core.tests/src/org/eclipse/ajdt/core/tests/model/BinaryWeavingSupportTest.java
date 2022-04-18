@@ -156,24 +156,30 @@ public class BinaryWeavingSupportTest extends AJDTCoreTestCase {
 		boolean found1 = false;
 		boolean found2 = false;
 		boolean found3 = false;
-		for (Iterator<IJavaElement> iter = related.iterator(); iter.hasNext();) {
-			IJavaElement el = iter.next();
-			String elName = el.getElementName();
-			String resName = el.getResource().getName();
-			if (elName.equals("before")) { //$NON-NLS-1$
-				found1 = true;
-				assertEquals(
-						"Found before element in wrong file", "MyBar.aj", resName); //$NON-NLS-1$ //$NON-NLS-2$
-			} else if (elName.equals("afterReturning")) { //$NON-NLS-1$
-				found2 = true;
-				assertEquals(
-						"Found before afterReturning in wrong file", "MyBar2.aj", resName); //$NON-NLS-1$ //$NON-NLS-2$
-			} else if (elName.equals("around")) { //$NON-NLS-1$
-				found3 = true;
-				assertEquals(
-						"Found before around in wrong file", "MyBar3.aj", resName); //$NON-NLS-1$ //$NON-NLS-2$
-			}
-		}
+    for (IJavaElement el : related) {
+      String elName = el.getElementName();
+      String resName = el.getResource().getName();
+      switch (elName) {
+        case "before":  //$NON-NLS-1$
+          found1 = true;
+          assertEquals(
+            "Found before element in wrong file", "MyBar.aj", resName); //$NON-NLS-1$ //$NON-NLS-2$
+
+          break;
+        case "afterReturning":  //$NON-NLS-1$
+          found2 = true;
+          assertEquals(
+            "Found before afterReturning in wrong file", "MyBar2.aj", resName); //$NON-NLS-1$ //$NON-NLS-2$
+
+          break;
+        case "around":  //$NON-NLS-1$
+          found3 = true;
+          assertEquals(
+            "Found before around in wrong file", "MyBar3.aj", resName); //$NON-NLS-1$ //$NON-NLS-2$
+
+          break;
+      }
+    }
 		assertTrue("Didn't find advised by before() relationship", found1); //$NON-NLS-1$
 		assertTrue(
 				"Didn't find advised by afterReturning() relationship", found2); //$NON-NLS-1$
@@ -242,35 +248,41 @@ public class BinaryWeavingSupportTest extends AJDTCoreTestCase {
 		boolean found1 = false;
 		boolean found2 = false;
 		boolean found3 = false;
-		for (Iterator<IRelationship> iter = allRels.iterator(); iter.hasNext();) {
-			IRelationship rel = iter.next();
-			String sourceName = model.programElementToJavaElement(rel.getSourceHandle()).getElementName();
-			if (sourceName.equals("Sample")) { //$NON-NLS-1$
-			    for (Iterator<String> targetIter = rel.getTargets().iterator(); targetIter.hasNext(); ) {
-			        IJavaElement targetElt = model.programElementToJavaElement(targetIter.next());
-    				if ((targetElt.getElementName().equals("afterReturning")) //$NON-NLS-1$
-    						&& (targetElt.getParent().getElementName().equals("AbstractBeanConfigurerAspect"))) { //$NON-NLS-1$
-    					found1 = true;
-    				} else if ((targetElt.getElementName().equals("before")) //$NON-NLS-1$
-                            && (targetElt.getParent().getElementName().equals("AbstractBeanConfigurerAspect"))) { //$NON-NLS-1$
-    					found2 = true;
-    				} else {
-    					fail("Unexpected target found: " + targetElt.getHandleIdentifier()); //$NON-NLS-1$
-    				}
-			    }
-			} else if (sourceName.equals("main")) { //$NON-NLS-1$
-			    for (Iterator<String> targetIter = rel.getTargets().iterator(); targetIter.hasNext(); ) {
-			        IJavaElement targetElt = model.programElementToJavaElement(targetIter.next());
-	                if ((targetElt.getElementName().equals("before")) //$NON-NLS-1$
-	                        && (targetElt.getParent().getElementName()
-								.equals("AnnotationBeanConfigurerAspect"))) { //$NON-NLS-1$
-	                    found3 = true;
-    				} else {
-    					fail("Unexpected target found: " + targetElt.getHandleIdentifier()); //$NON-NLS-1$
-    				}
-			    }
-			}
-		}
+    for (IRelationship rel : allRels) {
+      String sourceName = model.programElementToJavaElement(rel.getSourceHandle()).getElementName();
+      if (sourceName.equals("Sample")) { //$NON-NLS-1$
+        for (String s : rel.getTargets()) {
+          IJavaElement targetElt = model.programElementToJavaElement(s);
+          if ((targetElt.getElementName().equals("afterReturning")) //$NON-NLS-1$
+              && (targetElt.getParent().getElementName().equals("AbstractBeanConfigurerAspect")))
+          { //$NON-NLS-1$
+            found1 = true;
+          }
+          else if ((targetElt.getElementName().equals("before")) //$NON-NLS-1$
+                   && (targetElt.getParent().getElementName().equals("AbstractBeanConfigurerAspect")))
+          { //$NON-NLS-1$
+            found2 = true;
+          }
+          else {
+            fail("Unexpected target found: " + targetElt.getHandleIdentifier()); //$NON-NLS-1$
+          }
+        }
+      }
+      else if (sourceName.equals("main")) { //$NON-NLS-1$
+        for (String s : rel.getTargets()) {
+          IJavaElement targetElt = model.programElementToJavaElement(s);
+          if ((targetElt.getElementName().equals("before")) //$NON-NLS-1$
+              && (targetElt.getParent().getElementName()
+            .equals("AnnotationBeanConfigurerAspect")))
+          { //$NON-NLS-1$
+            found3 = true;
+          }
+          else {
+            fail("Unexpected target found: " + targetElt.getHandleIdentifier()); //$NON-NLS-1$
+          }
+        }
+      }
+    }
 		assertTrue(
 				"Didn't find Sample advised by afterReturning() binary aspect relationship", found1); //$NON-NLS-1$
 		assertTrue(

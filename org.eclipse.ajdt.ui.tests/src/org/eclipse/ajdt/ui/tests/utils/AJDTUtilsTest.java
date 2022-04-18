@@ -336,14 +336,14 @@ public class AJDTUtilsTest extends UITestCase {
 	private boolean hasAjrtOnBuildPath(IJavaProject javaProject) {
 		try {
 			IClasspathEntry[] originalCP = javaProject.getRawClasspath();
-			for (int i = 0; i < originalCP.length; i++) {
-				if (originalCP[i].getEntryKind() == IClasspathEntry.CPE_CONTAINER ) {
-					IPath path = originalCP[i].getPath();
-					if (path.segment(0).equals(AspectJPlugin.ASPECTJRT_CONTAINER)) {
-						return true;
-					}
-				}
-			}
+      for (IClasspathEntry iClasspathEntry : originalCP) {
+        if (iClasspathEntry.getEntryKind() == IClasspathEntry.CPE_CONTAINER) {
+          IPath path = iClasspathEntry.getPath();
+          if (path.segment(0).equals(AspectJPlugin.ASPECTJRT_CONTAINER)) {
+            return true;
+          }
+        }
+      }
 		} catch (JavaModelException e) {
 			e.printStackTrace();
 		}
@@ -372,18 +372,17 @@ public class AJDTUtilsTest extends UITestCase {
 		IPluginModel model = (IPluginModel) manEd.getAggregateModel();
 		IPluginImport[] imports = model.getPluginBase().getImports();
 
-		for (int i = 0; i < imports.length; i++) {
-			IPluginImport importObj = imports[i];
-			if (importObj.getId().equals(AspectJPlugin.RUNTIME_PLUGIN_ID)) {
-				return true;
-			}
-		}
+    for (IPluginImport importObj : imports) {
+      if (importObj.getId().equals(AspectJPlugin.RUNTIME_PLUGIN_ID)) {
+        return true;
+      }
+    }
 		return false;
 	}
 
 	public static class MyJobChangeListener implements IJobChangeListener {
 
-		private List scheduledBuilds = new ArrayList();
+		private final List scheduledBuilds = new ArrayList();
 
 		public void aboutToRun(IJobChangeEvent event) {
 		}
@@ -440,7 +439,7 @@ public class AJDTUtilsTest extends UITestCase {
 						+ fullpath1.substring(1);
 			}
 		} else {
-			fullpath2 = new String(fullpath1);
+			fullpath2 = fullpath1;
 		}
 
 		// now make sure both versions of the path cause the resource to be

@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Helen Hawkins   - iniital version
@@ -54,7 +54,7 @@ public class XReferenceTest extends TestCase {
 	 * Class to test for void XReference(String, Set)
 	 */
 	public void testXReferenceStringSet() {
-		Set<IAdaptable> s = new HashSet<IAdaptable>();
+		Set<IAdaptable> s = new HashSet<>();
 		s.add(new AdaptableString("one"));
 		s.add(new AdaptableString("two"));
 		XReference xref = new XReference("extends",s);
@@ -75,7 +75,7 @@ public class XReferenceTest extends TestCase {
 		for (Iterator<IAdaptable> iter = xref.getAssociates(); iter.hasNext();) {
 			numElements++;
 			String element = ((AdaptableString) iter.next()).getVal();
-			assertTrue(element.equals("one"));			
+      assertEquals("one", element);
 		}
 		assertEquals(1,numElements);
 		xref.addAssociate(new AdaptableString("two"));
@@ -93,7 +93,7 @@ public class XReferenceTest extends TestCase {
 			String element = ((AdaptableString) iter.next()).getVal();
 			assertTrue(element.equals("one") || element.equals("two"));
 		}
-		assertEquals(2,numElements);		
+		assertEquals(2,numElements);
 	}
 
 	public void testRemoveAssociate() {
@@ -105,7 +105,7 @@ public class XReferenceTest extends TestCase {
 		for (Iterator<IAdaptable> iter = xref.getAssociates(); iter.hasNext();) {
 			numElements++;
 			String element = ((AdaptableString) iter.next()).getVal();
-			assertTrue(element.equals("two"));			
+      assertEquals("two", element);
 		}
 		assertEquals(1,numElements);
 		xref.removeAssociate(new AdaptableString("three"));
@@ -113,11 +113,11 @@ public class XReferenceTest extends TestCase {
 		for (Iterator<IAdaptable> iter = xref.getAssociates(); iter.hasNext();) {
 			numElements++;
 			String element = ((AdaptableString) iter.next()).getVal();
-			assertTrue(element.equals("two"));			
+      assertEquals("two", element);
 		}
 		assertEquals(1,numElements);
 		xref.removeAssociate(new AdaptableString("two"));
-		assertFalse(xref.getAssociates().hasNext());		
+		assertFalse(xref.getAssociates().hasNext());
 	}
 
 }

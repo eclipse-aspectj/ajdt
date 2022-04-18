@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2010 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Andrew Eisenberg - initial version
  *******************************************************************************/
@@ -26,18 +26,18 @@ import org.eclipse.ltk.core.refactoring.RefactoringCore;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 
 /**
- * 
+ *
  * @author Andrew Eisenberg
  * @created Nov 26, 2010
  */
 public class PushInRefactoringRemoveAnnotationTests extends AbstractAJDTRefactoringTest {
 
     private enum ToPushIn { ALL, FIRST }
-    
+
     public void testPushInRemoveFieldSimple() throws Exception {
         performRefactoringAndUndo(
         new String[] {
-            "Aspect.aj", 
+            "Aspect.aj",
             "Java.java",
             "Foo.java"
         },
@@ -53,7 +53,7 @@ public class PushInRefactoringRemoveAnnotationTests extends AbstractAJDTRefactor
         }, ToPushIn.FIRST
         );
     }
-    
+
     public void testPushInRemoveFieldDifferentPackages() throws Exception {
         performRefactoringAndUndo(
                 new String[] {
@@ -62,7 +62,7 @@ public class PushInRefactoringRemoveAnnotationTests extends AbstractAJDTRefactor
                         "pack3"
                 },
                 new String[] {
-                        "Aspect.aj", 
+                        "Aspect.aj",
                         "Java.java",
                         "Foo.java"
                 },
@@ -87,7 +87,7 @@ public class PushInRefactoringRemoveAnnotationTests extends AbstractAJDTRefactor
                         "pack3"
                 },
                 new String[] {
-                        "Aspect.aj", 
+                        "Aspect.aj",
                         "Java.java",
                         "Foo.java"
                 },
@@ -103,7 +103,7 @@ public class PushInRefactoringRemoveAnnotationTests extends AbstractAJDTRefactor
                 }, ToPushIn.FIRST
         );
     }
-    
+
     public void testPushInRemoveFieldClassFullyQualified() throws Exception {
         performRefactoringAndUndo(
                 new String[] {
@@ -112,7 +112,7 @@ public class PushInRefactoringRemoveAnnotationTests extends AbstractAJDTRefactor
                         "pack3"
                 },
                 new String[] {
-                        "Aspect.aj", 
+                        "Aspect.aj",
                         "Java.java",
                         "Foo.java"
                 },
@@ -137,7 +137,7 @@ public class PushInRefactoringRemoveAnnotationTests extends AbstractAJDTRefactor
                         "pack3"
                 },
                 new String[] {
-                        "Aspect.aj", 
+                        "Aspect.aj",
                         "Java.java",
                         "Foo.java"
                 },
@@ -163,7 +163,7 @@ public class PushInRefactoringRemoveAnnotationTests extends AbstractAJDTRefactor
                         "pack4"
                 },
                 new String[] {
-                        "Aspect.aj", 
+                        "Aspect.aj",
                         "Java.java",
                         "Foo.java",
                         "Foo.java"
@@ -192,7 +192,7 @@ public class PushInRefactoringRemoveAnnotationTests extends AbstractAJDTRefactor
                         "pack4"
                 },
                 new String[] {
-                        "Aspect.aj", 
+                        "Aspect.aj",
                         "Java.java",
                         "Foo.java",
                         "Foo.java"
@@ -211,7 +211,7 @@ public class PushInRefactoringRemoveAnnotationTests extends AbstractAJDTRefactor
                 }, ToPushIn.FIRST
         );
     }
-    
+
     public void testPushInRemoveFieldMultiple() throws Exception {
         performRefactoringAndUndo(
                 new String[] {
@@ -221,7 +221,7 @@ public class PushInRefactoringRemoveAnnotationTests extends AbstractAJDTRefactor
                         "pack4"
                 },
                 new String[] {
-                        "Aspect.aj", 
+                        "Aspect.aj",
                         "Java.java",
                         "Foo.java",
                         "Foo.java"
@@ -240,7 +240,7 @@ public class PushInRefactoringRemoveAnnotationTests extends AbstractAJDTRefactor
                 }, ToPushIn.ALL
         );
     }
-    
+
     public void testPushInRemoveFieldMultiple2() throws Exception {
         performRefactoringAndUndo(
                 new String[] {
@@ -250,7 +250,7 @@ public class PushInRefactoringRemoveAnnotationTests extends AbstractAJDTRefactor
                         "pack4"
                 },
                 new String[] {
-                        "Aspect.aj", 
+                        "Aspect.aj",
                         "Java.java",
                         "Foo.java",
                         "Foo.java"
@@ -269,12 +269,12 @@ public class PushInRefactoringRemoveAnnotationTests extends AbstractAJDTRefactor
                 }, ToPushIn.FIRST
         );
     }
-    
-    
+
+
     public void _testPushInRemoveMethodSimple() throws Exception {
         performRefactoringAndUndo(
         new String[] {
-            "Aspect.aj", 
+            "Aspect.aj",
             "Java.java",
             "Foo.java"
         },
@@ -294,7 +294,7 @@ public class PushInRefactoringRemoveAnnotationTests extends AbstractAJDTRefactor
     public void _testPushInRemoveTypeSimple() throws Exception {
         performRefactoringAndUndo(
                 new String[] {
-                        "Aspect.aj", 
+                        "Aspect.aj",
                         "Java.java",
                         "Foo.java"
                 },
@@ -310,8 +310,8 @@ public class PushInRefactoringRemoveAnnotationTests extends AbstractAJDTRefactor
                 }, ToPushIn.FIRST
         );
     }
-    
-    
+
+
     // First compilation unit contains the elements to push in.
     private void performRefactoringAndUndo(String[] cuNames, String[] initialContents, String[] finalContents, ToPushIn toPush) throws Exception {
         String[] packNames = new String[cuNames.length];
@@ -322,7 +322,7 @@ public class PushInRefactoringRemoveAnnotationTests extends AbstractAJDTRefactor
         ICompilationUnit[] units = createUnits(packNames, cuNames, initialContents);
         List<IMember> itds;
         if (toPush == ToPushIn.ALL) {
-            itds = new ArrayList<IMember>();
+            itds = new ArrayList<>();
             for (IJavaElement elt : units[0].getTypes()[0].getChildren()) {
                 if (elt instanceof IAspectJElement) {
                     itds.add((IAspectJElement) elt);
@@ -331,7 +331,7 @@ public class PushInRefactoringRemoveAnnotationTests extends AbstractAJDTRefactor
         } else {
             itds = Collections.singletonList((IMember) units[0].getTypes()[0].getChildren()[0]);
         }
-        
+
         PushInRefactoring refactoring = new PushInRefactoring();
         refactoring.setITDs(itds);
         RefactoringStatus result = performRefactoring(refactoring, true, false);
@@ -345,16 +345,16 @@ public class PushInRefactoringRemoveAnnotationTests extends AbstractAJDTRefactor
         // undo
         assertTrue("anythingToUndo", RefactoringCore.getUndoManager()
                 .anythingToUndo());
-        assertTrue("! anythingToRedo", !RefactoringCore.getUndoManager()
-                .anythingToRedo());
+      assertFalse("! anythingToRedo", RefactoringCore.getUndoManager()
+        .anythingToRedo());
 
         RefactoringCore.getUndoManager().performUndo(null,
                 new NullProgressMonitor());
         assertContents(units, initialContents);
 
         // redo
-        assertTrue("! anythingToUndo", !RefactoringCore.getUndoManager()
-                .anythingToUndo());
+      assertFalse("! anythingToUndo", RefactoringCore.getUndoManager()
+        .anythingToUndo());
         assertTrue("anythingToRedo", RefactoringCore.getUndoManager()
                 .anythingToRedo());
         RefactoringCore.getUndoManager().performRedo(null,

@@ -59,7 +59,7 @@ public class AJSourceViewerInformationControl implements IInformationControl, II
 	/** The control's text widget */
 	private StyledText fText;
 	/** The control's source viewer */
-	private SourceViewer fViewer;
+	private final SourceViewer fViewer;
     /** The maximal widget width. */
     private int fMaxWidth;
     /** The maximal widget height. */
@@ -180,8 +180,8 @@ public class AJSourceViewerInformationControl implements IInformationControl, II
 			fStatusField.setText(statusFieldText);
 			Font font= fStatusField.getFont();
 			FontData[] fontDatas= font.getFontData();
-			for (int i= 0; i < fontDatas.length; i++)
-				fontDatas[i].setHeight(fontDatas[i].getHeight() * 9 / 10);
+      for (FontData fontData : fontDatas)
+        fontData.setHeight(fontData.getHeight() * 9 / 10);
 			fStatusTextFont= new Font(fStatusField.getDisplay(), fontDatas);
 			fStatusField.setFont(fStatusTextFont);
 			GridData gd2= new GridData(GridData.FILL_VERTICAL | GridData.FILL_HORIZONTAL | GridData.HORIZONTAL_ALIGN_BEGINNING | GridData.VERTICAL_ALIGN_BEGINNING);

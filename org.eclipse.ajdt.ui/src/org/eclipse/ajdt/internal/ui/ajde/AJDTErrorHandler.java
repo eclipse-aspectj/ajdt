@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Helen Hawkins   - initial version
@@ -28,24 +28,24 @@ public class AJDTErrorHandler {
 
 	static final int MSG_LIMIT = 600;
 	static boolean showDialogs = true;
-	
+
 	/**
 	 * Rethrow runtime exceptions for errors instead of showing the error dialog
 	 * (useful for testing)
-	 * 
+	 *
 	 * @param show
 	 */
 	public static void setShowErrorDialogs(boolean show) {
 		showDialogs = show;
 	}
-	
+
 	/**
 	 * Display an error dialog with exception - only called by AJDT (not AspectJ)
 	 */
 	public static void handleAJDTError(String message, Throwable t) {
 		handleInternalError(UIMessages.ajdtErrorDialogTitle, message, t);
 	}
-	
+
 	/**
 	 * Display an error dialog with exception - only called by AJDT (not AspectJ)
 	 */
@@ -69,43 +69,41 @@ public class AJDTErrorHandler {
 		} else {
 			String newline = System.getProperty("line.separator"); //$NON-NLS-1$
 			shortMessage = UIMessages.ajErrorText;
-			StringBuffer sb = new StringBuffer();
+			StringBuilder sb = new StringBuilder();
 			if (t != null) {
 				StackTraceElement[] ste = t.getStackTrace();
 				sb.append(t.getClass().getName());
 				sb.append(newline);
-				for (int i = 0; i < ste.length; i++) {
-					sb.append("at "); //$NON-NLS-1$
-					sb.append(ste[i].toString());
-					sb.append(newline);
-				}
+        for (StackTraceElement stackTraceElement : ste) {
+          sb.append("at "); //$NON-NLS-1$
+          sb.append(stackTraceElement.toString());
+          sb.append(newline);
+        }
 			}
-			longMessage = sb.toString() + newline + message;
+			longMessage = sb + newline + message;
 			status =
 				new Status(Status.ERROR, AspectJUIPlugin.PLUGIN_ID, Status.OK, message, t);
 		}
-	
+
 		// make sure we log the exception, as it may have come from AspectJ, and therefore
 		// it will not have been handled by our FFDC aspect
 		AspectJUIPlugin.getDefault().getLog().log(status);
-	
+
 		if (!AJDTErrorHandler.showDialogs) {
 			// rethrow exception instead of showing dialog
 			throw new RuntimeException(t);
 		}
-		
-		AspectJUIPlugin.getDefault().getDisplay().asyncExec(new Runnable() {
-			public void run() {
-				IWorkbenchWindow iww = AspectJUIPlugin.getDefault()
-						.getActiveWorkbenchWindow();
-				// This really should not be null ...
-				if (iww != null) {
-					Shell shell = iww.getShell();
-					AJDTErrorDialog.openError(shell, title, shortMessage,
-							AJDTErrorHandler.limitMessageLength(longMessage, AJDTErrorHandler.MSG_LIMIT));
-				}
-			}
-		});
+
+		AspectJUIPlugin.getDefault().getDisplay().asyncExec(() -> {
+      IWorkbenchWindow iww = AspectJUIPlugin.getDefault()
+          .getActiveWorkbenchWindow();
+      // This really should not be null ...
+      if (iww != null) {
+        Shell shell = iww.getShell();
+        AJDTErrorDialog.openError(shell, title, shortMessage,
+            AJDTErrorHandler.limitMessageLength(longMessage, AJDTErrorHandler.MSG_LIMIT));
+      }
+    });
 	}
 
 	// 154483: limit the length of messages used in dialogs

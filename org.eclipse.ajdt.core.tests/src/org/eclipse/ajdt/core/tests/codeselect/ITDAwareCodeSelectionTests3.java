@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2009 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Andrew Eisenberg - initial API and implementation
  *     Kris De Volder - Bug 318509 related
@@ -27,7 +27,7 @@ import org.eclipse.jdt.core.JavaCore;
  * Ensure that hyperlinking works when target aspect is in separate project
  */
 public class ITDAwareCodeSelectionTests3 extends AbstractITDAwareCodeSelectionTests {
-    
+
     // need to set a NameEnviromentProvider, since this is typically
     // set by AJDT.UI
     // BAD!!!
@@ -55,7 +55,7 @@ public class ITDAwareCodeSelectionTests3 extends AbstractITDAwareCodeSelectionTe
     	IProject project = createPredefinedProject("Bug318509MethodAndITDWithSameNumberOfArgs");
     	ICompilationUnit main = getCompilationUnit(project);
     	project.build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
-    	
+
     	//Tests for methods:
     	validateCodeSelect(main, findRegion(main, "method", 1), "src/MyClass.java", "MyClass.method(int)");
     	validateCodeSelect(main, findRegion(main, "method", 2), "src/MyAspect.aj", "MyAspect.MyClass.method(String)");
@@ -65,7 +65,6 @@ public class ITDAwareCodeSelectionTests3 extends AbstractITDAwareCodeSelectionTe
     }
 
 	private ICompilationUnit getCompilationUnit(IProject project) {
-		ICompilationUnit main = JavaCore.createCompilationUnitFrom(project.getFile("src/Main.java"));
-		return main;
+    return JavaCore.createCompilationUnitFrom(project.getFile("src/Main.java"));
 	}
 }

@@ -50,13 +50,13 @@ public class CreateAJJarActionDelegate extends AJJarPackageActionDelegate {  // 
         if (length < 1)
             return;
 
-        // Create read multi status     
+        // Create read multi status
         String message;
         if (length > 1)
-            message= JarPackagerMessages.JarFileExportOperation_creationOfSomeJARsFailed; 
+            message= JarPackagerMessages.JarFileExportOperation_creationOfSomeJARsFailed;
         else
-            message= JarPackagerMessages.JarFileExportOperation_jarCreationFailed; 
-        MultiStatus readStatus= new MultiStatus(JavaPlugin.getPluginId(), 0, message, null); 
+            message= JarPackagerMessages.JarFileExportOperation_jarCreationFailed;
+        MultiStatus readStatus= new MultiStatus(JavaPlugin.getPluginId(), 0, message, null);
         AJJarPackageData[] jarPackages= readJarPackages(descriptions, readStatus);  // AspectJ Change
         if (jarPackages.length > 0) {
             IStatus status= export(jarPackages);
@@ -71,19 +71,19 @@ public class CreateAJJarActionDelegate extends AJJarPackageActionDelegate {  // 
             mergedStatus.merge(status);
         } else
             mergedStatus= readStatus;
-        
+
         if (!mergedStatus.isOK())
-            ErrorDialog.openError(getShell(), JarPackagerMessages.CreateJarActionDelegate_jarExport_title, null, mergedStatus); 
+            ErrorDialog.openError(getShell(), JarPackagerMessages.CreateJarActionDelegate_jarExport_title, null, mergedStatus);
     }
 
     private AJJarPackageData[] readJarPackages(IFile[] descriptions, MultiStatus readStatus) {  // AspectJ Change
         List jarPackagesList= new ArrayList(descriptions.length);
-        for (int i= 0; i < descriptions.length; i++) {
-            JarPackageData jarPackage= readJarPackage(descriptions[i], readStatus);
-            if (jarPackage != null)
-                jarPackagesList.add(jarPackage);
-        }
-        return (AJJarPackageData[])jarPackagesList.toArray(new AJJarPackageData[jarPackagesList.size()]);  // AspectJ Change
+      for (IFile description : descriptions) {
+        JarPackageData jarPackage = readJarPackage(description, readStatus);
+        if (jarPackage != null)
+          jarPackagesList.add(jarPackage);
+      }
+        return (AJJarPackageData[])jarPackagesList.toArray(new AJJarPackageData[0]);  // AspectJ Change
     }
 
     private IStatus export(AJJarPackageData[] jarPackages) {  // AspectJ Change
@@ -94,7 +94,7 @@ public class CreateAJJarActionDelegate extends AJJarPackageActionDelegate {  // 
             //PlatformUI.getWorkbench().getProgressService().run(false, true, op); // see bug 118152
         } catch (InvocationTargetException ex) {
             if (ex.getTargetException() != null) {
-                ExceptionHandler.handle(ex, shell, JarPackagerMessages.CreateJarActionDelegate_jarExportError_title, JarPackagerMessages.CreateJarActionDelegate_jarExportError_message); 
+                ExceptionHandler.handle(ex, shell, JarPackagerMessages.CreateJarActionDelegate_jarExportError_title, JarPackagerMessages.CreateJarActionDelegate_jarExportError_message);
                 return null;
             }
         } catch (InterruptedException e) {
@@ -103,7 +103,7 @@ public class CreateAJJarActionDelegate extends AJJarPackageActionDelegate {  // 
         }
         return op.getStatus();
     }
-    
+
     /**
      * Reads the JAR package spec from file.
      * @param description the description file
@@ -123,7 +123,7 @@ public class CreateAJJarActionDelegate extends AJJarPackageActionDelegate {  // 
             jarPackage.setSaveManifest(false);
             jarPackage.setSaveDescription(false);
         } catch (CoreException ex) {
-                String message= Messages.format(JarPackagerMessages.JarFileExportOperation_errorReadingFile, new Object[] {BasicElementLabels.getPathLabel(description.getFullPath(), false), ex.getStatus().getMessage()}); 
+                String message= Messages.format(JarPackagerMessages.JarFileExportOperation_errorReadingFile, new Object[] {BasicElementLabels.getPathLabel(description.getFullPath(), false), ex.getStatus().getMessage()});
                 addToStatus(readStatus, message, ex);
                 return null;
         } finally {
@@ -135,7 +135,7 @@ public class CreateAJJarActionDelegate extends AJJarPackageActionDelegate {  // 
                     reader.close();
             }
             catch (CoreException ex) {
-                String message= Messages.format(JarPackagerMessages.JarFileExportOperation_errorClosingJarPackageDescriptionReader, BasicElementLabels.getPathLabel(description.getFullPath(), false)); 
+                String message= Messages.format(JarPackagerMessages.JarFileExportOperation_errorClosingJarPackageDescriptionReader, BasicElementLabels.getPathLabel(description.getFullPath(), false));
                 addToStatus(readStatus, message, ex);
             }
         }

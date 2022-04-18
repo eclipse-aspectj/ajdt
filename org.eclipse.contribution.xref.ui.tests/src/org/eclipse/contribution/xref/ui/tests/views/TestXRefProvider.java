@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Helen Hawkins   - iniital version
@@ -25,7 +25,7 @@ import org.eclipse.jdt.core.IJavaElement;
 
 /**
  * @author hawkinsh
- *  
+ *
  */
 public class TestXRefProvider implements IXReferenceProvider, IXReferenceProviderExtension {
 
@@ -33,7 +33,7 @@ public class TestXRefProvider implements IXReferenceProvider, IXReferenceProvide
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.eclipse.contribution.xref.core.IXReferenceProvider#getClasses()
 	 */
 	public Class<?>[] getClasses() {
@@ -42,13 +42,13 @@ public class TestXRefProvider implements IXReferenceProvider, IXReferenceProvide
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.eclipse.contribution.xref.core.IXReferenceProvider#getXReferences(java.lang.Object)
 	 */
 	public Collection<IXReference> getXReferences(IAdaptable o, List<String> checked) {
 		XReference e = new XReference("extends"); //$NON-NLS-1$
 		XReference i = new XReference("implements"); //$NON-NLS-1$
-		List<IXReference> l = new ArrayList<IXReference>();
+		List<IXReference> l = new ArrayList<>();
 		l.add(e);
 		l.add(i);
 		return l;
@@ -60,9 +60,9 @@ public class TestXRefProvider implements IXReferenceProvider, IXReferenceProvide
 
  	public String getProviderDescription() {
  		return "Definition of TestXRefProvider"; //$NON-NLS-1$
- 		
+
  	}
-	
+
 	public void setCheckedFilters(List<String> l) {	}
 
 	public void setCheckedInplaceFilters(List<String> l) { }
@@ -70,7 +70,7 @@ public class TestXRefProvider implements IXReferenceProvider, IXReferenceProvide
 	public List<String> getFilterCheckedList() { return null; }
 
 	public List<String> getFilterCheckedInplaceList() { return null; }
-	
+
 	public List<String> getFilterList() { return null; }
 
 	public List<String> getFilterDefaultList() { return null; }

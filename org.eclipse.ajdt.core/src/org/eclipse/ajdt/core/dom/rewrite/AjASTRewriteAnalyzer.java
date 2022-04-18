@@ -170,7 +170,7 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 		this.lineCommentEndOffsets= new LineCommentEndOffsets(comments);
 	}
 
-	final TokenScanner getScanner() {
+	TokenScanner getScanner() {
         if (this.tokenScanner == null) {
             CompilerOptions compilerOptions = new CompilerOptions(this.options);
             Scanner scanner =
@@ -189,11 +189,11 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
         return this.tokenScanner;
 	}
 
-	final char[] getContent() {
+	char[] getContent() {
 		return this.content;
 	}
 
-	final LineInformation getLineInformation() {
+	LineInformation getLineInformation() {
 		return this.lineInfo;
 	}
 
@@ -203,23 +203,23 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 	 * @return an extended source range (never null)
 	 * @since 3.1
 	 */
-	final SourceRange getExtendedRange(ASTNode node) {
+  SourceRange getExtendedRange(ASTNode node) {
 		if (this.eventStore.isRangeCopyPlaceholder(node)) {
 			return new SourceRange(node.getStartPosition(), node.getLength());
 		}
 		return this.extendedSourceRangeComputer.computeSourceRange(node);
 	}
 
-	final int getExtendedOffset(ASTNode node) {
+	int getExtendedOffset(ASTNode node) {
 		return getExtendedRange(node).getStartPosition();
 	}
 
-	final int getExtendedEnd(ASTNode node) {
+	int getExtendedEnd(ASTNode node) {
 		TargetSourceRangeComputer.SourceRange range= getExtendedRange(node);
 		return range.getStartPosition() + range.getLength();
 	}
 
-	final TextEdit getCopySourceEdit(CopySourceInfo info) {
+	TextEdit getCopySourceEdit(CopySourceInfo info) {
 		TextEdit edit= this.sourceCopyInfoToEdit.get(info);
 		if (edit == null) {
 			SourceRange range= getExtendedRange(info.getNode());
@@ -263,7 +263,7 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 		return this.nodeInfos.isCollapsed(node);
 	}
 
-	final boolean isInsertBoundToPrevious(ASTNode node) {
+	boolean isInsertBoundToPrevious(ASTNode node) {
 		return this.eventStore.isInsertBoundToPrevious(node);
 	}
 
@@ -275,11 +275,11 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 		return null;
 	}
 
-	final RewriteEvent getEvent(ASTNode parent, StructuralPropertyDescriptor property) {
+	RewriteEvent getEvent(ASTNode parent, StructuralPropertyDescriptor property) {
 		return this.eventStore.getEvent(parent, property);
 	}
 
-	final TextEditGroup getEditGroup(RewriteEvent change) {
+	TextEditGroup getEditGroup(RewriteEvent change) {
 		return this.eventStore.getEventEditGroup(change);
 	}
 
@@ -291,15 +291,15 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 		return this.eventStore.getNewValue(parent, property);
 	}
 
-	final void addEdit(TextEdit edit) {
+	void addEdit(TextEdit edit) {
 		this.currentEdit.addChild(edit);
 	}
 
-	final String getLineDelimiter() {
+	String getLineDelimiter() {
 		return this.formatter.getLineDelimiter();
 	}
 
-	final String createIndentString(int indent) {
+	String createIndentString(int indent) {
 	    return this.formatter.createIndentString(indent);
 	}
 
@@ -314,15 +314,15 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 			}
 			return new String(cont, lineStart, i - lineStart);
 		}
-		return new String();
+		return "";
 	}
 
 
-	final String getIndentAtOffset(int pos) {
+	String getIndentAtOffset(int pos) {
 		return this.formatter.getIndentString(getIndentOfLine(pos));
 	}
 
-	final void doTextInsert(int offset, String insertString, TextEditGroup editGroup) {
+	void doTextInsert(int offset, String insertString, TextEditGroup editGroup) {
 		if (insertString.length() > 0) {
 			// bug fix for 95839: problem with inserting at the end of a line comment
 			if (this.lineCommentEndOffsets.isEndOfLineComment(offset, this.content)) {
@@ -343,11 +343,11 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 		}
 	}
 
-	final void addEditGroup(TextEditGroup editGroup, TextEdit edit) {
+	void addEditGroup(TextEditGroup editGroup, TextEdit edit) {
 		editGroup.addTextEdit(edit);
 	}
 
-	final TextEdit doTextRemove(int offset, int len, TextEditGroup editGroup) {
+	TextEdit doTextRemove(int offset, int len, TextEditGroup editGroup) {
 		if (len == 0) {
 			return null;
 		}
@@ -359,7 +359,7 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 		return edit;
 	}
 
-	final void doTextRemoveAndVisit(int offset, int len, ASTNode node, TextEditGroup editGroup) {
+	void doTextRemoveAndVisit(int offset, int len, ASTNode node, TextEditGroup editGroup) {
 		TextEdit edit= doTextRemove(offset, len, editGroup);
 		if (edit != null) {
 			this.currentEdit= edit;
@@ -370,7 +370,7 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 		}
 	}
 
-	final int doVisit(ASTNode node) {
+	int doVisit(ASTNode node) {
 		node.accept(this);
 		return getExtendedEnd(node);
 	}
@@ -394,7 +394,7 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 		return endPos;
 	}
 
-	final void voidVisit(ASTNode node) {
+	void voidVisit(ASTNode node) {
 		node.accept(this);
 	}
 
@@ -848,8 +848,8 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 
 		public final static int DEFAULT_SPACING= 1;
 
-		private int initialIndent;
-		private int separatorLines;
+		private final int initialIndent;
+		private final int separatorLines;
 
 		public ParagraphListRewriter(int initialIndent, int separator) {
 			this.initialIndent= initialIndent;
@@ -1137,11 +1137,11 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 		return pos;
 	}
 
-	final int getIndent(int offset) {
+	int getIndent(int offset) {
 		return this.formatter.computeIndentUnits(getIndentOfLine(offset));
 	}
 
-	final void doTextInsert(int insertOffset, ASTNode node, int initialIndentLevel, boolean removeLeadingIndent, TextEditGroup editGroup) {
+	void doTextInsert(int insertOffset, ASTNode node, int initialIndentLevel, boolean removeLeadingIndent, TextEditGroup editGroup) {
 		ArrayList<NodeMarker> markers= new ArrayList<>();
 		String formatted= this.formatter.getFormattedResult(node, initialIndentLevel, markers);
 
@@ -1406,7 +1406,7 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 		}
 	}
 
-	final void doCopySourcePreVisit(CopySourceInfo[] infos, Stack<ASTNode> nodeEndStack) {
+	void doCopySourcePreVisit(CopySourceInfo[] infos, Stack<ASTNode> nodeEndStack) {
 		if (infos != null) {
       for (CopySourceInfo curr : infos) {
         TextEdit edit = getCopySourceEdit(curr);
@@ -1417,7 +1417,7 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 		}
 	}
 
-	final void doCopySourcePostVisit(ASTNode node, Stack<ASTNode> nodeEndStack) {
+	void doCopySourcePostVisit(ASTNode node, Stack<ASTNode> nodeEndStack) {
 		while (!nodeEndStack.isEmpty() && nodeEndStack.peek() == node) {
 			nodeEndStack.pop();
 			this.currentEdit= this.currentEdit.getParent();
@@ -1572,8 +1572,7 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 		boolean returnTypeExists=  originalReturnType != null && originalReturnType.getStartPosition() != -1;
 		if (returnTypeExists) {
 			rewriteRequiredNode(node, property);
-			return;
-		}
+    }
 		// difficult cases: return type insert or remove
 	}
 
@@ -2807,10 +2806,9 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 				int insertIndent= getIndent(node.getStartPosition()) + 1;
 
 				ParagraphListRewriter listRewriter= new SwitchListRewriter(insertIndent);
-				StringBuilder leadString= new StringBuilder();
-				leadString.append(getLineDelimiter());
-				leadString.append(createIndentString(insertIndent));
-				listRewriter.rewriteList(node, property, pos, leadString.toString());
+        String leadString = getLineDelimiter() +
+                            createIndentString(insertIndent);
+				listRewriter.rewriteList(node, property, pos, leadString);
 			} catch (CoreException e) {
 				handleException(e);
 			}
@@ -3796,9 +3794,7 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 	}
 	// AspectJ Change End
 
-	final void handleException(Throwable e) {
-		IllegalArgumentException runtimeException= new IllegalArgumentException("Document does not match the AST"); //$NON-NLS-1$
-		runtimeException.initCause(e);
-		throw runtimeException;
+	void handleException(Throwable e) {
+    throw new IllegalArgumentException("Document does not match the AST", e); //$NON-NLS-1$
 	}
 }

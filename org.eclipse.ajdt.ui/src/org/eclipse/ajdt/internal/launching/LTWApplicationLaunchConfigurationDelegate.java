@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -94,13 +95,12 @@ public class LTWApplicationLaunchConfigurationDelegate
 		String[] ltwClasspath = null;
 		try {
 		    ltwClasspath = getLTWClasspath(classpath, isJava5OrLater);
-		} catch (MalformedURLException e) {
-		    throw new CoreException(new ResourceStatus(IStatus.ERROR, null, UIMessages.LTW_error_launching, e));
-		} catch (IOException e) {
-		    throw new CoreException(new ResourceStatus(IStatus.ERROR, null, UIMessages.LTW_error_launching, e));
 		}
+    catch (IOException e) {
+        throw new CoreException(new ResourceStatus(IStatus.ERROR, null, UIMessages.LTW_error_launching, e));
+    }
 
-		// Program & VM args
+    // Program & VM args
 		String pgmArgs = getProgramArguments(configuration);
 		String vmArgs = getVMArguments(configuration);
 		vmArgs = addExtraVMArgs(vmArgs, classpath, ltwClasspath[0], isJava5OrLater);  // weaver is always first entry in ltwclassath arroy
@@ -174,19 +174,18 @@ public class LTWApplicationLaunchConfigurationDelegate
 	private void generateAOPConfigFiles(ILaunchConfiguration configuration) throws CoreException {
 		IProject[] workspaceProjects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
 		IRuntimeClasspathEntry[] aspectPathEntries = getAspectPathEntries(configuration);
-		for (int i = 0; i < aspectPathEntries.length; i++) {
-			String location = aspectPathEntries[i].getLocation();
-			for (int j = 0; j < workspaceProjects.length; j++) {
-				IProject project = workspaceProjects[j];
-				if(project.isOpen()) {
-					IRuntimeClasspathEntry entry = JavaRuntime.newProjectRuntimeClasspathEntry(JavaCore.create(project));
-					String projectLocation = entry.getLocation();
-					if(projectLocation != null && projectLocation.equals(location)) {
-						LTWUtils.generateLTWConfigFile(JavaCore.create(project));
-					}
-				}
-			}
-		}
+    for (IRuntimeClasspathEntry aspectPathEntry : aspectPathEntries) {
+      String location = aspectPathEntry.getLocation();
+      for (IProject project : workspaceProjects) {
+        if (project.isOpen()) {
+          IRuntimeClasspathEntry entry = JavaRuntime.newProjectRuntimeClasspathEntry(JavaCore.create(project));
+          String projectLocation = entry.getLocation();
+          if (projectLocation != null && projectLocation.equals(location)) {
+            LTWUtils.generateLTWConfigFile(JavaCore.create(project));
+          }
+        }
+      }
+    }
 		// Generate aop-ajc.xml file for main project if it's an AspectJ project
 		String projectName = configuration.getAttribute(
 				IJavaLaunchConfigurationConstants.ATTR_PROJECT_NAME,
@@ -210,22 +209,22 @@ public class LTWApplicationLaunchConfigurationDelegate
 				.computeUnresolvedRuntimeClasspath(configuration);
 		IRuntimeClasspathEntry[] aspectPathEntries = getAspectPathEntries(configuration);
 		entries = JavaRuntime.resolveRuntimeClasspath(entries, configuration);
-		List<String> userEntries = new ArrayList<String>(entries.length + aspectPathEntries.length);
-		for (int i = 0; i < entries.length; i++) {
-			if (entries[i].getClasspathProperty() == IRuntimeClasspathEntry.USER_CLASSES) {
-				String location = entries[i].getLocation();
-				if (location != null) {
-					userEntries.add(location);
-				}
-			}
-		}
-		for (int i = 0; i < aspectPathEntries.length; i++) {
-			String location = aspectPathEntries[i].getLocation();
-			if (location != null) {
-				userEntries.add(location);
-			}
-		}
-		return (String[]) userEntries.toArray(new String[userEntries.size()]);
+		List<String> userEntries = new ArrayList<>(entries.length + aspectPathEntries.length);
+    for (IRuntimeClasspathEntry entry : entries) {
+      if (entry.getClasspathProperty() == IRuntimeClasspathEntry.USER_CLASSES) {
+        String location = entry.getLocation();
+        if (location != null) {
+          userEntries.add(location);
+        }
+      }
+    }
+    for (IRuntimeClasspathEntry aspectPathEntry : aspectPathEntries) {
+      String location = aspectPathEntry.getLocation();
+      if (location != null) {
+        userEntries.add(location);
+      }
+    }
+		return userEntries.toArray(new String[0]);
 	}
 
 	/**
@@ -259,19 +258,17 @@ public class LTWApplicationLaunchConfigurationDelegate
         }
 		String weaverPath = new Path(resolvedaspectjWeaverJar.getCanonicalPath()).toOSString();
 		String rtPath = new Path(resolvedaspectjRTJar.getCanonicalPath()).toOSString();
-		List<String> fullPath = new ArrayList<String>();
+		List<String> fullPath = new ArrayList<>();
 		fullPath.add(weaverPath);
 		fullPath.add(rtPath);
 		if (isJava5OrLater) {
-    		for (String pathEntry : classpath) {
-                fullPath.add(pathEntry);
-            }
+      fullPath.addAll(Arrays.asList(classpath));
 		}
 		return fullPath.toArray(new String[0]);
 	}
 
 	private String addExtraVMArgs(String vmArgs, String[] ajClasspath, String pathToWeaver, boolean isJava5OrLater) {
-		StringBuffer sb = new StringBuffer(vmArgs);
+		StringBuilder sb = new StringBuilder(vmArgs);
 		if (!isJava5OrLater) {
     		sb.append(' ');
     		sb.append(classLoaderOption);
@@ -291,7 +288,7 @@ public class LTWApplicationLaunchConfigurationDelegate
 		sb.append('\"');
 
 		if (isJava5OrLater) {
-		    sb.append(" \"-javaagent:" + pathToWeaver + "\"");
+		    sb.append(" \"-javaagent:").append(pathToWeaver).append("\"");
 		}
 		return sb.toString();
 	}

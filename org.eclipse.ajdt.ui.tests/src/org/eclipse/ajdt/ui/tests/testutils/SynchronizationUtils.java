@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -25,7 +25,7 @@ import org.eclipse.ui.PlatformUI;
 // Adapted from org.eclipse.jdt.ui.tests.performance.JdtPerformanceTestCase
 public class SynchronizationUtils {
 
-		
+
     /**
      * This method should be removed and the
      * version in AJDTCoreTestCase used instead
@@ -35,7 +35,7 @@ public class SynchronizationUtils {
 	    AJDTCoreTestCase.waitForManualBuild();
 	    AJDTCoreTestCase.waitForAutoRefresh();
 	    AJDTCoreTestCase.waitForManualRefresh();
-	    
+
 //	    printJobs();
 		// Join other jobs
 		joinJobs(100, 0, 500);
@@ -46,9 +46,9 @@ public class SynchronizationUtils {
         Job[] jobs= jobManager.find(null);
         System.out.println("------------------------");
         System.out.println("Printing jobs");
-        for (int i= 0; i < jobs.length; i++) {
-            System.out.println(jobs[i]);
-        }
+      for (Job job : jobs) {
+        System.out.println(job);
+      }
         System.out.println("------------------------");
     }
 
@@ -57,7 +57,7 @@ public class SynchronizationUtils {
 		runEventQueue();
 		while (System.currentTimeMillis() < startTime)
 			runEventQueue(intervalTime);
-		
+
 		long endTime= maxTime > 0  && maxTime < Long.MAX_VALUE ? System.currentTimeMillis() + maxTime : Long.MAX_VALUE;
 		boolean calm= allJobsQuiet();
 		while (!calm && System.currentTimeMillis() < endTime) {
@@ -66,36 +66,36 @@ public class SynchronizationUtils {
 		}
 		return calm;
 	}
-	
+
 	public static void sleep(int intervalTime) {
 		try {
 			Thread.sleep(intervalTime);
 		} catch (InterruptedException e) {
 		}
 	}
-	
+
 	private static boolean allJobsQuiet() {
 		IJobManager jobManager= Job.getJobManager();
 		Job[] jobs= jobManager.find(null);
-		for (int i= 0; i < jobs.length; i++) {
-			Job job= jobs[i];
-			int state= job.getState();
-			//ignore jobs we don't care about
-			if (!job.getName().equals("Flush Cache Job") &&  //$NON-NLS-1$
-			        !job.getName().equals("Usage Data Event consumer") &&  //$NON-NLS-1$
-					(state == Job.RUNNING || state == Job.WAITING)) {
-				return false;
-			}
-		}
+    for (Job job : jobs) {
+      int state = job.getState();
+      //ignore jobs we don't care about
+      if (!job.getName().equals("Flush Cache Job") &&  //$NON-NLS-1$
+          !job.getName().equals("Usage Data Event consumer") &&  //$NON-NLS-1$
+          (state == Job.RUNNING || state == Job.WAITING))
+      {
+        return false;
+      }
+    }
 		return true;
 	}
-	
+
 	private static void runEventQueue() {
 		IWorkbenchWindow window= PlatformUI.getWorkbench().getActiveWorkbenchWindow();
 		if (window != null)
 			runEventQueue(window.getShell());
 	}
-	
+
 	private static void runEventQueue(Shell shell) {
 		try {
 			while (shell.getDisplay().readAndDispatch()) {
@@ -105,7 +105,7 @@ public class SynchronizationUtils {
 			System.err.println(e);
 		}
 	}
-	
+
 	private static void runEventQueue(long minTime) {
 		long nextCheck= System.currentTimeMillis() + minTime;
 		while (System.currentTimeMillis() < nextCheck) {

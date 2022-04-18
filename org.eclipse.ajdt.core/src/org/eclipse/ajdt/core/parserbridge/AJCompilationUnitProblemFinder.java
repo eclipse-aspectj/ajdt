@@ -115,7 +115,7 @@ public class AJCompilationUnitProblemFinder extends
     public final static int JAVA_FILE_IN_AJ_EDITOR = 0x000008;
 
 
-	private CompilationUnit cu; // AspectJ Change
+	private final CompilationUnit cu; // AspectJ Change
 
 	/**
 	 * @param environment
@@ -151,7 +151,7 @@ public class AJCompilationUnitProblemFinder extends
 		// AspectJ Change Begin
 	    if (cu != null) {  // wait until object is initialized to initialize parser
              try {
-            	 Object elementInfo = ((JavaElement) cu).getElementInfo();
+            	 Object elementInfo = cu.getElementInfo();
                 if (elementInfo instanceof AJCompilationUnitInfo) {
             	     AJCompilationUnit ajcu = (AJCompilationUnit) cu;
             	     ajcu.discardOriginalContentMode();
@@ -184,7 +184,7 @@ public class AJCompilationUnitProblemFinder extends
 	        int reconcileFlags,
 	        IProgressMonitor monitor)
 	        throws JavaModelException {
-        return processAJ(unitElement, (AJSourceElementParser2) null/*use default Parser*/, workingCopyOwner, problems, creatingAST, reconcileFlags, monitor);
+        return processAJ(unitElement, null/*use default Parser*/, workingCopyOwner, problems, creatingAST, reconcileFlags, monitor);
 
 	}
 
@@ -201,7 +201,7 @@ public class AJCompilationUnitProblemFinder extends
 
 	    boolean isJavaFileInAJEditor = (reconcileFlags & JAVA_FILE_IN_AJ_EDITOR) != 0;
 
-	    JavaProject project = (JavaProject) unitElement.getJavaProject();
+	    JavaProject project = unitElement.getJavaProject();
 	    ITDAwareNameEnvironment environment = null;
         CancelableProblemFactory problemFactory = null;
         AJCompilationUnitProblemFinder problemFinder = null; // AspectJ Change
@@ -402,7 +402,7 @@ public class AJCompilationUnitProblemFinder extends
         newProblems.add(categorizedProblem);
       }
     }
-        categorizedProblems = newProblems.toArray(new CategorizedProblem[newProblems.size()]);
+        categorizedProblems = newProblems.toArray(new CategorizedProblem[0]);
         return categorizedProblems;
      }
 
@@ -775,15 +775,12 @@ public class AJCompilationUnitProblemFinder extends
             return false;
         }
 
-        if (id == IProblem.AbstractMethodMustBeImplemented &&
-                (!hasModel || isAbstractITD(categorizedProblem, model, unit, isJavaFileInAJEditor))) {
-            // this one is very tricky and rare.
-            // there is a abstract method ITD defined on a supertype
-            // since this type was altered using AspectConvertingParser,
-            // the implementation of this abstract method is not necessarily there
-            return false;
-        }
-        return true;
+      // this one is very tricky and rare.
+      // there is a abstract method ITD defined on a supertype
+      // since this type was altered using AspectConvertingParser,
+      // the implementation of this abstract method is not necessarily there
+      return id != IProblem.AbstractMethodMustBeImplemented ||
+             (hasModel && !isAbstractITD(categorizedProblem, model, unit, isJavaFileInAJEditor));
     }
 
     /**
@@ -831,8 +828,7 @@ public class AJCompilationUnitProblemFinder extends
      */
     private static String findLastSegment(String firstArg) {
         String[] splits = firstArg.split("\\.");
-        String lastSegment = splits[splits.length-1];
-        return lastSegment;
+      return splits[splits.length - 1];
     }
 
     private static boolean simpleNamesEquals(String firstArg, String secondArg) {
@@ -947,13 +943,11 @@ public class AJCompilationUnitProblemFinder extends
           for (IProgramElement ipe : ipes) {
             String longName = ipe.getName();
             String[] splits = longName.split("\\.");
-            String lastSegment = splits[splits.length - 1];
-            String itdName = lastSegment;
             // ignore constructors
-            if (splits.length > 1 && itdName.equals(splits[splits.length - 2])) {
+            if (splits.length > 1 && splits[splits.length - 1].equals(splits[splits.length - 2])) {
               continue;
             }
-            names.add(itdName);
+            names.add(splits[splits.length - 1]);
           }
         }
       }

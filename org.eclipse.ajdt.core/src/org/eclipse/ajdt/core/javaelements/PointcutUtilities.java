@@ -79,8 +79,7 @@ public class PointcutUtilities {
 						.charAt(end) == '.')) {
 			end++;
 		}
-		String s = source.substring(start + 1, end);
-		return s;
+    return source.substring(start + 1, end);
 	}
 
 	// returns a map of id strings to a list of offsets
@@ -157,13 +156,11 @@ public class PointcutUtilities {
 						':');
 				// we need to be after a colon
 				if ((colon != -1) && (offset > colon)) {
-					int openBrace = PointcutUtilities.findNextChar(source,
-							colon, end, '{');
-					int endZone = openBrace;
+          int endZone = PointcutUtilities.findNextChar(source,
+              colon, end, '{');
 					if (endZone == -1) {
-						int semiColon = PointcutUtilities.findNextChar(source,
-								colon, end, ';');
-						endZone = semiColon;
+            endZone = PointcutUtilities.findNextChar(source,
+                colon, end, ';');
 					}
 					// we need to be before the end zone
 					if ((endZone > 0) && (offset < endZone)) {
@@ -296,11 +293,9 @@ public class PointcutUtilities {
 		if ("this".equals(word)) { //$NON-NLS-1$
 			return true;
 		}
-		if ("if".equals(word)) { //$NON-NLS-1$
-			return true;
-		}
-		return false;
-	}
+    //$NON-NLS-1$
+    return "if".equals(word);
+  }
 
     /**
      * @param declarationStart start of the declaration (does this include JavaDoc???)

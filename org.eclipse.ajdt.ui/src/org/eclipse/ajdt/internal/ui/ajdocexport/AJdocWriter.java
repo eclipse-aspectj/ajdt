@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2005 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Helen Hawkins   - updated for Eclipse 3.1 (bug 109484)
@@ -50,10 +50,10 @@ import org.w3c.dom.Element;
 public class AJdocWriter {
 
 	private static final char PATH_SEPARATOR= '/'; // use forward slash for all platforms
-	
-	private OutputStream fOutputStream;
-	private IJavaProject[] fJavaProjects;
-	private IPath fBasePath;
+
+	private final OutputStream fOutputStream;
+	private final IJavaProject[] fJavaProjects;
+	private final IPath fBasePath;
 
 	/**
 	 * Create a AJdocWriter on the given output stream.
@@ -156,7 +156,7 @@ public class AJdocWriter {
 		if (title.length() > 0)
 			xmlJavadocDesc.setAttribute(store.TITLE, title);
 
-		
+
 		String vmArgs= store.getVMParams();
 		String additionalArgs= store.getAdditionalParams();
 		if (vmArgs.length() + additionalArgs.length() > 0) {
@@ -165,38 +165,38 @@ public class AJdocWriter {
 		}
 
 		String[] hrefs= store.getHRefs();
-		for (int i= 0; i < hrefs.length; i++) {
-			Element links= document.createElement("link"); //$NON-NLS-1$
-			xmlJavadocDesc.appendChild(links);
-			links.setAttribute(store.HREF, hrefs[i]);
-		}
+    for (String href : hrefs) {
+      Element links = document.createElement("link"); //$NON-NLS-1$
+      xmlJavadocDesc.appendChild(links);
+      links.setAttribute(store.HREF, href);
+    }
 	}
 
 	private void sortSourceElement(IJavaElement[] iJavaElements, List sourcefiles, List packages) {
-		for (int i= 0; i < iJavaElements.length; i++) {
-			IJavaElement element= iJavaElements[i];
-			IPath p= element.getResource().getLocation();
-			if (p == null)
-				continue;
+    for (IJavaElement element : iJavaElements) {
+      IPath p = element.getResource().getLocation();
+      if (p == null)
+        continue;
 
-			if (element instanceof ICompilationUnit) {
-				String relative= getPathString(p);
-				sourcefiles.add(relative);
-			} else if (element instanceof IPackageFragment) {
-				packages.add(element.getElementName());
-			}
-		}
+      if (element instanceof ICompilationUnit) {
+        String relative = getPathString(p);
+        sourcefiles.add(relative);
+      }
+      else if (element instanceof IPackageFragment) {
+        packages.add(element.getElementName());
+      }
+    }
 	}
 
 	private String getPathString(IPath[] paths) {
-		StringBuffer buf= new StringBuffer();
-		
-		for (int i= 0; i < paths.length; i++) {
-			if (buf.length() != 0) {
-				buf.append(File.pathSeparatorChar);
-			}			
-			buf.append(getPathString(paths[i]));
-		}
+		StringBuilder buf= new StringBuilder();
+
+    for (IPath path : paths) {
+      if (buf.length() != 0) {
+        buf.append(File.pathSeparatorChar);
+      }
+      buf.append(getPathString(path));
+    }
 
 		if (buf.length() == 0) {
 			buf.append('.');
@@ -221,22 +221,22 @@ public class AJdocWriter {
 		if (fBasePath.segmentCount() == matchingSegments) {
 			return getRelativePath(fullPath, matchingSegments);
 		}
-		for (int i= 0; i < fJavaProjects.length; i++) {
-			IProject proj= fJavaProjects[i].getProject();
-			IPath projLoc= proj.getLocation();
-			if (projLoc.segmentCount() <= matchingSegments && projLoc.isPrefixOf(fullPath)) {
-				return getRelativePath(fullPath, matchingSegments);
-			}
-		}
+    for (IJavaProject fJavaProject : fJavaProjects) {
+      IProject proj = fJavaProject.getProject();
+      IPath projLoc = proj.getLocation();
+      if (projLoc.segmentCount() <= matchingSegments && projLoc.isPrefixOf(fullPath)) {
+        return getRelativePath(fullPath, matchingSegments);
+      }
+    }
 		IPath workspaceLoc= ResourcesPlugin.getWorkspace().getRoot().getLocation();
 		if (workspaceLoc.segmentCount() <= matchingSegments && workspaceLoc.isPrefixOf(fullPath)) {
 			return getRelativePath(fullPath, matchingSegments);
-		}		
+		}
 		return fullPath.toOSString();
 	}
 
 	private String getRelativePath(IPath fullPath, int matchingSegments) {
-		StringBuffer res= new StringBuffer();
+		StringBuilder res= new StringBuilder();
 		int backSegments= fBasePath.segmentCount() - matchingSegments;
 		while (backSegments > 0) {
 			res.append(".."); //$NON-NLS-1$
@@ -276,17 +276,17 @@ public class AJdocWriter {
 		doclet.setAttribute(store.PATH, store.getDocletPath());
 
 		String str= store.getOverview();
-		if (str.length() > 0) 
+		if (str.length() > 0)
 			xmlJavadocDesc.setAttribute(store.OVERVIEW, str);
 
 		str= store.getAdditionalParams();
-		if (str.length() > 0) 
+		if (str.length() > 0)
 			xmlJavadocDesc.setAttribute(store.EXTRAOPTIONS, str);
 
 	}
 
 	private String toSeparatedList(List packages) {
-		StringBuffer buf= new StringBuffer();
+		StringBuilder buf= new StringBuilder();
 		Iterator iter= packages.iterator();
 		int nAdded= 0;
 		while (iter.hasNext()) {
@@ -313,5 +313,5 @@ public class AJdocWriter {
 		}
 	}
 
-	
+
 }

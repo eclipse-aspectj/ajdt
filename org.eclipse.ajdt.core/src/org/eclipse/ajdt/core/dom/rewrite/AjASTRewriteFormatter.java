@@ -11,6 +11,7 @@
 package org.eclipse.ajdt.core.dom.rewrite;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 
@@ -52,7 +53,7 @@ import org.eclipse.text.edits.TextEdit;
 
 	private class ExtendedFlattener extends ASTRewriteFlattener {
 
-		private ArrayList<NodeMarker> positions;
+		private final ArrayList<NodeMarker> positions;
 
 		public ExtendedFlattener(RewriteEventStore store) {
 			super(store);
@@ -118,7 +119,7 @@ import org.eclipse.text.edits.TextEdit;
 		}
 
 		public NodeMarker[] getMarkers() {
-			return (NodeMarker[]) this.positions.toArray(new NodeMarker[this.positions.size()]);
+			return this.positions.toArray(new NodeMarker[0]);
 		}
 	}
 
@@ -185,9 +186,8 @@ import org.eclipse.text.edits.TextEdit;
 		node.accept(flattener);
 
 		NodeMarker[] markers= flattener.getMarkers();
-    for (NodeMarker marker : markers) {
-      resultingMarkers.add(marker); // add to result
-    }
+    // add to result
+    resultingMarkers.addAll(Arrays.asList(markers));
 
 		String unformatted= flattener.getResult();
 		TextEdit edit= formatNode(node, unformatted, initialIndentationLevel);
@@ -306,14 +306,11 @@ import org.eclipse.text.edits.TextEdit;
 					break;
 				case ASTNode.PACKAGE_DECLARATION:
 				case ASTNode.IMPORT_DECLARATION:
-					suffix= "\nclass A {}"; //$NON-NLS-1$
+        case ASTNode.JAVADOC:
+          suffix= "\nclass A {}"; //$NON-NLS-1$
 					code= CodeFormatter.K_COMPILATION_UNIT;
 					break;
-				case ASTNode.JAVADOC:
-					suffix= "\nclass A {}"; //$NON-NLS-1$
-					code= CodeFormatter.K_COMPILATION_UNIT;
-					break;
-				case ASTNode.CATCH_CLAUSE:
+        case ASTNode.CATCH_CLAUSE:
 					prefix= "try {}"; //$NON-NLS-1$
 					code= CodeFormatter.K_STATEMENTS;
 					break;
@@ -447,7 +444,7 @@ import org.eclipse.text.edits.TextEdit;
 	}
 
 	public static class ConstPrefix implements Prefix {
-		private String prefix;
+		private final String prefix;
 
 		public ConstPrefix(String prefix) {
 			this.prefix= prefix;
@@ -459,10 +456,10 @@ import org.eclipse.text.edits.TextEdit;
 	}
 
 	private class FormattingPrefix implements Prefix {
-		private int kind;
-		private String string;
-		private int start;
-		private int length;
+		private final int kind;
+		private final String string;
+		private final int start;
+		private final int length;
 
 		public FormattingPrefix(String string, String sub, int kind) {
 			this.start= string.indexOf(sub);
@@ -483,8 +480,8 @@ import org.eclipse.text.edits.TextEdit;
 	}
 
 	private class BlockFormattingPrefix implements BlockContext {
-		private String prefix;
-		private int start;
+		private final String prefix;
+		private final int start;
 
 		public BlockFormattingPrefix(String prefix, int start) {
 			this.start= start;
@@ -505,9 +502,9 @@ import org.eclipse.text.edits.TextEdit;
 	}
 
 	private class BlockFormattingPrefixSuffix implements BlockContext {
-		private String prefix;
-		private String suffix;
-		private int start;
+		private final String prefix;
+		private final String suffix;
+		private final int start;
 
 		public BlockFormattingPrefixSuffix(String prefix, String suffix, int start) {
 			this.start= start;

@@ -158,7 +158,7 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
         private ITITSourceMethodInfo thisInfo;
 
         protected ITITMethod(SourceMethod orig, char[] fullTypeName, String[] parameterTypes) {
-            super((JavaElement) orig.getParent(), orig.getElementName(), parameterTypes);
+            super(orig.getParent(), orig.getElementName(), parameterTypes);
             this.orig = orig;
             this.fullTypeName = fullTypeName;
         }
@@ -169,7 +169,7 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
                 return thisInfo;
             }
             try {
-                SourceMethodElementInfo info = (SourceMethodElementInfo) ((JavaElement) orig).getElementInfo();
+                SourceMethodElementInfo info = (SourceMethodElementInfo) orig.getElementInfo();
                 thisInfo = new ITITSourceMethodInfo();
                 thisInfo.setReturnType(fullTypeName);
                 thisInfo.setFlags(info.getModifiers());
@@ -194,7 +194,7 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
         private ITITSourceFieldElementInfo thisInfo;
 
         protected ITITField(SourceField orig, char[] fullTypeName) {
-            super((JavaElement) orig.getParent(), orig.getElementName());
+            super(orig.getParent(), orig.getElementName());
             this.orig = orig;
             this.fullTypeName = fullTypeName;
         }
@@ -205,7 +205,7 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
                 return thisInfo;
             }
             try {
-                SourceFieldElementInfo info = (SourceFieldElementInfo) ((JavaElement) orig).getElementInfo();
+                SourceFieldElementInfo info = (SourceFieldElementInfo) orig.getElementInfo();
                 thisInfo = new ITITSourceFieldElementInfo();
                 thisInfo.setTypeName(fullTypeName);
                 thisInfo.setFlags(info.getModifiers());
@@ -529,7 +529,7 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
      */
     private SourceMethod createAspectOf(AspectElement parent) {
         return new SourceMethod(
-                (JavaElement) parent,
+          parent,
                 "aspectOf",
                 new String[0]) {
             protected Object createElementInfo() {
@@ -554,7 +554,7 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
 
     private SourceMethod createHasAspect(AspectElement parent) {
         return new SourceMethod(
-                (JavaElement) parent,
+          parent,
                 "hasAspect",
                 new String[0]) {
             protected Object createElementInfo() {
@@ -578,7 +578,7 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
     }
     private SourceMethod createGetWithinTypeName(AspectElement parent) {
         return new SourceMethod(
-                (JavaElement) parent,
+          parent,
                 "getWithinTypeName",
                 new String[0]) {
             protected Object createElementInfo() {
@@ -621,9 +621,9 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
 
     private SourceType createITDAwareType(SourceType type, ITDAwareSourceTypeInfo info) {
         if (type instanceof AspectElement) {
-            return new ITDAwareAspectType((JavaElement) type.getParent(), type.getElementName(), info);
+            return new ITDAwareAspectType(type.getParent(), type.getElementName(), info);
         } else {
-            return new ITDAwareSourceType((JavaElement) type.getParent(), type.getElementName(), info);
+            return new ITDAwareSourceType(type.getParent(), type.getElementName(), info);
         }
     }
 

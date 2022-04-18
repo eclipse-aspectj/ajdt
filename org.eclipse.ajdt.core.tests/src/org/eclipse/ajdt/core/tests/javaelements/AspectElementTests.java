@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2005 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman  - initial version
@@ -28,7 +28,7 @@ public class AspectElementTests extends AJDTCoreTestCase {
 
 	/**
 	 * AspectElement.getPointcuts() should return an array of pointcut elements
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	public void testGetPointcuts() throws Exception {
@@ -38,23 +38,21 @@ public class AspectElementTests extends AJDTCoreTestCase {
 		AJCompilationUnit cu = AJCompilationUnitManager.INSTANCE
 				.getAJCompilationUnit((IFile) bp);
 		IType[] types = cu.getAllTypes();
-		assertTrue(
-				"Compilation unit should contain exactly one type", types.length == 1); //$NON-NLS-1$
+    assertEquals("Compilation unit should contain exactly one type", 1, types.length); //$NON-NLS-1$
 		assertTrue(
 				"Contained type should be an AspectElement", types[0] instanceof AspectElement); //$NON-NLS-1$
 		AspectElement aspect = (AspectElement) types[0];
 		PointcutElement[] pointcuts = aspect.getPointcuts();
 		assertNotNull(
 				"AspectElement.getPointcuts() should not return null", pointcuts); //$NON-NLS-1$
-		assertTrue(
-				"AspectElement.getPointcuts() should return exactly one pointcut", pointcuts.length == 1); //$NON-NLS-1$
+    assertEquals("AspectElement.getPointcuts() should return exactly one pointcut", 1, pointcuts.length); //$NON-NLS-1$
 		assertEquals(
 				"AspectElement.getPointcuts() should return a pointcut called setter", pointcuts[0].getElementName(), "setter"); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	/**
 	 * AspectElement.getAdvice() should return an array of advice elements
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	public void testGetAdvice() throws Exception {
@@ -64,23 +62,21 @@ public class AspectElementTests extends AJDTCoreTestCase {
 		AJCompilationUnit cu = AJCompilationUnitManager.INSTANCE
 				.getAJCompilationUnit((IFile) bp);
 		IType[] types = cu.getAllTypes();
-		assertTrue(
-				"Compilation unit should contain exactly one type", types.length == 1); //$NON-NLS-1$
+    assertEquals("Compilation unit should contain exactly one type", 1, types.length); //$NON-NLS-1$
 		assertTrue(
 				"Contained type should be an AspectElement", types[0] instanceof AspectElement); //$NON-NLS-1$
 		AspectElement aspect = (AspectElement) types[0];
 		AdviceElement[] advice = aspect.getAdvice();
 		assertNotNull(
 				"AspectElement.getAdvice() should not return null", advice); //$NON-NLS-1$
-		assertTrue(
-				"AspectElement.getAdvice() should return exactly one advice element", advice.length == 1); //$NON-NLS-1$
+    assertEquals("AspectElement.getAdvice() should return exactly one advice element", 1, advice.length); //$NON-NLS-1$
 		assertEquals(
 				"AspectElement.getAdvice() should return an advice element called around", advice[0].getElementName(), "around"); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	/**
 	 * AspectElement.getDeclares() should return an array of declare elements
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	public void testGetDeclares() throws Exception {
@@ -90,23 +86,21 @@ public class AspectElementTests extends AJDTCoreTestCase {
 		AJCompilationUnit cu = AJCompilationUnitManager.INSTANCE
 				.getAJCompilationUnit((IFile) bp);
 		IType[] types = cu.getAllTypes();
-		assertTrue(
-				"Compilation unit should contain exactly one type", types.length == 1); //$NON-NLS-1$
+    assertEquals("Compilation unit should contain exactly one type", 1, types.length); //$NON-NLS-1$
 		assertTrue(
 				"Contained type should be an AspectElement", types[0] instanceof AspectElement); //$NON-NLS-1$
 		AspectElement aspect = (AspectElement) types[0];
 		DeclareElement[] declares = aspect.getDeclares();
 		assertNotNull(
 				"AspectElement.getDeclares() should not return null", declares); //$NON-NLS-1$
-		assertTrue(
-				"AspectElement.getDeclares() should return exactly one declare element", declares.length == 1); //$NON-NLS-1$
+    assertEquals("AspectElement.getDeclares() should return exactly one declare element", 1, declares.length); //$NON-NLS-1$
 		assertEquals(
 				"AspectElement.getDeclares() should return a declare element with the correct name", declares[0].getElementName(), "declare warning"); //$NON-NLS-1$//$NON-NLS-2$
 	}
 
 	/**
 	 * AspectElement.getDeclares() should return an array of declare elements
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	public void testGetITDs() throws Exception {
@@ -116,8 +110,7 @@ public class AspectElementTests extends AJDTCoreTestCase {
 		AJCompilationUnit cu = AJCompilationUnitManager.INSTANCE
 				.getAJCompilationUnit((IFile) bp);
 		IType[] types = cu.getAllTypes();
-		assertTrue(
-				"Compilation unit should contain exactly one type", types.length == 1); //$NON-NLS-1$
+    assertEquals("Compilation unit should contain exactly one type", 1, types.length); //$NON-NLS-1$
 		assertTrue(
 				"Contained type should be an AspectElement", types[0] instanceof AspectElement); //$NON-NLS-1$
 		AspectElement aspect = (AspectElement) types[0];

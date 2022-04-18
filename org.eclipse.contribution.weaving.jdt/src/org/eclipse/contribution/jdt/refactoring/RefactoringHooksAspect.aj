@@ -12,15 +12,12 @@ package org.eclipse.contribution.jdt.refactoring;
 
 import org.eclipse.contribution.jdt.JDTWeavingPlugin;
 import org.eclipse.contribution.jdt.preferences.WeavableProjectListener;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.internal.corext.refactoring.code.ExtractConstantRefactoring;
 import org.eclipse.jdt.internal.corext.refactoring.code.ExtractTempRefactoring;
 import org.eclipse.ltk.core.refactoring.Refactoring;
-import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.jdt.internal.corext.refactoring.util.RefactoringASTParser;
 
 /**

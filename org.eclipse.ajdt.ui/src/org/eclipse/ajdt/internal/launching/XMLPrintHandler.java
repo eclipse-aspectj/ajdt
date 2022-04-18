@@ -38,7 +38,7 @@ public class XMLPrintHandler {
 	public static final String XML_SLASH = "/"; //$NON-NLS-1$
 
 	public static void printBeginElement(Writer xmlWriter, String elementString, String indent, boolean terminate) throws IOException{
-		StringBuffer temp = new StringBuffer(indent);
+		StringBuilder temp = new StringBuilder(indent);
 		temp.append(XML_BEGIN_TAG);
 		temp.append(elementString);
 		if (terminate)
@@ -50,10 +50,9 @@ public class XMLPrintHandler {
 	}
 
 	public static void printEndElement(Writer xmlWriter, String elementString, String indent) throws IOException{
-		StringBuffer temp = new StringBuffer(indent);
-		temp.append(XML_BEGIN_TAG);
-		temp.append(XML_SLASH).append(elementString).append(XML_END_TAG).append("\n"); //$NON-NLS-1$
-		xmlWriter.write(temp.toString());
+    String temp = indent + XML_BEGIN_TAG +
+                  XML_SLASH + elementString + XML_END_TAG + "\n"; //$NON-NLS-1$
+    xmlWriter.write(temp);
 
 	}
 
@@ -62,22 +61,19 @@ public class XMLPrintHandler {
 	}
 
 	public static void printComment(Writer xmlWriter, String comment)throws IOException {
-		StringBuffer temp = new StringBuffer(XML_COMMENT_BEGIN_TAG);
-		temp.append(encode(comment).toString()).append(XML_COMMENT_END_TAG).append("\n"); //$NON-NLS-1$
-		xmlWriter.write(temp.toString());
+    xmlWriter.write(XML_COMMENT_BEGIN_TAG + encode(comment).toString() + XML_COMMENT_END_TAG + "\n" //$NON-NLS-1$
+    );
 	}
 
 	public static void printHead(Writer xmlWriter, String encoding) throws IOException {
-		StringBuffer temp = new StringBuffer(XML_HEAD);
-		temp.append(encoding).append(XML_DBL_QUOTES).append(XML_HEAD_END_TAG).append("\n"); //$NON-NLS-1$
-		xmlWriter.write(temp.toString());
+    xmlWriter.write(XML_HEAD + encoding + XML_DBL_QUOTES + XML_HEAD_END_TAG + "\n" //$NON-NLS-1$
+    );
 	}
 
-	public static String wrapAttributeForPrint(String attribute, String value) throws IOException {
-		StringBuffer temp = new StringBuffer(XML_SPACE);
-		temp.append(attribute).append(XML_EQUAL).append(XML_DBL_QUOTES)
-				.append(encode(value).toString()).append(XML_DBL_QUOTES);
-		return temp.toString();
+	public static String wrapAttributeForPrint(String attribute, String value) {
+    String temp = XML_SPACE + attribute + XML_EQUAL + XML_DBL_QUOTES +
+                  encode(value).toString() + XML_DBL_QUOTES;
+		return temp;
 
 	}
 
@@ -94,7 +90,7 @@ public class XMLPrintHandler {
 		}
 		case Node.ELEMENT_NODE: {
 			//get the attribute list for this node.
-			StringBuffer tempElementString = new StringBuffer(node.getNodeName());
+			StringBuilder tempElementString = new StringBuilder(node.getNodeName());
 			NamedNodeMap attributeList = node.getAttributes();
 			if ( attributeList != null ) {
 				for(int i= 0; i <attributeList.getLength();i++){
@@ -110,12 +106,12 @@ public class XMLPrintHandler {
 
 			for (int i = 0; i < length; i++)
 				printNode(xmlWriter, childNodes.item(i),encoding, indent + "\t"); //$NON-NLS-1$
-		
+
 			if (length > 0)
 				printEndElement(xmlWriter,node.getNodeName(), indent);
 			break;
 		}
-		
+
 		case Node.TEXT_NODE: {
 			// AspectJ Change - don't print text nodes - avoids formatting problems
 //			xmlWriter.write(encode(node.getNodeValue()).toString());
@@ -123,14 +119,13 @@ public class XMLPrintHandler {
 		}
 		// AspectJ Change begin - print out comment nodes
 		case Node.COMMENT_NODE: {
-			StringBuffer temp = new StringBuffer(XML_COMMENT_BEGIN_TAG);
-			temp.append(encode(node.getNodeValue()).toString()).append(XML_COMMENT_END_TAG).append("\n"); //$NON-NLS-1$
-			xmlWriter.write(temp.toString());
+      xmlWriter.write(XML_COMMENT_BEGIN_TAG + encode(node.getNodeValue()).toString() + XML_COMMENT_END_TAG + "\n" //$NON-NLS-1$
+      );
 			break;
 		}
 		// AspectJ Change end
 		default: {
-			throw new UnsupportedOperationException("Unsupported XML Node Type."); //$NON-NLS-1$		
+			throw new UnsupportedOperationException("Unsupported XML Node Type."); //$NON-NLS-1$
 		}
 	}
 
@@ -163,26 +158,12 @@ public class XMLPrintHandler {
 		}
 		return buf;
 	}
-	
+
 	public static void writeFile(Document doc, File file) throws IOException {
-		Writer writer = null;
-		OutputStream out = null;
-		try {
-			out = new FileOutputStream(file);
-			writer = new OutputStreamWriter(out, "UTF-8"); //$NON-NLS-1$
-			XMLPrintHandler.printNode(writer, doc, "UTF-8", ""); //$NON-NLS-1$ //$NON-NLS-2$
-		} finally {
-			try {
-				if (writer != null)
-					writer.close();
-			} catch (IOException e1) {
-			}
-			try {
-				if (out != null)
-					out.close();
-			} catch (IOException e1) {
-			}
-		}
+    try (OutputStream out = new FileOutputStream(file); Writer writer = new OutputStreamWriter(out, "UTF-8")) {
+      //$NON-NLS-1$
+      XMLPrintHandler.printNode(writer, doc, "UTF-8", ""); //$NON-NLS-1$ //$NON-NLS-2$
+    }
 	}
 
 }

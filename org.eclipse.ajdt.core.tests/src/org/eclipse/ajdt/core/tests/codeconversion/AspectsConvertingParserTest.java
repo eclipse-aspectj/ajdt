@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2005, 2008 IBM Corporation, SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman  - initial version
@@ -45,9 +45,9 @@ public class AspectsConvertingParserTest extends AJDTCoreTestCase {
 		conv.convert(conversionOptions);
 		String converted = new String(conv.content);
 		assertTrue("Parser failed to handle enhanced for loop", //$NON-NLS-1$
-				converted.indexOf("for (Object obj : objects)")!=-1); //$NON-NLS-1$
+      converted.contains("for (Object obj : objects)")); //$NON-NLS-1$
 	}
-	
+
 	public void testBug118052() {
 		String source = "public aspect Aspect pertypewithin(type_pattern){\n" //$NON-NLS-1$
 				+ "	public static void main(String[] args) {\n" //$NON-NLS-1$
@@ -58,10 +58,9 @@ public class AspectsConvertingParserTest extends AJDTCoreTestCase {
 				.toCharArray());
 		conv.convert(conversionOptions);
 		String converted = new String(conv.content);
-		assertTrue("Parser failed to handle pertypewithin", //$NON-NLS-1$
-				converted.indexOf("pertypewithin")==-1); //$NON-NLS-1$
+    assertFalse("Parser failed to handle pertypewithin", converted.contains("pertypewithin")); //$NON-NLS-1$
 	}
-	
+
 	public void testBug134343() {
 		String source = "public aspect Aspect {\n" //$NON-NLS-1$
 				+ "	   declare parents : foo.inspector..* &&\n" //$NON-NLS-1$
@@ -73,12 +72,10 @@ public class AspectsConvertingParserTest extends AJDTCoreTestCase {
 				.toCharArray());
 		conv.convert(conversionOptions);
 		String converted = new String(conv.content);
-		assertTrue("Parser should not have considered Test as an import", //$NON-NLS-1$
-				converted.indexOf("Test x") == -1); //$NON-NLS-1$
-		assertTrue("Parser should not have considered TestCase as an import", //$NON-NLS-1$
-				converted.indexOf("TestCase x") == -1); //$NON-NLS-1$
+    assertFalse("Parser should not have considered Test as an import", converted.contains("Test x")); //$NON-NLS-1$
+    assertFalse("Parser should not have considered TestCase as an import", converted.contains("TestCase x")); //$NON-NLS-1$
 	}
-	
+
 	/**
 	 * ensure that the RHS of an assignment is not processed as a potential ITD
 	 * eg- int x = Foo.y;  should not be converted into int x = Foo$y;
@@ -86,7 +83,7 @@ public class AspectsConvertingParserTest extends AJDTCoreTestCase {
 	public void testRHS() {
 	    String source =   "aspect Aspect { int x = Foo.y; }";
 	    String expected = "class  Aspect { int x = Foo.y; }";
-	    
+
         ConversionOptions conversionOptions = ConversionOptions.STANDARD;
         AspectsConvertingParser conv = new AspectsConvertingParser(source
                 .toCharArray());
@@ -94,15 +91,15 @@ public class AspectsConvertingParserTest extends AJDTCoreTestCase {
         String converted = new String(conv.content);
         assertEquals("Improperly converted", expected, converted); //$NON-NLS-1$
 	}
-	
-	
+
+
 	/**
 	 * test that ':' are properly handled in switch statements
 	 */
     public void testBug260914() {
         String source =   "aspect Aspect { pointcut foo() : execution(); \n void doNothing() { char i = 'o'; switch(i) { case 'o': break; default: break; } }}";
         String expected = "class  Aspect { pointcut foo()              ; \n void doNothing() { char i = 'o'; switch(i) { case 'o': break; default: break; } }}";
-        
+
         ConversionOptions conversionOptions = ConversionOptions.STANDARD;
         AspectsConvertingParser conv = new AspectsConvertingParser(source
                 .toCharArray());
@@ -110,7 +107,7 @@ public class AspectsConvertingParserTest extends AJDTCoreTestCase {
         String converted = new String(conv.content);
         assertEquals("Improperly converted", expected, converted); //$NON-NLS-1$
     }
-    
+
     /**
      * test that '?' in type parameters are converted correctly
      */
@@ -118,13 +115,13 @@ public class AspectsConvertingParserTest extends AJDTCoreTestCase {
         IProject bug282948 = createPredefinedProject("Bug282948");
         IFile file = bug282948.getFile("src/RR.aj");
         String source =   getContents(file);
-        
+
         ConversionOptions conversionOptions = ConversionOptions.STANDARD;
         AspectsConvertingParser conv = new AspectsConvertingParser(source
                 .toCharArray());
         conv.convert(conversionOptions);
         String converted = new String(conv.content);
-        
+
         // now convert using a regular Java parser:
         ASTParser parser = ASTParser.newParser(AST.JLS3);
         parser.setSource(converted.toCharArray());
@@ -134,7 +131,7 @@ public class AspectsConvertingParserTest extends AJDTCoreTestCase {
         }
     }
 
-	
+
 	/**
 	 * inserts arbitrary conversion text at the proper places in the code
 	 * @author andrew
@@ -148,8 +145,9 @@ public class AspectsConvertingParserTest extends AJDTCoreTestCase {
         protected char[] getInterTypeDecls(char[] currentTypeName) {
             return "Here I am!".toCharArray();
         }
-    };
-    class MockDeclareConvertingParser extends AspectsConvertingParser {
+    }
+
+  class MockDeclareConvertingParser extends AspectsConvertingParser {
         public MockDeclareConvertingParser(char[] content) {
             super(content);
         }
@@ -157,17 +155,15 @@ public class AspectsConvertingParserTest extends AJDTCoreTestCase {
         public char[] createImplementExtendsITDs(char[] typeName) {
             return "Here I am!".toCharArray();
         }
-    };
+    }
 
-
-	
-	/**
+  /**
 	 * test that ITD insertions appear in the right place
 	 */
 	public void testITDInsertions() {
         char[] contents = "public class Foo { aspect Bar { interface X { } } } @interface Y { } ".toCharArray();
         char[] expectedContents = "public class Foo {Here I am! class  Bar {Here I am! interface X {Here I am! } } } @interface Y {Here I am! } ".toCharArray();
-	    
+
         AspectsConvertingParser parser = new MockITDConvertingParser(contents);
 
 	    parser.convert(ConversionOptions.CODE_COMPLETION);
@@ -176,9 +172,9 @@ public class AspectsConvertingParserTest extends AJDTCoreTestCase {
         System.out.println(new String(expectedContents));
 	    assertEquals(new String(expectedContents), new String(convertedContents));
 	}
-	
-	
-	
+
+
+
     public void testSuperTypeInsertionsNoExistingClause() {
         char[] contents = "public class Foo { aspect Bar { interface X { } } } @interface Y { } ".toCharArray();
         char[] expectedContents = "public Here I am!{ Here I am!{ Here I am!{ } } } @Here I am!{ } ".toCharArray();
@@ -215,7 +211,7 @@ public class AspectsConvertingParserTest extends AJDTCoreTestCase {
         char[] convertedContents = parser.content;
         assertEquals(new String(expectedContents), new String(convertedContents));
     }
-    
+
     public void testBug273914() throws Exception {
         IProject project = createPredefinedProject("Bug273914");
         IFile file = project.getFile("src/DeclaresITDs.aj");
@@ -225,21 +221,21 @@ public class AspectsConvertingParserTest extends AJDTCoreTestCase {
         parser.setUnit(unit);
         parser.convert(ConversionOptions.CODE_COMPLETION);
         String convertedContents = new String(parser.content);
-        assertTrue("Incorrect extends/implements clause for class A\n" + convertedContents, convertedContents.indexOf("class A {") != -1); 
-        assertTrue("Incorrect extends/implements clause for interface B\n" + convertedContents, convertedContents.indexOf("interface B {") != -1); 
-        assertTrue("Incorrect extends/implements clause for class W\n" + convertedContents, convertedContents.indexOf("class W extends A {") != -1); 
-        assertTrue("Incorrect extends/implements clause for interface X\n" + convertedContents, convertedContents.indexOf("interface X {") != -1); 
-        assertTrue("Incorrect extends/implements clause for class Y\n" + convertedContents, convertedContents.indexOf("class Y extends DeclaresITDs.W implements DeclaresITDs.X, B {") != -1); 
-        assertTrue("Incorrect extends/implements clause for interface Z\n" + convertedContents, convertedContents.indexOf("interface Z extends DeclaresITDs.X, B {") != -1); 
-        assertTrue("Incorrect extends/implements clause for class C\n" + convertedContents, convertedContents.indexOf("class C extends DeclaresITDs.W implements DeclaresITDs.X, DeclaresITDs.B {") != -1); 
-        assertTrue("Incorrect extends/implements clause for interface D\n" + convertedContents, convertedContents.indexOf("interface D extends DeclaresITDs.X {") != -1); 
-        
+        assertTrue("Incorrect extends/implements clause for class A\n" + convertedContents, convertedContents.contains("class A {"));
+        assertTrue("Incorrect extends/implements clause for interface B\n" + convertedContents, convertedContents.contains("interface B {"));
+        assertTrue("Incorrect extends/implements clause for class W\n" + convertedContents, convertedContents.contains("class W extends A {"));
+        assertTrue("Incorrect extends/implements clause for interface X\n" + convertedContents, convertedContents.contains("interface X {"));
+        assertTrue("Incorrect extends/implements clause for class Y\n" + convertedContents, convertedContents.contains("class Y extends DeclaresITDs.W implements DeclaresITDs.X, B {"));
+        assertTrue("Incorrect extends/implements clause for interface Z\n" + convertedContents, convertedContents.contains("interface Z extends DeclaresITDs.X, B {"));
+        assertTrue("Incorrect extends/implements clause for class C\n" + convertedContents, convertedContents.contains("class C extends DeclaresITDs.W implements DeclaresITDs.X, DeclaresITDs.B {"));
+        assertTrue("Incorrect extends/implements clause for interface D\n" + convertedContents, convertedContents.contains("interface D extends DeclaresITDs.X {"));
+
     }
-    
+
     private String getContents(IFile javaFile) throws CoreException, IOException {
         InputStream is = javaFile.getContents();
         BufferedReader br = new BufferedReader(new InputStreamReader(is));
-        StringBuffer buffer= new StringBuffer();
+        StringBuilder buffer= new StringBuilder();
         char[] readBuffer= new char[2048];
         int n= br.read(readBuffer);
         while (n > 0) {

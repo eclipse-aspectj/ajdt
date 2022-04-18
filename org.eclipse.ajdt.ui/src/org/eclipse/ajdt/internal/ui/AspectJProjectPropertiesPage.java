@@ -75,12 +75,12 @@ import org.eclipse.ui.progress.UIJob;
  */
 public class AspectJProjectPropertiesPage extends PropertyPage implements
 		IStatusChangeListener {
-    
+
     /**
      * Listens for changes that require a refresh or a commit of
      * the properties page.
-     * 
-     * If the page has changes, then commit those changes before moving 
+     *
+     * If the page has changes, then commit those changes before moving
      * to another page.
      */
     private class PageChangeListener implements Listener, IResourceChangeListener {
@@ -111,13 +111,9 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
         private void refreshPathBlock() {
             if (hasChangesInClasspathFile()) {
                 // must run from the UI thread
-                Display.getDefault().syncExec(new Runnable() {
-                	public void run() {
-                        resetPathBlocks();
-                	}
-                });
+                Display.getDefault().syncExec(() -> resetPathBlocks());
             }
-        } 
+        }
     }
 
     private class ConfigurePathBlockJob extends UIJob {
@@ -136,7 +132,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
                 return Status.CANCEL_STATUS;
             }
         }
-        
+
     }
 
 	private static final String INDEX = "pageIndex"; //$NON-NLS-1$
@@ -147,7 +143,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 
 	public static final String PROP_ID = "org.eclipse.ajdt.internal.ui.AspectJProjectPropertiesPage"; //$NON-NLS-1$
 
-	// compiler options for ajc 
+	// compiler options for ajc
 	private StringFieldEditor outputJarEditor;
 
 	// Relevant project for which the properties are being set
@@ -208,7 +204,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 		fListener = new PageChangeListener();
         getControl().addListener(SWT.Hide, fListener);
         thisProject.getWorkspace().addResourceChangeListener(fListener, IResourceChangeEvent.POST_CHANGE);
-        
+
 		return composite;
 	}
 
@@ -242,20 +238,20 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 	private IClasspathEntry[] getInitialPathValue(IProject project, IClasspathAttribute attribute)
 			throws CoreException {
 		List newPath = new ArrayList();
-		
+
 		IJavaProject jProject = JavaCore.create(project);
 		boolean isAspectPath = AspectJCorePreferences.isAspectPathAttribute(attribute);
 		try {
 		    IClasspathEntry[] entries = jProject.getRawClasspath();
-		    for (int i = 0; i < entries.length; i++) {
-		        if (AspectJCorePreferences.isOnPath(entries[i], isAspectPath)) {
-		            newPath.add(entries[i]);
-		        }
-            }
+      for (IClasspathEntry entry : entries) {
+        if (AspectJCorePreferences.isOnPath(entry, isAspectPath)) {
+          newPath.add(entry);
+        }
+      }
 		} catch (JavaModelException e) {
 		}
-		
-	
+
+
         // Bug 243356
         // also get entries that are contained in containers
         // where the containers *don't* have the path attribute
@@ -269,7 +265,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 			return null;
 		}
 	}
-	
+
     // Bug 243356
     // Look inside all container classpath elements in the project
     protected List /*CPListElement*/ getEntriesInContainers(IProject project, IClasspathAttribute attribute) {
@@ -278,36 +274,36 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
     		// get the raw classpath of the project
 			IClasspathEntry[] allEntries = jProject.getRawClasspath();
 			List entriesWithAttribute = new ArrayList();
-			for (int i = 0; i < allEntries.length; i++) {
-				// for each container element, peek inside it
-				if (allEntries[i].getEntryKind() == IClasspathEntry.CPE_CONTAINER) {
-		            IClasspathContainer container = 
-		                JavaCore.getClasspathContainer(allEntries[i].getPath(), jProject);
-		            if (container != null && !(container instanceof JREContainer)) {
-			            IClasspathEntry[] containerEntries = container.getClasspathEntries();
-			            // bug 273770
-//			            Set /*String*/ extraPathElements = AspectJCorePreferences.findExtraPathElements(allEntries[i], 
+        for (IClasspathEntry allEntry : allEntries) {
+          // for each container element, peek inside it
+          if (allEntry.getEntryKind() == IClasspathEntry.CPE_CONTAINER) {
+            IClasspathContainer container =
+              JavaCore.getClasspathContainer(allEntry.getPath(), jProject);
+            if (container != null && !(container instanceof JREContainer)) {
+              IClasspathEntry[] containerEntries = container.getClasspathEntries();
+              // bug 273770
+//			            Set /*String*/ extraPathElements = AspectJCorePreferences.findExtraPathElements(allEntries[i],
 //			                            AspectJCorePreferences.isAspectPathAttribute(attribute));
-	                    
-			            for (int j = 0; j < containerEntries.length; j++) {
-			    			// iterate through each element and add 
-			    			// 	to the path those that have the appropriate attribute
-			            	if (hasClasspathAttribute(containerEntries[j], attribute) /*||
+
+              for (IClasspathEntry containerEntry : containerEntries) {
+                // iterate through each element and add
+                // 	to the path those that have the appropriate attribute
+                if (hasClasspathAttribute(containerEntry, attribute) /*||
 			            	        AspectJCorePreferences.containsAsPathFragment(extraPathElements, containerEntries[j])*/) {
-			            		addContainerToAttribute(containerEntries[j], attribute, container);
-			            		entriesWithAttribute.add(containerEntries[j]);
-			            	}
-			            }
-		            }
-				}
-			}
+                  addContainerToAttribute(containerEntry, attribute, container);
+                  entriesWithAttribute.add(containerEntry);
+                }
+              }
+            }
+          }
+        }
 	    	return entriesWithAttribute;
 
 		} catch (JavaModelException e) {
 		}
     	return Collections.EMPTY_LIST;
     }
-    
+
     private void addContainerToAttribute(IClasspathEntry classpathEntry,
 			IClasspathAttribute attribute, IClasspathContainer container) {
     	// find the attribute
@@ -321,11 +317,11 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 
 	private boolean hasClasspathAttribute(IClasspathEntry entry, IClasspathAttribute attribute) {
     	IClasspathAttribute[] allAttributes = entry.getExtraAttributes();
-    	for (int i = 0; i < allAttributes.length; i++) {
-			if (allAttributes[i].getName().equals(attribute.getName())) {
-				return true;
-			}
-		}
+    for (IClasspathAttribute allAttribute : allAttributes) {
+      if (allAttribute.getName().equals(attribute.getName())) {
+        return true;
+      }
+    }
     	return false;
     }
 
@@ -338,7 +334,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 		//createText(row0Composite, UIMessages.compilerPropsPage_description);
 		Label title = new Label(row0Composite, SWT.LEFT | SWT.WRAP);
 		title.setText(UIMessages.compilerPropsPage_description);
-		
+
 		Composite row3Comp = createRowComposite(pageComposite, 2);
 
 		outputJarEditor = new StringFieldEditor("", //$NON-NLS-1$
@@ -391,34 +387,36 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 
 		return composite;
 	}
-	 
+
 	private boolean checkIfOnInpath(IProject project, String outJarStr) {
-		String[] oldInpath = 
+		String[] oldInpath =
 		    AspectJCorePreferences.getRawProjectInpath(project);
 		String[] seperatedOldInpath = oldInpath[0].split(";"); //$NON-NLS-1$
 
 		String outJar = ('/'+thisProject.getName()+'/'+outJarStr);
-		for (int j = 0; j < seperatedOldInpath.length; j++) {
-			if ((seperatedOldInpath[j].equals(outJar))&& 
-					!(seperatedOldInpath[j].equals(""))) { //$NON-NLS-1$
-				return true;
-			}
-		}
+    for (String s : seperatedOldInpath) {
+      if ((s.equals(outJar)) &&
+          !(s.equals("")))
+      { //$NON-NLS-1$
+        return true;
+      }
+    }
 		return false;
 	}
-	
+
 	private boolean checkIfOnAspectpath(IProject project, String string) {
 		String[] oldAspectpath = AspectJCorePreferences
 				.getRawProjectAspectPath(project);
 		String[] seperatedOldAspectpath = oldAspectpath[0].split(";"); //$NON-NLS-1$
-		
+
 		String outJar = ('/'+thisProject.getName()+'/'+string);
-		for (int j = 0; j < seperatedOldAspectpath.length; j++) {
-			if ((seperatedOldAspectpath[j].equals(outJar)) && 
-					!(seperatedOldAspectpath[j].equals(""))) { //$NON-NLS-1$
-				return true;
-			}
-		}
+    for (String s : seperatedOldAspectpath) {
+      if ((s.equals(outJar)) &&
+          !(s.equals("")))
+      { //$NON-NLS-1$
+        return true;
+      }
+    }
 		return false;
 	}
 
@@ -438,12 +436,12 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 	public boolean performOk() {
 	    return commit();
 	}
-	    
+
     private boolean commit() {
-        
+
         // ignore changes to .classpath that occur during commits
         thisProject.getWorkspace().removeResourceChangeListener(fListener);
-        
+
         // update the output jar
         try {
     		String oldOutJar = AspectJCorePreferences.getProjectOutJar(thisProject);
@@ -471,7 +469,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
     			newEntry = new org.eclipse.jdt.internal.core.ClasspathEntry(
     					IPackageFragmentRoot.K_BINARY, // content kind
     					IClasspathEntry.CPE_LIBRARY, // entry kind
-    					new Path(thisProject.getName() + '/' + outJar) 
+    					new Path(thisProject.getName() + '/' + outJar)
     							.makeAbsolute(), // path
     					new IPath[] {}, // inclusion patterns
     					new IPath[] {}, // exclusion patterns
@@ -486,7 +484,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
     		}
     		if (checkIfOnInpath(thisProject, outJar)||
     				checkIfOnAspectpath(thisProject, outJar)){
-    			MessageDialog.openInformation(getShell(), UIMessages.buildpathwarning_title, 
+    			MessageDialog.openInformation(getShell(), UIMessages.buildpathwarning_title,
     			        UIMessages.buildConfig_invalidOutjar);
     			outputJarEditor.setStringValue(oldOutJar);
     		} else {
@@ -495,18 +493,18 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
     		    AspectJCorePreferences.setProjectOutJar(thisProject, outputJarEditor
     		            .getStringValue());
     		}
-    		
+
     		if (fInPathBlock != null && fInPathBlock.hasChangesInDialog()) {
                 new ConfigurePathBlockJob(fInPathBlock).schedule();
                 getSettings().put(INDEX, fInPathBlock.getPageIndex());
-    			
+
     			// set the inpath's output folder
     			// we should only be setting the out path if it is different
     			// from the default
     			// probably should do more checking on this, but hold off for now.
     			AspectJCorePreferences.setProjectInpathOutFolder(getProject(), fInPathBlock.getOutputFolder());
     		}
-    
+
     		if (fAspectPathBlock != null && fAspectPathBlock.hasChangesInDialog()) {
     		    new ConfigurePathBlockJob(fAspectPathBlock).schedule();
     			getSettings().put(INDEX, fAspectPathBlock.getPageIndex());
@@ -541,8 +539,8 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 	 * clicked. This now behaves like the jdt pages.
 	 */
 	public void performDefaults() {
-		AJLog.log("Compiler properties reset to default for project: " //$NON-NLS-1$ 
-		        + thisProject.getName()); 
+		AJLog.log("Compiler properties reset to default for project: " //$NON-NLS-1$
+		        + thisProject.getName());
 		        outputJarEditor.setStringValue(""); //$NON-NLS-1$
 	}
 
@@ -576,7 +574,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 		if (testing) {
 			return thisProject;
 		} else {
-			return (IProject) getElement().getAdapter(IProject.class);
+			return getElement().getAdapter(IProject.class);
 		}
 	}
 
@@ -629,27 +627,27 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 			fPageIndex = tabItem.getParent().getSelectionIndex();
 		}
 	}
-	
+
 	private boolean hasChanges() {
-	    return (fAspectPathBlock != null && fAspectPathBlock.hasChangesInDialog()) || 
+	    return (fAspectPathBlock != null && fAspectPathBlock.hasChangesInDialog()) ||
 	            (fInPathBlock != null && fInPathBlock.hasChangesInDialog());
 	}
-	
+
 	public boolean hasChangesInClasspathFile() {
         IFile file= thisProject.getFile(".classpath"); //$NON-NLS-1$
         return fFileTimeStamp != file.getModificationStamp();
     }
-    
+
     public boolean isClassfileMissing() {
         return !thisProject.getFile(".classpath").exists(); //$NON-NLS-1$
     }
-    
+
     public void initializeTimeStamps() {
         IFile file= thisProject.getFile(".classpath"); //$NON-NLS-1$
         fFileTimeStamp= file.getModificationStamp();
     }
 
-	
+
 //	public void setVisible(boolean visible) {
 //	    if (visible) {
 //	        // must reload

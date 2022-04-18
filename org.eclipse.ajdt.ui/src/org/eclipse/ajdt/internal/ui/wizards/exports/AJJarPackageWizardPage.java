@@ -4,7 +4,7 @@
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -71,18 +71,18 @@ import org.eclipse.ui.dialogs.WizardExportResourcesPage;
  * Changes marked with // AspectJ Change
  */
 public class AJJarPackageWizardPage extends WizardExportResourcesPage implements IJarPackageWizardPage {
-	private AJJarPackageData fJarPackage;
-	private IStructuredSelection fInitialSelection;
+	private final AJJarPackageData fJarPackage;
+	private final IStructuredSelection fInitialSelection;
 	private CheckboxTreeAndListGroup fInputGroup;
 
 	// widgets
 	private Button	fExportClassFilesCheckbox;
 	private Button	fExportOutputFoldersCheckbox;
-	private Button	fExportJavaFilesCheckbox;	
-	
+	private Button	fExportJavaFilesCheckbox;
+
 	private Combo	fDestinationNamesCombo;
 	private Button	fDestinationBrowseButton;
-	
+
 	private Button		fCompressCheckbox;
 	private Button		fOverwriteCheckbox;
 	private Button		fIncludeDirectoryEntriesCheckbox;
@@ -90,13 +90,13 @@ public class AJJarPackageWizardPage extends WizardExportResourcesPage implements
 
 	// dialog store id constants
 	private static final String PAGE_NAME= "JarPackageWizardPage"; //$NON-NLS-1$
-	
+
 	private static final String STORE_EXPORT_CLASS_FILES= PAGE_NAME + ".EXPORT_CLASS_FILES"; //$NON-NLS-1$
 	private static final String STORE_EXPORT_OUTPUT_FOLDERS= PAGE_NAME + ".EXPORT_OUTPUT_FOLDER"; //$NON-NLS-1$
 	private static final String STORE_EXPORT_JAVA_FILES= PAGE_NAME + ".EXPORT_JAVA_FILES"; //$NON-NLS-1$
-	
+
 	private static final String STORE_DESTINATION_NAMES= PAGE_NAME + ".DESTINATION_NAMES_ID"; //$NON-NLS-1$
-	
+
 	private static final String STORE_COMPRESS= PAGE_NAME + ".COMPRESS"; //$NON-NLS-1$
 	private final static String STORE_OVERWRITE= PAGE_NAME + ".OVERWRITE"; //$NON-NLS-1$
 	private final static String STORE_INCLUDE_DIRECTORY_ENTRIES= PAGE_NAME + ".INCLUDE_DIRECTORY_ENTRIES"; //$NON-NLS-1$
@@ -104,14 +104,14 @@ public class AJJarPackageWizardPage extends WizardExportResourcesPage implements
 	// other constants
 	private static final int SIZING_SELECTION_WIDGET_WIDTH= 480;
 	private static final int SIZING_SELECTION_WIDGET_HEIGHT= 150;
-	
+
 	/**
 	 *	Create an instance of this class
 	 */
 	public AJJarPackageWizardPage(AJJarPackageData jarPackage, IStructuredSelection selection) {
 		super(PAGE_NAME, selection);
-		setTitle(JarPackagerMessages.JarPackageWizardPage_title); 
-		setDescription(JarPackagerMessages.JarPackageWizardPage_description); 
+		setTitle(JarPackagerMessages.JarPackageWizardPage_title);
+		setDescription(JarPackagerMessages.JarPackageWizardPage_description);
 		fJarPackage= jarPackage;
 		fInitialSelection= selection;
 	}
@@ -120,15 +120,15 @@ public class AJJarPackageWizardPage extends WizardExportResourcesPage implements
 	 * Method declared on IDialogPage.
 	 */
 	public void createControl(final Composite parent) {
-		
+
 		initializeDialogUnits(parent);
-		
+
 		Composite composite= new Composite(parent, SWT.NULL);
 		composite.setLayout(new GridLayout());
 		composite.setLayoutData(
 			new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL));
 
-		createPlainLabel(composite, JarPackagerMessages.JarPackageWizardPage_whatToExport_label); 
+		createPlainLabel(composite, JarPackagerMessages.JarPackageWizardPage_whatToExport_label);
 		createInputGroup(composite);
 
 		createExportTypeGroup(composite);
@@ -136,25 +136,21 @@ public class AJJarPackageWizardPage extends WizardExportResourcesPage implements
 		new Label(composite, SWT.NONE); // vertical spacer
 
 
-		createPlainLabel(composite, JarPackagerMessages.JarPackageWizardPage_whereToExport_label); 
+		createPlainLabel(composite, JarPackagerMessages.JarPackageWizardPage_whereToExport_label);
 		createDestinationGroup(composite);
 
-		createPlainLabel(composite, JarPackagerMessages.JarPackageWizardPage_options_label); 
+		createPlainLabel(composite, JarPackagerMessages.JarPackageWizardPage_options_label);
 		createOptionsGroup(composite);
 
 		restoreResourceSpecificationWidgetValues(); // superclass API defines this hook
 		restoreWidgetValues();
 		if (fInitialSelection != null)
-			BusyIndicator.showWhile(parent.getDisplay(), new Runnable() {
-				public void run() {
-					setupBasedOnInitialSelections();
-				}
-			});
+			BusyIndicator.showWhile(parent.getDisplay(), () -> setupBasedOnInitialSelections());
 
 		setControl(composite);
 		update();
 		giveFocusToDestination();
-		
+
 		Dialog.applyDialogFont(composite);
 		PlatformUI.getWorkbench().getHelpSystem().setHelp(composite, IJavaHelpContextIds.JARPACKAGER_WIZARD_PAGE);
 	}
@@ -171,15 +167,15 @@ public class AJJarPackageWizardPage extends WizardExportResourcesPage implements
 		optionsGroup.setLayout(layout);
 
 		fCompressCheckbox= new Button(optionsGroup, SWT.CHECK | SWT.LEFT);
-		fCompressCheckbox.setText(JarPackagerMessages.JarPackageWizardPage_compress_text); 
+		fCompressCheckbox.setText(JarPackagerMessages.JarPackageWizardPage_compress_text);
 		fCompressCheckbox.addListener(SWT.Selection, this);
-		
+
 		fIncludeDirectoryEntriesCheckbox= new Button(optionsGroup, SWT.CHECK | SWT.LEFT);
-		fIncludeDirectoryEntriesCheckbox.setText(JarPackagerMessages.JarPackageWizardPage_includeDirectoryEntries_text); 
+		fIncludeDirectoryEntriesCheckbox.setText(JarPackagerMessages.JarPackageWizardPage_includeDirectoryEntries_text);
 		fIncludeDirectoryEntriesCheckbox.addListener(SWT.Selection, this);
 
 		fOverwriteCheckbox= new Button(optionsGroup, SWT.CHECK | SWT.LEFT);
-		fOverwriteCheckbox.setText(JarPackagerMessages.JarPackageWizardPage_overwrite_text); 
+		fOverwriteCheckbox.setText(JarPackagerMessages.JarPackageWizardPage_overwrite_text);
 		fOverwriteCheckbox.addListener(SWT.Selection, this);
 	}
 
@@ -202,7 +198,7 @@ public class AJJarPackageWizardPage extends WizardExportResourcesPage implements
 	 *	@return java.lang.String
 	 */
 	protected String getDestinationLabel() {
-		return JarPackagerMessages.JarPackageWizardPage_destination_label; 
+		return JarPackagerMessages.JarPackageWizardPage_destination_label;
 	}
 
 	/**
@@ -217,7 +213,7 @@ public class AJJarPackageWizardPage extends WizardExportResourcesPage implements
 	}
 
 	/**
-	 * Returns an iterator over this page's collection of currently-specified 
+	 * Returns an iterator over this page's collection of currently-specified
 	 * elements to be exported. This is the primary element selection facility
 	 * accessor for subclasses.
 	 *
@@ -230,7 +226,7 @@ public class AJJarPackageWizardPage extends WizardExportResourcesPage implements
 	/**
 	 * Persists resource specification control setting that are to be restored
 	 * in the next instance of this page. Subclasses wishing to persist
-	 * settings for their controls should extend the hook method 
+	 * settings for their controls should extend the hook method
 	 * <code>internalSaveWidgetValues</code>.
 	 */
 	public final void saveWidgetValues() {
@@ -286,10 +282,10 @@ public class AJJarPackageWizardPage extends WizardExportResourcesPage implements
 				return; // ie.- no settings stored
 			if (! fDestinationNamesCombo.getText().equals(directoryNames[0]))
 				fDestinationNamesCombo.add(fDestinationNamesCombo.getText());
-			for (int i= 0; i < directoryNames.length; i++)
-				fDestinationNamesCombo.add(directoryNames[i]);
+      for (String directoryName : directoryNames)
+        fDestinationNamesCombo.add(directoryName);
 		}
-		
+
 		// options
 		fCompressCheckbox.setSelection(fJarPackage.isCompressed());
 		fIncludeDirectoryEntriesCheckbox.setSelection(fJarPackage.areDirectoryEntriesIncluded());
@@ -312,7 +308,7 @@ public class AJJarPackageWizardPage extends WizardExportResourcesPage implements
 			fJarPackage.setCompress(settings.getBoolean(STORE_COMPRESS));
 			fJarPackage.setIncludeDirectoryEntries(settings.getBoolean(STORE_INCLUDE_DIRECTORY_ENTRIES));
 			fJarPackage.setOverwrite(settings.getBoolean(STORE_OVERWRITE));
-						
+
 			// destination
 			String[] directoryNames= settings.getArray(STORE_DESTINATION_NAMES);
 			if (directoryNames == null)
@@ -327,7 +323,7 @@ public class AJJarPackageWizardPage extends WizardExportResourcesPage implements
 	protected void updateModel() {
 		if (getControl() == null)
 			return;
-		
+
 		// source
 		if (fExportClassFilesCheckbox.getSelection() && !fJarPackage.areClassFilesExported())
 			fExportOutputFoldersCheckbox.setSelection(false);
@@ -342,7 +338,7 @@ public class AJJarPackageWizardPage extends WizardExportResourcesPage implements
 		String comboText= fDestinationNamesCombo.getText();
 		IPath path= Path.fromOSString(comboText);
 
-		if (path.segmentCount() > 0 && ensureTargetFileIsValid(path.toFile()) && path.getFileExtension() == null) 
+		if (path.segmentCount() > 0 && ensureTargetFileIsValid(path.toFile()) && path.getFileExtension() == null)
 			// append .jar
 //			AspectJ Change Begin
 			path= path.addFileExtension(AJJarPackagerUtil.JAR_EXTENSION);
@@ -364,13 +360,13 @@ public class AJJarPackageWizardPage extends WizardExportResourcesPage implements
 	 */
 	protected boolean ensureTargetFileIsValid(File targetFile) {
 		if (targetFile.exists() && targetFile.isDirectory() && fDestinationNamesCombo.getText().length() > 0) {
-			setErrorMessage(JarPackagerMessages.JarPackageWizardPage_error_exportDestinationMustNotBeDirectory); 
+			setErrorMessage(JarPackagerMessages.JarPackageWizardPage_error_exportDestinationMustNotBeDirectory);
 			fDestinationNamesCombo.setFocus();
 			return false;
 		}
 		if (targetFile.exists()) {
 			if (!targetFile.canWrite()) {
-				setErrorMessage(JarPackagerMessages.JarPackageWizardPage_error_jarFileExistsAndNotWritable); 
+				setErrorMessage(JarPackagerMessages.JarPackageWizardPage_error_jarFileExistsAndNotWritable);
 				fDestinationNamesCombo.setFocus();
 				return false;
 			}
@@ -382,9 +378,9 @@ public class AJJarPackageWizardPage extends WizardExportResourcesPage implements
 	 * Overrides method from WizardExportPage
 	 */
 	protected void createDestinationGroup(Composite parent) {
-		
+
 		initializeDialogUnits(parent);
-		
+
 		// destination specification group
 		Composite destinationSelectionGroup= new Composite(parent, SWT.NONE);
 		GridLayout layout= new GridLayout();
@@ -404,7 +400,7 @@ public class AJJarPackageWizardPage extends WizardExportResourcesPage implements
 
 		// destination browse button
 		fDestinationBrowseButton= new Button(destinationSelectionGroup, SWT.PUSH);
-		fDestinationBrowseButton.setText(JarPackagerMessages.JarPackageWizardPage_browseButton_text); 
+		fDestinationBrowseButton.setText(JarPackagerMessages.JarPackageWizardPage_browseButton_text);
 		fDestinationBrowseButton.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL));
 		SWTUtil.setButtonDimensionHint(fDestinationBrowseButton);
 		fDestinationBrowseButton.addSelectionListener(new SelectionAdapter() {
@@ -421,8 +417,8 @@ public class AJJarPackageWizardPage extends WizardExportResourcesPage implements
 	protected void handleDescriptionFileBrowseButtonPressed() {
 		SaveAsDialog dialog= new SaveAsDialog(getContainer().getShell());
 		dialog.create();
-		dialog.getShell().setText(JarPackagerMessages.JarPackageWizardPage_saveAsDialog_title); 
-		dialog.setMessage(JarPackagerMessages.JarPackageWizardPage_saveAsDialog_message); 
+		dialog.getShell().setText(JarPackagerMessages.JarPackageWizardPage_saveAsDialog_title);
+		dialog.setMessage(JarPackagerMessages.JarPackageWizardPage_saveAsDialog_message);
 		dialog.setOriginalFile(createFileHandle(fJarPackage.getDescriptionLocation()));
 		if (dialog.open() == Window.OK) {
 			IPath path= dialog.getResult();
@@ -443,7 +439,7 @@ public class AJJarPackageWizardPage extends WizardExportResourcesPage implements
 		int lastSeparatorIndex= currentSourceString.lastIndexOf(File.separator);
 		if (lastSeparatorIndex != -1) {
 			dialog.setFilterPath(currentSourceString.substring(0, lastSeparatorIndex));
-			dialog.setFileName(currentSourceString.substring(lastSeparatorIndex + 1, currentSourceString.length()));
+			dialog.setFileName(currentSourceString.substring(lastSeparatorIndex + 1));
 		}
 		else
 			dialog.setFileName(currentSourceString);
@@ -482,8 +478,8 @@ public class AJJarPackageWizardPage extends WizardExportResourcesPage implements
 				public boolean hasChildren(Object element) {
 					// prevent the + from being shown in front of packages
 					return !(element instanceof IPackageFragment) && super.hasChildren(element);
-				}				
-				
+				}
+
 			};
 		fInputGroup= new CheckboxTreeAndListGroup(
 					parent,
@@ -510,22 +506,22 @@ public class AJJarPackageWizardPage extends WizardExportResourcesPage implements
 	 *
 	 * @param parent the parent control
 	 */
-	protected void createExportTypeGroup(Composite parent) {		
+	protected void createExportTypeGroup(Composite parent) {
 		Composite optionsGroup= new Composite(parent, SWT.NONE);
 		GridLayout optionsLayout= new GridLayout();
 		optionsLayout.marginHeight= 0;
 		optionsGroup.setLayout(optionsLayout);
-		
+
 		fExportClassFilesCheckbox= new Button(optionsGroup, SWT.CHECK | SWT.LEFT);
-		fExportClassFilesCheckbox.setText(JarPackagerMessages.JarPackageWizardPage_exportClassFiles_text); 
+		fExportClassFilesCheckbox.setText(JarPackagerMessages.JarPackageWizardPage_exportClassFiles_text);
 		fExportClassFilesCheckbox.addListener(SWT.Selection, this);
 
 		fExportOutputFoldersCheckbox= new Button(optionsGroup, SWT.CHECK | SWT.LEFT);
-		fExportOutputFoldersCheckbox.setText(JarPackagerMessages.JarPackageWizardPage_exportOutputFolders_text); 
+		fExportOutputFoldersCheckbox.setText(JarPackagerMessages.JarPackageWizardPage_exportOutputFolders_text);
 		fExportOutputFoldersCheckbox.addListener(SWT.Selection, this);
 
 		fExportJavaFilesCheckbox= new Button(optionsGroup, SWT.CHECK | SWT.LEFT);
-		fExportJavaFilesCheckbox.setText(JarPackagerMessages.JarPackageWizardPage_exportJavaFiles_text); 
+		fExportJavaFilesCheckbox.setText(JarPackagerMessages.JarPackageWizardPage_exportJavaFiles_text);
 		fExportJavaFilesCheckbox.addListener(SWT.Selection, this);
 	}
 
@@ -549,32 +545,32 @@ public class AJJarPackageWizardPage extends WizardExportResourcesPage implements
 
 	/*
 	 * Implements method from Listener
-	 */	
+	 */
 	public void handleEvent(Event e) {
 		if (getControl() == null)
 			return;
 		update();
 	}
-	
+
 	protected void update() {
 		updateModel();
 		updateWidgetEnablements();
 		updatePageCompletion();
 	}
-	
-	protected void updatePageCompletion() {	
+
+	protected void updatePageCompletion() {
 		boolean pageComplete= isPageComplete();
 		setPageComplete(pageComplete);
 		if (pageComplete)
 			setErrorMessage(null);
 	}
-	
+
 	/*
 	 * Overrides method from WizardDataTransferPage
 	 */
 	protected boolean validateDestinationGroup() {
 		if (fDestinationNamesCombo.getText().length() == 0) {
-			// Clear error 
+			// Clear error
 			if (getErrorMessage() != null)
 				setErrorMessage(null);
 			if (getMessage() != null)
@@ -582,7 +578,7 @@ public class AJJarPackageWizardPage extends WizardExportResourcesPage implements
 			return false;
 		}
 		if (fJarPackage.getAbsoluteJarLocation().toString().endsWith("/")) { //$NON-NLS-1$
-			setErrorMessage(JarPackagerMessages.JarPackageWizardPage_error_exportDestinationMustNotBeDirectory); 
+			setErrorMessage(JarPackagerMessages.JarPackageWizardPage_error_exportDestinationMustNotBeDirectory);
 			fDestinationNamesCombo.setFocus();
 			return false;
 		}
@@ -593,7 +589,7 @@ public class AJJarPackageWizardPage extends WizardExportResourcesPage implements
 			if (resource != null && resource.getType() == IResource.FILE) {
 				// test if included
 				if (AJJarPackagerUtil.contains(AJJarPackagerUtil.asResources(fJarPackage.getElements()), (IFile)resource)) {
-					setErrorMessage(JarPackagerMessages.JarPackageWizardPage_error_cantExportJARIntoItself); 
+					setErrorMessage(JarPackagerMessages.JarPackageWizardPage_error_cantExportJARIntoItself);
 					return false;
 				}
 			}
@@ -602,7 +598,7 @@ public class AJJarPackageWizardPage extends WizardExportResourcesPage implements
 		String currentMessage= getMessage();
 		if (!(new File(fDestinationNamesCombo.getText()).isAbsolute())) {
 			if (currentMessage == null)
-				setMessage(JarPackagerMessages.JarPackageWizardPage_info_relativeExportDestination, IMessageProvider.INFORMATION); 
+				setMessage(JarPackagerMessages.JarPackageWizardPage_info_relativeExportDestination, IMessageProvider.INFORMATION);
 		} else {
 			if (currentMessage != null)
 				setMessage(null);
@@ -622,10 +618,10 @@ public class AJJarPackageWizardPage extends WizardExportResourcesPage implements
 	 */
 	protected boolean validateSourceGroup() {
 		if (!(fExportClassFilesCheckbox.getSelection() || fExportOutputFoldersCheckbox.getSelection() || fExportJavaFilesCheckbox.getSelection())) {
-			setErrorMessage(JarPackagerMessages.JarPackageWizardPage_error_noExportTypeChecked); 
+			setErrorMessage(JarPackagerMessages.JarPackageWizardPage_error_noExportTypeChecked);
 			return false;
 		}
-		
+
 		if (getSelectedResources().size() == 0) {
 			if (getErrorMessage() != null)
 				setErrorMessage(null);
@@ -633,11 +629,11 @@ public class AJJarPackageWizardPage extends WizardExportResourcesPage implements
 		}
 		if (fExportClassFilesCheckbox.getSelection() || fExportOutputFoldersCheckbox.getSelection())
 			return true;
-			
+
 		// Source file only export - check if there are source files
 		Iterator iter= getSelectedResourcesIterator();
 		while (iter.hasNext()) {
-			Object element= iter.next(); 
+			Object element= iter.next();
 			if (element instanceof IClassFile) {
 				IPackageFragmentRoot root= (IPackageFragmentRoot)((IClassFile)element).getAncestor(IJavaElement.PACKAGE_FRAGMENT_ROOT);
 				if (root == null)
@@ -683,33 +679,30 @@ public class AJJarPackageWizardPage extends WizardExportResourcesPage implements
 		fDestinationNamesCombo.setFocus();
 	}
 
-	/*     
+	/*
 	 * Overrides method from WizardExportResourcePage
 	 */
 	protected void setupBasedOnInitialSelections() {
-		Iterator iterator= fInitialSelection.iterator();
-		while (iterator.hasNext()) {
-			Object selectedElement= iterator.next();
+    for (Object selectedElement : fInitialSelection) {
+      if (selectedElement instanceof IResource && !((IResource) selectedElement).isAccessible())
+        continue;
 
-			if (selectedElement instanceof IResource && !((IResource)selectedElement).isAccessible())
-				continue;
+      if (selectedElement instanceof IJavaElement && !((IJavaElement) selectedElement).exists())
+        continue;
 
-			if (selectedElement instanceof IJavaElement && !((IJavaElement)selectedElement).exists())
-				continue;
-			
-			if (selectedElement instanceof ICompilationUnit || selectedElement instanceof IClassFile || selectedElement instanceof IFile)
-				fInputGroup.initialCheckListItem(selectedElement);
-			else {
-				if (selectedElement instanceof IFolder) {
-					// Convert resource to Java element if possible
-					IJavaElement je= JavaCore.create((IResource)selectedElement);
-					if (je != null && je.exists() &&  je.getJavaProject().isOnClasspath((IResource)selectedElement))
-						selectedElement= je;
-				}					
-				fInputGroup.initialCheckTreeItem(selectedElement);
-			}
-		}
-		
+      if (selectedElement instanceof ICompilationUnit || selectedElement instanceof IClassFile || selectedElement instanceof IFile)
+        fInputGroup.initialCheckListItem(selectedElement);
+      else {
+        if (selectedElement instanceof IFolder) {
+          // Convert resource to Java element if possible
+          IJavaElement je = JavaCore.create((IResource) selectedElement);
+          if (je != null && je.exists() && je.getJavaProject().isOnClasspath((IResource) selectedElement))
+            selectedElement = je;
+        }
+        fInputGroup.initialCheckTreeItem(selectedElement);
+      }
+    }
+
 		TreeItem[] items= fInputGroup.getTree().getItems();
 		int i= 0;
 		while (i < items.length && !items[i].getChecked())
@@ -721,14 +714,14 @@ public class AJJarPackageWizardPage extends WizardExportResourcesPage implements
 		}
 	}
 
-	/* 
+	/*
 	 * Implements method from IJarPackageWizardPage.
 	 */
 	public void finish() {
 		saveWidgetValues();
 	}
 
-	/* 
+	/*
 	 * Method declared on IWizardPage.
 	 */
 	public void setPreviousPage(IWizardPage page) {
@@ -805,27 +798,26 @@ public class AJJarPackageWizardPage extends WizardExportResourcesPage implements
 	 */
 	private Set getCorrespondingContainers(Set elements) {
 		Set javaElementResources= new HashSet(elements.size());
-		Iterator iter= elements.iterator();
-		while (iter.hasNext()) {
-			Object element= iter.next();
-			if (element instanceof IJavaElement) {
-				IJavaElement je= (IJavaElement)element;
-				int type= je.getElementType();
-				if (type == IJavaElement.JAVA_PROJECT || type == IJavaElement.PACKAGE_FRAGMENT || type == IJavaElement.PACKAGE_FRAGMENT_ROOT) {
-					// exclude default package since it is covered by the root
-					if (!(type == IJavaElement.PACKAGE_FRAGMENT && ((IPackageFragment)element).isDefaultPackage())) {
-						Object resource;
-						try {
-							resource= je.getCorrespondingResource();
-						} catch (JavaModelException ex) {
-							resource= null;
-						}
-						if (resource != null)
-							javaElementResources.add(resource);
-					}
-				}
-			}
-		}
+    for (Object element : elements) {
+      if (element instanceof IJavaElement) {
+        IJavaElement je = (IJavaElement) element;
+        int type = je.getElementType();
+        if (type == IJavaElement.JAVA_PROJECT || type == IJavaElement.PACKAGE_FRAGMENT || type == IJavaElement.PACKAGE_FRAGMENT_ROOT) {
+          // exclude default package since it is covered by the root
+          if (!(type == IJavaElement.PACKAGE_FRAGMENT && ((IPackageFragment) element).isDefaultPackage())) {
+            Object resource;
+            try {
+              resource = je.getCorrespondingResource();
+            }
+            catch (JavaModelException ex) {
+              resource = null;
+            }
+            if (resource != null)
+              javaElementResources.add(resource);
+          }
+        }
+      }
+    }
 		return javaElementResources;
 	}
 

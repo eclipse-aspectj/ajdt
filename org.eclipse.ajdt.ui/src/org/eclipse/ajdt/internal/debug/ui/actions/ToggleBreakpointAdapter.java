@@ -3,9 +3,9 @@
  * program and the accompanying materials are made available under the terms of
  * the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors: Sian January - initial version
- * ... 
+ * ...
  ******************************************************************************/
 package org.eclipse.ajdt.internal.debug.ui.actions;
 
@@ -63,26 +63,24 @@ import org.eclipse.ui.texteditor.ITextEditor;
  * support method breakpoints or field watchpoints.
  */
 public class ToggleBreakpointAdapter implements IToggleBreakpointsTargetExtension {
-	
+
 	public ToggleBreakpointAdapter() {
 		// init helper in UI thread
 		ActionDelegateHelper.getDefault();
 	}
 
     protected void report(final String message, final IWorkbenchPart part) {
-        JDIDebugUIPlugin.getStandardDisplay().asyncExec(new Runnable() {
-            public void run() {
-                IEditorStatusLine statusLine = (IEditorStatusLine) part.getAdapter(IEditorStatusLine.class);
-                if (statusLine != null) {
-                    if (message != null) {
-                        statusLine.setMessage(true, message, null);
-                    } else {
-                        statusLine.setMessage(true, null, null);
-                    }
+        JDIDebugUIPlugin.getStandardDisplay().asyncExec(() -> {
+            IEditorStatusLine statusLine = (IEditorStatusLine) part.getAdapter(IEditorStatusLine.class);
+            if (statusLine != null) {
+                if (message != null) {
+                    statusLine.setMessage(true, message, null);
+                } else {
+                    statusLine.setMessage(true, null, null);
                 }
-                if (message != null && JDIDebugUIPlugin.getActiveWorkbenchShell() != null) {
-                    JDIDebugUIPlugin.getActiveWorkbenchShell().getDisplay().beep();
-                }
+            }
+            if (message != null && JDIDebugUIPlugin.getActiveWorkbenchShell() != null) {
+                JDIDebugUIPlugin.getActiveWorkbenchShell().getDisplay().beep();
             }
         });
     }
@@ -110,7 +108,7 @@ public class ToggleBreakpointAdapter implements IToggleBreakpointsTargetExtensio
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.eclipse.debug.ui.actions.IToggleBreakpointsTarget#toggleLineBreakpoints(IWorkbenchPart,
      *      ISelection)
      */
@@ -139,7 +137,7 @@ public class ToggleBreakpointAdapter implements IToggleBreakpointsTargetExtensio
                     int offset = textSelection.getOffset();
                     try {
                         if (type == null) {
-                            IClassFile classFile = (IClassFile) editorInput.getAdapter(IClassFile.class);
+                            IClassFile classFile = editorInput.getAdapter(IClassFile.class);
                             if (classFile != null) {
                                 type = classFile.getType();
                                 // bug 34856 - if this is an inner type, ensure
@@ -152,7 +150,7 @@ public class ToggleBreakpointAdapter implements IToggleBreakpointsTargetExtensio
                                     if (offset < start || offset > end) {
                                         // not in the inner type
                                         IStatusLineManager statusLine = editorPart.getEditorSite().getActionBars().getStatusLineManager();
-                                        statusLine.setErrorMessage(NLS.bind(UIMessages.ManageBreakpointRulerAction_Breakpoints_can_only_be_created_within_the_type_associated_with_the_editor___0___1, new String[] { type.getTypeQualifiedName() })); 
+                                        statusLine.setErrorMessage(NLS.bind(UIMessages.ManageBreakpointRulerAction_Breakpoints_can_only_be_created_within_the_type_associated_with_the_editor___0___1, new String[] { type.getTypeQualifiedName() }));
                                         Display.getCurrent().beep();
                                         return Status.OK_STATUS;
                                     }
@@ -167,29 +165,28 @@ public class ToggleBreakpointAdapter implements IToggleBreakpointsTargetExtensio
                             resource = getResource(editorPart);
                             if (editorPart instanceof ITextEditor) {
                                 CompilationUnit unit = parseCompilationUnit((ITextEditor) editorPart);
-                                Iterator types = unit.types().iterator();
-                                while (types.hasNext()) {
-                                    TypeDeclaration declaration = (TypeDeclaration) types.next();
-                                    int begin = declaration.getStartPosition();
-                                    int end = begin + declaration.getLength();
-                                    if (offset >= begin && offset <= end && !declaration.isInterface()) {
-                                        typeName = ValidBreakpointLocationLocator.computeTypeName(declaration);
-                                        break;
-                                    }
+                              for (Object o : unit.types()) {
+                                TypeDeclaration declaration = (TypeDeclaration) o;
+                                int begin = declaration.getStartPosition();
+                                int end = begin + declaration.getLength();
+                                if (offset >= begin && offset <= end && !declaration.isInterface()) {
+                                  typeName = ValidBreakpointLocationLocator.computeTypeName(declaration);
+                                  break;
                                 }
+                              }
                             }
                             if(typeName == null) {
                             	AJCompilationUnit ajcu = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit((IFile)resource);
                             	if(ajcu != null) {
 	                            	IType[] types = ajcu.getAllTypes();
-	                            	for (int i = 0; i < types.length; i++) {
-	                            		 int begin = types[i].getSourceRange().getOffset();
-	                                     int end = begin + types[i].getSourceRange().getLength();
-	                                     if (offset >= begin && offset <= end && !types[i].isInterface()) {
-	                                         typeName = types[i].getPackageFragment().getElementName() + "." + types[i].getTypeQualifiedName(); //$NON-NLS-1$
-	                                         break;
-	                                     }
-									}
+                                for (IType iType : types) {
+                                  int begin = iType.getSourceRange().getOffset();
+                                  int end = begin + iType.getSourceRange().getLength();
+                                  if (offset >= begin && offset <= end && !iType.isInterface()) {
+                                    typeName = iType.getPackageFragment().getElementName() + "." + iType.getTypeQualifiedName(); //$NON-NLS-1$
+                                    break;
+                                  }
+                                }
                             	}
                             }
                         } else {
@@ -207,7 +204,7 @@ public class ToggleBreakpointAdapter implements IToggleBreakpointsTargetExtensio
                             } catch (BadLocationException ble) {
                                 JDIDebugUIPlugin.log(ble);
                             }
-                        }                 
+                        }
                         if (typeName != null && resource != null) {
                             IJavaLineBreakpoint existingBreakpoint = JDIDebugModel.lineBreakpointExists(resource, typeName, lineNumber);
                             if (existingBreakpoint != null) {
@@ -264,7 +261,7 @@ public class ToggleBreakpointAdapter implements IToggleBreakpointsTargetExtensio
 
     protected static IResource getResource(IEditorPart editor) {
         IEditorInput editorInput = editor.getEditorInput();
-        IResource resource = (IResource) editorInput.getAdapter(IFile.class);
+        IResource resource = editorInput.getAdapter(IFile.class);
         if (resource == null) {
             resource = ResourcesPlugin.getWorkspace().getRoot();
         }

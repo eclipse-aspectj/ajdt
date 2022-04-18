@@ -13,7 +13,7 @@ import org.eclipse.jdt.core.search.SearchMatch;
  */
 public class ReferencesInBinaryContext extends RefactoringStatusContext {
 
-	private List<SearchMatch> fMatches= new ArrayList<>();
+	private final List<SearchMatch> fMatches= new ArrayList<>();
 
 	private final String fDescription;
 

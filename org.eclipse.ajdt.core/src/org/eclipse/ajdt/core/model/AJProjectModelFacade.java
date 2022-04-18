@@ -92,8 +92,8 @@ public class AJProjectModelFacade {
     public final static IJavaElement ERROR_JAVA_ELEMENT = new CompilationUnit(null, "ERROR_JAVA_ELEMENT", null);
 
     private static class ProjectModelBuildListener implements IAJBuildListener {
-        private Set<IProject> beingBuilt = new HashSet<>();
-        private Set<IProject> beingCleaned = new HashSet<>();
+        private final Set<IProject> beingBuilt = new HashSet<>();
+        private final Set<IProject> beingCleaned = new HashSet<>();
 
         public synchronized void postAJBuild(int kind, IProject project,
                 boolean noSourceChanges,  Map<IFile, List<CategorizedProblem>> newProblems) {
@@ -142,7 +142,7 @@ public class AJProjectModelFacade {
 
     boolean disposed;
 
-    private static ProjectModelBuildListener buildListener = new ProjectModelBuildListener();
+    private static final ProjectModelBuildListener buildListener = new ProjectModelBuildListener();
 
     /**
      * creates a new project model facade for this project
@@ -226,15 +226,15 @@ public class AJProjectModelFacade {
             }
         }
         // use element name instead, qualified with parent
-        String name = je.getElementName();
+        StringBuilder name = new StringBuilder(je.getElementName());
         if (je instanceof ISourceReference && !(je instanceof ITypeRoot)) {
             IJavaElement parent = je.getParent();
             while (parent != null && !(parent instanceof ITypeRoot)) {
-                name = parent.getElementName() + "." + name;
+                name.insert(0, parent.getElementName() + ".");
                 parent = parent.getParent();
             }
         }
-        return name;
+        return name.toString();
     }
 
     /**
@@ -261,7 +261,7 @@ public class AJProjectModelFacade {
         if (je instanceof IMember) {
             cu = ((IMember) je).getCompilationUnit();
         } else if (je instanceof IPackageDeclaration) {
-            IJavaElement parent = ((IPackageDeclaration) je).getParent();
+            IJavaElement parent = je.getParent();
             if (parent instanceof ICompilationUnit) {
                 cu = (ICompilationUnit) parent;
             }
@@ -282,7 +282,7 @@ public class AJProjectModelFacade {
             }
 
         } else if (je instanceof ILocalVariable) {
-            IOpenable openable = ((ILocalVariable) je).getOpenable();
+            IOpenable openable = je.getOpenable();
             cu = openable instanceof ICompilationUnit ?
                     (ICompilationUnit) openable : null;
         } else if (je instanceof ImportDeclaration) {
@@ -359,9 +359,7 @@ public class AJProjectModelFacade {
         int jemClassIndex = ajHandle.indexOf(JavaElement.JEM_CLASSFILE);
         if (jemClassIndex != -1) {
             int classFileIndex = ajHandle.indexOf(".class", jemClassIndex);
-            if (classFileIndex != -1) {
-                return true;
-            }
+          return classFileIndex != -1;
         }
         return false;
     }
@@ -749,7 +747,7 @@ public class AJProjectModelFacade {
           frags.add(candidate);
         }
       }
-        return frags.toArray(new  IPackageFragment[frags.size()]);
+        return frags.toArray(new IPackageFragment[0]);
     }
 
 
@@ -955,7 +953,7 @@ public class AJProjectModelFacade {
                 if (interesting != null) {
                     for (Iterator<IRelationship> relIter = nodeRels.iterator(); relIter
                             .hasNext();) {
-                        IRelationship rel = (IRelationship) relIter.next();
+                        IRelationship rel = relIter.next();
                         if (!interesting.contains(rel.getName())) {
                             relIter.remove();
                         }
@@ -1112,10 +1110,10 @@ public class AJProjectModelFacade {
         RelationshipMap rmap = (RelationshipMap) map;
         for (Map.Entry<String, List<IRelationship>> entry : rmap.entrySet()) {
             String handle = entry.getKey();
-            sb.append(handle + " ::\n");
+            sb.append(handle).append(" ::\n");
             for (IRelationship rel : entry.getValue()) {
                 String str = printRelationship(rel);
-                sb.append("\t" + str + "\n");
+                sb.append("\t").append(str).append("\n");
             }
         }
         return sb.toString();
@@ -1134,12 +1132,11 @@ public class AJProjectModelFacade {
 
     public String getModelAsString() {
         if (hasModel()) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("Hierarchy:\n");
-            sb.append(printHierarchy(structureModel));
-            sb.append("\nRelationship map:\n");
-            sb.append(printRelationships(relationshipMap));
-            return sb.toString();
+          String sb = "Hierarchy:\n" +
+                      printHierarchy(structureModel) +
+                      "\nRelationship map:\n" +
+                      printRelationships(relationshipMap);
+            return sb;
         } else {
             return "No structure model available for " + project.getName();
         }

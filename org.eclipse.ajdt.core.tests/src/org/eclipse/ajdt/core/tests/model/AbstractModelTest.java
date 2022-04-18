@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2010 SpringSource Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *      Andrew Eisenberg = Initial implementation
  *******************************************************************************/
@@ -31,7 +31,7 @@ import org.eclipse.jdt.core.IParent;
 import org.eclipse.jdt.core.JavaModelException;
 
 /**
- * 
+ *
  * @author Andrew Eisenberg
  * @created Oct 29, 2010
  */
@@ -47,18 +47,18 @@ public abstract class AbstractModelTest extends AJDTCoreTestCase {
 
     protected void checkHandles(IJavaProject jProject) throws Exception {
         final AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(jProject);
-        final List<String> accumulatedErrors = new ArrayList<String>();
-        
+        final List<String> accumulatedErrors = new ArrayList<>();
+
         // check all the java handles
         IPackageFragment[] frags = jProject.getPackageFragments();
-        for (int i = 0; i < frags.length; i++) {
-            ICompilationUnit[] units = frags[i].getCompilationUnits();
-            for (int j = 0; j < units.length; j++) {
-                accumulatedErrors.addAll(walk(units[j], model));
-            }
+      for (IPackageFragment frag : frags) {
+        ICompilationUnit[] units = frag.getCompilationUnits();
+        for (ICompilationUnit unit : units) {
+          accumulatedErrors.addAll(walk(unit, model));
         }
-        
-        
+      }
+
+
         // now check all the aj handles
         AsmManager asm = AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(jProject.getProject()).getModel();
         IHierarchy hierarchy = asm.getHierarchy();
@@ -69,29 +69,28 @@ public abstract class AbstractModelTest extends AJDTCoreTestCase {
                 } catch (JavaModelException e) {
                     throw new RuntimeException(e);
                 }
-            } 
+            }
         });
 
-        
+
         if (accumulatedErrors.size() > 0) {
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
             sb.append("Found errors in comparing elements:\n");
             for (String msg : accumulatedErrors) {
-                sb.append(msg + "\n");
+                sb.append(msg).append("\n");
             }
             fail(sb.toString());
         }
     }
 
     private Collection<String> walk(IJavaElement elt, AJProjectModelFacade model) throws Exception {
-        final List<String> accumulatedErrors = new ArrayList<String>();
-        accumulatedErrors.addAll(HandleTestUtils.checkJavaHandle(elt.getHandleIdentifier(), model));
+      final List<String> accumulatedErrors = new ArrayList<>(HandleTestUtils.checkJavaHandle(elt.getHandleIdentifier(), model));
         if (elt instanceof IParent) {
             IParent parent = (IParent) elt;
             IJavaElement[] children = parent.getChildren();
-            for (int i = 0; i < children.length; i++) {
-                accumulatedErrors.addAll(walk(children[i], model));
-            }
+          for (IJavaElement child : children) {
+            accumulatedErrors.addAll(walk(child, model));
+          }
         }
         return accumulatedErrors;
     }

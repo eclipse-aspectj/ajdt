@@ -27,7 +27,7 @@ import static org.aspectj.asm.IProgramElement.Kind.*;
 
 public class HandleTestUtils {
 
-	private static Map<Kind, Class<?>> kindMap = new HashMap<IProgramElement.Kind, Class<?>>();
+	private static final Map<Kind, Class<?>> kindMap = new HashMap<>();
 
 	public static void checkAJHandle(String origAjHandle, AJProjectModelFacade model) throws JavaModelException {
 
@@ -161,7 +161,7 @@ public class HandleTestUtils {
 	}
 
 	public static List<String> checkJavaHandle(String origJavaHandle, AJProjectModelFacade model) {
-	    List<String> accumulatedErrors = new ArrayList<String>();
+	    List<String> accumulatedErrors = new ArrayList<>();
 
 	    try {
 

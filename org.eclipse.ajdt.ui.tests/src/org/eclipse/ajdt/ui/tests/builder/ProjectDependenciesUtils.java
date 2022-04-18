@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Helen Hawkins   - iniital version
@@ -40,9 +40,9 @@ import org.eclipse.pde.internal.ui.editor.plugin.ManifestEditor;
 
 /**
  * This contains useful methods for checking classpaths for various entries.
- * 
+ *
  * @author hawkinsh
- *  
+ *
  */
 public class ProjectDependenciesUtils {
 
@@ -52,15 +52,15 @@ public class ProjectDependenciesUtils {
 		if (javaProject == null)
 			return false;
 		IClasspathEntry[] cpEntry = javaProject.getRawClasspath();
-		for (int j = 0; j < cpEntry.length; j++) {
-			IClasspathEntry entry = cpEntry[j];
-			int entryKind = entry.getEntryKind();
-			IPath entryPath = entry.getPath();
-			if (entryKind == IClasspathEntry.CPE_PROJECT
-					&& entryPath.equals(projectDependedOn.getFullPath())) {
-				return true;
-			}
-		}
+    for (IClasspathEntry entry : cpEntry) {
+      int entryKind = entry.getEntryKind();
+      IPath entryPath = entry.getPath();
+      if (entryKind == IClasspathEntry.CPE_PROJECT
+          && entryPath.equals(projectDependedOn.getFullPath()))
+      {
+        return true;
+      }
+    }
 		return false;
 	}
 
@@ -74,31 +74,30 @@ public class ProjectDependenciesUtils {
 		// first get the output location for projectDependedOn
 		IPath outputLocation = null;
 		IClasspathEntry[] cp = depProject.getRawClasspath();
-		for (int j = 0; j < cp.length; j++) {
-			IClasspathEntry entry = cp[j];
-			int contentKind = entry.getContentKind();
-			if (contentKind == ClasspathEntry.K_OUTPUT) {
-				outputLocation = entry.getOutputLocation();
-			}
-			if (entry.getEntryKind() == ClasspathEntry.K_OUTPUT) {
-				outputLocation = entry.getOutputLocation();
-			}
-		}
+    for (IClasspathEntry entry : cp) {
+      int contentKind = entry.getContentKind();
+      if (contentKind == ClasspathEntry.K_OUTPUT) {
+        outputLocation = entry.getOutputLocation();
+      }
+      if (entry.getEntryKind() == ClasspathEntry.K_OUTPUT) {
+        outputLocation = entry.getOutputLocation();
+      }
+    }
 		if (outputLocation == null) {
 			outputLocation = depProject.getOutputLocation();
 		}
 		// now check the classpath entries of project for the output
 		// location just calculated
 		IClasspathEntry[] cpEntry = javaProject.getRawClasspath();
-		for (int j = 0; j < cpEntry.length; j++) {
-			IClasspathEntry entry = cpEntry[j];
-			int entryKind = entry.getEntryKind();
-			IPath entryPath = entry.getPath();
-			if (entryKind == IClasspathEntry.CPE_LIBRARY
-					&& entryPath.equals(outputLocation)) {
-				return true;
-			}
-		}
+    for (IClasspathEntry entry : cpEntry) {
+      int entryKind = entry.getEntryKind();
+      IPath entryPath = entry.getPath();
+      if (entryKind == IClasspathEntry.CPE_LIBRARY
+          && entryPath.equals(outputLocation))
+      {
+        return true;
+      }
+    }
 		return false;
 	}
 
@@ -110,36 +109,36 @@ public class ProjectDependenciesUtils {
 		IMarker[] problemMarkers = project.findMarkers(IMarker.PROBLEM, false,
 				IResource.DEPTH_INFINITE);
 		if (problemMarkers.length > 0) {
-			for (int j = 0; j < problemMarkers.length; j++) {
-				IMarker marker = problemMarkers[j];
-				int markerSeverity = marker.getAttribute(IMarker.SEVERITY, -1);
-				String markerMessage = marker.getAttribute(IMarker.MESSAGE,
-						"no message"); //$NON-NLS-1$
-				if (markerSeverity == IMarker.SEVERITY_ERROR) {
-					if (errorMessage == null
-							|| markerMessage.equals(errorMessage)) {
-						return true;
-					}
-				}
-			}
+      for (IMarker marker : problemMarkers) {
+        int markerSeverity = marker.getAttribute(IMarker.SEVERITY, -1);
+        String markerMessage = marker.getAttribute(IMarker.MESSAGE,
+          "no message"); //$NON-NLS-1$
+        if (markerSeverity == IMarker.SEVERITY_ERROR) {
+          if (errorMessage == null
+              || markerMessage.equals(errorMessage))
+          {
+            return true;
+          }
+        }
+      }
 		}
 		IMarker[] javaModelMarkers = project.findMarkers(
 				IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, false,
 				IResource.DEPTH_INFINITE);
 		if (javaModelMarkers.length > 0) {
-			for (int j = 0; j < javaModelMarkers.length; j++) {
-				IMarker marker = javaModelMarkers[j];
-				int markerSeverity = marker.getAttribute(IMarker.SEVERITY, -1);
-				String markerMessage = marker.getAttribute(IMarker.MESSAGE,
-						"no message"); //$NON-NLS-1$
-				if (markerSeverity == IMarker.SEVERITY_ERROR) {
-					if (errorMessage == null
-							|| markerMessage.equals(errorMessage)) {
-						System.out.println("TEST: error message: " + markerMessage); //$NON-NLS-1$
-						projectIsMarked = true;
-					}
-				}
-			}
+      for (IMarker marker : javaModelMarkers) {
+        int markerSeverity = marker.getAttribute(IMarker.SEVERITY, -1);
+        String markerMessage = marker.getAttribute(IMarker.MESSAGE,
+          "no message"); //$NON-NLS-1$
+        if (markerSeverity == IMarker.SEVERITY_ERROR) {
+          if (errorMessage == null
+              || markerMessage.equals(errorMessage))
+          {
+            System.out.println("TEST: error message: " + markerMessage); //$NON-NLS-1$
+            projectIsMarked = true;
+          }
+        }
+      }
 		}
 
 		waitForJobsToComplete();
@@ -155,15 +154,14 @@ public class ProjectDependenciesUtils {
 		boolean foundSrc = false;
 		try {
 			IClasspathEntry[] cpEntry = javaProject.getRawClasspath();
-			for (int j = 0; j < cpEntry.length; j++) {
-				IClasspathEntry entry = cpEntry[j];
-				if (entry.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
-					foundSrc = true;
-					if (entry.getPath().equals(javaProject.getPath())) {
-						return true;
-					}
-				}
-			}
+      for (IClasspathEntry entry : cpEntry) {
+        if (entry.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
+          foundSrc = true;
+          if (entry.getPath().equals(javaProject.getPath())) {
+            return true;
+          }
+        }
+      }
 			if (!foundSrc)
 				return true;
 		} catch (JavaModelException e) {
@@ -180,15 +178,14 @@ public class ProjectDependenciesUtils {
 
 		try {
 			IClasspathEntry[] cpEntry = javaProject.getRawClasspath();
-			for (int j = 0; j < cpEntry.length; j++) {
-				IClasspathEntry entry = cpEntry[j];
-				if (entry.isExported()) {
-					// we don't want to export it in the new classpath.
-					if (entry.getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
-						return true;
-					}
-				}
-			}
+      for (IClasspathEntry entry : cpEntry) {
+        if (entry.isExported()) {
+          // we don't want to export it in the new classpath.
+          if (entry.getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
+            return true;
+          }
+        }
+      }
 		} catch (JavaModelException e) {
 			AspectJTestPlugin.log(e);
 		}
@@ -204,28 +201,24 @@ public class ProjectDependenciesUtils {
 		}
 
 		IClasspathEntry[] cpEntry2 = javaProject2.getRawClasspath();
-		for (int j = 0; j < cpEntry2.length; j++) {
-			IClasspathEntry entry = cpEntry2[j];
-			if (entry.isExported()) {
-				// we don't want to export it in the new classpath.
-				if (entry.getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
-					IClasspathEntry[] cpEntry1 = javaProject1.getRawClasspath();
-					for (int i = 0; i < cpEntry1.length; i++) {
-						IClasspathEntry entry1 = cpEntry1[i];
-						if (entry1.getEntryKind() == entry.getEntryKind()
-								&& entry1.getPath().equals(entry.getPath())) {
-							if (entry1.isExported()) {
-								// don't want it to be exported
-								return false;
-							} 
-							return true;
-							
-						}
-					}
-					return false;
-				}
-			}
-		}
+    for (IClasspathEntry entry : cpEntry2) {
+      if (entry.isExported()) {
+        // we don't want to export it in the new classpath.
+        if (entry.getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
+          IClasspathEntry[] cpEntry1 = javaProject1.getRawClasspath();
+          for (IClasspathEntry entry1 : cpEntry1) {
+            if (entry1.getEntryKind() == entry.getEntryKind()
+                && entry1.getPath().equals(entry.getPath()))
+            {
+              // don't want it to be exported
+              return !entry1.isExported();
+
+            }
+          }
+          return false;
+        }
+      }
+    }
 		return false;
 	}
 
@@ -237,7 +230,7 @@ public class ProjectDependenciesUtils {
 			return false;
 		}
 		System.out.println("TEST: outjar = " + outJar); //$NON-NLS-1$
-		StringBuffer sb = new StringBuffer(outJar);
+		StringBuilder sb = new StringBuilder(outJar);
 		int indexOfProject = sb.lastIndexOf(projectWhichHasOutJar.getName());
 		IPath newPath;
 		if (indexOfProject < 0) {
@@ -247,15 +240,15 @@ public class ProjectDependenciesUtils {
 		}
 
 		IClasspathEntry[] cpEntry = javaProject1.getRawClasspath();
-		for (int j = 0; j < cpEntry.length; j++) {
-			IClasspathEntry entry = cpEntry[j];
-			if (entry.getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
-				if (entry.getPath().equals(new Path(outJar))
-						|| entry.getPath().equals(newPath.makeAbsolute())) {
-					return true;
-				}
-			}
-		}
+    for (IClasspathEntry entry : cpEntry) {
+      if (entry.getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
+        if (entry.getPath().equals(new Path(outJar))
+            || entry.getPath().equals(newPath.makeAbsolute()))
+        {
+          return true;
+        }
+      }
+    }
 		return false;
 	}
 
@@ -268,21 +261,21 @@ public class ProjectDependenciesUtils {
 		}
 		int counter = 0;
 		System.out.println("TEST: outjar = " + outJar); //$NON-NLS-1$
-		StringBuffer sb = new StringBuffer(outJar);
+		StringBuilder sb = new StringBuilder(outJar);
 		int indexOfProject = sb.lastIndexOf(projectWhichHasOutJar.getName());
 		String jar = sb.substring(indexOfProject);
 		IPath newPath = new Path(jar);
 
 		IClasspathEntry[] cpEntry = javaProject1.getRawClasspath();
-		for (int j = 0; j < cpEntry.length; j++) {
-			IClasspathEntry entry = cpEntry[j];
-			if (entry.getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
-				if (entry.getPath().equals(new Path(outJar))
-						|| entry.getPath().equals(newPath.makeAbsolute())) {
-					counter++;
-				}
-			}
-		}
+    for (IClasspathEntry entry : cpEntry) {
+      if (entry.getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
+        if (entry.getPath().equals(new Path(outJar))
+            || entry.getPath().equals(newPath.makeAbsolute()))
+        {
+          counter++;
+        }
+      }
+    }
 		return counter;
 	}
 
@@ -318,17 +311,17 @@ public class ProjectDependenciesUtils {
 					IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, false,
 					IResource.DEPTH_INFINITE);
 			if (javaModelMarkers.length > 0) {
-				for (int j = 0; j < javaModelMarkers.length; j++) {
-					IMarker marker = javaModelMarkers[j];
-					int markerSeverity = marker.getAttribute(IMarker.SEVERITY,
-							-1);
-					String markerMessage = marker.getAttribute(IMarker.MESSAGE,
-							"no message"); //$NON-NLS-1$
-					if (markerSeverity == IMarker.SEVERITY_ERROR
-							&& markerMessage.equals(errorMessage)) {
-						return true;
-					}
-				}
+        for (IMarker marker : javaModelMarkers) {
+          int markerSeverity = marker.getAttribute(IMarker.SEVERITY,
+            -1);
+          String markerMessage = marker.getAttribute(IMarker.MESSAGE,
+            "no message"); //$NON-NLS-1$
+          if (markerSeverity == IMarker.SEVERITY_ERROR
+              && markerMessage.equals(errorMessage))
+          {
+            return true;
+          }
+        }
 			}
 		} catch (CoreException e) {
 			e.printStackTrace();
@@ -347,9 +340,7 @@ public class ProjectDependenciesUtils {
 					.newProjectEntry(projectDependedOn.getFullPath());
 
 			IClasspathEntry[] newEntries = new IClasspathEntry[cpEntry.length + 1];
-			for (int i = 0; i < cpEntry.length; i++) {
-				newEntries[i] = cpEntry[i];
-			}
+      System.arraycopy(cpEntry, 0, newEntries, 0, cpEntry.length);
 			newEntries[cpEntry.length] = newProjectEntry;
 			projectToHaveDependency.setRawClasspath(newEntries, null);
 			waitForJobsToComplete();
@@ -357,26 +348,27 @@ public class ProjectDependenciesUtils {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public static void removeProjectDependency(
 			IJavaProject projectWhichHasDependency, IProject projectDependedOn) {
 		try {
 			IClasspathEntry[] cpEntry = projectWhichHasDependency
 					.getRawClasspath();
 			List newEntries = new ArrayList();
-			
-			for (int j = 0; j < cpEntry.length; j++) {
-				IClasspathEntry entry = cpEntry[j];
-				if (entry.getEntryKind() == IClasspathEntry.CPE_PROJECT) {
-					if (!entry.getPath().equals(projectDependedOn.getFullPath())
-							&& ! entry.getPath().equals(projectDependedOn.getFullPath().makeAbsolute())) {
-						newEntries.add(entry);
-					} 
-				} else {
-					newEntries.add(entry);
-				}
-			}
-			IClasspathEntry[] newCP = (IClasspathEntry[]) newEntries.toArray(new IClasspathEntry[newEntries.size()]);
+
+      for (IClasspathEntry entry : cpEntry) {
+        if (entry.getEntryKind() == IClasspathEntry.CPE_PROJECT) {
+          if (!entry.getPath().equals(projectDependedOn.getFullPath())
+              && !entry.getPath().equals(projectDependedOn.getFullPath().makeAbsolute()))
+          {
+            newEntries.add(entry);
+          }
+        }
+        else {
+          newEntries.add(entry);
+        }
+      }
+			IClasspathEntry[] newCP = (IClasspathEntry[]) newEntries.toArray(new IClasspathEntry[0]);
 			projectWhichHasDependency.setRawClasspath(newCP, null);
 			waitForJobsToComplete();
 			waitForJobsToComplete();
@@ -422,7 +414,7 @@ public class ProjectDependenciesUtils {
 		manifestFile.refreshLocal(IResource.DEPTH_INFINITE, monitor);
 		//monitor.waitForCompletion();
 	}
-	
+
 	public static boolean projectHasPluginDependency(IProject projectWhichHasDependency,
 			String pluginIdOfRequiredProject) throws JavaModelException {
 		ManifestEditor manEd = AJDTUtils.getPDEManifestEditor(projectWhichHasDependency);
@@ -430,19 +422,17 @@ public class ProjectDependenciesUtils {
 		if (manEd != null) {
 			IPluginModel model = (IPluginModel) manEd.getAggregateModel();
 			IPluginImport[] imports = model.getPluginBase().getImports();
-			for (int i = 0; i < imports.length; i++) {
-				IPluginImport import1 = imports[i];
-				if (import1.getId().equals(pluginIdOfRequiredProject)) {
-					return true;
-				}
-			}
+      for (IPluginImport import1 : imports) {
+        if (import1.getId().equals(pluginIdOfRequiredProject)) {
+          return true;
+        }
+      }
 		}
 
 		return false;
 	}
-	
+
 	private static void waitForJobsToComplete() {
 		SynchronizationUtils.joinBackgroudActivities();
 	}
 }
-

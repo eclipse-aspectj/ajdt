@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Luzius Meisser - initial implementation
  *******************************************************************************/
@@ -21,7 +21,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.IBuffer;
 
 /**
- * 
+ *
  * @author Luzius Meisser
  */
 public abstract class AbstractTestCase extends AJDTCoreTestCase {
@@ -30,7 +30,7 @@ public abstract class AbstractTestCase extends AJDTCoreTestCase {
 	protected IProject myProject;
 	protected AJCompilationUnit unit;
 	protected IBuffer buf;
-	
+
 	/*
 	 * @see TestCase#setUp()
 	 */
@@ -39,7 +39,7 @@ public abstract class AbstractTestCase extends AJDTCoreTestCase {
 		myProject = createPredefinedProject("javamodelEnhancementTesting"); //$NON-NLS-1$
 		IFile f = myProject.getFile("src" + File.separator + "Aspect.aj"); //$NON-NLS-1$ //$NON-NLS-2$
 		unit = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(f);
-		super.waitForAutoBuild();
+		waitForAutoBuild();
 	}
 
 

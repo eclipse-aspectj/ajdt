@@ -765,8 +765,7 @@ public MethodDeclaration convertToMethodDeclaration(ConstructorDeclaration c, Co
 }
 protected CompilationUnitDeclaration endParse(int act) {
 	if (compilationUnit != null) {
-		CompilationUnitDeclaration result = super.endParse(act);
-		return result;
+    return super.endParse(act);
 	} else {
 		return null;
 	}

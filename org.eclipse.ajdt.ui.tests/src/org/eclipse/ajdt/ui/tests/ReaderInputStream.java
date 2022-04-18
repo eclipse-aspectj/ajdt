@@ -6,12 +6,12 @@ import java.io.Reader;
 
 public class ReaderInputStream extends InputStream {
 
-	private Reader reader;
-	
+	private final Reader reader;
+
 	public ReaderInputStream(Reader reader){
 		this.reader = reader;
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see java.io.InputStream#read()
 	 */
@@ -19,9 +19,9 @@ public class ReaderInputStream extends InputStream {
 		return reader.read();
 	}
 
-	
+
     public void close() throws IOException {
     	reader.close();
-    } 
-	
+    }
+
 }

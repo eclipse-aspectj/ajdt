@@ -102,7 +102,7 @@ public String[] getExceptionTypes() throws JavaModelException {
 }
 
 protected void getHandleMemento(StringBuffer buff) {
-    buff.append(((JavaElement) getParent()).getHandleMemento());
+    buff.append(getParent().getHandleMemento());
     char delimiter = getHandleMementoDelimiter();
     buff.append(delimiter);
     escapeMementoName(buff, getElementName());
@@ -269,7 +269,7 @@ protected void toStringInfo(int tab, StringBuffer buffer, Object info) {
 			}
 			toStringName(buffer);
 		} catch (JavaModelException e) {
-			buffer.append("<JavaModelException in toString of " + getElementName()); //$NON-NLS-1$
+			buffer.append("<JavaModelException in toString of ").append(getElementName()); //$NON-NLS-1$
 		}
 	}
 }

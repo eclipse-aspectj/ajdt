@@ -3,7 +3,7 @@
  * program and the accompanying materials are made available under the terms of
  * the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors: Sian January - initial version
  ******************************************************************************/
 package org.eclipse.ajdt.internal.ui.editor;
@@ -48,50 +48,49 @@ import org.eclipse.jface.text.source.IAnnotationModelListenerExtension;
  */
 public class CompilationUnitAnnotationModelWrapper implements IAnnotationModel, IProblemRequestor, IProblemRequestorExtension  {
 
-	
+
 	protected static class GlobalAnnotationModelListener implements IAnnotationModelListener, IAnnotationModelListenerExtension {
-		
-		private ListenerList fListenerList;
-		
+
+		private final ListenerList fListenerList;
+
 		public GlobalAnnotationModelListener() {
 			fListenerList= new ListenerList();
 		}
-		
+
 		/**
 		 * @see IAnnotationModelListener#modelChanged(IAnnotationModel)
 		 */
 		public void modelChanged(IAnnotationModel model) {
 			Object[] listeners= fListenerList.getListeners();
-			for (int i= 0; i < listeners.length; i++) {
-				((IAnnotationModelListener) listeners[i]).modelChanged(model);
-			}
+      for (Object listener : listeners) {
+        ((IAnnotationModelListener) listener).modelChanged(model);
+      }
 		}
-	
+
 		/**
 		 * @see IAnnotationModelListenerExtension#modelChanged(AnnotationModelEvent)
 		 */
 		public void modelChanged(AnnotationModelEvent event) {
 			Object[] listeners= fListenerList.getListeners();
-			for (int i= 0; i < listeners.length; i++) {
-				Object curr= listeners[i];
-				if (curr instanceof IAnnotationModelListenerExtension) {
-					((IAnnotationModelListenerExtension) curr).modelChanged(event);
-				}
-			}
+      for (Object curr : listeners) {
+        if (curr instanceof IAnnotationModelListenerExtension) {
+          ((IAnnotationModelListenerExtension) curr).modelChanged(event);
+        }
+      }
 		}
-		
+
 		public void addListener(IAnnotationModelListener listener) {
 			fListenerList.add(listener);
 		}
-		
+
 		public void removeListener(IAnnotationModelListener listener) {
 			fListenerList.remove(listener);
-		}			
+		}
 	}
 
 	private IAnnotationModel delegate;
 	private final ICompilationUnit unit;
-	
+
 	public CompilationUnitAnnotationModelWrapper(final ICompilationUnit unit) {
 		this.unit = unit;
 	}
@@ -189,9 +188,9 @@ public class CompilationUnitAnnotationModelWrapper implements IAnnotationModel, 
 	public void beginReporting() {
 		if (delegate != null) {
 			((IProblemRequestor)delegate).beginReporting();
-			
+
 			IJavaProject project = unit.getJavaProject();
-	
+
 			AJCompilationUnitStructureRequestor requestor = new AJCompilationUnitStructureRequestor(unit, new AJCompilationUnitInfo(), new HashMap());
 			JavaModelManager.PerWorkingCopyInfo perWorkingCopyInfo = ((CompilationUnit)unit).getPerWorkingCopyInfo();
 			boolean computeProblems = JavaProject.hasJavaNature(project.getProject()) && perWorkingCopyInfo != null && perWorkingCopyInfo.isActive();
@@ -200,19 +199,19 @@ public class CompilationUnitAnnotationModelWrapper implements IAnnotationModel, 
 			IBuffer buffer;
 			try {
 				buffer = unit.getBuffer();
-			
+
 				final char[] contents = buffer == null ? null : buffer.getCharacters();
-		
+
 				AJSourceElementParser parser = new AJSourceElementParser(
-						requestor, 
-						problemFactory, 
+						requestor,
+						problemFactory,
 						new CompilerOptions(options),
 						true/*report local declarations*/,false);
 				parser.reportOnlyOneSyntaxError = !computeProblems;
-				
+
 				parser.scanner.source = contents;
 				requestor.setParser(parser);
-				
+
 				CompilationUnitDeclaration unitDec = parser.parseCompilationUnit(new org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit() {
 						public char[] getContents() {
 							return contents;
@@ -232,24 +231,23 @@ public class CompilationUnitAnnotationModelWrapper implements IAnnotationModel, 
 					}, true /*full parse to find local elements*/);
 				org.aspectj.org.eclipse.jdt.core.compiler.IProblem[] problems = unitDec.compilationResult.problems;
 				if (problems != null){
-					for (int i = 0; i < problems.length; i++) {
-						org.aspectj.org.eclipse.jdt.core.compiler.IProblem problem = problems[i];
-						if (problem == null)
-							continue;
-						((IProblemRequestor)delegate).acceptProblem(new DefaultProblem(
-						problem.getOriginatingFileName(),
-						problem.getMessage(),
-						problem.getID(),
-						problem.getArguments(),
-						problem.isError()?ProblemSeverities.Error:ProblemSeverities.Warning,
-						problem.getSourceStart(),
-						problem.getSourceEnd(),
-						problem.getSourceLineNumber(),
-						0)); // unknown column
-					}
+          for (org.aspectj.org.eclipse.jdt.core.compiler.IProblem problem : problems) {
+            if (problem == null)
+              continue;
+            ((IProblemRequestor) delegate).acceptProblem(new DefaultProblem(
+              problem.getOriginatingFileName(),
+              problem.getMessage(),
+              problem.getID(),
+              problem.getArguments(),
+              problem.isError() ? ProblemSeverities.Error : ProblemSeverities.Warning,
+              problem.getSourceStart(),
+              problem.getSourceEnd(),
+              problem.getSourceLineNumber(),
+              0)); // unknown column
+          }
 				}
 			} catch (JavaModelException e) {
-			}			
+			}
 		}
 	}
 
@@ -280,7 +278,7 @@ public class CompilationUnitAnnotationModelWrapper implements IAnnotationModel, 
 		if(delegate != null) {
 			((IProblemRequestorExtension)delegate).setProgressMonitor(monitor);
 		}
-		
+
 	}
 
 	/* (non-Javadoc)
@@ -290,7 +288,7 @@ public class CompilationUnitAnnotationModelWrapper implements IAnnotationModel, 
 		if(delegate != null) {
 			((IProblemRequestorExtension)delegate).setIsActive(isActive);
 		}
-		
+
 	}
 
 	/* (non-Javadoc)
@@ -300,7 +298,7 @@ public class CompilationUnitAnnotationModelWrapper implements IAnnotationModel, 
 		if(delegate != null) {
 			((IProblemRequestorExtension)delegate).beginReportingSequence();
 		}
-		
+
 	}
 
 	/* (non-Javadoc)
@@ -316,7 +314,7 @@ public class CompilationUnitAnnotationModelWrapper implements IAnnotationModel, 
 	 * @param annotationModel
 	 */
 	public void setDelegate(IAnnotationModel annotationModel) {
-		delegate = annotationModel;		
+		delegate = annotationModel;
 	}
 
 	public void setIsHandlingTemporaryProblems(boolean enable) {

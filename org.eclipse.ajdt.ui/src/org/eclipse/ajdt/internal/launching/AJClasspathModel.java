@@ -4,7 +4,7 @@
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors: Sian January - initial version
  * ...
  **********************************************************************/
@@ -28,7 +28,7 @@ import org.eclipse.jdt.launching.IRuntimeClasspathEntry;
 public class AJClasspathModel extends ClasspathModel {
 
 	public static final int ASPECTPATH = 2;
-	
+
 	public static final int OUTJAR = 3;
 
 	private ClasspathGroup bootstrapEntries;
@@ -36,7 +36,7 @@ public class AJClasspathModel extends ClasspathModel {
 	private ClasspathGroup userEntries;
 
 	private ClasspathGroup aspectPathEntries;
-	
+
 	private ClasspathGroup outJarEntries;
 
 	/**
@@ -72,17 +72,16 @@ public class AJClasspathModel extends ClasspathModel {
 		}
 
 		ClasspathEntry newEntry = createEntry(entry, entryParent);
-		Iterator entries = childEntries.iterator();
-		while (entries.hasNext()) {
-			Object element = entries.next();
-			if (element instanceof ClasspathGroup) {
-				if (((ClasspathGroup) element).contains(newEntry)) {
-					return null;
-				}
-			} else if (element.equals(newEntry)) {
-				return null;
-			}
-		}
+    for (Object element : childEntries) {
+      if (element instanceof ClasspathGroup) {
+        if (((ClasspathGroup) element).contains(newEntry)) {
+          return null;
+        }
+      }
+      else if (element.equals(newEntry)) {
+        return null;
+      }
+    }
 		if (entryParent != null) {
 			((ClasspathGroup) entryParent).addEntry(newEntry,null);
 		} else {
@@ -117,10 +116,10 @@ public class AJClasspathModel extends ClasspathModel {
 			getBootstrapEntry();
 		}
 		bootstrapEntries.removeAll();
-		for (int i = 0; i < entries.length; i++) {
-			bootstrapEntries.addEntry(new ClasspathEntry(entries[i],
-					bootstrapEntries),null);
-		}
+    for (IRuntimeClasspathEntry entry : entries) {
+      bootstrapEntries.addEntry(new ClasspathEntry(entry,
+        bootstrapEntries), null);
+    }
 	}
 
 	/**
@@ -131,14 +130,14 @@ public class AJClasspathModel extends ClasspathModel {
 			getUserEntry();
 		}
 		userEntries.removeAll();
-		for (int i = 0; i < entries.length; i++) {
-			userEntries.addEntry(new ClasspathEntry(entries[i], userEntries),null);
-		}
+    for (IRuntimeClasspathEntry entry : entries) {
+      userEntries.addEntry(new ClasspathEntry(entry, userEntries), null);
+    }
 	}
 
 	/**
 	 * Set the AspectPath entries
-	 * 
+	 *
 	 * @param entries -
 	 *            classpath entries
 	 */
@@ -147,10 +146,10 @@ public class AJClasspathModel extends ClasspathModel {
 			getAspectPathEntry();
 		}
 		aspectPathEntries.removeAll();
-		for (int i = 0; i < entries.length; i++) {
-			aspectPathEntries.addEntry(new ClasspathEntry(entries[i],
-					aspectPathEntries),null);
-		}
+    for (IRuntimeClasspathEntry entry : entries) {
+      aspectPathEntries.addEntry(new ClasspathEntry(entry,
+        aspectPathEntries), null);
+    }
 	}
 
 	private IClasspathEntry getAspectPathEntry() {
@@ -170,7 +169,7 @@ public class AJClasspathModel extends ClasspathModel {
 		}
 		return outJarEntries;
 	}
-	
+
 	public IClasspathEntry getBootstrapEntry() {
 		if (bootstrapEntries == null) {
 			String name = ClasspathMessages.ClasspathModel_0;
@@ -199,9 +198,9 @@ public class AJClasspathModel extends ClasspathModel {
 		ClasspathGroup group = new ClasspathGroup(name, entryParent,
 				canBeRemoved);
 
-		for (int i = 0; i < entries.length; i++) {
-			group.addEntry(new ClasspathEntry(entries[i], group),null);
-		}
+    for (IRuntimeClasspathEntry entry : entries) {
+      group.addEntry(new ClasspathEntry(entry, group), null);
+    }
 
 		if (addEntry) {
 			addEntry(group);
@@ -211,7 +210,7 @@ public class AJClasspathModel extends ClasspathModel {
 
 	/**
 	 * Returns the entries of the given type, or an empty collection if none.
-	 * 
+	 *
 	 * @param entryType
 	 * @return the entries of the given type, or an empty collection if none
 	 */

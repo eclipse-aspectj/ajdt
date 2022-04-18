@@ -22,10 +22,10 @@ import org.eclipse.core.runtime.IConfigurationElement;
 public class XReferenceProviderDefinition {
 
 	private IXReferenceProvider provider;
-	private String label;
-	private String id;
+	private final String label;
+	private final String id;
 	private boolean enabled;
-	private boolean defaultEnablement;
+	private final boolean defaultEnablement;
 
 	public XReferenceProviderDefinition(IConfigurationElement config)
 		throws CoreException {

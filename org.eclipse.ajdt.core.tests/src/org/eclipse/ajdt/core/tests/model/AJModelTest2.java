@@ -62,7 +62,7 @@ public class AJModelTest2 extends AJDTCoreTestCase {
 			    for (String targetStr : rel.getTargets()) {
 	                IJavaElement target = model.programElementToJavaElement(
 	                        targetStr);
-                    if (target.getElementName().indexOf("before") != -1) { //$NON-NLS-1$
+                    if (target.getElementName().contains("before")) { //$NON-NLS-1$
                         gotBinaryAdvice = true;
                     }
 			    }

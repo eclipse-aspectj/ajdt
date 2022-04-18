@@ -445,11 +445,7 @@ public void notifySourceElementRequestor(
 				ASTNode node = nodes[i];
 				if (node instanceof ImportReference) {
 					ImportReference importRef = (ImportReference)node;
-					if (node == parsedUnit.currentPackage) {
-						notifySourceElementRequestor(importRef, true);
-					} else {
-						notifySourceElementRequestor(importRef, false);
-					}
+          notifySourceElementRequestor(importRef, node == parsedUnit.currentPackage);
 				} else { // instanceof TypeDeclaration
 					notifySourceElementRequestor((TypeDeclaration)node, true, null);
 				}

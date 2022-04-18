@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Helen Hawkins   - iniital version
@@ -27,23 +27,23 @@ import org.eclipse.jdt.core.IJavaElement;
 
 /**
  * @author hawkinsh
- *  
+ *
  */
 public class TestProvider implements IXReferenceProvider, IXReferenceProviderExtension {
 
 	private List<String> checkedFilterList;
 	private List<String> checkedFilterInplaceList;
-	
+
 	public static boolean beBad = false; // for setting up test conditions
-	
+
 	public TestProvider() {
-		checkedFilterList = new ArrayList<String>();
-		checkedFilterInplaceList = new ArrayList<String>();
+		checkedFilterList = new ArrayList<>();
+		checkedFilterInplaceList = new ArrayList<>();
 	}
-	
+
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.eclipse.contribution.xref.core.tests.IXReferenceProvider#getClasses()
 	 */
 	public Class<?>[] getClasses() {
@@ -52,15 +52,15 @@ public class TestProvider implements IXReferenceProvider, IXReferenceProviderExt
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.eclipse.contribution.xref.core.tests.IXReferenceProvider#getXReferences(java.lang.Object)
 	 */
 	public Collection<IXReference> getXReferences(IAdaptable o, List<String> checked) {
 		String s = ((AdaptableString) o).getVal();
-		Set<IAdaptable> a = new HashSet<IAdaptable>();
+		Set<IAdaptable> a = new HashSet<>();
 		a.add(new AdaptableString(s.toUpperCase()));
 		XReference xr = new XReference("In Upper Case", a); //$NON-NLS-1$
-		List<IXReference> l = new ArrayList<IXReference>();
+		List<IXReference> l = new ArrayList<>();
 		l.add(xr);
 		return l;
 	}
@@ -68,10 +68,10 @@ public class TestProvider implements IXReferenceProvider, IXReferenceProviderExt
 	public IJavaElement[] getExtraChildren(IJavaElement je) {
 		return null;
 	}
-	
+
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.eclipse.contribution.xref.core.tests.IXReferenceProvider#getProviderDescription()
 	 */
 	public String getProviderDescription() {
@@ -98,7 +98,7 @@ public class TestProvider implements IXReferenceProvider, IXReferenceProviderExt
 	public List<String> getFilterCheckedInplaceList() {
 		return checkedFilterInplaceList;
 	}
-	
+
 	public List<String> getFilterList() {
 		return null;
 	}
@@ -106,7 +106,7 @@ public class TestProvider implements IXReferenceProvider, IXReferenceProviderExt
 	public List<String> getFilterDefaultList() {
 		return null;
 	}
-	
+
 
     public Collection<IXReference> getXReferences(Object o, List<String> l) {
         Assert.isLegal(o instanceof IAdaptable, "Object should be of type IAdaptable: " + o);

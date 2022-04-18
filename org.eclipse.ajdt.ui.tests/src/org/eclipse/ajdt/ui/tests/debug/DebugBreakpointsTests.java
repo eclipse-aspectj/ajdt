@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2010 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Andrew Eisenberg - initial version
  *******************************************************************************/
@@ -54,19 +54,13 @@ public class DebugBreakpointsTests extends UITestCase {
         super.setUp();
         IProject project = createPredefinedProject("DefaultEmptyProject");
         IFile file = project.getFile("src/" + BREAKPOINT_CLASS_NAME);
-        InputStream input = new StringInputStream(DATA);
-        try {
-            file.create(input, true, null);
-            unit = JavaCore.createCompilationUnitFrom(file);
-        } finally {
-            try {
-                input.close();
-            } catch (IOException e) {
-                //ignore
-            }
-        }
+      try (InputStream input = new StringInputStream(DATA)) {
+        file.create(input, true, null);
+        unit = JavaCore.createCompilationUnitFrom(file);
+      }
+      //ignore
 
-        text = DATA;
+      text = DATA;
         adapter = new ToggleBreakpointAdapter();
 
         editor = (AspectJEditor) EditorUtility.openInEditor(unit);

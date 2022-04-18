@@ -13,18 +13,16 @@ package org.eclipse.ajdt.internal.core.contentassist;
 import org.eclipse.contribution.jdt.itdawareness.IJavaContentAssistProvider;
 import org.eclipse.core.runtime.IAdapterFactory;
 
-@SuppressWarnings("unchecked")
 public class ContentAssistProviderAdapterFactory implements IAdapterFactory {
+  @Override
+  public <T> T getAdapter(Object adaptableObject, Class<T> adapterType) {
+    if (adapterType == IJavaContentAssistProvider.class)
+      return adapterType.cast(new ContentAssistProvider());
+    return null;
+  }
 
-    public Object getAdapter(Object adaptableObject, Class adapterType) {
-        if (adapterType == IJavaContentAssistProvider.class) {
-            return new ContentAssistProvider();
-        }
-        return null;
-    }
-
-    public Class[] getAdapterList() {
-        return new Class[] { IJavaContentAssistProvider.class };
-    }
-
+  @Override
+  public Class<?>[] getAdapterList() {
+    return new Class<?>[] { IJavaContentAssistProvider.class };
+  }
 }

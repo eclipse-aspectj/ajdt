@@ -25,15 +25,14 @@ public class AJXReferenceProviderTest extends TestCase {
 	/*
 	 * @see TestCase#setUp()
 	 */
-	protected void setUp() throws Exception {
+	protected void setUp() {
 		XReferenceProviderManager manager = XReferenceProviderManager.getManager();
 		List<XReferenceProviderDefinition> providers = manager.getRegisteredProviders();
-		for (Iterator<XReferenceProviderDefinition> iter = providers.iterator(); iter.hasNext();) {
-            XReferenceProviderDefinition element = iter.next();
-            if (element.getProvider().getProviderDescription().equals("Provides AspectJ crosscutting structure references")) { //$NON-NLS-1$
-            	providerDef = element;
-            }
-        }
+    for (XReferenceProviderDefinition element : providers) {
+      if (element.getProvider().getProviderDescription().equals("Provides AspectJ crosscutting structure references")) { //$NON-NLS-1$
+        providerDef = element;
+      }
+    }
 		if (providerDef == null) {
 			providerDef = providers.get(0);
 
@@ -44,7 +43,7 @@ public class AJXReferenceProviderTest extends TestCase {
 		List<String> checkedListReturned = new ArrayList<>();
 		providerDef.getProvider().setCheckedFilters(listToSet);
 		checkedListReturned = providerDef.getProvider().getFilterCheckedList();
-		assertTrue("Returned List, (" + identifier + ") size Expected <" + listToSet.size() + "> Actual <" + checkedListReturned.size() + ">", checkedListReturned.size() == listToSet.size()); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+    assertEquals("Returned List, (" + identifier + ") size Expected <" + listToSet.size() + "> Actual <" + checkedListReturned.size() + ">", checkedListReturned.size(), listToSet.size()); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 		if (listToSet.size() != 0) {
 			for (int i = 0; i < listToSet.size(); i++) {
 				assertEquals("List item " + i + " from (" + identifier + "). Expected <" + listToSet.get(i) + ">, Recieved <" + checkedListReturned.get(i) + ">", listToSet.get(i), checkedListReturned.get(i)); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
@@ -56,7 +55,7 @@ public class AJXReferenceProviderTest extends TestCase {
 		List<String> checkedListReturned = new ArrayList<>();
 		providerDef.getProvider().setCheckedInplaceFilters(listToSet);
 		checkedListReturned = providerDef.getProvider().getFilterCheckedInplaceList();
-		assertTrue("Returned List, (" + identifier + ") size Expected <" + listToSet.size() + "> Actual <" + checkedListReturned.size() + ">", checkedListReturned.size() == listToSet.size()); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+    assertEquals("Returned List, (" + identifier + ") size Expected <" + listToSet.size() + "> Actual <" + checkedListReturned.size() + ">", checkedListReturned.size(), listToSet.size()); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 		if (listToSet.size() != 0) {
 			for (int i = 0; i < listToSet.size(); i++) {
 				assertEquals("List item " + i + " from (" + identifier + "). Expected <" + listToSet.get(i) + ">, Recieved <" + checkedListReturned.get(i) + ">", listToSet.get(i), checkedListReturned.get(i)); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$

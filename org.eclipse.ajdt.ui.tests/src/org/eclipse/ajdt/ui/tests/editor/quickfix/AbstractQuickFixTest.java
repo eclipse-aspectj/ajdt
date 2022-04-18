@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2009 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Andrew Eisenberg - initial API and implementation
  *******************************************************************************/
@@ -52,7 +52,7 @@ public abstract class AbstractQuickFixTest extends UITestCase {
     protected ITextEditor quickFixSetup(IFile sourceFile) throws Exception {
         return quickFixSetup(sourceFile, true);
     }
-    protected ITextEditor quickFixSetup(IFile sourceFile, boolean shouldFindError) throws Exception {   
+    protected ITextEditor quickFixSetup(IFile sourceFile, boolean shouldFindError) throws Exception {
         ITextEditor editorPart = (ITextEditor) openFileInAspectJEditor(
                 sourceFile, false);
 
@@ -65,36 +65,35 @@ public abstract class AbstractQuickFixTest extends UITestCase {
 
         boolean foundWarning = false;
         boolean foundError = false;
-        for (int i = 0; i < markers.length; i++) {
-            IMarker m = markers[i];
-            //String msg = (String)m.getAttribute(IMarker.MESSAGE);
-            Integer sev = (Integer) m.getAttribute(IMarker.SEVERITY);
-            if (!foundError && (sev.intValue() == IMarker.SEVERITY_ERROR)) {
-                foundError = true;
-                Integer pid = (Integer) m.getAttribute(IJavaModelMarker.ID);
-                assertNotNull("Problem id attribute must be set", pid); //$NON-NLS-1$
-                Integer start = (Integer) m.getAttribute(IMarker.CHAR_START);
-                assertNotNull("Character start attribute must be set", start); //$NON-NLS-1$
-                Integer end = (Integer) m.getAttribute(IMarker.CHAR_END);
-                assertNotNull("Character end attribute must be set", end); //$NON-NLS-1$
-            }
-            if (!foundWarning && (sev.intValue() == IMarker.SEVERITY_WARNING)) {
-                foundWarning = true;
-                Integer pid = (Integer) m.getAttribute(IJavaModelMarker.ID);
-                assertNotNull("Problem id attribute must be set", pid); //$NON-NLS-1$
-                Integer start = (Integer) m.getAttribute(IMarker.CHAR_START);
-                assertNotNull("Character start attribute must be set", start); //$NON-NLS-1$
-                Integer end = (Integer) m.getAttribute(IMarker.CHAR_END);
-                assertNotNull("Character end attribute must be set", end); //$NON-NLS-1$
-            }
+      for (IMarker m : markers) {
+        //String msg = (String)m.getAttribute(IMarker.MESSAGE);
+        Integer sev = (Integer) m.getAttribute(IMarker.SEVERITY);
+        if (!foundError && (sev == IMarker.SEVERITY_ERROR)) {
+          foundError = true;
+          Integer pid = (Integer) m.getAttribute(IJavaModelMarker.ID);
+          assertNotNull("Problem id attribute must be set", pid); //$NON-NLS-1$
+          Integer start = (Integer) m.getAttribute(IMarker.CHAR_START);
+          assertNotNull("Character start attribute must be set", start); //$NON-NLS-1$
+          Integer end = (Integer) m.getAttribute(IMarker.CHAR_END);
+          assertNotNull("Character end attribute must be set", end); //$NON-NLS-1$
         }
+        if (!foundWarning && (sev == IMarker.SEVERITY_WARNING)) {
+          foundWarning = true;
+          Integer pid = (Integer) m.getAttribute(IJavaModelMarker.ID);
+          assertNotNull("Problem id attribute must be set", pid); //$NON-NLS-1$
+          Integer start = (Integer) m.getAttribute(IMarker.CHAR_START);
+          assertNotNull("Character start attribute must be set", start); //$NON-NLS-1$
+          Integer end = (Integer) m.getAttribute(IMarker.CHAR_END);
+          assertNotNull("Character end attribute must be set", end); //$NON-NLS-1$
+        }
+      }
         assertTrue("Didn't find a warning marker", foundWarning); //$NON-NLS-1$
         assertEquals("Didn't find an error marker", shouldFindError, foundError); //$NON-NLS-1$
-        
+
         return editorPart;
     }
 
-    
+
     protected IMarker[] getMarkers(IResource resource)
             throws Exception {
         if (resource instanceof IFile)
@@ -112,35 +111,34 @@ public abstract class AbstractQuickFixTest extends UITestCase {
         QuickFixProcessor qfp = new QuickFixProcessor();
         return getQuickFixes(sourceFile, qfp, "File");
     }
-    
-    
+
+
     protected IJavaCompletionProposal[] getQuickFixes(IFile sourceFile, IQuickFixProcessor processor, String toLookFor) throws Exception {
         ICompilationUnit unit = (ICompilationUnit) AspectJCore.create(sourceFile);
         int location = new String(((CompilationUnit) unit).getContents()).indexOf(toLookFor) + 1;
-        
+
         AbstractMarkerAnnotationModel model = getAnnotationModel(sourceFile);
-        List probLocs = new ArrayList();
-        for (Iterator annotationIter = model.getAnnotationIterator(); annotationIter.hasNext(); ) {
-            Object obj = (Object) annotationIter.next();
-            if (obj instanceof JavaMarkerAnnotation) {
-                JavaMarkerAnnotation ja = (JavaMarkerAnnotation) obj;
+        List<ProblemLocation> probLocs = new ArrayList<>();
+        for (Iterator<Annotation> annotationIter = model.getAnnotationIterator(); annotationIter.hasNext(); ) {
+          Annotation annotation = annotationIter.next();
+            if (annotation instanceof JavaMarkerAnnotation) {
+                JavaMarkerAnnotation ja = (JavaMarkerAnnotation) annotation;
                 if (isMarkerAtLocation(location, ja)) {
                     probLocs.add(getProblemLocation(ja, model));
                 }
             }
         }
-        
+
         AssistContext context = new AssistContext(unit, location, 0);
         context.setASTRoot(ASTResolving.createQuickFixAST(unit, null));
-        return processor.getCorrections(context, 
-                (IProblemLocation[]) probLocs.toArray(new IProblemLocation[probLocs.size()]));
+        return processor.getCorrections(context, probLocs.toArray(new IProblemLocation[0]));
     }
     private boolean isMarkerAtLocation(int location, JavaMarkerAnnotation ja)
             throws CoreException {
-        return location >= ((Integer) ja.getMarker().getAttribute(IMarker.CHAR_START)).intValue() && 
-                location <= ((Integer) ja.getMarker().getAttribute(IMarker.CHAR_END)).intValue();
+        return location >= (Integer) ja.getMarker().getAttribute(IMarker.CHAR_START) &&
+               location <= (Integer) ja.getMarker().getAttribute(IMarker.CHAR_END);
     }
-    
+
     private ProblemLocation getProblemLocation(IJavaAnnotation javaAnnotation, IAnnotationModel model) {
         int problemId= javaAnnotation.getId();
         if (problemId != -1) {
@@ -151,8 +149,8 @@ public abstract class AbstractQuickFixTest extends UITestCase {
         }
         return null;
     }
-    
-    
+
+
     private AbstractMarkerAnnotationModel getAnnotationModel(
             IFile sourceFile) {
         ITextEditor editor = (ITextEditor) openFileInAspectJEditor(

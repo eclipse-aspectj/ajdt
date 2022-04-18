@@ -834,8 +834,7 @@ protected CompilationUnitDeclaration endParse(int act) {
 		}
 	}
 	if (compilationUnit != null) {
-		CompilationUnitDeclaration result = super.endParse(act);
-		return result;
+    return super.endParse(act);
 	} else {
 		return null;
 	}
@@ -1134,11 +1133,7 @@ public void notifySourceElementRequestor(CompilationUnitDeclaration parsedUnit) 
 			ASTNode node = nodes[i];
 			if (node instanceof ImportReference) {
 				ImportReference importRef = (ImportReference)node;
-				if (node == parsedUnit.currentPackage) {
-					notifySourceElementRequestor(importRef, true);
-				} else {
-					notifySourceElementRequestor(importRef, false);
-				}
+        notifySourceElementRequestor(importRef, node == parsedUnit.currentPackage);
 			} else { // instanceof TypeDeclaration
 				notifySourceElementRequestor((TypeDeclaration)node, sourceType == null, null);
 			}
@@ -1466,10 +1461,8 @@ public void notifySourceElementRequestor(TypeDeclaration typeDeclaration, boolea
     if (CharOperation.equals(TypeConstants.PACKAGE_INFO_NAME, typeDeclaration.name)) return;
 
 	//	AspectJ Change
-	boolean isAspect = false;
-	if (typeDeclaration instanceof AspectDeclaration)
-		isAspect = true;
-	//	AspectJ Change End
+	boolean isAspect = typeDeclaration instanceof AspectDeclaration;
+  //	AspectJ Change End
 
 
 	// range check

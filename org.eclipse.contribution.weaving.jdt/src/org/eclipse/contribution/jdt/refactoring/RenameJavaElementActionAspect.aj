@@ -15,7 +15,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.eclipse.jdt.internal.ui.refactoring.actions.RenameJavaElementAction;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.internal.corext.refactoring.util.RefactoringASTParser;
 
@@ -71,8 +70,7 @@ public aspect RenameJavaElementActionAspect {
     CompilationUnit around(String contents, ICompilationUnit unit, boolean resolveBindings, boolean statementsRecovery, IProgressMonitor monitor) : refactoringParse(contents, unit, resolveBindings, statementsRecovery, monitor) {
         IRefactoringProvider provider = adapter.getProvider();
         if (provider != null && provider.inInterestingProject(unit)) {
-            CompilationUnit ast = provider.createSourceConvertedAST(contents, unit, resolveBindings, statementsRecovery, true, monitor);
-            return ast;
+          return provider.createSourceConvertedAST(contents, unit, resolveBindings, statementsRecovery, true, monitor);
         } else {
             return proceed(contents, unit, resolveBindings, statementsRecovery, monitor);
         }

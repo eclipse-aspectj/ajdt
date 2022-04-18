@@ -4,7 +4,7 @@
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors: Sian January - initial version
  * ...
  **********************************************************************/
@@ -52,50 +52,53 @@ public class LaunchConfigurationClasspathUtils {
 				+ aspectPath.length);
 		IClasspathEntry bootEntry;
 		IRuntimeClasspathEntry entry;
-		for (int i = 0; i < boot.length; i++) {
-			bootEntry = boot[i];
-			entry = null;
-			if (bootEntry instanceof ClasspathEntry) {
-				entry = ((ClasspathEntry) bootEntry).getDelegate();
-			} else if (bootEntry instanceof IRuntimeClasspathEntry) {
-				entry = (IRuntimeClasspathEntry) boot[i];
-			}
-			if (entry != null) {
-				if (entry.getClasspathProperty() == IRuntimeClasspathEntry.USER_CLASSES) {
-					entry
-							.setClasspathProperty(IRuntimeClasspathEntry.BOOTSTRAP_CLASSES);
-				}
-				entries.add(entry);
-			}
-		}
+    for (IClasspathEntry value : boot) {
+      bootEntry = value;
+      entry = null;
+      if (bootEntry instanceof ClasspathEntry) {
+        entry = ((ClasspathEntry) bootEntry).getDelegate();
+      }
+      else if (bootEntry instanceof IRuntimeClasspathEntry) {
+        entry = (IRuntimeClasspathEntry) value;
+      }
+      if (entry != null) {
+        if (entry.getClasspathProperty() == IRuntimeClasspathEntry.USER_CLASSES) {
+          entry
+            .setClasspathProperty(IRuntimeClasspathEntry.BOOTSTRAP_CLASSES);
+        }
+        entries.add(entry);
+      }
+    }
 		IClasspathEntry userEntry;
-		for (int i = 0; i < user.length; i++) {
-			userEntry = user[i];
-			entry = null;
-			if (userEntry instanceof ClasspathEntry) {
-				entry = ((ClasspathEntry) userEntry).getDelegate();
-			} else if (userEntry instanceof IRuntimeClasspathEntry) {
-				entry = (IRuntimeClasspathEntry) user[i];
-			}
-			if (entry != null) {
-				entry.setClasspathProperty(IRuntimeClasspathEntry.USER_CLASSES);
-				entries.add(entry);
-			}
-		}
+    for (IClasspathEntry classpathEntry : user) {
+      userEntry = classpathEntry;
+      entry = null;
+      if (userEntry instanceof ClasspathEntry) {
+        entry = ((ClasspathEntry) userEntry).getDelegate();
+      }
+      else if (userEntry instanceof IRuntimeClasspathEntry) {
+        entry = (IRuntimeClasspathEntry) classpathEntry;
+      }
+      if (entry != null) {
+        entry.setClasspathProperty(IRuntimeClasspathEntry.USER_CLASSES);
+        entries.add(entry);
+      }
+    }
 		IClasspathEntry aspectEntry;
-		for (int i = 0; i < aspectPath.length; i++) {
-			aspectEntry = aspectPath[i];
-			entry = null;
-			if (aspectEntry instanceof ClasspathEntry) {
-				entry = ((ClasspathEntry) aspectEntry).getDelegate();
-			} else if (aspectEntry instanceof IRuntimeClasspathEntry) {
-				entry = (IRuntimeClasspathEntry) aspectPath[i];
-			}
-			if (entry != null) {
-				entry.setClasspathProperty(IRuntimeClasspathEntry.USER_CLASSES);
-				entries.add(entry);
-			}
-		}
+    for (IClasspathEntry iClasspathEntry : aspectPath) {
+      aspectEntry = iClasspathEntry;
+      entry = null;
+      if (aspectEntry instanceof ClasspathEntry) {
+        entry = ((ClasspathEntry) aspectEntry).getDelegate();
+      }
+      else if (aspectEntry instanceof IRuntimeClasspathEntry) {
+        entry = (IRuntimeClasspathEntry) iClasspathEntry;
+      }
+      if (entry != null) {
+        entry.setClasspathProperty(IRuntimeClasspathEntry.USER_CLASSES);
+        entries.add(entry);
+      }
+    }
 		IClasspathEntry outJarEntry;
 		for (int i = 0; i < outJar.length; i++) {
 			outJarEntry = outJar[i];
@@ -108,10 +111,10 @@ public class LaunchConfigurationClasspathUtils {
 			if (entry != null) {
 				entry.setClasspathProperty(IRuntimeClasspathEntry.USER_CLASSES);
 				entries.add(entry);
-			}			
+			}
 		}
 		return (IRuntimeClasspathEntry[]) entries
-				.toArray(new IRuntimeClasspathEntry[entries.size()]);
+				.toArray(new IRuntimeClasspathEntry[0]);
 	}
 
 	/**
@@ -137,39 +140,39 @@ public class LaunchConfigurationClasspathUtils {
 			outJar = LaunchConfigurationClasspathUtils.getOutJar(project);
 		}
 		if (aspectEntries != null) {
-			for (int i = 0; i < aspectEntries.length; i++) {
-				fModel.addEntry(AJClasspathModel.ASPECTPATH, aspectEntries[i]);
-			}
+      for (IRuntimeClasspathEntry aspectEntry : aspectEntries) {
+        fModel.addEntry(AJClasspathModel.ASPECTPATH, aspectEntry);
+      }
 		} else {
 			aspectEntries = new IRuntimeClasspathEntry[0];
 		}
 		if (outJar != null) { // Add the outjar to the classpath model
 			fModel.addEntry(AJClasspathModel.OUTJAR, outJar);
 		}
-		for (int i = 0; i < entries.length; i++) {
-			entry = entries[i];
-			switch (entry.getClasspathProperty()) {
-			case IRuntimeClasspathEntry.USER_CLASSES:
-				boolean isAspectPathEntry = false;
-				boolean isOutJarEntry = false;
-				for (int j = 0; j < aspectEntries.length; j++) {
-					if (aspectEntries[j].equals(entry)) {
-						isAspectPathEntry = true;
-						break;
-					}
-				}
-				if(outJar != null && outJar.equals(entry)) {
-					isOutJarEntry = true;
-				}
-				if (!isAspectPathEntry && !isOutJarEntry) {
-					fModel.addEntry(AJClasspathModel.USER, entry);
-				}
-				break;
-			default:
-				fModel.addEntry(AJClasspathModel.BOOTSTRAP, entry);
-				break;
-			}
-		}
+    for (IRuntimeClasspathEntry iRuntimeClasspathEntry : entries) {
+      entry = iRuntimeClasspathEntry;
+      switch (entry.getClasspathProperty()) {
+        case IRuntimeClasspathEntry.USER_CLASSES:
+          boolean isAspectPathEntry = false;
+          boolean isOutJarEntry = false;
+          for (IRuntimeClasspathEntry aspectEntry : aspectEntries) {
+            if (aspectEntry.equals(entry)) {
+              isAspectPathEntry = true;
+              break;
+            }
+          }
+          if (outJar != null && outJar.equals(entry)) {
+            isOutJarEntry = true;
+          }
+          if (!isAspectPathEntry && !isOutJarEntry) {
+            fModel.addEntry(AJClasspathModel.USER, entry);
+          }
+          break;
+        default:
+          fModel.addEntry(AJClasspathModel.BOOTSTRAP, entry);
+          break;
+      }
+    }
 		return fModel;
 	}
 
@@ -255,7 +258,7 @@ public class LaunchConfigurationClasspathUtils {
 	/**
 	 * Returns whether the specified classpath is equivalent to the default
 	 * classpath for this configuration.
-	 * 
+	 *
 	 * @param classpath
 	 *            classpath to compare to default
 	 * @param configuration
@@ -290,7 +293,7 @@ public class LaunchConfigurationClasspathUtils {
 
 	/**
 	 * Updates the classpath for a launch configuration to ensure that it
-	 * contains the aspectpath and the outjar. NB. Will not add the aspect 
+	 * contains the aspectpath and the outjar. NB. Will not add the aspect
 	 * path or outjar a second time if the classpath already contains it.
 	 */
 	public static void addAspectPathAndOutJarToClasspath(
@@ -314,10 +317,9 @@ public class LaunchConfigurationClasspathUtils {
 						false);
 				try {
 					List mementos = new ArrayList(classpath.length);
-					for (int i = 0; i < classpath.length; i++) {
-						IRuntimeClasspathEntry entry = classpath[i];
-						mementos.add(entry.getMemento());
-					}
+          for (IRuntimeClasspathEntry entry : classpath) {
+            mementos.add(entry.getMemento());
+          }
 					wc.setAttribute(
 							IJavaLaunchConfigurationConstants.ATTR_CLASSPATH,
 							mementos);

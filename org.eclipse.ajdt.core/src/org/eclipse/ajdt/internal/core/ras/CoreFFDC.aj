@@ -12,11 +12,8 @@
  *******************************************************************************/
 package org.eclipse.ajdt.internal.core.ras;
 
-import org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit;
-import org.aspectj.org.eclipse.jdt.internal.compiler.env.ISourceType;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.ras.PluginFFDC;
-import org.eclipse.ajdt.internal.core.ajde.CoreBuildMessageHandler;
 import org.eclipse.core.runtime.IStatus;
 
 /**

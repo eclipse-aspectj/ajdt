@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2005 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman  - initial version
@@ -66,7 +66,7 @@ import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
  * Mainly copied from AbstractJavaModelTests in org.eclipse.jdt.core.tests.model
  */
 public class AJDTCoreTestCase extends TestCase {
-    
+
     public static final String DEFAULT_PROJECT_NAME = "DefaultEmptyProject";
     DefaultLogger defaultLogger = new DefaultLogger();
     {
@@ -76,21 +76,21 @@ public class AJDTCoreTestCase extends TestCase {
             // do nothing, plugin is probably not needed for this test
         }
     }
-    
+
     public AJDTCoreTestCase(String name) {
         super(name);
     }
-    
+
     public AJDTCoreTestCase() {
         super();
     }
 
-    
+
     protected void setUp() throws Exception {
         super.setUp();
         System.out.println("------------------------\nStarting " + this.getName());
     }
-    
+
 
     protected void tearDown() throws Exception {
         super.tearDown();
@@ -103,33 +103,32 @@ public class AJDTCoreTestCase extends TestCase {
             Utils.setAutobuilding(false);
             getWorkspace().getRoot().refreshLocal(IResource.DEPTH_INFINITE, null);
             IProject[] allProjects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
-            for (int i = 0; i < allProjects.length; i++) {
-                IProject project = allProjects[i];
-                // keep the default project around on non-complete cleans
-                if (!complete && project.getName().equals(DEFAULT_PROJECT_NAME)) {
-                    IJavaProject defaultProject = JavaCore.create(project);
-                    defaultProject.setOptions(null);
-                    project.getFile(".classpath").delete(true, null);
-                    project.getFile(".classpath.COPY").copy(new Path(".classpath"), true, null);
-                    project.getFolder("src").delete(true, null);
-                    project.getFolder("bin").delete(true, null);
-                    createDefaultSourceFolder(defaultProject);
-                } else {
-                    deleteProject(project,false);
-                }
+          for (IProject project : allProjects) {
+            // keep the default project around on non-complete cleans
+            if (!complete && project.getName().equals(DEFAULT_PROJECT_NAME)) {
+              IJavaProject defaultProject = JavaCore.create(project);
+              defaultProject.setOptions(null);
+              project.getFile(".classpath").delete(true, null);
+              project.getFile(".classpath.COPY").copy(new Path(".classpath"), true, null);
+              project.getFolder("src").delete(true, null);
+              project.getFolder("bin").delete(true, null);
+              createDefaultSourceFolder(defaultProject);
             }
+            else {
+              deleteProject(project, false);
+            }
+          }
             allProjects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
-            for (int i = 0; i < allProjects.length; i++) {
-                IProject project = allProjects[i];
-                // keep the default project around on non-complete cleans
-                if (complete || !project.getName().equals(DEFAULT_PROJECT_NAME)) {
-                    deleteProject(project,true);
-                }
+          for (IProject project : allProjects) {
+            // keep the default project around on non-complete cleans
+            if (complete || !project.getName().equals(DEFAULT_PROJECT_NAME)) {
+              deleteProject(project, true);
             }
+          }
         } finally {
             // ensure we use default logger for next test
             AspectJPlugin.getDefault().setAJLogger(defaultLogger);
-        
+
             Utils.setAutobuilding(true);
             try {
                 getWorkspace().getRoot().refreshLocal(IResource.DEPTH_INFINITE, null);
@@ -140,7 +139,7 @@ public class AJDTCoreTestCase extends TestCase {
         }
     }
 
-    
+
     protected void setJava7SourceLevel(IJavaProject javaProject) {
         javaProject.setOption(CompilerOptions.OPTION_Compliance, "1.7");
         javaProject.setOption(CompilerOptions.OPTION_Source, "1.7");
@@ -162,7 +161,7 @@ public class AJDTCoreTestCase extends TestCase {
     protected String getTestBundleName() {
         return "org.eclipse.ajdt.core.tests";
     }
-    
+
     public String getSourceWorkspacePath() {
         return getPluginDirectoryPath() +  java.io.File.separator + "workspace"; //$NON-NLS-1$
     }
@@ -173,11 +172,11 @@ public class AJDTCoreTestCase extends TestCase {
     public IWorkspace getWorkspace() {
         return ResourcesPlugin.getWorkspace();
     }
-    
+
     public IWorkspaceRoot getWorkspaceRoot() {
         return getWorkspace().getRoot();
     }
-    
+
     protected IProject createPredefinedProject14(final String projectName) throws CoreException,IOException {
         IJavaProject jp = setUpJavaProject(projectName);
         jp.setOption("org.eclipse.jdt.core.compiler.problem.missingSerialVersion", "ignore"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -186,7 +185,7 @@ public class AJDTCoreTestCase extends TestCase {
         jp.getProject().build(IncrementalProjectBuilder.FULL_BUILD,null);
         return jp.getProject();
     }
-    
+
     protected IProject createPredefinedProject(final String projectName) throws CoreException, RuntimeException {
         IJavaProject jp;
         try {
@@ -198,11 +197,11 @@ public class AJDTCoreTestCase extends TestCase {
             // project was not found
             return null;
         }
-        
+
         // New in Eclipse 4.6 - substring proposals. With this turned on we will get
         // extra matches that disturb the tests
         jp.setOption(JavaCore.CODEASSIST_SUBSTRING_MATCH, "disabled");
-        
+
         try {
             jp.setOption("org.eclipse.jdt.core.compiler.problem.missingSerialVersion", "ignore"); //$NON-NLS-1$ //$NON-NLS-2$
         } catch (NullPointerException npe) {
@@ -213,7 +212,7 @@ public class AJDTCoreTestCase extends TestCase {
         }
         return jp.getProject();
     }
-    
+
     /**
      * Create a named project, optionally turn of some irritating options that can clog up the output and then build it
      */
@@ -225,61 +224,57 @@ public class AJDTCoreTestCase extends TestCase {
             jp.setOption("org.eclipse.jdt.core.compiler.taskTags","");//$NON-NLS-1$ //$NON-NLS-2$ // $NON-NLS-2$
         }
         jp.getProject().build(IncrementalProjectBuilder.FULL_BUILD,null);
-        return jp.getProject();     
+        return jp.getProject();
     }
-    
-    
+
+
     protected IJavaProject setUpJavaProject(final String projectName) throws CoreException, IOException {
         return setUpJavaProject(projectName, "1.4"); //$NON-NLS-1$
     }
-    
+
     protected IJavaProject setUpJavaProject(final String projectName, String compliance) throws CoreException, IOException {
         // copy files in project from source workspace to target workspace
         String sourceWorkspacePath = getSourceWorkspacePath();
         String targetWorkspacePath = getWorkspaceRoot().getLocation().toFile().getCanonicalPath();
-        
+
         // return null if source directory does not exist
         if (! copyDirectory(new File(sourceWorkspacePath, projectName), new File(targetWorkspacePath, projectName))) {
             return null;
         }
-        
+
         // create project
         final IProject project = getWorkspaceRoot().getProject(projectName);
         if (! project.exists()) {
-            IWorkspaceRunnable populate = new IWorkspaceRunnable() {
-                public void run(IProgressMonitor monitor) throws CoreException {
-                    project.create(null);
-                }
-            };
+            IWorkspaceRunnable populate = monitor -> project.create(null);
             getWorkspace().run(populate, null);
-        }       
+        }
         // ensure open
         project.open(null);
         AJCompilationUnitManager.INSTANCE.initCompilationUnits(project);
-        
-        IJavaProject javaProject = JavaCore.create(project);
-        return javaProject;
+
+      return JavaCore.create(project);
     }
-    
+
     protected static class Requestor extends TypeNameRequestor { }
 
-    
+
     protected void waitForIndexes() {
         joinBackgroudActivities();
         Job[] jobs = Job.getJobManager().find(null);
-        for (int i = 0; i < jobs.length; i++) {
-            if (jobs[i].getName().startsWith("Java indexing")) {
-                boolean wasInterrupted = true;
-                while (wasInterrupted) {
-                    try {
-                        wasInterrupted = false;
-                        jobs[i].join();
-                    } catch (InterruptedException e) {
-                        wasInterrupted = true;
-                    }
-                }
+      for (Job job : jobs) {
+        if (job.getName().startsWith("Java indexing")) {
+          boolean wasInterrupted = true;
+          while (wasInterrupted) {
+            try {
+              wasInterrupted = false;
+              job.join();
             }
+            catch (InterruptedException e) {
+              wasInterrupted = true;
+            }
+          }
         }
+      }
     }
 
     public static void waitForAutoBuild() {
@@ -294,7 +289,7 @@ public class AJDTCoreTestCase extends TestCase {
     public static void waitForManualRefresh() {
         waitForJobFamily(ResourcesPlugin.FAMILY_MANUAL_REFRESH);
     }
-    
+
     public static void waitForJobFamily(Object family) {
         boolean wasInterrupted = false;
         do {
@@ -306,17 +301,17 @@ public class AJDTCoreTestCase extends TestCase {
             } catch (InterruptedException e) {
                 wasInterrupted = true;
             }
-        } while (wasInterrupted);       
-        
+        } while (wasInterrupted);
+
     }
-    
+
     private static final long TWO_MINUTES = 1000 * 60 * 2;
        public static void joinBackgroudActivities()  {
             waitForAutoBuild();
             waitForManualBuild();
             waitForAutoRefresh();
             waitForManualRefresh();
-        
+
         long startTime = System.currentTimeMillis();
         long endTime = startTime + TWO_MINUTES;
         while (! allJobsQuiet()) {
@@ -326,32 +321,32 @@ public class AJDTCoreTestCase extends TestCase {
             }
         }
     }
-    
+
     public static String printJobs() {
         IJobManager jobManager= Job.getJobManager();
         Job[] jobs= jobManager.find(null);
         StringBuilder sb = new StringBuilder();
         sb.append("------------------------");
         sb.append("Printing jobs");
-        for (int i= 0; i < jobs.length; i++) {
-            sb.append(jobs[i]);
-        }
+      for (Job job : jobs) {
+        sb.append(job);
+      }
         sb.append("------------------------");
         return sb.toString();
     }
 
-    
+
     private static boolean allJobsQuiet() {
         IJobManager jobManager= Job.getJobManager();
         Job[] jobs= jobManager.find(null);
-        for (int i= 0; i < jobs.length; i++) {
-            Job job= jobs[i];
-            int state= job.getState();
-            if ((job.getName().startsWith("Java indexing") ||
-                    job.getName().startsWith("Searching for markers")) &&
-                    (state == Job.RUNNING || state == Job.WAITING)) {
-                return false;
-            }
+      for (Job job : jobs) {
+        int state = job.getState();
+        if ((job.getName().startsWith("Java indexing") ||
+             job.getName().startsWith("Searching for markers")) &&
+            (state == Job.RUNNING || state == Job.WAITING))
+        {
+          return false;
+        }
 //            int state= job.getState();
 //            //ignore jobs we don't care about
 //            if (!job.getName().equals("Flush Cache Job") &&  //$NON-NLS-1$
@@ -359,27 +354,28 @@ public class AJDTCoreTestCase extends TestCase {
 //                    (state == Job.RUNNING || state == Job.WAITING)) {
 //                return false;
 //            }
-        }
+      }
         return true;
     }
 
-    
+
     private static void waitForJobs() {
         IJobManager jobManager= Job.getJobManager();
         Job[] jobs= jobManager.find(null);
-        for (int i= 0; i < jobs.length; i++) {
-            Job job= jobs[i];
-            int state= job.getState();
-            if ((job.getName().startsWith("Java indexing") ||
-                    job.getName().startsWith("Searching for markers")) &&
-                    (state == Job.RUNNING || state == Job.WAITING)) {
-                try {
-                    job.join();
-                } catch (InterruptedException e) {
-                }
-                
-            }
-            
+      for (Job job : jobs) {
+        int state = job.getState();
+        if ((job.getName().startsWith("Java indexing") ||
+             job.getName().startsWith("Searching for markers")) &&
+            (state == Job.RUNNING || state == Job.WAITING))
+        {
+          try {
+            job.join();
+          }
+          catch (InterruptedException e) {
+          }
+
+        }
+
 //            //ignore jobs we don't care about
 //            if (!job.getName().equals("Flush Cache Job") &&  //$NON-NLS-1$
 //                    !job.getName().equals("Usage Data Event consumer") &&
@@ -390,10 +386,10 @@ public class AJDTCoreTestCase extends TestCase {
 //                } catch (InterruptedException e) {
 //                }
 //            }
-        }
+      }
     }
 
-    
+
     /**
      * Copy the given source directory (and all its contents) to the given target directory.
      */
@@ -406,39 +402,40 @@ public class AJDTCoreTestCase extends TestCase {
         }
         File[] files = source.listFiles();
         if (files == null) return true;
-        for (int i = 0; i < files.length; i++) {
-            File sourceChild = files[i];
-            String name =  sourceChild.getName();
-            if (name.equals("CVS")) continue; //$NON-NLS-1$
-            File targetChild = new File(target, name);
-            if (sourceChild.isDirectory()) {
-                copyDirectory(sourceChild, targetChild);
-            } else {
-                copy(sourceChild, targetChild);
-            }
+      for (File sourceChild : files) {
+        String name = sourceChild.getName();
+        if (name.equals("CVS"))
+          continue; //$NON-NLS-1$
+        File targetChild = new File(target, name);
+        if (sourceChild.isDirectory()) {
+          copyDirectory(sourceChild, targetChild);
         }
+        else {
+          copy(sourceChild, targetChild);
+        }
+      }
         return true;
     }
-    
+
     /**
      * Copy file from src (path to the original file) to dest (path to the destination file).
      */
     public void copy(File src, File dest) throws IOException {
         // read source bytes
         byte[] srcBytes = this.read(src);
-        
+
         if (convertToIndependantLineDelimiter(src)) {
             String contents = new String(srcBytes);
             contents = convertToIndependantLineDelimiter(contents);
             srcBytes = contents.getBytes();
         }
-    
+
         // write bytes to dest
         FileOutputStream out = new FileOutputStream(dest);
         out.write(srcBytes);
         out.close();
     }
-    
+
     public byte[] read(java.io.File file) throws java.io.IOException {
         int fileLength;
         byte[] fileBytes = new byte[fileLength = (int) file.length()];
@@ -455,7 +452,7 @@ public class AJDTCoreTestCase extends TestCase {
     public boolean convertToIndependantLineDelimiter(File file) {
         return CoreUtils.ASPECTJ_SOURCE_FILTER.accept(file.getName());
     }
-    
+
     /**
      * Force indexes to be populated
      */
@@ -475,7 +472,7 @@ public class AJDTCoreTestCase extends TestCase {
 
     public static String convertToIndependantLineDelimiter(String source) {
         if (source.indexOf('\n') == -1 && source.indexOf('\r') == -1) return source;
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
         for (int i = 0, length = source.length(); i < length; i++) {
             char car = source.charAt(i);
             if (car == '\r') {
@@ -489,7 +486,7 @@ public class AJDTCoreTestCase extends TestCase {
         }
         return buffer.toString();
     }
-    
+
     protected IProject getProject(String project) {
         return getWorkspaceRoot().getProject(project);
     }
@@ -503,11 +500,11 @@ public class AJDTCoreTestCase extends TestCase {
         }
         deleteResource(project,force);
     }
-    
+
     protected void deleteProject(String projectName) throws CoreException {
         deleteProject(this.getProject(projectName),true);
     }
-    
+
     /**
      * Delete this resource.
      */
@@ -554,7 +551,7 @@ public class AJDTCoreTestCase extends TestCase {
             throw lastException;
         }
     }
-    
+
     private void ensureExists(IFolder folder) throws CoreException {
         if (folder.getParent().getType() == IResource.FOLDER && !folder.getParent().exists()) {
             ensureExists((IFolder) folder.getParent());
@@ -562,46 +559,45 @@ public class AJDTCoreTestCase extends TestCase {
         folder.create(false, true, null);
     }
 
-    
+
     private IPackageFragmentRoot createDefaultSourceFolder(IJavaProject javaProject) throws CoreException {
         IProject project = javaProject.getProject();
         IFolder folder = project.getFolder("src");
         if (!folder.exists())
             ensureExists(folder);
-        
+
         // if already exists, do nothing
         final IClasspathEntry[] entries = javaProject
                 .getResolvedClasspath(false);
         final IPackageFragmentRoot root = javaProject
                 .getPackageFragmentRoot(folder);
-        for (int i = 0; i < entries.length; i++) {
-            final IClasspathEntry entry = entries[i];
-            if (entry.getPath().equals(folder.getFullPath())) {
-                return root;
-            }
+      for (final IClasspathEntry entry : entries) {
+        if (entry.getPath().equals(folder.getFullPath())) {
+          return root;
         }
-        
-        
+      }
+
+
         // else, remove old source folders and add this new one
         IClasspathEntry[] oldEntries = javaProject.getRawClasspath();
-        List<IClasspathEntry> oldEntriesList = new ArrayList<IClasspathEntry>();
+        List<IClasspathEntry> oldEntriesList = new ArrayList<>();
         oldEntriesList.add(JavaCore.newSourceEntry(root.getPath()));
         for (IClasspathEntry entry : oldEntries) {
             if (entry.getEntryKind() != IClasspathEntry.CPE_SOURCE) {
                 oldEntriesList.add(entry);
             }
         }
-        
+
         IClasspathEntry[] newEntries = oldEntriesList.toArray(new IClasspathEntry[0]);
         javaProject.setRawClasspath(newEntries, null);
         return root;
     }
-    
+
     protected ICompilationUnit[] createUnits(String[] packages, String[] cuNames, String[] cuContents, IJavaProject project) throws CoreException {
-        
+
         boolean oldAutoBuilding = isAutobuilding();
         setAutobuilding(false);
-        
+
         try {
             ICompilationUnit[] units = new ICompilationUnit[cuNames.length];
             for (int i = 0; i < units.length; i++) {
@@ -616,7 +612,7 @@ public class AJDTCoreTestCase extends TestCase {
             setAutobuilding(oldAutoBuilding);
         }
     }
-    
+
     protected ICompilationUnit createUnit(String pkg, String cuName, String cuContents, IJavaProject project) throws CoreException {
         ICompilationUnit unit = createCompilationUnitAndPackage(pkg, cuName, cuContents, project);
         project.getProject().build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
@@ -625,8 +621,8 @@ public class AJDTCoreTestCase extends TestCase {
         assertNoProblems(project.getProject());
         return unit;
     }
-    
-    
+
+
     protected IField getFirstField(ICompilationUnit[] units)
     throws JavaModelException {
         return (IField) units[0].getTypes()[0].getChildren()[0];
@@ -649,7 +645,7 @@ public class AJDTCoreTestCase extends TestCase {
 
 
 
-    
+
     public IPackageFragment createPackage(String name, IJavaProject javaProject) throws CoreException {
         return createPackage(name, null, javaProject);
     }
@@ -661,15 +657,13 @@ public class AJDTCoreTestCase extends TestCase {
 
     public ICompilationUnit createCompilationUnit(IPackageFragment pack, String cuName,
             String source) throws JavaModelException {
-        StringBuffer buf = new StringBuffer();
-        buf.append(source);
-        ICompilationUnit unit = pack.createCompilationUnit(cuName,
-                buf.toString(), false, null);
+      ICompilationUnit unit = pack.createCompilationUnit(cuName,
+        source, false, null);
         waitForManualBuild();
         waitForAutoBuild();
         return unit;
     }
-    
+
     public ICompilationUnit createCompilationUnitAndPackage(String packageName, String fileName,
             String source, IJavaProject javaProject) throws CoreException {
         return createCompilationUnit(createPackage(packageName, javaProject), fileName, source);
@@ -689,36 +683,36 @@ public class AJDTCoreTestCase extends TestCase {
             fail("Expecting no problems for project " + project.getName() + ", but found:\n\n" + problems);
         }
     }
-    
+
     public String getProblems(IProject project) throws CoreException {
         IMarker[] markers = project.findMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, true, IResource.DEPTH_INFINITE);
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         if (markers == null || markers.length == 0) {
             return null;
         }
         boolean errorFound = false;
         sb.append("Problems:\n");
-        for (int i = 0; i < markers.length; i++) {
-            if (((Integer) markers[i].getAttribute(IMarker.SEVERITY)).intValue() == IMarker.SEVERITY_ERROR) {
-                sb.append("  ");
-                sb.append(markers[i].getResource().getName()).append(" : ");
-                sb.append(markers[i].getAttribute(IMarker.LINE_NUMBER)).append(" : ");
-                sb.append(markers[i].getAttribute(IMarker.MESSAGE)).append("\n");
-                if (!((String) markers[i].getAttribute(IMarker.MESSAGE)).contains("can't determine modifiers of missing type")) {
-                    errorFound = true;
-                }
-            }
+      for (IMarker marker : markers) {
+        if (((Integer) marker.getAttribute(IMarker.SEVERITY)).intValue() == IMarker.SEVERITY_ERROR) {
+          sb.append("  ");
+          sb.append(marker.getResource().getName()).append(" : ");
+          sb.append(marker.getAttribute(IMarker.LINE_NUMBER)).append(" : ");
+          sb.append(marker.getAttribute(IMarker.MESSAGE)).append("\n");
+          if (!((String) marker.getAttribute(IMarker.MESSAGE)).contains("can't determine modifiers of missing type")) {
+            errorFound = true;
+          }
         }
+      }
         return errorFound ? sb.toString() : null;
     }
-    
+
     public void setAutobuilding(boolean autobuild) throws CoreException {
         IWorkspaceDescription workspaceDesc = AspectJPlugin.getWorkspace().getDescription();
         workspaceDesc.setAutoBuilding(autobuild);
         AspectJPlugin.getWorkspace().setDescription(workspaceDesc);
 
     }
-    
+
     public boolean isAutobuilding() {
         return AspectJPlugin.getWorkspace().getDescription().isAutoBuilding();
     }

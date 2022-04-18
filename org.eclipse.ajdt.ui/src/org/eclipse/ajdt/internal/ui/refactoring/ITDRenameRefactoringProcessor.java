@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2009 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Andrew Eisenberg - initial API and implementation
  *******************************************************************************/
@@ -88,31 +88,31 @@ import org.eclipse.text.edits.TextEdit;
  *
  */
 public class ITDRenameRefactoringProcessor extends JavaRenameProcessor {
-    
+
     public static final String REFACTORING_ID = "org.eclipse.ajdt.ui.renameITD";
 
-    
+
     // The target of the refactoring
     private IntertypeElement itd;
-    
+
     // we want to rename overriders of ITD methods
     private Set<IMember> elementsToRename;
-    
+
     // either itd field or method
     private Kind itdKind;
-    
+
     // the mock element declared in the target type
     private IMember mockElement;
-    
-    // The ITD qualifier (may be simple type name or fully qualifed, 
+
+    // The ITD qualifier (may be simple type name or fully qualifed,
     // depending on what is in the text)
     private String qualifier;
-    
-    private TextChangeManager changeManager;
-    
+
+    private final TextChangeManager changeManager;
+
     // If true, then references will be renamed as well
     private boolean updateReferences;
-    
+
     // group of compilations units that contain references
     private SearchResultGroup[] references;
 
@@ -126,7 +126,7 @@ public class ITDRenameRefactoringProcessor extends JavaRenameProcessor {
             status.merge(RefactoringStatus.createFatalErrorStatus("Problem accessing the AspectJ model", createErrorContext()));
         }
     }
-    
+
     public ITDRenameRefactoringProcessor(JavaRefactoringArguments arguments,
             RefactoringStatus status) {
         RefactoringStatus initializeStatus= initialize(arguments);
@@ -138,7 +138,7 @@ public class ITDRenameRefactoringProcessor extends JavaRenameProcessor {
             status.merge(RefactoringStatus.createFatalErrorStatus("Problem accessing the AspectJ model", createErrorContext()));
         }
     }
-    
+
     private RefactoringStatus initialize(JavaRefactoringArguments extended) {
         final String handle= extended.getAttribute(JavaRefactoringDescriptorUtil.ATTRIBUTE_INPUT);
         if (handle != null) {
@@ -159,7 +159,7 @@ public class ITDRenameRefactoringProcessor extends JavaRenameProcessor {
         }
         final String references= extended.getAttribute(JavaRefactoringDescriptorUtil.ATTRIBUTE_REFERENCES);
         if (references != null) {
-            updateReferences= Boolean.valueOf(references).booleanValue();
+            updateReferences= Boolean.valueOf(references);
         } else {
             return RefactoringStatus.createFatalErrorStatus(Messages.format(RefactoringCoreMessages.InitializableRefactoring_argument_not_exist, JavaRefactoringDescriptorUtil.ATTRIBUTE_REFERENCES));
         }
@@ -170,9 +170,9 @@ public class ITDRenameRefactoringProcessor extends JavaRenameProcessor {
             throws CoreException, OperationCanceledException {
         checkCanceled(pm);
         mockElement = itd.createMockDeclaration();
-        
+
         if (mockElement == null) {
-            return RefactoringStatus.createFatalErrorStatus("AspectJ model not available for this ITD, do a full project build and try again.", 
+            return RefactoringStatus.createFatalErrorStatus("AspectJ model not available for this ITD, do a full project build and try again.",
                     createErrorContext());
         }
         qualifier = itd.getElementName().substring(0,
@@ -181,7 +181,7 @@ public class ITDRenameRefactoringProcessor extends JavaRenameProcessor {
         if (qualifier == null || qualifier.length() == 0) {
             return RefactoringStatus.createFatalErrorStatus("Invalid ITD qualifier", createErrorContext());
         }
-        
+
         RefactoringStatus result = Checks.checkAvailability(itd);
         if (result.hasFatalError()) {
             return result;
@@ -202,19 +202,19 @@ public class ITDRenameRefactoringProcessor extends JavaRenameProcessor {
             pm.beginTask("", 18); //$NON-NLS-1$
             pm.setTaskName(RefactoringCoreMessages.RenameFieldRefactoring_checking);
             RefactoringStatus result= new RefactoringStatus();
-            
+
             // cannot rename if current AJCU is broken
             result.merge(Checks.checkIfCuBroken(itd));
             if (result.hasFatalError()) {
                 return result;
             }
             checkCanceled(pm);
-            
-            // ensure new name is OK 
+
+            // ensure new name is OK
             result.merge(checkNewElementName(getNewElementName()));
             pm.worked(1);
-            
-            // field specific checks 
+
+            // field specific checks
             if (itdKind == Kind.INTER_TYPE_FIELD) {
                 result.merge(checkEnclosingHierarchy((IField) mockElement));
                 result.merge(checkNestedHierarchy(mockElement.getDeclaringType()));
@@ -223,11 +223,11 @@ public class ITDRenameRefactoringProcessor extends JavaRenameProcessor {
             pm.worked(1);
             pm.worked(1);
 
-            
+
             if (updateReferences){
                 pm.setTaskName(RefactoringCoreMessages.RenameFieldRefactoring_searching);
                 // find all occurrences of renamed element.  This will include the declaration
-                // original declaration as well as declarations and references of ripple 
+                // original declaration as well as declarations and references of ripple
                 // methods if ITD Method decl.
                 references= getOccurrences(new SubProgressMonitor(pm, 3), result);
                 pm.setTaskName(RefactoringCoreMessages.RenameFieldRefactoring_checking);
@@ -259,8 +259,8 @@ public class ITDRenameRefactoringProcessor extends JavaRenameProcessor {
         }
     }
 
-    
-    
+
+
     private RefactoringStatus createChanges(IProgressMonitor pm) throws CoreException {
         pm.beginTask(RefactoringCoreMessages.RenameFieldRefactoring_checking, 10);
         RefactoringStatus result= new RefactoringStatus();
@@ -275,27 +275,27 @@ public class ITDRenameRefactoringProcessor extends JavaRenameProcessor {
         pm.done();
         return result;
     }
-    
+
 
 
     private void addDeclarationUpdate(IMember member) throws CoreException {
         ISourceRange nameRange= member.getNameRange();
         TextEdit textEdit= new ReplaceEdit(nameRange.getOffset(), nameRange.getLength(), extractRawITDName(getNewElementName()));
         ICompilationUnit cu= member.getCompilationUnit();
-        String groupName= itdKind == Kind.INTER_TYPE_FIELD ? 
+        String groupName= itdKind == Kind.INTER_TYPE_FIELD ?
                 RefactoringCoreMessages.RenameFieldRefactoring_Update_field_declaration :
                 RefactoringCoreMessages.RenameMethodRefactoring_update_declaration;
 
         addTextEdit(changeManager.get(cu), groupName, textEdit);
     }
-    
+
     private void addTextEdit(TextChange change, String groupName, TextEdit textEdit) {
         TextChangeCompatibility.addTextEdit(change, groupName, textEdit);
     }
 
 
     private SearchResultGroup[] getOccurrences(IProgressMonitor pm, RefactoringStatus status) throws CoreException{
-        
+
         String binaryRefsDescription= Messages.format(RefactoringCoreMessages.ReferencesInBinaryContext_ref_in_binaries_description , BasicElementLabels.getJavaElementName(getCurrentElementName()));
         ReferencesInBinaryContext binaryRefs= new ReferencesInBinaryContext(binaryRefsDescription);
 
@@ -309,7 +309,7 @@ public class ITDRenameRefactoringProcessor extends JavaRenameProcessor {
 
         return result;
     }
-    
+
     /**
      * Checks the ripple methods to make sure they can validly be renamed.
      */
@@ -323,7 +323,7 @@ public class ITDRenameRefactoringProcessor extends JavaRenameProcessor {
                 result.merge(RefactoringStatus.createErrorStatus("Related element is not a method.", JavaStatusContext.create(member)));
             }
             IMethod method = (IMethod) member;
-            
+
             result.merge(Checks.checkIfConstructorName(method, getNewElementName(), method.getDeclaringType().getElementName()));
 
             String[] msgData= new String[]{BasicElementLabels.getJavaElementName(method.getElementName()), BasicElementLabels.getJavaElementName(method.getDeclaringType().getFullyQualifiedName('.'))};
@@ -347,38 +347,41 @@ public class ITDRenameRefactoringProcessor extends JavaRenameProcessor {
     }
 
     private SearchPattern createSearchPattern() {
-        HashSet<IMember> members= new HashSet<IMember>(elementsToRename);
-        IMember[] ms= (IMember[]) members.toArray(new IMethod[members.size()]);
+        HashSet<IMember> members= new HashSet<>(elementsToRename);
+        IMember[] ms= members.toArray(new IMethod[0]);
         return RefactoringSearchEngine.createOrPattern(ms, IJavaSearchConstants.ALL_OCCURRENCES);
     }
 
     private void addOccurrenceUpdates(IProgressMonitor pm) throws CoreException {
         pm.beginTask("", references.length); //$NON-NLS-1$
-        String editName= itdKind == Kind.INTER_TYPE_FIELD ? 
+        String editName= itdKind == Kind.INTER_TYPE_FIELD ?
                 RefactoringCoreMessages.RenameFieldRefactoring_Update_field_reference :
                 RefactoringCoreMessages.RenameMethodRefactoring_update_occurrence;
-        for (int i= 0; i < references.length; i++) {
-            
-            ICompilationUnit cu= references[i].getCompilationUnit();
-            if (cu == null) {
-                continue;
-            }
-            SearchMatch[] matches = references[i].getSearchResults();
-            for (int j = 0; j < matches.length; j++) {
-                if (matches[j] instanceof MethodReferenceMatch) {
-                    addTextEdit(changeManager.get(cu), editName, createTextChange(matches[j]));
-                } else if (matches[j] instanceof MethodDeclarationMatch) {
-                    addDeclarationUpdate((IMember) matches[j].getElement());
-                } else if (matches[j] instanceof FieldReferenceMatch) {
-                    addTextEdit(changeManager.get(cu), editName, createTextChange(matches[j]));
-                } else if (matches[j] instanceof FieldDeclarationMatch) {
-                    addDeclarationUpdate((IMember) matches[j].getElement());
-                }
-                pm.worked(1);
-            }
+      for (SearchResultGroup reference : references) {
+
+        ICompilationUnit cu = reference.getCompilationUnit();
+        if (cu == null) {
+          continue;
         }
+        SearchMatch[] matches = reference.getSearchResults();
+        for (SearchMatch match : matches) {
+          if (match instanceof MethodReferenceMatch) {
+            addTextEdit(changeManager.get(cu), editName, createTextChange(match));
+          }
+          else if (match instanceof MethodDeclarationMatch) {
+            addDeclarationUpdate((IMember) match.getElement());
+          }
+          else if (match instanceof FieldReferenceMatch) {
+            addTextEdit(changeManager.get(cu), editName, createTextChange(match));
+          }
+          else if (match instanceof FieldDeclarationMatch) {
+            addDeclarationUpdate((IMember) match.getElement());
+          }
+          pm.worked(1);
+        }
+      }
     }
-    
+
     private TextEdit createTextChange(SearchMatch match) {
         String rawITDName = extractRawITDName(itd.getElementName());
         return new ReplaceEdit(match.getOffset(), rawITDName.length(), extractRawITDName(getNewElementName()));
@@ -398,26 +401,26 @@ public class ITDRenameRefactoringProcessor extends JavaRenameProcessor {
         return result;
     }
 
-    
+
     private RefactoringStatus checkNestedHierarchy(IType type) throws CoreException {
         IType[] nestedTypes= type.getTypes();
         if (nestedTypes == null)
             return null;
         RefactoringStatus result= new RefactoringStatus();
-        for (int i= 0; i < nestedTypes.length; i++){
-            IField otherField= nestedTypes[i].getField(getNewElementName());
-            if (otherField.exists()){
-                String msg= Messages.format(
-                    RefactoringCoreMessages.RenameFieldRefactoring_hiding,
-                    new String[]{ BasicElementLabels.getJavaElementName(itd.getElementName()), BasicElementLabels.getJavaElementName(getNewElementName()), BasicElementLabels.getJavaElementName(nestedTypes[i].getFullyQualifiedName('.'))});
-                result.addWarning(msg, JavaStatusContext.create(otherField));
-            }
-            result.merge(checkNestedHierarchy(nestedTypes[i]));
+      for (IType nestedType : nestedTypes) {
+        IField otherField = nestedType.getField(getNewElementName());
+        if (otherField.exists()) {
+          String msg = Messages.format(
+            RefactoringCoreMessages.RenameFieldRefactoring_hiding,
+            new String[] { BasicElementLabels.getJavaElementName(itd.getElementName()), BasicElementLabels.getJavaElementName(getNewElementName()), BasicElementLabels.getJavaElementName(nestedType.getFullyQualifiedName('.')) });
+          result.addWarning(msg, JavaStatusContext.create(otherField));
         }
+        result.merge(checkNestedHierarchy(nestedType));
+      }
         return result;
     }
 
-    
+
     private RefactoringStatus checkEnclosingHierarchy(IField field) {
         IType current= field.getDeclaringType();
         if (Checks.isTopLevel(current))
@@ -435,7 +438,7 @@ public class ITDRenameRefactoringProcessor extends JavaRenameProcessor {
         return result;
     }
 
-    
+
     /**
      * first check to make sure that the qualifier has not changed, then perform
      * checks for either a method or a field
@@ -453,13 +456,13 @@ public class ITDRenameRefactoringProcessor extends JavaRenameProcessor {
                     RefactoringCoreMessages.RenameMethodRefactoring_same_name,
                     createErrorContext());
         }
-        
+
         String rawName = extractRawITDName(newName);
         status.merge(Checks.checkName(rawName, JavaConventionsUtil.validateMethodName(rawName, itd)));
         if (status.isOK() && !Checks.startsWithLowerCase(rawName))
             status= RefactoringStatus.createWarningStatus(RefactoringCoreMessages.Checks_method_names_lowercase);
 
-        
+
         if (itdKind == Kind.INTER_TYPE_FIELD) {
             if (mockElement.getDeclaringType().getField(rawName).exists())
                 status.addError(RefactoringCoreMessages.RenameFieldRefactoring_field_already_defined,
@@ -495,14 +498,14 @@ public class ITDRenameRefactoringProcessor extends JavaRenameProcessor {
         }
         return result;
     }
-    
+
     private void initializeElementsToRename(IProgressMonitor pm, ReferencesInBinaryContext binaryRefs) throws CoreException {
         if (elementsToRename == null && itdKind == Kind.INTER_TYPE_METHOD) {
             IMethod[] rippleMethods= RippleMethodFinder2.getRelatedMethods(itd, binaryRefs, pm, null);
-            elementsToRename = new HashSet<IMember>(Arrays.asList(rippleMethods));
+            elementsToRename = new HashSet<>(Arrays.asList(rippleMethods));
             elementsToRename.add(itd);
         } else {
-            elementsToRename = Collections.singleton((IMember) itd);
+            elementsToRename = Collections.singleton(itd);
         }
     }
 
@@ -529,9 +532,9 @@ public class ITDRenameRefactoringProcessor extends JavaRenameProcessor {
             OperationCanceledException {
         try {
             final TextChange[] changes= changeManager.getAllChanges();
-            final List<TextChange> list= new ArrayList<TextChange>(changes.length);
+            final List<TextChange> list= new ArrayList<>(changes.length);
             list.addAll(Arrays.asList(changes));
-            return new DynamicValidationRefactoringChange(createDescriptor(), "Rename Intertype Declaration", (Change[]) list.toArray(new Change[list.size()]));
+            return new DynamicValidationRefactoringChange(createDescriptor(), "Rename Intertype Declaration", list.toArray(new Change[0]));
         } finally {
             pm.done();
         }
@@ -585,11 +588,11 @@ public class ITDRenameRefactoringProcessor extends JavaRenameProcessor {
     }
 
     public Object getNewElement() throws CoreException {
-        return new Object[] { 
-                IntertypeElement.create(itd.getJemDelimeter(), (JavaElement) itd.getParent(), getNewElementName(), itd.getParameterTypes())       
+        return new Object[] {
+                IntertypeElement.create(itd.getJemDelimeter(), itd.getParent(), getNewElementName(), itd.getParameterTypes())
         };
     }
-    
+
     public final void setUpdateReferences(boolean update) {
         updateReferences= update;
     }

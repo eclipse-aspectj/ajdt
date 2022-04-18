@@ -53,31 +53,31 @@ import org.w3c.dom.Element;
  * History for the open type dialog. Object and keys are both {@link TypeNameMatch}s.
  */
 public class OpenTypeHistory extends History {
-	
+
 	private static class TypeHistoryDeltaListener implements IElementChangedListener {
 		public void elementChanged(ElementChangedEvent event) {
 			if (processDelta(event.getDelta())) {
 				OpenTypeHistory.getInstance().markAsInconsistent();
 			}
 		}
-		
+
 		/**
 		 * Computes whether the history needs a consistency check or not.
-		 * 
+		 *
 		 * @param delta the Java element delta
-		 * 
-		 * @return <code>true</code> if consistency must be checked 
+		 *
+		 * @return <code>true</code> if consistency must be checked
 		 *  <code>false</code> otherwise.
 		 */
 		private boolean processDelta(IJavaElementDelta delta) {
 			IJavaElement elem= delta.getElement();
-			
+
 			boolean isChanged= delta.getKind() == IJavaElementDelta.CHANGED;
 			boolean isRemoved= delta.getKind() == IJavaElementDelta.REMOVED;
-						
+
 			switch (elem.getElementType()) {
 				case IJavaElement.JAVA_PROJECT:
-					if (isRemoved || (isChanged && 
+					if (isRemoved || (isChanged &&
 							(delta.getFlags() & IJavaElementDelta.F_CLOSED) != 0)) {
 						return true;
 					}
@@ -99,10 +99,10 @@ public class OpenTypeHistory extends History {
 				case IJavaElement.CLASS_FILE:
 					if (isRemoved) {
 						return true;
-					}				
+					}
 					return processChildrenDelta(delta);
 				case IJavaElement.COMPILATION_UNIT:
-					// Not the primary compilation unit. Ignore it 
+					// Not the primary compilation unit. Ignore it
 					if (!JavaModelUtil.isPrimary((ICompilationUnit) elem)) {
 						return false;
 					}
@@ -114,32 +114,32 @@ public class OpenTypeHistory extends History {
 				default:
 					// fields, methods, imports ect
 					return false;
-			}	
+			}
 		}
-		
+
 		private boolean isUnknownStructuralChange(int flags) {
 			if ((flags & IJavaElementDelta.F_CONTENT) == 0)
 				return false;
-			return (flags & IJavaElementDelta.F_FINE_GRAINED) == 0; 
+			return (flags & IJavaElementDelta.F_FINE_GRAINED) == 0;
 		}
 
 		/*
 		private boolean isPossibleStructuralChange(int flags) {
 			return (flags & (IJavaElementDelta.F_CONTENT | IJavaElementDelta.F_FINE_GRAINED)) == IJavaElementDelta.F_CONTENT;
 		}
-		*/		
-		
+		*/
+
 		private boolean processChildrenDelta(IJavaElementDelta delta) {
 			IJavaElementDelta[] children= delta.getAffectedChildren();
-			for (int i= 0; i < children.length; i++) {
-				if (processDelta(children[i])) {
-					return true;
-				}
-			}
+      for (IJavaElementDelta child : children) {
+        if (processDelta(child)) {
+          return true;
+        }
+      }
 			return false;
 		}
 	}
-	
+
 	private static class UpdateJob extends Job {
 		public static final String FAMILY= UpdateJob.class.getName();
 		public UpdateJob() {
@@ -154,36 +154,36 @@ public class OpenTypeHistory extends History {
 			return FAMILY.equals(family);
 		}
 	}
-	
+
 	// Needs to be volatile since accesses aren't synchronized.
 	private volatile boolean fNeedsConsistencyCheck;
 	// Map of cached time stamps
-	private Map fTimestampMapping;
-	
+	private final Map fTimestampMapping;
+
 	private final IElementChangedListener fDeltaListener;
 	private final UpdateJob fUpdateJob;
-	
+
 	private static final String FILENAME= "OpenTypeHistory.xml"; //$NON-NLS-1$
 	private static final String NODE_ROOT= "typeInfoHistroy"; //$NON-NLS-1$
 	private static final String NODE_TYPE_INFO= "typeInfo"; //$NON-NLS-1$
 	private static final String NODE_HANDLE= "handle"; //$NON-NLS-1$
 	private static final String NODE_MODIFIERS= "modifiers";  //$NON-NLS-1$
 	private static final String NODE_TIMESTAMP= "timestamp"; //$NON-NLS-1$
-	
+
 	private static OpenTypeHistory fgInstance;
-	
+
 	public static synchronized OpenTypeHistory getInstance() {
 		if (fgInstance == null)
 			fgInstance= new OpenTypeHistory();
 		return fgInstance;
 	}
-	
+
 	public static synchronized void shutdown() {
 		if (fgInstance == null)
 			return;
 		fgInstance.doShutdown();
 	}
-	
+
 	private OpenTypeHistory() {
 		super(FILENAME, NODE_ROOT, NODE_TYPE_INFO);
 		fTimestampMapping= new HashMap();
@@ -199,14 +199,14 @@ public class OpenTypeHistory extends History {
 		// for details.
 		fUpdateJob.setPriority(Job.SHORT);
 	}
-	
+
 	public void markAsInconsistent() {
 		fNeedsConsistencyCheck= true;
 		// cancel the old job. If no job is running this is a NOOP.
 		fUpdateJob.cancel();
 		fUpdateJob.schedule();
 	}
-	
+
 	public boolean needConsistencyCheck() {
 		return fNeedsConsistencyCheck;
 	}
@@ -217,19 +217,16 @@ public class OpenTypeHistory extends History {
 		if (fUpdateJob.getState() == Job.RUNNING) {
 			try {
 				Job.getJobManager().join(UpdateJob.FAMILY, monitor);
-			} catch (OperationCanceledException e) {
-				// Ignore and do the consistency check without
-				// waiting for the update job.
-			} catch (InterruptedException e) {
+			} catch (OperationCanceledException | InterruptedException e) {
 				// Ignore and do the consistency check without
 				// waiting for the update job.
 			}
-		}
+    }
 		if (!fNeedsConsistencyCheck)
 			return;
 		internalCheckConsistency(monitor);
 	}
-	
+
 	public synchronized boolean contains(TypeNameMatch type) {
 		return super.contains(type);
 	}
@@ -238,7 +235,7 @@ public class OpenTypeHistory extends History {
 		// Fetching the timestamp might not be cheap (remote file system
 		// external Jars. So check if we alreay have one.
 		if (!fTimestampMapping.containsKey(info)) {
-			fTimestampMapping.put(info, new Long(getContainerTimestamp(info)));
+			fTimestampMapping.put(info, getContainerTimestamp(info));
 		}
 		super.accessed(info);
 	}
@@ -247,10 +244,10 @@ public class OpenTypeHistory extends History {
 		fTimestampMapping.remove(info);
 		return (TypeNameMatch)super.remove(info);
 	}
-	
+
 	public synchronized void replace(TypeNameMatch old, TypeNameMatch newMatch) {
 		fTimestampMapping.remove(old);
-		fTimestampMapping.put(newMatch, new Long(getContainerTimestamp(newMatch)));
+		fTimestampMapping.put(newMatch, getContainerTimestamp(newMatch));
 		super.remove(old);
 		super.accessed(newMatch);
 	}
@@ -260,67 +257,70 @@ public class OpenTypeHistory extends History {
 		int size= values.size();
 		TypeNameMatch[] result= new TypeNameMatch[size];
 		int i= size - 1;
-		for (Iterator iter= values.iterator(); iter.hasNext();) {
-			result[i]= (TypeNameMatch)iter.next();
-			i--;
-		}
+    for (Object value : values) {
+      result[i] = (TypeNameMatch) value;
+      i--;
+    }
 		return result;
 	}
 
 	public synchronized TypeNameMatch[] getFilteredTypeInfos(TypeInfoFilter filter) {
 		Collection values= getValues();
 		List result= new ArrayList();
-		for (Iterator iter= values.iterator(); iter.hasNext();) {
-			TypeNameMatch type= (TypeNameMatch)iter.next();
-			if ((filter == null || filter.matchesHistoryElement(type)) && !TypeFilter.isFiltered(type.getFullyQualifiedName()))
-				result.add(type);
-		}
+    for (Object value : values) {
+      TypeNameMatch type = (TypeNameMatch) value;
+      if ((filter == null || filter.matchesHistoryElement(type)) && !TypeFilter.isFiltered(type.getFullyQualifiedName()))
+        result.add(type);
+    }
 		Collections.reverse(result);
-		return (TypeNameMatch[])result.toArray(new TypeNameMatch[result.size()]);
-		
+		return (TypeNameMatch[])result.toArray(new TypeNameMatch[0]);
+
 	}
-	
+
 	protected Object getKey(Object object) {
 		return object;
 	}
 
 	private synchronized void internalCheckConsistency(IProgressMonitor monitor) throws OperationCanceledException {
-		// Setting fNeedsConsistencyCheck is necessary here since 
+		// Setting fNeedsConsistencyCheck is necessary here since
 		// markAsInconsistent isn't synchronized.
 		fNeedsConsistencyCheck= true;
 		List typesToCheck= new ArrayList(getKeys());
 		monitor.beginTask(CorextMessages.TypeInfoHistory_consistency_check, typesToCheck.size());
 		monitor.setTaskName(CorextMessages.TypeInfoHistory_consistency_check);
-		for (Iterator iter= typesToCheck.iterator(); iter.hasNext();) {
-			TypeNameMatch type= (TypeNameMatch)iter.next();
-			long currentTimestamp= getContainerTimestamp(type);
-			Long lastTested= (Long)fTimestampMapping.get(type);
-			if (lastTested != null && currentTimestamp != IResource.NULL_STAMP && currentTimestamp == lastTested.longValue() && !isContainerDirty(type))
-				continue;
-			try {
-				IType jType= type.getType();
-				if (jType == null || !jType.exists()) {
-					remove(type);
-				} else {
-					// copy over the modifiers since they may have changed
-					int modifiers= jType.getFlags();
-					if (modifiers != type.getModifiers()) {
-						replace(type, SearchEngine.createTypeNameMatch(jType, modifiers));
-					} else {
-						fTimestampMapping.put(type, new Long(currentTimestamp));
-					}
-				}
-			} catch (JavaModelException e) {
-				remove(type);
-			}
-			if (monitor.isCanceled())
-				throw new OperationCanceledException();
-			monitor.worked(1);
-		}
+    for (Object o : typesToCheck) {
+      TypeNameMatch type = (TypeNameMatch) o;
+      long currentTimestamp = getContainerTimestamp(type);
+      Long lastTested = (Long) fTimestampMapping.get(type);
+      if (lastTested != null && currentTimestamp != IResource.NULL_STAMP && currentTimestamp == lastTested && !isContainerDirty(type))
+        continue;
+      try {
+        IType jType = type.getType();
+        if (jType == null || !jType.exists()) {
+          remove(type);
+        }
+        else {
+          // copy over the modifiers since they may have changed
+          int modifiers = jType.getFlags();
+          if (modifiers != type.getModifiers()) {
+            replace(type, SearchEngine.createTypeNameMatch(jType, modifiers));
+          }
+          else {
+            fTimestampMapping.put(type, currentTimestamp);
+          }
+        }
+      }
+      catch (JavaModelException e) {
+        remove(type);
+      }
+      if (monitor.isCanceled())
+        throw new OperationCanceledException();
+      monitor.worked(1);
+    }
 		monitor.done();
 		fNeedsConsistencyCheck= false;
 	}
-	
+
 	private long getContainerTimestamp(TypeNameMatch match) {
 		try {
 			IType type= match.getType();
@@ -349,14 +349,14 @@ public class OpenTypeHistory extends History {
 		}
 		return IResource.NULL_STAMP;
 	}
-	
-	
+
+
 	public boolean isContainerDirty(TypeNameMatch match) {
 		ICompilationUnit cu= match.getType().getCompilationUnit();
 		if (cu == null) {
 			return false;
 		}
-		IResource resource= cu.getResource(); 
+		IResource resource= cu.getResource();
 		ITextFileBufferManager manager= FileBuffers.getTextFileBufferManager();
 		ITextFileBuffer textFileBuffer= manager.getTextFileBuffer(resource.getFullPath());
 		if (textFileBuffer != null) {
@@ -364,22 +364,22 @@ public class OpenTypeHistory extends History {
 		}
 		return false;
 	}
-	
-	
+
+
 	private void doShutdown() {
 		JavaCore.removeElementChangedListener(fDeltaListener);
 		save();
 	}
-	
+
 	protected Object createFromElement(Element type) {
 		String handle= type.getAttribute(NODE_HANDLE);
 		if (handle == null )
 			return null;
-		
+
 		IJavaElement element= JavaCore.create(handle);
 		if (!(element instanceof IType))
 			return null;
-		
+
 		int modifiers= 0;
 		try {
 			modifiers= Integer.parseInt(type.getAttribute(NODE_MODIFIERS));
@@ -397,7 +397,7 @@ public class OpenTypeHistory extends History {
 			}
 		}
 		if (timestamp != IResource.NULL_STAMP) {
-			fTimestampMapping.put(info, new Long(timestamp));
+			fTimestampMapping.put(info, timestamp);
 		}
 		return info;
 	}
@@ -409,9 +409,9 @@ public class OpenTypeHistory extends History {
 		typeElement.setAttribute(NODE_MODIFIERS, Integer.toString(type.getModifiers()));
 		Long timestamp= (Long) fTimestampMapping.get(type);
 		if (timestamp == null) {
-			typeElement.setAttribute(NODE_TIMESTAMP, Long.toString(IResource.NULL_STAMP));			
+			typeElement.setAttribute(NODE_TIMESTAMP, Long.toString(IResource.NULL_STAMP));
 		} else {
-			typeElement.setAttribute(NODE_TIMESTAMP, timestamp.toString()); 
+			typeElement.setAttribute(NODE_TIMESTAMP, timestamp.toString());
 		}
 	}
 

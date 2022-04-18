@@ -49,7 +49,7 @@ public class AJModel {
 
 
 
-	private static AJModel instance = new AJModel();
+	private static final AJModel instance = new AJModel();
 
 	/**
 	 * @deprecated see bug 253245
@@ -60,13 +60,12 @@ public class AJModel {
     }
 
 	/**
-	 * @param proj the project whose relationships we are looking for
-	 * @param relTypes the relationship types we are looking for
-	 * @return all DECLARED_ON relationships for the given java element
-	 *
-	 * @deprecated see bug 253245
-	 */
-	public List<AJRelationship> getAllRelationships(IProject proj, AJRelationshipType[] relTypes) {
+   * @param proj     the project whose relationships we are looking for
+   * @param relTypes the relationship types we are looking for
+   * @return all DECLARED_ON relationships for the given java element
+   * @deprecated see bug 253245
+   */
+	public List getAllRelationships(IProject proj, AJRelationshipType[] relTypes) {
 	    AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForProject(proj);
 	    if (model.hasModel()) {  // returns false if project is not built
 	        List<IRelationship> allRels = model.getRelationshipsForProject(relTypes);

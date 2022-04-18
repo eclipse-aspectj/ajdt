@@ -4,7 +4,7 @@
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -71,10 +71,10 @@ public final class AspectJCodeScanner extends AbstractJavaScanner {
 		 * @return <code>true</code> iff the character is an operator, <code>false</code> otherwise.
 		 */
 		public boolean isOperator(char character) {
-			for (int index= 0; index < JAVA_OPERATORS.length; index++) {
-				if (JAVA_OPERATORS[index] == character)
-					return true;
-			}
+      for (char java_operator : JAVA_OPERATORS) {
+        if (java_operator == character)
+          return true;
+      }
 			return false;
 		}
 
@@ -217,20 +217,20 @@ public final class AspectJCodeScanner extends AbstractJavaScanner {
 		private final IToken fAnnotationToken;
 		private final String fVersion;
 		private boolean fIsVersionMatch;
-		
+
 		// begin AspectJ change
 		private final IToken fDeclareAnnotationToken;
 		private String[] exceptions;
 		public void setExceptions(String[] exceptions) {
 		    this.exceptions = exceptions;
 		}
-		
+
 		private boolean isException(String candidate) {
-		    for (int i = 0; i < exceptions.length; i++) {
-                if (candidate.equals(exceptions[i])) {
-                    return true;
-                }
-            }
+      for (String exception : exceptions) {
+        if (candidate.equals(exception)) {
+          return true;
+        }
+      }
 		    return false;
 		}
         // end AspectJ change
@@ -278,7 +278,7 @@ public final class AspectJCodeScanner extends AbstractJavaScanner {
 				scanner.reset();
 				return Token.UNDEFINED;
 			}
-			
+
 			if ("interface".equals(buffer.toString())) //$NON-NLS-1$
 				return fInterfaceToken;
 
@@ -340,7 +340,7 @@ public final class AspectJCodeScanner extends AbstractJavaScanner {
 		 * @see org.eclipse.jdt.internal.ui.text.ISourceVersionDependent#setSourceVersion(java.lang.String)
 		 */
 		public void setSourceVersion(String version) {
-			fIsVersionMatch= fVersion.compareTo(version) <= 0; 
+			fIsVersionMatch= fVersion.compareTo(version) <= 0;
 		}
 
 	}
@@ -365,15 +365,15 @@ public final class AspectJCodeScanner extends AbstractJavaScanner {
 	};
 
 	private static final String RETURN= "return"; //$NON-NLS-1$
-	private static String[] fgJava14Keywords= { "assert" }; //$NON-NLS-1$
-	private static String[] fgJava15Keywords= { "enum" }; //$NON-NLS-1$
-   
-	private static String[] fgTypes= { "void", "boolean", "char", "byte", "short", "strictfp", "int", "long", "float", "double" }; //$NON-NLS-1$ //$NON-NLS-5$ //$NON-NLS-7$ //$NON-NLS-6$ //$NON-NLS-8$ //$NON-NLS-9$  //$NON-NLS-10$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-2$
+	private static final String[] fgJava14Keywords= { "assert" }; //$NON-NLS-1$
+	private static final String[] fgJava15Keywords= { "enum" }; //$NON-NLS-1$
 
-	private static String[] fgConstants= { "false", "null", "true" }; //$NON-NLS-3$ //$NON-NLS-2$ //$NON-NLS-1$
+	private static final String[] fgTypes= { "void", "boolean", "char", "byte", "short", "strictfp", "int", "long", "float", "double" }; //$NON-NLS-1$ //$NON-NLS-5$ //$NON-NLS-7$ //$NON-NLS-6$ //$NON-NLS-8$ //$NON-NLS-9$  //$NON-NLS-10$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-2$
+
+	private static final String[] fgConstants= { "false", "null", "true" }; //$NON-NLS-3$ //$NON-NLS-2$ //$NON-NLS-1$
 
 
-	private static String[] fgTokenProperties= {
+	private static final String[] fgTokenProperties= {
 		IJavaColorConstants.JAVA_KEYWORD,
 		IJavaColorConstants.JAVA_STRING,
 		IJavaColorConstants.JAVA_DEFAULT,
@@ -382,7 +382,7 @@ public final class AspectJCodeScanner extends AbstractJavaScanner {
 		IJavaColorConstants.JAVA_ANNOTATION,
 	};
 
-	private List<ISourceVersionDependent> fVersionDependentRules= new ArrayList<ISourceVersionDependent>(3);
+	private final List<ISourceVersionDependent> fVersionDependentRules= new ArrayList<>(3);
 
 	/**
 	 * Creates a Java code scanner
@@ -407,7 +407,7 @@ public final class AspectJCodeScanner extends AbstractJavaScanner {
 	 */
 	protected List<IRule> createRules() {
 
-		List<IRule> rules= new ArrayList<IRule>();
+		List<IRule> rules= new ArrayList<>();
 
 		// Add rule for character constants.
 		Token token= getToken(IJavaColorConstants.JAVA_STRING);
@@ -433,8 +433,8 @@ public final class AspectJCodeScanner extends AbstractJavaScanner {
 		VersionedWordMatcher j14Matcher= new VersionedWordMatcher(token, "1.4", version); //$NON-NLS-1$
 
 		token= getToken(IJavaColorConstants.JAVA_KEYWORD);
-		for (int i=0; i<fgJava14Keywords.length; i++)
-			j14Matcher.addWord(fgJava14Keywords[i], token);
+    for (String fgJava14Keyword : fgJava14Keywords)
+      j14Matcher.addWord(fgJava14Keyword, token);
 
 		combinedWordRule.addWordMatcher(j14Matcher);
 		fVersionDependentRules.add(j14Matcher);
@@ -442,8 +442,8 @@ public final class AspectJCodeScanner extends AbstractJavaScanner {
 		token= getToken(IJavaColorConstants.JAVA_DEFAULT);
 		VersionedWordMatcher j15Matcher= new VersionedWordMatcher(token, "1.5", version); //$NON-NLS-1$
 		token= getToken(IJavaColorConstants.JAVA_KEYWORD);
-		for (int i=0; i<fgJava15Keywords.length; i++)
-			j15Matcher.addWord(fgJava15Keywords[i], token);
+    for (String fgJava15Keyword : fgJava15Keywords)
+      j15Matcher.addWord(fgJava15Keyword, token);
 
 		combinedWordRule.addWordMatcher(j15Matcher);
 		fVersionDependentRules.add(j15Matcher);
@@ -455,26 +455,26 @@ public final class AspectJCodeScanner extends AbstractJavaScanner {
 		// Add word rule for keyword 'return'.
 		CombinedWordRule.WordMatcher returnWordRule= new CombinedWordRule.WordMatcher();
 		token= getToken(IJavaColorConstants.JAVA_KEYWORD_RETURN);
-		returnWordRule.addWord(RETURN, token);  
+		returnWordRule.addWord(RETURN, token);
 		combinedWordRule.addWordMatcher(returnWordRule);
 
 		// Add word rule for keywords, types, and constants.
 		CombinedWordRule.WordMatcher wordRule= new CombinedWordRule.WordMatcher();
 		token= getToken(IJavaColorConstants.JAVA_KEYWORD);
-		for (int i=0; i<fgKeywords.length; i++)
-			wordRule.addWord(fgKeywords[i], token);
-		for (int i=0; i<fgTypes.length; i++)
-			wordRule.addWord(fgTypes[i], token);
-		for (int i=0; i<fgConstants.length; i++)
-			wordRule.addWord(fgConstants[i], token);
-	
+    for (String fgKeyword : fgKeywords)
+      wordRule.addWord(fgKeyword, token);
+    for (String fgType : fgTypes)
+      wordRule.addWord(fgType, token);
+    for (String fgConstant : fgConstants)
+      wordRule.addWord(fgConstant, token);
+
 		// AspectJ Change begin - add AJ keywords
 		atInterfaceRule.setExceptions(AspectJPlugin.declareAnnotationKeywords);
-		
+
 		WordRule ajDotWordRule = new DotWordRule(new JavaWordDetector());
-		
+
         WordRule ajBracketRule = new BracketWordRule(new JavaWordDetector());
-        
+
 		// This is a bit fragile because it depends on positions in the ajKeywords array
 		// but they don't change very often so should be ok..
 		for (int i = 0; i < AspectJPlugin.ajKeywords.length; i++) {
@@ -486,12 +486,12 @@ public final class AspectJCodeScanner extends AbstractJavaScanner {
 				ajDotWordRule.addWord(AspectJPlugin.ajKeywords[i], token);
 			}
 		}
-		
-		//important: add aj rules before wordRule 
+
+		//important: add aj rules before wordRule
 		rules.add(ajBracketRule);
 		rules.add(ajDotWordRule);
 		// AspectJ Change end
-		
+
 		combinedWordRule.addWordMatcher(wordRule);
 		rules.add(combinedWordRule);
 

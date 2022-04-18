@@ -41,7 +41,7 @@ public class AJLog {
     private static IAJLogger logger;
 
 	// support for logging the start and end of activies
-	private static Map<java.io.Serializable, Long> timers = new HashMap<>();
+	private static final Map<java.io.Serializable, Long> timers = new HashMap<>();
 
 	public static void log(String msg) {
 		log(DEFAULT,msg);

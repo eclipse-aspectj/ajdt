@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -57,11 +57,11 @@ public class AJCompilerPreferencePageWorkbenchTest extends UITestCase {
 
 	/**
 	 * Change the value of one of the buttons
-	 * 
+	 *
 	 * 1. Press "Apply" and "OK" to rebuild now ==> expect build 2. Press "OK"
 	 * and "OK" to rebuild now ==> don't expect build
 	 */
-	public void testPerformApplyAndBuild() throws Exception {
+	public void testPerformApplyAndBuild() {
 		// make a change on the page which should result in asking
 		// whether the user wants to do a build
 		page.setButtonChanged();
@@ -96,11 +96,11 @@ public class AJCompilerPreferencePageWorkbenchTest extends UITestCase {
 
 	/**
 	 * Change the value of one of the buttons
-	 * 
+	 *
 	 * 1. Press "Apply" and "Cancel" to not rebuild now ==> don't expect build
 	 * 2. Press "OK" and "Cancel" to not rebuild now ==> don't expect build
 	 */
-	public void testPerformApplyAndDontBuild() throws Exception {
+	public void testPerformApplyAndDontBuild() {
 		// make a change on the page which should result in asking
 		// whether the user wants to do a build
 		page.setButtonChanged();
@@ -167,11 +167,11 @@ public class AJCompilerPreferencePageWorkbenchTest extends UITestCase {
 
 	/**
 	 * Change the value of one of the buttons
-	 * 
+	 *
 	 * 1. Press "Apply" and "Cancel" to not rebuild now ==> don't expect build
 	 * 2. Press "OK" and "OK" to rebuild now ==> expect build
 	 */
-	public void testPerformApplyAndDontBuild_2() throws Exception {
+	public void testPerformApplyAndDontBuild_2() {
 		// make a change on the page which should result in asking
 		// whether the user wants to do a build
 		page.setButtonChanged();

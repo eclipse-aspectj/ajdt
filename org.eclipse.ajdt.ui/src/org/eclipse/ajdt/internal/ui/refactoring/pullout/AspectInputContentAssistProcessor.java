@@ -39,7 +39,7 @@ import org.eclipse.jface.resource.ImageDescriptor;
  * An implementation of IContentAssistProcessor that provides content assist for
  * a text input field where the expected input should be the name of an Aspect
  * type.
- * 
+ *
  * @author kdvolder
  */
 public class AspectInputContentAssistProcessor extends CUPositionCompletionProcessor {
@@ -53,7 +53,7 @@ public class AspectInputContentAssistProcessor extends CUPositionCompletionProce
 	public static final String DUMMY_CU_NAME= DUMMY_CLASS_NAME + JavaModelUtil.DEFAULT_CU_SUFFIX;
 
 	private static TypeCompletionRequestor requestor;
-	private IJavaProject javaProject;
+	private final IJavaProject javaProject;
 
 	public AspectInputContentAssistProcessor(IJavaProject project) throws JavaModelException {
 		super(requestor = new TypeCompletionRequestor(/*enableBaseTypes*/false, /*enableVoid*/false, /*fullyQualify*/true));
@@ -91,17 +91,17 @@ public class AspectInputContentAssistProcessor extends CUPositionCompletionProce
 		} else if (javaElement instanceof IType) {
 			// pattern: public class OuterType { public class Type extends /*caret*/  {} }
 			IType type= (IType) javaElement;
-			String before= "public class " + type.getElementName() + " extends "; //$NON-NLS-1$ //$NON-NLS-2$
-			String after= " {}"; //$NON-NLS-1$
+			StringBuilder before= new StringBuilder("public class " + type.getElementName() + " extends "); //$NON-NLS-1$ //$NON-NLS-2$
+			StringBuilder after= new StringBuilder(" {}"); //$NON-NLS-1$
 			IJavaElement parent= type.getParent();
 			while (parent instanceof IType) {
 				type= (IType) parent;
-				before+= "public class " + type.getElementName() + " {"; //$NON-NLS-1$ //$NON-NLS-2$
-				after+= "}"; //$NON-NLS-1$
+				before.append("public class ").append(type.getElementName()).append(" {"); //$NON-NLS-1$ //$NON-NLS-2$
+				after.append("}"); //$NON-NLS-1$
 				parent= type.getParent();
 			}
 			ICompilationUnit cu= type.getCompilationUnit();
-			setCompletionContext(cu, before, after);
+			setCompletionContext(cu, before.toString(), after.toString());
 		} else {
 			setCompletionContext(null, null, null);
 		}
@@ -110,10 +110,10 @@ public class AspectInputContentAssistProcessor extends CUPositionCompletionProce
 	protected static class TypeCompletionRequestor extends CUPositionCompletionRequestor {
 		private static final String VOID= "void"; //$NON-NLS-1$
 		private static final List BASE_TYPES= Arrays.asList(
-			new String[] {"boolean", "byte", "char", "double", "float", "int", "long", "short"});  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$ //$NON-NLS-7$ //$NON-NLS-8$
+      "boolean", "byte", "char", "double", "float", "int", "long", "short");  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$ //$NON-NLS-7$ //$NON-NLS-8$
 
-		private boolean fEnableBaseTypes;
-		private boolean fEnableVoid;
+		private final boolean fEnableBaseTypes;
+		private final boolean fEnableVoid;
 		private final boolean fFullyQualify;
 		private IJavaProject javaProject;
 
@@ -169,7 +169,7 @@ public class AspectInputContentAssistProcessor extends CUPositionCompletionProce
 						return;
 					}
 
-					StringBuffer buf= new StringBuffer();
+					StringBuilder buf= new StringBuilder();
 					buf.append(Signature.getSimpleName(fullName));
 					if (buf.length() == 0)
 						return; // this is the dummy class, whose $ have been converted to dots
@@ -222,8 +222,7 @@ public class AspectInputContentAssistProcessor extends CUPositionCompletionProce
 					return;
 
 				default :
-					return;
-			}
+      }
 
 		}
 	}

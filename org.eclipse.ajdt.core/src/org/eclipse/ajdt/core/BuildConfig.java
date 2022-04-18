@@ -33,7 +33,7 @@ import org.eclipse.jdt.internal.core.util.Util;
 
 public class BuildConfig {
 
-	private static Map<IProject, Set<IFile>> projectsToIncludedSourceFiles = new WeakHashMap<>();
+	private static final Map<IProject, Set<IFile>> projectsToIncludedSourceFiles = new WeakHashMap<>();
 
 	/**
 	 * Returns all of the currently included source files in a project

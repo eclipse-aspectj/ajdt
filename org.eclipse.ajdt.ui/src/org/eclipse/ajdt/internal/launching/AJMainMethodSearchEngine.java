@@ -4,7 +4,7 @@
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors: Sian January - initial version
  * ...
  **********************************************************************/
@@ -13,6 +13,7 @@ package org.eclipse.ajdt.internal.launching;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -42,7 +43,7 @@ import org.eclipse.jface.operation.IRunnableWithProgress;
 public class AJMainMethodSearchEngine extends MainMethodSearchEngine {
 
 	/**
-	 * Searches for all main methods in the given scope. Also searches 
+	 * Searches for all main methods in the given scope. Also searches
 	 * for Aspects that have main methods.
 	 */
 	public IType[] searchMainMethodsIncludingAspects(IProgressMonitor pm,
@@ -54,13 +55,11 @@ public class AJMainMethodSearchEngine extends MainMethodSearchEngine {
 		IType[] mainTypes = super.searchMainMethods(javaSearchMonitor, scope, includeSubtypes);
 		IProject[] projects = AspectJPlugin.getWorkspace().getRoot()
 				.getProjects();
-		
-		Set<IType> mainSet = new HashSet<IType>();
-		for (int i = 0; i < mainTypes.length; i++) {
-            mainSet.add(mainTypes[i]);
-        }
 
-		// Bug 261745 --- must search for aspect types in Java files.  
+		Set<IType> mainSet = new HashSet<>();
+    Collections.addAll(mainSet, mainTypes);
+
+		// Bug 261745 --- must search for aspect types in Java files.
 		// these are not found through JDT Weaving
 		IProgressMonitor ajSearchMonitor = new SubProgressMonitor(pm, 100);
 		ajSearchMonitor.beginTask(LauncherMessages.MainMethodSearchEngine_1, 100);
@@ -69,56 +68,51 @@ public class AJMainMethodSearchEngine extends MainMethodSearchEngine {
 			ticksPerProject = 1;
 		}
 		IPath[] paths = scope.enclosingProjectsAndJars();
-		Set<IPath> pathsSet = new HashSet<IPath>(paths.length*2);
-		for (int i = 0; i < paths.length; i++) {
-            pathsSet.add(paths[i]);
+		Set<IPath> pathsSet = new HashSet<>(paths.length * 2);
+    Collections.addAll(pathsSet, paths);
+
+    for (IProject project : projects) {
+      try {
+        if (project.hasNature("org.eclipse.ajdt.ui.ajnature")) { //$NON-NLS-1$
+          IJavaProject jp = JavaCore.create(project);
+          if (jp != null) {
+            if (pathsSet.contains(jp.getResource().getFullPath())) {
+              Set<IFile> includedFiles = BuildConfig.getIncludedSourceFiles(project);
+              Set<IType> mains = getAllAspectsWithMain(scope, includedFiles);
+              mainSet.addAll(mains);
+            }
+          }
         }
-		
-		
-		for (int i = 0; i < projects.length; i++) {
-			try {
-				if(projects[i].hasNature("org.eclipse.ajdt.ui.ajnature")) { //$NON-NLS-1$ 
-					IJavaProject jp = JavaCore.create(projects[i]);
-					if (jp != null) {
-						if (pathsSet.contains(jp.getResource().getFullPath())) {
-						    Set<IFile> includedFiles = BuildConfig.getIncludedSourceFiles(projects[i]);
-							Set<IType> mains = getAllAspectsWithMain(scope, includedFiles);
-							mainSet.addAll(mains);
-						}
-					}
-				}
-			} catch (Exception e) {
-			}
-			ajSearchMonitor.internalWorked(ticksPerProject);
-    		ajSearchMonitor.done();
-		}
+      }
+      catch (Exception e) {
+      }
+      ajSearchMonitor.internalWorked(ticksPerProject);
+      ajSearchMonitor.done();
+    }
 		pm.done();
-		return mainSet.toArray(new IType[mainSet.size()]);
+		return mainSet.toArray(new IType[0]);
 	}
 
 
 	/**
-	 * Searches for all main methods in the given scope. Also searches 
+	 * Searches for all main methods in the given scope. Also searches
      * for Aspects that have main methods.
 	 */
 	public IType[] searchMainMethodsIncludingAspects(IRunnableContext context,
-			final IJavaSearchScope scope, 
+			final IJavaSearchScope scope,
 			final boolean includeSubtypes) throws InvocationTargetException,
 			InterruptedException {
 
 		final IType[][] res = new IType[1][];
 
-		IRunnableWithProgress runnable = new IRunnableWithProgress() {
-			public void run(IProgressMonitor pm)
-					throws InvocationTargetException {
-				try {
-					res[0] = searchMainMethodsIncludingAspects(pm, scope,
-							 includeSubtypes);
-				} catch (JavaModelException e) {
-					throw new InvocationTargetException(e);
-				}
-			}
-		};
+		IRunnableWithProgress runnable = pm -> {
+      try {
+        res[0] = searchMainMethodsIncludingAspects(pm, scope,
+             includeSubtypes);
+      } catch (JavaModelException e) {
+        throw new InvocationTargetException(e);
+      }
+    };
 		context.run(true, true, runnable);
 
 		return res[0];
@@ -127,22 +121,21 @@ public class AJMainMethodSearchEngine extends MainMethodSearchEngine {
 	// only care about aspects in java files
 	// and even here, we cannot get all main methods
 	private Set<IType> getAllAspectsWithMain(IJavaSearchScope scope, Collection<IFile> includedFiles) throws JavaModelException {
-        Set<IType> mainTypes = new HashSet<IType>();
+        Set<IType> mainTypes = new HashSet<>();
         for (IFile file : includedFiles) {
             if (file.getFileExtension().equals("java")) {
                 ICompilationUnit unit = (ICompilationUnit) AspectJCore.create(file);
                 if (unit != null && unit.exists() && scope.encloses(unit)) {
                     IType[] types = unit.getAllTypes();
-                    for (int i = 0; i < types.length; i++) {
-                        IType type = types[i];
-                        IMethod[] methods = type.getMethods();
-                        for (int j = 0; j < methods.length; j++) {
-                            if(methods[j].isMainMethod()) {
-                                mainTypes.add(type);
-                                break;
-                            }
-                        }
+                  for (IType type : types) {
+                    IMethod[] methods = type.getMethods();
+                    for (IMethod method : methods) {
+                      if (method.isMainMethod()) {
+                        mainTypes.add(type);
+                        break;
+                      }
                     }
+                  }
                 }
             }
         }
@@ -153,7 +146,7 @@ public class AJMainMethodSearchEngine extends MainMethodSearchEngine {
     /**
 	 * Subsidiary method for 'searchMainMethods...' to search an array of
 	 * IJavaElements for runnable aspects.
-	 * 
+	 *
 	 * @param scope -
 	 *            Java search scope
 	 * @param children -
@@ -179,7 +172,7 @@ public class AJMainMethodSearchEngine extends MainMethodSearchEngine {
 //	/**
 //	 * Search a JDT IPackageFragment for runnable aspects if included in the
 //	 * scope.
-//	 * 
+//	 *
 //	 * @param scope -
 //	 *            search scope
 //	 * @param packageFragment -
@@ -201,7 +194,7 @@ public class AJMainMethodSearchEngine extends MainMethodSearchEngine {
 //	/**
 //	 * Search the individual compilation units of an IPackageFragment for
 //	 * runnable aspects if they are included in the search scope.
-//	 * 
+//	 *
 //	 * @param scope -
 //	 *            the search scope
 //	 * @param packageFragment -
@@ -224,7 +217,7 @@ public class AJMainMethodSearchEngine extends MainMethodSearchEngine {
 //	/**
 //	 * Iterates through all the packages in a project and returns a Set
 //	 * containing all the Aspects in a project that are currently active.
-//	 * 
+//	 *
 //	 * @param JP
 //	 *            the project
 //	 * @return Set of AJCompilationUnits
@@ -243,7 +236,7 @@ public class AJMainMethodSearchEngine extends MainMethodSearchEngine {
 //	/**
 //	 * Returns a Set containing all the Aspects in a package that are currently
 //	 * active and contain main types.
-//	 * 
+//	 *
 //	 * @param packageElement
 //	 * @return Set of AJCompilationUnits
 //	 */
@@ -251,11 +244,11 @@ public class AJMainMethodSearchEngine extends MainMethodSearchEngine {
 //		List aspects = new ArrayList();
 //		try {
 //			aspects = AJCompilationUnitManager.INSTANCE.getAJCompilationUnitsForPackage(packageElement);
-//		} catch (Exception e) { 
-//		}				
-//		
+//		} catch (Exception e) {
+//		}
+//
 //		return new HashSet(getActiveMainTypesFromAJCompilationUnits(aspects));
-//		
+//
 //	}
 //
 //	/**

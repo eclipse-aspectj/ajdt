@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2008 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *      SpringSource
  *      Andrew Eisenberg (initial implementation)
@@ -23,50 +23,51 @@ import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.Platform;
 
 public class ImageDescriptorSelectorRegistry implements Iterable<IImageDescriptorSelector> {
-    private static final ImageDescriptorSelectorRegistry INSTANCE = 
+    private static final ImageDescriptorSelectorRegistry INSTANCE =
         new ImageDescriptorSelectorRegistry();
     private static final String SELECTORS_EXTENSION_POINT = "org.eclipse.contribution.weaving.jdt.imagedescriptorselector"; //$NON-NLS-1$
-    
+
     public static ImageDescriptorSelectorRegistry getInstance() {
         return INSTANCE;
     }
 
-    private ImageDescriptorSelectorRegistry() { 
+    private ImageDescriptorSelectorRegistry() {
         // do nothing
     }
-    
+
     private Set<IImageDescriptorSelector> registry;
-    
+
     void registerSelector(IImageDescriptorSelector provider) {
         registry.add(provider);
     }
-    
+
     public boolean isRegistered() {
         return registry != null;
     }
-    
+
     public void registerSelectors() {
-        registry = new HashSet<IImageDescriptorSelector>();
+        registry = new HashSet<>();
         IExtensionPoint exP =
             Platform.getExtensionRegistry().getExtensionPoint(SELECTORS_EXTENSION_POINT);
         if (exP != null) {
             IExtension[] exs = exP.getExtensions();
             if (exs != null) {
-                for (int i = 0; i < exs.length; i++) {
-                    IConfigurationElement[] configs = exs[i].getConfigurationElements();
-                    for (int j = 0; j < configs.length; j++) {
-                        try {
-                            IConfigurationElement config = configs[j];
-                            if (config.isValid()) {
-                                IImageDescriptorSelector provider = (IImageDescriptorSelector) 
-                                        config.createExecutableExtension("class"); //$NON-NLS-1$
-                                registry.add(provider);
-                            }
-                        } catch (CoreException e) {
-                            JDTWeavingPlugin.logException(e);
-                        } 
+              for (IExtension ex : exs) {
+                IConfigurationElement[] configs = ex.getConfigurationElements();
+                for (IConfigurationElement iConfigurationElement : configs) {
+                  try {
+                    IConfigurationElement config = iConfigurationElement;
+                    if (config.isValid()) {
+                      IImageDescriptorSelector provider = (IImageDescriptorSelector)
+                        config.createExecutableExtension("class"); //$NON-NLS-1$
+                      registry.add(provider);
                     }
+                  }
+                  catch (CoreException e) {
+                    JDTWeavingPlugin.logException(e);
+                  }
                 }
+              }
             }
         }
     }

@@ -4,7 +4,7 @@
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors: Sian January - initial version
  * ...
  **********************************************************************/
@@ -29,7 +29,7 @@ import org.eclipse.ui.dialogs.TwoPaneElementSelector;
  */
 public class AJMainTypeSelectionDialog extends TwoPaneElementSelector {
 
-	private Object[] types;
+	private final Object[] types;
 
 	private static class PackageRenderer extends JavaElementLabelProvider {
 		public PackageRenderer() {
@@ -48,7 +48,7 @@ public class AJMainTypeSelectionDialog extends TwoPaneElementSelector {
 			String text = ""; //$NON-NLS-1$
 			if (element instanceof IType) {
 				text = super.getText(((IType) element).getPackageFragment());
-			} 
+			}
 			return text;
 		}
 	}
@@ -56,9 +56,9 @@ public class AJMainTypeSelectionDialog extends TwoPaneElementSelector {
 	private static class AJElementLabelProvider extends
 			JavaElementLabelProvider {
 
-		 private ILabelProvider labelProvider =
+		 private final ILabelProvider labelProvider =
 				new DecoratingJavaLabelProvider(new AppearanceAwareLabelProvider());
-		
+
 		public AJElementLabelProvider(int i) {
 			super(i);
 		}

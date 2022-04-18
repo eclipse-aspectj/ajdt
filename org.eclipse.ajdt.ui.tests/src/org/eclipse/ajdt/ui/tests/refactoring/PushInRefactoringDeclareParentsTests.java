@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2011 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Andrew Eisenberg - initial version
  *******************************************************************************/
@@ -26,7 +26,7 @@ import org.eclipse.ltk.core.refactoring.RefactoringCore;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 
 /**
- * 
+ *
  * @author Andrew Eisenberg
  * @created Nov 26, 2010
  */
@@ -194,7 +194,7 @@ public class PushInRefactoringDeclareParentsTests extends AbstractAJDTRefactorin
                 }, ToPushIn.FIRST
                 );
     }
-    
+
     // interface on interface
     public void testDefaultPackage6() throws Exception {
         performRefactoringAndUndo(
@@ -222,7 +222,7 @@ public class PushInRefactoringDeclareParentsTests extends AbstractAJDTRefactorin
                 }, ToPushIn.FIRST
                 );
     }
-    
+
     // two interfaces on interface
     public void testDefaultPackage7() throws Exception {
         performRefactoringAndUndo(
@@ -255,7 +255,7 @@ public class PushInRefactoringDeclareParentsTests extends AbstractAJDTRefactorin
                 }, ToPushIn.ALL
                 );
     }
-    
+
     // two interfaces on interface, one pushed in
     public void testDefaultPackage8() throws Exception {
         performRefactoringAndUndo(
@@ -291,7 +291,7 @@ public class PushInRefactoringDeclareParentsTests extends AbstractAJDTRefactorin
                 }, ToPushIn.FIRST
                 );
     }
-    
+
     //  class and interface, only class pushed in
     public void testSamePackage1() throws Exception {
         performRefactoringAndUndo(
@@ -331,7 +331,7 @@ public class PushInRefactoringDeclareParentsTests extends AbstractAJDTRefactorin
                 }, ToPushIn.ALL
                 );
     }
-    
+
     //  class and two interfaces, only class pushed in
     public void testSamePackage2() throws Exception {
         performRefactoringAndUndo(
@@ -378,7 +378,7 @@ public class PushInRefactoringDeclareParentsTests extends AbstractAJDTRefactorin
                 }, ToPushIn.ALL
                 );
     }
-    
+
     //  class and interface, existing superclass
     public void testSamePackage3() throws Exception {
         performRefactoringAndUndo(
@@ -424,7 +424,7 @@ public class PushInRefactoringDeclareParentsTests extends AbstractAJDTRefactorin
                 }, ToPushIn.ALL
                 );
     }
-    
+
     //  multiple targets
     public void testOtherPackage1() throws Exception {
         performRefactoringAndUndo(
@@ -478,7 +478,7 @@ public class PushInRefactoringDeclareParentsTests extends AbstractAJDTRefactorin
                 }, ToPushIn.ALL
                 );
     }
-    
+
     //  multiple targets, no import required
     public void testOtherPackage2() throws Exception {
         performRefactoringAndUndo(
@@ -536,7 +536,7 @@ public class PushInRefactoringDeclareParentsTests extends AbstractAJDTRefactorin
                 }, ToPushIn.ALL
                 );
     }
-    
+
     //  multiple targets
     public void testGenerics1() throws Exception {
         performRefactoringAndUndo(
@@ -551,12 +551,12 @@ public class PushInRefactoringDeclareParentsTests extends AbstractAJDTRefactorin
                         "Target2.java",
                 },
                 new String[] {
-                        "package pack1;\n" + 
-                        "import java.util.List;\n" + 
-                        "public aspect Aspect {\n" + 
-                        "  declare parents : pack2.* extends I<String,   List<String>   >;\n" + 
-                        "  public static interface I<A, B> {\n" + 
-                        "  }\n" + 
+                        "package pack1;\n" +
+                        "import java.util.List;\n" +
+                        "public aspect Aspect {\n" +
+                        "  declare parents : pack2.* extends I<String,   List<String>   >;\n" +
+                        "  public static interface I<A, B> {\n" +
+                        "  }\n" +
                         "}",
                         "package pack2;\n" +
                         "public class Target1 { }",
@@ -592,7 +592,7 @@ public class PushInRefactoringDeclareParentsTests extends AbstractAJDTRefactorin
         ICompilationUnit[] units = createUnits(packNames, cuNames, initialContents);
         List<IMember> itds;
         if (toPush == ToPushIn.ALL) {
-            itds = new ArrayList<IMember>();
+            itds = new ArrayList<>();
             for (IJavaElement elt : units[0].getTypes()[0].getChildren()) {
                 if (elt instanceof IAspectJElement || elt instanceof IType) {
                     itds.add((IMember) elt);
@@ -615,16 +615,16 @@ public class PushInRefactoringDeclareParentsTests extends AbstractAJDTRefactorin
         // undo
         assertTrue("anythingToUndo", RefactoringCore.getUndoManager()
                 .anythingToUndo());
-        assertTrue("! anythingToRedo", !RefactoringCore.getUndoManager()
-                .anythingToRedo());
+      assertFalse("! anythingToRedo", RefactoringCore.getUndoManager()
+        .anythingToRedo());
 
         RefactoringCore.getUndoManager().performUndo(null,
                 new NullProgressMonitor());
         assertContents(units, initialContents);
 
         // redo
-        assertTrue("! anythingToUndo", !RefactoringCore.getUndoManager()
-                .anythingToUndo());
+      assertFalse("! anythingToUndo", RefactoringCore.getUndoManager()
+        .anythingToUndo());
         assertTrue("anythingToRedo", RefactoringCore.getUndoManager()
                 .anythingToRedo());
         RefactoringCore.getUndoManager().performRedo(null,

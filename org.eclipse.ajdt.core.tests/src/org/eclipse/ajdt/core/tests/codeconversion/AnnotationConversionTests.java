@@ -261,9 +261,9 @@ public class AnnotationConversionTests extends AJDTCoreTestCase {
     private String printAnnotation(IAnnotation actualAnnotation)
             throws JavaModelException {
         StringBuilder sb = new StringBuilder();
-        sb.append("@" + actualAnnotation.getElementName() + "( ");
+        sb.append("@").append(actualAnnotation.getElementName()).append("( ");
         for (IMemberValuePair mvp : actualAnnotation.getMemberValuePairs()) {
-            sb.append(mvp.getMemberName() + " = " + printValue(mvp) + ", ");
+            sb.append(mvp.getMemberName()).append(" = ").append(printValue(mvp)).append(", ");
         }
         sb.append(")\n");
         return sb.toString();

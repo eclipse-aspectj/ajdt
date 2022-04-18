@@ -52,11 +52,10 @@ public class Bug270325Tests extends AJDTCoreTestCase {
 
     class MockCompilerFactory extends CoreCompilerFactory {
         protected AjCompiler createCompiler(IProject project) {
-            AjCompiler compiler = new AjCompiler(project.getName(),
-              new MockCoreCompilerConfiguration(project),
-                    new CoreBuildProgressMonitor(project),
-                    new CoreBuildMessageHandler());
-            return compiler;
+          return new AjCompiler(project.getName(),
+            new MockCoreCompilerConfiguration(project),
+                  new CoreBuildProgressMonitor(project),
+                  new CoreBuildMessageHandler());
         }
 
     }

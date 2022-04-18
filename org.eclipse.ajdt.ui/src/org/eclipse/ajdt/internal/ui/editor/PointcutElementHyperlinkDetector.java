@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2005 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman  - initial version
@@ -30,11 +30,11 @@ import org.eclipse.jface.text.hyperlink.IHyperlinkDetector;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 public class PointcutElementHyperlinkDetector implements IHyperlinkDetector {
-	private ITextEditor fTextEditor;
+	private final ITextEditor fTextEditor;
 
 	/**
 	 * Creates a new Java element hyperlink detector.
-	 * 
+	 *
 	 * @param editor
 	 *            the editor in which to detect the hyperlink
 	 */
@@ -65,7 +65,7 @@ public class PointcutElementHyperlinkDetector implements IHyperlinkDetector {
 			if (source != null) {
 				IRegion reg = selectWord(source, offset);
 				if (reg != null) {
-					return new IHyperlink[] { 
+					return new IHyperlink[] {
 							new JavaElementHyperlink(reg, (SelectionDispatchAction) openAction, input, false) };
 				}
 			}

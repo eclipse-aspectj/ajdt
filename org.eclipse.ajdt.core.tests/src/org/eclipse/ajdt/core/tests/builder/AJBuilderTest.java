@@ -97,18 +97,17 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 			// testing the refresh output directory part of bug 101481
 			assertTrue("class file should exist", binC.exists()); //$NON-NLS-1$
 
-			StringBuffer origContents = new StringBuffer("package pack; "); //$NON-NLS-1$
-			origContents.append(System.getProperty("line.separator")); //$NON-NLS-1$
-			origContents.append("public class C {}"); //$NON-NLS-1$
+      //$NON-NLS-1$
+      String origContents = "package pack; " + System.getProperty("line.separator") + //$NON-NLS-1$
+                            "public class C {}"; //$NON-NLS-1$
 
-			// write "blah blah blah" to the class
+      // write "blah blah blah" to the class
 			// NOTE: we add a comment so that thet class file doesn't get
 			// deleted, as we test for it later, but this is a somewhat
 			// arbitrary test because the behaviour of AJC is different to the
 			// JDT compiler when the source has errors (see bug 102733)
-			StringBuffer sb = new StringBuffer("blah blah blah/*comment*/"); //$NON-NLS-1$
-			sb.append(origContents);
-			StringReader sr = new StringReader(sb.toString());
+      StringReader sr = new StringReader(//$NON-NLS-1$
+        "blah blah blah/*comment*/" + origContents);
 			c.setContents(new ReaderInputStream(sr), IResource.FORCE, null);
 			sr.close();
 			try {Thread.sleep(1000); } catch (Exception e) {}
@@ -131,9 +130,7 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 			project.build(IncrementalProjectBuilder.CLEAN_BUILD, null);
 			// testing the same steps are taken during a clean as they
 			// are in the javaBuilder part of bug 101481
-			assertTrue(
-					"should have cleaned the output folder", //$NON-NLS-1$
-					bin.members().length == 0);
+      assertEquals("should have cleaned the output folder", 0, bin.members().length);
 			assertTrue(
 					"should have removed problems and tasks for the project", //$NON-NLS-1$
 					testLog.containsMessage("Removed problems and tasks for project")); //$NON-NLS-1$
@@ -174,11 +171,11 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 				+ packageName);
 		if (outputDir.exists()) {
     		File[] outputFiles = outputDir.listFiles();
-    		for (int i = 0; i < outputFiles.length; i++) {
-    			if (outputFiles[i].getName().equals(fileName)) {
-    				return true;
-    			}
-    		}
+      for (File outputFile : outputFiles) {
+        if (outputFile.getName().equals(fileName)) {
+          return true;
+        }
+      }
 		}
 		return false;
 	}
@@ -224,14 +221,10 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 		project.build(IncrementalProjectBuilder.CLEAN_BUILD, null);
 
 		bin2.refreshLocal(IResource.DEPTH_INFINITE, null);
-		assertTrue(
-				"should not have any files in the bin2 folder", //$NON-NLS-1$
-				bin2.members().length == 0);
+    assertEquals("should not have any files in the bin2 folder", 0, bin2.members().length);
 
 		bin.refreshLocal(IResource.DEPTH_INFINITE, null);
-		assertTrue(
-		        "should not have any files in the bin2 folder", //$NON-NLS-1$
-		        bin.members().length == 0);
+    assertEquals("should not have any files in the bin2 folder", 0, bin.members().length);
 	}
 
 	public void testBug153682() throws Exception {
@@ -259,9 +252,7 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 
 		project.build(IncrementalProjectBuilder.CLEAN_BUILD, null);
 
-		assertTrue(
-				"should have have cleaned the output folder", //$NON-NLS-1$
-				bin.members().length == 0);
+    assertEquals("should have have cleaned the output folder", 0, bin.members().length);
 
 	}
 
@@ -603,7 +594,7 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 		// has been flushed correctly. Otherwise it will just contain
 		// the flushed version which is the classpath for project bug99133a.
 		assertTrue("classpath should have been flushed but wasn't", adapter //$NON-NLS-1$
-				.getClasspath().indexOf("Bean") != -1); //$NON-NLS-1$
+      .getClasspath().contains("Bean")); //$NON-NLS-1$
 	}
 
 	// bug 161739 don't copy resources excluded by a pattern
@@ -700,16 +691,15 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 	}
 
 	private boolean wasIncrementalBuild(String msg) {
-		return msg.toLowerCase().indexOf("was: incremental") != -1; //$NON-NLS-1$
+		return msg.toLowerCase().contains("was: incremental"); //$NON-NLS-1$
 	}
 
 	private boolean listContainsString(List<String> l, String msg) {
-		for (Iterator<String> iter = l.iterator(); iter.hasNext();) {
-			String logEntry = iter.next();
-			if (logEntry.indexOf(msg) != -1) {
-				return true;
-			}
-		}
+    for (String logEntry : l) {
+      if (logEntry.contains(msg)) {
+        return true;
+      }
+    }
 		return false;
 	}
 }

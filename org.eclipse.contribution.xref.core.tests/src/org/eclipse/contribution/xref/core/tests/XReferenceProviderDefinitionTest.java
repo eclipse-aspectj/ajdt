@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Helen Hawkins   - iniital version
@@ -24,7 +24,7 @@ import org.eclipse.contribution.xref.core.XReferenceProviderManager;
  *
  */
 public class XReferenceProviderDefinitionTest extends TestCase {
-    
+
 	XReferenceProviderDefinition def = null;
 	/*
 	 * @see TestCase#setUp()
@@ -40,9 +40,9 @@ public class XReferenceProviderDefinitionTest extends TestCase {
         }
 		if (def == null) {
 			def = providers.get(0);
-            
-        } 
-		
+
+        }
+
 	}
 
 	/*
@@ -62,16 +62,16 @@ public class XReferenceProviderDefinitionTest extends TestCase {
 	}
 
 	public void testIsAndSetEnabled() {
-		assertEquals(true,def.isEnabled());
+    assertTrue(def.isEnabled());
 		def.setEnabled(false);
-		assertEquals(false,def.isEnabled());
+    assertFalse(def.isEnabled());
 		def.setEnabled(true);
 	}
 
 	public void testGetDescription() {
 		assertEquals("My Description",def.getDescription()); //$NON-NLS-1$
 	}
-	
+
 	public void testSafeExecution() {
 		TestProvider.beBad = true;
 		try {
@@ -83,22 +83,22 @@ public class XReferenceProviderDefinitionTest extends TestCase {
 	}
 
 	public void testSetCheckedFilters() {
-		List<String> li = new ArrayList<String>();
+		List<String> li = new ArrayList<>();
 		li.add("Item 1"); //$NON-NLS-1$
 		def.setCheckedFilters(li);
 		List<String> returned = def.getCheckedFilters();
-		assertTrue("One item should be checked", returned.size()==1); //$NON-NLS-1$
+    assertEquals("One item should be checked", 1, returned.size()); //$NON-NLS-1$
 		// Reset
-		def.setCheckedFilters(new ArrayList<String>());		
+		def.setCheckedFilters(new ArrayList<>());
 	}
-	
+
 	public void testSetCheckedInplaceFilters() {
-		List<String> li = new ArrayList<String>();
+		List<String> li = new ArrayList<>();
 		li.add("Item 1"); //$NON-NLS-1$
 		def.setCheckedInplaceFilters(li);
 		List<String> returned = def.getCheckedInplaceFilters();
-		assertTrue("One item should be checked", returned.size()==1); //$NON-NLS-1$
+    assertEquals("One item should be checked", 1, returned.size()); //$NON-NLS-1$
 		// Reset
-		def.setCheckedInplaceFilters(new ArrayList<String>());		
+		def.setCheckedInplaceFilters(new ArrayList<>());
 	}
 }

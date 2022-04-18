@@ -26,11 +26,11 @@ import org.eclipse.jdt.ui.text.java.IQuickFixProcessor;
 
 
 /**
- * Some Java quick fix proposals will not work on Java files in AspectJ projects. 
+ * Some Java quick fix proposals will not work on Java files in AspectJ projects.
  * This class gets around that problem.
- * 
+ *
  * For now only doing Missing Serial Version IDs, but can expand to more in the future.
- * 
+ *
  * @author andrew
  * @created Dec 27, 2008
  *
@@ -42,19 +42,18 @@ public class JavaQuickFixProcessor implements IQuickAssistProcessor, IQuickFixPr
         if (locations == null || locations.length == 0 || !isAJProject(context.getCompilationUnit())) {
             return null;
         }
-        
+
         HashSet handledProblems= new HashSet(locations.length);
         ArrayList resultingCollections= new ArrayList();
-        for (int i= 0; i < locations.length; i++) {
-            IProblemLocation curr= locations[i];
-            Integer id= new Integer(curr.getProblemId());
-            if (handledProblems.add(id)) {
-                process(context, curr, resultingCollections);
-            }
+      for (IProblemLocation curr : locations) {
+        Integer id = curr.getProblemId();
+        if (handledProblems.add(id)) {
+          process(context, curr, resultingCollections);
         }
-        return (IJavaCompletionProposal[]) resultingCollections.toArray(new IJavaCompletionProposal[resultingCollections.size()]);
+      }
+        return (IJavaCompletionProposal[]) resultingCollections.toArray(new IJavaCompletionProposal[0]);
     }
-    
+
     private void process(IInvocationContext context, IProblemLocation problem, Collection proposals) throws CoreException {
         int id= problem.getProblemId();
         if (id == 0) { // no proposals for none-problem locations
@@ -73,7 +72,7 @@ public class JavaQuickFixProcessor implements IQuickAssistProcessor, IQuickFixPr
                     return true;
             }
         }
-        
+
         return false;
     }
 

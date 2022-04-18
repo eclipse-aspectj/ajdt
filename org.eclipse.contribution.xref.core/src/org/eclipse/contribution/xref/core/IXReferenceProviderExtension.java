@@ -27,19 +27,19 @@ import org.eclipse.core.runtime.IAdaptable;
  */
 public interface IXReferenceProviderExtension extends IXReferenceProvider {
   /**
-  * Get the collection of {@link IXReference}s for the Object o. "o" is 
+  * Get the collection of {@link IXReference}s for the Object o. "o" is
   * guaranteed to be non-null and of a type returned by getClasses.
-  * This method will be called in "user time" and should have a 
-  * sub-second response time. To contribute cross references that cannot 
-  * guarantee to be computed in that timeframe, return an 
-  * <code>IDeferredXReference</code>. See the 
-  * <code>org.eclipse.contributions.xref.internal.providers.ProjectReferencesProvider</code> 
+  * This method will be called in "user time" and should have a
+  * sub-second response time. To contribute cross references that cannot
+  * guarantee to be computed in that timeframe, return an
+  * <code>IDeferredXReference</code>. See the
+  * <code>org.eclipse.contributions.xref.internal.providers.ProjectReferencesProvider</code>
   * for an example of a provider that uses this technique.
   * @param o the object to get cross references for
   * @return IXReference collection of cross references for "o". If there
   * are no cross references to be contributed, either an empty collection or
   * null is an acceptable return value.
   */
- public Collection<IXReference> getXReferences(IAdaptable o, List<String> l);
+  Collection<IXReference> getXReferences(IAdaptable o, List<String> l);
 
 }

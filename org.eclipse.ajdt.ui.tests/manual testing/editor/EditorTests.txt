@@ -5,9 +5,9 @@ AspectJ keywords do not get highlighted any
 more if there is a dot '.' in front of them. (EDITOR_1)
 
 a.	Install AJDT and open a .aj file.  
-b.	Check that “before” gets highlighted, but not “.before”
-c.	Repeat for “get” and “.get”
-d.	Check that “.static” is still highlighted
+b.	Check that â€œbeforeâ€ gets highlighted, but not â€œ.beforeâ€
+c.	Repeat for â€œgetâ€ and â€œ.getâ€
+d.	Check that â€œ.staticâ€ is still highlighted
 e.	Do the same check in a .java file (when opened in the AspectJ Editor) 
     NB ignore red squiggles as this is a known limitation
 

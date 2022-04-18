@@ -99,7 +99,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	expectedResults = new String[cus.length];
     	refactoring = new PullOutRefactoring();
 
-    	List<Target> targets = new ArrayList<Target>();
+    	List<Target> targets = new ArrayList<>();
 
     	for (int i = 0; i < cus.length; i++) {
     		CU cu = cus[i];
@@ -348,9 +348,9 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     			unexpectedMsg = entry.getMessage();
 		}
     	if (unexpectedMsg!=null) {
-    		String allMessages = "";
+    		StringBuilder allMessages = new StringBuilder();
     		for (RefactoringStatusEntry entry : status.getEntries()) {
-				allMessages += entry.getMessage()+"\n";
+				allMessages.append(entry.getMessage()).append("\n");
 			}
     		fail("Unexpected message: "+unexpectedMsg+"\n"+
     			 "All messages: "+allMessages);

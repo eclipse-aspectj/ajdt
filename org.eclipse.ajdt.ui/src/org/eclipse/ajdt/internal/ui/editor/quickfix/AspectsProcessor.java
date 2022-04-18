@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2005 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -46,28 +46,26 @@ class AspectsProcessor {
 				if (editor instanceof ITextEditor) {
 					final IWorkbenchPage page = editor.getSite().getPage();
 					final IEditorInput input = editor.getEditorInput();
-					((ITextEditor) editor).doSave(null);
+					editor.doSave(null);
 					((ITextEditor) editor).close(true);
-					Display.getCurrent().asyncExec(new Runnable() {
-						public void run() {
-							try {
-								IDE.openEditor(page,
-										input, AspectJEditor.ASPECTJ_EDITOR_ID);
-							} catch (PartInitException e) {
-							}
-						}
-					});
+					Display.getCurrent().asyncExec(() -> {
+            try {
+              IDE.openEditor(page,
+                  input, AspectJEditor.ASPECTJ_EDITOR_ID);
+            } catch (PartInitException e) {
+            }
+          });
 				}
 			}
 		};
 		proposals.add(proposal);
 	}
-	
+
 	public static void convertToAJProjectProposal(IInvocationContext context,
 			IProblemLocation problem, Collection proposals)
 			throws CoreException {
 				final IProject project = context.getCompilationUnit().getJavaProject().getProject();
-		
+
 		String name = UIMessages.quickFix_ConvertProjectToAspectJ;
 		final IEditorPart editor = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
 		ChangeCorrectionProposal proposal = new ChangeCorrectionProposal(name, null, 0, JavaPluginImages.get(JavaPluginImages.IMG_CORRECTION_CHANGE)) {

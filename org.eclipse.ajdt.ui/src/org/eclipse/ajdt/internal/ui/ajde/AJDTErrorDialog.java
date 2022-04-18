@@ -6,7 +6,7 @@
  * http://www.eclipse.org/legal/epl-v10.html
  *
  * Contributors:
- * 		IBM Corporation - initial API and implementation 
+ * 		IBM Corporation - initial API and implementation
  * 		Sebastian Davids <sdavids@gmx.de> - Fix for bug 19346 - Dialog font should
  * 			be activated and used by other components.
  *******************************************************************************/
@@ -51,7 +51,7 @@ import org.eclipse.ui.PlatformUI;
  * <code>IStatus</code> object. If an error contains additional detailed
  * information then a Details button is automatically supplied, which shows or
  * hides an error details viewer when pressed by the user.
- * 
+ *
  * @see org.eclipse.core.runtime.IStatus
  */
 public class AJDTErrorDialog extends IconAndMessageDialog {
@@ -69,13 +69,13 @@ public class AJDTErrorDialog extends IconAndMessageDialog {
     /**
      * The title of the dialog.
      */
-    private String title;
+    private final String title;
 
     /**
      * The SWT text control that displays the error details.
      */
     private Text list;
-    
+
     /**
      * Indicates whether the error details viewer is currently created.
      */
@@ -86,8 +86,8 @@ public class AJDTErrorDialog extends IconAndMessageDialog {
      */
     private Clipboard clipboard;
 
-	private String longMessage;
-	
+	private final String longMessage;
+
     /**
      * Message label is the label the message is shown on.
      */
@@ -102,7 +102,7 @@ public class AJDTErrorDialog extends IconAndMessageDialog {
      * displayed contains child items <it>and </it> you need to specify a mask
      * which will be used to filter the displaying of these children.
      * </p>
-     * 
+     *
      * @param parentShell
      *            the shell under which to create this dialog
      * @param dialogTitle
@@ -188,16 +188,13 @@ public class AJDTErrorDialog extends IconAndMessageDialog {
         if (message != null) {
             messageLabel = new Link(composite, getMessageLabelStyle());
             messageLabel.setText(message);
-            messageLabel.addListener (SWT.Selection, new Listener () {
-    			public void handleEvent(Event event) {
-					try {
-						URL url = new URL(event.text);
-						PlatformUI.getWorkbench().getBrowserSupport().getExternalBrowser().openURL(url);
-					} catch (MalformedURLException e) {
-					} catch (PartInitException e) {
-					}
-    			}
-    		});
+            messageLabel.addListener (SWT.Selection, event -> {
+            try {
+              URL url = new URL(event.text);
+              PlatformUI.getWorkbench().getBrowserSupport().getExternalBrowser().openURL(url);
+            } catch (MalformedURLException | PartInitException e) {
+            }
+});
             GridData data = new GridData(GridData.GRAB_HORIZONTAL
                     | GridData.HORIZONTAL_ALIGN_FILL
                     | GridData.VERTICAL_ALIGN_BEGINNING);
@@ -206,7 +203,7 @@ public class AJDTErrorDialog extends IconAndMessageDialog {
         }
         return composite;
     }
-	
+
     /**
      * This implementation of the <code>Dialog</code> framework method creates
      * and lays out a composite and calls <code>createMessageArea</code> and
@@ -255,7 +252,7 @@ public class AJDTErrorDialog extends IconAndMessageDialog {
 
     /**
      * Create this dialog's drop-down list component.
-     * 
+     *
      * @param parent
      *            the parent composite
      * @return the drop-down list component
@@ -320,7 +317,7 @@ public class AJDTErrorDialog extends IconAndMessageDialog {
      * Opens an error dialog to display the given error. Use this method if the
      * error object being displayed does not contain child items, or if you wish
      * to display all such items without filtering.
-     * 
+     *
      * @param parent
      *            the parent shell of the dialog, or <code>null</code> if none
      * @param dialogTitle
@@ -382,7 +379,7 @@ public class AJDTErrorDialog extends IconAndMessageDialog {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.eclipse.jface.window.Window#close()
      */
     public boolean close() {
@@ -390,7 +387,7 @@ public class AJDTErrorDialog extends IconAndMessageDialog {
             clipboard.dispose();
         return super.close();
     }
-    
+
     /**
      * Show the details portion of the dialog if it is not already visible.
      * This method will only work when it is invoked after the control of the dialog
@@ -407,7 +404,7 @@ public class AJDTErrorDialog extends IconAndMessageDialog {
                 toggleDetailsArea();
         }
     }
-    
+
     /**
      * Return whether the Details button should be included.
      * This method is invoked once when the dialog is built.

@@ -10,7 +10,6 @@
 package org.eclipse.contribution.xref.ras;
 
 import org.aspectj.lang.JoinPoint;
-import org.eclipse.core.runtime.OperationCanceledException;
 
 /**
  * FFDC aspect - a duplicate of org.eclipse.ajdt.ras.FFDC until longer
@@ -69,7 +68,7 @@ public abstract aspect FFDC {
 	 * source file name and line number
      */
     protected String getSourceId (JoinPoint.StaticPart tjp, JoinPoint.StaticPart ejp) {
-    	StringBuffer sourceId = new StringBuffer();
+    	StringBuilder sourceId = new StringBuilder();
 		String typeName = ejp.getSignature().getDeclaringTypeName();
 		String name = ejp.getSignature().getName();
 		String sourceLocation = tjp.getSourceLocation().toString();

@@ -46,36 +46,34 @@ public class CodeCheckerTest extends AJDTCoreTestCase {
 		trueList.add("Debug"); // aspect and class //$NON-NLS-1$
 		trueList.add("Coordinator"); // abstract aspect with inner classes //$NON-NLS-1$
 
-		project.accept(new IResourceVisitor() {
-			public boolean visit(IResource resource) throws CoreException {
-				if (resource.getType() == IResource.FILE) {
-					String name = resource.getName();
-					if (CoreUtils.ASPECTJ_SOURCE_FILTER.accept(name)) {
-						boolean ret = CodeChecker
-								.containsAspectJConstructs((IFile) resource);
-						int index = name.lastIndexOf('.');
-						if (index != -1) {
-							name = name.substring(0, index);
-						}
-						name = name.intern();
-						if (trueList.contains(name)) {
-							if (ret) {
-								trueList.remove(name);
-							} else {
-								fail("Returned false from CodeChecker.containsAspectJConstructs for " //$NON-NLS-1$
-										+ name + ", expected true"); //$NON-NLS-1$
-							}
-						} else if (ret) {
-							fail("Returned true from CodeChecker.containsAspectJConstructs for " //$NON-NLS-1$
-									+ name + ", expected false"); //$NON-NLS-1$
-						}
-					}
-				}
-				return true;
-			}
-		});
-		assertTrue("Didn't correctly identify all resources. Missed: " //$NON-NLS-1$
-				+ trueList, trueList.size() == 0);
+		project.accept(resource -> {
+      if (resource.getType() == IResource.FILE) {
+        String name = resource.getName();
+        if (CoreUtils.ASPECTJ_SOURCE_FILTER.accept(name)) {
+          boolean ret = CodeChecker
+              .containsAspectJConstructs((IFile) resource);
+          int index = name.lastIndexOf('.');
+          if (index != -1) {
+            name = name.substring(0, index);
+          }
+          name = name.intern();
+          if (trueList.contains(name)) {
+            if (ret) {
+              trueList.remove(name);
+            } else {
+              fail("Returned false from CodeChecker.containsAspectJConstructs for " //$NON-NLS-1$
+                  + name + ", expected true"); //$NON-NLS-1$
+            }
+          } else if (ret) {
+            fail("Returned true from CodeChecker.containsAspectJConstructs for " //$NON-NLS-1$
+                + name + ", expected false"); //$NON-NLS-1$
+          }
+        }
+      }
+      return true;
+    });
+    assertEquals("Didn't correctly identify all resources. Missed: " //$NON-NLS-1$
+                 + trueList, 0, trueList.size());
 	}
 
 	/**
@@ -87,20 +85,18 @@ public class CodeCheckerTest extends AJDTCoreTestCase {
 	 */
 	public void testContainsAspectJConstructs2() throws Exception {
 		IProject project = createPredefinedProject("bug95370"); //$NON-NLS-1$
-		project.accept(new IResourceVisitor() {
-			public boolean visit(IResource resource) throws CoreException {
-				if (resource.getType() == IResource.FILE) {
-					String name = resource.getName();
-					if (CoreUtils.ASPECTJ_SOURCE_FILTER.accept(name)) {
-						boolean ret = CodeChecker
-								.containsAspectJConstructs((IFile) resource);
-						assertFalse(
-								"Returned true from CodeChecker.containsAspectJConstructs for " //$NON-NLS-1$
-										+ name + ", expected false", ret); //$NON-NLS-1$
-					}
-				}
-				return true;
-			}
-		});
+		project.accept(resource -> {
+      if (resource.getType() == IResource.FILE) {
+        String name = resource.getName();
+        if (CoreUtils.ASPECTJ_SOURCE_FILTER.accept(name)) {
+          boolean ret = CodeChecker
+              .containsAspectJConstructs((IFile) resource);
+          assertFalse(
+              "Returned true from CodeChecker.containsAspectJConstructs for " //$NON-NLS-1$
+                  + name + ", expected false", ret); //$NON-NLS-1$
+        }
+      }
+      return true;
+    });
 	}
 }

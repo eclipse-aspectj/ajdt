@@ -53,16 +53,16 @@ public class ReindexingJob extends WorkspaceJob {
         if (projects == null) {
             return Status.OK_STATUS;
         }
-        for (int i = 0; i < projects.length; i++) {
-            if (WeavableProjectListener.getInstance().isWeavableProject(projects[i])) {
-                projects[i].accept(new TouchJavaLikeResourceVisitor(monitor));
-                indexer.indexAll(projects[i]);
-            }
-            monitor.worked(1);
-            if (monitor.isCanceled()) {
-                throw new OperationCanceledException();
-            }
+      for (IProject project : projects) {
+        if (WeavableProjectListener.getInstance().isWeavableProject(project)) {
+          project.accept(new TouchJavaLikeResourceVisitor(monitor));
+          indexer.indexAll(project);
         }
+        monitor.worked(1);
+        if (monitor.isCanceled()) {
+          throw new OperationCanceledException();
+        }
+      }
         synchronized (LOCK) {
             isRunning = false;
         }

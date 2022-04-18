@@ -49,7 +49,7 @@ public class Bug268609Test extends AJDTCoreTestCase {
      * Test that a project without old style settings does not
      * get the flag to say that old style settings have been visited.
      */
-	public void testNoOldStyleSettings() throws Exception {
+	public void testNoOldStyleSettings() {
 	    // A build has already occurred.  Check to make sure that .settings file has not been created
 	    assertFalse(".settings folder should not exist", onAspectPath.getFile(settingsFilePath).exists());
     }
@@ -60,13 +60,12 @@ public class Bug268609Test extends AJDTCoreTestCase {
 	    assertTrue(".settings folder should exist", settingsFile.exists());
 	    String contents = getContents(settingsFile);
         assertTrue("The settings file should contain \"org.eclipse.ajdt.ui.aspectPath=visited\"",
-                contents.indexOf("org.eclipse.ajdt.ui.aspectPath=visited") != -1);
+          contents.contains("org.eclipse.ajdt.ui.aspectPath=visited"));
         assertTrue("Aspect path line should still exist \"org.eclipse.ajdt.ui.aspectPath1=/MyAspectLibrary/bin\"",
-                contents.indexOf("org.eclipse.ajdt.ui.aspectPath1=/MyAspectLibrary/bin") != -1);
+          contents.contains("org.eclipse.ajdt.ui.aspectPath1=/MyAspectLibrary/bin"));
 
         // no in path in the file, so should not contain
-        assertTrue("The settings file should *not* contain \"org.eclipse.ajdt.ui.inPath=visited\"",
-                contents.indexOf("org.eclipse.ajdt.ui.inPath=visited") == -1);
+    assertFalse("The settings file should *not* contain \"org.eclipse.ajdt.ui.inPath=visited\"", contents.contains("org.eclipse.ajdt.ui.inPath=visited"));
     }
 
 	public void testOldStyleSettingsNotReapplied() throws Exception {
@@ -77,13 +76,12 @@ public class Bug268609Test extends AJDTCoreTestCase {
         assertTrue(".settings folder should exist", settingsFile.exists());
         String contents = getContents(settingsFile);
         assertTrue("The settings file should contain \"org.eclipse.ajdt.ui.aspectPath=visited\"",
-                contents.indexOf("org.eclipse.ajdt.ui.aspectPath=visited") != -1);
+          contents.contains("org.eclipse.ajdt.ui.aspectPath=visited"));
         assertTrue("Aspect path line should still exist \"org.eclipse.ajdt.ui.aspectPath1=/MyAspectLibrary/bin\"",
-                contents.indexOf("org.eclipse.ajdt.ui.aspectPath1=/MyAspectLibrary/bin") != -1);
+          contents.contains("org.eclipse.ajdt.ui.aspectPath1=/MyAspectLibrary/bin"));
 
         // no in path, so this line should not appear
-        assertTrue("The settings file should contain \"org.eclipse.ajdt.ui.inPath=visited\"",
-                contents.indexOf("org.eclipse.ajdt.ui.inPath=visited") == -1);
+    assertFalse("The settings file should contain \"org.eclipse.ajdt.ui.inPath=visited\"", contents.contains("org.eclipse.ajdt.ui.inPath=visited"));
 
         // now check that build did not produce any errors, indicating that
         // the classpath is stil valid
@@ -96,7 +94,7 @@ public class Bug268609Test extends AJDTCoreTestCase {
     private String getContents(IFile javaFile) throws CoreException, IOException {
         InputStream is = javaFile.getContents();
         BufferedReader br = new BufferedReader(new InputStreamReader(is));
-        StringBuffer buffer= new StringBuffer();
+        StringBuilder buffer= new StringBuilder();
         char[] readBuffer= new char[2048];
         int n= br.read(readBuffer);
         while (n > 0) {

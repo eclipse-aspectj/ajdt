@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2009, 2010 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Andrew Eisenberg - initial API and implementation
  *******************************************************************************/
@@ -42,14 +42,14 @@ import org.eclipse.jdt.internal.compiler.ast.ASTNode;
  */
 public class AJSourceIndexerRequestor extends SourceIndexerRequestor {
 
-    private SourceIndexer indexer;
-    
+    private final SourceIndexer indexer;
+
     public AJSourceIndexerRequestor(SourceIndexer indexer) {
         super(indexer);
         this.indexer = indexer;
     }
 
-    
+
     /**
      * Here, we must index special AJ declarations like ITDs and declare parents/annotations
      */
@@ -65,10 +65,10 @@ public class AJSourceIndexerRequestor extends SourceIndexerRequestor {
                     char[] contents = getContents();
                     BodyDeclaration node = PointcutUtilities.createSingleBodyDeclarationNode(fieldInfo.declarationStart, getSourceEnd(fieldInfo), contents);
                     if (node instanceof DeclareParentsDeclaration) {
-                    	
+
                         // found it!
                         DeclareParentsDeclaration declare = (DeclareParentsDeclaration) node;
- 
+
                         // Visit the children
 						AjASTVisitor typePatternVisitor = new AjASTVisitor() {
 
@@ -82,8 +82,8 @@ public class AJSourceIndexerRequestor extends SourceIndexerRequestor {
                                 }
 
 //                                AJSourceIndexerRequestor.super
-//                                        .acceptAnnotationTypeReference(tokens, 
-//                                                node.getStartPosition(), 
+//                                        .acceptAnnotationTypeReference(tokens,
+//                                                node.getStartPosition(),
 //                                                node.getStartPosition() + node.getLength());
                             }
 
@@ -91,31 +91,31 @@ public class AJSourceIndexerRequestor extends SourceIndexerRequestor {
 							    index(node.getTypePatternExpression());
 								return true;
 							}
-							
+
                             @Override
 							public boolean visit(AnyWithAnnotationTypePattern node) {
                                 index(node.getTypePatternExpression());
 								return true;
 							}
-							
+
                             @Override
 							public boolean visit(TypeCategoryTypePattern node) {
                                 index(node.getTypePatternExpression());
 								return true;
 							}
-                            
+
                             @Override
                             public boolean visit(SignaturePattern node) {
                                 index(node.getDetail());
                                 return true;
                             }
-                            
+
 							//TODO: Add more as needed. Extract visitor to file if too large
 
 						};
 
 						declare.accept(typePatternVisitor);
-                        
+
                     } else if (node instanceof DeclareAnnotationDeclaration) {
                         // found it!
                         DeclareAnnotationDeclaration declare = (DeclareAnnotationDeclaration) node;
@@ -124,14 +124,14 @@ public class AJSourceIndexerRequestor extends SourceIndexerRequestor {
                         if (annotationName != null) {
                             String annotationStr = annotationName.toString();
                             if (annotationStr.startsWith("@")) {
-                                annotationStr = annotationStr.substring(1, annotationStr.length());
+                                annotationStr = annotationStr.substring(1);
                             }
                             char[][] splitChars = CharOperation.splitOn('.', annotationStr.toCharArray());
                             super.acceptTypeReference(splitChars, annotationName.getStartPosition(), annotationName.getStartPosition() + annotationName.getLength());
                         }
-                        
+
                         PatternNode targetPattern = declare.getPatternNode();
-                        
+
                         if (targetPattern instanceof IdentifierTypePattern) {
                             String detail = ((IdentifierTypePattern) targetPattern).getTypePatternExpression();
                             char[][] tokens = detail != null ? CharOperation.splitOn('.', detail.toCharArray()) : null;
@@ -144,7 +144,7 @@ public class AJSourceIndexerRequestor extends SourceIndexerRequestor {
                                 super.acceptUnknownReference(token, targetPattern.getStartPosition());
                             }
                         }
-                            
+
                     }
                 } catch (Exception e) {
                     // lots of things can go wrong, so surround in a big try-catch block and log to the console
@@ -152,8 +152,8 @@ public class AJSourceIndexerRequestor extends SourceIndexerRequestor {
             } else if (maybeITD(fieldName, last)) {
                 // assume this is an itd
                 char[][] splits = CharOperation.splitAndTrimOn('$', fieldName);
-                
-                
+
+
                 // should be array of length 2 at least.  Last element is the realMethodName
                 // one before that is the simple name of the type
                 // if more than length 2, then the rest are package names
@@ -161,12 +161,12 @@ public class AJSourceIndexerRequestor extends SourceIndexerRequestor {
 
                 this.indexer.addFieldDeclaration(fieldInfo.type, splits[splits.length-1]);
 
-                
+
                 if (length > 1) {
                     // remove the last segment
                     char[][] newSplits = new char[splits.length-1][];
                     System.arraycopy(splits, 0, newSplits, 0, splits.length-1);
-                    
+
                     super.acceptUnknownReference(newSplits, fieldInfo.nameSourceStart, fieldInfo.nameSourceEnd - splits[length-1].length -1);
                 }
             }
@@ -178,7 +178,7 @@ public class AJSourceIndexerRequestor extends SourceIndexerRequestor {
 	private int getSourceEnd(FieldInfo fieldInfo) throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
 //		return fieldInfo.node.sourceEnd;
 		Field f = fieldInfo.getClass().getDeclaredField("node");
-		
+
 		ASTNode node = (ASTNode) f.get(fieldInfo);
 		return node.sourceEnd;
 	}
@@ -201,7 +201,7 @@ public class AJSourceIndexerRequestor extends SourceIndexerRequestor {
         if (detail == null) {
             return CharOperation.NO_CHAR_CHAR;
         }
-        
+
         Map<String, List<Integer>> allIds = PointcutUtilities.findAllIdentifiers(detail);
         char[][] tokens = new char[allIds.size()][];
         int i = 0;
@@ -233,7 +233,7 @@ public class AJSourceIndexerRequestor extends SourceIndexerRequestor {
         // @type --> $type, @field --> $field, etc
         return lastDollar > 1 && lastDollar < fieldName.length;
     }
-    
+
     @Override
     public void enterMethod(MethodInfo methodInfo) {
         super.enterMethod(methodInfo);
@@ -249,26 +249,26 @@ public class AJSourceIndexerRequestor extends SourceIndexerRequestor {
                 } else {
                     this.indexer.addMethodDeclaration(realMethodName, methodInfo.parameterTypes, methodInfo.returnType, methodInfo.exceptionTypes);
                 }
-                
+
                 // now index the type
                 if (last > 1) {
                     char[][] splits = CharOperation.splitAndTrimOn('$', methodName);
-                    
+
                     // should be array of length 2 at least.  Last element is the realMethodName
                     // one before that is the simple name of the type
                     // if more than length 2, then the rest are package names
                     int length = splits.length;
-                    
+
                     if (length > 1) {
                         // remove the last segment
                         char[][] newSplits = new char[splits.length-1][];
                         System.arraycopy(splits, 0, newSplits, 0, splits.length-1);
-                        
+
                         super.acceptUnknownReference(newSplits, methodInfo.nameSourceStart, methodInfo.nameSourceEnd - splits[length-1].length -1);
                         if (isConstructor) {
                             int argCount = methodInfo.parameterTypes == null ? 0 : methodInfo.parameterTypes.length;
-                            this.indexer.addConstructorDeclaration(splits[length-2], 
-                                    argCount, null, methodInfo.parameterTypes, methodInfo.parameterNames, 
+                            this.indexer.addConstructorDeclaration(splits[length-2],
+                                    argCount, null, methodInfo.parameterTypes, methodInfo.parameterNames,
                                     methodInfo.modifiers, methodInfo.declaringPackageName, methodInfo.declaringTypeModifiers,
                                     methodInfo.exceptionTypes, methodInfo.extraFlags);
                         }

@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2010 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Kris De Volder - initial API and implementation
  *******************************************************************************/
@@ -92,32 +92,32 @@ import org.eclipse.text.edits.ReplaceEdit;
 import org.eclipse.text.edits.TextEdit;
 
 public class PullOutRefactoring extends Refactoring {
-    
+
     /**
      * An instance of this class pulls together all required info for
      * the rewriting of the aspect and handles the rewriting.
      */
     class AspectRewrite {
-        
+
         /**
          * Collects the text of all ITDs.
          */
-        private StringBuffer itds = new StringBuffer();
-        
+        private final StringBuffer itds = new StringBuffer();
+
         /**
          * Collects info for and handles rewriting of imports for the target aspect.
          */
-        private ImportRewrite importRewrite;
+        private final ImportRewrite importRewrite;
 
         /**
          * This field may be set while creating the "deletion" edits to pull out ITDs.
-         * This will only happen if the compilation unit from which we are pulling out 
+         * This will only happen if the compilation unit from which we are pulling out
          * is the same as the target aspect's compilation unit. If set to a non-null
          * value this cuChange object should be used for recording the "insertion"
          * edits.
          */
         private CompilationUnitChange cuChange = null;
-        
+
         public AspectRewrite() throws JavaModelException {
             importRewrite = ImportRewrite.create(targetAspect.getCompilationUnit(), true);
         }
@@ -129,13 +129,13 @@ public class PullOutRefactoring extends Refactoring {
 
 
         /**
-         * Create an ICompiltationUnitChange with all changes to the aspect's CU, related to the insertion 
+         * Create an ICompiltationUnitChange with all changes to the aspect's CU, related to the insertion
          * of ITDs. Ensure these changes are added to the allChanges object.
          */
         private void rewriteAspect(IProgressMonitor submonitor, CompositeChange allChanges) {
             try {
                 CompilationUnitChange edits = getCUChange();
-                
+
                 // Create edit to add "privileged"
                 if (isMakePrivileged() && !isPrivileged()) {
                     int start = targetAspect.getSourceRange().getOffset();
@@ -149,7 +149,7 @@ public class PullOutRefactoring extends Refactoring {
                                                  // start of the compilation unit.
                     edits.addEdit(new InsertEdit(aspectKeywordStart, "privileged "));
                 }
-                
+
                 // Create edit to the imports section of compilation unit
                 if (importRewrite.hasRecordedChanges()) {
                     try {
@@ -158,7 +158,7 @@ public class PullOutRefactoring extends Refactoring {
                         //An aspect handles this
                     }
                 }
-                
+
                 // Add the itds to the aspect
                 edits.addEdit(new InsertEdit(getInsertLocation(), itds.toString()));
 
@@ -172,7 +172,7 @@ public class PullOutRefactoring extends Refactoring {
             } catch (JavaModelException e) {
             }
         }
-        
+
         /**
          * Get the CompilationUnitChange object that should be used to record the changes related to
          * inserting ITDs into the aspect. The object is created if necessary, or reused if it
@@ -196,25 +196,25 @@ public class PullOutRefactoring extends Refactoring {
      * Helper class to create ITD text from a member. An instance of this class is created
      * to provide a working area in which to build the ITD text.
      * <p>
-     * This class was introduced to help manage the complexity of context information that 
+     * This class was introduced to help manage the complexity of context information that
      * was getting passed along with various helper methods that break down the creation of an ITD
      * into smaller steps. This was starting to result in extremely long argument lists.
      * <p>
      * This class keeps all that information in one convenient place. It also provides a nice
      * high-level interface to manipulate the properties of the created ITD, while encapsulating
-     * the messier parts of the rewriting and text manipulation code inside the class. 
-     * 
+     * the messier parts of the rewriting and text manipulation code inside the class.
+     *
      * @author kdvolder
      */
     static class ITDCreator {
-        
+
         private static final int VISIBILITY_MODIFIERS = Modifier.PRIVATE | Modifier.PUBLIC | Modifier.PROTECTED;
 
         /**
          * The original member from which we create the ITD
          */
         private IMember member;
-        
+
         /**
          * The AST node corresponding to the original member.
          */
@@ -226,22 +226,22 @@ public class PullOutRefactoring extends Refactoring {
          * the final ITD text.
          */
         private IDocument memberText;
-        
+
         /**
          * Rather than applying edits immeditiately, we accumulate them in here, this is so that
          * we don't end up destroying position information before we have figured out
          * all the edits to apply to the original text.
          */
         private MultiTextEdit edits = new MultiTextEdit();
-        
+
         /**
          * Modifiers that should be removed when we rewrite the ITD's modifiers.
          * This is a "bitfield". See {@link Modifier} for the meaning of the bits.
          */
         private int deleteMods = 0;
-        
+
         /**
-         * Either an empty String, or a String containing all the modifiers to add, separated 
+         * Either an empty String, or a String containing all the modifiers to add, separated
          * by spaces and with one trailing space.
          */
         private String insertMods = "";
@@ -253,23 +253,23 @@ public class PullOutRefactoring extends Refactoring {
          * This field is initialized during "collectImports".
          */
         private String declaringTypeRef = null;
-        
+
         /**
          * The ITD creator requires an IMember and its corresponding AST node, to be
          * able to perform its work of creating the ITD text.
-         * 
+         *
          * @param member
          * @param memberNode
-         * @throws JavaModelException 
+         * @throws JavaModelException
          */
         public ITDCreator(IMember member, BodyDeclaration memberNode) throws JavaModelException {
             this.member = member;
             this.memberNode = memberNode;
             this.memberText = new Document(getAJSource(member));
         }
-        
+
         /**
-         * Aspect aware method for getting source code. For elements inside an .aj file, it fetches the 
+         * Aspect aware method for getting source code. For elements inside an .aj file, it fetches the
          * "original" source code, not the rewritten source code. For elements in regular .java file
          * it is identical to the getSource method.
          */
@@ -298,9 +298,9 @@ public class PullOutRefactoring extends Refactoring {
                 "----)";
             }
         }
-        
+
         /**
-         * Collect imports needed for this ITD, and add them to the aspects compilation unit's 
+         * Collect imports needed for this ITD, and add them to the aspects compilation unit's
          * importRewriter.
          * <p>
          * This also applies the necessary edits to the ITD text if some imports fail because
@@ -310,12 +310,12 @@ public class PullOutRefactoring extends Refactoring {
          */
         public void collectImports(ImportRewrite importRewrite, RefactoringStatus status) throws JavaModelException {
             Region rangeLimit = new Region(memberNode.getStartPosition(), memberNode.getLength());
-            
-			List<SimpleName> extraType = new ArrayList<SimpleName>();
-			List<SimpleName> extraStatic = new ArrayList<SimpleName>();
-            
+
+			List<SimpleName> extraType = new ArrayList<>();
+			List<SimpleName> extraStatic = new ArrayList<>();
+
             ImportReferencesCollector.collect(memberNode, member.getJavaProject(), rangeLimit, extraType, extraStatic);
-            
+
             for (Name name : extraStatic) {
                 IBinding binding = name.resolveBinding();
                 if (binding==null) {
@@ -325,7 +325,7 @@ public class PullOutRefactoring extends Refactoring {
                     replaceNameRef(name, importRewrite.addStaticImport(binding));
                 }
             }
-                
+
             for (Name name : extraType) {
                 ITypeBinding binding = (ITypeBinding)name.resolveBinding();
                 if (binding==null) {
@@ -334,12 +334,12 @@ public class PullOutRefactoring extends Refactoring {
                 else {
                     if (binding.isParameterizedType()) {
                         // Simple names should not be treated as complete generic type references
-                        binding = binding.getErasure(); 
+                        binding = binding.getErasure();
                     }
                     replaceNameRef(name, importRewrite.addImport(binding));
                 }
             }
-            
+
             if (wasIntertype()) {
                 IntertypeElement ite = (IntertypeElement) member;
                 AJCompilationUnit cu = (AJCompilationUnit) ite.getCompilationUnit();
@@ -367,18 +367,18 @@ public class PullOutRefactoring extends Refactoring {
             if (replaceStr.equals(orgRefText))
                 return;
             edits.addChild(new ReplaceEdit(
-                    name.getStartPosition()-memberStart(), 
-                    name.getLength(), 
+                    name.getStartPosition()-memberStart(),
+                    name.getLength(),
                     replaceStr));
         }
 
-        
+
         /**
          * Create the necessary edits to change modifiers on the ITD as described by the
          * deleteMods and insertMods fields.
          */
         private void rewriteModifiers()
-        throws BadLocationException, MalformedTreeException, JavaModelException 
+        throws BadLocationException, MalformedTreeException, JavaModelException
         {
             if (deleteMods!=0) {
                 List<Modifier> mods = memberNode.modifiers();
@@ -416,7 +416,7 @@ public class PullOutRefactoring extends Refactoring {
                 edits.addChild(new InsertEdit(insertPos, insertMods));
             }
         }
-        
+
         private int memberStart() throws JavaModelException {
             return member.getSourceRange().getOffset();
         }
@@ -431,9 +431,9 @@ public class PullOutRefactoring extends Refactoring {
          * <p>
          * This is a 'once only' operation. After the text of the ITD is created
          * this object has served its purpose and should not be used anymore.
-         * @throws JavaModelException 
-         * @throws BadLocationException 
-         * @throws MalformedTreeException 
+         * @throws JavaModelException
+         * @throws BadLocationException
+         * @throws MalformedTreeException
          */
         public String createText() throws JavaModelException, MalformedTreeException, BadLocationException {
             try {
@@ -457,7 +457,7 @@ public class PullOutRefactoring extends Refactoring {
                     // Insert declaring type reference in front of name
                     IType declaringType = member.getDeclaringType();
                     Assert.isNotNull(declaringTypeRef, "The declaring type name is computed by collectImports. Forgot to call it?");
-                    StringBuffer typeName = new StringBuffer(declaringTypeRef);
+                    StringBuilder typeName = new StringBuilder(declaringTypeRef);
                     ITypeParameter[] typeParameters = declaringType.getTypeParameters();
                     if (typeParameters !=null && typeParameters.length>0) {
                         typeName.append("<");
@@ -469,7 +469,7 @@ public class PullOutRefactoring extends Refactoring {
                     }
                     typeName.append( "." );
                     edits.addChild(new InsertEdit(nameStart, typeName.toString()));
-                    
+
                     // For constructors, must change name to "new"
                     if (member instanceof IMethod && ((IMethod)member).isConstructor()) {
                         edits.addChild(new ReplaceEdit(nameStart, member.getNameRange().getLength(), "new"));
@@ -479,7 +479,7 @@ public class PullOutRefactoring extends Refactoring {
                 // Add some newlines to the end for nicer spacing
                 String newline = memberText.getLineDelimiter(0);
                 if (newline==null) // We tried to use the same as in the memberText but it has none
-                    newline = System.getProperty("line.separator"); 
+                    newline = System.getProperty("line.separator");
                 edits.addChild(new InsertEdit(memberEnd,  newline+newline));
 
                 // applying these edits should produce the ITD text
@@ -505,50 +505,50 @@ public class PullOutRefactoring extends Refactoring {
         }
 
         /**
-         * Was the original member protected. 
+         * Was the original member protected.
          */
         public boolean wasProtected() throws JavaModelException {
             return JdtFlags.isProtected(member);
         }
 
         /**
-         * Was the original member public. 
+         * Was the original member public.
          */
         public boolean wasPublic() throws JavaModelException {
             return JdtFlags.isPublic(member);
         }
 
         /**
-         * Was the original member private. 
+         * Was the original member private.
          */
         public boolean wasPrivate() throws JavaModelException {
             return JdtFlags.isPrivate(member);
         }
-        
+
         /**
          * Was the original member abstract.
          */
         public boolean wasAbstract() throws JavaModelException {
             return JdtFlags.isAbstract(member);
         }
-        
+
         /**
          * Was the original member "package visible" (i.e. it has no visibility
-         * modifiers at all. 
+         * modifiers at all.
          */
         public boolean wasPackageVisible() throws JavaModelException {
             return JdtFlags.isPackageVisible(member);
         }
 
         /**
-         * Get the original member from which we are creating an ITD. 
+         * Get the original member from which we are creating an ITD.
          */
         public IMember getMember() {
             return member;
         }
 
         /**
-         * Get the IJavaElement name of the original member. 
+         * Get the IJavaElement name of the original member.
          */
         public String getElementName() {
             return member.getElementName();
@@ -607,36 +607,36 @@ public class PullOutRefactoring extends Refactoring {
             if (body==null) return false;
             @SuppressWarnings("unchecked") List<Statement> stms = body.statements();
             if (stms==null || stms.size()==0) return false;
-            Statement firstStm = stms.get(0); 
+            Statement firstStm = stms.get(0);
             if (!(firstStm instanceof ConstructorInvocation)) return false;
             ConstructorInvocation call = (ConstructorInvocation) firstStm;
-            // The class ConstructorInvocation only represents "this(...)" calls 
+            // The class ConstructorInvocation only represents "this(...)" calls
             return call.arguments().isEmpty();
         }
     }
-    
+
     private static final String MAKE_PRIVILEGED = "makePrivileged";
     private static final String MEMBER = "member";
 
     protected static final String ASPECT = "aspect";
-    
+
     /**
      * The members to pull out, grouped by compilation unit for efficiency sake (
      * so we can process them one CU at a time)
      */
     private Map<ICompilationUnit, Collection<IMember>> memberMap;
     private HashSet<IMember> memberSet;
-    
+
     /**
      * The target aspect to where the method should be moved.
      */
     private AspectElement targetAspect;
-        
+
     /**
      * Should we make the aspect privileged
      */
     private boolean makePrivileged = false;
-    
+
     /**
      * Allow pulling abstract methods. This deletes abstract keyword and generates
      * method stubs for "abstract" ITDs.
@@ -653,10 +653,10 @@ public class PullOutRefactoring extends Refactoring {
      * Allow to make ITDs public to avoid breaking references to pulled members.
      */
     private boolean allowMakePublic;
-    
+
     private IJavaProject javaProject;
     private AspectRewrite aspectChanges;
-    
+
     public PullOutRefactoring() {
         clearMembers(); // initializes the member map and sets
     }
@@ -666,12 +666,12 @@ public class PullOutRefactoring extends Refactoring {
         Collection<IMember> members = getMembers(cu);
         members.add(member);
         memberSet.add(member);
-        if (javaProject==null) 
+        if (javaProject==null)
             javaProject = member.getJavaProject();
-        else if (javaProject!=member.getJavaProject()) 
+        else if (javaProject!=member.getJavaProject())
             status.addError("Pull-out refactoring across multiple projects is not suppored", makeContext(member));
     }
-    
+
     @Override
     public RefactoringStatus checkFinalConditions(IProgressMonitor pm)
             throws CoreException, OperationCanceledException {
@@ -713,7 +713,7 @@ public class PullOutRefactoring extends Refactoring {
                         else {
                             status.addWarning("moved member '"+member.getElementName()+"' is abstract.\n" +
                                     "abstract ITDs are not allowed by AspectJ.\n" +
-                                    "You can enable the 'convert abstract methods' option to avoid this error.", 
+                                    "You can enable the 'convert abstract methods' option to avoid this error.",
                                     makeContext(member));
                             //If you choose to ignore this error and perform refactoring anyway...
                             // We make sure the abstract keyword is added to the itd, so you will get a compile error
@@ -757,28 +757,28 @@ public class PullOutRefactoring extends Refactoring {
             throws JavaModelException {
         ISourceRange range = member.getSourceRange();
         NodeFinder finder = new NodeFinder(cuNode, range.getOffset(), range.getLength());
-        return finder.getCoveredNode(); 
+        return finder.getCoveredNode();
         // Note: why we *have* to use getCoveredNode explicitly rather than use the
         // perform methods defined on NodeFinder.
         // See BUG 316945: Normally, we have exact positions and covering/covered are the same node.
-        // but in the BUG case we should use the covered node since a JDT bug makes the source range 
+        // but in the BUG case we should use the covered node since a JDT bug makes the source range
         // be too large.
     }
 
     /**
      * Check whether references to moved elements become broken. Update status message
      * accordingly (but only if allowModifierConversion is set to false).
-     * 
+     *
      * @return true if no references become broken
      */
     private boolean checkIncomingReferences(ITDCreator movedMember, RefactoringStatus status) throws CoreException {
-        if (movedMember.wasPublic()) 
+        if (movedMember.wasPublic())
             return true; //Always ok if member was already public
         boolean ok = true;
         IJavaSearchScope scope= SearchEngine.createJavaSearchScope(new IJavaElement[] { javaProject });
         SearchPattern pattern= SearchPattern.createPattern(movedMember.getMember(), IJavaSearchConstants.REFERENCES);
         SearchEngine engine= new SearchEngine();
-        final Set<SearchMatch> references = new HashSet<SearchMatch>();
+        final Set<SearchMatch> references = new HashSet<>();
         engine.search(pattern, new SearchParticipant[] { SearchEngine.getDefaultSearchParticipant()}, scope, new SearchRequestor() {
             @Override
             public void acceptSearchMatch(SearchMatch match) throws CoreException {
@@ -786,7 +786,7 @@ public class PullOutRefactoring extends Refactoring {
                     references.add(match);
             }
         }, new NullProgressMonitor());
-        
+
         String referredPkg = getPackageName(targetAspect); // since the element is moved it's package *will* be...
         for (SearchMatch match : references) {
             if (match.getElement() instanceof IJavaElement) {
@@ -836,7 +836,7 @@ public class PullOutRefactoring extends Refactoring {
     @Override
     public RefactoringStatus checkInitialConditions(IProgressMonitor monitor)
             throws CoreException, OperationCanceledException {
-        
+
         RefactoringStatus status= new RefactoringStatus();
         monitor.beginTask("Checking preconditions...", 1);
         try {
@@ -847,23 +847,23 @@ public class PullOutRefactoring extends Refactoring {
                     for (IMember member : memberMap.get(cu)) {
                         if (!member.exists()) {
                             status.merge(RefactoringStatus.createFatalErrorStatus(
-                                    MessageFormat.format("Member ''{0}'' does not exist.", 
-                                            new Object[] { member.getElementName()})));
+                                    MessageFormat.format("Member ''{0}'' does not exist.",
+                                      member.getElementName())));
                         }
                         else if (!isInTopLevelType(member)) {
                             status.merge(RefactoringStatus.createFatalErrorStatus(
-                                    MessageFormat.format("Member ''{0}'' is not directly nested in a top-level type.", 
-                                            new Object[] { member.getElementName()})));
+                                    MessageFormat.format("Member ''{0}'' is not directly nested in a top-level type.",
+                                      member.getElementName())));
                         }
                         else if (member.isBinary()) {
                             status.merge(RefactoringStatus.createFatalErrorStatus(
-                                    MessageFormat.format("Member ''{0}'' is not in source code. Binary methods can not be refactored.", 
-                                            new Object[] { member.getElementName()})));
+                                    MessageFormat.format("Member ''{0}'' is not in source code. Binary methods can not be refactored.",
+                                      member.getElementName())));
                         }
                         else if (!member.getCompilationUnit().isStructureKnown()) {
                             status.merge(RefactoringStatus.createFatalErrorStatus(
-                                    MessageFormat.format("Compilation unit ''{0}'' contains compile errors.", 
-                                            new Object[] { cu.getElementName()})));
+                                    MessageFormat.format("Compilation unit ''{0}'' contains compile errors.",
+                                      cu.getElementName())));
                         }
                     }
                 }
@@ -873,12 +873,12 @@ public class PullOutRefactoring extends Refactoring {
         }
         return status;
     }
-    
+
     private void checkOutgoingReferences(final ITDCreator itd, final RefactoringStatus status)
             throws CoreException, OperationCanceledException {
-        if (willBePrivileged()) 
+        if (willBePrivileged())
             return; //Always OK!
-        
+
         // Walk the AST to find problematic references (e.g. references to private members from within the moved method)
         itd.getMemberNode().accept(new ASTVisitor() {
             /**
@@ -889,7 +889,7 @@ public class PullOutRefactoring extends Refactoring {
                 if (isField(binding) || isMethod(binding) || isType(binding)) {
                     if (isTypeParameter(binding))
                         return; //Exclude these, or they'll look like package restricted types in code below.
-                    if (isMoved(binding)) 
+                    if (isMoved(binding))
                         return; //OK: anything moved to the aspect will be accessible from the aspect
                     int mods = binding.getModifiers();
                     if (Modifier.isPrivate(mods)) {
@@ -900,7 +900,7 @@ public class PullOutRefactoring extends Refactoring {
                         // FIXKDV: separate case for protected
                         // These are really two separate cases, but the cases where this matters (i.e.
                         // aspects that have a super type are rare so I'm not dealing with that
-                        // right now (this is relatively harmless: will result in a spurious warning message 
+                        // right now (this is relatively harmless: will result in a spurious warning message
                         // in rare case where the pulled member is protected and is pulled from target aspect's
                         // supertype that is not in the same package as target aspect)
                         String referredPkg = getPackageName(binding.getJavaElement());
@@ -917,26 +917,26 @@ public class PullOutRefactoring extends Refactoring {
                     }
                 }
             }
-            
+
             private boolean isField(IBinding binding) {
                 return (binding instanceof IVariableBinding)
                     && ((IVariableBinding)binding).isField();
             }
-            
+
             private boolean isMethod(IBinding binding) {
                 return (binding instanceof IMethodBinding);
             }
-            
+
             private boolean isType(IBinding binding) {
                 return binding instanceof ITypeBinding;
             }
-            
+
             private boolean isTypeParameter(IBinding binding) {
                 return binding instanceof ITypeBinding
-                  && (  ((ITypeBinding)binding).isCapture() 
+                  && (  ((ITypeBinding)binding).isCapture()
                      || ((ITypeBinding)binding).isTypeVariable() );
             }
-            
+
             @Override
             public boolean visit(SimpleName node) {
                 IBinding binding = node.resolveBinding();
@@ -948,8 +948,8 @@ public class PullOutRefactoring extends Refactoring {
     }
 
     private void clearMembers() {
-        memberMap = new HashMap<ICompilationUnit, Collection<IMember>>();
-        memberSet = new HashSet<IMember>();
+        memberMap = new HashMap<>();
+        memberSet = new HashSet<>();
         javaProject = null;
     }
 
@@ -960,7 +960,7 @@ public class PullOutRefactoring extends Refactoring {
             pm.beginTask("Creating changes...", memberMap.keySet().size());
             CompositeChange allChanges = new CompositeChange("PullOut ITDs");
             for (ICompilationUnit cu : memberMap.keySet()) {
-                
+
                 // Prepare an ASTRewriter for this compilation unit
                 ASTParser parser= ASTParser.newParser(AST.JLS8);
                 parser.setSource(cu);
@@ -977,10 +977,10 @@ public class PullOutRefactoring extends Refactoring {
                 // Create CUChange object with the accumulated deletion edits.
                 CompilationUnitChange cuChanges = newCompilationUnitChange(cu);
                 cuChanges.setEdit(cuEdits);
-                
+
                 // Add changes for this compilation unit.
                 allChanges.add(cuChanges);
-                
+
                 pm.worked(1);
             }
             aspectChanges.rewriteAspect(pm, allChanges);
@@ -993,10 +993,10 @@ public class PullOutRefactoring extends Refactoring {
 
     /**
      * For cosmetic reasons (nicer indentation of resulting text after deletion of membernode
-     * we force the nodes sourcerange to include any spaces in front of the node, upto the 
+     * we force the nodes sourcerange to include any spaces in front of the node, upto the
      * beginning of the line.
-     * @param cu 
-     * @return 
+     * @param cu
+     * @return
      */
     private ISourceRange grabSpaceBefore(ICompilationUnit cu, ISourceRange range) {
         try {
@@ -1056,44 +1056,40 @@ public class PullOutRefactoring extends Refactoring {
     }
 
     public IMember[] getMembers() {
-        List<IMember> members = new ArrayList<IMember>();
+        List<IMember> members = new ArrayList<>();
         for (ICompilationUnit cu : memberMap.keySet()) {
             members.addAll(getMembers(cu));
         }
-        return members.toArray(new IMember[members.size()]);
+        return members.toArray(new IMember[0]);
     }
 
     private Collection<IMember> getMembers(ICompilationUnit cu) {
-        Collection<IMember> result = memberMap.get(cu);
-        if (result==null) {
-            result = new ArrayList<IMember>();
-            memberMap.put(cu, result);
-        }
-        return result;
+      Collection<IMember> result = memberMap.computeIfAbsent(cu, k -> new ArrayList<>());
+      return result;
     }
 
     @Override
     public String getName() {
         return "Pull-Out";
     }
-    
+
     public boolean hasMembers() {
         return !memberSet.isEmpty();
     }
 
     public RefactoringStatus initialize(Map<String, String> args) {
         RefactoringStatus status = new RefactoringStatus();
-        setMakePrivileged(Boolean.valueOf(args.get(MAKE_PRIVILEGED)));
+        setMakePrivileged(Boolean.parseBoolean(args.get(MAKE_PRIVILEGED)));
         setMember((IMember)JavaCore.create(args.get(MEMBER)), status);
         return status;
     }
 
     private boolean isInTopLevelType(IMember member) {
         IJavaElement parent = member.getParent();
-        Assert.isTrue(parent.getElementType()==IJavaElement.TYPE); 
+        Assert.isTrue(parent.getElementType()==IJavaElement.TYPE);
         return parent.getParent().getElementType()==IJavaElement.COMPILATION_UNIT;
     }
-    
+
     /**
      * Is the "make privileged" option of the refactoring set.
      */
@@ -1138,7 +1134,7 @@ public class PullOutRefactoring extends Refactoring {
     public boolean isGenerateAbstractMethodStubs() {
         return generateAbstractMethodStubs;
     }
-    
+
     /**
      * Allow pulling out of abstract methods. The abstract keyword will
      * be removed and a dummy method body added.
@@ -1153,14 +1149,14 @@ public class PullOutRefactoring extends Refactoring {
     public void setAllowMakePublic(boolean allow) {
         this.allowMakePublic = allow;
     }
-    
+
     /**
      * Allow ITDs to be made public, as needed.
      */
     public void setAllowDeleteProtected(boolean allow) {
         this.allowDeleteProtected = allow;
     }
-    
+
     /**
      * Are we allowed to delete any visibility modifier (on ITDs)
      * and make the ITD public?
@@ -1175,9 +1171,9 @@ public class PullOutRefactoring extends Refactoring {
     public boolean isAllowDeleteProtected() {
         return allowDeleteProtected || allowMakePublic;
     }
-    
+
     /**
-     * Is the given IJaveElement selected to be pulled into the Aspect. Elements moved because they are 
+     * Is the given IJaveElement selected to be pulled into the Aspect. Elements moved because they are
      * nested inside selected elements are *not* considered (if you want this, use isMoved instead).
      */
     private boolean isPulled(IJavaElement javaElement) {
@@ -1247,7 +1243,7 @@ public class PullOutRefactoring extends Refactoring {
 
         if (type.isBinary())
             return RefactoringStatus.createFatalErrorStatus("Type is binary.");
-        
+
         targetAspect = (AspectElement) type;
 
         return new RefactoringStatus();

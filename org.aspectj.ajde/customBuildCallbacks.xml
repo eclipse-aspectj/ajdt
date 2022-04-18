@@ -4,7 +4,7 @@
     are made available under the terms of the Eclipse Public License v1.0
     which accompanies this distribution, and is available at
     http://www.eclipse.org/legal/epl-v10.html
-   
+
     Contributors:
         Andrew Eisenberg - modified for AJDT 2.2.3
  -->
@@ -20,9 +20,9 @@
 	<target name="noDefault">
 		<echo message="This file must be called with explicit targets" />
 	</target>
-	
+
 	<!-- ===================================================================== -->
-	<!-- Steps to do before the target build.jars                              -->
+	<!-- Steps to take before the target build.jars                              -->
 	<!-- Available parameters :                                                -->
 	<!--   build.result.folder - folder to contain the build results           -->
 	<!-- ===================================================================== -->
@@ -30,15 +30,15 @@
 	</target>
 
 	<!-- ===================================================================== -->
-	<!-- Steps to do after the target build.jars                               -->
+	<!-- Steps to take after the target build.jars                               -->
 	<!-- Available parameters :                                                -->
 	<!--   build.result.folder - folder to contain the build results           -->
 	<!-- ===================================================================== -->
 	<target name="post.build.jars">
 	</target>
-	
+
 	<!-- ===================================================================== -->
-	<!-- Steps to do before the target build.sources                           -->
+	<!-- Steps to take before the target build.sources                           -->
 	<!-- Available parameters :                                                -->
 	<!--   build.result.folder - folder to contain the build results           -->
 	<!-- ===================================================================== -->
@@ -46,7 +46,7 @@
 	</target>
 
 	<!-- ===================================================================== -->
-	<!-- Steps to do after the target build.sources                            -->
+	<!-- Steps to take after the target build.sources                            -->
 	<!-- Available parameters :                                                -->
 	<!--   build.result.folder - folder to contain the build results           -->
 	<!-- ===================================================================== -->
@@ -54,27 +54,27 @@
 	</target>
 
 	<!-- ===================================================================== -->
-	<!-- Steps to do before the compilation target <name>                      -->
-	<!-- Substitute "name" with the name of the compilation target, eg @dot    -->
+	<!-- Steps to take before the compilation target <name>                    -->
+	<!-- Substitute "name" with the name of the compilation target, e.g. @dot  -->
 	<!-- Available parameters :                                                -->
 	<!--   source.foldern : n = 1 ... N, the source folders                    -->
 	<!--   target.folder  : where the results of the compilation go            -->
 	<!--   <name>.classpath : name = name of the compilation target. A         -->
 	<!--                      reference to the classpath structure.            -->
 	<!-- ===================================================================== -->
-	
-	
+
+
 	<!-- ===================================================================== -->
-	<!-- Steps to do before the target gather.bin.parts                         -->
+	<!-- Steps to take before the target gather.bin.parts                         -->
 	<!-- Available parameters :                                                -->
 	<!--   build.result.folder - folder containing the build results           -->
 	<!--   target.folder - destination folder                                  -->
 	<!-- ===================================================================== -->
 	<target name="pre.gather.bin.parts">
 	</target>
-		
+
 	<!-- ===================================================================== -->
-	<!-- Steps to do after the target gather.bin.parts                         -->
+	<!-- Steps to take after the target gather.bin.parts                         -->
 	<!-- Available parameters :                                                -->
 	<!--   build.result.folder - folder containing the build results           -->
 	<!--   target.folder - destination folder                                  -->
@@ -84,13 +84,13 @@
 		<copy todir="${target.folder}">
 			<fileset dir="classes" />
 		</copy>
-		<!-- remove the classes folder of the manifest -->
+		<!-- remove the 'classes' folder of the manifest -->
 		<replace file="${target.folder}/META-INF/MANIFEST.MF"
 			token="Bundle-ClassPath: .,classes" value="Bundle-ClassPath: ."/>
 	</target>
 
 	<!-- ===================================================================== -->
-	<!-- Steps to do before the target gather.sources                          -->
+	<!-- Steps to take before the target gather.sources                          -->
 	<!-- Available parameters :                                                -->
 	<!--   destination.temp.folder - destination folder                        -->
 	<!-- ===================================================================== -->
@@ -98,7 +98,7 @@
 	</target>
 
 	<!-- ===================================================================== -->
-	<!-- Steps to do after the target gather.sources                           -->
+	<!-- Steps to take after the target gather.sources                           -->
 	<!-- Available parameters :                                                -->
 	<!--   destination.temp.folder - destination folder                        -->
 	<!-- ===================================================================== -->
@@ -109,36 +109,36 @@
 	</target>
 
 	<!-- ===================================================================== -->
-	<!-- Steps to do before the target gather.logs                             -->
+	<!-- Steps to take before the target gather.logs                             -->
 	<!-- Available parameters :                                                -->
 	<!--   destination.temp.folder - destination folder                        -->
 	<!-- ===================================================================== -->
-	<target name="pre.gather.logs">        
+	<target name="pre.gather.logs">
 	</target>
 
 	<!-- ===================================================================== -->
-	<!-- Steps to do after the target gather.logs                              -->
+	<!-- Steps to take after the target gather.logs                              -->
 	<!-- Available parameters :                                                -->
 	<!--   destination.temp.folder - destination folder                        -->
 	<!-- ===================================================================== -->
-	<target name="post.gather.logs">       
+	<target name="post.gather.logs">
 	</target>
 
 	<!-- ===================================================================== -->
-	<!-- Steps to do before the target clean                                   -->
+	<!-- Steps to take before the target clean                                   -->
 	<!-- Available parameters :                                                -->
 	<!--   destination.temp.folder - destination folder                        -->
 	<!-- ===================================================================== -->
-	<target name="pre.clean">              
+	<target name="pre.clean">
 	</target>
 
 	<!-- ===================================================================== -->
-	<!-- Steps to do after the target clean                                    -->
+	<!-- Steps to take after the target clean                                    -->
 	<!-- Available parameters :                                                -->
 	<!--   plugin.destination - final destination of the build                 -->
 	<!--   build.result.folder - results of the compilation                    -->
 	<!--   temp.folder - temporary folder                                      -->
 	<!-- ===================================================================== -->
-	<target name="post.clean">             
+	<target name="post.clean">
 	</target>
 </project>

@@ -10,6 +10,7 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.tests.model;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -57,32 +58,28 @@ public class InpathRelationshipsTests extends AJDTCoreTestCase {
     private Set<IType> gatherTargetTypesNonDefault() throws Exception{
         ICompilationUnit source = (ICompilationUnit) JavaCore.create(depends.getFile("src/g/Source.java"));
         IType[] types = source.getAllTypes();
-        Set<IType> targetTypes = new HashSet<IType>();
-        for (int i = 0; i < types.length; i++) {
-            targetTypes.add(types[i]);
-        }
+        Set<IType> targetTypes = new HashSet<>();
+      Collections.addAll(targetTypes, types);
 
         IPackageFragment frag = (IPackageFragment) JavaCore.create(target.getFolder("binaryFolder/g"));
         IClassFile[] cFiles = frag.getClassFiles();
-        for (int i = 0; i < cFiles.length; i++) {
-            targetTypes.add(cFiles[i].getType());
-        }
+      for (IClassFile cFile : cFiles) {
+        targetTypes.add(cFile.getType());
+      }
         return targetTypes;
     }
 
     private Set<IType> gatherTargetTypesDefault() throws Exception{
         ICompilationUnit source = (ICompilationUnit) JavaCore.create(depends.getFile("src/InDefault.java"));
         IType[] types = source.getAllTypes();
-        Set<IType> targetTypes = new HashSet<IType>();
-        for (int i = 0; i < types.length; i++) {
-            targetTypes.add(types[i]);
-        }
+        Set<IType> targetTypes = new HashSet<>();
+      Collections.addAll(targetTypes, types);
 
         IPackageFragment frag = ((IPackageFragmentRoot) JavaCore.create(target.getFolder("binaryFolder"))).getPackageFragment("");
         IClassFile[] cFiles = frag.getClassFiles();
-        for (int i = 0; i < cFiles.length; i++) {
-            targetTypes.add(cFiles[i].getType());
-        }
+      for (IClassFile cFile : cFiles) {
+        targetTypes.add(cFile.getType());
+      }
         return targetTypes;
     }
 
@@ -92,20 +89,17 @@ public class InpathRelationshipsTests extends AJDTCoreTestCase {
         Set<IType> targetTypes = gatherTargetTypesNonDefault();
         Map<Integer, List<IRelationship>> relationships = model.getRelationshipsForFile(unit);
         assertEquals("Should have found 15 relationships in the compilation unit", 15, relationships.size());
-        for (Iterator<List<IRelationship>> allRelsIter = relationships.values().iterator(); allRelsIter.hasNext();) {
-            List<IRelationship> rels = allRelsIter.next();
-            for (Iterator<IRelationship> relsIter = rels.iterator(); relsIter.hasNext();) {
-                IRelationship rel = relsIter.next();
-                for (Iterator<String> targetIter = rel.getTargets().iterator(); targetIter.hasNext();) {
-                    String targetHandle = targetIter.next();
-                    IJavaElement elt = model.programElementToJavaElement(targetHandle);
-                    assertTrue("Java element should exist: " + elt.getHandleIdentifier(), elt.exists());
-                    targetTypes.remove(elt);
-                }
-            }
+      for (List<IRelationship> rels : relationships.values()) {
+        for (IRelationship rel : rels) {
+          for (String targetHandle : rel.getTargets()) {
+            IJavaElement elt = model.programElementToJavaElement(targetHandle);
+            assertTrue("Java element should exist: " + elt.getHandleIdentifier(), elt.exists());
+            targetTypes.remove(elt);
+          }
         }
+      }
 
-        assertTrue("The following types should have been a target of an ITD:\n" + printTargetTypes(targetTypes), targetTypes.size() == 0);
+      assertEquals("The following types should have been a target of an ITD:\n" + printTargetTypes(targetTypes), 0, targetTypes.size());
     }
 
     public void testInPathRelationshipsDefault() throws Exception {
@@ -114,28 +108,25 @@ public class InpathRelationshipsTests extends AJDTCoreTestCase {
         Set<IType> targetTypes = gatherTargetTypesDefault();
         Map<Integer, List<IRelationship>> relationships = model.getRelationshipsForFile(unit);
         assertEquals("Should have found 15 relationships in the compilation unit", 15, relationships.size());
-        for (Iterator<List<IRelationship>> allRelsIter = relationships.values().iterator(); allRelsIter.hasNext();) {
-            List<IRelationship> rels = allRelsIter.next();
-            for (Iterator<IRelationship> relsIter = rels.iterator(); relsIter.hasNext();) {
-                IRelationship rel = relsIter.next();
-                for (Iterator<String> targetIter = rel.getTargets().iterator(); targetIter.hasNext();) {
-                    String targetHandle = targetIter.next();
-                    IJavaElement elt = model.programElementToJavaElement(targetHandle);
-                    assertTrue("Java element should exist: " + elt.getHandleIdentifier(), elt.exists());
-                    targetTypes.remove(elt);
-                }
-            }
+      for (List<IRelationship> rels : relationships.values()) {
+        for (IRelationship rel : rels) {
+          for (String targetHandle : rel.getTargets()) {
+            IJavaElement elt = model.programElementToJavaElement(targetHandle);
+            assertTrue("Java element should exist: " + elt.getHandleIdentifier(), elt.exists());
+            targetTypes.remove(elt);
+          }
         }
+      }
 
-        assertTrue("The following types should have been a target of an ITD:\n" + printTargetTypes(targetTypes), targetTypes.size() == 0);
+      assertEquals("The following types should have been a target of an ITD:\n" + printTargetTypes(targetTypes), 0, targetTypes.size());
     }
 
     /**
      * relationships should not be removed after an incremental build
      */
     public void testRelationshipsAfterIncrementalBuild() throws Exception {
-        IFile file = target.getFile("src/snippet/AdvisesLinked.aj");;
-        file.touch(null);
+        IFile file = target.getFile("src/snippet/AdvisesLinked.aj");
+      file.touch(null);
         waitForAutoBuild();
         testInPathRelationshipsNonDefault();
 
@@ -146,11 +137,10 @@ public class InpathRelationshipsTests extends AJDTCoreTestCase {
     }
 
     private String printTargetTypes(Set<IType> targetTypes) {
-        StringBuffer sb = new StringBuffer();
-        for (Iterator<IType> targetIter = targetTypes.iterator(); targetIter.hasNext();) {
-            IType type = targetIter.next();
-            sb.append(type.getHandleIdentifier() + "\n");
-        }
+        StringBuilder sb = new StringBuilder();
+      for (IType type : targetTypes) {
+        sb.append(type.getHandleIdentifier()).append("\n");
+      }
         return sb.toString();
     }
 

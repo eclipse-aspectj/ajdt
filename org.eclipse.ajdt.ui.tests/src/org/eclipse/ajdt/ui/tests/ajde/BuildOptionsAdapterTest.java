@@ -3,8 +3,8 @@
  * program and the accompanying materials are made available under the terms of
  * the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
- * 
- * Contributors: IBM Corporation - initial API and implementation 
+ *
+ * Contributors: IBM Corporation - initial API and implementation
  * 				 Helen Hawkins   - initial version
  *               Helen Hawkins   - updated for new ajde interface (bug 148190)
  ******************************************************************************/
@@ -69,7 +69,7 @@ public class BuildOptionsAdapterTest extends UITestCase {
 	}
 
 	public void testGetNonStandardOptionsViaWorkbenchPreferences()
-			throws Exception {
+  {
 		String nonStandard = AspectJUIPlugin.getDefault()
 				.getCompilerFactory().getCompilerForProject(project).getCompilerConfiguration().getNonStandardOptions();
 		String[] nonStandardOptions = disectOptions(nonStandard);
@@ -114,7 +114,7 @@ public class BuildOptionsAdapterTest extends UITestCase {
 		nonStandardOptions = disectOptions(nonStandard);
 		assertEquals("should have set -XhasMember", "-XhasMember", //$NON-NLS-1$ //$NON-NLS-2$
 				nonStandardOptions[3]);
-		
+
 		prefStore.setValue(AspectJPreferences.OPTION_XHasMember, false);
 		prefStore.setValue(AspectJPreferences.OPTION_XNoInline, false);
 		nonStandard = AspectJUIPlugin.getDefault().getCompilerFactory().getCompilerForProject(project).getCompilerConfiguration()
@@ -140,7 +140,7 @@ public class BuildOptionsAdapterTest extends UITestCase {
 	}
 
 	public void testGetNonStandardOptionsViaProjectPreferences()
-			throws Exception {
+  {
 		AspectJPreferences.setUsingProjectSettings(project, true);
 		assertTrue("should be using project settings", AspectJPreferences //$NON-NLS-1$
 				.isUsingProjectSettings(project));
@@ -224,7 +224,7 @@ public class BuildOptionsAdapterTest extends UITestCase {
 	 * preference store
 	 */
 	public void testGetShowWeaveMessagesViaWorkbenchPreferences()
-			throws Exception {
+  {
 		assertFalse("default setting is not to show weave info", //$NON-NLS-1$
 				AspectJPreferences.getShowWeaveMessagesOption(project));
 		// know that when "show weave messages" is selected in the preference
@@ -249,7 +249,7 @@ public class BuildOptionsAdapterTest extends UITestCase {
 	 * projectNode
 	 */
 	public void testGetShowWeaveMessagesViaProjectPreferences()
-			throws Exception {
+  {
 		AspectJPreferences.setUsingProjectSettings(project, true);
 
 		assertFalse("default setting is not to show weave info", //$NON-NLS-1$
@@ -282,16 +282,14 @@ public class BuildOptionsAdapterTest extends UITestCase {
 											// quotes
 			String pre = nonStdOptions.substring(0, ind);
 			String quoted = nonStdOptions.substring(ind + 1, ind2);
-			String post = nonStdOptions.substring(ind2 + 1, nonStdOptions
-					.length());
+			String post = nonStdOptions.substring(ind2 + 1);
 			tokens.addAll(tokenizeString(pre));
 			tokens.add(quoted);
 			tokens.addAll(tokenizeString(post));
 		} else {
 			tokens.addAll(tokenizeString(nonStdOptions));
 		}
-		String[] args = (String[]) tokens.toArray(new String[] {});
-		return args;
+    return (String[]) tokens.toArray(new String[] {});
 	}
 
 	/** Local helper method for splitting option strings */

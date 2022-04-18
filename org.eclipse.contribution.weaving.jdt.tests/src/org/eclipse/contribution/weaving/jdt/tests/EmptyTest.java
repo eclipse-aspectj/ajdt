@@ -23,5 +23,5 @@ import junit.framework.TestCase;
  * @created Jul 29, 2010
  */
 public class EmptyTest extends TestCase {
-    public void testNothing() throws Exception { }
+    public void testNothing() { }
 }

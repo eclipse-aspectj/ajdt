@@ -1,13 +1,13 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2003 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     George Harley - initial version
- * 	   Helen Hawkins - converting for use with AJDT 1.1.11 codebase  
+ * 	   Helen Hawkins - converting for use with AJDT 1.1.11 codebase
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests.actions;
 
@@ -28,7 +28,7 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 
 /**
- *  
+ *
  */
 public class RemoveAJNatureActionTest extends UITestCase {
 
@@ -106,18 +106,19 @@ public class RemoveAJNatureActionTest extends UITestCase {
         // Go through each current classpath entry one at a time. If it
         // is not a reference to the aspectjrt.jar then do not add it
         // to the collection of new classpath entries.
-        for (int i = 0; i < originalCP.length; i++) {
-            IPath path = originalCP[i].getPath();
-            if (path.toOSString().endsWith("ASPECTJRT_LIB") //$NON-NLS-1$
-                    || path.toOSString().endsWith("aspectjrt.jar")) { //$NON-NLS-1$
-                return true;
-            }
-            if (originalCP[i].getEntryKind() == IClasspathEntry.CPE_CONTAINER) {
-                if (path.segment(0).equals(AspectJPlugin.ASPECTJRT_CONTAINER)) {
-                    return true;
-                }
-            }
-        }// end for
+      for (IClasspathEntry iClasspathEntry : originalCP) {
+        IPath path = iClasspathEntry.getPath();
+        if (path.toOSString().endsWith("ASPECTJRT_LIB") //$NON-NLS-1$
+            || path.toOSString().endsWith("aspectjrt.jar"))
+        { //$NON-NLS-1$
+          return true;
+        }
+        if (iClasspathEntry.getEntryKind() == IClasspathEntry.CPE_CONTAINER) {
+          if (path.segment(0).equals(AspectJPlugin.ASPECTJRT_CONTAINER)) {
+            return true;
+          }
+        }
+      }// end for
         return false;
     }
 }

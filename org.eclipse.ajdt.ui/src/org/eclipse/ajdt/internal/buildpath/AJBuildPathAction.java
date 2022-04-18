@@ -4,7 +4,7 @@
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Matthew Ford - initial API and implementation
  *******************************************************************************/
@@ -29,23 +29,23 @@ import org.eclipse.ui.IWorkbenchPart;
 public abstract class AJBuildPathAction {
 
 	protected IFile jarFile;
-	
+
 	protected String fileName;
 
 	protected IClasspathEntry cpEntry;
-	
+
 	protected IProject project;
-	
+
 	public AJBuildPathAction() {
 		super();
 	}
 
 	private static IFile getCandidate(IAdaptable element) throws JavaModelException {
-		IResource resource = (IResource) element.getAdapter(IResource.class);
+		IResource resource = element.getAdapter(IResource.class);
 		if (!(resource instanceof IFile)
 				|| !ArchiveFileFilter.isArchivePath(resource.getFullPath(),true))
 			return null;
-	
+
 		IJavaProject project = JavaCore.create(resource.getProject());
 		if (project != null
 				&& project.exists()
@@ -64,24 +64,18 @@ public abstract class AJBuildPathAction {
 		Object element = selection.getFirstElement();
 		if (element instanceof IAdaptable) {
 			IFile file = getCandidate((IAdaptable) element);
-			if (file != null) {
-				return file;
-			}
+      return file;
 		}
 		return null;
 	}
-	
+
 	protected boolean checkIfAddingOutjar(IProject project) {
 
 		String inpath = jarFile.getFullPath().toPortableString();
 		String outJar = AspectJCorePreferences.getProjectOutJar(project);
-			if (outJar.length()>0 && (inpath.indexOf(outJar) != -1)) {
-				return true;
-			}
-		
-		return false;
-	}
-	
+    return outJar.length() > 0 && (inpath.contains(outJar));
+  }
+
 	protected boolean shouldAskForClasspathRestrictions(IClasspathEntry entry) {
 	    return entry.getEntryKind() == IClasspathEntry.CPE_CONTAINER;
 	}
@@ -92,7 +86,7 @@ public abstract class AJBuildPathAction {
 	            "By adding a restriction, you can restrict elements on the " + pathKind + "\n" +
 	            "in this entry to those whose names match the restriction path\n\n" +
 	            "You may add a comma separated list of entries.";
-	    
+
 	    InputDialog dialog = new InputDialog(null, "Add Classpath restriction?", message, jarName, new JarListValidator());
 	    int res = dialog.open();
 	    if (res == InputDialog.OK) {
@@ -101,12 +95,12 @@ public abstract class AJBuildPathAction {
 	        return null;
 	    }
 	}
-	
-	
+
+
 	/**
 	 * Must be a comma separated set of java identifiers
 	 * @author Andrew Eisenberg
-	 * 
+	 *
 	 */
 	private class JarListValidator implements IInputValidator {
 
@@ -116,19 +110,19 @@ public abstract class AJBuildPathAction {
                 return null;
             }
             String[] splits = newText.split(",");
-            for (int i = 0; i < splits.length; i++) {
-                String val = splits[i];
-                val = val.trim();
-                if (val.length() == 0) {
-                    return "Invalid jar fragment name";
-                }
-                char[] array = val.toCharArray();
-                for (int j = 0; j < array.length; j++) {
-                    if (!Character.isUnicodeIdentifierPart(array[j]) && array[j] != '.' && array[j] != '-') {
-                        return "'" + array[j] + "' not allowed.";
-                    }
-                }
+          for (String split : splits) {
+            String val = split;
+            val = val.trim();
+            if (val.length() == 0) {
+              return "Invalid jar fragment name";
             }
+            char[] array = val.toCharArray();
+            for (char c : array) {
+              if (!Character.isUnicodeIdentifierPart(c) && c != '.' && c != '-') {
+                return "'" + c + "' not allowed.";
+              }
+            }
+          }
             return null;
         }
 	}

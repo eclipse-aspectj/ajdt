@@ -32,10 +32,10 @@ import org.eclipse.jdt.internal.compiler.env.IBinaryType;
 public class BinaryAspectElementInfo /*extends ClassFileReader*/ implements IBinaryType {
 
     private char[] fileName;
-    private char[] typeName;
-    private char[] genericSignature;
-    private char[] superName;
-    private char[][] interfaceNames;
+    private final char[] typeName;
+    private final char[] genericSignature;
+    private final char[] superName;
+    private final char[][] interfaceNames;
 
     public BinaryAspectElementInfo(char[] typeName) {
         this.typeName = typeName;

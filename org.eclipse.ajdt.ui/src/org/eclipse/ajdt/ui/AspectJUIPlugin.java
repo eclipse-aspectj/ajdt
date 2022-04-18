@@ -81,7 +81,7 @@ import org.osgi.framework.BundleException;
 public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 
 	// the id of this plugin
-	public static final String PLUGIN_ID = Utils.PLUGIN_ID; 
+	public static final String PLUGIN_ID = Utils.PLUGIN_ID;
 
 	public static final String ID_OUTLINE = PLUGIN_ID + ".ajoutlineview"; //$NON-NLS-1$
 
@@ -170,7 +170,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 	 * without this method you have to do it manually by either editing the
 	 * aspectjrt.jar entry or removing/readding the nature. We also add the
 	 * AspectJ code templates here.
-	 * 
+	 *
 	 */
 	private void checkAspectJVersion() {
 		IPreferenceStore store = AspectJUIPlugin.getDefault()
@@ -183,7 +183,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 		// execution of eclipse.
 		String previousAjdeVersion = store.getString(AJDE_VERSION_KEY_PREVIOUS);
 		if (previousAjdeVersion == null
-				|| !currentAjdeVersion.equals(previousAjdeVersion) 
+				|| !currentAjdeVersion.equals(previousAjdeVersion)
 				|| previousAjdeVersion.equals("@AJDEVERSION@")) {
 			checkTemplatesInstalled();
 			checkProblemMarkersVisible();
@@ -203,7 +203,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 			if (filterSettings != null) {
 				String enabledMarkers = filterSettings.get("selectedType"); //$NON-NLS-1$
 				if ((enabledMarkers != null)
-						&& enabledMarkers.indexOf(problemMarker) == -1) {
+            && !enabledMarkers.contains(problemMarker)) {
 					enabledMarkers = enabledMarkers + problemMarker;
 					filterSettings.put("selectedType", enabledMarkers); //$NON-NLS-1$
 				}
@@ -238,24 +238,24 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 					AJLog.log(UIMessages.codeTemplates_couldNotLoad);
 				} else {
 				    TemplatePersistenceData[] existingTemplates = codeTemplates.getTemplateData(true);
-					for (int i = 0; i < templates.length; i++) {
-						// Check that the individual template has not already been added
-					    // would have been nice if templates used the ID tag, but they don't, so have to iterate through all
-					    TemplatePersistenceData existing = null;
-					    for (TemplatePersistenceData maybeExisting : existingTemplates) {
-                            if (maybeExisting.getTemplate().getName().equals(templates[i].getTemplate().getName())) {
-                                existing = maybeExisting;
-                                break;
-                            }
-                        }
-				        // also look for the the "aspectj" context
-                        if (existing == null || !existing.getTemplate().getContextTypeId().equals("aspectj")) {
-							codeTemplates.add(templates[i]);
-							if (existing != null) {
-							    existing.setDeleted(true);
-							}
-						}
-					}
+          for (TemplatePersistenceData templatePersistenceData : templates) {
+            // Check that the individual template has not already been added
+            // would have been nice if templates used the ID tag, but they don't, so have to iterate through all
+            TemplatePersistenceData existing = null;
+            for (TemplatePersistenceData maybeExisting : existingTemplates) {
+              if (maybeExisting.getTemplate().getName().equals(templatePersistenceData.getTemplate().getName())) {
+                existing = maybeExisting;
+                break;
+              }
+            }
+            // also look for the the "aspectj" context
+            if (existing == null || !existing.getTemplate().getContextTypeId().equals("aspectj")) {
+              codeTemplates.add(templatePersistenceData);
+              if (existing != null) {
+                existing.setDeleted(true);
+              }
+            }
+          }
 					codeTemplates.save();
 				}
 			} catch (IOException fnf) {
@@ -263,19 +263,19 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 			}
 		}
 	}
-	
+
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 
 		// listen for builds of AJ projects
 		buildListener = new UIBuildListener();
         AJBuilder.addAJBuildListener(buildListener);
-		
+
 		// BUG 249045 and BUG 261045 don't do this any more
 //		if (!AspectJPlugin.USING_CU_PROVIDER) {
 //		    insertAJCompilationUnitDocumentProvider();
 //		}
-		
+
 
 		// Create and register the resource change listener if necessary, it
 		// will be notified if resources are added/deleted or their content changed.
@@ -287,14 +287,14 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 						| IResourceChangeEvent.PRE_DELETE
 						| IResourceChangeEvent.POST_CHANGE
 						| IResourceChangeEvent.PRE_BUILD);
-		
+
 		if (!AspectJPlugin.getDefault().isHeadless()) {
     		// set the UI version of core operations
     		AspectJPlugin.getDefault().setAJLogger(new EventTraceLogger());
-		}		
+		}
 		// set the compiler factory to be the ui one
 		setCompilerFactory(new UICompilerFactory());
-		
+
         ajProjectListener = new EnsureAJBuilder();
         AspectJPlugin.getWorkspace().addResourceChangeListener(ajProjectListener, IResourceChangeEvent.PRE_BUILD);
 
@@ -307,7 +307,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 				|| (Platform.getBundle(XREF_UI_ID)==null)) {
 			usingXref = false;
 		}
-		
+
 		checkAspectJVersion();
 
 	    Job cuInitJob = new Job("Initialize CompilationUnit Manager") {
@@ -320,11 +320,11 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
                 return Status.OK_STATUS;
             }
         };
-        
+
         cuInitJob.setPriority(Job.SHORT);
         cuInitJob.schedule();
 	}
-	
+
 	// this method may be outdated since the name of the bundle has moved
 	private void startM2Eclipse() {
 	    Bundle m2eclipseBundle = Platform.getBundle("org.maven.ide.eclipse");
@@ -343,7 +343,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 	    AspectJPlugin.getWorkspace().removeResourceChangeListener(ajProjectListener);
 	    AJBuilder.removeAJBuildListener(buildListener);
 	}
-	
+
 	/**
 	 * get the active window in the workbench, or null if no window is active
 	 */
@@ -389,11 +389,11 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 	}
 
 	// Implementation of ISelectionListener follows
-	
+
 	/**
 	 * Attempt to update the project's build classpath with the AspectJ runtime
 	 * library.
-	 * 
+	 *
 	 * @param project
 	 */
 	public static void addAjrtToBuildPath(IProject project) {
@@ -402,12 +402,12 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 			IClasspathEntry[] originalCP = javaProject.getRawClasspath();
 			IPath ajrtPath = new Path(AspectJPlugin.ASPECTJRT_CONTAINER);
 			boolean found = false;
-			for (int i = 0; i < originalCP.length; i++) {
-                if (originalCP[i].getPath().equals(ajrtPath)) {
-                    found = true;
-                    break;
-                }
-            }
+      for (IClasspathEntry iClasspathEntry : originalCP) {
+        if (iClasspathEntry.getPath().equals(ajrtPath)) {
+          found = true;
+          break;
+        }
+      }
 			if (!found) {
     			IClasspathEntry ajrtLIB = JavaCore.newContainerEntry(
     					ajrtPath, false);
@@ -425,7 +425,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 	/**
 	 * Attempt to update the project's build classpath by removing any occurance
 	 * of the AspectJ runtime library.
-	 * 
+	 *
 	 * @param project
 	 */
 	public static void removeAjrtFromBuildPath(IProject project) {
@@ -437,34 +437,35 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 			// Go through each current classpath entry one at a time. If it
 			// is not a reference to the aspectjrt.jar then do not add it
 			// to the collection of new classpath entries.
-			for (int i = 0; i < originalCP.length; i++) {
-				IPath path = originalCP[i].getPath();
-				boolean keep = true;
-				if (path.toOSString().endsWith("ASPECTJRT_LIB") //$NON-NLS-1$
-						|| path.toOSString().endsWith("aspectjrt.jar")) { //$NON-NLS-1$
-					keep = false;
-				}
-				if (originalCP[i].getEntryKind() == IClasspathEntry.CPE_CONTAINER) {
-					if (path.segment(0).equals(AspectJPlugin.ASPECTJRT_CONTAINER)) {
-						keep = false;
-					}
-				}
-				if (keep) {			
-					tempCP.add(originalCP[i]);
-				}
-			}// end for
+      for (IClasspathEntry iClasspathEntry : originalCP) {
+        IPath path = iClasspathEntry.getPath();
+        boolean keep = true;
+        if (path.toOSString().endsWith("ASPECTJRT_LIB") //$NON-NLS-1$
+            || path.toOSString().endsWith("aspectjrt.jar"))
+        { //$NON-NLS-1$
+          keep = false;
+        }
+        if (iClasspathEntry.getEntryKind() == IClasspathEntry.CPE_CONTAINER) {
+          if (path.segment(0).equals(AspectJPlugin.ASPECTJRT_CONTAINER)) {
+            keep = false;
+          }
+        }
+        if (keep) {
+          tempCP.add(iClasspathEntry);
+        }
+      }// end for
 
 			// Set the classpath with only those elements that survived the
 			// above filtration process.
 			if (originalCP.length != tempCP.size()) {
 				IClasspathEntry[] newCP = (IClasspathEntry[]) tempCP
-						.toArray(new IClasspathEntry[tempCP.size()]);
+						.toArray(new IClasspathEntry[0]);
 				javaProject.setRawClasspath(newCP, new NullProgressMonitor());
 			}// end if at least one classpath element removed
 		} catch (JavaModelException e) {
 		}
 	}
-	
+
 	public ICompilerFactory getCompilerFactory() {
 		return AspectJPlugin.getDefault().getCompilerFactory();
 	}

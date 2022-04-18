@@ -41,13 +41,13 @@ public class AspectJUIHelp {
 		AspectJUIHelpListener listener= new AspectJUIHelpListener(editor, contextId);
 		text.addHelpListener(listener);
 	}
-	
+
 	/**
 	 * Creates and returns a help context provider for the given part.
-	 * 
+	 *
 	 * @param part the part for which to create the help context provider
 	 * @param contextId	the optional context ID used to retrieve static help
-	 * @return the help context provider 
+	 * @return the help context provider
 	 */
 	public static IContextProvider getHelpContextProvider(IWorkbenchPart part, String contextId) {
 		IStructuredSelection selection;
@@ -63,7 +63,7 @@ public class AspectJUIHelp {
 	private static class AspectJUIHelpListener implements HelpListener {
 
 		private StructuredViewer fViewer;
-		private String fContextId;
+		private final String fContextId;
 		private AspectJEditor fEditor;
 
 		public AspectJUIHelpListener(StructuredViewer viewer, String contextId) {
@@ -78,7 +78,7 @@ public class AspectJUIHelp {
 
 		/*
 		 * @see HelpListener#helpRequested(HelpEvent)
-		 * 
+		 *
 		 */
 		public void helpRequested(HelpEvent e) {
 			try {
@@ -101,8 +101,8 @@ public class AspectJUIHelp {
 	}
 
 	private static class AspectJUIHelpContextProvider implements IContextProvider {
-		private String fId;
-		private Object[] fSelected;
+		private final String fId;
+		private final Object[] fSelected;
 		public AspectJUIHelpContextProvider(String id, Object[] selected) {
 			fId= id;
 			fSelected= selected;

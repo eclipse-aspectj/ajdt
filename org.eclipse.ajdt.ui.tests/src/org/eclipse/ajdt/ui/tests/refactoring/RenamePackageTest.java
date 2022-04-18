@@ -36,7 +36,7 @@ public class RenamePackageTest extends UITestCase {
             fail("Must be using JDT Weaving");
         }
     }
-    
+
     public void testRenamePackage() throws Exception {
         IProject proj = createPredefinedProject("Bug 254431"); //$NON-NLS-1$
         IJavaProject jProj = JavaCore.create(proj);
@@ -53,33 +53,33 @@ public class RenamePackageTest extends UITestCase {
         processor.checkFinalConditions(pm, context);
         Change change = processor.createChange(pm);
         change.perform(pm);
-        
+
         waitForJobsToComplete();
         IPackageFragment newFrag = packRoot.getPackageFragment("ajdt.renamed"); //$NON-NLS-1$
         assertTrue("Package fragment " + newFrag.getElementName() + " should exist after a rename", newFrag.exists()); //$NON-NLS-1$ //$NON-NLS-2$
-        
+
         IFile ajFile = proj.getFile("src/ajdt/renamed/A.aj"); //$NON-NLS-1$
         assertTrue("A.aj should exist after its package has been renamed", ajFile.exists()); //$NON-NLS-1$
         IMarker[] markers = ajFile.findMarkers(IMarker.MARKER, true, IResource.DEPTH_INFINITE);
         if (markers.length > 0) {
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
             sb.append("No markers should have been found, but the following markers were found on A.aj:\n"); //$NON-NLS-1$
-            for (int i = 0; i < markers.length; i++) {
-                sb.append("\t" + markers[i].getAttribute(IMarker.MESSAGE) + "\n"); //$NON-NLS-1$ //$NON-NLS-2$
-            }
-            assertEquals(sb.toString(), 0, markers.length); 
+          for (IMarker marker : markers) {
+            sb.append("\t" + marker.getAttribute(IMarker.MESSAGE) + "\n"); //$NON-NLS-1$ //$NON-NLS-2$
+          }
+            assertEquals(sb.toString(), 0, markers.length);
         }
 
         IFile javaFile = proj.getFile("src/ajdt/renamepackagebug2/B.aj"); //$NON-NLS-1$
         assertTrue("B.aj should exist", javaFile.exists()); //$NON-NLS-1$
         markers = javaFile.findMarkers(IMarker.MARKER, true, IResource.DEPTH_INFINITE);
         if (markers.length > 0) {
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
             sb.append("No markers should have been found, but the following markers were found on B.aj:\n"); //$NON-NLS-1$
-            for (int i = 0; i < markers.length; i++) {
-                sb.append("\t" + markers[i].getAttribute(IMarker.MESSAGE) + "\n");  //$NON-NLS-1$//$NON-NLS-2$
-            }
-            assertEquals(sb.toString(), 0, markers.length); 
+          for (IMarker marker : markers) {
+            sb.append("\t" + marker.getAttribute(IMarker.MESSAGE) + "\n");  //$NON-NLS-1$//$NON-NLS-2$
+          }
+            assertEquals(sb.toString(), 0, markers.length);
         }
     }
 }

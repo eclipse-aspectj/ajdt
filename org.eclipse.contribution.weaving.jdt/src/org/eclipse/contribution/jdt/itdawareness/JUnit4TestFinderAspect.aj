@@ -28,7 +28,7 @@ public privileged aspect JUnit4TestFinderAspect {
     /**
      * This will be null if AJDT is not installed (ie- JDT Weaving installed, but no AJDT)
      */
-    private SearchAdapter adapter = SearchAdapter.getInstance();
+    private final SearchAdapter adapter = SearchAdapter.getInstance();
 
     /**
      * This pointcut targets a SearchRequestor that accepts potential test matches

@@ -84,32 +84,32 @@ import org.eclipse.ui.texteditor.IDocumentProvider;
  * override getAdapter( ) to plug-in the AspectJ-aware outline view.
  */
 public class AspectJEditor extends CompilationUnitEditor {
-    
+
 
     public static final String ASPECTJ_EDITOR_ID = "org.eclipse.ajdt.internal.ui.editor.CompilationUnitEditor"; //$NON-NLS-1$
 
     private AnnotationAccessWrapper annotationAccessWrapper;
 
-    private static Map<IEditorInput, AspectJEditor> activeEditorList = new HashMap<IEditorInput, AspectJEditor>();    
+    private static final Map<IEditorInput, AspectJEditor> activeEditorList = new HashMap<>();
 
     private AspectJEditorTitleImageUpdater aspectJEditorErrorTickUpdater;
 
     private AJCompilationUnitDocumentProvider provider;
-    
+
     /**
      * Constructor for AspectJEditor
      */
     public AspectJEditor() {
-        
-        super();    
-        setRulerContextMenuId("#AJCompilationUnitRulerContext"); //$NON-NLS-1$  
+
+        super();
+        setRulerContextMenuId("#AJCompilationUnitRulerContext"); //$NON-NLS-1$
         // Bug 78182
         aspectJEditorErrorTickUpdater= new AspectJEditorTitleImageUpdater(this);
         if (AspectJUIPlugin.usingXref) {
             XRefUIUtils.addWorkingCopyManagerForEditor(this, JavaUI.getWorkingCopyManager());
         }
     }
-    
+
     private AJSourceViewerConfiguration fAJSourceViewerConfiguration;
 
     private boolean isEditingAjFile = false;
@@ -119,19 +119,19 @@ public class AspectJEditor extends CompilationUnitEditor {
     private IAnnotationModel annotationModel;
 
     private class AJTextOperationTarget implements ITextOperationTarget {
-        private ITextOperationTarget parent;
+        private final ITextOperationTarget parent;
 
         private JavaCorrectionAssistant fCorrectionAssistant;
 
         private IInformationPresenter fOutlinePresenter;
-        
+
         public AJTextOperationTarget(ITextOperationTarget parent) {
             this.parent = parent;
         }
 
         /*
          * (non-Javadoc)
-         * 
+         *
          * @see org.eclipse.jface.text.ITextOperationTarget#canDoOperation(int)
          */
         public boolean canDoOperation(int operation) {
@@ -140,7 +140,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 
         /*
          * (non-Javadoc)
-         * 
+         *
          * @see org.eclipse.jface.text.ITextOperationTarget#doOperation(int)
          */
         public void doOperation(int operation) {
@@ -168,7 +168,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 
     }
 
-    
+
     public Object getAdapter(@SuppressWarnings("rawtypes") Class key) {
         if (key.equals(ITextOperationTarget.class)) {
             // use our own wrapper around the one returned by the superclass
@@ -238,7 +238,7 @@ public class AspectJEditor extends CompilationUnitEditor {
             return wrapped.getSupertypes(annotationType);
         }
     }
-    
+
     /*
      * @see JavaEditor#setOutlinePageInput(JavaOutlinePage, IEditorInput)
      */
@@ -248,7 +248,7 @@ public class AspectJEditor extends CompilationUnitEditor {
             page.setInput(manager.getWorkingCopy(input));
         }
     }
-    
+
     /**
      * Override of doSave to comment-out call to getStatusLineManager - always
      * returns null (why?) in our environment. Also ask the contentOutlinePage
@@ -302,7 +302,7 @@ public class AspectJEditor extends CompilationUnitEditor {
         }
 
     }
-    
+
     /**
      * Override to replace some of the java editor actions
      * @see org.eclipse.jdt.internal.ui.javaeditor.CompilationUnitEditor#createActions()
@@ -339,23 +339,23 @@ public class AspectJEditor extends CompilationUnitEditor {
                 fGlobalAnnotationModelListener = new CompilationUnitAnnotationModelWrapper.GlobalAnnotationModelListener();
                 fGlobalAnnotationModelListener.addListener(JavaPlugin.getDefault().getProblemMarkerManager());
             }
-            annotationModel.addAnnotationModelListener(fGlobalAnnotationModelListener);         
+            annotationModel.addAnnotationModelListener(fGlobalAnnotationModelListener);
             IDocument document = getDocumentProvider().getDocument(getEditorInput());
-            ISourceViewer sourceViewer= getSourceViewer();      
+            ISourceViewer sourceViewer= getSourceViewer();
             sourceViewer.setDocument(document, annotationModel);
             IAnnotationModel model = getDocumentProvider().getAnnotationModel(getEditorInput());
             if(model != null) { // this is null in a linked source folder due to an eclipse bug..
                 model.connect(document);
-            }   
+            }
         }
     }
-    
+
     public void doSetInput(IEditorInput input) throws CoreException {
         IEditorInput oldInput = super.getEditorInput();
         if (oldInput instanceof IFileEditorInput) {
             JavaUI.getWorkingCopyManager().disconnect(oldInput);
         }
-        
+
         super.doSetInput(input);
 
         IPreferenceStore store = getPreferenceStore();
@@ -363,7 +363,7 @@ public class AspectJEditor extends CompilationUnitEditor {
         fAJSourceViewerConfiguration = new AJSourceViewerConfiguration(
                 textTools, this);
         setSourceViewerConfiguration(fAJSourceViewerConfiguration);
-        
+
         if (input instanceof IFileEditorInput) {
             IFileEditorInput fInput = (IFileEditorInput) input;
             ICompilationUnit unit = null;
@@ -371,34 +371,34 @@ public class AspectJEditor extends CompilationUnitEditor {
             // WorkingCopyManager
             if (CoreUtils.ASPECTJ_SOURCE_ONLY_FILTER.accept(fInput
                     .getFile().getName())) {
-                JavaUI.getWorkingCopyManager().connect(input);  
+                JavaUI.getWorkingCopyManager().connect(input);
                 unit = AJCompilationUnitManager.INSTANCE
                     .getAJCompilationUnitFromCache(fInput.getFile());
                 if (unit != null) {
-                    isEditingAjFile = true; 
+                    isEditingAjFile = true;
                     JavaModelManager.getJavaModelManager().discardPerWorkingCopyInfo((CompilationUnit)unit);
                     unit.becomeWorkingCopy(null);
                     ((IWorkingCopyManagerExtension) JavaUI
                             .getWorkingCopyManager()).setWorkingCopy(input, unit);
-                
-                }                   
+
+                }
             } else if (CoreUtils.ASPECTJ_SOURCE_FILTER.accept(fInput
                     .getFile().getName())) { // It's a .java file
                 unit = JavaCore.createCompilationUnitFrom(fInput.getFile());
                 annotationModel = new CompilationUnitAnnotationModelWrapper(unit);
-                        
-                // bug 265902 Ensure that is there is no weaving, Java compilation units are 
+
+                // bug 265902 Ensure that is there is no weaving, Java compilation units are
                 // not reconciled.  This way, they can have AJ syntax, but no errors
                 if (!AspectJPlugin.USING_CU_PROVIDER) {
                     if(unit instanceof CompilationUnit) {
                         JavaModelManager.getJavaModelManager().discardPerWorkingCopyInfo((CompilationUnit)unit);
                     }
                 }
-                
+
                 unit.becomeWorkingCopy(null);
                 ((IWorkingCopyManagerExtension) JavaUI
                     .getWorkingCopyManager()).setWorkingCopy(input, unit);
-            
+
             }
 
             AJLog.log("Editor opened on " + fInput.getFile().getName()); //$NON-NLS-1$
@@ -411,20 +411,20 @@ public class AspectJEditor extends CompilationUnitEditor {
 
             textTools.setupJavaDocumentPartitioner(document,
                     IJavaPartitions.JAVA_PARTITIONING);
-            
+
 //           Part of the fix for 89793 - editor icon is not always correct
             resetTitleImage();
-            
+
             /*
              * This is where the hook for the prompt dialog should go (asking
              * the user if they want to open the Cross References view). If the
              * user has already been prompted then this call will just hendle
              * the opening (or not) of the Cross Reference view.
-             * 
+             *
              * NB It is very important that this task be scheduled for running
              * in the UI Thread, as otherwise it will fail in the case of the
              * AspectJEditor being restored when the workbench is started.
-             * 
+             *
              * -spyoung
              */
             Job job = new UIJob("AutoOpenXRefView") { //$NON-NLS-1$
@@ -435,17 +435,17 @@ public class AspectJEditor extends CompilationUnitEditor {
             };
             job.schedule();
         }
-        
+
     }
 
     public void dispose() {
         AJLog.log("Disposing editor for:" + getTitle()); //$NON-NLS-1$
         IEditorInput input = getEditorInput();
         if (input instanceof IFileEditorInput) {
-            IFileEditorInput fInput = (IFileEditorInput) input;         
+            IFileEditorInput fInput = (IFileEditorInput) input;
             // Fix for bug 79633 - editor buffer is not refreshed
             JavaUI.getWorkingCopyManager().disconnect(input);
-            
+
             AJLog.log("Editor closed - " + fInput.getFile().getName()); //$NON-NLS-1$
             synchronized(activeEditorList) {
                 activeEditorList.remove(input);
@@ -457,7 +457,7 @@ public class AspectJEditor extends CompilationUnitEditor {
                     unit = JavaCore.createCompilationUnitFrom(fInput.getFile());
                 }
                 if (unit != null) {
-                    unit.discardWorkingCopy();                  
+                    unit.discardWorkingCopy();
                 }
             } catch (JavaModelException e) {
             }
@@ -472,7 +472,7 @@ public class AspectJEditor extends CompilationUnitEditor {
         }
         super.dispose();
     }
-    
+
     /**
      * @see org.eclipse.ui.IWorkbenchPart#setFocus()
      */
@@ -484,8 +484,8 @@ public class AspectJEditor extends CompilationUnitEditor {
         // enouhg info to determine project, so have to do from here instead.
         IEditorInput input = getEditorInput();
         super.setFocus();
-        
-        // Sian: Added the code below to fix bug 77479 - link with editor does not work for .aj files 
+
+        // Sian: Added the code below to fix bug 77479 - link with editor does not work for .aj files
         if(isEditingAjFile) {
             IViewPart view = getEditorSite().getPage().findView(JavaUI.ID_PACKAGES);
             if(view != null && view instanceof IPackagesViewPart) {  // can be ErrorViewPart
@@ -500,13 +500,13 @@ public class AspectJEditor extends CompilationUnitEditor {
             }
         }
     }
-    
 
-    
+
+
     protected ITypeRoot getInputJavaElement() {
-        return JavaUI.getWorkingCopyManager().getWorkingCopy(getEditorInput());     
+        return JavaUI.getWorkingCopyManager().getWorkingCopy(getEditorInput());
     }
-    
+
     /**
      * @return Returns the activeEditorList.
      */
@@ -515,15 +515,15 @@ public class AspectJEditor extends CompilationUnitEditor {
             return activeEditorList.values();
         }
     }
-    
+
     public static boolean isInActiveEditor(IEditorInput input) {
         return activeEditorList.containsKey(input);
     }
-    
+
     public IDocumentProvider getDocumentProvider() {
         return provider == null ? super.getDocumentProvider() : provider;
     }
-    
+
     protected void setDocumentProvider(IEditorInput input) {
         IDocumentProvider provider = DocumentProviderRegistry.getDefault().getDocumentProvider(input);
         if (provider instanceof AJCompilationUnitDocumentProvider) {
@@ -532,13 +532,13 @@ public class AspectJEditor extends CompilationUnitEditor {
             super.setDocumentProvider(input);
         }
     }
-    
+
     protected void disposeDocumentProvider() {
         super.disposeDocumentProvider();
         provider = null;
     }
-    
-    
+
+
     public synchronized void updatedTitleImage(Image image) {
         // only let us update the image (fix for 105299)
     }
@@ -547,7 +547,7 @@ public class AspectJEditor extends CompilationUnitEditor {
         // only let us update the image (fix for 105299)
         super.updatedTitleImage(image);
     }
-    
+
     /**
      * Update the title image
      */
@@ -556,12 +556,12 @@ public class AspectJEditor extends CompilationUnitEditor {
         refreshJob.setElement(getInputJavaElement());
         refreshJob.schedule();
     }
-    
-    private UpdateTitleImageJob refreshJob = new UpdateTitleImageJob();
-    
+
+    private final UpdateTitleImageJob refreshJob = new UpdateTitleImageJob();
+
     private class UpdateTitleImageJob extends UIJob {
         private IJavaElement elem;
-        
+
         UpdateTitleImageJob() {
             super(UIMessages.editor_title_refresh_job);
             setSystem(true);
@@ -570,7 +570,7 @@ public class AspectJEditor extends CompilationUnitEditor {
         public void setElement(IJavaElement element) {
             elem = element;
         }
-        
+
         public IStatus runInUIThread(IProgressMonitor monitor) {
             if (elem != null && aspectJEditorErrorTickUpdater != null) {
                 aspectJEditorErrorTickUpdater.updateEditorImage(elem);

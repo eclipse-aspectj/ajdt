@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2010 SpringSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Kris De Volder - initial API and implementation
  *******************************************************************************/
@@ -51,11 +51,11 @@ import org.eclipse.ui.dialogs.SelectionStatusDialog;
 public class PullOutRefactoringInputPage extends UserInputWizardPage {
 
 	private Text targetAspectInput;
-	
+
 	private TableViewerColumn typeColumn;
 	private TableViewerColumn memberColumn;
-	
-	private JavaUILabelProvider labelProvider = new JavaUILabelProvider();
+
+	private final JavaUILabelProvider labelProvider = new JavaUILabelProvider();
 	private TableViewerColumn packageColumn;
 
 	public PullOutRefactoringInputPage(String name) {
@@ -75,29 +75,29 @@ public class PullOutRefactoringInputPage extends UserInputWizardPage {
 		GridLayout layout= new GridLayout(1,true);
 		parent.setLayout(layout);
 		setControl(parent);
-		
-		//Element to be pulled out 
-		
+
+		//Element to be pulled out
+
 		Label label = new Label(parent, SWT.NONE);
 		label.setText("The following element will be pulled out:");
 		createTable(parent);
 
 		createAspectGroup(parent);
 		createITDGroup(parent);
-				
+
 		handleInputChanged();
 	}
-	
+
 	private void createAspectGroup(Composite parent) {
 		final PullOutRefactoring refactoring = getRefactoring();
-		
+
 		Group group = new Group(parent, SWT.DEFAULT);
 		group.setText("Target Aspect");
 		group.setLayout(new GridLayout());
 		GridDataFactory.fillDefaults().grab(true, false).applyTo(group);
-		
+
 		createTargetAspectLine(group);
-		
+
 		final Button makePrivilegeCheckBox = new Button(group, SWT.CHECK);
 		makePrivilegeCheckBox.setSelection(refactoring.isMakePrivileged());
 		makePrivilegeCheckBox.setText("&Make the Aspect Privileged");
@@ -116,12 +116,12 @@ public class PullOutRefactoringInputPage extends UserInputWizardPage {
 
 	private void createITDGroup(Composite _parent) {
 		final PullOutRefactoring refactoring = getRefactoring();
-		
+
 		Group group = new Group(_parent, SWT.DEFAULT);
 		group.setText("Intertype Declaration Options");
 		group.setLayout(new GridLayout(2, true));
 		GridDataFactory.fillDefaults().grab(true, false).applyTo(group);
-		
+
 		final Button allowDropProtected = new Button(group, SWT.CHECK);
 		GridDataFactory.fillDefaults().grab(true, false).applyTo(allowDropProtected);
 		allowDropProtected.setSelection(refactoring.isAllowDeleteProtected());
@@ -135,7 +135,7 @@ public class PullOutRefactoringInputPage extends UserInputWizardPage {
 				refactoring.setAllowDeleteProtected(allowDropProtected.getSelection());
 			}
 		});
-		
+
 		final Button allowMakePublicCheckbox = new Button(group, SWT.CHECK);
 		allowMakePublicCheckbox.setSelection(refactoring.isAllowMakePublic());
 		allowMakePublicCheckbox.setText("&Make ITDs public as needed");
@@ -150,7 +150,7 @@ public class PullOutRefactoringInputPage extends UserInputWizardPage {
 				refactoring.setAllowMakePublic(allowMakePublicCheckbox.getSelection());
 			}
 		});
-		
+
 		final Button generateAbstractMethodStubs = new Button(group, SWT.CHECK);
 		generateAbstractMethodStubs.setSelection(refactoring.isGenerateAbstractMethodStubs());
 		generateAbstractMethodStubs.setText("&Generate stubs for abstract methods");
@@ -167,12 +167,12 @@ public class PullOutRefactoringInputPage extends UserInputWizardPage {
 
 	private void createTargetAspectLine(Composite parent) {
 		PullOutRefactoring refactoring = getRefactoring();
-		
+
 		parent = new Composite(parent, SWT.NONE);
 		GridDataFactory.fillDefaults().grab(true, false).applyTo(parent);
 		GridLayout layout = new GridLayout(3,false);
 		parent.setLayout(layout);
-		
+
 		Label label;
 		label = new Label(parent, SWT.NONE);
 		label.setText("&Target Aspect");
@@ -181,11 +181,7 @@ public class PullOutRefactoringInputPage extends UserInputWizardPage {
 		final Button browseButton= new Button(parent, SWT.PUSH);
 		browseButton.setText("&Browse...");
 		targetAspectInput.setText(refactoring.getAspectName());
-		targetAspectInput.addModifyListener(new ModifyListener() {
-			public void modifyText(ModifyEvent event) {
-				handleInputChanged();
-			}
-		});
+		targetAspectInput.addModifyListener(event -> handleInputChanged());
 
 		browseButton.addSelectionListener(new SelectionAdapter() {
 			@Override
@@ -197,15 +193,15 @@ public class PullOutRefactoringInputPage extends UserInputWizardPage {
 				targetAspectInput.setText(type.getFullyQualifiedName());
 			}
 		});
-		
+
 		try {
 			AspectInputContentAssistProcessor processor = new AspectInputContentAssistProcessor(getRefactoring().getJavaProject());
-			ControlContentAssistHelper.createTextContentAssistant(targetAspectInput, 
+			ControlContentAssistHelper.createTextContentAssistant(targetAspectInput,
 					processor);
 		} catch (JavaModelException e) {
 		}
 	}
-	
+
 	void handleInputChanged() {
 		RefactoringStatus status= new RefactoringStatus();
 		PullOutRefactoring refactoring= getRefactoring();
@@ -231,7 +227,7 @@ public class PullOutRefactoringInputPage extends UserInputWizardPage {
         layoutComposite.addColumnData(new ColumnWeightData(20, convertWidthInCharsToPixels(20), true));
         layoutComposite.addColumnData(new ColumnWeightData(20, convertWidthInCharsToPixels(20), true));
         layoutComposite.addColumnData(new ColumnWeightData(40, convertWidthInCharsToPixels(40), true));
-        
+
         // use this instead if we want to implement check boxes
 //        final CheckboxTableViewer tv = CheckboxTableViewer.newCheckList(layoutComposite, SWT.V_SCROLL | SWT.H_SCROLL | SWT.BORDER | SWT.FULL_SELECTION | SWT.MULTI);
         final TableViewer tv = new TableViewer(layoutComposite, SWT.V_SCROLL | SWT.H_SCROLL | SWT.BORDER | SWT.FULL_SELECTION | SWT.MULTI);
@@ -255,16 +251,16 @@ public class PullOutRefactoringInputPage extends UserInputWizardPage {
         gridData.widthHint= convertWidthInCharsToPixels(100);
         gridData.heightHint= SWTUtil.getTableHeightHint(table, Math.max(fields.length+1,2));
         layoutComposite.setLayoutData(gridData);
-        
+
 //        sortListener = new SortListener(tv);
 //        iconColumn.getColumn().addListener(SWT.Selection, sortListener);
 //        aspectColumn.getColumn().addListener(SWT.Selection, sortListener);
 //        targetColumn.getColumn().addListener(SWT.Selection, sortListener);
 //        itdColumn.getColumn().addListener(SWT.Selection, sortListener);
-        
+
         return layoutComposite;
     }
-    
+
     private void createColumns(final TableViewer tv) {
 
         packageColumn = new TableViewerColumn(tv, SWT.LEAD);
@@ -275,7 +271,7 @@ public class PullOutRefactoringInputPage extends UserInputWizardPage {
 					IMember method = (IMember) element;
 					return method.getDeclaringType().getPackageFragment();
 				}
-				else 
+				else
 					return "???";
 			}
         });
@@ -290,13 +286,13 @@ public class PullOutRefactoringInputPage extends UserInputWizardPage {
 					IMember method = (IMember) element;
 					return method.getDeclaringType();
 				}
-				else 
+				else
 					return "???";
 			}
         });
         column= typeColumn.getColumn();
         column.setText("Type");
-        
+
         memberColumn = new TableViewerColumn(tv, SWT.LEAD);
         memberColumn.setLabelProvider(new JavaCellLabelProvider(labelProvider) {
 			public Object getColumnData(Object elt) {
@@ -305,9 +301,9 @@ public class PullOutRefactoringInputPage extends UserInputWizardPage {
         });
         column = memberColumn.getColumn();
         column.setText("Member Name");
-        
+
     }
-    
+
     /*
      * from @link ExtractClassUserInputWizardPage
      */
@@ -329,7 +325,7 @@ public class PullOutRefactoringInputPage extends UserInputWizardPage {
 
     }
 
-	
+
 	IType selectAspect() {
 		IJavaProject project= getRefactoring().getJavaProject();
 
@@ -338,8 +334,8 @@ public class PullOutRefactoringInputPage extends UserInputWizardPage {
 
 		try {
 			SelectionStatusDialog dialog= (SelectionStatusDialog)
-				JavaUI.createTypeDialog(getShell(), getContainer(), 
-						scope, IJavaElementSearchConstants.CONSIDER_CLASSES, false, "", 
+				JavaUI.createTypeDialog(getShell(), getContainer(),
+						scope, IJavaElementSearchConstants.CONSIDER_CLASSES, false, "",
 						new AspectSelectionFilter(project));
 
 			dialog.setTitle("Choose target Aspect");

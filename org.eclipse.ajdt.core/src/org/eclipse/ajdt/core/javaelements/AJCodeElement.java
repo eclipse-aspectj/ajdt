@@ -29,7 +29,7 @@ import org.eclipse.jdt.internal.core.util.Util;
  * @author mchapman
  */
 public class AJCodeElement extends LocalVariable implements IAJCodeElement {
-	private String name;
+	private final String name;
 
 	private int startLine;
 

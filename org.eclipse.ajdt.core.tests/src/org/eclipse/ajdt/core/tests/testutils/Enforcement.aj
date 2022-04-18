@@ -12,13 +12,6 @@
 
 package org.eclipse.ajdt.core.tests.testutils;
 
-import junit.framework.TestCase;
-
-import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
-import org.eclipse.ajdt.core.tests.ProjectDeletionTest;
-import org.eclipse.ajdt.core.tests.ajde.CoreCompilerFactoryTests;
-import org.eclipse.ajdt.core.tests.model.AJModelPersistenceTest;
-
 public aspect Enforcement {
 
 	declare error: execution(* TestCase+.*(..)) && !execution(* AJDTCoreTestCase+.*(..)):

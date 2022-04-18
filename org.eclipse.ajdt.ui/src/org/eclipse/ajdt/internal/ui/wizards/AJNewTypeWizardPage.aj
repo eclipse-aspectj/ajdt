@@ -33,7 +33,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.SubProgressMonitor;
-import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.IBuffer;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IField;
@@ -68,7 +67,7 @@ privileged aspect AJNewTypeWizardPage {
 
     public static int NewTypeWizardPage.F_PRIVILEGED = 0x8000;
 
-    private static int NewTypeWizardPage.PRIVILEGED_INDEX = 3;
+    private static final int NewTypeWizardPage.PRIVILEGED_INDEX = 3;
 
     private IFile NewTypeWizardPage.fCreatedFile;
 
@@ -197,8 +196,7 @@ privileged aspect AJNewTypeWizardPage {
         String aspectName = getTypeName();
         String extName = AspectJPreferences.getFileExt();
         IPath newpath = pack.getFullPath().append(aspectName + extName);
-        IFile newfile = workspaceRoot.getFile(newpath);
-        return newfile;
+      return workspaceRoot.getFile(newpath);
     }
 
 
@@ -304,12 +302,12 @@ privileged aspect AJNewTypeWizardPage {
 
                 // add imports that will be removed again. Having the imports solves 14661
                 IType[] topLevelTypes= parentCU.getTypes();
-                for (int i= 0; i < topLevelTypes.length; i++) {
-                    imports.addImport(topLevelTypes[i].getFullyQualifiedName('.'));
-                }
+              for (IType topLevelType : topLevelTypes) {
+                imports.addImport(topLevelType.getFullyQualifiedName('.'));
+              }
 
                 lineDelimiter= StubUtility.getLineDelimiterUsed(enclosingType);
-                StringBuffer content= new StringBuffer();
+                StringBuilder content= new StringBuilder();
 
                 String comment= getTypeComment(parentCU, lineDelimiter);
                 if (comment != null) {
@@ -322,12 +320,12 @@ privileged aspect AJNewTypeWizardPage {
                 if (enclosingType.isEnum()) {
                     IField[] fields = enclosingType.getFields();
                     if (fields.length > 0) {
-                        for (int i = 0, max = fields.length; i < max; i++) {
-                            if (!fields[i].isEnumConstant()) {
-                                sibling = fields[i];
-                                break;
-                            }
+                      for (IField field : fields) {
+                        if (!field.isEnumConstant()) {
+                          sibling = field;
+                          break;
                         }
+                      }
                     }
                 } else {
                     IJavaElement[] elems= enclosingType.getChildren();
@@ -428,7 +426,7 @@ privileged aspect AJNewTypeWizardPage {
 
             // AspectJ change begin
             if (cu instanceof AJCompilationUnit) {
-                ((AJCompilationUnit)cu).discardOriginalContentMode();
+                cu.discardOriginalContentMode();
             }
             // AspectJ change end
         } finally {

@@ -270,7 +270,7 @@ public class AspectJCore {
 								if(aspectEl == null) {
 								    if (openable instanceof ClassFile) {
 								        ClassFile cOpenable = (ClassFile) openable;
-								        aspectEl = new BinaryAspectElement((JavaElement) cOpenable, aspectName);
+								        aspectEl = new BinaryAspectElement(cOpenable, aspectName);
                                     } else {
                                         aspectEl = new AspectElement((JavaElement) openable, aspectName);
                                     }

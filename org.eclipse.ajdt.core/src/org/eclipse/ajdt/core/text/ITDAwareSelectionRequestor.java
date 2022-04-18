@@ -46,9 +46,9 @@ import org.eclipse.jdt.internal.codeassist.ISelectionRequestor;
  */
 public class ITDAwareSelectionRequestor implements ISelectionRequestor {
 
-    private AJProjectModelFacade model;
-    private ICompilationUnit currentUnit;
-    private Set<IJavaElement> accepted;
+    private final AJProjectModelFacade model;
+    private final ICompilationUnit currentUnit;
+    private final Set<IJavaElement> accepted;
 
     private ArrayList<Replacement> replacements;
     private IJavaProject javaProject;
@@ -321,9 +321,7 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
             IntertypeElementInfo info = (IntertypeElementInfo)
             ((IntertypeElement) elt).getElementInfo();
             if (info.getAJKind() == Kind.INTER_TYPE_FIELD) {
-                if (extractName(elt.getElementName()).equals(new String(name))) {
-                    return true;
-                }
+              return extractName(elt.getElementName()).equals(new String(name));
             }
         }
         return false;
@@ -429,7 +427,7 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
     }
 
     public IJavaElement[] getElements() {
-        return (IJavaElement[]) accepted.toArray(new IJavaElement[accepted.size()]);
+        return accepted.toArray(new IJavaElement[0]);
     }
 
 	public void acceptModule(char[] arg0, char[] arg1, int arg2, int arg3) {

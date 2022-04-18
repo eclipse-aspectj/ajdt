@@ -30,14 +30,14 @@ import org.eclipse.ui.IEditorInput;
 /**
  * @author Andrew Eisenberg
  * @created Feb 26, 2009
- * 
+ *
  * Provides problem finding support for CompilationUnits
  *
  */
 public final class AJDTNameEnvironmentProvider implements
         INameEnvironmentProvider {
     public boolean shouldFindProblems(CompilationUnit unitElement) {
-        return unitElement.exists() && AspectJPlugin.isAJProject(unitElement.getJavaProject().getProject()); 
+        return unitElement.exists() && AspectJPlugin.isAJProject(unitElement.getJavaProject().getProject());
     }
 
     public SearchableEnvironment getNameEnvironment(
@@ -59,7 +59,7 @@ public final class AJDTNameEnvironmentProvider implements
     }
 
     public ISourceType transformSourceTypeInfo(ISourceType info) {
-        return new ITDAwareSourceTypeInfo(info, 
+        return new ITDAwareSourceTypeInfo(info,
                 (SourceType) ((SourceTypeElementInfo) info).getHandle());
     }
 
@@ -75,10 +75,10 @@ public final class AJDTNameEnvironmentProvider implements
         } else {
             newUnit = unitElement;
         }
-        
+
         return AJCompilationUnitProblemFinder.processAJ(newUnit, parser, workingCopyOwner, problems, creatingAST, reconcileFlags, monitor);
     }
-    
+
     /**
      * Java CompilationUnits in AJ editors should be transformed through the
      * AJConvertingParser before being sent off to problem finder.
@@ -88,24 +88,21 @@ public final class AJDTNameEnvironmentProvider implements
             return false;
         }
         IEditorInput input = EditorUtility.getEditorInput(unit);
-        if (AspectJEditor.isInActiveEditor(input)) {
-            return true;
-        }
-        return false;
+      return AspectJEditor.isInActiveEditor(input);
     }
-    
+
     private CompilationUnit transformUnit(CompilationUnit unit) {
         return new TransformedCompilationUnit(unit);
     }
-    
+
     private class TransformedCompilationUnit extends CompilationUnit {
         private char[] transformedContents = null;
-        private char[] origContents;
+        private final char[] origContents;
         public TransformedCompilationUnit(CompilationUnit orig) {
             super((PackageFragment) orig.getParent(), orig.getElementName(), orig.owner);
             origContents = orig.getContents();
         }
-        
+
         public char[] getContents() {
             if (transformedContents == null) {
                 AspectsConvertingParser conversion = new AspectsConvertingParser(origContents);
@@ -114,7 +111,7 @@ public final class AJDTNameEnvironmentProvider implements
             }
             return transformedContents;
         }
-        
+
         public CompilationUnit cloneCachingContents() {
             return this;
         }

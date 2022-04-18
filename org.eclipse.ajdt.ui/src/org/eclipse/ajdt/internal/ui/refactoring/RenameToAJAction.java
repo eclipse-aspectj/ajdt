@@ -4,7 +4,7 @@
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors: Sian January - initial version
  * ...
  **********************************************************************/
@@ -47,49 +47,46 @@ public class RenameToAJAction implements IActionDelegate {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.eclipse.ui.IActionDelegate#run(org.eclipse.jface.action.IAction)
 	 */
 	public void run(IAction action) {
 		if (selection instanceof StructuredSelection) {
-			IRunnableWithProgress runnable = new IRunnableWithProgress() {
-				public void run(IProgressMonitor monitor) {
-					StructuredSelection sel = (StructuredSelection) selection;
-					for (Iterator iter = sel.iterator(); iter.hasNext();) {
-						Object object = iter.next();
-						if (object instanceof IAdaptable) {
+			IRunnableWithProgress runnable = monitor -> {
+        StructuredSelection sel = (StructuredSelection) selection;
+for (Object object : sel) {
+if (object instanceof IAdaptable) {
 
-							IResource file = (IResource) ((IAdaptable) object)
-									.getAdapter(IResource.class);
-							if (file != null) {
-							    IProject project = file.getProject();
-								String name = file.getName();
-								name = name.substring(0, name.indexOf('.')); 
-								RenameResourceChange change = new RenameResourceChange(
-										file.getFullPath(), name + ".aj"); //$NON-NLS-1$
-								try {
-									change.perform(monitor);
-								} catch (CoreException e) {
-									AJDTErrorHandler.handleAJDTError(UIMessages.Refactoring_ErrorRenamingResource, e);
-								}
-								if (project != null) {
-									updateBuildConfigs(monitor, project, name);
-								}
-							}
-						}
-					}
-				}
-			};
+IResource file = (IResource) ((IAdaptable) object)
+.getAdapter(IResource.class);
+if (file != null) {
+IProject project = file.getProject();
+String name = file.getName();
+name = name.substring(0, name.indexOf('.'));
+RenameResourceChange change = new RenameResourceChange(
+file.getFullPath(), name + ".aj"); //$NON-NLS-1$
+try {
+change.perform(monitor);
+}
+catch (CoreException e) {
+AJDTErrorHandler.handleAJDTError(UIMessages.Refactoring_ErrorRenamingResource, e);
+}
+if (project != null) {
+updateBuildConfigs(monitor, project, name);
+}
+}
+}
+}
+      };
 
 			IRunnableWithProgress op = new WorkspaceModifyDelegatingOperation(
 					runnable);
 			try {
 				new ProgressMonitorDialog(AspectJUIPlugin.getDefault()
 						.getDisplay().getActiveShell()).run(true, true, op);
-			} catch (InvocationTargetException e) {
-			} catch (InterruptedException e) {
+			} catch (InvocationTargetException | InterruptedException e) {
 			}
-		}
+    }
 	}
 
 	/**
@@ -100,41 +97,44 @@ public class RenameToAJAction implements IActionDelegate {
 	private void updateBuildConfigs(IProgressMonitor monitor, IProject project,
 			String name) {
 		List buildConfigs = AJProperties.getAJPropertiesFiles(project);
-		for (Iterator iter = buildConfigs.iterator(); iter.hasNext();) {
-			IFile buildConfig = (IFile) iter.next();
-			BufferedReader br = null;
-			try {
-				br = new BufferedReader(new InputStreamReader(buildConfig
-						.getContents()));
-			} catch (CoreException e) {
-				continue;
-			}
-			StringBuffer sb = new StringBuffer();
-			try {
-				String line = br.readLine();
-				while (line != null) {
-					line = line.replaceAll(name + ".java", name + ".aj"); //$NON-NLS-1$ //$NON-NLS-2$
-					sb.append(line);
-					sb.append(System.getProperty("line.separator")); //$NON-NLS-1$
-					line = br.readLine();
-				}
-				StringReader reader = new StringReader(sb.toString());
-				buildConfig.setContents(new ReaderInputStream(reader), true,
-						true, monitor);
-			} catch (IOException ioe) {
-			} catch (CoreException e) {
-			} finally {
-				try {
-					br.close();
-				} catch (IOException ioe) {
-				}
-			}
-		}
+    for (Object config : buildConfigs) {
+      IFile buildConfig = (IFile) config;
+      BufferedReader br = null;
+      try {
+        br = new BufferedReader(new InputStreamReader(buildConfig
+          .getContents()));
+      }
+      catch (CoreException e) {
+        continue;
+      }
+      StringBuilder sb = new StringBuilder();
+      try {
+        String line = br.readLine();
+        while (line != null) {
+          line = line.replaceAll(name + ".java", name + ".aj"); //$NON-NLS-1$ //$NON-NLS-2$
+          sb.append(line);
+          sb.append(System.getProperty("line.separator")); //$NON-NLS-1$
+          line = br.readLine();
+        }
+        StringReader reader = new StringReader(sb.toString());
+        buildConfig.setContents(new ReaderInputStream(reader), true,
+          true, monitor);
+      }
+      catch (IOException | CoreException ioe) {
+      }
+      finally {
+        try {
+          br.close();
+        }
+        catch (IOException ioe) {
+        }
+      }
+    }
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.eclipse.ui.IActionDelegate#selectionChanged(org.eclipse.jface.action.IAction,
 	 *      org.eclipse.jface.viewers.ISelection)
 	 */

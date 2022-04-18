@@ -38,11 +38,11 @@ import org.eclipse.ui.PlatformUI;
 public class PushInRefactoringAction implements IWorkbenchWindowActionDelegate, IEditorActionDelegate, IViewActionDelegate {
 
     private IJavaElement[] currSelection;
-                         
+
     private IWorkbenchWindow window= null;
-    
+
     private CompilationUnitEditor editor = null;
-    
+
     public PushInRefactoringAction() {
     }
 
@@ -57,10 +57,10 @@ public class PushInRefactoringAction implements IWorkbenchWindowActionDelegate, 
                 if (itds.size() > 0) {
                     PushInRefactoring refactoring = new PushInRefactoring();
                     refactoring.setITDs(itds);
-                    run(new PushInRefactoringWizard(refactoring, "Push In Intertype Declaration", 
+                    run(new PushInRefactoringWizard(refactoring, "Push In Intertype Declaration",
                             refactoring.createDescriptor()), getShell(), "Push In Intertype Declaration");
                 } else {
-                    MessageDialog.openInformation(getShell(), "No ITDs", 
+                    MessageDialog.openInformation(getShell(), "No ITDs",
                             "No intertype declarations selected");
                 }
             } catch (JavaModelException e) {
@@ -132,24 +132,23 @@ public class PushInRefactoringAction implements IWorkbenchWindowActionDelegate, 
             window = workbench.getActiveWorkbenchWindow();
         }
     }
-    
+
     protected List<IMember> findAllITDs(IJavaElement[] selection) throws JavaModelException {
-        List<IMember> itds = new LinkedList<IMember>();
-        for (int i = 0; i < selection.length; i++) {
-            IJavaElement element = selection[i];
-            itds.addAll(findITDsInChildren(element));
-        }
+        List<IMember> itds = new LinkedList<>();
+      for (IJavaElement element : selection) {
+        itds.addAll(findITDsInChildren(element));
+      }
         return itds;
     }
 
     private Collection<IMember> findITDsInChildren(IJavaElement element) throws JavaModelException {
-        List<IMember> itds = new LinkedList<IMember>();
+        List<IMember> itds = new LinkedList<>();
         if (element.isReadOnly()) {
             return Collections.emptyList();
         }
         if (element instanceof IntertypeElement) {
             itds.add((IAspectJElement) element);
-        } else if (element instanceof DeclareElement && 
+        } else if (element instanceof DeclareElement &&
                 (((DeclareElement) element).getAJKind().isDeclareAnnotation() ||
                 ((DeclareElement) element).getAJKind() == Kind.DECLARE_PARENTS)) {
             itds.add((IAspectJElement) element);
@@ -160,9 +159,9 @@ public class PushInRefactoringAction implements IWorkbenchWindowActionDelegate, 
                 IParent parent = (IParent) element;
                 try {
                     IJavaElement[] children = parent.getChildren();
-                    for (int i = 0; i < children.length; i++) {
-                        itds.addAll(findITDsInChildren(children[i]));
-                    }
+                  for (IJavaElement child : children) {
+                    itds.addAll(findITDsInChildren(child));
+                  }
                 } catch (JavaModelException e) {
                 }
             }

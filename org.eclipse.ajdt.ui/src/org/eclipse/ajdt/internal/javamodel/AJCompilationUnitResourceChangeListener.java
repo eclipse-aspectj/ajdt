@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Luzius Meisser - initial implementation
  *******************************************************************************/
@@ -19,19 +19,19 @@ import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.runtime.CoreException;
 /**
  * @author Luzius Meisser
- * 
+ *
  */
 public class AJCompilationUnitResourceChangeListener implements IResourceChangeListener {
-	private AJCompilationUnitResourceDeltaVisitor myDeltaVisitor;
+	private final AJCompilationUnitResourceDeltaVisitor myDeltaVisitor;
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.eclipse.core.resources.IResourceChangeListener#resourceChanged(org.eclipse.core.resources.IResourceChangeEvent)
 	 */
 	public AJCompilationUnitResourceChangeListener() {
 		myDeltaVisitor = new AJCompilationUnitResourceDeltaVisitor();
 	}
-	
+
 	public void resourceChanged(IResourceChangeEvent event) {
 		if (event.getType() == IResourceChangeEvent.POST_CHANGE){
 			IResourceDelta delta = event.getDelta();
@@ -44,25 +44,28 @@ public class AJCompilationUnitResourceChangeListener implements IResourceChangeL
 					} catch (CoreException e) {
 					}
 				} else {
-					for (int i = 0; i < cd.length; i++) {
-						try {
-							IResource res = cd[i].getResource();
-							if (res == null) {
-								cd[i].accept(myDeltaVisitor);
-							} else {
-								IProject proj = res.getProject();
-								// if we don't know the project, or it is
-								// no longer accessible, we'd better process
-								// the delta. Otherwise we only process it
-								// if it is an AspectJ project.
-								if ((proj == null) || !proj.isAccessible()
-										|| AspectJPlugin.isAJProject(proj)) {
-									cd[i].accept(myDeltaVisitor);
-								}
-							}
-						} catch (CoreException e) {
-						}
-					}
+          for (IResourceDelta iResourceDelta : cd) {
+            try {
+              IResource res = iResourceDelta.getResource();
+              if (res == null) {
+                iResourceDelta.accept(myDeltaVisitor);
+              }
+              else {
+                IProject proj = res.getProject();
+                // if we don't know the project, or it is
+                // no longer accessible, we'd better process
+                // the delta. Otherwise we only process it
+                // if it is an AspectJ project.
+                if ((proj == null) || !proj.isAccessible()
+                    || AspectJPlugin.isAJProject(proj))
+                {
+                  iResourceDelta.accept(myDeltaVisitor);
+                }
+              }
+            }
+            catch (CoreException e) {
+            }
+          }
 				}
 			}
 		}

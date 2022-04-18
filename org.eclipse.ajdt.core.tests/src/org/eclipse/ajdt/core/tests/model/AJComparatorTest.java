@@ -73,31 +73,32 @@ public class AJComparatorTest extends AJDTCoreTestCase {
 		AJCodeElement ajce1 = null;
 		AJCodeElement ajce2 = null;
 		Set<Integer> keys = annotationsMap.keySet();
-		for (Iterator<Integer> it = keys.iterator(); it.hasNext();) {
-			Integer key = it.next();
-			List<IProgramElement> annotations = annotationsMap.get(key);
-			for (Iterator<IProgramElement> it2 = annotations.iterator(); it2.hasNext();) {
-				IProgramElement node = it2.next();
-				ISourceLocation sl = node.getSourceLocation();
-				if (node.toLinkLabelString(false)
-						.equals("Main: method-call(void java.io.PrintStream.println(java.lang.String))")
-					&& (sl.getLine() == 23) ){
+    for (Integer key : keys) {
+      List<IProgramElement> annotations = annotationsMap.get(key);
+      for (IProgramElement node : annotations) {
+        ISourceLocation sl = node.getSourceLocation();
+        if (node.toLinkLabelString(false)
+              .equals("Main: method-call(void java.io.PrintStream.println(java.lang.String))")
+            && (sl.getLine() == 23))
+        {
 
-					IJavaElement ije = model.programElementToJavaElement(node);
-					if (ije instanceof AJCodeElement) {
-						ajce1 = (AJCodeElement) ije;
-					}
-				} else if (node.toLinkLabelString(false)
-						.equals("Main: method-call(void java.io.PrintStream.println(java.lang.String))")
-					&& (sl.getLine() == 24) ){
+          IJavaElement ije = model.programElementToJavaElement(node);
+          if (ije instanceof AJCodeElement) {
+            ajce1 = (AJCodeElement) ije;
+          }
+        }
+        else if (node.toLinkLabelString(false)
+                   .equals("Main: method-call(void java.io.PrintStream.println(java.lang.String))")
+                 && (sl.getLine() == 24))
+        {
 
-					IJavaElement ije = model.programElementToJavaElement(node);
-					if (ije instanceof AJCodeElement) {
-						ajce2 = (AJCodeElement) ije;
-					}
-				}
-			}
-		}
+          IJavaElement ije = model.programElementToJavaElement(node);
+          if (ije instanceof AJCodeElement) {
+            ajce2 = (AJCodeElement) ije;
+          }
+        }
+      }
+    }
 		assertNotNull("AJCodeElement shouldn't be null",ajce1);
 		assertNotNull("AJCodeElement shouldn't be null",ajce2);
 
@@ -106,7 +107,7 @@ public class AJComparatorTest extends AJDTCoreTestCase {
 		AJComparator comp = new AJComparator();
 		assertTrue("ajce1 should be less than ajce2",comp.compare(ajce1,ajce2) < 0);
 		assertTrue("ajce2 should be greater than ajce1",comp.compare(ajce2,ajce1) > 0);
-		assertTrue("ajce1 should be equal to ajce1",comp.compare(ajce1,ajce1) == 0);
+    assertEquals("ajce1 should be equal to ajce1", 0, comp.compare(ajce1, ajce1));
 	}
 
 	public void testCompareTwoIJavaElements() {
@@ -125,31 +126,32 @@ public class AJComparatorTest extends AJDTCoreTestCase {
 		IJavaElement ije1 = null;
 		IJavaElement ije2 = null;
 		Set<Integer> keys = annotationsMap.keySet();
-		for (Iterator<Integer> it = keys.iterator(); it.hasNext();) {
-			Integer key = it.next();
-			List<IProgramElement> annotations = annotationsMap.get(key);
-			for (Iterator<IProgramElement> it2 = annotations.iterator(); it2.hasNext();) {
-				IProgramElement node = it2.next();
-				ISourceLocation sl = node.getSourceLocation();
-				if (node.toLinkLabelString(false)
-						.equals("A.after(String): tracedPrint..")
-					&& (sl.getLine() == 30) ){
+    for (Integer key : keys) {
+      List<IProgramElement> annotations = annotationsMap.get(key);
+      for (IProgramElement node : annotations) {
+        ISourceLocation sl = node.getSourceLocation();
+        if (node.toLinkLabelString(false)
+              .equals("A.after(String): tracedPrint..")
+            && (sl.getLine() == 30))
+        {
 
-					IJavaElement ije = model.programElementToJavaElement(node);
-					if (!(ije instanceof AJCodeElement)) {
-						ije1 = ije;
-					}
-				} else if (node.toLinkLabelString(false)
-						.equals("A.before(String): tracedPrint..")
-					&& (sl.getLine() == 26) ){
+          IJavaElement ije = model.programElementToJavaElement(node);
+          if (!(ije instanceof AJCodeElement)) {
+            ije1 = ije;
+          }
+        }
+        else if (node.toLinkLabelString(false)
+                   .equals("A.before(String): tracedPrint..")
+                 && (sl.getLine() == 26))
+        {
 
-					IJavaElement ije = model.programElementToJavaElement(node);
-					if (!(ije instanceof AJCodeElement)) {
-						ije2 = ije;
-					}
-				}
-			}
-		}
+          IJavaElement ije = model.programElementToJavaElement(node);
+          if (!(ije instanceof AJCodeElement)) {
+            ije2 = ije;
+          }
+        }
+      }
+    }
 		assertNotNull("IJavaElement shouldn't be null",ije1);
 		assertNotNull("IJavaElement shouldn't be null",ije2);
 
@@ -158,7 +160,7 @@ public class AJComparatorTest extends AJDTCoreTestCase {
 		AJComparator comp = new AJComparator();
 		assertTrue("ije1 should be less than ije2",comp.compare(ije1,ije2) < 0);
 		assertTrue("ije2 should be greater than ije1",comp.compare(ije2,ije1) > 0);
-		assertTrue("ije1 should be equal to ije1",comp.compare(ije1,ije1) == 0);
+    assertEquals("ije1 should be equal to ije1", 0, comp.compare(ije1, ije1));
 
 	}
 
@@ -173,24 +175,23 @@ public class AJComparatorTest extends AJDTCoreTestCase {
 		Map<Integer, List<IProgramElement>> annotationsMap = asm.getInlineAnnotations(main.getRawLocation().toOSString(),true, true);
 		assertNotNull("annotation map should not be null for Main.java",annotationsMap);
 		Set<Integer> keys = annotationsMap.keySet();
-		for (Iterator<Integer> it = keys.iterator(); it.hasNext();) {
-			Integer key = it.next();
-			List<IProgramElement> annotations = annotationsMap.get(key);
-			for (Iterator<IProgramElement> it2 = annotations.iterator(); it2.hasNext();) {
-				IProgramElement node = it2.next();
-				ISourceLocation sl = node.getSourceLocation();
-				if (node.toLinkLabelString(false)
-						.equals("Main: method-call(void java.io.PrintStream.println(java.lang.String))")
-					&& (sl.getLine() == 23) ){
+    for (Integer key : keys) {
+      List<IProgramElement> annotations = annotationsMap.get(key);
+      for (IProgramElement node : annotations) {
+        ISourceLocation sl = node.getSourceLocation();
+        if (node.toLinkLabelString(false)
+              .equals("Main: method-call(void java.io.PrintStream.println(java.lang.String))")
+            && (sl.getLine() == 23))
+        {
 
-					IJavaElement je = model.programElementToJavaElement(node);
-					if (je instanceof AJCodeElement) {
-						ajce = (AJCodeElement) je;
-						break;
-					}
-				}
-			}
-		}
+          IJavaElement je = model.programElementToJavaElement(node);
+          if (je instanceof AJCodeElement) {
+            ajce = (AJCodeElement) je;
+            break;
+          }
+        }
+      }
+    }
 
 		IFile aspect = aspectjPackage.getFile("A.aj");
 
@@ -199,24 +200,23 @@ public class AJComparatorTest extends AJDTCoreTestCase {
 		assertNotNull("annotation map should not be null for Main.java",annotationsMap2);
 
 		Set<Integer> keys2 = annotationsMap2.keySet();
-		for (Iterator<Integer> it = keys2.iterator(); it.hasNext();) {
-			Integer key = it.next();
-			List<IProgramElement> annotations = annotationsMap2.get(key);
-			for (Iterator<IProgramElement> it2 = annotations.iterator(); it2.hasNext();) {
-				IProgramElement node = it2.next();
-				ISourceLocation sl = node.getSourceLocation();
-				if (node.toLinkLabelString(false)
-						.equals("A.after(String): tracedPrint..")
-					&& (sl.getLine() == 30) ){
+    for (Integer key : keys2) {
+      List<IProgramElement> annotations = annotationsMap2.get(key);
+      for (IProgramElement node : annotations) {
+        ISourceLocation sl = node.getSourceLocation();
+        if (node.toLinkLabelString(false)
+              .equals("A.after(String): tracedPrint..")
+            && (sl.getLine() == 30))
+        {
 
-					IJavaElement je = model.programElementToJavaElement(node);
-					if (!(je instanceof AJCodeElement)) {
-						ije = je;
-						break;
-					}
-				}
-			}
-		}
+          IJavaElement je = model.programElementToJavaElement(node);
+          if (!(je instanceof AJCodeElement)) {
+            ije = je;
+            break;
+          }
+        }
+      }
+    }
 
 		assertNotNull("AJCodeElement shouldn't be null",ajce);
 		assertNotNull("IJavaElement shouldn't be null",ije);
@@ -252,6 +252,6 @@ public class AJComparatorTest extends AJDTCoreTestCase {
 	    AdaptableString s1 = new AdaptableString("hello");
 	    AdaptableString s2 = new AdaptableString("goodbye");
 		AJComparator comp = new AJComparator();
-		assertTrue("comparing things which aren't adaptable to AJCodeElements or IJavaElements should return 0",comp.compare(s1,s2) == 0);
+    assertEquals("comparing things which aren't adaptable to AJCodeElements or IJavaElements should return 0", 0, comp.compare(s1, s2));
 	}
 }

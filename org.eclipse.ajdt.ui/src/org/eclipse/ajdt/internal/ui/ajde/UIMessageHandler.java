@@ -65,21 +65,21 @@ public class UIMessageHandler implements IBuildMessageHandler {
     /**
      * resources that were affected by the compilation.
      */
-    private static Set<IResource> affectedResources = new HashSet<IResource>();
+    private static final Set<IResource> affectedResources = new HashSet<>();
     /**
      * Markers created in projects other than the one under compilation, which
      * should be cleared next time the compiled project is rebuilt
      */
-    private static Map<String, List<IMarker>> otherProjectMarkers = new HashMap<String, List<IMarker>>();
+    private static final Map<String, List<IMarker>> otherProjectMarkers = new HashMap<>();
     /**
      * Indicates whether the most recent build was full or incremental
      */
     private static boolean lastBuildWasFull;
-    private List<Kind> ignoring;
-	private List<ProblemTracker> problems = new ArrayList<ProblemTracker>();
+    private final List<Kind> ignoring;
+	private final List<ProblemTracker> problems = new ArrayList<>();
 
 	public UIMessageHandler(IProject project) {
-        ignoring = new ArrayList<Kind>();
+        ignoring = new ArrayList<>();
 
         if (!AspectJPreferences.getBooleanPrefValue(project, AspectJPreferences.OPTION_verbose)) {
             ignore(IMessage.INFO);
@@ -188,13 +188,12 @@ public class UIMessageHandler implements IBuildMessageHandler {
     }
 
     public List<ProblemTracker> getErrors() {
-    	List<ProblemTracker> errors = new ArrayList<ProblemTracker>();
-    	for (Iterator<ProblemTracker> iter = problems.iterator(); iter.hasNext();) {
-			ProblemTracker prob = (ProblemTracker) iter.next();
-			if (prob.kind.equals(IMessage.ERROR)) {
-				errors.add(prob);
-			}
-		}
+    	List<ProblemTracker> errors = new ArrayList<>();
+      for (ProblemTracker prob : problems) {
+        if (prob.kind.equals(IMessage.ERROR)) {
+          errors.add(prob);
+        }
+      }
     	return errors;
     }
 
@@ -217,129 +216,124 @@ public class UIMessageHandler implements IBuildMessageHandler {
         // THIS MUST STAY IN A SEPARATE THREAD - This is because we need
         // to create and setup the marker in an atomic operation. See
         // AMC or ASC.
-        IWorkspaceRunnable r = new IWorkspaceRunnable() {
-            public void run(IProgressMonitor monitor) {
+        IWorkspaceRunnable r = monitor -> {
 
-                try {
+            try {
 
-                    Iterator<IResource> affectedResourceIterator = affectedResources
-                            .iterator();
-                    AJLog.log(AJLog.COMPILER,"Types affected during build = "+affectedResources.size()); //$NON-NLS-1$
-                    IResource ir = null;
-                    while (affectedResourceIterator.hasNext()) {
-                        ir = (IResource) affectedResourceIterator.next();
-                        try {
-                            if (ir.exists()) {
-                                ir.deleteMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, false,
-                                        IResource.DEPTH_INFINITE);
-                                ir.deleteMarkers(IAJModelMarker.AJDT_PROBLEM_MARKER, true,
-                                        IResource.DEPTH_INFINITE);
-                                ir.deleteMarkers(IMarker.TASK, true,
-                                        IResource.DEPTH_INFINITE);
-                                // now removed markers from compilation participants
-                                HashSet<String> managedMarkers = JavaModelManager.getJavaModelManager().compilationParticipants.managedMarkerTypes();
-                                for (String managedMarker : managedMarkers) {
-                                    ir.deleteMarkers(managedMarker, true, IResource.DEPTH_INFINITE);
-                                }
+                Iterator<IResource> affectedResourceIterator = affectedResources
+                        .iterator();
+                AJLog.log(AJLog.COMPILER,"Types affected during build = "+affectedResources.size()); //$NON-NLS-1$
+                IResource ir = null;
+                while (affectedResourceIterator.hasNext()) {
+                    ir = (IResource) affectedResourceIterator.next();
+                    try {
+                        if (ir.exists()) {
+                            ir.deleteMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, false,
+                                    IResource.DEPTH_INFINITE);
+                            ir.deleteMarkers(IAJModelMarker.AJDT_PROBLEM_MARKER, true,
+                                    IResource.DEPTH_INFINITE);
+                            ir.deleteMarkers(IMarker.TASK, true,
+                                    IResource.DEPTH_INFINITE);
+                            // now removed markers from compilation participants
+                            HashSet<String> managedMarkers = JavaModelManager.getJavaModelManager().compilationParticipants.managedMarkerTypes();
+                            for (String managedMarker : managedMarkers) {
+                                ir.deleteMarkers(managedMarker, true, IResource.DEPTH_INFINITE);
                             }
-                        } catch (CoreException re) {
-                        	AJLog.log("Failed marker deletion: resource=" //$NON-NLS-1$
-                                            + ir.getLocation());
-                            throw re;
                         }
+                    } catch (CoreException re) {
+                      AJLog.log("Failed marker deletion: resource=" //$NON-NLS-1$
+                                        + ir.getLocation());
+                        throw re;
                     }
-
-                    Iterator<ProblemTracker> problemIterator = problems.iterator();
-                    ProblemTracker p = null;
-                    while (problemIterator.hasNext()) {
-                        p = (ProblemTracker) problemIterator.next();
-                        ir = null;
-                        IMarker marker = null;
-                        try {
-                        	if (p.location != null) {
-                                ir = locationToResource(p.location, project);
-								if ((ir != null) && ir.exists()) {
-									// 128803 - only add problems to affected resources
-									if (lastBuildWasFull
-											|| affectedResources.contains(ir)
-											|| ir.getProject() != project) {
-										int prio = getTaskPriority(p);
-										if (prio != -1) {
-											marker = ir.createMarker(IMarker.TASK);
-											marker.setAttribute(IMarker.PRIORITY, prio);
-										} else {
-											if (p.declaredErrorOrWarning) {
-												marker = ir.createMarker(IAJModelMarker.AJDT_PROBLEM_MARKER);
-											} else {
-												// create Java marker with problem id so
-												// that quick fix is available
-												marker = ir.createMarker(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER);
-												marker.setAttribute(IJavaModelMarker.ID,p.id);
-											}
-										}
-										if ((p.start >= 0) && (p.end >= 0)) {
-										    marker.setAttribute(IMarker.CHAR_START,new Integer(p.start));
-										    marker.setAttribute(IMarker.CHAR_END,new Integer(p.end + 1));
-										}
-										if (!ir.getProject().equals(project)) {
-											addOtherProjectMarker(project,marker);
-										}
-										if (p.location.getLine() > 0) {
-											marker.setAttribute(IMarker.LINE_NUMBER,
-													new Integer(p.location.getLine()));
-										}
-									} else {
-										AJLog.log(AJLog.COMPILER_MESSAGES,
-														"Not adding marker for problem because it's " //$NON-NLS-1$
-																+ "against a resource which is not in the list of affected resources" //$NON-NLS-1$
-																+ " provided by the compiler. Resource=" + ir + " Problem message=" //$NON-NLS-1$ //$NON-NLS-2$
-																+ p.message + " line=" + p.location.getLine()); //$NON-NLS-1$
-									}
-								}
-                            } else {
-                                marker = project.createMarker(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER);
-                            }
-                            if(marker != null) {
-	                            setSeverity(marker, p.kind);
-
-	                            if ((p.extraLocs != null) && (p.extraLocs.size() > 0)) { // multiple
-																							// part
-																							// message
-	                                int relCount=0;
-	                                for (Iterator<?> iter = p.extraLocs.iterator(); iter
-	                                		.hasNext();) {
-	                                    ISourceLocation sLoc = (ISourceLocation) iter
-	                                    .next();
-	                                    StringBuffer attrData = new StringBuffer();
-	                                    attrData.append(sLoc.getSourceFile().getAbsolutePath());
-	                                    attrData.append(":::"); //$NON-NLS-1$
-	                                    attrData.append(sLoc.getLine());
-	                                    attrData.append(":::"); //$NON-NLS-1$
-	                                    attrData.append(sLoc.getEndLine());
-	                                    attrData.append(":::"); //$NON-NLS-1$
-	                                    attrData.append(sLoc.getColumn());
-	                                    marker.setAttribute(AspectJUIPlugin.RELATED_LOCATIONS_ATTRIBUTE_PREFIX
-	                                          +(relCount++),attrData.toString());
-	                                }
-	                            }
-
-	                            setMessage(marker, p.message);
-                            }
-                        } catch (CoreException re) {
-                        	AJLog.log("Failed marker creation: resource=" //$NON-NLS-1$
-                                            + p.location.getSourceFile()
-                                                    .getPath()
-                                            + " line=" //$NON-NLS-1$
-                                            + p.location.getLine()
-                                            + " message=" + p.message); //$NON-NLS-1$
-                            throw re;
-                        }
-                    }
-                    clearMessages();
-                } catch (CoreException e) {
-                	AJDTErrorHandler.handleAJDTError(
-                            UIMessages.CompilerTaskListManager_Error_creating_marker, e);
                 }
+
+                Iterator<ProblemTracker> problemIterator = problems.iterator();
+                ProblemTracker p = null;
+                while (problemIterator.hasNext()) {
+                    p = (ProblemTracker) problemIterator.next();
+                    ir = null;
+                    IMarker marker = null;
+                    try {
+                      if (p.location != null) {
+                            ir = locationToResource(p.location, project);
+            if ((ir != null) && ir.exists()) {
+              // 128803 - only add problems to affected resources
+              if (lastBuildWasFull
+                  || affectedResources.contains(ir)
+                  || ir.getProject() != project) {
+                int prio = getTaskPriority(p);
+                if (prio != -1) {
+                  marker = ir.createMarker(IMarker.TASK);
+                  marker.setAttribute(IMarker.PRIORITY, prio);
+                } else {
+                  if (p.declaredErrorOrWarning) {
+                    marker = ir.createMarker(IAJModelMarker.AJDT_PROBLEM_MARKER);
+                  } else {
+                    // create Java marker with problem id so
+                    // that quick fix is available
+                    marker = ir.createMarker(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER);
+                    marker.setAttribute(IJavaModelMarker.ID,p.id);
+                  }
+                }
+                if ((p.start >= 0) && (p.end >= 0)) {
+                    marker.setAttribute(IMarker.CHAR_START,new Integer(p.start));
+                    marker.setAttribute(IMarker.CHAR_END,new Integer(p.end + 1));
+                }
+                if (!ir.getProject().equals(project)) {
+                  addOtherProjectMarker(project,marker);
+                }
+                if (p.location.getLine() > 0) {
+                  marker.setAttribute(IMarker.LINE_NUMBER,
+                      new Integer(p.location.getLine()));
+                }
+              } else {
+                AJLog.log(AJLog.COMPILER_MESSAGES,
+                        "Not adding marker for problem because it's " //$NON-NLS-1$
+                            + "against a resource which is not in the list of affected resources" //$NON-NLS-1$
+                            + " provided by the compiler. Resource=" + ir + " Problem message=" //$NON-NLS-1$ //$NON-NLS-2$
+                            + p.message + " line=" + p.location.getLine()); //$NON-NLS-1$
+              }
+            }
+                        } else {
+                            marker = project.createMarker(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER);
+                        }
+                        if(marker != null) {
+                          setSeverity(marker, p.kind);
+
+                          if ((p.extraLocs != null) && (p.extraLocs.size() > 0)) { // multiple
+                                          // part
+                                          // message
+                              int relCount=0;
+                            for (ISourceLocation sLoc : p.extraLocs) {
+                              StringBuilder attrData = new StringBuilder();
+                              attrData.append(sLoc.getSourceFile().getAbsolutePath());
+                              attrData.append(":::"); //$NON-NLS-1$
+                              attrData.append(sLoc.getLine());
+                              attrData.append(":::"); //$NON-NLS-1$
+                              attrData.append(sLoc.getEndLine());
+                              attrData.append(":::"); //$NON-NLS-1$
+                              attrData.append(sLoc.getColumn());
+                              marker.setAttribute(AspectJUIPlugin.RELATED_LOCATIONS_ATTRIBUTE_PREFIX
+                                                  + (relCount++), attrData.toString());
+                            }
+                          }
+
+                          setMessage(marker, p.message);
+                        }
+                    } catch (CoreException re) {
+                      AJLog.log("Failed marker creation: resource=" //$NON-NLS-1$
+                                        + p.location.getSourceFile()
+                                                .getPath()
+                                        + " line=" //$NON-NLS-1$
+                                        + p.location.getLine()
+                                        + " message=" + p.message); //$NON-NLS-1$
+                        throw re;
+                    }
+                }
+                clearMessages();
+            } catch (CoreException e) {
+              AJDTErrorHandler.handleAJDTError(
+                        UIMessages.CompilerTaskListManager_Error_creating_marker, e);
             }
         };
 
@@ -414,31 +408,31 @@ public class UIMessageHandler implements IBuildMessageHandler {
         try {
             IClasspathEntry[] classpathEntries = jProject
                     .getResolvedClasspath(false);
-            for (int i = 0; i < classpathEntries.length; i++) {
-                IClasspathEntry cpEntry = classpathEntries[i];
-                if (cpEntry.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
-                    IPath sourcePath = cpEntry.getPath();
-                    // remove the first segment because the findMember call
-                    // following always adds it back in under the covers (doh!)
-                    // and we end up with two first segments otherwise!
-                    sourcePath = sourcePath.removeFirstSegments(1);
+          for (IClasspathEntry cpEntry : classpathEntries) {
+            if (cpEntry.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
+              IPath sourcePath = cpEntry.getPath();
+              // remove the first segment because the findMember call
+              // following always adds it back in under the covers (doh!)
+              // and we end up with two first segments otherwise!
+              sourcePath = sourcePath.removeFirstSegments(1);
 
-                    IResource memberResource = project.findMember(sourcePath);
-                    if (memberResource != null) {
-                        IResource[] srcContainer = new IResource[] { memberResource };
-                    	ret = findFile(srcContainer, toFind);
-                    }
-                } else if (cpEntry.getEntryKind() == IClasspathEntry.CPE_PROJECT) {
-                    IPath projPath = cpEntry.getPath();
-                    IResource projResource = AspectJPlugin.getWorkspace().getRoot().findMember(projPath);
-                    if (projResource != null) {
-                    	ret = findFile(new IResource[] { projResource }, toFind);
-                    }
-                }
-                if (ret != null) {
-                	break;
-                }
+              IResource memberResource = project.findMember(sourcePath);
+              if (memberResource != null) {
+                IResource[] srcContainer = new IResource[] { memberResource };
+                ret = findFile(srcContainer, toFind);
+              }
             }
+            else if (cpEntry.getEntryKind() == IClasspathEntry.CPE_PROJECT) {
+              IPath projPath = cpEntry.getPath();
+              IResource projResource = AspectJPlugin.getWorkspace().getRoot().findMember(projPath);
+              if (projResource != null) {
+                ret = findFile(new IResource[] { projResource }, toFind);
+              }
+            }
+            if (ret != null) {
+              break;
+            }
+          }
         } catch (JavaModelException jmEx) {
         	AJDTErrorHandler.handleAJDTError(UIMessages.jmCoreException, jmEx);
         }
@@ -451,20 +445,19 @@ public class UIMessageHandler implements IBuildMessageHandler {
     private IResource findFile(IResource[] srcContainer, String name) {
         IResource ret = null;
         try {
-            for (int i = 0; i < srcContainer.length; i++) {
-                IResource ir = srcContainer[i];
-                if (ir != null) {
-	                if (ir.getFullPath().toString().endsWith(name)) {
-	                    ret = ir;
-	                    break;
-	                }
-	                if (ir instanceof IContainer) {
-	                    ret = findFile(((IContainer) ir).members(), name);
-	                    if (ret != null)
-	                        break;
-	                }
-                }
+          for (IResource ir : srcContainer) {
+            if (ir != null) {
+              if (ir.getFullPath().toString().endsWith(name)) {
+                ret = ir;
+                break;
+              }
+              if (ir instanceof IContainer) {
+                ret = findFile(((IContainer) ir).members(), name);
+                if (ret != null)
+                  break;
+              }
             }
+          }
         } catch (Exception e) {
         }
         return ret;
@@ -489,11 +482,8 @@ public class UIMessageHandler implements IBuildMessageHandler {
                 .getString("org.eclipse.jdt.core.compiler.taskPriorities"); //$NON-NLS-1$
 
         boolean caseSensitive;
-        if (caseSens.equals("disabled")) { //$NON-NLS-1$
-            caseSensitive = false;
-        } else {
-            caseSensitive = true;
-        }
+      //$NON-NLS-1$
+      caseSensitive = !caseSens.equals("disabled");
 
         StringTokenizer tagTokens = new StringTokenizer(tags, ","); //$NON-NLS-1$
         StringTokenizer priorityTokens = new StringTokenizer(priorities, ","); //$NON-NLS-1$
@@ -525,7 +515,7 @@ public class UIMessageHandler implements IBuildMessageHandler {
 
     private void addOtherProjectMarker(IProject p, IMarker m) {
         if (!otherProjectMarkers.containsKey(p.getName())) {
-            otherProjectMarkers.put(p.getName(), new ArrayList<IMarker>());
+            otherProjectMarkers.put(p.getName(), new ArrayList<>());
         }
         List<IMarker> l = otherProjectMarkers.get(p.getName());
         l.add(m);
@@ -544,14 +534,11 @@ public class UIMessageHandler implements IBuildMessageHandler {
     private void setSeverity(IMarker marker, IMessage.Kind kind)
             throws CoreException {
         if (kind == IMessage.ERROR) {
-            marker.setAttribute(IMarker.SEVERITY, new Integer(
-                    IMarker.SEVERITY_ERROR));
+            marker.setAttribute(IMarker.SEVERITY, Integer.valueOf(IMarker.SEVERITY_ERROR));
         } else if (kind == IMessage.WARNING) {
-            marker.setAttribute(IMarker.SEVERITY, new Integer(
-                    IMarker.SEVERITY_WARNING));
+            marker.setAttribute(IMarker.SEVERITY, Integer.valueOf(IMarker.SEVERITY_WARNING));
         } else {
-            marker.setAttribute(IMarker.SEVERITY, new Integer(
-                    IMarker.SEVERITY_INFO));
+            marker.setAttribute(IMarker.SEVERITY, Integer.valueOf(IMarker.SEVERITY_INFO));
         }
 
     }
@@ -580,7 +567,7 @@ public class UIMessageHandler implements IBuildMessageHandler {
         // FIXME: Remove this horrid hack.
         // Hack the filename off the front and the line number
         // off the end
-        if (message.indexOf("\":") != -1 && message.indexOf(", at line") != -1) { //$NON-NLS-1$ //$NON-NLS-2$
+        if (message.contains("\":") && message.contains(", at line")) { //$NON-NLS-1$ //$NON-NLS-2$
             String hackedMessage = message
                     .substring(message.indexOf("\":") + 2); //$NON-NLS-1$
             message = hackedMessage.substring(0, hackedMessage
@@ -608,7 +595,7 @@ public class UIMessageHandler implements IBuildMessageHandler {
      */
     void clearProblems() {
         for (Iterator<ProblemTracker> probIter = problems.iterator(); probIter.hasNext();) {
-            ProblemTracker problem = (ProblemTracker) probIter.next();
+            ProblemTracker problem = probIter.next();
             if (problem.location != null) {
                 probIter.remove();
             }
@@ -616,17 +603,17 @@ public class UIMessageHandler implements IBuildMessageHandler {
     }
 
     public static void clearOtherProjectMarkers(IProject p) {
-		List<?> l = (List<?>) otherProjectMarkers.get(p.getName());
+		List<?> l = otherProjectMarkers.get(p.getName());
 		if (l != null) {
-			ListIterator<?> li = l.listIterator();
-			while (li.hasNext()) {
-				IMarker m = (IMarker) li.next();
-				try {
-					m.delete();
-				} catch (CoreException ce) {
-					// can be ignored
-				} // not the end of the world.
-			}
+      for (Object o : l) {
+        IMarker m = (IMarker) o;
+        try {
+          m.delete();
+        }
+        catch (CoreException ce) {
+          // can be ignored
+        } // not the end of the world.
+      }
 			l.clear();
 		}
 	}

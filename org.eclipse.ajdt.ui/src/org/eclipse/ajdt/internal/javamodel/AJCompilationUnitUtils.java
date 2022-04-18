@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman - initial version
@@ -31,15 +31,14 @@ public class AJCompilationUnitUtils {
 	public static void removeCUsfromJavaModelAndCloseEditors(IProject project) {
 		List removed = AJCompilationUnitManager.INSTANCE
 				.removeCUsfromJavaModel(project);
-		Iterator iter = removed.iterator();
-		while (iter.hasNext()) {
-			closeEditorForFile((IFile) iter.next());
-		}
+    for (Object o : removed) {
+      closeEditorForFile((IFile) o);
+    }
 	}
 
 	protected static void removeFileFromModelAndCloseEditors(IFile file) {
 		AJCompilationUnitManager.INSTANCE.removeFileFromModel(file);
-		
+
 		// XXX don't know what the ramifications for commenting this out are
 		// This allows us to keep the editor open after a rename.
 //		closeEditorForFile(file);
@@ -54,7 +53,7 @@ public class AJCompilationUnitUtils {
 					//in case user cancels closeEditor, we should not
 					// remove unit from model
 					//TODO: maybe throw exception (?)
-					return;
+        { }
 		}
 	}
 }

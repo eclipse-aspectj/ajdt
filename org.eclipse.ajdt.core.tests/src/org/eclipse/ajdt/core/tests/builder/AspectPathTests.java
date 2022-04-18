@@ -36,10 +36,10 @@ public class AspectPathTests extends AJDTCoreTestCase {
         final IClasspathEntry[] entries = new IClasspathEntry[2];
         entries[0] = JavaCore.newLibraryEntry(lib.getLocation(), //
                 null /*srcPath*/, null /*srcRoot*/, new IAccessRule[0], //
-                new IClasspathAttribute[] {AspectJCorePreferences.ASPECTPATH_ATTRIBUTE}, // 
+                new IClasspathAttribute[] {AspectJCorePreferences.ASPECTPATH_ATTRIBUTE}, //
                 false /*not exported*/);
 
-        entries[1] = JavaCore.newProjectEntry(hasLib.getFullPath(), 
+        entries[1] = JavaCore.newProjectEntry(hasLib.getFullPath(),
                 new IAccessRule[0] /*accessRules*/,
                 true /*combineAccessRules*/,
                 new IClasspathAttribute[] {AspectJCorePreferences.ASPECTPATH_ATTRIBUTE},
@@ -65,39 +65,37 @@ public class AspectPathTests extends AJDTCoreTestCase {
             IClasspathEntry[] newCp = new IClasspathEntry[cp.length + 1];
             System.arraycopy(cp, 0, newCp, 0, cp.length);
             newCp[cp.length] = JavaCore.newContainerEntry(container.getPath());
-            
+
             jMakeContainer.setRawClasspath(newCp, null);
         }
 
         JavaCore.setClasspathContainer(
-                container.getPath(), 
+                container.getPath(),
                 new IJavaProject[] {jMakeContainer},
                 new IClasspathContainer[] {container},
                 null);
 
         String[] aspectPath = AspectJCorePreferences.getResolvedProjectAspectPath(makeContainer);
-        
+
         assertTrue("Should have lib.jar on the aspect path", aspectPath[0].endsWith("lib.jar"+File.pathSeparator));  //$NON-NLS-1$//$NON-NLS-2$
     }
-    
+
     /**
-     * this test ensures that projects that have their out folder as root can be 
+     * this test ensures that projects that have their out folder as root can be
      * properly placed on the aspect and in paths
      * See bug 244300
      */
     public void testProjectWithRootOutFolderOnAspectPath() throws Exception {
-    	final List<String> log = new LinkedList<String>();
-    	RuntimeLog.addLogListener(new ILogListener() {
-			public void logging(IStatus status, String plugin) {
-			    if (status.getSeverity() == IStatus.ERROR) {
-			        log.add(plugin + ": " + status);
-			    }
-			}
-		});
-    	
+    	final List<String> log = new LinkedList<>();
+    	RuntimeLog.addLogListener((status, plugin) -> {
+          if (status.getSeverity() == IStatus.ERROR) {
+              log.add(plugin + ": " + status);
+          }
+      });
+
     	createPredefinedProject("AJ Proj depends on Java Proj with Root out Folder"); //$NON-NLS-1$
     	createPredefinedProject("Java Proj with Root Out folder"); //$NON-NLS-1$
     	waitForAutoBuild();
-    	assertEquals("Build should have produced no errors, but errors were:\n" + log.toString(), 0, log.size());
+    	assertEquals("Build should have produced no errors, but errors were:\n" + log, 0, log.size());
     }
 }

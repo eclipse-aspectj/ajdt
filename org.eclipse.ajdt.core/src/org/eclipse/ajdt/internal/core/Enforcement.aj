@@ -12,12 +12,6 @@
  *******************************************************************************/
 package org.eclipse.ajdt.internal.core;
 
-import org.eclipse.ajdt.core.AJLog;
-import org.aspectj.asm.IHierarchy;
-import org.aspectj.asm.IRelationshipMap;
-import org.eclipse.ajdt.core.model.AJProjectModelFacade;
-import org.eclipse.ajdt.core.model.AJModelChecker;
-
 /**
  * Check some coding standards and conventions
  */

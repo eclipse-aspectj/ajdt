@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Helen Hawkins   - iniital version
@@ -24,20 +24,20 @@ public class XReferencePlugin extends Plugin {
 
 	// the plugin id
 	public static final String PLUGIN_ID = "org.eclipse.contribution.xref.core"; //$NON-NLS-1$
-	
+
 	//The shared instance.
 	private static XReferencePlugin plugin;
 
 	public static final int ERROR_BAD_PROVIDER = 1;
-	
+
 	/**
-	 * 3.0 compatible Plugin constructor - load the resource bundle 
+	 * 3.0 compatible Plugin constructor - load the resource bundle
 	 */
 	public XReferencePlugin() {
 		super();
 		plugin = this;
 	}
-		
+
 	/**
 	 * Returns the shared instance.
 	 */
@@ -48,23 +48,22 @@ public class XReferencePlugin extends Plugin {
 	public static void log(CoreException ex) {
 		getDefault().getLog().log(ex.getStatus());
 	}
-	
+
 	public static String getVersion() {
-	    String pluginVersion = (String) Platform.getBundle(PLUGIN_ID).getHeaders().get(org.osgi.framework.Constants.BUNDLE_VERSION);
-		Version version = new Version(pluginVersion); 
-		StringBuffer result = new StringBuffer();
-		result.append(version.getMajor());
-		result.append("."); //$NON-NLS-1$
-		result.append(version.getMinor());
-		result.append("."); //$NON-NLS-1$
-		result.append(version.getMicro());		
-		return result.toString();		
+	    String pluginVersion = Platform.getBundle(PLUGIN_ID).getHeaders().get(org.osgi.framework.Constants.BUNDLE_VERSION);
+		Version version = new Version(pluginVersion);
+    String result = version.getMajor() +
+                    "." + //$NON-NLS-1$
+                    version.getMinor() +
+                    "." + //$NON-NLS-1$
+                    version.getMicro();
+		return result;
 	}
 
 	/**
-	 * This method is called upon plug-in activation - process any 
+	 * This method is called upon plug-in activation - process any
 	 * defined extensions and add the resource change listener.
-	 * 
+	 *
 	 * 3.0 compatible
 	 */
 	public void start(BundleContext context) throws Exception {
@@ -73,7 +72,7 @@ public class XReferencePlugin extends Plugin {
 
 	/**
 	 * This method is called when the plug-in is stopped
-	 * 
+	 *
 	 * 3.0 compatible
 	 */
 	public void stop(BundleContext context) throws Exception {

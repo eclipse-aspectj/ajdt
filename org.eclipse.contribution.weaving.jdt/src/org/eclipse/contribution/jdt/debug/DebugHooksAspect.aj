@@ -18,7 +18,6 @@ import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.model.IDebugElement;
 import org.eclipse.debug.core.model.IThread;
-import org.eclipse.jdi.internal.request.EventRequestImpl;
 import org.eclipse.jdi.internal.request.StepRequestImpl;
 import org.eclipse.jdt.debug.core.IJavaBreakpoint;
 import org.eclipse.jdt.debug.core.IJavaObject;
@@ -32,8 +31,6 @@ import org.eclipse.jdt.internal.debug.eval.ast.engine.ASTEvaluationEngine;
 import org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants;
 
 import com.sun.jdi.Location;
-import com.sun.jdi.event.Event;
-import com.sun.jdi.event.EventSet;
 import com.sun.jdi.InternalException;
 /**
  * The pointcuts and advice that provides hooks for other plugins into the JDT debug infrastructure
@@ -49,7 +46,7 @@ public privileged aspect DebugHooksAspect {
     /**
      * will be null when outside of STS (ie- Groovy support not installed)
      */
-    private DebugAdapter adapter = DebugAdapter.getInstance();
+    private final DebugAdapter adapter = DebugAdapter.getInstance();
 
     /**
      * This pointcut is reached when the debugged application stops at a new location.
@@ -73,21 +70,17 @@ public privileged aspect DebugHooksAspect {
         // and the provider
         // determines that the step should be performed, then doit.
         // otherwise, proceed as usual
-        try {
 
-            StepRequestImpl request = (StepRequestImpl) ((JDIThread.StepHandler) handler).getStepRequest();
-            if (request != null) {
-                IThread thread = target.findThread(request.thread());
-                IDebugProvider provider = adapter.getProvider();
-                if ((provider != null && isInterestingLaunch(thread) && thread.isStepping() && provider
-                        .shouldPerformExtraStep(location))) {
-                    return true;  // do not proceed
-                }
-            }
-        } catch (DebugException e) {
-            JDTWeavingPlugin.logException(e);
-        }
-        return proceed(location, handler, target);
+      StepRequestImpl request = (StepRequestImpl) ((JDIThread.StepHandler) handler).getStepRequest();
+      if (request != null) {
+          IThread thread = target.findThread(request.thread());
+          IDebugProvider provider = adapter.getProvider();
+          if ((provider != null && isInterestingLaunch(thread) && thread.isStepping() && provider
+                  .shouldPerformExtraStep(location))) {
+              return true;  // do not proceed
+          }
+      }
+      return proceed(location, handler, target);
     }
 
     /**

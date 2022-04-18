@@ -74,9 +74,9 @@ public class ASTRewritingPointcutDeclTest extends AJDTCoreTestCase {
 			fail("got a BadLocationException: " + e.getMessage()); //$NON-NLS-1$
 		}
 		if (!"import java.util.List;\nimport java.util.Set;\nclass X {}\n" //$NON-NLS-1$
-		.equals(doc.get().toString())) {
+		.equals(doc.get())) {
 			fail("expecting:\nimport java.util.List;\nimport java.util.Set;\nclass X {}\n" //$NON-NLS-1$
-					+ "=====got:\n" + doc.get().toString()); //$NON-NLS-1$
+           + "=====got:\n" + doc.get()); //$NON-NLS-1$
 		}
 	}
 
@@ -593,7 +593,7 @@ public class ASTRewritingPointcutDeclTest extends AJDTCoreTestCase {
 	}
 
 	/**
-	 * This test is failing under AspectJ 1.7.  Since it doesn't look like 
+	 * This test is failing under AspectJ 1.7.  Since it doesn't look like
 	 * andything uses the {@link AjASTRewrite} I see no reason to maintain this test.
 	 * @throws Exception
 	 */
@@ -612,7 +612,7 @@ public class ASTRewritingPointcutDeclTest extends AJDTCoreTestCase {
 						+ "    public abstract void kee(int p1, int p2, int p3) throws IllegalArgumentException, IllegalAccessException, SecurityException;\n" //$NON-NLS-1$
 						+ "    public abstract void lee(int p1, int p2, int p3) throws IllegalArgumentException, IllegalAccessException, SecurityException;\n" //$NON-NLS-1$
 						+ "}\n"); //$NON-NLS-1$
-		ASTParser parser = ASTParser.newParser(AST.JLS3); 
+		ASTParser parser = ASTParser.newParser(AST.JLS3);
 		parser.setSource(doc.get().toCharArray());
 		parser.setCompilerOptions(compilerOptions);
 		CompilationUnit astRoot = (CompilationUnit) parser.createAST(null);
@@ -636,8 +636,7 @@ public class ASTRewritingPointcutDeclTest extends AJDTCoreTestCase {
 		}
 		{ // change return type
 			MethodDeclaration methodDecl = findMethodDeclaration(type, "gee"); //$NON-NLS-1$
-			assertTrue(
-					"Has no return type: gee", methodDecl.getReturnType2() != null); //$NON-NLS-1$
+      assertNotNull("Has no return type: gee", methodDecl.getReturnType2()); //$NON-NLS-1$
 
 			Type returnType = methodDecl.getReturnType2();
 			Type newReturnType = astRoot.getAST().newPrimitiveType(
@@ -646,8 +645,7 @@ public class ASTRewritingPointcutDeclTest extends AJDTCoreTestCase {
 		}
 		{ // remove return type
 			MethodDeclaration methodDecl = findMethodDeclaration(type, "hee"); //$NON-NLS-1$
-			assertTrue(
-					"Has no return type: hee", methodDecl.getReturnType2() != null); //$NON-NLS-1$
+      assertNotNull("Has no return type: hee", methodDecl.getReturnType2()); //$NON-NLS-1$
 
 			// from method to constructor
 			rewrite.set(methodDecl, MethodDeclaration.CONSTRUCTOR_PROPERTY,
@@ -664,13 +662,12 @@ public class ASTRewritingPointcutDeclTest extends AJDTCoreTestCase {
 		{ // rename first param & last throw statement
 			MethodDeclaration methodDecl = findMethodDeclaration(type, "jee"); //$NON-NLS-1$
 			List parameters = methodDecl.parameters();
-			assertTrue("must be 3 parameters", parameters.size() == 3); //$NON-NLS-1$
+      assertEquals("must be 3 parameters", 3, parameters.size()); //$NON-NLS-1$
 			SingleVariableDeclaration newParam = createNewParam(ast, "m"); //$NON-NLS-1$
 			rewrite.replace((ASTNode) parameters.get(0), newParam, null);
 
 			List thrownExceptions = methodDecl.thrownExceptions();
-			assertTrue(
-					"must be 2 thrown exceptions", thrownExceptions.size() == 2); //$NON-NLS-1$
+      assertEquals("must be 2 thrown exceptions", 2, thrownExceptions.size()); //$NON-NLS-1$
 			Name newThrownException = ast.newSimpleName("ArrayStoreException"); //$NON-NLS-1$
 			rewrite.replace((ASTNode) thrownExceptions.get(1),
 					newThrownException, null);
@@ -679,15 +676,14 @@ public class ASTRewritingPointcutDeclTest extends AJDTCoreTestCase {
 			// exception
 			MethodDeclaration methodDecl = findMethodDeclaration(type, "kee"); //$NON-NLS-1$
 			List parameters = methodDecl.parameters();
-			assertTrue("must be 3 parameters", parameters.size() == 3); //$NON-NLS-1$
+      assertEquals("must be 3 parameters", 3, parameters.size()); //$NON-NLS-1$
 			SingleVariableDeclaration newParam1 = createNewParam(ast, "m1"); //$NON-NLS-1$
 			SingleVariableDeclaration newParam2 = createNewParam(ast, "m2"); //$NON-NLS-1$
 			rewrite.replace((ASTNode) parameters.get(0), newParam1, null);
 			rewrite.replace((ASTNode) parameters.get(1), newParam2, null);
 
 			List thrownExceptions = methodDecl.thrownExceptions();
-			assertTrue(
-					"must be 3 thrown exceptions", thrownExceptions.size() == 3); //$NON-NLS-1$
+      assertEquals("must be 3 thrown exceptions", 3, thrownExceptions.size()); //$NON-NLS-1$
 			Name newThrownException1 = ast.newSimpleName("ArrayStoreException"); //$NON-NLS-1$
 			Name newThrownException2 = ast
 					.newSimpleName("InterruptedException"); //$NON-NLS-1$
@@ -699,7 +695,7 @@ public class ASTRewritingPointcutDeclTest extends AJDTCoreTestCase {
 		{ // rename all params & rename second exception
 			MethodDeclaration methodDecl = findMethodDeclaration(type, "lee"); //$NON-NLS-1$
 			List parameters = methodDecl.parameters();
-			assertTrue("must be 3 parameters", parameters.size() == 3); //$NON-NLS-1$
+      assertEquals("must be 3 parameters", 3, parameters.size()); //$NON-NLS-1$
 			SingleVariableDeclaration newParam1 = createNewParam(ast, "m1"); //$NON-NLS-1$
 			SingleVariableDeclaration newParam2 = createNewParam(ast, "m2"); //$NON-NLS-1$
 			SingleVariableDeclaration newParam3 = createNewParam(ast, "m3"); //$NON-NLS-1$
@@ -708,8 +704,7 @@ public class ASTRewritingPointcutDeclTest extends AJDTCoreTestCase {
 			rewrite.replace((ASTNode) parameters.get(2), newParam3, null);
 
 			List thrownExceptions = methodDecl.thrownExceptions();
-			assertTrue(
-					"must be 3 thrown exceptions", thrownExceptions.size() == 3); //$NON-NLS-1$
+      assertEquals("must be 3 thrown exceptions", 3, thrownExceptions.size()); //$NON-NLS-1$
 			Name newThrownException = ast.newSimpleName("ArrayStoreException"); //$NON-NLS-1$
 			rewrite.replace((ASTNode) thrownExceptions.get(1),
 					newThrownException, null);
@@ -733,9 +728,9 @@ public class ASTRewritingPointcutDeclTest extends AJDTCoreTestCase {
 				+ "    public abstract void lee(float m1, float m2, float m3) throws IllegalArgumentException, ArrayStoreException, SecurityException;\n" //$NON-NLS-1$
 				+ "}\n"; //$NON-NLS-1$
 
-		if (!doc.get().toString().equals(expected)) {
+		if (!doc.get().equals(expected)) {
 			fail("expecting: " + expected + "=====got:\n" //$NON-NLS-1$ //$NON-NLS-2$
-					+ doc.get().toString());
+           + doc.get());
 		}
 	}
 
@@ -747,9 +742,9 @@ public class ASTRewritingPointcutDeclTest extends AJDTCoreTestCase {
 		} catch (BadLocationException e) {
 			fail("got a BadLocationException: " + e.getMessage()); //$NON-NLS-1$
 		}
-		if (!doc.get().toString().equals(expected)) {
+		if (!doc.get().equals(expected)) {
 			fail("expecting:\n" + expected + "=====got:\n" //$NON-NLS-1$ //$NON-NLS-2$
-					+ doc.get().toString());
+           + doc.get());
 		}
 	}
 
@@ -760,35 +755,34 @@ public class ASTRewritingPointcutDeclTest extends AJDTCoreTestCase {
 	public static AbstractTypeDeclaration findAbstractTypeDeclaration(
 			CompilationUnit astRoot, String simpleTypeName) {
 		List types = astRoot.types();
-		for (int i = 0; i < types.size(); i++) {
-			AbstractTypeDeclaration elem = (AbstractTypeDeclaration) types
-					.get(i);
-			if (simpleTypeName.equals(elem.getName().getIdentifier())) {
-				return elem;
-			}
-		}
+    for (Object type : types) {
+      AbstractTypeDeclaration elem = (AbstractTypeDeclaration) type;
+      if (simpleTypeName.equals(elem.getName().getIdentifier())) {
+        return elem;
+      }
+    }
 		return null;
 	}
 
 	public static MethodDeclaration findMethodDeclaration(
 			TypeDeclaration typeDecl, String methodName) {
 		MethodDeclaration[] methods = typeDecl.getMethods();
-		for (int i = 0; i < methods.length; i++) {
-			if (methodName.equals(methods[i].getName().getIdentifier())) {
-				return methods[i];
-			}
-		}
+    for (MethodDeclaration method : methods) {
+      if (methodName.equals(method.getName().getIdentifier())) {
+        return method;
+      }
+    }
 		return null;
 	}
 
 	public static PointcutDeclaration findPointcutDeclaration(
 			AjTypeDeclaration typeDecl, String pointcutName) {
 		PointcutDeclaration[] pointcuts = typeDecl.getPointcuts();
-		for (int i = 0; i < pointcuts.length; i++) {
-			if (pointcutName.equals(pointcuts[i].getName().getIdentifier())) {
-				return pointcuts[i];
-			}
-		}
+    for (PointcutDeclaration pointcut : pointcuts) {
+      if (pointcutName.equals(pointcut.getName().getIdentifier())) {
+        return pointcut;
+      }
+    }
 		return null;
 	}
 
