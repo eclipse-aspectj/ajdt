@@ -13,6 +13,7 @@ package org.eclipse.ajdt.core.tests.problemfinding;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.ajdt.core.AspectJCore;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
@@ -21,6 +22,7 @@ import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
 import org.eclipse.ajdt.internal.core.AJWorkingCopyOwner;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.compiler.CategorizedProblem;
 import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.CompilationUnitProblemFinder;
 import org.eclipse.jdt.internal.core.DefaultWorkingCopyOwner;
@@ -35,7 +37,7 @@ import org.eclipse.jdt.internal.core.DefaultWorkingCopyOwner;
  *
  */
 public class ProblemFinderTests7 extends AJDTCoreTestCase {
-    private final List/*ICompilationUnit*/ allCUnits = new ArrayList();
+    private final List<ICompilationUnit> allCUnits = new ArrayList<>();
 
 
     private IProject proj;
@@ -72,9 +74,8 @@ public class ProblemFinderTests7 extends AJDTCoreTestCase {
         problemFind2Errors((AJCompilationUnit) allCUnits.get(2));
     }
 
-
     private void problemFind2Errors(AJCompilationUnit unit) throws Exception {
-        HashMap problems = new HashMap();
+        Map<String, CategorizedProblem[]> problems = new HashMap<>();
         AJCompilationUnitProblemFinder.processAJ(unit,
                 AJWorkingCopyOwner.INSTANCE, problems, true,
                 ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
@@ -82,10 +83,11 @@ public class ProblemFinderTests7 extends AJDTCoreTestCase {
 
         MockProblemRequestor.filterAllWarningProblems(problems);
         assertEquals("Should have two problems in " + unit + " but found:\n" + MockProblemRequestor.printProblems(problems), 2, MockProblemRequestor.countProblems(problems)); //$NON-NLS-1$
-
     }
+
     private void problemFind(ICompilationUnit unit) throws Exception {
-        HashMap problems = new HashMap();
+        // CompilationUnitProblemFinder.process explicitly declares a HashMap parameter, so we need to accomodate that
+        HashMap<String, CategorizedProblem[]> problems = new HashMap<>();
 
         if (unit instanceof AJCompilationUnit) {
             AJCompilationUnitProblemFinder.processAJ((AJCompilationUnit) unit,
@@ -101,6 +103,5 @@ public class ProblemFinderTests7 extends AJDTCoreTestCase {
         MockProblemRequestor.filterAllWarningProblems(problems);
         assertEquals("Should not have any problems in " + unit + " but found:\n" + MockProblemRequestor.printProblems(problems), 0, MockProblemRequestor.countProblems(problems)); //$NON-NLS-1$
     }
-
 
 }

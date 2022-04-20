@@ -65,36 +65,35 @@ public class AJModel {
    * @return all DECLARED_ON relationships for the given java element
    * @deprecated see bug 253245
    */
-	public List getAllRelationships(IProject proj, AJRelationshipType[] relTypes) {
-	    AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForProject(proj);
-	    if (model.hasModel()) {  // returns false if project is not built
-	        List<IRelationship> allRels = model.getRelationshipsForProject(relTypes);
-	        List<AJRelationship> ajRels = new ArrayList<>(allRels.size());
-        for (IRelationship rel : allRels) {
-          IJavaElement source = model.programElementToJavaElement(rel.getSourceHandle());
-          if (source instanceof IntertypeElement) {
-            for (String target : rel.getTargets()) {
-              // ensure a Java handle is used here.
-              // because the things being compared to are
-              // Java handles.
-              // This is avoiding problems when Type is in a .aj file
-              IJavaElement elt = model.programElementToJavaElement(target);
-              elt = JavaCore.create(AspectJCore.convertToJavaCUHandle(elt.getHandleIdentifier(), elt));
-              if (elt != null) {
-                // will be null if type is an aspect type or contained in an aspect type
-                AJRelationship ajRel = new AJRelationship(
-                  source,
-                  AJRelationshipManager.toRelationshipType(rel.getName()),
-                  elt,
-                  rel.hasRuntimeTest());
-                ajRels.add(ajRel);
-              }
-            }
-          }
-        }
-	        return ajRels;
-	    } else {
-	        return Collections.EMPTY_LIST;
-	    }
+	public List<AJRelationship> getAllRelationships(IProject proj, AJRelationshipType[] relTypes) {
+		AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForProject(proj);
+		if (model.hasModel()) {  // returns false if project is not built
+			List<IRelationship> allRels = model.getRelationshipsForProject(relTypes);
+			List<AJRelationship> ajRels = new ArrayList<>(allRels.size());
+			for (IRelationship rel : allRels) {
+				IJavaElement source = model.programElementToJavaElement(rel.getSourceHandle());
+				if (source instanceof IntertypeElement) {
+					for (String target : rel.getTargets()) {
+						// Ensure a Java handle is used here, because the things being compared to are Java handles.
+						// This is avoiding problems when Type is in a .aj file.
+						IJavaElement elt = model.programElementToJavaElement(target);
+						elt = JavaCore.create(AspectJCore.convertToJavaCUHandle(elt.getHandleIdentifier(), elt));
+						if (elt != null) {
+							// Will be null if type is an aspect type or contained in an aspect type
+							AJRelationship ajRel = new AJRelationship(
+								source,
+								AJRelationshipManager.toRelationshipType(rel.getName()),
+								elt,
+								rel.hasRuntimeTest()
+							);
+							ajRels.add(ajRel);
+						}
+					}
+				}
+			}
+			return ajRels;
+		}
+		else
+			return Collections.emptyList();
 	}
 }

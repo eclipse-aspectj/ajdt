@@ -685,8 +685,8 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
         if (unit != null && typeName != null && typeName.length > 0) {
             IType type = getHandle(String.valueOf(typeName));
             if (type.exists()) {
-                List<String>[] declares = getDeclareExtendsImplements(type);
-                if (declares[0].size() == 0 && declares[1].size() == 0) {
+                List<List<String>> declares = getDeclareExtendsImplements(type);
+                if (declares.get(0).isEmpty() && declares.get(1).isEmpty()) {
                     // nothing to do
                     return null;
                 }
@@ -708,8 +708,8 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                         sb.append("> ");
                     }
 
-                    List<String> declareExtends = declares[0];
-                    List<String> declareImplements = declares[1];
+                    List<String> declareExtends = declares.get(0);
+                    List<String> declareImplements = declares.get(1);
                     if (type.isClass()) {
                         String superClass = type.getSuperclassName();
                         if (declareExtends.size() > 0) {
@@ -797,7 +797,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
      * @return list of all declare extends that apply to this type
      * in fully qualified strings
      */
-    protected List[] getDeclareExtendsImplements(IType type) {
+    protected List<List<String>> getDeclareExtendsImplements(IType type) {
         List<String> declareExtends = new ArrayList<>();
         List<String> declareImplements = new ArrayList<>();
         if (type != null  && type.exists()) {
@@ -852,7 +852,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                 }
             }
         }
-        return new List[] { declareExtends, declareImplements };
+        return Arrays.asList(declareExtends, declareImplements);
     }
 
     /**

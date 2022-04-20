@@ -26,20 +26,30 @@ public class CoreUtilsTest extends AJDTCoreTestCase {
 		IProject project = createPredefinedProject("MultipleOutputFolders"); //$NON-NLS-1$
 		IJavaProject jp = JavaCore.create(project);
 		IPath[] out = CoreUtils.getOutputFolders(jp);
-		assertNotNull("CoreUtils.getOutputFolders should not return null", //$NON-NLS-1$
-				out);
+		assertNotNull(
+			"CoreUtils.getOutputFolders should not return null", //$NON-NLS-1$
+			out
+		);
 		assertEquals(
-				"CoreUtils.getOutputFolders should have returned 2 folders", 2, //$NON-NLS-1$
-				out.length);
+			"CoreUtils.getOutputFolders should have returned 2 folders", //$NON-NLS-1$
+			2, out.length
+		);
 		boolean bin2 = out[0].toString().endsWith("bin2"); //$NON-NLS-1$
 		if (bin2) {
-			assertTrue("CoreUtils.getOutputFolders didn't return bin folder", //$NON-NLS-1$
-					out[1].toString().endsWith("bin")); //$NON-NLS-1$
-		} else {
-			assertTrue("CoreUtils.getOutputFolders didn't return bin folder", //$NON-NLS-1$
-					out[0].toString().endsWith("bin")); //$NON-NLS-1$
-			assertTrue("CoreUtils.getOutputFolders didn't return bin2 folder", //$NON-NLS-1$
-					out[1].toString().endsWith("bin2")); //$NON-NLS-1$
+			assertTrue(
+				"CoreUtils.getOutputFolders didn't return bin folder", //$NON-NLS-1$
+				out[1].toString().endsWith("bin") //$NON-NLS-1$
+			);
+		}
+		else {
+			assertTrue(
+				"CoreUtils.getOutputFolders didn't return bin folder", //$NON-NLS-1$
+				out[0].toString().endsWith("bin") //$NON-NLS-1$
+			);
+			assertTrue(
+				"CoreUtils.getOutputFolders didn't return bin2 folder", //$NON-NLS-1$
+				out[1].toString().endsWith("bin2") //$NON-NLS-1$
+			);
 		}
 	}
 
@@ -49,10 +59,13 @@ public class CoreUtilsTest extends AJDTCoreTestCase {
 		IPath[] out = CoreUtils.getOutputFolders(jp);
 		assertNotNull("CoreUtils.getOutputFolders should not return null", out); //$NON-NLS-1$
 		assertEquals(
-				"CoreUtils.getOutputFolders should have returned 1 folder", 1, //$NON-NLS-1$
-				out.length);
-		assertTrue("CoreUtils.getOutputFolders didn't return project root", //$NON-NLS-1$
-				out[0].toString().endsWith("bug102652")); //$NON-NLS-1$
+			"CoreUtils.getOutputFolders should have returned 1 folder", //$NON-NLS-1$
+			1, out.length
+		);
+		assertTrue(
+			"CoreUtils.getOutputFolders didn't return project root", //$NON-NLS-1$
+			out[0].toString().endsWith("bug102652") //$NON-NLS-1$
+		);
 	}
 
 	public void testGetOutputFoldersDefault() throws Exception {
@@ -61,40 +74,49 @@ public class CoreUtilsTest extends AJDTCoreTestCase {
 		IPath[] out = CoreUtils.getOutputFolders(jp);
 		assertNotNull("CoreUtils.getOutputFolders should not return null", out); //$NON-NLS-1$
 		assertEquals(
-				"CoreUtils.getOutputFolders should have returned 1 folder", 1, //$NON-NLS-1$
-				out.length);
-		assertTrue("CoreUtils.getOutputFolders didn't return bin folder", //$NON-NLS-1$
-				out[0].toString().endsWith("bin")); //$NON-NLS-1$
+			"CoreUtils.getOutputFolders should have returned 1 folder", //$NON-NLS-1$
+			1, out.length
+		);
+		assertTrue(
+			"CoreUtils.getOutputFolders didn't return bin folder", //$NON-NLS-1$
+			out[0].toString().endsWith("bin") //$NON-NLS-1$
+		);
 	}
 
 	public void testListAJSigToJavaSig1() {
-	    List orig = new ArrayList();
-        orig.add("PPPP///<P<<".toCharArray());
-        orig.add("LLLPPPP///<P<<LP".toCharArray());
-        orig.add("......P<LP<P".toCharArray());
-        orig.add("".toCharArray());
-        orig.add(null);
+		List<char[]> orig = new ArrayList<>();
+		orig.add("PPPP///<P<<".toCharArray());
+		orig.add("LLLPPPP///<P<<LP".toCharArray());
+		orig.add("......P<LP<P".toCharArray());
+		orig.add("".toCharArray());
+		orig.add(null);
 
-        String[] expected = new String[] {
-                "LPPP...<L<<",
-                "LLLPPPP...<L<<LP",
-                "......P<LP<L",
-                "",
-                ""
-        };
+		String[] expected = new String[] {
+			"LPPP...<L<<",
+			"LLLPPPP...<L<<LP",
+			"......P<LP<L",
+			"",
+			""
+		};
 
-        String[] result = CoreUtils.listAJSigToJavaSig(orig);
-        assertEquals("Result of listAJSigToJavaSig should be the same number of Strings as orig",
-                expected.length, result.length);
+		String[] result = CoreUtils.listAJSigToJavaSig(orig);
+		assertEquals(
+			"Result of listAJSigToJavaSig should be the same number of Strings as orig",
+			expected.length, result.length
+		);
 
-        for (int i = 0; i < result.length; i++) {
-            assertEquals("listAJSigToJavaSig did not convert to Java signature properly.",
-                    expected[i], result[i]);
-        }
+		for (int i = 0; i < result.length; i++) {
+			assertEquals(
+				"listAJSigToJavaSig did not convert to Java signature properly.",
+				expected[i], result[i]
+			);
+		}
 
-        result = CoreUtils.listAJSigToJavaSig(null);
+		result = CoreUtils.listAJSigToJavaSig(null);
 
-        assertEquals("listAJSigToJavaSig did not convert to Java signature properly.", 0,
-                result.length);
+		assertEquals(
+			"listAJSigToJavaSig did not convert to Java signature properly.",
+			0, result.length
+		);
 	}
 }

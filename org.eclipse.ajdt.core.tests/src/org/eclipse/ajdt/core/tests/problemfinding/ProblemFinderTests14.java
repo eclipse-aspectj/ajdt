@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.ajdt.core.AspectJCore;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
@@ -28,6 +29,7 @@ import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.compiler.CategorizedProblem;
 import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.CompilationUnitProblemFinder;
 import org.eclipse.jdt.internal.core.DefaultWorkingCopyOwner;
@@ -42,7 +44,7 @@ import org.eclipse.jdt.internal.core.DefaultWorkingCopyOwner;
  *
  */
 public class ProblemFinderTests14 extends AJDTCoreTestCase {
-    List/*ICompilationUnit*/ allCUnits = new ArrayList();
+    List<ICompilationUnit> allCUnits = new ArrayList<>();
     IProject proj;
     protected void setUp() throws Exception {
         super.setUp();
@@ -77,16 +79,16 @@ public class ProblemFinderTests14 extends AJDTCoreTestCase {
 
     public void testProblemFindingAll() throws Exception {
         StringBuilder sb = new StringBuilder();
-      for (Object allCUnit : allCUnits) {
-        sb.append(problemFind((ICompilationUnit) allCUnit));
-      }
+        for (ICompilationUnit allCUnit : allCUnits) {
+            sb.append(problemFind(allCUnit));
+        }
         if (sb.length() > 0) {
             fail(sb.toString());
         }
     }
 
     private String problemFind(ICompilationUnit unit) throws Exception {
-        HashMap problems = doFind(unit);
+        Map<String, CategorizedProblem[]> problems = new HashMap<>();
         MockProblemRequestor.filterAllWarningProblems(problems);
         if (MockProblemRequestor.countProblems(problems) > 0) {
             return "Should not have any problems in " + unit + " but found:\n" + MockProblemRequestor.printProblems(problems) + "\n"; //$NON-NLS-1$
@@ -94,9 +96,9 @@ public class ProblemFinderTests14 extends AJDTCoreTestCase {
             return "";
         }
     }
-    private HashMap doFind(ICompilationUnit unit)
-            throws JavaModelException {
-        HashMap problems = new HashMap();
+    private Map<String, CategorizedProblem[]> doFind(ICompilationUnit unit) throws JavaModelException {
+        // CompilationUnitProblemFinder.process explicitly declares a HashMap parameter, so we need to accomodate that
+        HashMap<String, CategorizedProblem[]> problems = new HashMap<>();
         if (unit instanceof AJCompilationUnit) {
             AJCompilationUnitProblemFinder.processAJ((AJCompilationUnit) unit,
                     AJWorkingCopyOwner.INSTANCE, problems, true,
@@ -109,6 +111,5 @@ public class ProblemFinderTests14 extends AJDTCoreTestCase {
         }
         return problems;
     }
-
 
 }

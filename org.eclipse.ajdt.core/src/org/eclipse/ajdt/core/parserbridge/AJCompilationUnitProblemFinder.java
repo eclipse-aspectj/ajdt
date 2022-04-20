@@ -179,7 +179,7 @@ public class AJCompilationUnitProblemFinder extends
 	public static CompilationUnitDeclaration processAJ(
 	        CompilationUnit unitElement, // AspectJ Change
 	        WorkingCopyOwner workingCopyOwner,
-	        HashMap<String, CategorizedProblem[]> problems,
+	        Map<String, CategorizedProblem[]> problems,
 	        boolean creatingAST,
 	        int reconcileFlags,
 	        IProgressMonitor monitor)
@@ -192,7 +192,7 @@ public class AJCompilationUnitProblemFinder extends
             CompilationUnit unitElement, // AspectJ Change
 	        CommentRecorderParser parser, // AspectJ Change
 	        WorkingCopyOwner workingCopyOwner,
-	        HashMap<String, CategorizedProblem[]> problems,
+	        Map<String, CategorizedProblem[]> problems,
 	        boolean creatingAST,
 	        int reconcileFlags,
 	        IProgressMonitor monitor)
@@ -269,8 +269,7 @@ public class AJCompilationUnitProblemFinder extends
                         length);
                 categorizedProblems = removeAJNonProblems(categorizedProblems, unitElement, isJavaFileInAJEditor);
                 if (categorizedProblems.length > 0) {
-                    problems.put(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER,
-                            categorizedProblems);
+                    problems.put(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, categorizedProblems);
                 }
                 // AspectJ Change end
             }

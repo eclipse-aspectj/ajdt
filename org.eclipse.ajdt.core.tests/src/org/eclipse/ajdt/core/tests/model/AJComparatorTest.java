@@ -11,7 +11,6 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.tests.model;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -33,7 +32,6 @@ import org.eclipse.jdt.core.IJavaElement;
 
 /**
  * @author hawkinsh
- *
  */
 public class AJComparatorTest extends AJDTCoreTestCase {
 
@@ -66,49 +64,49 @@ public class AJComparatorTest extends AJDTCoreTestCase {
 		IFile main = aspectjPackage.getFile("Main.java");
 
 		AsmManager asm = AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project.getProject()).getModel();
-		Map<Integer, List<IProgramElement>> annotationsMap = asm.getInlineAnnotations(main.getRawLocation().toOSString(),true, true);
-		assertNotNull("annotation map should not be null for Main.java",annotationsMap);
+		Map<Integer, List<IProgramElement>> annotationsMap = asm.getInlineAnnotations(main.getRawLocation().toOSString(), true, true);
+		assertNotNull("annotation map should not be null for Main.java", annotationsMap);
 		// for the two IProgramElements which correspond to the two calls
 		// in main - create the IJavaElements (or AJCodeElements)
 		AJCodeElement ajce1 = null;
 		AJCodeElement ajce2 = null;
 		Set<Integer> keys = annotationsMap.keySet();
-    for (Integer key : keys) {
-      List<IProgramElement> annotations = annotationsMap.get(key);
-      for (IProgramElement node : annotations) {
-        ISourceLocation sl = node.getSourceLocation();
-        if (node.toLinkLabelString(false)
-              .equals("Main: method-call(void java.io.PrintStream.println(java.lang.String))")
-            && (sl.getLine() == 23))
-        {
+		for (Integer key : keys) {
+			List<IProgramElement> annotations = annotationsMap.get(key);
+			for (IProgramElement node : annotations) {
+				ISourceLocation sl = node.getSourceLocation();
+				if (node.toLinkLabelString(false)
+							.equals("Main: method-call(void java.io.PrintStream.println(java.lang.String))")
+						&& (sl.getLine() == 23))
+				{
 
-          IJavaElement ije = model.programElementToJavaElement(node);
-          if (ije instanceof AJCodeElement) {
-            ajce1 = (AJCodeElement) ije;
-          }
-        }
-        else if (node.toLinkLabelString(false)
-                   .equals("Main: method-call(void java.io.PrintStream.println(java.lang.String))")
-                 && (sl.getLine() == 24))
-        {
+					IJavaElement ije = model.programElementToJavaElement(node);
+					if (ije instanceof AJCodeElement) {
+						ajce1 = (AJCodeElement) ije;
+					}
+				}
+				else if (node.toLinkLabelString(false)
+									 .equals("Main: method-call(void java.io.PrintStream.println(java.lang.String))")
+								 && (sl.getLine() == 24))
+				{
 
-          IJavaElement ije = model.programElementToJavaElement(node);
-          if (ije instanceof AJCodeElement) {
-            ajce2 = (AJCodeElement) ije;
-          }
-        }
-      }
-    }
-		assertNotNull("AJCodeElement shouldn't be null",ajce1);
-		assertNotNull("AJCodeElement shouldn't be null",ajce2);
+					IJavaElement ije = model.programElementToJavaElement(node);
+					if (ije instanceof AJCodeElement) {
+						ajce2 = (AJCodeElement) ije;
+					}
+				}
+			}
+		}
+		assertNotNull("AJCodeElement shouldn't be null", ajce1);
+		assertNotNull("AJCodeElement shouldn't be null", ajce2);
 
 		// check that when call compare on them, that the one with
 		// the lowest line number is first in the list
 		AJComparator comp = new AJComparator();
-		assertTrue("ajce1 should be less than ajce2",comp.compare(ajce1,ajce2) < 0);
-		assertTrue("ajce2 should be greater than ajce1",comp.compare(ajce2,ajce1) > 0);
-    //noinspection EqualsWithItself
-    assertEquals("ajce1 should be equal to ajce1", 0, comp.compare(ajce1, ajce1));
+		assertTrue("ajce1 should be less than ajce2", comp.compare(ajce1, ajce2) < 0);
+		assertTrue("ajce2 should be greater than ajce1", comp.compare(ajce2, ajce1) > 0);
+		//noinspection EqualsWithItself
+		assertEquals("ajce1 should be equal to ajce1", 0, comp.compare(ajce1, ajce1));
 	}
 
 	public void testCompareTwoIJavaElements() {
@@ -120,49 +118,49 @@ public class AJComparatorTest extends AJDTCoreTestCase {
 		// in main - create the IJavaElements
 
 		AsmManager asm = AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project.getProject()).getModel();
-		Map<Integer, List<IProgramElement>> annotationsMap = asm.getInlineAnnotations(aspect.getRawLocation().toOSString(),true, true);
-		assertNotNull("annotation map should not be null for Main.java",annotationsMap);
+		Map<Integer, List<IProgramElement>> annotationsMap = asm.getInlineAnnotations(aspect.getRawLocation().toOSString(), true, true);
+		assertNotNull("annotation map should not be null for Main.java", annotationsMap);
 		// for the two IProgramElements which correspond to the two pieces
 		// of advice (before and after) in A.aj - create the IJavaElements
 		IJavaElement ije1 = null;
 		IJavaElement ije2 = null;
 		Set<Integer> keys = annotationsMap.keySet();
-    for (Integer key : keys) {
-      List<IProgramElement> annotations = annotationsMap.get(key);
-      for (IProgramElement node : annotations) {
-        ISourceLocation sl = node.getSourceLocation();
-        if (node.toLinkLabelString(false)
-              .equals("A.after(String): tracedPrint..")
-            && (sl.getLine() == 30))
-        {
+		for (Integer key : keys) {
+			List<IProgramElement> annotations = annotationsMap.get(key);
+			for (IProgramElement node : annotations) {
+				ISourceLocation sl = node.getSourceLocation();
+				if (node.toLinkLabelString(false)
+							.equals("A.after(String): tracedPrint..")
+						&& (sl.getLine() == 30))
+				{
 
-          IJavaElement ije = model.programElementToJavaElement(node);
-          if (!(ije instanceof AJCodeElement)) {
-            ije1 = ije;
-          }
-        }
-        else if (node.toLinkLabelString(false)
-                   .equals("A.before(String): tracedPrint..")
-                 && (sl.getLine() == 26))
-        {
+					IJavaElement ije = model.programElementToJavaElement(node);
+					if (!(ije instanceof AJCodeElement)) {
+						ije1 = ije;
+					}
+				}
+				else if (node.toLinkLabelString(false)
+									 .equals("A.before(String): tracedPrint..")
+								 && (sl.getLine() == 26))
+				{
 
-          IJavaElement ije = model.programElementToJavaElement(node);
-          if (!(ije instanceof AJCodeElement)) {
-            ije2 = ije;
-          }
-        }
-      }
-    }
-		assertNotNull("IJavaElement shouldn't be null",ije1);
-		assertNotNull("IJavaElement shouldn't be null",ije2);
+					IJavaElement ije = model.programElementToJavaElement(node);
+					if (!(ije instanceof AJCodeElement)) {
+						ije2 = ije;
+					}
+				}
+			}
+		}
+		assertNotNull("IJavaElement shouldn't be null", ije1);
+		assertNotNull("IJavaElement shouldn't be null", ije2);
 
 		// check that when call compare on them, that the one that comes first
 		// alphabetically is the first in the list
 		AJComparator comp = new AJComparator();
-		assertTrue("ije1 should be less than ije2",comp.compare(ije1,ije2) < 0);
-		assertTrue("ije2 should be greater than ije1",comp.compare(ije2,ije1) > 0);
-    //noinspection EqualsWithItself
-    assertEquals("ije1 should be equal to ije1", 0, comp.compare(ije1, ije1));
+		assertTrue("ije1 should be less than ije2", comp.compare(ije1, ije2) < 0);
+		assertTrue("ije2 should be greater than ije1", comp.compare(ije2, ije1) > 0);
+		//noinspection EqualsWithItself
+		assertEquals("ije1 should be equal to ije1", 0, comp.compare(ije1, ije1));
 
 	}
 
@@ -174,86 +172,88 @@ public class AJComparatorTest extends AJDTCoreTestCase {
 		IFile main = aspectjPackage.getFile("Main.java");
 
 		AsmManager asm = AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project.getProject()).getModel();
-		Map<Integer, List<IProgramElement>> annotationsMap = asm.getInlineAnnotations(main.getRawLocation().toOSString(),true, true);
-		assertNotNull("annotation map should not be null for Main.java",annotationsMap);
+		Map<Integer, List<IProgramElement>> annotationsMap = asm.getInlineAnnotations(main.getRawLocation().toOSString(), true, true);
+		assertNotNull("annotation map should not be null for Main.java", annotationsMap);
 		Set<Integer> keys = annotationsMap.keySet();
-    for (Integer key : keys) {
-      List<IProgramElement> annotations = annotationsMap.get(key);
-      for (IProgramElement node : annotations) {
-        ISourceLocation sl = node.getSourceLocation();
-        if (node.toLinkLabelString(false)
-              .equals("Main: method-call(void java.io.PrintStream.println(java.lang.String))")
-            && (sl.getLine() == 23))
-        {
+		for (Integer key : keys) {
+			List<IProgramElement> annotations = annotationsMap.get(key);
+			for (IProgramElement node : annotations) {
+				ISourceLocation sl = node.getSourceLocation();
+				if (node.toLinkLabelString(false)
+							.equals("Main: method-call(void java.io.PrintStream.println(java.lang.String))")
+						&& (sl.getLine() == 23))
+				{
 
-          IJavaElement je = model.programElementToJavaElement(node);
-          if (je instanceof AJCodeElement) {
-            ajce = (AJCodeElement) je;
-            break;
-          }
-        }
-      }
-    }
+					IJavaElement je = model.programElementToJavaElement(node);
+					if (je instanceof AJCodeElement) {
+						ajce = (AJCodeElement) je;
+						break;
+					}
+				}
+			}
+		}
 
 		IFile aspect = aspectjPackage.getFile("A.aj");
 
 		asm = AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project.getProject()).getModel();
-		Map<Integer, List<IProgramElement>> annotationsMap2 = asm.getInlineAnnotations(aspect.getRawLocation().toOSString(),true, true);
-		assertNotNull("annotation map should not be null for Main.java",annotationsMap2);
+		Map<Integer, List<IProgramElement>> annotationsMap2 = asm.getInlineAnnotations(aspect.getRawLocation().toOSString(), true, true);
+		assertNotNull("annotation map should not be null for Main.java", annotationsMap2);
 
 		Set<Integer> keys2 = annotationsMap2.keySet();
-    for (Integer key : keys2) {
-      List<IProgramElement> annotations = annotationsMap2.get(key);
-      for (IProgramElement node : annotations) {
-        ISourceLocation sl = node.getSourceLocation();
-        if (node.toLinkLabelString(false)
-              .equals("A.after(String): tracedPrint..")
-            && (sl.getLine() == 30))
-        {
+		for (Integer key : keys2) {
+			List<IProgramElement> annotations = annotationsMap2.get(key);
+			for (IProgramElement node : annotations) {
+				ISourceLocation sl = node.getSourceLocation();
+				if (node.toLinkLabelString(false)
+							.equals("A.after(String): tracedPrint..")
+						&& (sl.getLine() == 30))
+				{
 
-          IJavaElement je = model.programElementToJavaElement(node);
-          if (!(je instanceof AJCodeElement)) {
-            ije = je;
-            break;
-          }
-        }
-      }
-    }
+					IJavaElement je = model.programElementToJavaElement(node);
+					if (!(je instanceof AJCodeElement)) {
+						ije = je;
+						break;
+					}
+				}
+			}
+		}
 
-		assertNotNull("AJCodeElement shouldn't be null",ajce);
-		assertNotNull("IJavaElement shouldn't be null",ije);
+		assertNotNull("AJCodeElement shouldn't be null", ajce);
+		assertNotNull("IJavaElement shouldn't be null", ije);
 
 		// check that when call compare on them, that the one that comes first
 		// alphabetically is the first in the list
 		AJComparator comp = new AJComparator();
-		assertTrue("ije should be less than ajce",comp.compare(ije,ajce) < 0);
-		assertTrue("ajce should be greater than ije",comp.compare(ajce,ije) > 0);
+		assertTrue("ije should be less than ajce", comp.compare(ije, ajce) < 0);
+		assertTrue("ajce should be greater than ije", comp.compare(ajce, ije) > 0);
 
 	}
 
 	class AdaptableString implements IAdaptable {
 
-	    private final String val;
+		private final String val;
 
-	    public AdaptableString() {
-	        this.val = "";
-	    }
-	    public AdaptableString(String val) {
-	        this.val = val;
-	    }
+		public AdaptableString() {
+			this.val = "";
+		}
 
-	    public Object getAdapter(@SuppressWarnings("rawtypes") Class adapter) {
-	        if (String.class == adapter) {
-	            return val;
-	        }
-	        return null;
-	    }
+		public AdaptableString(String val) {
+			this.val = val;
+		}
+
+		@Override
+		public <T> T getAdapter(Class<T> adapter) {
+			if (String.class == adapter)
+				return adapter.cast(val);
+			return null;
+		}
+
 	}
 
 	public void testCompareTwoStrings() {
-	    AdaptableString s1 = new AdaptableString("hello");
-	    AdaptableString s2 = new AdaptableString("goodbye");
+		AdaptableString s1 = new AdaptableString("hello");
+		AdaptableString s2 = new AdaptableString("goodbye");
 		AJComparator comp = new AJComparator();
-    assertEquals("comparing things which aren't adaptable to AJCodeElements or IJavaElements should return 0", 0, comp.compare(s1, s2));
+		assertEquals("comparing things which aren't adaptable to AJCodeElements or IJavaElements should return 0", 0, comp.compare(s1, s2));
 	}
 }

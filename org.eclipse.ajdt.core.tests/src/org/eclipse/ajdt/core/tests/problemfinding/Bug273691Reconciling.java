@@ -13,6 +13,7 @@ package org.eclipse.ajdt.core.tests.problemfinding;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.ajdt.core.AspectJCore;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
@@ -24,9 +25,9 @@ import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceVisitor;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.compiler.CategorizedProblem;
 import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.CompilationUnitProblemFinder;
 import org.eclipse.jdt.internal.core.DefaultWorkingCopyOwner;
@@ -85,7 +86,7 @@ public class Bug273691Reconciling extends AJDTCoreTestCase {
     }
 
     private String problemFind(ICompilationUnit unit) throws Exception {
-        HashMap problems = doFind(unit);
+        Map<String, CategorizedProblem[]> problems = doFind(unit);
         MockProblemRequestor.filterAllWarningProblems(problems);
         if (MockProblemRequestor.countProblems(problems) > 0) {
             return "Should not have any problems in " + unit + " but found:\n" + MockProblemRequestor.printProblems(problems) + "\n"; //$NON-NLS-1$
@@ -93,21 +94,27 @@ public class Bug273691Reconciling extends AJDTCoreTestCase {
             return "";
         }
     }
-    private HashMap doFind(ICompilationUnit unit)
-            throws JavaModelException {
-        HashMap problems = new HashMap();
+
+    private Map<String, CategorizedProblem[]> doFind(ICompilationUnit unit) throws JavaModelException {
+        // CompilationUnitProblemFinder.process explicitly declares a HashMap parameter, so we need to accomodate that
+        HashMap<String, CategorizedProblem[]> problems = new HashMap<>();
+        final int reconcileFlags =
+            ICompilationUnit.ENABLE_BINDINGS_RECOVERY |
+            ICompilationUnit.ENABLE_STATEMENTS_RECOVERY |
+            ICompilationUnit.FORCE_PROBLEM_DETECTION;
+
         if (unit instanceof AJCompilationUnit) {
-            AJCompilationUnitProblemFinder.processAJ((AJCompilationUnit) unit,
-                    AJWorkingCopyOwner.INSTANCE, problems, true,
-                    ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
-        } else {
+            AJCompilationUnitProblemFinder.processAJ(
+                (AJCompilationUnit) unit, AJWorkingCopyOwner.INSTANCE, problems, true, reconcileFlags, null
+            );
+        }
+        else {
             // Requires JDT Weaving
-            CompilationUnitProblemFinder.process((CompilationUnit) unit, null,
-                    DefaultWorkingCopyOwner.PRIMARY, problems, true,
-                    ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
+            CompilationUnitProblemFinder.process(
+                (CompilationUnit) unit, null, DefaultWorkingCopyOwner.PRIMARY, problems, true, reconcileFlags, null
+            );
         }
         return problems;
     }
-
 
 }

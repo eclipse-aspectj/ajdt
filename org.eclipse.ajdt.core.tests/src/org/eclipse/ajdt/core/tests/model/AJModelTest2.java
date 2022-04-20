@@ -154,8 +154,7 @@ public class AJModelTest2 extends AJDTCoreTestCase {
     public static Set<IMethod> getDeclaredMethods(IType type) throws JavaModelException {
         Set<IMethod> methods = new HashSet<>();
         AJRelationshipType[] types = new AJRelationshipType[] { AJRelationshipManager.DECLARED_ON };
-        List<AJRelationship> rels = AJModel.getInstance().getAllRelationships(
-                type.getResource().getProject(), types);
+        List<AJRelationship> rels = AJModel.getInstance().getAllRelationships(type.getResource().getProject(), types);
         for (AJRelationship rel : rels) {
             if (rel.getTarget().equals(type)) {
                 IntertypeElement iType = (IntertypeElement) rel.getSource();

@@ -194,64 +194,56 @@ public class AJCompilationUnitManager {
 	}
 
 	public void initCompilationUnits(IProject project) {
-
-		List l = new ArrayList(30);
-		addProjectToList(project, l);
-    for (Object o : l) {
-      IFile ajfile = (IFile) o;
-      createCU(ajfile);
-    }
+		List<IFile> files = new ArrayList<>(30);
+		addProjectToList(project, files);
+		for (IFile file : files)
+			createCU(file);
 	}
 
-	public List removeCUsfromJavaModel(IProject project) {
-		List l = new ArrayList(30);
-		addProjectToList(project, l);
-    for (Object o : l) {
-      removeFileFromModel((IFile) o);
-    }
-		return l;
+	public List<IFile> removeCUsfromJavaModel(IProject project) {
+		List<IFile> files = new ArrayList<>(30);
+		addProjectToList(project, files);
+		for (IFile resource : files)
+			removeFileFromModel(resource);
+		return files;
 	}
 
 	public void initCompilationUnits(IWorkspace workspace) {
-		ArrayList l = new ArrayList(20);
+		List<IFile> files = new ArrayList<>(20);
 		IProject[] projects = workspace.getRoot().getProjects();
-    for (IProject project : projects) {
-      addProjectToList(project, l);
-      for (Object o : l) {
-        IFile f = (IFile) o;
-        createCU(f);
-      }
-      l.clear();
-    }
+		for (IProject project : projects) {
+			addProjectToList(project, files);
+			for (IFile file : files)
+				createCU(file);
+			files.clear();
+		}
 	}
 
 	public List<AJCompilationUnit> getCachedCUs(IProject project) {
 		List<AJCompilationUnit> ajList = new ArrayList<>();
-    for (IFile f : compilationUnitStore.keySet()) {
-      if (f.getProject().equals(project)) {
-        ajList.add(compilationUnitStore.get(f));
-      }
-    }
+		for (IFile f : compilationUnitStore.keySet()) {
+			if (f.getProject().equals(project))
+				ajList.add(compilationUnitStore.get(f));
+		}
 		return ajList;
 	}
 
-	private void addProjectToList(IProject project, List l) {
+	private void addProjectToList(IProject project, List<IFile> resources) {
 		if (AspectJPlugin.isAJProject(project)) {
 			try {
 				IJavaProject jp = JavaCore.create(project);
 				IClasspathEntry[] cpes = jp.getRawClasspath();
-        for (IClasspathEntry entry : cpes) {
-          if (entry.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
-            IPath p = entry.getPath();
-            if (p.segmentCount() == 1)
-              addAllAJFilesInFolder(project, l);
-            else
-              addAllAJFilesInFolder(project.getFolder(p
-                .removeFirstSegments(1)), l);
-          }
-        }
-			} catch (JavaModelException e) {
+				for (IClasspathEntry entry : cpes) {
+					if (entry.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
+						IPath p = entry.getPath();
+						if (p.segmentCount() == 1)
+							addAllAJFilesInFolder(project, resources);
+						else
+							addAllAJFilesInFolder(project.getFolder(p.removeFirstSegments(1)), resources);
+					}
+				}
 			}
+			catch (JavaModelException e) { }
 		}
 	}
 
@@ -259,21 +251,22 @@ public class AJCompilationUnitManager {
 	 * @param folder
 	 * @param list
 	 */
-	private void addAllAJFilesInFolder(IContainer folder, List l) {
+	private void addAllAJFilesInFolder(IContainer folder, List<IFile> files) {
 		if ((folder == null) || !folder.exists())
 			return;
 		try {
 			IResource[] children = folder.members();
-      for (IResource resource : children) {
-        if (resource.getType() == IResource.FOLDER)
-          addAllAJFilesInFolder((IFolder) resource, l);
-        else if ((resource.getType() == IResource.FILE)
-                 && CoreUtils.ASPECTJ_SOURCE_ONLY_FILTER
-                   .accept(resource.getName()))
-          l.add(resource);
-      }
-		} catch (CoreException e) {
+			for (IResource resource : children) {
+				if (resource.getType() == IResource.FOLDER)
+					addAllAJFilesInFolder((IFolder) resource, files);
+				else if (
+					resource.getType() == IResource.FILE &&
+					CoreUtils.ASPECTJ_SOURCE_ONLY_FILTER.accept(resource.getName())
+				)
+					files.add((IFile) resource);
+			}
 		}
+		catch (CoreException e) { }
 	}
 
 	/**

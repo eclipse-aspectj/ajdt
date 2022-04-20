@@ -140,7 +140,7 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 	private final NodeInfoStore nodeInfos;
 	private final TargetSourceRangeComputer extendedSourceRangeComputer;
 	private final LineCommentEndOffsets lineCommentEndOffsets;
-    private final Map options;
+	private final Map<String, String> options;
 
 	/**
 	 * Constructor for ASTRewriteAnalyzer.
@@ -158,7 +158,7 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 		this.content= content;
 		this.lineInfo= lineInfo;
 		this.nodeInfos= nodeInfos;
-        this.options = options;
+		this.options = options;
 		this.tokenScanner= null;
 		this.currentEdit= rootEdit;
 		this.sourceCopyInfoToEdit= new IdentityHashMap<>();
@@ -171,22 +171,22 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 	}
 
 	TokenScanner getScanner() {
-        if (this.tokenScanner == null) {
-            CompilerOptions compilerOptions = new CompilerOptions(this.options);
-            Scanner scanner =
-                    new Scanner(
-                            true,/*tokenizeComments*/
-                            false,/*tokenizeWhiteSpace*/
-                            false,/*checkNonExternalizedStringLiterals*/
-                            compilerOptions.sourceLevel,
-                            compilerOptions.complianceLevel,
-                            null/*taskTags*/,
-                            null/*taskPriorities*/,
-                            true/*taskCaseSensitive*/);
-            scanner.setSource(this.content);
-            this.tokenScanner= new TokenScanner(scanner);
-        }
-        return this.tokenScanner;
+		if (this.tokenScanner == null) {
+			CompilerOptions compilerOptions = new CompilerOptions(this.options);
+			Scanner scanner = new Scanner(
+				true,                             // tokenizeComments
+				false,                            // tokenizeWhiteSpace
+				false,                            // checkNonExternalizedStringLiterals
+				compilerOptions.sourceLevel,      // sourceLevel
+				compilerOptions.complianceLevel,  // complianceLevel
+				null,                             // taskTags
+				null,                             // taskPriorities
+				true                              // taskCaseSensitive
+			);
+			scanner.setSource(this.content);
+			this.tokenScanner = new TokenScanner(scanner);
+		}
+		return this.tokenScanner;
 	}
 
 	char[] getContent() {

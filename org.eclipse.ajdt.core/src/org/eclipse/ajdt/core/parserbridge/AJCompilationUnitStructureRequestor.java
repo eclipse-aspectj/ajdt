@@ -339,7 +339,7 @@ public class AJCompilationUnitStructureRequestor extends
         extraInfo.setExtraAdviceInformation(decl.kind.getName());
 
         info.setSourceRangeStart(declarationStart);
-      info.setName(nameString.toCharArray());
+        info.setName(nameString.toCharArray());
         info.setNameSourceStart(nameSourceStart);
         info.setNameSourceEnd(nameSourceEnd);
         info.setFlags(modifiers);
@@ -856,8 +856,7 @@ public class AJCompilationUnitStructureRequestor extends
      * use {@link #acceptPackage(ImportReference)} instead
      * @deprecated
      */
-    public void acceptPackage(int declarationStart, int declarationEnd,
-            char[] name) {
+    public void acceptPackage(int declarationStart, int declarationEnd, char[] name) {
 
         // AJDT 1.6 ADE---copied from CompilationUnitStructureProvider.acceptPackage(ImportReference)
         JavaElementInfo parentInfo = (JavaElementInfo) this.infoStack.peek();
@@ -877,6 +876,7 @@ public class AJCompilationUnitStructureRequestor extends
         info.setSourceRangeEnd(declarationEnd);
 
         addToChildren(parentInfo, handle);
+        // Semantically a Map<PackageDeclaration, AJAnnotatableInfo>, but declared as raw type in JDT
         this.newElements.put(handle, info);
     }
 

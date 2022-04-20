@@ -114,8 +114,8 @@ public class BuildConfigurationUtils {
         }
       }
 			List<String> srcFolders = new ArrayList<>();
-			Map srcFoldersToIncludes = new HashMap();
-			Map srcFoldersToExcludes = new HashMap();
+			Map<String, List<String>> srcFoldersToIncludes = new HashMap<>();
+			Map<String, List<String>> srcFoldersToExcludes = new HashMap<>();
 			br = new BufferedReader(new FileReader(file));
 			Properties properties = new Properties();
 			properties.load(ifile.getContents());
@@ -153,31 +153,30 @@ public class BuildConfigurationUtils {
 				String value = properties.get(name).toString();
 				String[] values = value.split(","); //$NON-NLS-1$
 				if (name.equals("src.inclusionpatterns")) { //$NON-NLS-1$
-          for (String inc : values) {
-            for (String srcFolder : srcFolders) {
-              if (inc.startsWith(srcFolder)) {
-                List incs = (List) srcFoldersToIncludes.get(srcFolder);
-                if (incs == null) {
-                  incs = new ArrayList();
-                }
-                incs.add(inc);
-                srcFoldersToIncludes.put(srcFolder, incs);
-              }
-            }
-          }
-				} else if (name.equals("src.excludes")) { //$NON-NLS-1$
-          for (String exc : values) {
-            for (String srcFolder : srcFolders) {
-              if (srcFolder.equals("/") || exc.startsWith(srcFolder)) { //$NON-NLS-1$
-                List excs = (List) srcFoldersToExcludes.get(srcFolder);
-                if (excs == null) {
-                  excs = new ArrayList();
-                }
-                excs.add(exc);
-                srcFoldersToExcludes.put(srcFolder, excs);
-              }
-            }
-          }
+					for (String inc : values) {
+						for (String srcFolder : srcFolders) {
+							if (inc.startsWith(srcFolder)) {
+								List<String> incs = srcFoldersToIncludes.get(srcFolder);
+								if (incs == null)
+									incs = new ArrayList<>();
+								incs.add(inc);
+								srcFoldersToIncludes.put(srcFolder, incs);
+							}
+						}
+					}
+				}
+				else if (name.equals("src.excludes")) { //$NON-NLS-1$
+					for (String exc : values) {
+						for (String srcFolder : srcFolders) {
+							if (srcFolder.equals("/") || exc.startsWith(srcFolder)) { //$NON-NLS-1$
+								List<String> excs = srcFoldersToExcludes.get(srcFolder);
+								if (excs == null)
+									excs = new ArrayList<>();
+								excs.add(exc);
+								srcFoldersToExcludes.put(srcFolder, excs);
+							}
+						}
+					}
 				}
 			}
 
