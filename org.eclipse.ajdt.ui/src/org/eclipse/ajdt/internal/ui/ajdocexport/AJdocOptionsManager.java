@@ -159,7 +159,7 @@ public class AJdocOptionsManager {
 
 	private static final String JAVADOC_COMMAND_HISTORY= "javadoc_command_history"; //$NON-NLS-1$
 */
-	public AJdocOptionsManager(IFile xmlJavadocFile, IDialogSettings dialogSettings, List currSelection) {
+	public AJdocOptionsManager(IFile xmlJavadocFile, IDialogSettings dialogSettings, List<IJavaElement> currSelection) {
 		fXmlfile= xmlJavadocFile;
 		fWizardStatus= new StatusInfo();
 
@@ -227,7 +227,7 @@ public class AJdocOptionsManager {
 	}
 
 
-	private void loadFromDialogStore(IDialogSettings settings, List sel) {
+	private void loadFromDialogStore(IDialogSettings settings, List<IJavaElement> sel) {
 		fInitialElements= getInitialElementsFromSelection(sel);
 
 		IJavaProject project= getSingleProjectFromInitialSelection();
@@ -248,7 +248,6 @@ public class AJdocOptionsManager {
 			fDocletname= ""; //$NON-NLS-1$
 		}
 
-
 		if (project != null) {
 			fAntpath= getRecentSettings().getAntpath(project);
 		} else {
@@ -257,7 +256,6 @@ public class AJdocOptionsManager {
 				fAntpath= ""; //$NON-NLS-1$
 			}
 		}
-
 
 		if (project != null) {
 			fDestination= getRecentSettings().getDestination(project);
@@ -313,7 +311,7 @@ public class AJdocOptionsManager {
 
 
 	//loads defaults for wizard (nothing is stored)
-	private void loadDefaults(List sel) {
+	private void loadDefaults(List<IJavaElement> sel) {
 		fInitialElements= getInitialElementsFromSelection(sel);
 
 		IJavaProject project= getSingleProjectFromInitialSelection();
@@ -461,83 +459,78 @@ public class AJdocOptionsManager {
 	 */
 	private IPath makeAbsolutePathFromRelative(IPath path) {
 		if (!path.isAbsolute()) {
-			if (fXmlfile == null) {
+			if (fXmlfile == null)
 				return null;
-			}
-			IPath basePath= fXmlfile.getParent().getLocation(); // relative to the ant file location
-			if (basePath == null) {
+			IPath basePath = fXmlfile.getParent().getLocation(); // relative to the ant file location
+			if (basePath == null)
 				return null;
-			}
 			return basePath.append(path);
 		}
 		return path;
 	}
 
 	private IContainer[] getSourceContainers(Element element) {
-		String sourcePaths= element.getAttribute(SOURCEPATH);
-		StringTokenizer tokenizer= new StringTokenizer(sourcePaths, String.valueOf(File.pathSeparatorChar));
-		ArrayList res= new ArrayList();
-
-		IWorkspaceRoot root= ResourcesPlugin.getWorkspace().getRoot();
-
+		String sourcePaths = element.getAttribute(SOURCEPATH);
+		StringTokenizer tokenizer = new StringTokenizer(sourcePaths, String.valueOf(File.pathSeparatorChar));
+		ArrayList<IContainer> sourceContainers = new ArrayList<>();
+		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
 		while (tokenizer.hasMoreTokens()) {
-			IPath path= makeAbsolutePathFromRelative(new Path(tokenizer.nextToken().trim()));
+			IPath path = makeAbsolutePathFromRelative(new Path(tokenizer.nextToken().trim()));
 			if (path != null) {
-				IContainer[] containers= root.findContainersForLocation(path);
-        Collections.addAll(res, containers);
+				IContainer[] containers = root.findContainersForLocation(path);
+				Collections.addAll(sourceContainers, containers);
 			}
 		}
-		return (IContainer[]) res.toArray(new IContainer[0]);
+		return sourceContainers.toArray(new IContainer[0]);
 	}
 
-
-	private IJavaElement[] getSelectedElementsFromAnt(Element element) {
-		List res= new ArrayList();
+  private IJavaElement[] getSelectedElementsFromAnt(Element element) {
+		List<IJavaElement> selectedElements = new ArrayList<>();
 
 		// get all the packages listed in the ANT file
-		String packagenames= element.getAttribute(PACKAGENAMES);
-		if (packagenames != null) {
-			IContainer[] containers= getSourceContainers(element);
+		String packageNames = element.getAttribute(PACKAGENAMES);
+		if (packageNames != null) {
+			IContainer[] containers = getSourceContainers(element);
 
-			StringTokenizer tokenizer= new StringTokenizer(packagenames, ","); //$NON-NLS-1$
+			StringTokenizer tokenizer = new StringTokenizer(packageNames, ","); //$NON-NLS-1$
 			while (tokenizer.hasMoreTokens()) {
-				IPath relPackagePath= new Path(tokenizer.nextToken().trim().replace('.', '/'));
-        for (IContainer curr : containers) {
-          IResource resource = curr.findMember(relPackagePath);
-          if (resource != null) {
-            IJavaElement javaElem = JavaCore.create(resource);
-            if (javaElem instanceof IPackageFragment) {
-              res.add(javaElem);
-            }
-          }
-        }
-			}
-		}
-
-		//get all CompilationUnites listed in the ANT file
-		String sourcefiles= element.getAttribute(SOURCEFILES);
-		if (sourcefiles != null) {
-			IWorkspaceRoot root= ResourcesPlugin.getWorkspace().getRoot();
-
-			StringTokenizer tokenizer= new StringTokenizer(sourcefiles, ","); //$NON-NLS-1$
-			while (tokenizer.hasMoreTokens()) {
-				String name= tokenizer.nextToken().trim();
-				if (name.endsWith(".java")) { //$NON-NLS-1$
-					IPath path= makeAbsolutePathFromRelative(new Path(name));
-					//if unable to create an absolute path the the resource skip it
-					if (path != null) {
-						IFile[] files= root.findFilesForLocation(path);
-            for (IFile file : files) {
-              IJavaElement el = JavaCore.createCompilationUnitFrom(file);
-              if (el != null) {
-                res.add(el);
-              }
-            }
+				IPath relPackagePath = new Path(tokenizer.nextToken().trim().replace('.', '/'));
+				for (IContainer curr : containers) {
+					IResource resource = curr.findMember(relPackagePath);
+					if (resource != null) {
+						IJavaElement javaElem = JavaCore.create(resource);
+						if (javaElem instanceof IPackageFragment) {
+							selectedElements.add(javaElem);
+						}
 					}
 				}
 			}
 		}
-		return (IJavaElement[]) res.toArray(new IJavaElement[0]);
+
+		//get all CompilationUnites listed in the ANT file
+		String sourceFiles = element.getAttribute(SOURCEFILES);
+		if (sourceFiles != null) {
+			IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
+
+			StringTokenizer tokenizer = new StringTokenizer(sourceFiles, ","); //$NON-NLS-1$
+			while (tokenizer.hasMoreTokens()) {
+				String name = tokenizer.nextToken().trim();
+				if (name.endsWith(".java")) { //$NON-NLS-1$
+					IPath path = makeAbsolutePathFromRelative(new Path(name));
+					//if unable to create an absolute path the the resource skip it
+					if (path != null) {
+						IFile[] files = root.findFilesForLocation(path);
+						for (IFile file : files) {
+							IJavaElement el = JavaCore.createCompilationUnitFrom(file);
+							if (el != null) {
+								selectedElements.add(el);
+							}
+						}
+					}
+				}
+			}
+		}
+		return selectedElements.toArray(new IJavaElement[0]);
 	}
 
 	/**
@@ -689,8 +682,7 @@ public class AJdocOptionsManager {
 	}
 
 
-	public void getArgumentArray(List vmArgs, List toolArgs) {
-
+	public void getArgumentArray(List<String> vmArgs, List<String> toolArgs) {
 		//bug 38692
 		vmArgs.add(getJavadocCommandHistory()[0]);
 
@@ -774,17 +766,16 @@ public class AJdocOptionsManager {
 			toolArgs.add(fOverview);
 		}
 
-    for (IJavaElement curr : fSelectedElements) {
-      // AspectJ Extension - we need to get the included files from the build configuration
-      if (curr instanceof IJavaProject) {
-        IJavaProject jp = (IJavaProject) curr;
-        Set<IFile> files = BuildConfig.getIncludedSourceFiles(jp.getProject());
-        for (IFile f : files) {
-          toolArgs.add(f.getLocation().toOSString());
-        }
-      }
-      // AspectJ Extension end
-    }
+		for (IJavaElement curr : fSelectedElements) {
+			// AspectJ Extension - we need to get the included files from the build configuration
+			if (curr instanceof IJavaProject) {
+				IJavaProject jp = (IJavaProject) curr;
+				Set<IFile> files = BuildConfig.getIncludedSourceFiles(jp.getProject());
+				for (IFile f : files)
+					toolArgs.add(f.getLocation().toOSString());
+			}
+			// AspectJ Extension end
+		}
 	}
 
 	// AspectJ Extension - commenting out unused code
@@ -1013,27 +1004,25 @@ public class AJdocOptionsManager {
 		return fSource;
 	}
 
-	private IJavaElement[] getInitialElementsFromSelection(List candidates) {
-		ArrayList res= new ArrayList();
-    for (Object candidate : candidates) {
-      try {
-        IJavaElement elem = getSelectableJavaElement(candidate);
-        if (elem != null) {
-          res.add(elem);
-        }
-      }
-      catch (JavaModelException ignore) {
-        // ignore this
-      }
-    }
-		return (IJavaElement[]) res.toArray(new IJavaElement[0]);
+	private IJavaElement[] getInitialElementsFromSelection(List<IJavaElement> candidates) {
+		ArrayList<IJavaElement> selectableJavaElements = new ArrayList<>();
+		for (IJavaElement candidate : candidates) {
+			try {
+				IJavaElement elem = getSelectableJavaElement(candidate);
+				if (elem != null)
+					selectableJavaElements.add(elem);
+			}
+			catch (JavaModelException ignore) {
+				// ignore this
+			}
+		}
+		return selectableJavaElements.toArray(new IJavaElement[0]);
 	}
 
-	private IJavaElement getSelectableJavaElement(Object obj) throws JavaModelException {
+	private IJavaElement getSelectableJavaElement(IJavaElement javaElement) throws JavaModelException {
 		IJavaElement je= null;
-		if (obj instanceof IAdaptable) {
-			je= ((IAdaptable) obj).getAdapter(IJavaElement.class);
-		}
+		if (javaElement != null)
+			je = javaElement.getAdapter(IJavaElement.class);
 
 		if (je != null) {
 			switch (je.getElementType()) {

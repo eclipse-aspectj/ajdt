@@ -24,71 +24,61 @@ import org.eclipse.jdt.ui.text.java.IProblemLocation;
 import org.eclipse.jdt.ui.text.java.IQuickAssistProcessor;
 import org.eclipse.jdt.ui.text.java.IQuickFixProcessor;
 
-
 /**
  * Some Java quick fix proposals will not work on Java files in AspectJ projects.
  * This class gets around that problem.
- *
+ * <p>
  * For now only doing Missing Serial Version IDs, but can expand to more in the future.
  *
  * @author andrew
  * @created Dec 27, 2008
- *
  */
 public class JavaQuickFixProcessor implements IQuickAssistProcessor, IQuickFixProcessor {
 
-    public IJavaCompletionProposal[] getCorrections(IInvocationContext context,
-            IProblemLocation[] locations) throws CoreException {
-        if (locations == null || locations.length == 0 || !isAJProject(context.getCompilationUnit())) {
-            return null;
-        }
-
-        HashSet handledProblems= new HashSet(locations.length);
-        ArrayList resultingCollections= new ArrayList();
-      for (IProblemLocation curr : locations) {
-        Integer id = curr.getProblemId();
-        if (handledProblems.add(id)) {
-          process(context, curr, resultingCollections);
-        }
-      }
-        return (IJavaCompletionProposal[]) resultingCollections.toArray(new IJavaCompletionProposal[0]);
+  public IJavaCompletionProposal[] getCorrections(IInvocationContext context, IProblemLocation[] locations) {
+    if (locations == null || locations.length == 0 || !isAJProject(context.getCompilationUnit())) {
+      return null;
     }
 
-    private void process(IInvocationContext context, IProblemLocation problem, Collection proposals) throws CoreException {
-        int id= problem.getProblemId();
-        if (id == 0) { // no proposals for none-problem locations
-            return;
-        }
-        switch (id) {
-            case IProblem.MissingSerialVersion:
-                AJSerialVersionSubProcessor.getSerialVersionProposals(context, problem, proposals);
-                break;
-        }
+    HashSet<Integer> handledProblems = new HashSet<>(locations.length);
+    ArrayList<IJavaCompletionProposal> resultingCollections = new ArrayList<>();
+    for (IProblemLocation curr : locations) {
+      Integer id = curr.getProblemId();
+      if (handledProblems.add(id))
+        process(context, curr, resultingCollections);
     }
-    public boolean hasCorrections(ICompilationUnit unit, int problemId) {
-        if (isAJProject(unit)) {
-            switch (problemId) {
-                case IProblem.MissingSerialVersion:
-                    return true;
-            }
-        }
+    return resultingCollections.toArray(new IJavaCompletionProposal[0]);
+  }
 
-        return false;
-    }
+  private void process(
+    IInvocationContext context,
+    IProblemLocation problem,
+    Collection<IJavaCompletionProposal> proposals
+  ) {
+    int id = problem.getProblemId();
+    // no proposals for none-problem locations
+    if (id == 0)
+      return;
+    if (id == IProblem.MissingSerialVersion)
+      AJSerialVersionSubProcessor.getSerialVersionProposals(context, problem, proposals);
+  }
 
-    private boolean isAJProject(ICompilationUnit unit) {
-        return AspectJPlugin.isAJProject(unit.getJavaProject().getProject());
-    }
+  public boolean hasCorrections(ICompilationUnit unit, int problemId) {
+    return isAJProject(unit) && problemId == IProblem.MissingSerialVersion;
+  }
 
-    public IJavaCompletionProposal[] getAssists(IInvocationContext context,
-            IProblemLocation[] locations) throws CoreException {
-        // none
-        return null;
-    }
+  private boolean isAJProject(ICompilationUnit unit) {
+    return AspectJPlugin.isAJProject(unit.getJavaProject().getProject());
+  }
 
-    public boolean hasAssists(IInvocationContext context) throws CoreException {
-        // no assists, only corrections
-        return false;
-    }
+  public IJavaCompletionProposal[] getAssists(IInvocationContext context, IProblemLocation[] locations) {
+    // none
+    return null;
+  }
+
+  public boolean hasAssists(IInvocationContext context) {
+    // no assists, only corrections
+    return false;
+  }
 
 }

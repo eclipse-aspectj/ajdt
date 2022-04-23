@@ -57,19 +57,19 @@ public class AJdocProjectContentProvider implements ITreeContentProvider {
 	 * @see IStructuredContentProvider#getElements(Object)
 	 */
 	public Object[] getElements(Object inputElement) {
-		IWorkspaceRoot root= ResourcesPlugin.getWorkspace().getRoot();
+		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
 		try {
 			// AspectJ Extension begin - only return aspectj projects
 			IJavaProject[] javaprojects = JavaCore.create(root).getJavaProjects();
-			List ajProjects = new ArrayList(javaprojects.length);
-      for (IJavaProject javaproject : javaprojects) {
-        if (AspectJPlugin.isAJProject(javaproject.getProject())) {
-          ajProjects.add(javaproject);
-        }
-      }
+			List<IJavaProject> ajProjects = new ArrayList<>(javaprojects.length);
+			for (IJavaProject javaproject : javaprojects) {
+				if (AspectJPlugin.isAJProject(javaproject.getProject()))
+					ajProjects.add(javaproject);
+			}
 			return ajProjects.toArray();
 			// AspectJ Extension end
-		} catch (JavaModelException e) {
+		}
+		catch (JavaModelException e) {
 			JavaPlugin.log(e);
 		}
 		return new Object[0];

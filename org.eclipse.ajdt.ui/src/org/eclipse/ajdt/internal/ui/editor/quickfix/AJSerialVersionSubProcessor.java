@@ -30,6 +30,7 @@ import org.eclipse.jdt.internal.corext.fix.PotentialProgrammingProblemsFixCore;
 import org.eclipse.jdt.internal.corext.fix.SerialVersionDefaultOperationCore;
 import org.eclipse.jdt.internal.ui.text.correction.SerialVersionSubProcessor;
 import org.eclipse.jdt.ui.text.java.IInvocationContext;
+import org.eclipse.jdt.ui.text.java.IJavaCompletionProposal;
 import org.eclipse.jdt.ui.text.java.IProblemLocation;
 
 
@@ -60,7 +61,11 @@ public class AJSerialVersionSubProcessor extends PotentialProgrammingProblemsFix
      * @param proposals
      *        the proposal collection to extend
      */
-    public static void getSerialVersionProposals(final IInvocationContext context, final IProblemLocation location, final Collection proposals) {
+    public static void getSerialVersionProposals(
+      final IInvocationContext context,
+      final IProblemLocation location,
+      final Collection<IJavaCompletionProposal> proposals
+    ) {
 
         Assert.isNotNull(context);
         Assert.isNotNull(location);

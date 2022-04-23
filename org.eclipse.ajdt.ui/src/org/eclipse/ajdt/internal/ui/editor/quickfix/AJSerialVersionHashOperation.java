@@ -185,43 +185,38 @@ public final class AJSerialVersionHashOperation extends AbstractSerialVersionOpe
 
     private static char[][] getSortedInterfacesNames(IClassFileReader cfReader) {
         char[][] interfaceNames= cfReader.getInterfaceNames();
-        Arrays.sort(interfaceNames, (Comparator) (o1, o2) -> CharOperation.compareTo(((char[]) o1), ((char[]) o2)));
+        Arrays.sort(interfaceNames, CharOperation::compareTo);
         return interfaceNames;
     }
 
     private static IFieldInfo[] getSortedFields(IClassFileReader cfReader) {
         IFieldInfo[] allFields= cfReader.getFieldInfos();
-        Arrays.sort(allFields, (Comparator) (o1, o2) -> CharOperation.compareTo(((IFieldInfo) o1).getName(), ((IFieldInfo) o2).getName()));
+        Arrays.sort(allFields, (o1, o2) -> CharOperation.compareTo(o1.getName(), o2.getName()));
         return allFields;
     }
 
     private static boolean hasStaticClassInitializer(IClassFileReader cfReader) {
-        IMethodInfo[] methodInfos= cfReader.getMethodInfos();
+      IMethodInfo[] methodInfos= cfReader.getMethodInfos();
       for (IMethodInfo methodInfo : methodInfos) {
-        if (methodInfo.isClinit()) {
+        if (methodInfo.isClinit())
           return true;
-        }
       }
         return false;
     }
 
     private static IMethodInfo[] getSortedMethods(IClassFileReader cfReader) {
-        IMethodInfo[] allMethods= cfReader.getMethodInfos();
-        Arrays.sort(allMethods, (Comparator) (o1, o2) -> {
-            IMethodInfo mi1= (IMethodInfo) o1;
-            IMethodInfo mi2= (IMethodInfo) o2;
-            if (mi1.isConstructor() != mi2.isConstructor()) {
-                return mi1.isConstructor() ? -1 : 1;
-            } else if (mi1.isConstructor()) {
-                return 0;
-            }
-            int res= CharOperation.compareTo(mi1.getName(), mi2.getName());
-            if (res != 0) {
-                return res;
-            }
-            return CharOperation.compareTo(mi1.getDescriptor(), mi2.getDescriptor());
-        });
-        return allMethods;
+      IMethodInfo[] allMethods= cfReader.getMethodInfos();
+      Arrays.sort(allMethods, (o1, o2) -> {
+        if (o1.isConstructor() != o2.isConstructor())
+          return o1.isConstructor() ? -1 : 1;
+        else if (o1.isConstructor())
+          return 0;
+        int res = CharOperation.compareTo(o1.getName(), o2.getName());
+        if (res != 0)
+          return res;
+        return CharOperation.compareTo(o1.getDescriptor(), o2.getDescriptor());
+      });
+      return allMethods;
     }
 
     // AspectJ Change begin
@@ -242,9 +237,8 @@ public final class AJSerialVersionHashOperation extends AbstractSerialVersionOpe
         IProject project = typeBinding.getJavaElement().getJavaProject().getProject();
         AjCompiler compiler = AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project);
         IOutputLocationManager manager = compiler.getCompilerConfiguration().getOutputLocationManager();
-        if (! (manager instanceof CoreOutputLocationManager)) {
-            return null;
-        }
+        if (! (manager instanceof CoreOutputLocationManager))
+          return null;
         CoreOutputLocationManager coreManager = (CoreOutputLocationManager) manager;
 
         // get the binary folder

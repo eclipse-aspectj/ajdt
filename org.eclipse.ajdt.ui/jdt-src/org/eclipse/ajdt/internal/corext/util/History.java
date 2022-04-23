@@ -10,32 +10,6 @@
  *******************************************************************************/
 package org.eclipse.ajdt.internal.corext.util;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.util.Collection;
-import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.TransformerFactoryConfigurationError;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
@@ -51,56 +25,108 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.TransformerFactoryConfigurationError;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.Collection;
+import java.util.Hashtable;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+
 /**
  * History stores a list of key, object pairs. The list is bounded at size
  * MAX_HISTORY_SIZE. If the list exceeds this size the eldest element is removed
  * from the list. An element can be added/renewed with a call to <code>accessed(Object)</code>.
- *
+ * <p>
  * The history can be stored to/loaded from an xml file.
  */
-public abstract class History {
-
-	private static final String DEFAULT_ROOT_NODE_NAME= "histroyRootNode"; //$NON-NLS-1$
-	private static final String DEFAULT_INFO_NODE_NAME= "infoNode"; //$NON-NLS-1$
-	private static final int MAX_HISTORY_SIZE= 60;
+public abstract class History<T> {
+	private static final String DEFAULT_ROOT_NODE_NAME = "histroyRootNode"; //$NON-NLS-1$
+	private static final String DEFAULT_INFO_NODE_NAME = "infoNode"; //$NON-NLS-1$
+	private static final int MAX_HISTORY_SIZE = 60;
 
 	private static JavaUIException createException(Throwable t, String message) {
 		return new JavaUIException(JavaUIStatus.createError(IStatus.ERROR, message, t));
 	}
 
-	private final Map fHistory;
-	private final Hashtable fPositions;
+	private final Map<Key<T>, T> fHistory;
+	private final Map<Key<T>, Integer> fPositions;
 	private final String fFileName;
 	private final String fRootNodeName;
 	private final String fInfoNodeName;
 
 	public History(String fileName, String rootNodeName, String infoNodeName) {
-		fHistory= new LinkedHashMap(80, 0.75f, true) {
-			private static final long serialVersionUID= 1L;
+		fHistory = new LinkedHashMap<Key<T>, T>(80, 0.75f, true) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
 			protected boolean removeEldestEntry(Map.Entry eldest) {
 				return size() > MAX_HISTORY_SIZE;
 			}
 		};
-		fFileName= fileName;
-		fRootNodeName= rootNodeName;
-		fInfoNodeName= infoNodeName;
-		fPositions= new Hashtable(MAX_HISTORY_SIZE);
+
+		fFileName = fileName;
+		fRootNodeName = rootNodeName;
+		fInfoNodeName = infoNodeName;
+		fPositions = new Hashtable<>(MAX_HISTORY_SIZE);
 	}
 
 	public History(String fileName) {
 		this(fileName, DEFAULT_ROOT_NODE_NAME, DEFAULT_INFO_NODE_NAME);
 	}
 
-	public synchronized void accessed(Object object) {
-		fHistory.put(getKey(object), object);
+	protected static class Key<K> {
+		private final K key;
+
+		public Key(K key) {
+			this.key = key;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o)
+				return true;
+			if (o == null || getClass() != o.getClass())
+				return false;
+			Key<?> key1 = (Key<?>) o;
+			return Objects.equals(key, key1.key);
+		}
+
+		@Override
+		public int hashCode() {
+			return key != null ? key.hashCode() : 0;
+		}
+
+		public K getKey() {
+			return key;
+		}
+	}
+
+	public synchronized void accessed(T element) {
+		fHistory.put(getKey(element), element);
 		rebuildPositions();
 	}
 
-	public synchronized boolean contains(Object object) {
-		return fHistory.containsKey(getKey(object));
+	public synchronized boolean contains(T element) {
+		return fHistory.containsKey(getKey(element));
 	}
 
-	public synchronized boolean containsKey(Object key) {
+	public synchronized boolean containsKey(Key<T> key) {
 		return fHistory.containsKey(key);
 	}
 
@@ -108,14 +134,14 @@ public abstract class History {
 		return fHistory.isEmpty();
 	}
 
-	public synchronized Object remove(Object object) {
-		Object removed= fHistory.remove(getKey(object));
+	public synchronized T remove(T element) {
+		T removed = fHistory.remove(getKey(element));
 		rebuildPositions();
 		return removed;
 	}
 
-	public synchronized Object removeKey(Object key) {
-		Object removed= fHistory.remove(key);
+	public synchronized T removeKey(Key<T> key) {
+		T removed = fHistory.remove(key);
 		rebuildPositions();
 		return removed;
 	}
@@ -129,14 +155,12 @@ public abstract class History {
 	 * @param key The key of the object to inspect
 	 * @return value in [0.0, 1.0] the lower the older the element
 	 */
-	public synchronized float getNormalizedPosition(Object key) {
+	public synchronized float getNormalizedPosition(Key<T> key) {
 		if (!containsKey(key))
 			return 0.0f;
-
-		int pos= (Integer) fPositions.get(key) + 1;
-
+		int pos = fPositions.get(key) + 1;
 		//containsKey(key) implies fHistory.size()>0
-		return (float)pos / (float)fHistory.size();
+		return (float) pos / (float) fHistory.size();
 	}
 
 	/**
@@ -147,99 +171,78 @@ public abstract class History {
 	 * @param key The key of the object to inspect
 	 * @return value between 0 and MAX_HISTORY_SIZE - 1, or -1
 	 */
-	public synchronized int getPosition(Object key) {
+	public synchronized int getPosition(Key<T> key) {
 		if (!containsKey(key))
 			return -1;
-
-		return (Integer) fPositions.get(key);
+		return fPositions.get(key);
 	}
 
 	public synchronized void load() {
-		IPath stateLocation= JavaPlugin.getDefault().getStateLocation().append(fFileName);
-		File file= new File(stateLocation.toOSString());
-		if (file.exists()) {
-			InputStreamReader reader= null;
-	        try {
-				reader = new InputStreamReader(Files.newInputStream(file.toPath()), StandardCharsets.UTF_8);//$NON-NLS-1$
-				load(new InputSource(reader));
-			} catch (IOException | CoreException e) {
-				JavaPlugin.log(e);
-			}
-          finally {
-				try {
-					if (reader != null)
-						reader.close();
-				} catch (IOException e) {
-					JavaPlugin.log(e);
-				}
-			}
+		IPath stateLocation = JavaPlugin.getDefault().getStateLocation().append(fFileName);
+		File file = new File(stateLocation.toOSString());
+		if (!file.exists())
+			return;
+		try (InputStreamReader reader = new InputStreamReader(Files.newInputStream(file.toPath()), StandardCharsets.UTF_8)) {
+			load(new InputSource(reader));
+		}
+		catch (IOException | CoreException e) {
+			JavaPlugin.log(e);
 		}
 	}
 
 	public synchronized void save() {
-		IPath stateLocation= JavaPlugin.getDefault().getStateLocation().append(fFileName);
-		File file= new File(stateLocation.toOSString());
-		OutputStream out= null;
-		try {
-			out= Files.newOutputStream(file.toPath());
+		IPath stateLocation = JavaPlugin.getDefault().getStateLocation().append(fFileName);
+		File file = new File(stateLocation.toOSString());
+		try (OutputStream out = Files.newOutputStream(file.toPath())) {
 			save(out);
-		} catch (IOException | CoreException e) {
+		}
+		catch (IOException | CoreException e) {
 			JavaPlugin.log(e);
 		}
-    catch (TransformerFactoryConfigurationError e) {
+		catch (TransformerFactoryConfigurationError e) {
 			// The XML library can be misconficgured (e.g. via
 			// -Djava.endorsed.dirs=C:\notExisting\xerces-2_7_1)
 			JavaPlugin.log(e);
-		} finally {
-			try {
-				if (out != null) {
-					out.close();
-				}
-			} catch (IOException e) {
-				JavaPlugin.log(e);
-			}
 		}
 	}
 
-	protected Set getKeys() {
+	protected Set<Key<T>> getKeys() {
 		return fHistory.keySet();
 	}
 
-	protected Collection getValues() {
+	protected Collection<T> getValues() {
 		return fHistory.values();
 	}
 
 	/**
-	 * Store <code>Object</code> in <code>Element</code>
+	 * Store <code>T</code> in <code>Element</code>
 	 *
-	 * @param object The object to store
-	 * @param element The Element to store to
+	 * @param element  The object to store
+	 * @param domElement The Element to store to
 	 */
-	protected abstract void setAttributes(Object object, Element element);
+	protected abstract void setAttributes(T element, Element domElement);
 
 	/**
 	 * Return a new instance of an Object given <code>element</code>
 	 *
 	 * @param element The element containing required information to create the Object
 	 */
-	protected abstract Object createFromElement(Element element);
+	protected abstract T createFromElement(Element element);
 
 	/**
-	 * Get key for object
+	 * Get key for element
 	 *
-	 * @param object The object to calculate a key for, not null
-	 * @return The key for object, not null
+	 * @param element The element to calculate a key for, not null
+	 * @return The key for element, not null
 	 */
-	protected abstract Object getKey(Object object);
+	protected abstract Key<T> getKey(T element);
 
 	private void rebuildPositions() {
 		fPositions.clear();
-		Collection values= fHistory.values();
-		int pos=0;
-    for (Object element : values) {
-      fPositions.put(getKey(element), pos);
-      pos++;
-    }
+		Collection<T> values = fHistory.values();
+		int pos = 0;
+		for (T element : values)
+			fPositions.put(getKey(element), pos++);
 	}
 
 	private void load(InputSource inputSource) throws CoreException {
@@ -247,25 +250,25 @@ public abstract class History {
 		try {
 			DocumentBuilder parser = DocumentBuilderFactory.newInstance().newDocumentBuilder();
 			root = parser.parse(inputSource).getDocumentElement();
-		} catch (SAXException | IOException | ParserConfigurationException e) {
+		}
+		catch (SAXException | IOException | ParserConfigurationException e) {
 			throw createException(e, Messages.format(CorextMessages.History_error_read, fFileName));
 		}
 
-    if (root == null) return;
-		if (!root.getNodeName().equalsIgnoreCase(fRootNodeName)) {
+		if (root == null)
 			return;
-		}
-		NodeList list= root.getChildNodes();
-		int length= list.getLength();
-		for (int i= 0; i < length; ++i) {
-			Node node= list.item(i);
+		if (!root.getNodeName().equalsIgnoreCase(fRootNodeName))
+			return;
+		NodeList list = root.getChildNodes();
+		int length = list.getLength();
+		for (int i = 0; i < length; ++i) {
+			Node node = list.item(i);
 			if (node.getNodeType() == Node.ELEMENT_NODE) {
-				Element type= (Element) node;
-				if (type.getNodeName().equalsIgnoreCase(fInfoNodeName)) {
-					Object object= createFromElement(type);
-					if (object != null) {
-						fHistory.put(getKey(object), object);
-					}
+				Element domElement = (Element) node;
+				if (domElement.getNodeName().equalsIgnoreCase(fInfoNodeName)) {
+					T element = createFromElement(domElement);
+					if (element != null)
+						fHistory.put(getKey(element), element);
 				}
 			}
 		}
@@ -274,20 +277,20 @@ public abstract class History {
 
 	private void save(OutputStream stream) throws CoreException {
 		try {
-			DocumentBuilderFactory factory= DocumentBuilderFactory.newInstance();
-			DocumentBuilder builder= factory.newDocumentBuilder();
-			Document document= builder.newDocument();
+			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+			DocumentBuilder builder = factory.newDocumentBuilder();
+			Document document = builder.newDocument();
 
 			Element rootElement = document.createElement(fRootNodeName);
 			document.appendChild(rootElement);
 
-      for (Object object : getValues()) {
-        Element element = document.createElement(fInfoNodeName);
-        setAttributes(object, element);
-        rootElement.appendChild(element);
-      }
+			for (T element : getValues()) {
+				Element domElement = document.createElement(fInfoNodeName);
+				setAttributes(element, domElement);
+				rootElement.appendChild(domElement);
+			}
 
-			Transformer transformer=TransformerFactory.newInstance().newTransformer();
+			Transformer transformer = TransformerFactory.newInstance().newTransformer();
 			transformer.setOutputProperty(OutputKeys.METHOD, "xml"); //$NON-NLS-1$
 			transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8"); //$NON-NLS-1$
 			transformer.setOutputProperty(OutputKeys.INDENT, "yes"); //$NON-NLS-1$
@@ -295,9 +298,10 @@ public abstract class History {
 			StreamResult result = new StreamResult(stream);
 
 			transformer.transform(source, result);
-		} catch (TransformerException | ParserConfigurationException e) {
+		}
+		catch (TransformerException | ParserConfigurationException e) {
 			throw createException(e, Messages.format(CorextMessages.History_error_serialize, fFileName));
 		}
-  }
+	}
 
 }

@@ -314,8 +314,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
             protected IStatus run(IProgressMonitor monitor) {
                 // bug 278425 --- see if m2eclipse exists and ensure it is started before continuing
                 startM2Eclipse();
-                AJCompilationUnitManager.INSTANCE
-                        .initCompilationUnits(AspectJPlugin.getWorkspace());
+                AJCompilationUnitManager.INSTANCE.initCompilationUnits(AspectJPlugin.getWorkspace());
                 AJDTUtils.refreshPackageExplorer();
                 return Status.OK_STATUS;
             }

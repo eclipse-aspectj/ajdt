@@ -49,7 +49,7 @@ public class SuperInterfaceSelectionDialog extends OpenTypeSelectionDialog {
 	private static final int ADD_ID= IDialogConstants.CLIENT_ID + 1;
 
 	private final NewTypeWizardPage fTypeWizardPage;
-	private final List fOldContent;
+	private final List<String> fOldContent;
 
 	/**
 	 * Creates new instance of SuperInterfaceSelectionDialog

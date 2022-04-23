@@ -242,9 +242,8 @@ privileged aspect AJNewTypeWizardPage {
 
             IType createdType;
             ImportsManager imports;
-            int indent= 0;
 
-            Set /* String (import names) */ existingImports;
+            Set<String> existingImports;
 
             String lineDelimiter;
             if (!isInnerClass) {
@@ -341,7 +340,6 @@ privileged aspect AJNewTypeWizardPage {
 //              // AspectJ change end
                 createdType= enclosingType.createType(content.toString(), sibling, false, new SubProgressMonitor(monitor, 2));
 
-                indent= StubUtility.getIndentUsed(enclosingType) + 1;
             }
             if (monitor.isCanceled()) {
                 throw new InterruptedException();

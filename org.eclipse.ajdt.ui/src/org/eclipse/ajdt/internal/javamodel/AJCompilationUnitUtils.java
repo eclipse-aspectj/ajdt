@@ -29,11 +29,9 @@ import org.eclipse.ui.part.FileEditorInput;
 public class AJCompilationUnitUtils {
 
 	public static void removeCUsfromJavaModelAndCloseEditors(IProject project) {
-		List removed = AJCompilationUnitManager.INSTANCE
-				.removeCUsfromJavaModel(project);
-    for (Object o : removed) {
-      closeEditorForFile((IFile) o);
-    }
+		List<IFile> removed = AJCompilationUnitManager.INSTANCE.removeCUsfromJavaModel(project);
+		for (IFile file : removed)
+			closeEditorForFile(file);
 	}
 
 	protected static void removeFileFromModelAndCloseEditors(IFile file) {

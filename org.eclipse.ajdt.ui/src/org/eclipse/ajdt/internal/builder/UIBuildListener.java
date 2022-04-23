@@ -74,9 +74,9 @@ public class UIBuildListener implements IAJBuildListener {
      * Map of projects with the IClasspathEntry corresponding
      * to their outjar
      */
-    private HashMap outjars = null;
+    private HashMap<IProject, IClasspathEntry> outjars = null;
 
-    private final ListenerList fListeners = new ListenerList();
+    private final ListenerList<IAdviceChangedListener> fListeners = new ListenerList<>();
 
     /* (non-Javadoc)
      * @see org.eclipse.ajdt.core.builder.AJBuildListener#preAJBuild(org.eclipse.core.resources.IProject)
@@ -407,18 +407,16 @@ public class UIBuildListener implements IAJBuildListener {
     private void checkOutJarEntry(IProject project) {
         String outJar = AspectJUIPlugin.getDefault().getCompilerFactory().getCompilerForProject(project).getCompilerConfiguration().getOutJar();
         if (outJar != null && !(outJar.equals(""))) {  //$NON-NLS-1$
-            if (outjars == null) {
-                outjars = new HashMap();
-            }
+            if (outjars == null)
+              outjars = new HashMap<>();
             IPath newPath = getRelativePath(project, outJar);
-            IClasspathEntry newEntry = JavaCore.newLibraryEntry(newPath
-                    .makeAbsolute(), null, null);
+            IClasspathEntry newEntry = JavaCore.newLibraryEntry(newPath.makeAbsolute(), null, null);
             if (outjars.containsKey(project))  {
                 if (!(outjars.get(project).equals(newEntry))) {
-                    IClasspathEntry oldEntry = (IClasspathEntry)outjars.get(project);
+                    IClasspathEntry oldEntry = outjars.get(project);
                     outjars.remove(project);
                     removeOutjarFromDependingProjects(project,oldEntry);
-                    outjars.put(project,newEntry);
+                    outjars.put(project, newEntry);
                     updateDependingProjectsWithJar(project,newEntry);
                 }
             } else {
@@ -427,18 +425,16 @@ public class UIBuildListener implements IAJBuildListener {
             }
         } else {
             if (outjars != null && outjars.containsKey(project)) {
-                IClasspathEntry oldEntry = (IClasspathEntry)outjars.get(project);
+                IClasspathEntry oldEntry = outjars.get(project);
                 outjars.remove(project);
-                if (outjars.size() == 0) {
-                    outjars = null;
-                }
+                if (outjars.size() == 0)
+                  outjars = null;
                 removeOutjarFromDependingProjects(project, oldEntry);
             }
         }
     }
 
-    private void removeOutjarFromDependingProjects(IProject project,
-            IClasspathEntry unwantedEntry) {
+    private void removeOutjarFromDependingProjects(IProject project, IClasspathEntry unwantedEntry) {
         IProject[] dependingProjects = getDependingProjects(project);
 
       for (IProject dependingProject : dependingProjects) {
@@ -447,14 +443,12 @@ public class UIBuildListener implements IAJBuildListener {
           continue;
         try {
           IClasspathEntry[] cpEntry = javaProject.getRawClasspath();
-          List newEntries = new ArrayList();
+          List<IClasspathEntry> newEntries = new ArrayList<>();
           for (IClasspathEntry iClasspathEntry : cpEntry) {
-            if (!iClasspathEntry.equals(unwantedEntry)) {
+            if (!iClasspathEntry.equals(unwantedEntry))
               newEntries.add(iClasspathEntry);
-            }
           }
-          IClasspathEntry[] newCP = (IClasspathEntry[]) newEntries
-            .toArray(new IClasspathEntry[0]);
+          IClasspathEntry[] newCP = newEntries.toArray(new IClasspathEntry[0]);
           javaProject.setRawClasspath(newCP, new NullProgressMonitor());
         }
         catch (CoreException e) {
@@ -472,18 +466,15 @@ public class UIBuildListener implements IAJBuildListener {
             continue;
           try {
             IClasspathEntry[] cpEntry = javaProject.getRawClasspath();
-            List newEntries = new ArrayList();
+            List<IClasspathEntry> newEntries = new ArrayList<>();
             for (IClasspathEntry iClasspathEntry : cpEntry) {
-              if (iClasspathEntry.equals(newEntry)) {
+              if (iClasspathEntry.equals(newEntry))
                 continue goThroughProjects;
-              }
-              else {
+              else
                 newEntries.add(iClasspathEntry);
-              }
             }
             newEntries.add(newEntry);
-            IClasspathEntry[] newCP = (IClasspathEntry[]) newEntries
-              .toArray(new IClasspathEntry[0]);
+            IClasspathEntry[] newCP = newEntries.toArray(new IClasspathEntry[0]);
             javaProject.setRawClasspath(newCP, new NullProgressMonitor());
           }
           catch (CoreException e) {

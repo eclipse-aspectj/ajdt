@@ -1,16 +1,15 @@
 /**********************************************************************
-Copyright (c) 2002 IBM Corporation and others.
-All rights reserved. This program and the accompanying materials
-are made available under the terms of the Eclipse Public License v1.0
-which accompanies this distribution, and is available at
-http://www.eclipse.org/legal/epl-v10.html
-Contributors:
-Adrian Colyer, Andy Clement, Tracy Gardner - initial version
-...
-**********************************************************************/
+ Copyright (c) 2002 IBM Corporation and others.
+ All rights reserved. This program and the accompanying materials
+ are made available under the terms of the Eclipse Public License v1.0
+ which accompanies this distribution, and is available at
+ http://www.eclipse.org/legal/epl-v10.html
+ Contributors:
+ Adrian Colyer, Andy Clement, Tracy Gardner - initial version
+ ...
+ **********************************************************************/
 package org.eclipse.ajdt.internal.ui.actions;
 
-import java.util.Iterator;
 import java.util.Vector;
 
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
@@ -24,7 +23,6 @@ import org.eclipse.ui.IActionDelegate;
 import org.eclipse.ui.IObjectActionDelegate;
 import org.eclipse.ui.IWorkbenchPart;
 
-
 /**
  * This action is driven from the popup menu of a project that has
  * the AspectJ nature. It removes the AJ nature and builder etc.,
@@ -34,23 +32,21 @@ import org.eclipse.ui.IWorkbenchPart;
  */
 public class RemoveAJNatureAction implements IObjectActionDelegate {
 
-	private final Vector selected = new Vector();
+	private final Vector<IProject> selected = new Vector<>();
 
 	/**
 	 * @see IActionDelegate#run(IAction)
 	 */
 	public void run(IAction arg0)
 	{
-    for (Object o : selected) {
-      IProject project = (IProject) o;
-      try {
-        // Reove the AspectJ nature from the project and attempt
-        // to update the build classpath by removing the aspectjrt.jar
-        AspectJUIPlugin.convertFromAspectJProject(project);
-      }
-      catch (CoreException e) {
-      }
-    }
+		for (IProject project : selected) {
+			try {
+				// Reove the AspectJ nature from the project and attempt
+				// to update the build classpath by removing the aspectjrt.jar
+				AspectJUIPlugin.convertFromAspectJProject(project);
+			}
+			catch (CoreException ignored) { }
+		}
 	}
 
 	/**
@@ -62,23 +58,23 @@ public class RemoveAJNatureAction implements IObjectActionDelegate {
 		boolean enable = true;
 		if (sel instanceof IStructuredSelection) {
 			IStructuredSelection selection = (IStructuredSelection) sel;
-      for (Object object : selection) {
-        if (object instanceof IAdaptable) {
-          IProject project = ((IAdaptable) object).getAdapter(IProject.class);
-          if (project != null) {
-            selected.add(project);
-          }
-          else {
-            enable = false;
-            break;
-          }
+			for (Object object : selection) {
+				if (object instanceof IAdaptable) {
+					IProject project = ((IAdaptable) object).getAdapter(IProject.class);
+					if (project != null) {
+						selected.add(project);
+					}
+					else {
+						enable = false;
+						break;
+					}
 
-        }
-        else {
-          enable = false;
-          break;
-        }
-      }
+				}
+				else {
+					enable = false;
+					break;
+				}
+			}
 			action.setEnabled(enable);
 		}
 	}
@@ -86,7 +82,6 @@ public class RemoveAJNatureAction implements IObjectActionDelegate {
 	/**
 	 * From IObjectActionDelegate
 	 */
-	public void setActivePart(IAction action, IWorkbenchPart targetPart) {
-	}
+	public void setActivePart(IAction action, IWorkbenchPart targetPart) { }
 
 }

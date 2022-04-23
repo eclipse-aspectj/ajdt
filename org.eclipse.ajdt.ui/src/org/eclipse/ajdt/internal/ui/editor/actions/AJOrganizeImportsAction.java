@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.Set;
 
 import org.eclipse.ajdt.internal.ui.editor.actions.AJOrganizeImportsOperation.IChooseImportQuery;
 import org.eclipse.core.filebuffers.FileBuffers;
@@ -120,29 +121,26 @@ public class AJOrganizeImportsAction extends SelectionDispatchAction {
 		}
 	}
 
-	private static final class OrganizeImportComparator implements Comparator, Serializable {
-
+	/**
+	 * {@link QualifiedTypeNameHistory} extends {@code History<String, String>}, see below.
+   * Therefore, we implement {@code Comparator<String>} here.
+	 */
+	private static final class OrganizeImportComparator
+		implements Comparator<String>, Serializable
+	{
 		private static final long serialVersionUID = -4396300340833288667L;
 
-        public int compare(Object o1, Object o2) {
+		@Override
+		public int compare(String o1, String o2) {
 			if (o1.equals(o2))
 				return 0;
-
-			History history= QualifiedTypeNameHistory.getDefault();
-
-			int pos1= history.getPosition(o1);
-			int pos2= history.getPosition(o2);
-
+			QualifiedTypeNameHistory history = QualifiedTypeNameHistory.getDefault();
+			int pos1 = history.getPosition(o1);
+			int pos2 = history.getPosition(o2);
 			if (pos1 == pos2)
 				return Collator.getInstance().compare(o1, o2);
-
-			if (pos1 > pos2) {
-				return -1;
-			} else {
-				return 1;
-			}
+			return pos1 > pos2 ? -1 : 1;
 		}
-
 	}
 
 	/**
@@ -188,106 +186,99 @@ public class AJOrganizeImportsAction extends SelectionDispatchAction {
 	}
 
 	private ICompilationUnit[] getCompilationUnits(IStructuredSelection selection) {
-		HashSet result= new HashSet();
-		Object[] selected= selection.toArray();
-    for (Object o : selected) {
-      try {
-        if (o instanceof IJavaElement) {
-          IJavaElement elem = (IJavaElement) o;
-          if (elem.exists()) {
-
-            switch (elem.getElementType()) {
-              case IJavaElement.TYPE:
-                if (elem.getParent().getElementType() == IJavaElement.COMPILATION_UNIT) {
-                  result.add(elem.getParent());
-                }
-                break;
-              case IJavaElement.COMPILATION_UNIT:
-                result.add(elem);
-                break;
-              case IJavaElement.IMPORT_CONTAINER:
-                result.add(elem.getParent());
-                break;
-              case IJavaElement.PACKAGE_FRAGMENT:
-                collectCompilationUnits((IPackageFragment) elem, result);
-                break;
-              case IJavaElement.PACKAGE_FRAGMENT_ROOT:
-                collectCompilationUnits((IPackageFragmentRoot) elem, result);
-                break;
-              case IJavaElement.JAVA_PROJECT:
-                IPackageFragmentRoot[] roots = ((IJavaProject) elem).getPackageFragmentRoots();
-                for (IPackageFragmentRoot root : roots) {
-                  collectCompilationUnits(root, result);
-                }
-                break;
-            }
-          }
-        }
-        else if (o instanceof LogicalPackage) {
-          IPackageFragment[] packageFragments = ((LogicalPackage) o).getFragments();
-          for (IPackageFragment pack : packageFragments) {
-            if (pack.exists()) {
-              collectCompilationUnits(pack, result);
-            }
-          }
-        }
-      }
-      catch (JavaModelException e) {
-        if (JavaModelUtil.isExceptionToBeLogged(e))
-          JavaPlugin.log(e);
-      }
-    }
-		return (ICompilationUnit[]) result.toArray(new ICompilationUnit[0]);
+		Set<ICompilationUnit> result = new HashSet<>();
+		Object[] selectedElements = selection.toArray();
+		for (Object selectedElement : selectedElements) {
+			try {
+				if (selectedElement instanceof IJavaElement) {
+					IJavaElement javaElement = (IJavaElement) selectedElement;
+					if (javaElement.exists()) {
+						switch (javaElement.getElementType()) {
+							case IJavaElement.TYPE:
+								if (javaElement.getParent().getElementType() == IJavaElement.COMPILATION_UNIT)
+									result.add((ICompilationUnit) javaElement.getParent());
+								break;
+							case IJavaElement.COMPILATION_UNIT:
+								result.add((ICompilationUnit) javaElement);
+								break;
+							case IJavaElement.IMPORT_CONTAINER:
+								result.add((ICompilationUnit) javaElement.getParent());
+								break;
+							case IJavaElement.PACKAGE_FRAGMENT:
+								collectCompilationUnits((IPackageFragment) javaElement, result);
+								break;
+							case IJavaElement.PACKAGE_FRAGMENT_ROOT:
+								collectCompilationUnits((IPackageFragmentRoot) javaElement, result);
+								break;
+							case IJavaElement.JAVA_PROJECT:
+								IPackageFragmentRoot[] roots = ((IJavaProject) javaElement).getPackageFragmentRoots();
+								for (IPackageFragmentRoot root : roots)
+									collectCompilationUnits(root, result);
+								break;
+						}
+					}
+				}
+				else if (selectedElement instanceof LogicalPackage) {
+					IPackageFragment[] packageFragments = ((LogicalPackage) selectedElement).getFragments();
+					for (IPackageFragment pack : packageFragments) {
+						if (pack.exists())
+							collectCompilationUnits(pack, result);
+					}
+				}
+			}
+			catch (JavaModelException e) {
+				if (JavaModelUtil.isExceptionToBeLogged(e))
+					JavaPlugin.log(e);
+			}
+		}
+		return result.toArray(new ICompilationUnit[0]);
 	}
 
-	private void collectCompilationUnits(IPackageFragment pack, Collection result) throws JavaModelException {
+	private void collectCompilationUnits(IPackageFragment pack, Collection<ICompilationUnit> result) throws JavaModelException {
 		result.addAll(Arrays.asList(pack.getCompilationUnits()));
 	}
 
-	private void collectCompilationUnits(IPackageFragmentRoot root, Collection result) throws JavaModelException {
+	private void collectCompilationUnits(IPackageFragmentRoot root, Collection<ICompilationUnit> result) throws JavaModelException {
 		if (root.getKind() == IPackageFragmentRoot.K_SOURCE) {
-			IJavaElement[] children= root.getChildren();
-      for (IJavaElement child : children) {
-        collectCompilationUnits((IPackageFragment) child, result);
-      }
+			IJavaElement[] children = root.getChildren();
+			for (IJavaElement child : children)
+				collectCompilationUnits((IPackageFragment) child, result);
 		}
 	}
 
-
 	private boolean isEnabled(IStructuredSelection selection) {
-		Object[] selected= selection.toArray();
-    for (Object o : selected) {
-      try {
-        if (o instanceof IJavaElement) {
-          IJavaElement elem = (IJavaElement) o;
-          if (elem.exists()) {
-            switch (elem.getElementType()) {
-              case IJavaElement.TYPE:
-                return elem.getParent().getElementType() == IJavaElement.COMPILATION_UNIT; // for browsing perspective
-              case IJavaElement.COMPILATION_UNIT:
-                return true;
-              case IJavaElement.IMPORT_CONTAINER:
-                return true;
-              case IJavaElement.PACKAGE_FRAGMENT:
-              case IJavaElement.PACKAGE_FRAGMENT_ROOT:
-                IPackageFragmentRoot root = (IPackageFragmentRoot) elem.getAncestor(IJavaElement.PACKAGE_FRAGMENT_ROOT);
-                return (root.getKind() == IPackageFragmentRoot.K_SOURCE);
-              case IJavaElement.JAVA_PROJECT:
-                // https://bugs.eclipse.org/bugs/show_bug.cgi?id=65638
-                return true;
-            }
-          }
-        }
-        else if (o instanceof LogicalPackage) {
-          return true;
-        }
-      }
-      catch (JavaModelException e) {
-        if (!e.isDoesNotExist()) {
-          JavaPlugin.log(e);
-        }
-      }
-    }
+    for (Object selectedElement : selection.toArray()) {
+			try {
+				if (selectedElement instanceof IJavaElement) {
+					IJavaElement javaElement = (IJavaElement) selectedElement;
+					if (javaElement.exists()) {
+						switch (javaElement.getElementType()) {
+
+							case IJavaElement.TYPE:
+								// for browsing perspective
+								return javaElement.getParent().getElementType() == IJavaElement.COMPILATION_UNIT;
+
+							case IJavaElement.COMPILATION_UNIT:
+							case IJavaElement.IMPORT_CONTAINER:
+							case IJavaElement.JAVA_PROJECT: // https://bugs.eclipse.org/bugs/show_bug.cgi?id=65638
+								return true;
+
+							case IJavaElement.PACKAGE_FRAGMENT:
+							case IJavaElement.PACKAGE_FRAGMENT_ROOT:
+								IPackageFragmentRoot root =
+									(IPackageFragmentRoot) javaElement.getAncestor(IJavaElement.PACKAGE_FRAGMENT_ROOT);
+								return root.getKind() == IPackageFragmentRoot.K_SOURCE;
+						}
+					}
+				}
+				else if (selectedElement instanceof LogicalPackage)
+					return true;
+			}
+			catch (JavaModelException e) {
+				if (!e.isDoesNotExist())
+					JavaPlugin.log(e);
+			}
+		}
 		return false;
 	}
 

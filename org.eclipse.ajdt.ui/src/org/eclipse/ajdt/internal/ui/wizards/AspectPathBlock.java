@@ -1,13 +1,13 @@
 /*******************************************************************************
  * Copyright (c) 2004, 2008 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Andrew Eisenberg - factored out common code with AspectPathBlock 
+ *     Andrew Eisenberg - factored out common code with AspectPathBlock
  *                        into PathBlok
  *******************************************************************************/
 package org.eclipse.ajdt.internal.ui.wizards;
@@ -28,7 +28,7 @@ import org.eclipse.jdt.internal.ui.wizards.buildpaths.CPListElement;
  */
 public class AspectPathBlock extends PathBlock {
 
-    private List existingAspectPath;
+    private List<CPListElement> existingAspectPath;
 
     public AspectPathBlock(IStatusChangeListener context, int pageToShow) {
         super(context, pageToShow);
@@ -40,24 +40,20 @@ public class AspectPathBlock extends PathBlock {
     /*
      * @see BuildPathBasePage#getSelection
      */
-    public List getSelection() {
+    public List<Object> getSelection() {
         return fPathList.getSelectedElements();
     }
 
     public void init(IJavaProject jproject, IClasspathEntry[] aspectpathEntries) {
         setJavaProject(jproject);
-        
-        existingAspectPath = null;
-        if (aspectpathEntries != null) {
-            existingAspectPath = getExistingEntries(aspectpathEntries);
-        }
 
-        if (existingAspectPath == null) {
-            existingAspectPath = new ArrayList();
-        }
+        existingAspectPath = null;
+        if (aspectpathEntries != null)
+            existingAspectPath = getExistingEntries(aspectpathEntries);
+        if (existingAspectPath == null)
+            existingAspectPath = new ArrayList<>();
 
         fPathList.setElements(existingAspectPath);
-
         super.init();
     }
 
@@ -65,22 +61,25 @@ public class AspectPathBlock extends PathBlock {
 
 
     @Override
-    protected void internalSetProjectPath(List<CPListElement> pathEntries,
-            StringBuffer pathBuffer, StringBuffer contentKindBuffer,
-            StringBuffer entryKindBuffer) {
-        AspectJCorePreferences.setProjectAspectPath(getJavaProject().getProject(),
-                pathBuffer.toString(), contentKindBuffer.toString(),
-                entryKindBuffer.toString());
-
-        LaunchConfigurationManagementUtils.updateAspectPaths(getJavaProject(),
-                existingAspectPath, pathEntries);
+    protected void internalSetProjectPath(
+        List<CPListElement> pathEntries,
+        StringBuffer pathBuffer, StringBuffer contentKindBuffer,
+        StringBuffer entryKindBuffer
+    ) {
+        AspectJCorePreferences.setProjectAspectPath(
+            getJavaProject().getProject(),
+            pathBuffer.toString(),
+            contentKindBuffer.toString(),
+            entryKindBuffer.toString()
+        );
+        LaunchConfigurationManagementUtils.updateAspectPaths(getJavaProject(), existingAspectPath, pathEntries);
     }
 
-    
+
     protected String getBlockNote() {
         return UIMessages.AspectPathBlock_note;
     }
-    
+
     public String getBlockTitle() {
         return UIMessages.AspectPathBlock_tab_libraries;
     }

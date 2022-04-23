@@ -73,8 +73,7 @@ import org.eclipse.ui.progress.UIJob;
  * The aspect path and in path are stored with the Java classpath
  * THe outjar and the inpath out folder are stored in project specific settings
  */
-public class AspectJProjectPropertiesPage extends PropertyPage implements
-		IStatusChangeListener {
+public class AspectJProjectPropertiesPage extends PropertyPage implements IStatusChangeListener {
 
     /**
      * Listens for changes that require a refresh or a commit of
@@ -236,73 +235,71 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
     }
 
 	private IClasspathEntry[] getInitialPathValue(IProject project, IClasspathAttribute attribute)
-			throws CoreException {
-		List newPath = new ArrayList();
+		throws CoreException
+	{
+		List<IClasspathEntry> newPath = new ArrayList<>();
 
 		IJavaProject jProject = JavaCore.create(project);
 		boolean isAspectPath = AspectJCorePreferences.isAspectPathAttribute(attribute);
 		try {
-		    IClasspathEntry[] entries = jProject.getRawClasspath();
-      for (IClasspathEntry entry : entries) {
-        if (AspectJCorePreferences.isOnPath(entry, isAspectPath)) {
-          newPath.add(entry);
-        }
-      }
-		} catch (JavaModelException e) {
+			IClasspathEntry[] entries = jProject.getRawClasspath();
+			for (IClasspathEntry entry : entries) {
+				if (AspectJCorePreferences.isOnPath(entry, isAspectPath))
+					newPath.add(entry);
+			}
 		}
+		catch (JavaModelException ignored) { }
 
+		// Bug 243356
+		// also get entries that are contained in containers
+		// where the containers *don't* have the path attribute
+		// but the element does.
+		// this requires looking inside the containers.
+		newPath.addAll(getEntriesInContainers(project, attribute));
 
-        // Bug 243356
-        // also get entries that are contained in containers
-        // where the containers *don't* have the path attribute
-        // but the element does.
-        // this requires looking inside the containers.
-        newPath.addAll(getEntriesInContainers(project, attribute));
-
-		if (newPath.size() > 0) {
-			return (IClasspathEntry[]) newPath.toArray(new IClasspathEntry[0]);
-		} else {
-			return null;
-		}
+		return newPath.size() > 0
+			? newPath.toArray(new IClasspathEntry[0])
+			: null;
 	}
 
-    // Bug 243356
-    // Look inside all container classpath elements in the project
-    protected List /*CPListElement*/ getEntriesInContainers(IProject project, IClasspathAttribute attribute) {
-    	try {
-    		IJavaProject jProject = JavaCore.create(project);
-    		// get the raw classpath of the project
+	// Bug 243356
+	// Look inside all container classpath elements in the project
+	protected List<IClasspathEntry> getEntriesInContainers(IProject project, IClasspathAttribute attribute) {
+		try {
+			IJavaProject jProject = JavaCore.create(project);
+			// get the raw classpath of the project
 			IClasspathEntry[] allEntries = jProject.getRawClasspath();
-			List entriesWithAttribute = new ArrayList();
-        for (IClasspathEntry allEntry : allEntries) {
-          // for each container element, peek inside it
-          if (allEntry.getEntryKind() == IClasspathEntry.CPE_CONTAINER) {
-            IClasspathContainer container =
-              JavaCore.getClasspathContainer(allEntry.getPath(), jProject);
-            if (container != null && !(container instanceof JREContainer)) {
-              IClasspathEntry[] containerEntries = container.getClasspathEntries();
-              // bug 273770
-//			            Set /*String*/ extraPathElements = AspectJCorePreferences.findExtraPathElements(allEntries[i],
-//			                            AspectJCorePreferences.isAspectPathAttribute(attribute));
+			List<IClasspathEntry> entriesWithAttribute = new ArrayList<>();
+			for (IClasspathEntry allEntry : allEntries) {
+				// for each container element, peek inside it
+				if (allEntry.getEntryKind() == IClasspathEntry.CPE_CONTAINER) {
+					IClasspathContainer container = JavaCore.getClasspathContainer(allEntry.getPath(), jProject);
+					if (container != null && !(container instanceof JREContainer)) {
+						IClasspathEntry[] containerEntries = container.getClasspathEntries();
+						// bug 273770
+						// Set /*String*/ extraPathElements = AspectJCorePreferences.findExtraPathElements(allEntries[i],
+						//   AspectJCorePreferences.isAspectPathAttribute(attribute));
 
-              for (IClasspathEntry containerEntry : containerEntries) {
-                // iterate through each element and add
-                // 	to the path those that have the appropriate attribute
-                if (hasClasspathAttribute(containerEntry, attribute) /*||
-			            	        AspectJCorePreferences.containsAsPathFragment(extraPathElements, containerEntries[j])*/) {
-                  addContainerToAttribute(containerEntry, attribute, container);
-                  entriesWithAttribute.add(containerEntry);
-                }
-              }
-            }
-          }
-        }
-	    	return entriesWithAttribute;
-
-		} catch (JavaModelException e) {
+						for (IClasspathEntry containerEntry : containerEntries) {
+							// iterate through each element and add
+							// 	to the path those that have the appropriate attribute
+							if (
+								hasClasspathAttribute(containerEntry, attribute)
+								//|| AspectJCorePreferences.containsAsPathFragment(extraPathElements, containerEntries[j])
+							) {
+								addContainerToAttribute(containerEntry, attribute, container);
+								entriesWithAttribute.add(containerEntry);
+							}
+						}
+					}
+				}
+			}
+			return entriesWithAttribute;
 		}
-    	return Collections.EMPTY_LIST;
-    }
+		catch (JavaModelException ignored) { }
+
+		return Collections.emptyList();
+	}
 
     private void addContainerToAttribute(IClasspathEntry classpathEntry,
 			IClasspathAttribute attribute, IClasspathContainer container) {

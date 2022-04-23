@@ -234,36 +234,35 @@ public class LTWApplicationLaunchConfigurationDelegate
 	 * @throws CoreException
 	 */
 	private IRuntimeClasspathEntry[] getAspectPathEntries(ILaunchConfiguration configuration) throws CoreException {
-		List<?> entries = configuration.getAttribute(LTWAspectPathTab.ATTR_ASPECTPATH, Collections.EMPTY_LIST);
-		IRuntimeClasspathEntry[] rtes = new IRuntimeClasspathEntry[entries.size()];
-		Iterator<?> iter = entries.iterator();
+		List<String> entries = configuration.getAttribute(LTWAspectPathTab.ATTR_ASPECTPATH, Collections.emptyList());
+		// That would be nice:
+		//   return entries.stream().map(entry -> JavaRuntime.newRuntimeClasspathEntry(entry)).toArray();
+		// But in order to preserve the checked exception, we need to iterate manually.
+		IRuntimeClasspathEntry[] runtimeClasspathEntries = new IRuntimeClasspathEntry[entries.size()];
 		int i = 0;
-		while (iter.hasNext()) {
-			rtes[i] = JavaRuntime.newRuntimeClasspathEntry((String)iter.next());
-			i++;
-		}
-		return rtes;
+		for (String entry : entries)
+			runtimeClasspathEntries[i++] = JavaRuntime.newRuntimeClasspathEntry(entry);
+		return runtimeClasspathEntries;
 	}
 
 	private String[] getLTWClasspath(String[] classpath, boolean isJava5OrLater) throws IOException {
 		File resolvedaspectjWeaverJar = FileLocator.getBundleFile(Platform.getBundle(AspectJPlugin.WEAVER_PLUGIN_ID));
 		if (!resolvedaspectjWeaverJar.getName().endsWith(".jar")) {
-		    // runtime workbench
-		    resolvedaspectjWeaverJar = new File(resolvedaspectjWeaverJar, "classes");
+			// runtime workbench
+			resolvedaspectjWeaverJar = new File(resolvedaspectjWeaverJar, "classes");
 		}
 		File resolvedaspectjRTJar = FileLocator.getBundleFile(Platform.getBundle(AspectJPlugin.RUNTIME_PLUGIN_ID));
-        if (!resolvedaspectjRTJar.getName().endsWith(".jar")) {
-            // runtime workbench
-            resolvedaspectjRTJar = new File(resolvedaspectjRTJar, "classes");
-        }
+		if (!resolvedaspectjRTJar.getName().endsWith(".jar")) {
+			// runtime workbench
+			resolvedaspectjRTJar = new File(resolvedaspectjRTJar, "classes");
+		}
 		String weaverPath = new Path(resolvedaspectjWeaverJar.getCanonicalPath()).toOSString();
 		String rtPath = new Path(resolvedaspectjRTJar.getCanonicalPath()).toOSString();
 		List<String> fullPath = new ArrayList<>();
 		fullPath.add(weaverPath);
 		fullPath.add(rtPath);
-		if (isJava5OrLater) {
-      fullPath.addAll(Arrays.asList(classpath));
-		}
+		if (isJava5OrLater)
+			fullPath.addAll(Arrays.asList(classpath));
 		return fullPath.toArray(new String[0]);
 	}
 

@@ -16,7 +16,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -132,14 +131,13 @@ public class AJdocWriter {
 
 
 		//set the packages and source files
-		List packages= new ArrayList();
-		List sourcefiles= new ArrayList();
+		List<String> packages= new ArrayList<>();
+		List<String> sourcefiles= new ArrayList<>();
 		sortSourceElement(store.getSourceElements(), sourcefiles, packages);
 		if (!packages.isEmpty())
-			xmlJavadocDesc.setAttribute(store.PACKAGENAMES, toSeparatedList(packages));
-
+			xmlJavadocDesc.setAttribute(store.PACKAGENAMES, String.join(", ", packages));
 		if (!sourcefiles.isEmpty())
-			xmlJavadocDesc.setAttribute(store.SOURCEFILES, toSeparatedList(sourcefiles));
+			xmlJavadocDesc.setAttribute(store.SOURCEFILES, String.join(", ", sourcefiles));
 
 		xmlJavadocDesc.setAttribute(store.SOURCEPATH, getPathString(store.getSourcepath()));
 		xmlJavadocDesc.setAttribute(store.CLASSPATH, getPathString(store.getClasspath()));
@@ -172,20 +170,19 @@ public class AJdocWriter {
     }
 	}
 
-	private void sortSourceElement(IJavaElement[] iJavaElements, List sourcefiles, List packages) {
-    for (IJavaElement element : iJavaElements) {
-      IPath p = element.getResource().getLocation();
-      if (p == null)
-        continue;
+	private void sortSourceElement(IJavaElement[] iJavaElements, List<String> sourcefiles, List<String> packages) {
+		for (IJavaElement element : iJavaElements) {
+			IPath p = element.getResource().getLocation();
+			if (p == null)
+				continue;
 
-      if (element instanceof ICompilationUnit) {
-        String relative = getPathString(p);
-        sourcefiles.add(relative);
-      }
-      else if (element instanceof IPackageFragment) {
-        packages.add(element.getElementName());
-      }
-    }
+			if (element instanceof ICompilationUnit) {
+				String relative = getPathString(p);
+				sourcefiles.add(relative);
+			}
+			else if (element instanceof IPackageFragment)
+				packages.add(element.getElementName());
+		}
 	}
 
 	private String getPathString(IPath[] paths) {
@@ -257,14 +254,13 @@ public class AJdocWriter {
 	private void xmlWriteDoclet(AJdocOptionsManager store, Document document, Element xmlJavadocDesc) throws DOMException {
 
 		//set the packages and source files
-		List packages= new ArrayList();
-		List sourcefiles= new ArrayList();
+		List<String> packages = new ArrayList<>();
+		List<String> sourcefiles = new ArrayList<>();
 		sortSourceElement(store.getSourceElements(), sourcefiles, packages);
 		if (!packages.isEmpty())
-			xmlJavadocDesc.setAttribute(store.PACKAGENAMES, toSeparatedList(packages));
-
+			xmlJavadocDesc.setAttribute(store.PACKAGENAMES, String.join(", ", packages));
 		if (!sourcefiles.isEmpty())
-			xmlJavadocDesc.setAttribute(store.SOURCEFILES, toSeparatedList(sourcefiles));
+			xmlJavadocDesc.setAttribute(store.SOURCEFILES, String.join(", ", sourcefiles));
 
 		xmlJavadocDesc.setAttribute(store.SOURCEPATH, getPathString(store.getSourcepath()));
 		xmlJavadocDesc.setAttribute(store.CLASSPATH, getPathString(store.getClasspath()));
@@ -285,22 +281,7 @@ public class AJdocWriter {
 
 	}
 
-	private String toSeparatedList(List packages) {
-		StringBuilder buf= new StringBuilder();
-		Iterator iter= packages.iterator();
-		int nAdded= 0;
-		while (iter.hasNext()) {
-			if (nAdded > 0) {
-				buf.append(',');
-			}
-			nAdded++;
-			String curr= (String) iter.next();
-			buf.append(curr);
-		}
-		return buf.toString();
-	}
-
-	private String booleanToString(boolean bool) {
+  private String booleanToString(boolean bool) {
 		if (bool)
 			return "true"; //$NON-NLS-1$
 		else

@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.aspectj.org.eclipse.jdt.core.compiler.CategorizedProblem;
 import org.aspectj.org.eclipse.jdt.internal.compiler.IProblemFactory;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
@@ -48,35 +49,31 @@ import org.eclipse.jface.text.source.IAnnotationModelListenerExtension;
  */
 public class CompilationUnitAnnotationModelWrapper implements IAnnotationModel, IProblemRequestor, IProblemRequestorExtension  {
 
-
 	protected static class GlobalAnnotationModelListener implements IAnnotationModelListener, IAnnotationModelListenerExtension {
-
-		private final ListenerList fListenerList;
+		private final ListenerList<IAnnotationModelListener> fListenerList;
 
 		public GlobalAnnotationModelListener() {
-			fListenerList= new ListenerList();
+			fListenerList = new ListenerList<>();
 		}
 
 		/**
 		 * @see IAnnotationModelListener#modelChanged(IAnnotationModel)
 		 */
 		public void modelChanged(IAnnotationModel model) {
-			Object[] listeners= fListenerList.getListeners();
-      for (Object listener : listeners) {
-        ((IAnnotationModelListener) listener).modelChanged(model);
-      }
+			IAnnotationModelListener[] listeners = (IAnnotationModelListener[]) fListenerList.getListeners();
+			for (IAnnotationModelListener listener : listeners)
+				listener.modelChanged(model);
 		}
 
 		/**
 		 * @see IAnnotationModelListenerExtension#modelChanged(AnnotationModelEvent)
 		 */
 		public void modelChanged(AnnotationModelEvent event) {
-			Object[] listeners= fListenerList.getListeners();
-      for (Object curr : listeners) {
-        if (curr instanceof IAnnotationModelListenerExtension) {
-          ((IAnnotationModelListenerExtension) curr).modelChanged(event);
-        }
-      }
+			IAnnotationModelListener[] listeners = (IAnnotationModelListener[]) fListenerList.getListeners();
+			for (IAnnotationModelListener listener : listeners) {
+				if (listener instanceof IAnnotationModelListenerExtension)
+					((IAnnotationModelListenerExtension) listener).modelChanged(event);
+			}
 		}
 
 		public void addListener(IAnnotationModelListener listener) {
@@ -102,7 +99,6 @@ public class CompilationUnitAnnotationModelWrapper implements IAnnotationModel, 
 		if(delegate != null) {
 			delegate.addAnnotationModelListener(listener);
 		}
-
 	}
 
 	/* (non-Javadoc)
@@ -118,58 +114,46 @@ public class CompilationUnitAnnotationModelWrapper implements IAnnotationModel, 
 	 * @see org.eclipse.jface.text.source.IAnnotationModel#connect(org.eclipse.jface.text.IDocument)
 	 */
 	public void connect(IDocument document) {
-		if(delegate != null) {
+		if(delegate != null)
 			delegate.connect(document);
-		}
 	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.text.source.IAnnotationModel#disconnect(org.eclipse.jface.text.IDocument)
 	 */
 	public void disconnect(IDocument document) {
-		if(delegate != null) {
+		if(delegate != null)
 			delegate.disconnect(document);
-		}
 	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.text.source.IAnnotationModel#addAnnotation(org.eclipse.jface.text.source.Annotation, org.eclipse.jface.text.Position)
 	 */
 	public void addAnnotation(Annotation annotation, Position position) {
-		if(delegate != null) {
+		if(delegate != null)
 			delegate.addAnnotation(annotation, position);
-		}
 	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.text.source.IAnnotationModel#removeAnnotation(org.eclipse.jface.text.source.Annotation)
 	 */
 	public void removeAnnotation(Annotation annotation) {
-		if(delegate != null) {
+		if(delegate != null)
 			delegate.removeAnnotation(annotation);
-		}
 	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.text.source.IAnnotationModel#getAnnotationIterator()
 	 */
-	public Iterator getAnnotationIterator() {
-		if(delegate != null) {
-			return delegate.getAnnotationIterator();
-		} else {
-			return null;
-		}
+	public Iterator<Annotation> getAnnotationIterator() {
+		return delegate != null ? delegate.getAnnotationIterator() : null;
 	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.text.source.IAnnotationModel#getPosition(org.eclipse.jface.text.source.Annotation)
 	 */
 	public Position getPosition(Annotation annotation) {
-		if(delegate != null) {
-			return delegate.getPosition(annotation);
-		} else {
-			return null;
-		}
+		return delegate != null ? delegate.getPosition(annotation) : null;
 	}
 
 	/* (non-Javadoc)
@@ -178,7 +162,7 @@ public class CompilationUnitAnnotationModelWrapper implements IAnnotationModel, 
 	public void acceptProblem(IProblem problem) {
 		// bug 155225: use delegate for Task problems, ignore everything else
 		if ((delegate != null) && (problem.getID() == IProblem.Task)) {
-			((IProblemRequestor)delegate).acceptProblem(problem);
+			((IProblemRequestor) delegate).acceptProblem(problem);
 		}
 	}
 
@@ -187,7 +171,7 @@ public class CompilationUnitAnnotationModelWrapper implements IAnnotationModel, 
 	 */
 	public void beginReporting() {
 		if (delegate != null) {
-			((IProblemRequestor)delegate).beginReporting();
+			((IProblemRequestor) delegate).beginReporting();
 
 			IJavaProject project = unit.getJavaProject();
 
@@ -229,9 +213,9 @@ public class CompilationUnitAnnotationModelWrapper implements IAnnotationModel, 
 							return false;
 						}
 					}, true /*full parse to find local elements*/);
-				org.aspectj.org.eclipse.jdt.core.compiler.IProblem[] problems = unitDec.compilationResult.problems;
+				CategorizedProblem[] problems = unitDec.compilationResult.problems;
 				if (problems != null){
-          for (org.aspectj.org.eclipse.jdt.core.compiler.IProblem problem : problems) {
+          for (CategorizedProblem problem : problems) {
             if (problem == null)
               continue;
             ((IProblemRequestor) delegate).acceptProblem(new DefaultProblem(

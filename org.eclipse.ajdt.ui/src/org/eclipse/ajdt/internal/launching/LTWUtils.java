@@ -15,6 +15,7 @@ package org.eclipse.ajdt.internal.launching;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -177,9 +178,9 @@ public class LTWUtils {
 	 * @param configFile - the file
 	 * @throws Exception
 	 */
-	private static void addAspectsToLTWConfigFile(boolean readFileFirst,
-			List aspects, IFile configFile)
-			throws Exception {
+	private static void addAspectsToLTWConfigFile(boolean readFileFirst, List<IType> aspects, IFile configFile)
+		throws Exception
+	{
 		Document doc;
 		if (readFileFirst) { // If the aop-ajc.xml file already exists load the existing document
 			doc = readFile(configFile);
@@ -204,12 +205,11 @@ public class LTWUtils {
 		            }
 				}
 				// Add all the current aspects to the document
-        for (Object o : aspects) {
-          IType aspect = (IType) o;
-          Element grandChild = doc.createElement("aspect"); //$NON-NLS-1$
-          grandChild.setAttribute("name", getFullyQualifiedName(aspect)); //$NON-NLS-1$
-          child.appendChild(grandChild);
-        }
+				for (IType aspect : aspects) {
+					Element grandChild = doc.createElement("aspect"); //$NON-NLS-1$
+					grandChild.setAttribute("name", getFullyQualifiedName(aspect)); //$NON-NLS-1$
+					child.appendChild(grandChild);
+				}
 			}
 		}
 
@@ -282,37 +282,29 @@ public class LTWUtils {
 	 * @return List of AspectElements
 	 * @throws CoreException
 	 */
-	public static List<IType> getAspects(
-			final IPackageFragmentRoot root) throws CoreException {
-		final List<IType> aspects = new ArrayList();
+	public static List<IType> getAspects(final IPackageFragmentRoot root) throws CoreException {
+		final List<IType> aspects = new ArrayList<>();
 		final Set<IFile> includedFiles = BuildConfig.getIncludedSourceFiles(root.getJavaProject().getProject());
 		root.getResource().accept(resource -> {
-if (includedFiles.contains(resource)) {
-AJCompilationUnit ajcu = AJCompilationUnitManager.INSTANCE
-.getAJCompilationUnit((IFile) resource);
-if (ajcu != null) {
-try {
-IType[] types = ajcu.getAllAspects();
-for (IType type : types) {
-aspects.add(type);
-}
-} catch (JavaModelException e) {}
-} else {
-ICompilationUnit cu = JavaCore
-.createCompilationUnitFrom((IFile) resource);
-if (cu != null) {
-Set<IType> types = AJProjectModelFactory.getInstance().getModelForJavaElement(cu)
-.aspectsForFile(cu);
-
-for (IType element : types) {
-aspects.add(element);
-}
-}
-}
-}
-return resource.getType() == IResource.FOLDER
-|| resource.getType() == IResource.PROJECT;
-});
+			if (includedFiles.contains(resource)) {
+				AJCompilationUnit ajcu = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit((IFile) resource);
+				if (ajcu != null) {
+					try {
+						IType[] types = ajcu.getAllAspects();
+						aspects.addAll(Arrays.asList(types));
+					}
+					catch (JavaModelException ignored) { }
+				}
+				else {
+					ICompilationUnit cu = JavaCore.createCompilationUnitFrom((IFile) resource);
+					if (cu != null) {
+						Set<IType> types = AJProjectModelFactory.getInstance().getModelForJavaElement(cu).aspectsForFile(cu);
+						aspects.addAll(types);
+					}
+				}
+			}
+			return resource.getType() == IResource.FOLDER || resource.getType() == IResource.PROJECT;
+		});
 		return aspects;
 	}
 

@@ -72,37 +72,26 @@ public class InPathBlock extends PathBlock {
         fOutputFolderStatus= new StatusInfo();
     }
 
-
-
-
     public void init(IJavaProject jproject, IClasspathEntry[] inpathEntries) {
-
         setJavaProject(jproject);
 
         List<CPListElement> newInPath = null;
-
-        if (inpathEntries != null) {
+        if (inpathEntries != null)
             newInPath = getExistingEntries(inpathEntries);
-        }
-
-        if (newInPath == null) {
+        if (newInPath == null)
             newInPath = new ArrayList<>();
-        }
 
         IProject project = jproject.getProject();
-        String outFolderStr = AspectJCorePreferences
-                .getProjectInpathOutFolder(project);
+        String outFolderStr = AspectJCorePreferences.getProjectInpathOutFolder(project);
         IPath outputPath;
-        if (outFolderStr == null || outFolderStr.equals("")) { //$NON-NLS-1$
+
+        if (outFolderStr == null || outFolderStr.equals("")) //$NON-NLS-1$
             outputPath = null;
-        } else {
+        else
             outputPath = new Path(outFolderStr);
-        }
         changeInpathOutputText(outputPath);
 
-
         fPathList.setElements(newInPath);
-
         super.init();
     }
 

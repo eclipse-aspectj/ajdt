@@ -429,55 +429,52 @@ public class AJdocTreeWizardPage extends AJdocWizardPage {
 	}
 
 	private IPath[] getSourcePath(IJavaProject[] projects) {
-		HashSet res= new HashSet();
+		HashSet<IPath> sourcePath = new HashSet<>();
 		//loops through all projects and gets a list if of thier sourpaths
-    for (IJavaProject iJavaProject : projects) {
-      try {
-        IPackageFragmentRoot[] roots = iJavaProject.getPackageFragmentRoots();
-        for (IPackageFragmentRoot curr : roots) {
-          if (curr.getKind() == IPackageFragmentRoot.K_SOURCE) {
-            IResource resource = curr.getResource();
-            if (resource != null) {
-              IPath p = resource.getLocation();
-              if (p != null) {
-                res.add(p);
-              }
-            }
-          }
-        }
-      }
-      catch (JavaModelException e) {
-        JavaPlugin.log(e);
-      }
-    }
-		return (IPath[]) res.toArray(new IPath[0]);
+		for (IJavaProject iJavaProject : projects) {
+			try {
+				IPackageFragmentRoot[] roots = iJavaProject.getPackageFragmentRoots();
+				for (IPackageFragmentRoot curr : roots) {
+					if (curr.getKind() == IPackageFragmentRoot.K_SOURCE) {
+						IResource resource = curr.getResource();
+						if (resource != null) {
+							IPath p = resource.getLocation();
+							if (p != null)
+								sourcePath.add(p);
+						}
+					}
+				}
+			}
+			catch (JavaModelException e) {
+				JavaPlugin.log(e);
+			}
+		}
+		return sourcePath.toArray(new IPath[0]);
 	}
 
 	private IPath[] getClassPath(IJavaProject[] javaProjects) {
-		HashSet res= new HashSet();
+		HashSet<IPath> classPath = new HashSet<>();
+		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
 
-		IWorkspaceRoot root= ResourcesPlugin.getWorkspace().getRoot();
-    for (IJavaProject curr : javaProjects) {
-      try {
-        IPath outputLocation = null;
+		for (IJavaProject curr : javaProjects) {
+			try {
+				IPath outputLocation = null;
+				IResource outputPathFolder = root.findMember(curr.getOutputLocation());
+				if (outputPathFolder != null)
+					outputLocation = outputPathFolder.getLocation();
 
-        IResource outputPathFolder = root.findMember(curr.getOutputLocation());
-        if (outputPathFolder != null)
-          outputLocation = outputPathFolder.getLocation();
-
-        String[] classPath = JavaRuntime.computeDefaultRuntimeClassPath(curr);
-        for (String s : classPath) {
-          IPath path = Path.fromOSString(s);
-          if (!path.equals(outputLocation)) {
-            res.add(path);
-          }
-        }
-      }
-      catch (CoreException e) {
-        JavaPlugin.log(e);
-      }
-    }
-		return (IPath[]) res.toArray(new IPath[0]);
+				String[] defaultRuntimeClassPath = JavaRuntime.computeDefaultRuntimeClassPath(curr);
+				for (String s : defaultRuntimeClassPath) {
+					IPath path = Path.fromOSString(s);
+					if (!path.equals(outputLocation))
+						classPath.add(path);
+				}
+			}
+			catch (CoreException e) {
+				JavaPlugin.log(e);
+			}
+		}
+		return classPath.toArray(new IPath[0]);
 	}
 
 
@@ -566,30 +563,28 @@ public class AJdocTreeWizardPage extends AJdocWizardPage {
 		// configs will sort out what needs to be included.
 		fStore.setSelectedElements(checkedProjects);
 
-		ArrayList commands= new ArrayList();
+		ArrayList<String> commands = new ArrayList<>();
 		// AspectJ Extension - adding ajdoc command instead of javadoc
 		commands.add(fAJdocCommandText.getText()); // must be first
-		String[] items= fAJdocCommandText.getItems();
-    for (String curr : items) {
-      if (!commands.contains(curr)) {
-        commands.add(curr);
-      }
-    }
-		fStore.setJavadocCommandHistory((String[]) commands.toArray(new String[0]));
+		String[] items = fAJdocCommandText.getItems();
+		for (String curr : items) {
+			if (!commands.contains(curr))
+				commands.add(curr);
+		}
+		fStore.setJavadocCommandHistory(commands.toArray(new String[0]));
 	}
 
 	public IJavaProject[] getCheckedProjects() {
-		ArrayList res= new ArrayList();
-		TreeItem[] treeItems= fInputGroup.getTree().getItems();
-    for (TreeItem treeItem : treeItems) {
-      if (treeItem.getChecked()) {
-        Object curr = treeItem.getData();
-        if (curr instanceof IJavaProject) {
-          res.add(curr);
-        }
-      }
-    }
-		return (IJavaProject[]) res.toArray(new IJavaProject[0]);
+		ArrayList<IJavaProject> checkedProjects = new ArrayList<>();
+		TreeItem[] treeItems = fInputGroup.getTree().getItems();
+		for (TreeItem treeItem : treeItems) {
+			if (treeItem.getChecked()) {
+				Object curr = treeItem.getData();
+				if (curr instanceof IJavaProject)
+					checkedProjects.add((IJavaProject) curr);
+			}
+		}
+		return checkedProjects.toArray(new IJavaProject[0]);
 	}
 
 	protected void doValidation(int validate) {
@@ -688,33 +683,30 @@ public class AJdocTreeWizardPage extends AJdocWizardPage {
 
 	// AspectJ Extension - changed name to "browseForAJDocCommand"
 	protected void browseForAJdocCommand() {
-		FileDialog dialog= new FileDialog(getShell());
+		FileDialog dialog = new FileDialog(getShell());
 //		 AspectJ Extension - message
-        String dialogText;
-        if (!AJDTUtils.isMacOS()) {
-            dialogText = UIMessages.AJdocTreeWizardPage_ajdoccmd_dialog_title;
-        } else {
-            dialogText = UIMessages.AJdocTreeWizardPage_MAC_ajdoccmd_dialog_title;
-        }
+		String dialogText;
+		if (!AJDTUtils.isMacOS())
+			dialogText = UIMessages.AJdocTreeWizardPage_ajdoccmd_dialog_title;
+		else
+			dialogText = UIMessages.AJdocTreeWizardPage_MAC_ajdoccmd_dialog_title;
 		dialog.setText(dialogText);
-		String dirName= fAJdocCommandText.getText();
+		String dirName = fAJdocCommandText.getText();
 		dialog.setFileName(dirName);
-		String selectedDirectory= dialog.open();
+		String selectedDirectory = dialog.open();
 		if (selectedDirectory != null) {
-			ArrayList newItems= new ArrayList();
-			String[] items= fAJdocCommandText.getItems();
+			ArrayList<String> newItems = new ArrayList<>();
+			String[] items = fAJdocCommandText.getItems();
 			newItems.add(selectedDirectory);
-			for (int i= 0; i < items.length && newItems.size() < 5; i++) { // only keep the last 5 entries
-				String curr= items[i];
-				if (!newItems.contains(curr)) {
+			for (int i = 0; i < items.length && newItems.size() < 5; i++) { // only keep the last 5 entries
+				String curr = items[i];
+				if (!newItems.contains(curr))
 					newItems.add(curr);
-				}
 			}
-			fAJdocCommandText.setItems((String[]) newItems.toArray(new String[0]));
+			fAJdocCommandText.setItems(newItems.toArray(new String[0]));
 			fAJdocCommandText.select(0);
 		}
 	}
-
 
 	// AspectJ Extension - commenting out unused code
 /*	private boolean validDocletPath(String docletPath) {

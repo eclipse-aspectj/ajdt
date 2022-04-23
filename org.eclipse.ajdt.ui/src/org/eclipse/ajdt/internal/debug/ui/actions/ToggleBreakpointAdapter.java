@@ -160,7 +160,7 @@ public class ToggleBreakpointAdapter implements IToggleBreakpointsTargetExtensio
 
                         String typeName = null;
                         IResource resource;
-                        Map attributes = new HashMap(10);
+                      Map<String, Object> attributes = new HashMap<>(10);
                         if (type == null) {
                             resource = getResource(editorPart);
                             if (editorPart instanceof ITextEditor) {
@@ -224,7 +224,7 @@ public class ToggleBreakpointAdapter implements IToggleBreakpointsTargetExtensio
         job.schedule();
     }
 
-    private void createLineBreakpoint(IResource resource, String typeName, int offset, int lineNumber, int charStart, int charEnd, int hitCount, boolean register, Map attributes, IDocument document, boolean bestMatch, IType type, IEditorPart editorPart) throws CoreException {
+    private void createLineBreakpoint(IResource resource, String typeName, int offset, int lineNumber, int charStart, int charEnd, int hitCount, boolean register, Map<String, Object> attributes, IDocument document, boolean bestMatch, IType type, IEditorPart editorPart) throws CoreException {
         IJavaLineBreakpoint breakpoint = JDIDebugModel.createLineBreakpoint(resource, typeName, lineNumber, charStart, charEnd, hitCount, register, attributes);
         new BreakpointLocationVerifierJob(document, breakpoint, offset, lineNumber, typeName, type, resource, editorPart).schedule();
     }

@@ -187,7 +187,7 @@ public class BreakpointLocationVerifierJob extends Job {
 	 * Create a new breakpoint at the right position.
 	 */
 	private void createNewBreakpoint(int lineNumber, String typeName) throws CoreException {
-		Map newAttributes = new HashMap(10);
+    Map<String, Object> newAttributes = new HashMap<>(10);
 		if (fType != null) {
 			try {
 				IRegion line= fDocument.getLineInformation(lineNumber - 1);

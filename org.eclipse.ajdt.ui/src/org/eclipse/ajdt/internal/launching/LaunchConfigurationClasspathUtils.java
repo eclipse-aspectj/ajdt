@@ -41,80 +41,72 @@ public class LaunchConfigurationClasspathUtils {
 	/**
 	 * Returns the classpath entries currently specified by the given model
 	 */
-	public static IRuntimeClasspathEntry[] getCurrentClasspath(
-			AJClasspathModel fModel) {
+	public static IRuntimeClasspathEntry[] getCurrentClasspath(AJClasspathModel fModel) {
 		IClasspathEntry[] boot = fModel.getEntries(AJClasspathModel.BOOTSTRAP);
 		IClasspathEntry[] user = fModel.getEntries(AJClasspathModel.USER);
-		IClasspathEntry[] aspectPath = fModel
-				.getEntries(AJClasspathModel.ASPECTPATH);
+		IClasspathEntry[] aspectPath = fModel.getEntries(AJClasspathModel.ASPECTPATH);
 		IClasspathEntry[] outJar = fModel.getEntries(AJClasspathModel.OUTJAR);
-		List entries = new ArrayList(boot.length + user.length
-				+ aspectPath.length);
+		List<IRuntimeClasspathEntry> entries = new ArrayList<>(boot.length + user.length + aspectPath.length);
+
 		IClasspathEntry bootEntry;
 		IRuntimeClasspathEntry entry;
-    for (IClasspathEntry value : boot) {
-      bootEntry = value;
-      entry = null;
-      if (bootEntry instanceof ClasspathEntry) {
-        entry = ((ClasspathEntry) bootEntry).getDelegate();
-      }
-      else if (bootEntry instanceof IRuntimeClasspathEntry) {
-        entry = (IRuntimeClasspathEntry) value;
-      }
-      if (entry != null) {
-        if (entry.getClasspathProperty() == IRuntimeClasspathEntry.USER_CLASSES) {
-          entry
-            .setClasspathProperty(IRuntimeClasspathEntry.BOOTSTRAP_CLASSES);
-        }
-        entries.add(entry);
-      }
-    }
-		IClasspathEntry userEntry;
-    for (IClasspathEntry classpathEntry : user) {
-      userEntry = classpathEntry;
-      entry = null;
-      if (userEntry instanceof ClasspathEntry) {
-        entry = ((ClasspathEntry) userEntry).getDelegate();
-      }
-      else if (userEntry instanceof IRuntimeClasspathEntry) {
-        entry = (IRuntimeClasspathEntry) classpathEntry;
-      }
-      if (entry != null) {
-        entry.setClasspathProperty(IRuntimeClasspathEntry.USER_CLASSES);
-        entries.add(entry);
-      }
-    }
-		IClasspathEntry aspectEntry;
-    for (IClasspathEntry iClasspathEntry : aspectPath) {
-      aspectEntry = iClasspathEntry;
-      entry = null;
-      if (aspectEntry instanceof ClasspathEntry) {
-        entry = ((ClasspathEntry) aspectEntry).getDelegate();
-      }
-      else if (aspectEntry instanceof IRuntimeClasspathEntry) {
-        entry = (IRuntimeClasspathEntry) iClasspathEntry;
-      }
-      if (entry != null) {
-        entry.setClasspathProperty(IRuntimeClasspathEntry.USER_CLASSES);
-        entries.add(entry);
-      }
-    }
-		IClasspathEntry outJarEntry;
-		for (int i = 0; i < outJar.length; i++) {
-			outJarEntry = outJar[i];
+		for (IClasspathEntry value : boot) {
+			bootEntry = value;
 			entry = null;
-			if (outJarEntry instanceof ClasspathEntry) {
-				entry = ((ClasspathEntry) outJarEntry).getDelegate();
-			} else if (outJarEntry instanceof IRuntimeClasspathEntry) {
-				entry = (IRuntimeClasspathEntry) aspectPath[i];
+			if (bootEntry instanceof ClasspathEntry)
+				entry = ((ClasspathEntry) bootEntry).getDelegate();
+			else if (bootEntry instanceof IRuntimeClasspathEntry)
+				entry = (IRuntimeClasspathEntry) value;
+			if (entry != null) {
+				if (entry.getClasspathProperty() == IRuntimeClasspathEntry.USER_CLASSES)
+					entry.setClasspathProperty(IRuntimeClasspathEntry.BOOTSTRAP_CLASSES);
+				entries.add(entry);
 			}
+		}
+
+		IClasspathEntry userEntry;
+		for (IClasspathEntry classpathEntry : user) {
+			userEntry = classpathEntry;
+			entry = null;
+			if (userEntry instanceof ClasspathEntry)
+				entry = ((ClasspathEntry) userEntry).getDelegate();
+			else if (userEntry instanceof IRuntimeClasspathEntry)
+				entry = (IRuntimeClasspathEntry) classpathEntry;
 			if (entry != null) {
 				entry.setClasspathProperty(IRuntimeClasspathEntry.USER_CLASSES);
 				entries.add(entry);
 			}
 		}
-		return (IRuntimeClasspathEntry[]) entries
-				.toArray(new IRuntimeClasspathEntry[0]);
+
+		IClasspathEntry aspectEntry;
+		for (IClasspathEntry iClasspathEntry : aspectPath) {
+			aspectEntry = iClasspathEntry;
+			entry = null;
+			if (aspectEntry instanceof ClasspathEntry)
+				entry = ((ClasspathEntry) aspectEntry).getDelegate();
+			else if (aspectEntry instanceof IRuntimeClasspathEntry)
+				entry = (IRuntimeClasspathEntry) iClasspathEntry;
+			if (entry != null) {
+				entry.setClasspathProperty(IRuntimeClasspathEntry.USER_CLASSES);
+				entries.add(entry);
+			}
+		}
+
+		IClasspathEntry outJarEntry;
+		for (int i = 0; i < outJar.length; i++) {
+			outJarEntry = outJar[i];
+			entry = null;
+			if (outJarEntry instanceof ClasspathEntry)
+				entry = ((ClasspathEntry) outJarEntry).getDelegate();
+			else if (outJarEntry instanceof IRuntimeClasspathEntry)
+				entry = (IRuntimeClasspathEntry) aspectPath[i];
+			if (entry != null) {
+				entry.setClasspathProperty(IRuntimeClasspathEntry.USER_CLASSES);
+				entries.add(entry);
+			}
+		}
+
+		return entries.toArray(new IRuntimeClasspathEntry[0]);
 	}
 
 	/**
@@ -206,53 +198,48 @@ public class LaunchConfigurationClasspathUtils {
 	 * Get the AspectPath for a project
 	 */
 	public static IRuntimeClasspathEntry[] getAspectpath(IProject project) {
-		List result = new ArrayList();
-        String[] v = AspectJCorePreferences.getResolvedProjectAspectPath(project);
-        if (v==null) {
-        	return null;
-        }
-        String paths = v[0];
-        String cKinds = v[1];
-        String eKinds = v[2];
-  		if ((paths != null && paths.length() > 0)
+		List<IRuntimeClasspathEntry> result = new ArrayList<>();
+		String[] v = AspectJCorePreferences.getResolvedProjectAspectPath(project);
+		if (v == null)
+			return null;
+		String paths = v[0];
+		String cKinds = v[1];
+		String eKinds = v[2];
+		if ((paths != null && paths.length() > 0)
 				&& (cKinds != null && cKinds.length() > 0)
-				&& (eKinds != null && eKinds.length() > 0)) {
-			StringTokenizer sTokPaths = new StringTokenizer(paths,
-					File.pathSeparator);
-			StringTokenizer sTokCKinds = new StringTokenizer(cKinds,
-					File.pathSeparator);
-			StringTokenizer sTokEKinds = new StringTokenizer(eKinds,
-					File.pathSeparator);
-			if ((sTokPaths.countTokens() == sTokCKinds.countTokens())
-					&& (sTokPaths.countTokens() == sTokEKinds.countTokens())) {
+				&& (eKinds != null && eKinds.length() > 0))
+		{
+			StringTokenizer sTokPaths = new StringTokenizer(paths, File.pathSeparator);
+			StringTokenizer sTokCKinds = new StringTokenizer(cKinds, File.pathSeparator);
+			StringTokenizer sTokEKinds = new StringTokenizer(eKinds, File.pathSeparator);
+			if (
+				sTokPaths.countTokens() == sTokCKinds.countTokens() &&
+				sTokPaths.countTokens() == sTokEKinds.countTokens()
+			)
+			{
 				while (sTokPaths.hasMoreTokens()) {
 					org.eclipse.jdt.core.IClasspathEntry entry = new org.eclipse.jdt.internal.core.ClasspathEntry(
-							Integer.parseInt(sTokCKinds.nextToken()), // content
-							// kind
-							Integer.parseInt(sTokEKinds.nextToken()), // entry
-							// kind
-							new Path(sTokPaths.nextToken()), // path
-							new IPath[] {}, // inclusion patterns
-							new IPath[] {}, // exclusion patterns
-							null, // src attachment path
-							null, // src attachment root path
-							null, // output location
-							false, // is exported ?
-							null, //accessRules
-							false, //combine access rules?
-							new IClasspathAttribute[0] // extra attributes?
-                    		);
+						Integer.parseInt(sTokCKinds.nextToken()), // content kind
+						Integer.parseInt(sTokEKinds.nextToken()), // entry kind
+						new Path(sTokPaths.nextToken()), // path
+						new IPath[] {}, // inclusion patterns
+						new IPath[] {}, // exclusion patterns
+						null, // src attachment path
+						null, // src attachment root path
+						null, // output location
+						false, // is exported ?
+						null, //accessRules
+						false, //combine access rules?
+						new IClasspathAttribute[0] // extra attributes?
+					);
 					result.add(new RuntimeClasspathEntry(entry));
 				}// end while
 			}// end if string token counts tally
 		}// end if we have something valid to work with
 
-		if (result.size() > 0) {
-			return (IRuntimeClasspathEntry[]) result
-					.toArray(new IRuntimeClasspathEntry[0]);
-		} else {
-			return null;
-		}
+		return result.size() > 0
+			? result.toArray(new IRuntimeClasspathEntry[0])
+			: null;
 	}
 
 	/**
@@ -296,8 +283,7 @@ public class LaunchConfigurationClasspathUtils {
 	 * contains the aspectpath and the outjar. NB. Will not add the aspect
 	 * path or outjar a second time if the classpath already contains it.
 	 */
-	public static void addAspectPathAndOutJarToClasspath(
-			ILaunchConfiguration configuration) {
+	public static void addAspectPathAndOutJarToClasspath(ILaunchConfiguration configuration) {
 		ILaunchConfigurationWorkingCopy wc;
 		try {
 			wc = configuration.getWorkingCopy();
@@ -305,30 +291,22 @@ public class LaunchConfigurationClasspathUtils {
 			IRuntimeClasspathEntry[] classpath = getCurrentClasspath(model);
 			boolean def = isDefaultClasspath(classpath, wc);
 			if (def) {
-				wc.setAttribute(
-						IJavaLaunchConfigurationConstants.ATTR_DEFAULT_CLASSPATH,
-						(String) null);
-				wc.setAttribute(
-						IJavaLaunchConfigurationConstants.ATTR_CLASSPATH,
-						(String) null);
-			} else {
-				wc.setAttribute(
-						IJavaLaunchConfigurationConstants.ATTR_DEFAULT_CLASSPATH,
-						false);
+				wc.setAttribute(IJavaLaunchConfigurationConstants.ATTR_DEFAULT_CLASSPATH, (String) null);
+				wc.setAttribute(IJavaLaunchConfigurationConstants.ATTR_CLASSPATH, (String) null);
+			}
+			else {
+				wc.setAttribute(IJavaLaunchConfigurationConstants.ATTR_DEFAULT_CLASSPATH, false);
 				try {
-					List mementos = new ArrayList(classpath.length);
-          for (IRuntimeClasspathEntry entry : classpath) {
-            mementos.add(entry.getMemento());
-          }
-					wc.setAttribute(
-							IJavaLaunchConfigurationConstants.ATTR_CLASSPATH,
-							mementos);
-				} catch (CoreException e) {
+					List<String> mementos = new ArrayList<>(classpath.length);
+					for (IRuntimeClasspathEntry entry : classpath)
+						mementos.add(entry.getMemento());
+					wc.setAttribute(IJavaLaunchConfigurationConstants.ATTR_CLASSPATH, mementos);
 				}
+				catch (CoreException e) { }
 				wc.doSave();
 			}
-		} catch (CoreException e1) {
 		}
+		catch (CoreException e1) { }
 	}
 
 }

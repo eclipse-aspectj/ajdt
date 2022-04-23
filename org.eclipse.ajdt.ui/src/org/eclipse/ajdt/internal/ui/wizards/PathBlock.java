@@ -101,69 +101,79 @@ public abstract class PathBlock {
     static final String RESTRICTED_TO = "Restricted to";
     static final String NO_RESTRICTIONS = "<no restrictions>";
 
+    protected class LibrariesAdapter implements IDialogFieldListener, ITreeListAdapter<CPListElement> {
 
-    protected class LibrariesAdapter implements IDialogFieldListener, ITreeListAdapter {
+      // ---------- IDialogFieldListener --------
 
-        // ---------- IDialogFieldListener --------
-        public void dialogFieldChanged(DialogField field) {
-            libaryPageDialogFieldChanged(field);
-        }
+      @Override
+      public void dialogFieldChanged(DialogField field) {
+        libaryPageDialogFieldChanged(field);
+      }
 
-        // -------- ITreeListAdapter --------
-        public void customButtonPressed(TreeListDialogField field, int index) {
-            libaryPageCustomButtonPressed(field, index);
-        }
+      // -------- ITreeListAdapter --------
 
-        public void doubleClicked(TreeListDialogField field) {
-            // do nothing
-        }
+      @Override
+      public void customButtonPressed(TreeListDialogField<CPListElement> field, int index) {
+        libaryPageCustomButtonPressed(field, index);
+      }
 
-        public Object[] getChildren(TreeListDialogField field, Object element) {
-            if (element instanceof CPListElement) {
-                CPListElement listElement = (CPListElement) element;
-                IClasspathEntry entry = listElement.getClasspathEntry();
+      @Override
+      public void doubleClicked(TreeListDialogField<CPListElement> field) {
+        // do nothing
+      }
 
-                // Bug 243356 : Check if entry is in a classpath container
-                IClasspathContainer container = getClasspathContainer(entry);
-                if (container != null) {
-                    return new Object[] { "From: " + container.getDescription() };
-                }
+      @Override
+      public Object[] getChildren(TreeListDialogField<CPListElement> field, Object element) {
+        if (element instanceof CPListElement) {
+          CPListElement listElement = (CPListElement) element;
+          IClasspathEntry entry = listElement.getClasspathEntry();
 
-                // Bug 273770 : Check if entry is a classpath container that has been restricted
-                if (entry.getEntryKind() == IClasspathEntry.CPE_CONTAINER) {
-                    Object[] children = listElement.getChildren(true);
-                  for (Object child : children) {
-                    if (child instanceof CPListElementAttribute &&
-                        !((CPListElementAttribute) child).isBuiltIn() &&
-                        ((CPListElementAttribute) child).getClasspathAttribute().getName().equals(getRestrictionPathAttrName()))
-                    {
-                      return new Object[] { child };
-                    }
-                  }
-                }
+          // Bug 243356 : Check if entry is in a classpath container
+          IClasspathContainer container = getClasspathContainer(entry);
+          if (container != null)
+            return new Object[] { "From: " + container.getDescription() };
+
+          // Bug 273770 : Check if entry is a classpath container that has been restricted
+          if (entry.getEntryKind() == IClasspathEntry.CPE_CONTAINER) {
+            Object[] children = listElement.getChildren(true);
+            for (Object child : children) {
+              if (child instanceof CPListElementAttribute &&
+                  !((CPListElementAttribute) child).isBuiltIn() &&
+                  ((CPListElementAttribute) child).getClasspathAttribute().getName().equals(getRestrictionPathAttrName())
+              )
+              {
+                return new Object[] { child };
+              }
             }
-            return null;
+          }
         }
+        return null;
+      }
 
-        public Object getParent(TreeListDialogField field, Object element) {
-            if (element instanceof CPListElementAttribute) {
-                return ((CPListElementAttribute) element).getParent();
-            } else {
-                return null;
-            }
+      @Override
+      public Object getParent(TreeListDialogField<CPListElement> field, Object element) {
+        if (element instanceof CPListElementAttribute) {
+          return ((CPListElementAttribute) element).getParent();
         }
+        else {
+          return null;
+        }
+      }
 
-        public boolean hasChildren(TreeListDialogField field, Object element) {
-            Object[] children = getChildren(field, element);
-            return children != null && children.length > 0;
-        }
+      @Override
+      public boolean hasChildren(TreeListDialogField<CPListElement> field, Object element) {
+        Object[] children = getChildren(field, element);
+        return children != null && children.length > 0;
+      }
 
-        public void keyPressed(TreeListDialogField field, KeyEvent event) {
-        }
+      @Override
+      public void keyPressed(TreeListDialogField<CPListElement> field, KeyEvent event) { }
 
-        public void selectionChanged(TreeListDialogField field) {
-            libaryPageSelectionChanged(field);
-        }
+      @Override
+      public void selectionChanged(TreeListDialogField<CPListElement> field) {
+        libaryPageSelectionChanged(field);
+      }
+
     }
 
     private final int fPageIndex;
@@ -171,7 +181,7 @@ public abstract class PathBlock {
     private String fUserSettingsTimeStamp;
 
     protected final IWorkspaceRoot fWorkspaceRoot;
-    protected TreeListDialogField fPathList;
+    protected TreeListDialogField<CPListElement> fPathList;
     protected IStatusChangeListener fContext;
     protected StatusInfo fPathStatus;  /* status for path list being self-consistent */
     protected StatusInfo fJavaBuildPathStatus; /* status for path list being consistent with Java build path */
@@ -196,23 +206,23 @@ public abstract class PathBlock {
                 /* IDX_EDIT */   UIMessages.PathLibrariesWorkbookPage_libraries_edit_button,
                 /* IDX_REMOVE */ UIMessages.PathLibrariesWorkbookPage_libraries_remove_button
         };
-        fPathList= new TreeListDialogField(adapter, buttonLabels, new CPListLabelProvider());
+        fPathList = new TreeListDialogField<>(adapter, buttonLabels, new CPListLabelProvider());
         fPathList.setDialogFieldListener(adapter);
         fPathList.setRemoveButtonIndex(IDX_REMOVE);
         fPathList.enableButton(IDX_REMOVE, false);
         fPathList.enableButton(IDX_EDIT, false);
 
         fCurrJProject = null;
-
         fJavaBuildPathStatus= new StatusInfo();
         fPathStatus= new StatusInfo();
-        workbookPage = new PathBlockWorkbookPage(
-                fPathList);
+        workbookPage = new PathBlockWorkbookPage(fPathList);
     }
 
-    protected abstract void internalSetProjectPath(List<CPListElement> pathEntries,
-            StringBuffer pathBuffer, StringBuffer contentKindBuffer,
-            StringBuffer entryKindBuffer);
+    protected abstract void internalSetProjectPath(
+        List<CPListElement> pathEntries,
+        StringBuffer pathBuffer, StringBuffer contentKindBuffer,
+        StringBuffer entryKindBuffer
+    );
 
 
     protected abstract String getBlockNote();
@@ -222,8 +232,6 @@ public abstract class PathBlock {
     protected abstract String getPathAttributeName();
     protected abstract String getRestrictionPathAttrName();
 
-
-
     public void init() {
         initializeTimeStamp();
         updatePathStatus();
@@ -231,7 +239,7 @@ public abstract class PathBlock {
 
 
     private void libaryPageSelectionChanged(DialogField field) {
-        List<?> selElements = fPathList.getSelectedElements();
+        List<Object> selElements = fPathList.getSelectedElements();
         fPathList.enableButton(IDX_REMOVE, canRemove(selElements));
         fPathList.enableButton(IDX_EDIT, canEdit(selElements));
     }
@@ -243,9 +251,6 @@ public abstract class PathBlock {
             doStatusLineUpdate();
         }
     }
-
-
-
 
   private void libaryPageCustomButtonPressed(DialogField field, int index) {
         CPListElement[] libentries = null;
@@ -284,19 +289,18 @@ public abstract class PathBlock {
             List<?> cplist = fPathList.getElements();
             List<CPListElement> elementsToAdd = new ArrayList<>(nElementsChosen);
 
-          for (CPListElement curr : libentries) {
-            if (!cplist.contains(curr) && !elementsToAdd.contains(curr)) {
-              elementsToAdd.add(curr);
-              curr.setAttribute(CPListElement.SOURCEATTACHMENT,
-                BuildPathSupport.guessSourceAttachment(curr));
+            for (CPListElement curr : libentries) {
+                if (!cplist.contains(curr) && !elementsToAdd.contains(curr)) {
+                    elementsToAdd.add(curr);
+                    curr.setAttribute(CPListElement.SOURCEATTACHMENT,
+                        BuildPathSupport.guessSourceAttachment(curr));
+                }
             }
-          }
             if (!elementsToAdd.isEmpty() && (index == IDX_ADDFOL)) {
                 askForAddingExclusionPatternsDialog(elementsToAdd);
             }
 
             fPathList.addElements(elementsToAdd);
-
             fPathList.postSetSelection(new StructuredSelection(libentries));
 
             updatePathStatus();
@@ -306,16 +310,14 @@ public abstract class PathBlock {
 
     void editRestictions(List<?> selectedElements) {
 
-        if (selectedElements == null || selectedElements.size() != 1) {
+        if (selectedElements == null || selectedElements.size() != 1)
             return;
-        }
         Object o = selectedElements.get(0);
         if (o instanceof CPListElementAttribute) {
             CPListElementAttribute attr = (CPListElementAttribute) o;
             boolean success = workbookPage.editCustomEntry(attr);
-            if (success) {
+            if (success)
                 fPathList.refresh(o);
-            }
         }
     }
 
@@ -332,29 +334,28 @@ public abstract class PathBlock {
     private void updatePathStatus() {
         fPathStatus.setOK();
 
-        List elements = fPathList.getElements();
+        List<CPListElement> elements = fPathList.getElements();
 
         CPListElement entryMissing = null;
         int nEntriesMissing = 0;
+        // TODO: 'entries' is only written to, never read -> remove?
         IClasspathEntry[] entries = new IClasspathEntry[elements.size()];
 
         for (int i = elements.size() - 1; i >= 0; i--) {
-            CPListElement currElement = (CPListElement) elements.get(i);
+            CPListElement currElement = elements.get(i);
             entries[i] = currElement.getClasspathEntry();
             if (currElement.isMissing()) {
                 nEntriesMissing++;
-                if (entryMissing == null) {
+                if (entryMissing == null)
                     entryMissing = currElement;
-                }
             }
         }
 
         if (nEntriesMissing > 0) {
-            if (nEntriesMissing == 1) {
+            if (nEntriesMissing == 1)
                 fPathStatus.setWarning(UIMessages.InPathBlock_warning_EntryMissing);
-            } else {
+            else
                 fPathStatus.setWarning(UIMessages.InPathBlock_warning_EntriesMissing);
-            }
         }
         updateJavaBuildPathStatus();
     }
@@ -365,16 +366,14 @@ public abstract class PathBlock {
      * duplicates, etc.
      */
     protected void updateJavaBuildPathStatus() {
-        List elements = fPathList.getElements();
-        List /* IClasspathEntry */<IClasspathEntry> entries = new ArrayList<>();
+        List<CPListElement> elements = fPathList.getElements();
+        List<IClasspathEntry> entries = new ArrayList<>();
 
-        for (int i = elements.size() - 1; i >= 0; i--) {
-            CPListElement currElement = (CPListElement) elements.get(i);
+        for (CPListElement currElement : elements) {
             // ignore elements that are part of a container
             // since user does not have direct control over removing them
-            if (!inClasspathContainer(currElement)) {
+            if (!inClasspathContainer(currElement))
                 entries.add(currElement.getClasspathEntry());
-            }
         }
 
         IPath outPath;
@@ -385,8 +384,7 @@ public abstract class PathBlock {
         }
 
         IClasspathEntry[] entriesArr = entries.toArray(new IClasspathEntry[0]);
-        IJavaModelStatus status = JavaConventions.validateClasspath(
-                fCurrJProject, entriesArr, outPath);
+        IJavaModelStatus status = JavaConventions.validateClasspath(fCurrJProject, entriesArr, outPath);
 
         if (!status.isOK()) {
             fJavaBuildPathStatus.setError(status.getMessage());
@@ -502,7 +500,7 @@ public abstract class PathBlock {
 
 
     private void removeEntry() {
-        List selElements = fPathList.getSelectedElements();
+        List<Object> selElements = fPathList.getSelectedElements();
         for (int i = selElements.size() - 1; i >= 0; i--) {
             Object elem = selElements.get(i);
             if (elem instanceof CPListElementAttribute) {
@@ -522,14 +520,13 @@ public abstract class PathBlock {
     /**
      * only able to edit the restrictions child of a classpath container entry
      */
-    private boolean canEdit(List<?> selElements) {
-        if (selElements.size() != 1) {
+    private boolean canEdit(List<Object> selElements) {
+        if (selElements.size() != 1)
             return false;
-        }
         Object elem = selElements.get(0);
         if (elem instanceof CPListElementAttribute) {
-            Object o = ((CPListElementAttribute) elem).getValue();
-          return o != null && o instanceof String;
+            Object attributeValue = ((CPListElementAttribute) elem).getValue();
+            return attributeValue instanceof String;
         }
         return false;
     }

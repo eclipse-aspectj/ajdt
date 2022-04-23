@@ -15,7 +15,6 @@ package org.eclipse.ajdt.internal.ui;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Map;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.contribution.jdt.preferences.WeavableProjectListener;
@@ -47,26 +46,23 @@ public class AspectJProjectNature implements IProjectNature {
 	 *       entry, otherwise simply insert our builder as a new entry.
 	 */
 	public void configure() throws CoreException {
-
 		IProjectDescription projectDescription = project.getDescription();
 		ICommand command = projectDescription.newCommand();
 		command.setBuilderName(AspectJPlugin.ID_BUILDER);
 
 		ICommand[] buildCommands = projectDescription.getBuildSpec();
 		ICommand[] newBuildCommands;
-		if (contains(buildCommands, JavaCore.BUILDER_ID)) {
+		if (contains(buildCommands, JavaCore.BUILDER_ID))
 			newBuildCommands = swap(buildCommands, JavaCore.BUILDER_ID, command);
-		} else {
+		else
 			newBuildCommands = insert(buildCommands, command);
-		}
 		projectDescription.setBuildSpec(newBuildCommands);
 		project.setDescription(projectDescription, null);
 		try {
-		    // ask if weaving service should be enable
-		    WeavableProjectListener.weavableNatureAdded(project);
-		} catch (Exception e) {
-
+			// ask if weaving service should be enable
+			WeavableProjectListener.weavableNatureAdded(project);
 		}
+		catch (Exception ignored) { }
 	}
 
 	/**
@@ -79,25 +75,20 @@ public class AspectJProjectNature implements IProjectNature {
 		command.setBuilderName(JavaCore.BUILDER_ID);
 
 		ICommand[] newBuildCommands;
-		if (contains(buildCommands, AspectJPlugin.ID_BUILDER)) {
-			newBuildCommands = swap(buildCommands, AspectJPlugin.ID_BUILDER,
-					command);
-		} else if (contains(buildCommands, OLD_BUILDER)) {
+		if (contains(buildCommands, AspectJPlugin.ID_BUILDER))
+			newBuildCommands = swap(buildCommands, AspectJPlugin.ID_BUILDER, command);
+		else if (contains(buildCommands, OLD_BUILDER))
 			newBuildCommands = swap(buildCommands, OLD_BUILDER, command);
-		} else {
+		else
 			newBuildCommands = remove(buildCommands, AspectJPlugin.ID_BUILDER);
-		}
 
 		// we might have started with both builders - one will have been
 		// replaced above, we now need to make sure the other one is removed
 		// if present
-		if (contains(newBuildCommands, AspectJPlugin.ID_BUILDER)) {
-			newBuildCommands = remove(newBuildCommands,
-					AspectJPlugin.ID_BUILDER);
-		}
-		if (contains(newBuildCommands, OLD_BUILDER)) {
+		if (contains(newBuildCommands, AspectJPlugin.ID_BUILDER))
+			newBuildCommands = remove(newBuildCommands, AspectJPlugin.ID_BUILDER);
+		if (contains(newBuildCommands, OLD_BUILDER))
 			newBuildCommands = remove(newBuildCommands, OLD_BUILDER);
-		}
 
 		description.setBuildSpec(newBuildCommands);
 		project.setDescription(description, null);
@@ -119,15 +110,15 @@ public class AspectJProjectNature implements IProjectNature {
     /**
      * Remove the old AspectJ Builder from the given project
      */
-    public static void removeJavaBuilder(IProject project) throws CoreException {
-        IProjectDescription description = project.getDescription();
-        ICommand[] buildCommands = description.getBuildSpec();
-        if (contains(buildCommands, JavaCore.BUILDER_ID)) {
-            ICommand[] newBuildCommands = remove(buildCommands, JavaCore.BUILDER_ID);
-            description.setBuildSpec(newBuildCommands);
-            project.setDescription(description, null);
-        }
-    }
+		public static void removeJavaBuilder(IProject project) throws CoreException {
+			IProjectDescription description = project.getDescription();
+			ICommand[] buildCommands = description.getBuildSpec();
+			if (contains(buildCommands, JavaCore.BUILDER_ID)) {
+				ICommand[] newBuildCommands = remove(buildCommands, JavaCore.BUILDER_ID);
+				description.setBuildSpec(newBuildCommands);
+				project.setDescription(description, null);
+			}
+		}
 
     /**
 	 * Add the new AspectJ Builder to the given project
@@ -144,15 +135,15 @@ public class AspectJProjectNature implements IProjectNature {
 		}
 	}
 
-    public static boolean hasNewBuilder(IProject project) throws CoreException {
-        ICommand[] buildCommands = project.getDescription().getBuildSpec();
-        return contains(buildCommands, AspectJPlugin.ID_BUILDER);
-    }
+	public static boolean hasNewBuilder(IProject project) throws CoreException {
+		ICommand[] buildCommands = project.getDescription().getBuildSpec();
+		return contains(buildCommands, AspectJPlugin.ID_BUILDER);
+	}
 
-    public static boolean hasJavaBuilder(IProject project) throws CoreException {
-        ICommand[] buildCommands = project.getDescription().getBuildSpec();
-        return contains(buildCommands, JavaCore.BUILDER_ID);
-    }
+	public static boolean hasJavaBuilder(IProject project) throws CoreException {
+		ICommand[] buildCommands = project.getDescription().getBuildSpec();
+		return contains(buildCommands, JavaCore.BUILDER_ID);
+	}
 
 	/**
 	 * @see IProjectNature#getProject
@@ -173,27 +164,25 @@ public class AspectJProjectNature implements IProjectNature {
 	 */
 	private static boolean contains(ICommand[] commands, String builderId) {
 		boolean found = false;
-    for (ICommand command : commands) {
-      if (command.getBuilderName().equals(builderId)) {
-        found = true;
-        break;
-      }
-    }
+		for (ICommand command : commands) {
+			if (command.getBuilderName().equals(builderId)) {
+				found = true;
+				break;
+			}
+		}
 		return found;
 	}
 
 	/**
 	 * In a list of build commands, swap all occurences of one entry for another
 	 */
-	private static ICommand[] swap(ICommand[] sourceCommands,
-			String oldBuilderId, ICommand newCommand) {
+	private static ICommand[] swap(ICommand[] sourceCommands, String oldBuilderId, ICommand newCommand) {
 		ICommand[] newCommands = new ICommand[sourceCommands.length];
 		for (int i = 0; i < sourceCommands.length; i++) {
-			if (sourceCommands[i].getBuilderName().equals(oldBuilderId)) {
+			if (sourceCommands[i].getBuilderName().equals(oldBuilderId))
 				newCommands[i] = newCommand;
-			} else {
+			else
 				newCommands[i] = sourceCommands[i];
-			}
 		}
 		return newCommands;
 	}
@@ -204,7 +193,7 @@ public class AspectJProjectNature implements IProjectNature {
 	private static ICommand[] insert(ICommand[] sourceCommands, ICommand command) {
 		ICommand[] newCommands = new ICommand[sourceCommands.length + 1];
 		newCommands[0] = command;
-    System.arraycopy(sourceCommands, 0, newCommands, 1, sourceCommands.length);
+		System.arraycopy(sourceCommands, 0, newCommands, 1, sourceCommands.length);
 		return newCommands;
 	}
 
@@ -214,11 +203,11 @@ public class AspectJProjectNature implements IProjectNature {
 	private static ICommand[] remove(ICommand[] sourceCommands, String builderId) {
 		ICommand[] newCommands = new ICommand[sourceCommands.length - 1];
 		int newCommandIndex = 0;
-    for (ICommand sourceCommand : sourceCommands) {
-      if (!sourceCommand.getBuilderName().equals(builderId)) {
-        newCommands[newCommandIndex++] = sourceCommand;
-      }
-    }
+		for (ICommand sourceCommand : sourceCommands) {
+			if (!sourceCommand.getBuilderName().equals(builderId)) {
+				newCommands[newCommandIndex++] = sourceCommand;
+			}
+		}
 		return newCommands;
 	}
 
@@ -228,17 +217,13 @@ public class AspectJProjectNature implements IProjectNature {
 	 * @return
 	 * @throws CoreException
 	 */
-	public static boolean isClassGenerationDisabled(
-			IProject project) throws CoreException {
-		Collection resultCommands = findBuilder(project, JavaCore.BUILDER_ID);
-    for (Object resultCommand : resultCommands) {
-      ICommand javaBuilderCommand = (ICommand) resultCommand;
-      Map<String, String> arguments = javaBuilderCommand.getArguments();
-      String value = (String) arguments.get(JAVA_BUILDER_GENERATE_CLASSES);
-      if (value == null || !value.equals(Boolean.FALSE.toString())) {
-        return false;
-      }
-    }
+	public static boolean isClassGenerationDisabled(IProject project) throws CoreException {
+		Collection<ICommand> resultCommands = findBuilder(project, JavaCore.BUILDER_ID);
+		for (ICommand resultCommand : resultCommands) {
+			String value = resultCommand.getArguments().get(JAVA_BUILDER_GENERATE_CLASSES);
+			if (value == null || !value.equals(Boolean.FALSE.toString()))
+				return false;
+		}
 		return true;
 	}
 
@@ -253,15 +238,13 @@ public class AspectJProjectNature implements IProjectNature {
 	 *         commands for given builder was found
 	 * @throws CoreException
 	 */
-	private static Collection findBuilder(IProject project, String builderId)
-			throws CoreException {
+	private static Collection<ICommand> findBuilder(IProject project, String builderId) throws CoreException {
 		ICommand[] commands = project.getDescription().getBuildSpec();
-		Collection resultCommands = new ArrayList();
-    for (ICommand command : commands) {
-      if (command.getBuilderName().equals(builderId)) {
-        resultCommands.add(command);
-      }
-    }
+		Collection<ICommand> resultCommands = new ArrayList<>();
+		for (ICommand command : commands) {
+			if (command.getBuilderName().equals(builderId))
+				resultCommands.add(command);
+		}
 		return resultCommands;
 	}
 }

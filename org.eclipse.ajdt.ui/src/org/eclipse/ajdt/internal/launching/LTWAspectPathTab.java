@@ -118,8 +118,6 @@ public class LTWAspectPathTab extends JavaClasspathTab {
 	 * @since 3.0
 	 */
 	protected void createPathButtons(Composite pathButtonComp) {
-		List advancedActions = new ArrayList(5);
-
 		createButton(pathButtonComp, new MoveUpAction(fClasspathViewer));
 		createButton(pathButtonComp, new MoveDownAction(fClasspathViewer));
 		createButton(pathButtonComp, new RemoveAction(fClasspathViewer));
@@ -127,24 +125,15 @@ public class LTWAspectPathTab extends JavaClasspathTab {
 		createButton(pathButtonComp, new AddJarAction(fClasspathViewer));
 		createButton(pathButtonComp, new AddExternalJarAction(fClasspathViewer, DIALOG_SETTINGS_PREFIX));
 
-		RuntimeClasspathAction action = new AddFolderAction(null);
-		advancedActions.add(action);
+		List<RuntimeClasspathAction> advancedActions = new ArrayList<>(5);
+		advancedActions.add(new AddFolderAction(null));
+		advancedActions.add(new AddExternalFolderAction(null, DIALOG_SETTINGS_PREFIX));
+		advancedActions.add(new AddVariableAction(null));
+		advancedActions.add(new AddLibraryAction(null));
+		advancedActions.add(new AttachSourceAction(null, SWT.RADIO));
 
-		action = new AddExternalFolderAction(null, DIALOG_SETTINGS_PREFIX);
-		advancedActions.add(action);
-
-		action = new AddVariableAction(null);
-		advancedActions.add(action);
-
-		action = new AddLibraryAction(null);
-		advancedActions.add(action);
-
-		action = new AttachSourceAction(null, SWT.RADIO);
-		advancedActions.add(action);
-
-		IAction[] adv = (IAction[])advancedActions.toArray(new IAction[0]);
+		IAction[] adv = advancedActions.toArray(new IAction[0]);
 		createButton(pathButtonComp, new AddAdvancedAction(fClasspathViewer, adv));
-
 	}
 
 	/**
@@ -174,24 +163,22 @@ public class LTWAspectPathTab extends JavaClasspathTab {
 	 */
 	private IRuntimeClasspathEntry[] getCurrentClasspath() {
 		IClasspathEntry[] user = fModel.getEntries(ClasspathModel.USER);
-		List entries = new ArrayList(user.length);
+		List<IRuntimeClasspathEntry> entries = new ArrayList<>(user.length);
 		IRuntimeClasspathEntry entry;
 		IClasspathEntry userEntry;
-    for (IClasspathEntry iClasspathEntry : user) {
-      userEntry = iClasspathEntry;
-      entry = null;
-      if (userEntry instanceof ClasspathEntry) {
-        entry = ((ClasspathEntry) userEntry).getDelegate();
-      }
-      else if (userEntry instanceof IRuntimeClasspathEntry) {
-        entry = (IRuntimeClasspathEntry) iClasspathEntry;
-      }
-      if (entry != null) {
-        entry.setClasspathProperty(IRuntimeClasspathEntry.USER_CLASSES);
-        entries.add(entry);
-      }
-    }
-		return (IRuntimeClasspathEntry[]) entries.toArray(new IRuntimeClasspathEntry[0]);
+		for (IClasspathEntry iClasspathEntry : user) {
+			userEntry = iClasspathEntry;
+			entry = null;
+			if (userEntry instanceof ClasspathEntry)
+				entry = ((ClasspathEntry) userEntry).getDelegate();
+			else if (userEntry instanceof IRuntimeClasspathEntry)
+				entry = (IRuntimeClasspathEntry) iClasspathEntry;
+			if (entry != null) {
+				entry.setClasspathProperty(IRuntimeClasspathEntry.USER_CLASSES);
+				entries.add(entry);
+			}
+		}
+		return entries.toArray(new IRuntimeClasspathEntry[0]);
 	}
 
 	/* (non-Javadoc)
@@ -235,50 +222,39 @@ public class LTWAspectPathTab extends JavaClasspathTab {
 	}
 
 	public void performApply(ILaunchConfigurationWorkingCopy configuration) {
-		if (isDirty()) {
-			IRuntimeClasspathEntry[] classpath = getCurrentClasspath();
-			try {
-				List mementos = new ArrayList(classpath.length);
-        for (IRuntimeClasspathEntry entry : classpath) {
-          mementos.add(entry.getMemento());
-        }
-				configuration.setAttribute(ATTR_ASPECTPATH, mementos);
-			} catch (CoreException e) {
-				JDIDebugUIPlugin.errorDialog(LauncherMessages.JavaClasspathTab_Unable_to_save_classpath_1, e);
-			}
+		if (!isDirty())
+			return;
+		IRuntimeClasspathEntry[] classpath = getCurrentClasspath();
+		try {
+			List<String> mementos = new ArrayList<>(classpath.length);
+			for (IRuntimeClasspathEntry entry : classpath)
+				mementos.add(entry.getMemento());
+			configuration.setAttribute(ATTR_ASPECTPATH, mementos);
+		}
+		catch (CoreException e) {
+			JDIDebugUIPlugin.errorDialog(LauncherMessages.JavaClasspathTab_Unable_to_save_classpath_1, e);
 		}
 	}
 
 	private void createClasspathModel(ILaunchConfiguration configuration) throws CoreException {
-		fModel= new LTWAspectpathModel();
-		List entries = configuration.getAttribute(ATTR_ASPECTPATH, Collections.EMPTY_LIST);
-		IRuntimeClasspathEntry[] rtes = new IRuntimeClasspathEntry[entries.size()];
-		Iterator iter = entries.iterator();
-		int i = 0;
-		while (iter.hasNext()) {
-			rtes[i] = JavaRuntime.newRuntimeClasspathEntry((String)iter.next());
-			i++;
-		}
-    for (IRuntimeClasspathEntry rte : rtes) {
-      fModel.addEntry(ClasspathModel.USER, rte);
-    }
+		fModel = new LTWAspectpathModel();
+		List<String> entries = configuration.getAttribute(ATTR_ASPECTPATH, Collections.emptyList());
+		for (String entry : entries)
+			fModel.addEntry(ClasspathModel.USER, JavaRuntime.newRuntimeClasspathEntry(entry));
 	}
-
-
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.debug.ui.ILaunchConfigurationTab#isValid(org.eclipse.debug.core.ILaunchConfiguration)
 	 */
 	public boolean isValid(ILaunchConfiguration configuration) {
-		List entries = Collections.EMPTY_LIST;
+		List<String> entries = Collections.emptyList();
 		setErrorMessage(null);
 		try {
-			entries = configuration.getAttribute(ATTR_ASPECTPATH, Collections.EMPTY_LIST);
-		} catch (CoreException e) {
+			entries = configuration.getAttribute(ATTR_ASPECTPATH, Collections.emptyList());
 		}
-		if(entries.size() == 0) {
+		catch (CoreException ignored) { }
+		if (entries.size() == 0)
 			setErrorMessage(ERROR_MESSAGE);
-		}
 		return entries.size() > 0;
 	}
 

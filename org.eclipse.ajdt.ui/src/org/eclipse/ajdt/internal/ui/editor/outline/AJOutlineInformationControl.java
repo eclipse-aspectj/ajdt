@@ -101,7 +101,7 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 	private LexicalSortingAction fLexicalSortingAction;
 	private SortByDefiningTypeAction fSortByDefiningTypeAction;
 	private ShowOnlyMainTypeAction fShowOnlyMainTypeAction;
-	private final Map fTypeHierarchies= new HashMap();
+	private final Map<IType, ITypeHierarchy> fTypeHierarchies= new HashMap<>();
 
 	static class TextMessages {
 		public static String getString(String key) {
@@ -114,7 +114,10 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 		private boolean fShowDefiningType;
 
 		private OutlineLabelProvider() {
-			super(AppearanceAwareLabelProvider.DEFAULT_TEXTFLAGS |  JavaElementLabels.F_APP_TYPE_SIGNATURE, AppearanceAwareLabelProvider.DEFAULT_IMAGEFLAGS);
+			super(
+				AppearanceAwareLabelProvider.DEFAULT_TEXTFLAGS | JavaElementLabels.F_APP_TYPE_SIGNATURE,
+				AppearanceAwareLabelProvider.DEFAULT_IMAGEFLAGS
+			);
 		}
 
 		/*
@@ -122,17 +125,14 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 		 */
 		@Override
 		public String getText(Object element) {
-			String text= super.getText(element);
+			String text = super.getText(element);
 			if (fShowDefiningType) {
 				try {
-					IType type= getDefiningType(element);
-					if (type != null) {
-            String buf = super.getText(type) + JavaElementLabels.CONCAT_STRING +
-                         text;
-						return buf;
-					}
-				} catch (JavaModelException e) {
+					IType type = getDefiningType(element);
+					if (type != null)
+						return super.getText(type) + JavaElementLabels.CONCAT_STRING + text;
 				}
+				catch (JavaModelException ignored) { }
 			}
 			return text;
 		}
@@ -319,31 +319,29 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 		@Override
 		public Object[] getChildren(Object element) {
 			// AspectJ Change begin
-			if (element instanceof ICompilationUnit) {
-				element = AJCompilationUnitManager.mapToAJCompilationUnit((ICompilationUnit)element);
-			}
+			if (element instanceof ICompilationUnit)
+				element = AJCompilationUnitManager.mapToAJCompilationUnit((ICompilationUnit) element);
 			// AspectJ Change end
 
 			if (fShowOnlyMainType) {
-				if (element instanceof ICompilationUnit) {
-					element= getMainType((ICompilationUnit)element);
-				} else if (element instanceof IClassFile) {
-					element= getMainType((IClassFile)element);
-				}
-
+				if (element instanceof ICompilationUnit)
+					element = getMainType((ICompilationUnit) element);
+				else if (element instanceof IClassFile)
+					element = getMainType((IClassFile) element);
 				if (element == null)
 					return NO_CHILDREN;
 			}
 
 			if (fShowInheritedMembers && element instanceof IType) {
-				IType type= (IType)element;
+				IType type = (IType) element;
 				if (type.getDeclaringType() == null) {
-					ITypeHierarchy th= getSuperTypeHierarchy(type);
-					if (th != null) {
-            IType[] superClasses= th.getAllSupertypes(type);
-            List children = new ArrayList(Arrays.asList(super.getChildren(type)));
-            for (IType superClass : superClasses)
-              children.addAll(Arrays.asList(super.getChildren(superClass)));
+					ITypeHierarchy typeHierarchy = getSuperTypeHierarchy(type);
+					if (typeHierarchy != null) {
+						IType[] supertypes = typeHierarchy.getAllSupertypes(type);
+						// StandardJavaElementContentProvider.getChildren returns Object[], so we cannot be more specific
+						List<Object> children = Arrays.asList(super.getChildren(type));
+						for (IType supertype : supertypes)
+							children.addAll(Arrays.asList(super.getChildren(supertype)));
 						return children.toArray();
 					}
 				}
@@ -736,7 +734,7 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 	}
 
 	private ITypeHierarchy getSuperTypeHierarchy(IType type) {
-		ITypeHierarchy th= (ITypeHierarchy)fTypeHierarchies.get(type);
+		ITypeHierarchy th= fTypeHierarchies.get(type);
 		if (th == null) {
 			try {
 				th= SuperTypeHierarchyCache.getTypeHierarchy(type, getProgressMonitor());

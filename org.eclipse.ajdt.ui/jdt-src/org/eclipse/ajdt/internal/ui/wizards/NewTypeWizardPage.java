@@ -16,7 +16,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -328,7 +327,7 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 	private StringDialogField fTypeNameDialogField;
 
 	private StringButtonDialogField fSuperClassDialogField;
-	private ListDialogField fSuperInterfacesDialogField;
+	private ListDialogField<InterfaceWrapper> fSuperInterfacesDialogField;
 
 	private SelectionButtonDialogFieldGroup fAccMdfButtons;
 	private SelectionButtonDialogFieldGroup fOtherMdfButtons;
@@ -435,7 +434,7 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 			/* 1 */ null,
 			NewWizardMessages.NewTypeWizardPage_interfaces_remove
 		};
-		fSuperInterfacesDialogField= new ListDialogField(adapter, addButtons, new InterfacesListLabelProvider());
+		fSuperInterfacesDialogField= new ListDialogField<>(adapter, addButtons, new InterfacesListLabelProvider());
 		fSuperInterfacesDialogField.setDialogFieldListener(adapter);
 		fSuperInterfacesDialogField.setTableColumns(new ListDialogField.ColumnsDescription(1, false));
 		fSuperInterfacesDialogField.setLabelText(getSuperInterfacesLabel());
@@ -511,7 +510,7 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 	 */
 	protected void initTypePage(IJavaElement elem) {
 		String initSuperclass= "java.lang.Object"; //$NON-NLS-1$
-		ArrayList initSuperinterfaces= new ArrayList(5);
+		ArrayList<String> initSuperinterfaces= new ArrayList<>(5);
 
 		IJavaProject project= null;
 		IPackageFragment pack= null;
@@ -825,9 +824,9 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 			public void modify(Object element, String property, Object value) {
 				if (element instanceof Item)
 					element = ((Item) element).getData();
-
-				((InterfaceWrapper) element).interfaceName= (String) value;
-				fSuperInterfacesDialogField.elementChanged(element);
+				InterfaceWrapper interfaceWrapper = (InterfaceWrapper) element;
+				interfaceWrapper.interfaceName= (String) value;
+				fSuperInterfacesDialogField.elementChanged(interfaceWrapper);
 			}
 			public Object getValue(Object element, String property) {
 				return ((InterfaceWrapper) element).interfaceName;
@@ -891,28 +890,33 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 
 	// -------- TypeFieldsAdapter --------
 
-	private class TypeFieldsAdapter implements IStringButtonAdapter, IDialogFieldListener, IListAdapter, SelectionListener {
+	private class TypeFieldsAdapter
+    implements IStringButtonAdapter, IDialogFieldListener, IListAdapter<InterfaceWrapper>, SelectionListener
+  {
 
 		// -------- IStringButtonAdapter
+		@Override
 		public void changeControlPressed(DialogField field) {
 			typePageChangeControlPressed(field);
 		}
 
 		// -------- IListAdapter
-		public void customButtonPressed(ListDialogField field, int index) {
+		@Override
+		public void customButtonPressed(ListDialogField<InterfaceWrapper> field, int index) {
 			typePageCustomButtonPressed(field, index);
 		}
 
-		public void selectionChanged(ListDialogField field) {}
+		@Override
+		public void selectionChanged(ListDialogField<InterfaceWrapper> field) { }
+
+		@Override
+		public void doubleClicked(ListDialogField<InterfaceWrapper> field) { }
 
 		// -------- IDialogFieldListener
+		@Override
 		public void dialogFieldChanged(DialogField field) {
 			typePageDialogFieldChanged(field);
 		}
-
-		public void doubleClicked(ListDialogField field) {
-		}
-
 
 		public void widgetSelected(SelectionEvent e) {
 			typePageLinkActivated();
@@ -957,7 +961,7 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 	private void typePageCustomButtonPressed(DialogField field, int index) {
 		if (field == fSuperInterfacesDialogField && index == 0) {
 			chooseSuperInterfaces();
-			List interfaces= fSuperInterfacesDialogField.getElements();
+			List<InterfaceWrapper> interfaces= fSuperInterfacesDialogField.getElements();
 			if (!interfaces.isEmpty()) {
 				Object element= interfaces.get(interfaces.size() - 1);
 				fSuperInterfacesDialogField.editElement(element);
@@ -1252,13 +1256,11 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 	 * @return a list of chosen super interfaces. The list's elements
 	 * are of type <code>String</code>
 	 */
-	public List getSuperInterfaces() {
-		List interfaces= fSuperInterfacesDialogField.getElements();
-		ArrayList result= new ArrayList(interfaces.size());
-    for (Object anInterface : interfaces) {
-      InterfaceWrapper wrapper = (InterfaceWrapper) anInterface;
-      result.add(wrapper.interfaceName);
-    }
+	public List<String> getSuperInterfaces() {
+		List<InterfaceWrapper> interfaces= fSuperInterfacesDialogField.getElements();
+		ArrayList<String> result= new ArrayList<>(interfaces.size());
+		for (InterfaceWrapper anInterface : interfaces)
+			result.add(anInterface.interfaceName);
 		return result;
 	}
 
@@ -1270,11 +1272,10 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 	 * @param canBeModified if <code>true</code> the super interface field is
 	 * editable; otherwise it is read-only.
 	 */
-	public void setSuperInterfaces(List interfacesNames, boolean canBeModified) {
-		ArrayList interfaces= new ArrayList(interfacesNames.size());
-    for (Object interfacesName : interfacesNames) {
-      interfaces.add(new InterfaceWrapper((String) interfacesName));
-    }
+	public void setSuperInterfaces(List<String> interfacesNames, boolean canBeModified) {
+		ArrayList<InterfaceWrapper> interfaces= new ArrayList<>(interfacesNames.size());
+		for (String interfacesName : interfacesNames)
+			interfaces.add(new InterfaceWrapper(interfacesName));
 		fSuperInterfacesDialogField.setElements(interfaces);
 		fSuperInterfacesDialogField.setEnabled(canBeModified);
 	}
@@ -1714,10 +1715,9 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 		fSuperInterfacesDialogField.enableButton(0, root != null);
 
 		if (root != null) {
-			List elements= fSuperInterfacesDialogField.getElements();
-			int nElements= elements.size();
-      for (Object element : elements) {
-        String intfname = ((InterfaceWrapper) element).interfaceName;
+			List<InterfaceWrapper> elements= fSuperInterfacesDialogField.getElements();
+      for (InterfaceWrapper element : elements) {
+        String intfname = element.interfaceName;
         Type type = TypeContextChecker.parseSuperInterface(intfname);
         if (type == null) {
           status.setError(Messages.format(NewWizardMessages.NewTypeWizardPage_error_InvalidSuperInterfaceName, BasicElementLabels.getJavaElementName(intfname)));
@@ -1942,7 +1942,7 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 			ImportsManager imports;
 			int indent= 0;
 
-			Set /* String (import names) */ existingImports;
+			Set<String> existingImports;
 
 			String lineDelimiter;
 			if (!isInnerClass) {
@@ -2100,16 +2100,15 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 	}
 
 
-	private Set /* String */ getExistingImports(CompilationUnit root) {
-		List imports= root.imports();
-		Set res= new HashSet(imports.size());
-    for (Object anImport : imports) {
-      res.add(ASTNodes.asString((ImportDeclaration) anImport));
-    }
+	private Set<String> getExistingImports(CompilationUnit root) {
+		List<?> imports= root.imports();
+		Set<String> res= new HashSet<>(imports.size());
+		for (Object anImport : imports)
+			res.add(ASTNodes.asString((ImportDeclaration) anImport));
 		return res;
 	}
 
-	private void removeUnusedImports(ICompilationUnit cu, Set existingImports, boolean needsSave) throws CoreException {
+	private void removeUnusedImports(ICompilationUnit cu, Set<String> existingImports, boolean needsSave) throws CoreException {
 		ASTParser parser= ASTParser.newParser(AST.JLS9);
 		parser.setSource(cu);
 		parser.setResolveBindings(true);
@@ -2119,7 +2118,7 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 			return;
 		}
 
-		List importsDecls= root.imports();
+		List<?> importsDecls= root.imports();
 		if (importsDecls.isEmpty()) {
 			return;
 		}
