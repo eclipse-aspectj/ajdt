@@ -232,7 +232,7 @@ public class BuildClasspathResolver {
 		ArrayList<ClasspathMultiDirectory> outputFolders = new ArrayList<>(1);
 		this.sourceLocations = new ClasspathMultiDirectory[sLocations.size()];
 		if (!sLocations.isEmpty()) {
-			sLocations.toArray(new ClasspathLocation[0]);
+			sLocations.toArray(this.sourceLocations);
 
 			// collect the output folders, skipping duplicates
 			next : for (int i = 0, l = sourceLocations.length; i < l; i++) {
