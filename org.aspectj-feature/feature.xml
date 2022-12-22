@@ -2,7 +2,7 @@
 <feature
       id="org.aspectj"
       label="%featureName"
-      version="1.9.10.qualifier"
+      version="1.9.20.qualifier"
       provider-name="%providerName"
       plugin="org.eclipse.aspectj">
 
