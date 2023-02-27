@@ -57,49 +57,44 @@ public class AJMementoTokenizer extends MementoTokenizer {
 
     // end AspectJ change
 
-    private final char[] memento;
+	private final char[] memento;
+	private final int length;
+	private int index = 0;
 
-    private final int length;
+	public AJMementoTokenizer(String memento) {
+		super(memento);
+		this.memento = memento.toCharArray();
+		this.length = this.memento.length;
+	}
 
-    private int index = 0;
+	public AJMementoTokenizer(MementoTokenizer tokenizer) {
+		super(String.valueOf((char[]) ReflectionUtils.getPrivateField(MementoTokenizer.class, "memento", tokenizer)));
+		memento = (char[]) ReflectionUtils.getPrivateField(MementoTokenizer.class, "memento", tokenizer);
+		length = memento.length;
+		index = (Integer) ReflectionUtils.getPrivateField(MementoTokenizer.class, "index", tokenizer);
+		ReflectionUtils.setPrivateField(MementoTokenizer.class, "index", this, index);
+	}
 
-    public AJMementoTokenizer(String memento) {
-        super(memento);
-        this.memento = memento.toCharArray();
-        this.length = this.memento.length;
-    }
+	/**
+	 * create a memento tokenizer that is reset to the token after the given name
+	 */
+	public AJMementoTokenizer(MementoTokenizer tokenizer, String resetToName) {
+		super(String.valueOf((char[]) ReflectionUtils.getPrivateField(MementoTokenizer.class, "memento", tokenizer)));
+		memento = (char[]) ReflectionUtils.getPrivateField(MementoTokenizer.class, "memento", tokenizer);
+		length = memento.length;
 
-    public AJMementoTokenizer(MementoTokenizer tokenizer) {
-        super(String.valueOf((char[]) ReflectionUtils.getPrivateField(MementoTokenizer.class, "memento", tokenizer)));
-        memento = (char[]) ReflectionUtils.getPrivateField(MementoTokenizer.class, "memento", tokenizer);
-        length = memento.length;
-        index = (Integer) ReflectionUtils.getPrivateField(MementoTokenizer.class, "index", tokenizer);
-        ReflectionUtils.setPrivateField(MementoTokenizer.class, "index", this, index);
-    }
+		// only reset to the given name if it is found
+		int nameIndex = CharOperation.indexOf(resetToName.toCharArray(), memento, true);
+		if (index >= 0)
+			index = nameIndex + resetToName.length();
+		else
+			index = (Integer) ReflectionUtils.getPrivateField(MementoTokenizer.class, "index", tokenizer);
+		ReflectionUtils.setPrivateField(MementoTokenizer.class, "index", this, index);
+	}
 
-    /**
-     * create a memento tokenizer that is reset to the token after the given name
-     */
-    public AJMementoTokenizer(MementoTokenizer tokenizer, String resetToName) {
-        super(String.valueOf((char[]) ReflectionUtils.getPrivateField(MementoTokenizer.class, "memento", tokenizer)));
-        memento = (char[]) ReflectionUtils.getPrivateField(MementoTokenizer.class, "memento", tokenizer);
-        length = memento.length;
-
-        // only reset to the given name if it is found
-        int nameIndex = CharOperation.indexOf(resetToName.toCharArray(), memento, true);
-        if (index >= 0) {
-            index = nameIndex + resetToName.length();
-        } else {
-            index = (Integer) ReflectionUtils.getPrivateField(MementoTokenizer.class, "index", tokenizer);
-        }
-        ReflectionUtils.setPrivateField(MementoTokenizer.class, "index", this, index);
-    }
-
-
-
-    public boolean hasMoreTokens() {
-        return this.index < this.length;
-    }
+	public boolean hasMoreTokens() {
+		return this.index < this.length;
+	}
 
     public String nextToken() {
         int start = this.index;
@@ -219,7 +214,7 @@ public class AJMementoTokenizer extends MementoTokenizer {
         return new String(this.memento, start, this.index - start);
     }
 
-    void setIndexTo(int newIndex) {
-        this.index = newIndex;
-    }
+	void setIndexTo(int newIndex) {
+		this.index = newIndex;
+	}
 }

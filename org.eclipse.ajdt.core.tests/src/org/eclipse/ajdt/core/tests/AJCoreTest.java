@@ -257,7 +257,7 @@ public class AJCoreTest extends AJDTCoreTestCase {
 			fail("No relationships found for project " + project.getName()); //$NON-NLS-1$
 		}
     for (IRelationship rel : allRels) {
-      HandleTestUtils.checkAJHandle(rel.getSourceHandle(), model);
+        HandleTestUtils.checkAJHandle(rel.getSourceHandle(), model);
       for (String handle : rel.getTargets()) {
         HandleTestUtils.checkAJHandle(handle, model);
       }
@@ -267,9 +267,9 @@ public class AJCoreTest extends AJDTCoreTestCase {
 	private void compareWithHandles(String[][] testHandles) {
     for (String[] testHandle : testHandles) {
       IJavaElement el = AspectJCore.create(testHandle[0]);
-      assertEquals(
-        "Handle identifier of created element doesn't match original", //$NON-NLS-1$
-        testHandle[0], el.getHandleIdentifier());
+        assertEquals(
+          "Handle identifier of created element doesn't match original", //$NON-NLS-1$
+          testHandle[0], el.getHandleIdentifier());
       assertEquals("Name of created element doesn't match expected", //$NON-NLS-1$
         testHandle[1], el.getElementName());
       assertEquals(

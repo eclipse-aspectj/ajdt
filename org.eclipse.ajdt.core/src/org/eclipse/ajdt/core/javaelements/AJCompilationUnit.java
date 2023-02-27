@@ -932,54 +932,53 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 	 */
 	public IJavaElement getHandleFromMemento(String token, MementoTokenizer memento, WorkingCopyOwner workingCopyOwner) {
 		JavaElement type = this;
-		if (! (memento instanceof AJMementoTokenizer)) {
-		    memento = new AJMementoTokenizer(memento, name);
+		if (!(memento instanceof AJMementoTokenizer)) {
+			memento = new AJMementoTokenizer(memento, name);
 		}
-		if ((token.charAt(0) == JavaElement.JEM_IMPORTDECLARATION) ||
-		        (token.charAt(0) == JavaElement.JEM_PACKAGEDECLARATION)) {
-		    return super.getHandleFromMemento(token, memento, workingCopyOwner);
+		if (token.charAt(0) == JavaElement.JEM_IMPORTDECLARATION || token.charAt(0) == JavaElement.JEM_PACKAGEDECLARATION) {
+			return super.getHandleFromMemento(token, memento, workingCopyOwner);
 		}
 
-        // need to handle types ourselves, because they may contain inner aspects
+		// need to handle types ourselves, because they may contain inner aspects
 		// (or inner classes containing inner aspects etc)
-		while ((token.charAt(0) == AspectElement.JEM_ASPECT_TYPE) ||
-				(token.charAt(0) == JavaElement.JEM_TYPE) ||
-				(token.charAt(0) == JavaElement.JEM_ANNOTATION)) {
-		    // note that we are also testing for JEM_ANNOTATION here.
-		    // this is because when the type handle identifiers were changed prior to 2.1.1,
-		    // JEM_ASPECT_TYPE and JEM_ANNOTATION were the same.
-		    // Some people have had problems in that the old handles were cached.
-		    // this can probably be safely removed post 2.1.2.
-			if (!memento.hasMoreTokens()) return type;
+		while (token.charAt(0) == AspectElement.JEM_ASPECT_TYPE || token.charAt(0) == JavaElement.JEM_TYPE) {
+			if (!memento.hasMoreTokens())
+				return type;
 			String typeName = memento.nextToken();
-			if (token.charAt(0) == AspectElement.JEM_ASPECT_TYPE ||
-			        token.charAt(0) == JavaElement.JEM_ANNOTATION) {
+			if (token.charAt(0) == AspectElement.JEM_ASPECT_TYPE) {
 				type = new AspectElement(type, typeName);
-			} else if (token.charAt(0) == JavaElement.JEM_TYPE) {
-				type = getType(type,typeName);
-				if (type == null) type = (JavaElement)getType(typeName);
 			}
-			if (!memento.hasMoreTokens()) return type;
+			else if (token.charAt(0) == JavaElement.JEM_TYPE) {
+				type = getType(type, typeName);
+				if (type == null)
+					type = (JavaElement) getType(typeName);
+			}
+			if (!memento.hasMoreTokens())
+				return type;
 			token = memento.nextToken();
 		}
 		// handle pointcuts in a class (bug 124992)
 		if (!(type instanceof AspectElement)
-				&& (token.charAt(0) == AspectElement.JEM_POINTCUT)) {
+				&& (token.charAt(0) == AspectElement.JEM_POINTCUT))
+		{
 			String name = memento.nextToken();
 			ArrayList<String> params = new ArrayList<>();
-			nextParam: while (memento.hasMoreTokens()) {
+			nextParam:
+			while (memento.hasMoreTokens()) {
 				token = memento.nextToken();
 				switch (token.charAt(0)) {
 					case JEM_TYPE:
 					case JEM_TYPE_PARAMETER:
 						break nextParam;
 					case AspectElement.JEM_POINTCUT:
-						if (!memento.hasMoreTokens()) return this;
+						if (!memento.hasMoreTokens())
+							return this;
 						String param = memento.nextToken();
 						StringBuilder buffer = new StringBuilder();
 						while (param.length() == 1 && Signature.C_ARRAY == param.charAt(0)) { // backward compatible with 3.0 mementos
 							buffer.append(Signature.C_ARRAY);
-							if (!memento.hasMoreTokens()) return this;
+							if (!memento.hasMoreTokens())
+								return this;
 							param = memento.nextToken();
 						}
 						params.add(buffer + param);

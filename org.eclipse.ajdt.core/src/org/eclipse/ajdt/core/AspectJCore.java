@@ -39,13 +39,12 @@ import org.eclipse.jdt.internal.core.PackageFragment;
 
 public class AspectJCore {
 
-    public static IJavaElement create(IFile file) {
-        if ("aj".equals(file.getFileExtension())) {
-            return AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(file);
-        }
-        return JavaModelManager.create(file, null/*unknown java project*/);
-    }
-
+	public static IJavaElement create(IFile file) {
+		if ("aj".equals(file.getFileExtension())) {
+			return AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(file);
+		}
+		return JavaModelManager.create(file, null/*unknown java project*/);
+	}
 
 	/**
 	 * Returns the Java model element corresponding to the given handle
@@ -101,14 +100,11 @@ public class AspectJCore {
 		boolean isCodeElement = false;
 		String codeElementHandle = ""; //$NON-NLS-1$
 
-		int codeElementDelimPos = indexOfIgnoringEscapes(handleIdentifier,
-				AspectElement.JEM_CODEELEMENT);
+		int codeElementDelimPos = indexOfIgnoringEscapes(handleIdentifier, AspectElement.JEM_CODEELEMENT);
 		if (codeElementDelimPos != -1) {
 			isCodeElement = true;
-			codeElementHandle = handleIdentifier
-					.substring(codeElementDelimPos + 1);
-			handleIdentifier = handleIdentifier.substring(0,
-					codeElementDelimPos);
+			codeElementHandle = handleIdentifier.substring(codeElementDelimPos + 1);
+			handleIdentifier = handleIdentifier.substring(0, codeElementDelimPos);
 		}
 
 		AJMementoTokenizer memento = new AJMementoTokenizer(handleIdentifier);
@@ -279,45 +275,49 @@ public class AspectJCore {
 		return JavaCore.create(handleIdentifier);
 	}
 
-	    /**
-     * Converts a handle signifying Java class to a handle signifying an
-     * aspect element.
-     *
-     * This method is necessary because JavaCore does not create
-     * AspectElements when it is building structure using the {@link AspectsConvertingParser}
-     *
-     * Note that this changes the top level class to being an aspect and keeps
-     * all others the same.  This may not work in all situations (eg- an inner aspect)
-     *
-     * @param classHandle
-     * @return converts the handle to using {@link AspectElement#JEM_ASPECT_CU} and
-     * {@link AspectElement#JEM_ASPECT_TYPE}
-     */
-    public static String convertToAspectHandle(String classHandle, IJavaElement elt) {
-       String aspectHandle = classHandle.replaceFirst("\\" +
-                                                      JavaElement.JEM_TYPE,
-               Character.toString(AspectElement.JEM_ASPECT_TYPE));
+	/**
+	 * Converts a handle signifying Java class to a handle signifying an
+	 * aspect element.
+	 * <p>
+	 * This method is necessary because JavaCore does not create
+	 * AspectElements when it is building structure using the {@link AspectsConvertingParser}
+	 * <p>
+	 * Note that this changes the top level class to being an aspect and keeps
+	 * all others the same.  This may not work in all situations (eg- an inner aspect)
+	 *
+	 * @param classHandle
+	 * @return converts the handle to using {@link AspectElement#JEM_ASPECT_CU} and
+	 * {@link AspectElement#JEM_ASPECT_TYPE}
+	 */
+	public static String convertToAspectHandle(String classHandle, IJavaElement elt) {
+		String aspectHandle = classHandle.replaceFirst(
+			"\\" + JavaElement.JEM_TYPE,
+			Character.toString(AspectElement.JEM_ASPECT_TYPE)
+		);
 
-       if (CoreUtils.ASPECTJ_SOURCE_ONLY_FILTER.accept(elt.getResource().getName())) {
-           aspectHandle = aspectHandle.replace(JavaElement.JEM_COMPILATIONUNIT,
-                   AspectElement.JEM_ASPECT_CU);
-       }
-       return aspectHandle;
-    }
-
+		if (CoreUtils.ASPECTJ_SOURCE_ONLY_FILTER.accept(elt.getResource().getName())) {
+			aspectHandle = aspectHandle.replace(
+				JavaElement.JEM_COMPILATIONUNIT,
+				AspectElement.JEM_ASPECT_CU
+			);
+		}
+		return aspectHandle;
+	}
 
 	public static String convertToJavaCUHandle(String aspectHandle, IJavaElement elt) {
-	    String javaHandle = aspectHandle;
-	    if (elt != null) {
-            IResource resource = elt.getResource();
-            if (resource != null) {
-                if (CoreUtils.ASPECTJ_SOURCE_ONLY_FILTER.accept(resource.getName())) {
-                    javaHandle = javaHandle.replaceFirst("\\" + AspectElement.JEM_ASPECT_CU,
-                            Character.toString(JavaElement.JEM_COMPILATIONUNIT));
-                }
-            }
-	    }
-        return javaHandle;
-    }
+		String javaHandle = aspectHandle;
+		if (elt != null) {
+			IResource resource = elt.getResource();
+			if (resource != null) {
+				if (CoreUtils.ASPECTJ_SOURCE_ONLY_FILTER.accept(resource.getName())) {
+					javaHandle = javaHandle.replaceFirst(
+						"\\" + AspectElement.JEM_ASPECT_CU,
+						Character.toString(JavaElement.JEM_COMPILATIONUNIT)
+					);
+				}
+			}
+		}
+		return javaHandle;
+	}
 
 }

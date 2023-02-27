@@ -388,7 +388,7 @@ public class AJProjectModelFacade {
             return getElementFromClassFile(jHandle);
         }
 
-        // if using cuprovider, then we don not use the '*' for Aspect compilation units,
+        // if using cuprovider, then we do not use the '*' for Aspect compilation units,
         // it uses the '{' of Java Compilation Units
         if (AspectJPlugin.USING_CU_PROVIDER) {
             jHandle = jHandle.replaceFirst("" + JavaElement.JEM_ESCAPE + AspectElement.JEM_ASPECT_CU,
