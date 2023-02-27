@@ -11,6 +11,7 @@
 
 package org.eclipse.ajdt.internal.ui.editor.outline;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -338,7 +339,7 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 					if (typeHierarchy != null) {
 						IType[] supertypes = typeHierarchy.getAllSupertypes(type);
 						// StandardJavaElementContentProvider.getChildren returns Object[], so we cannot be more specific
-						List<Object> children = Arrays.asList(super.getChildren(type));
+						List<Object> children = new ArrayList<>(Arrays.asList(super.getChildren(type)));
 						for (IType supertype : supertypes)
 							children.addAll(Arrays.asList(super.getChildren(supertype)));
 						return children.toArray();

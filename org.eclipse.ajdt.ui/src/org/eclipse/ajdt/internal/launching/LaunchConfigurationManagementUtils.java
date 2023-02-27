@@ -56,9 +56,9 @@ public class LaunchConfigurationManagementUtils {
 			String projectName = project.getElementName();
 			List<ILaunchConfiguration> configs = getLaunchConfigsForProject(projectName);
 			for (ILaunchConfiguration configuration : configs) {
-				List<IRuntimeClasspathEntry> entriesAsList = Arrays.asList(
+				List<IRuntimeClasspathEntry> entriesAsList = new ArrayList<>(Arrays.asList(
 					JavaRuntime.computeUnresolvedRuntimeClasspath(configuration)
-				);
+				));
 				for (CPListElement existingAspectPathEntry : existingAspectPathEntries) {
 					IClasspathEntry entryToRemove = existingAspectPathEntry.getClasspathEntry();
 					entriesAsList.removeIf(entry ->
@@ -106,7 +106,7 @@ public class LaunchConfigurationManagementUtils {
 			List<ILaunchConfiguration> configs = getLaunchConfigsForProject(projectName);
 			for (ILaunchConfiguration config : configs) {
 				IRuntimeClasspathEntry[] entries = JavaRuntime.computeUnresolvedRuntimeClasspath(config);
-				List<IRuntimeClasspathEntry> entriesAsList = Arrays.asList(entries);
+				List<IRuntimeClasspathEntry> entriesAsList = new ArrayList<>(Arrays.asList(entries));
 				entriesAsList.removeIf(entry ->
 					entry.getClasspathProperty() == IRuntimeClasspathEntry.USER_CLASSES &&
 					oldOutJar.equals(entry.getClasspathEntry())

@@ -196,7 +196,7 @@ public class SimpleMarkupProvider implements IMarkupProvider {
 	protected Color getNextColourFor(String p) {
 		if (!availableColours.containsKey(p)) {
 			RGB[] rgb = PaletteManager.getCurrentPalette().getPalette().getRGBValues();
-			List<RGB> colourList = Arrays.asList(rgb);
+			List<RGB> colourList = new ArrayList<>(Arrays.asList(rgb));
 			availableColours.put(p, colourList);
 		}
 
