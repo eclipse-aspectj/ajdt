@@ -25,3 +25,10 @@ idea-bundles/
 /org.eclipse.contribution.weaving.jdt.tests/jdtweavingtests.jar
 /org.eclipse.contribution.xref.core.tests/xrefcoretests.jar
 /org.eclipse.contribution.xref.ui.tests/xrefuitests.jar
+
+# IDEA plugin "Eclipse PDE Partial"
+out/
+**/OSGI-INF/l10n/bundle.properties
+
+# IDEA exported problem descriptions for refactoring
+/*.xml
