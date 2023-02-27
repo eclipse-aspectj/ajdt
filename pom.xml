@@ -232,6 +232,25 @@
 		</profile>
 
 		<profile>
+			<id>e426</id>
+			<properties>
+				<platform.version>e426</platform.version>
+				<!--
+					Go to https://download.eclipse.org/equinox/. Either download the corresponding 4.x SDK release archive and
+					identify the weaving hook version, or check the online bundles list for org.eclipse.equinox.weaving.hook_*.
+				-->
+				<weaving.hook.version>1.3.200.v20220720-1916</weaving.hook.version>
+			</properties>
+			<repositories>
+				<repository>
+					<id>2022-12-releases</id>
+					<layout>p2</layout>
+					<url>https://download.eclipse.org/releases/2022-12/</url>
+				</repository>
+			</repositories>
+		</profile>
+
+		<profile>
 			<id>os-macosx</id>
 			<activation>
 				<os>
