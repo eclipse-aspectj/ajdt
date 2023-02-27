@@ -21,6 +21,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.aspectj.ajde.core.AjCompiler;
 import org.aspectj.asm.AsmManager;
@@ -89,6 +90,11 @@ import org.eclipse.jdt.internal.core.JavaModelManager;
 public class AJProjectModelFacade {
 
     public final static IJavaElement ERROR_JAVA_ELEMENT = new CompilationUnit(null, "ERROR_JAVA_ELEMENT", null);
+    public final static String ESCAPED_PFR = "" + JavaElement.JEM_DELIMITER_ESCAPE + JavaElement.JEM_PACKAGEFRAGMENTROOT;
+    public final static String ANY_RELUCTANT = ".*?";
+    public final static Pattern PATTERN_ATTRIBUTE =
+        Pattern.compile(ESCAPED_PFR + ANY_RELUCTANT + ESCAPED_PFR + ANY_RELUCTANT + ESCAPED_PFR);
+
 
     private static class ProjectModelBuildListener implements IAJBuildListener {
         private final Set<IProject> beingBuilt = new HashSet<>();
@@ -299,6 +305,9 @@ public class AJProjectModelFacade {
             }
         }
 
+        // Remove classpath attributes, e.g. "=/module=/true=/=/maven.pomderived=/true=/" added by more recent M2E versions
+        // FIXME: This is a somewhat hacky heuristics -> better make AJDT aware of classpath attributes?
+        ajHandle = PATTERN_ATTRIBUTE.matcher(ajHandle).replaceAll("");
         IProgramElement ipe = structureModel.findElementForHandleOrCreate(ajHandle, false);
         if (ipe == null) {
             if (isBinary) {

@@ -235,6 +235,27 @@ public class AJCoreTest extends AJDTCoreTestCase {
 		compareElementsFromRelationships(rels, project);
 	}
 
+	/**
+	 * Clone of testHandleCreateRoundtripBug94107() with .classpath file modified to reflect the additional attributes
+	 * M2E in more recent versions (Eclipse 2022-12) create during would import ('module' and 'maven.pomderived'),
+	 * i.e. something like:
+	 * <pre>{@code
+	 * <classpathentry kind="src" output="bin" path="src">
+	 *   <attributes>
+	 *     <attribute name="module" value="true"/>
+	 *     <attribute name="maven.pomderived" value="true"/>
+	 *     </attributes>
+	 * </classpathentry>
+	 * }</pre>
+	 *
+	 * @throws Exception
+	 */
+	public void testHandleCreateRoundtripBugGH223() throws Exception {
+		IProject project = createPredefinedProject("github-223"); //$NON-NLS-1$
+		AJRelationshipType[] rels = new AJRelationshipType[] { AJRelationshipManager.ADVISED_BY };
+		compareElementsFromRelationships(rels, project);
+	}
+
 	private static String getSimpleClassName(IJavaElement obj) {
 		String longName = obj.getClass().getName();
 		int index = longName.lastIndexOf('.');
