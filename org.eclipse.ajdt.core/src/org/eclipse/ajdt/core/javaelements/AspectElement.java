@@ -40,52 +40,24 @@ import org.eclipse.jdt.internal.core.util.MementoTokenizer;
  */
 public class AspectElement extends SourceType implements IAspectJElement {
 
-    /********************************************************************************
-     * \ Overview of Ascii table, characters used in handle element encoding:
-     * (try to maintain this table whenever making changes to the JEM_XXX
-     * constants!)
-     *
-     * 33 21 U+0021 ! JEM_COUNT 34 22 U+0022 " JEM_POINTCUT 35 23 U+0023 #
-     * JEM_IMPORTDECLARATION 36 24 U+0024 $ occurs inside special identifiers 37
-     * 25 U+0025 % JEM_PACKAGEDECLARATION 38 26 U+0026 & JEM_ADVICE 39 27 U+0027
-     * ' JEM_ASPECT_TYPE 40 28 U+0028 ( JEM_CLASSFILE 41 29 U+0029 )
-     * JEM_ITD_METHOD 42 2A U+002A * JEM_ASPECT_CU 43 2B U+002B + Used in type
-     * signatures cannot use 44 2C U+002C , JEM_ITD_FIELD 45 2D U+002D - Used in
-     * type signatures cannot use 46 2E U+002E . occurs in fully qualified names
-     * 47 2F U+002F / JEM_PACKAGEFRAGMENTROOT
-     *
-     * 58 3A U+003A : ? unused ? used in type signatures (not sure if this is
-     * important or not) 59 3B U+003B ; Terminator for parameter (I think), in
-     * any case I've seen it in handles 60 3C U+003C < JEM_PACKAGEFRAGMENT Used
-     * in type signatures, but apparently not a big deal 61 3D U+003D =
-     * JEM_JAVAPROJECT 62 3E U+003E > Used in type signatures 63 3F U+003F ?
-     * JEM_CODEELEMENT 64 40 U+0040 @ JEM_LOCALVARIABLE
-     *
-     * 91 5B U+005B [ JEM_TYPE 92 5C U+005C \ JEM_ESCAPE 93 5D U+005D ]
-     * JEM_TYPE_PARAMETER 94 5E U+005E ^ JEM_FIELD 95 5F U+005F _ occurs in
-     * identifiers 96 60 U+0060 ` JEM_DECLARE
-     *
-     * 123 7B U+007B { JEM_COMPILATIONUNIT 124 7C U+007C | JEM_INITIALIZER 125
-     * 7D U+007D } JEM_ANNOTATION 126 7E U+007E ~ JEM_METHOD \
-     *******************************************************************************/
+    // TODO:
+    //   Keep constants in sync between
+    //     - org.eclipse.jdt.internal.core.JavaElement (JDT Core),
+    //     - org.eclipse.ajdt.core.javaelements.AspectElement (AJDT Core),
+    //     - org.aspectj.asm.internal.HandleProviderDelimiter (AspectJ).
+    //   The reason is that JDT Core introduces new delimiters for new Java language constructs once in a while.
+    //   This led to clashes with existing AJDT symbols in the past already, which consequently had to be changed
+    //   to use other characters. Therefore, manual synchronisation with JDT Core is necessary.
 
-    // characters to use for handle identifiers, alongside the ones in
-    // JavaElement
+    // AspectJ-specific characters to use for handle identifiers, alongside the ones in JavaElement
     public static final char JEM_ASPECT_CU = '*';
-
-    public static final char JEM_ADVICE = '&';
-
-    public static final char JEM_ASPECT_TYPE = '\'';
-
+    public static final char JEM_ADVICE = '§';
+    public static final char JEM_ASPECT_TYPE = '>';
     public static final char JEM_CODEELEMENT = '?';
-
-    public static final char JEM_ITD_METHOD = ')';
-
     public static final char JEM_ITD_FIELD = ',';
-
-    public static final char JEM_DECLARE = '`';
-
-    public static final char JEM_POINTCUT = '"';
+    public static final char JEM_ITD_METHOD = '°';
+    public static final char JEM_DECLARE = '´';
+    public static final char JEM_POINTCUT = '©';
 
     public IMethod createMethod(String contents, IJavaElement sibling,
             boolean force, IProgressMonitor monitor) throws JavaModelException {
