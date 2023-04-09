@@ -32,3 +32,6 @@ out/
 
 # IDEA exported problem descriptions for refactoring
 /*.xml
+
+# IDEA downloaded OSGi core library
+/lib/osgi.core-*.jar
