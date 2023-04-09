@@ -16,7 +16,7 @@ import org.eclipse.jface.resource.ImageDescriptor;
 
 /**
  * The implementation of this interface is responsible for returning information about
- * the bars that appear in the VSisualiser view.  The related implementation of
+ * the bars that appear in the Visualiser view.  The related implementation of
  * IMarkupProvider provides the information about the colored stripes on the bars.
  *
  * A simple implementation is provided in SimpleContentProvider - this contains
@@ -62,7 +62,7 @@ public interface IContentProvider {
 	 * - Whether the click was actually on a colored area (stripe) in the member
 	 * - The buttons pressed (1 is LH button, 3 is RH button)
 	 *
-	 * The return value is whether the VSisualiser should take its normal action on this click.
+	 * The return value is whether the Visualiser should take its normal action on this click.
 	 * The normal action is that on a left hand mouse click, the visualiser subselects the
 	 * clicked member (if in the group view, it swaps to a member view of the members in that
 	 * group).  If the right hand mouse button is clicked, it returns to the previous visualisation.
