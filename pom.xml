@@ -250,6 +250,24 @@
 		</profile>
 
 		<profile>
+			<id>intellij</id>
+			<dependencies>
+				<dependency>
+					<groupId>org.aspectj</groupId>
+					<artifactId>aspectjweaver</artifactId>
+					<version>${aspectj.version}</version>
+					<scope>compile</scope>
+				</dependency>
+				<dependency>
+					<groupId>org.aspectj.ajde</groupId>
+					<artifactId>org.aspectj.weaver</artifactId>
+					<version>${aspectj.version}</version>
+					<scope>compile</scope>
+				</dependency>
+			</dependencies>
+		</profile>
+
+		<profile>
 			<id>os-macosx</id>
 			<activation>
 				<os>
