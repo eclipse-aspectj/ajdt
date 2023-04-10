@@ -252,9 +252,9 @@ public class UIBuildListener implements IAJBuildListener {
                   // TODO: can we determine whether there were
                   // actually changes to the set of advised elements?
                   Object[] listeners= fListeners.getListeners();
-                for (Object listener : listeners) {
-                  ((IAdviceChangedListener) listener).adviceChanged();
-                }
+                  for (Object listener : listeners) {
+                      ((IAdviceChangedListener) listener).adviceChanged();
+                  }
 
                   // refresh Cross References
                   if (AspectJUIPlugin.usingXref) {

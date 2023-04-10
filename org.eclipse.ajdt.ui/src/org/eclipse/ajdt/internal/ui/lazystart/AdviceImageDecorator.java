@@ -27,6 +27,8 @@ import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ILightweightLabelDecorator;
 import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 
+import java.util.Arrays;
+
 /*
  * Loading classes in this lazystart package does not immediately cause the
  * plugin to active (as specified in MANIFEST.MF). This is done to avoid early
@@ -78,8 +80,8 @@ public class AdviceImageDecorator implements ILightweightLabelDecorator {
 	private void fireAdviceChanged() {
 		if (fListeners != null && !fListeners.isEmpty()) {
 			LabelProviderChangedEvent event = new LabelProviderChangedEvent(this);
-			ILabelProviderListener[] listeners = (ILabelProviderListener[]) fListeners.getListeners();
-			for (ILabelProviderListener listener : listeners)
+			Object[] listeners = fListeners.getListeners();
+			for (ILabelProviderListener listener : Arrays.copyOf(listeners, listeners.length, ILabelProviderListener[].class))
 				listener.labelProviderChanged(event);
 		}
 	}
