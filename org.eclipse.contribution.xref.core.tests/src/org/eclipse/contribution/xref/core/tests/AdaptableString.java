@@ -19,30 +19,30 @@ import org.eclipse.core.runtime.IAdaptable;
  */
 public class AdaptableString implements IAdaptable {
 
-    private final String val;
+    private final String value;
 
     public AdaptableString() {
-        this.val = "";
+        this.value = "";
     }
-    public AdaptableString(String val) {
-        this.val = val;
+    public AdaptableString(String value) {
+        this.value = value;
     }
 
     public Object getAdapter(Class adapter) {
         if (String.class == adapter)
-            return val;
+            return value;
         return null;
     }
 
-    public String getVal() {
-        return val;
+    public String getValue() {
+        return value;
     }
 
     @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((val == null) ? 0 : val.hashCode());
+        result = prime * result + ((value == null) ? 0 : value.hashCode());
         return result;
     }
 
@@ -55,16 +55,16 @@ public class AdaptableString implements IAdaptable {
         if (getClass() != obj.getClass())
             return false;
         AdaptableString other = (AdaptableString) obj;
-        if (val == null) {
-          return other.val == null;
+        if (value == null) {
+          return other.value == null;
         } else
-          return val.equals(other.val);
+          return value.equals(other.value);
     }
 
     @Override
     public String toString() {
       String builder = "AdaptableString [val=" +
-                       val +
+              value +
                        "]";
         return builder;
     }

@@ -56,7 +56,7 @@ public class TestProvider implements IXReferenceProvider, IXReferenceProviderExt
 	 * @see org.eclipse.contribution.xref.core.tests.IXReferenceProvider#getXReferences(java.lang.Object)
 	 */
 	public Collection<IXReference> getXReferences(IAdaptable o, List<String> checked) {
-		String s = ((AdaptableString) o).getVal();
+		String s = ((AdaptableString) o).getValue();
 		Set<IAdaptable> a = new HashSet<>();
 		a.add(new AdaptableString(s.toUpperCase()));
 		XReference xr = new XReference("In Upper Case", a); //$NON-NLS-1$

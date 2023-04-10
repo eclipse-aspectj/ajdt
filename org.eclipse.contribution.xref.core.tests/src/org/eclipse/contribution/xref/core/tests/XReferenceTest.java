@@ -62,7 +62,7 @@ public class XReferenceTest extends TestCase {
 		int numElements = 0;
 		for (Iterator<IAdaptable> iter = xref.getAssociates(); iter.hasNext();) {
 			numElements++;
-			String element = ((AdaptableString) iter.next()).getVal();
+			String element = ((AdaptableString) iter.next()).getValue();
 			assertTrue(element.equals("one") || element.equals("two"));
 		}
 		assertEquals(2,numElements);
@@ -74,7 +74,7 @@ public class XReferenceTest extends TestCase {
 		int numElements = 0;
 		for (Iterator<IAdaptable> iter = xref.getAssociates(); iter.hasNext();) {
 			numElements++;
-			String element = ((AdaptableString) iter.next()).getVal();
+			String element = ((AdaptableString) iter.next()).getValue();
       assertEquals("one", element);
 		}
 		assertEquals(1,numElements);
@@ -82,7 +82,7 @@ public class XReferenceTest extends TestCase {
 		numElements = 0;
 		for (Iterator<IAdaptable> iter = xref.getAssociates(); iter.hasNext();) {
 			numElements++;
-			String element = ((AdaptableString) iter.next()).getVal();
+			String element = ((AdaptableString) iter.next()).getValue();
 			assertTrue(element.equals("one") || element.equals("two"));
 		}
 		assertEquals(2,numElements);
@@ -90,7 +90,7 @@ public class XReferenceTest extends TestCase {
 		numElements = 0;
 		for (Iterator<IAdaptable> iter = xref.getAssociates(); iter.hasNext();) {
 			numElements++;
-			String element = ((AdaptableString) iter.next()).getVal();
+			String element = ((AdaptableString) iter.next()).getValue();
 			assertTrue(element.equals("one") || element.equals("two"));
 		}
 		assertEquals(2,numElements);
@@ -104,7 +104,7 @@ public class XReferenceTest extends TestCase {
 		int numElements = 0;
 		for (Iterator<IAdaptable> iter = xref.getAssociates(); iter.hasNext();) {
 			numElements++;
-			String element = ((AdaptableString) iter.next()).getVal();
+			String element = ((AdaptableString) iter.next()).getValue();
       assertEquals("two", element);
 		}
 		assertEquals(1,numElements);
@@ -112,7 +112,7 @@ public class XReferenceTest extends TestCase {
 		numElements = 0;
 		for (Iterator<IAdaptable> iter = xref.getAssociates(); iter.hasNext();) {
 			numElements++;
-			String element = ((AdaptableString) iter.next()).getVal();
+			String element = ((AdaptableString) iter.next()).getValue();
       assertEquals("two", element);
 		}
 		assertEquals(1,numElements);

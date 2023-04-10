@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Helen Hawkins   - iniital version
@@ -25,7 +25,7 @@ import org.eclipse.core.runtime.IAdaptable;
 
 /**
  * @author hawkinsh
- *  
+ *
  */
 public class XReferenceAdapterTest extends TestCase {
 
@@ -50,7 +50,7 @@ public class XReferenceAdapterTest extends TestCase {
 		int numAssociates = 0;
 		while (it.hasNext()) {
 		    AdaptableString element = (AdaptableString) it.next();
-			assertEquals("MORE LOWER CASE", element.getVal()); //$NON-NLS-1$
+			assertEquals("MORE LOWER CASE", element.getValue()); //$NON-NLS-1$
 			numAssociates++;
 		}
 		assertEquals(1, numAssociates);
@@ -59,7 +59,7 @@ public class XReferenceAdapterTest extends TestCase {
 			XReferenceProviderManager.getManager();
 		List<XReferenceProviderDefinition> providers = manager.getRegisteredProviders();
 		for (XReferenceProviderDefinition provider : providers) {
-    		provider.setEnabled(false);            
+    		provider.setEnabled(false);
         }
 
 		XReferenceAdapter xra3 = new XReferenceAdapter(new AdaptableString("more lower case")); //$NON-NLS-1$
@@ -68,6 +68,6 @@ public class XReferenceAdapterTest extends TestCase {
 
 		for (XReferenceProviderDefinition provider : providers) {
     		provider.setEnabled(true);
-        }		
+        }
 	}
 }
