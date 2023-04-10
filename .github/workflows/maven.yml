@@ -28,8 +28,9 @@ jobs:
     strategy:
       matrix:
         os: [ ubuntu-latest, windows-latest, macOS-latest ]
-        # Tycho only supports LTS, other Java releases only short-term
-        java: [ 11, 17 ]
+        # Tycho only supports LTS, other Java releases only short-term.
+        # Tycho 3 no longer supports building on JDK 11, because it contains Java 17 class files.
+        java: [ 17 ]
       fail-fast: false
 
     runs-on: ${{ matrix.os }}
