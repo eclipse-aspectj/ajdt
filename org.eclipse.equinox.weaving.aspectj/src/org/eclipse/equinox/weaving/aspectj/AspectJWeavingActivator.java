@@ -4,9 +4,9 @@
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
- *   Martin Lippert               initial implementation      
+ *   Martin Lippert               initial implementation
  *******************************************************************************/
 
 package org.eclipse.equinox.weaving.aspectj;
@@ -39,7 +39,7 @@ public class AspectJWeavingActivator implements BundleActivator {
             final Class<?> aspectjClass = loader.loadClass(CHECK_ASPECTJ_CLASS);
             if (aspectjClass != null) {
                 starterClass = loader.loadClass(REAL_ACTIVATOR_CLASS);
-                starter = starterClass.newInstance();
+                starter = starterClass.getDeclaredConstructor().newInstance();
 
                 final Method startMethod = starterClass.getMethod("start",
                         BundleContext.class);

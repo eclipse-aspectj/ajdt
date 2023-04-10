@@ -18,7 +18,6 @@ import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.ISafeRunnable;
 import org.eclipse.core.runtime.SafeRunner;
 import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.contribution.xref.core.IXReference;
 
 /**
  * <p>
