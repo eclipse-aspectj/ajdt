@@ -5,7 +5,7 @@ Bundle-Name: Visualiser Plug-in
 Bundle-SymbolicName: org.eclipse.contribution.visualiser; singleton:=true
 Bundle-Version: 2.2.4.qualifier
 Bundle-Activator: org.eclipse.contribution.visualiser.VisualiserPlugin
-Bundle-Vendor: %providerName
+Bundle-Vendor: Eclipse AspectJ Development Tools
 Bundle-Localization: plugin
 Export-Package: org.eclipse.contribution.visualiser,
  org.eclipse.contribution.visualiser.core,

@@ -1,11 +1,11 @@
 Manifest-Version: 1.0
 Automatic-Module-Name: org.eclipse.ajdt.core
 Bundle-ManifestVersion: 2
-Bundle-Name: %pluginName
+Bundle-Name: AspectJ Development Tools Core
 Bundle-SymbolicName: org.eclipse.ajdt.core; singleton:=true
 Bundle-Version: 2.2.4.qualifier
 Bundle-Activator: org.eclipse.ajdt.core.AspectJPlugin
-Bundle-Vendor: %providerName
+Bundle-Vendor: Eclipse AspectJ Development Tools
 Bundle-Localization: plugin
 Export-Package: org.eclipse.ajdt.core;aspect-policy:=opt-in,
  org.eclipse.ajdt.core.builder;aspect-policy:=opt-in,

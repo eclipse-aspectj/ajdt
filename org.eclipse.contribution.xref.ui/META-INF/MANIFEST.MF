@@ -1,11 +1,11 @@
 Manifest-Version: 1.0
 Automatic-Module-Name: org.eclipse.contribution.xref.ui
 Bundle-ManifestVersion: 2
-Bundle-Name: %pluginName
+Bundle-Name: Cross Reference UI Plugin
 Bundle-SymbolicName: org.eclipse.contribution.xref.ui; singleton:=true
 Bundle-Version: 2.2.4.qualifier
 Bundle-Activator: org.eclipse.contribution.xref.ui.XReferenceUIPlugin
-Bundle-Vendor: %providerName
+Bundle-Vendor: Eclipse AspectJ Development Tools
 Bundle-Localization: plugin
 Export-Package: org.eclipse.contribution.xref.internal.ui.actions;x-friends:="org.eclipse.contribution.xref.ui.tests",
  org.eclipse.contribution.xref.internal.ui.help;x-friends:="org.eclipse.contribution.xref.ui.tests",

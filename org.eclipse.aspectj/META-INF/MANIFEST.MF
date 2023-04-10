@@ -1,8 +1,8 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: %pluginName
+Bundle-Name: AspectJ Development Tools
 Bundle-SymbolicName: org.eclipse.aspectj; singleton:=true
 Bundle-Version: 2.2.4.qualifier
-Bundle-Vendor: %providerName
+Bundle-Vendor: Eclipse AspectJ Development Tools
 Bundle-Localization: plugin
 Bundle-ActivationPolicy: lazy
