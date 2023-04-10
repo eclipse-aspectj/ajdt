@@ -472,20 +472,20 @@ public class JavaCorrectionProcessor implements org.eclipse.jface.text.quickassi
 	private static IProblemLocation[] getHandledProblems(IProblemLocation[] locations, ContributedProcessorDescriptor processor) {
 		// implementation tries to avoid creating a new array
 		boolean allHandled= true;
-		ArrayList res= null;
+		ArrayList<IProblemLocation> res= null;
 		for (int i= 0; i < locations.length; i++) {
 			IProblemLocation curr= locations[i];
 			if (processor.canHandleMarkerType(curr.getMarkerType())) {
 				if (!allHandled) { // first handled problem
 					if (res == null) {
-						res= new ArrayList(locations.length - i);
+						res= new ArrayList<>(locations.length - i);
 					}
 					res.add(curr);
 				}
 			} else if (allHandled) {
 				if (i > 0) { // first non handled problem
-					res= new ArrayList(locations.length - i);
-          res.addAll(Arrays.asList(locations).subList(0, i));
+					res= new ArrayList<>(locations.length - i);
+					res.addAll(Arrays.asList(locations).subList(0, i));
 				}
 				allHandled= false;
 			}
@@ -496,7 +496,7 @@ public class JavaCorrectionProcessor implements org.eclipse.jface.text.quickassi
 		if (res == null) {
 			return null;
 		}
-		return (IProblemLocation[]) res.toArray(new IProblemLocation[0]);
+		return res.toArray(new IProblemLocation[0]);
 	}
 
 	public static IStatus collectAssists(IInvocationContext context, IProblemLocation[] locations, Collection proposals) {

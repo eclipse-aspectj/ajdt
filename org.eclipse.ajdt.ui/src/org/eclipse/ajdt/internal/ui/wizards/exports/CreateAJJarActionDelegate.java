@@ -77,13 +77,13 @@ public class CreateAJJarActionDelegate extends AJJarPackageActionDelegate {  // 
     }
 
     private AJJarPackageData[] readJarPackages(IFile[] descriptions, MultiStatus readStatus) {  // AspectJ Change
-        List jarPackagesList= new ArrayList(descriptions.length);
+        List<AJJarPackageData> jarPackagesList= new ArrayList<>(descriptions.length);
       for (IFile description : descriptions) {
-        JarPackageData jarPackage = readJarPackage(description, readStatus);
+          AJJarPackageData jarPackage = readJarPackage(description, readStatus);
         if (jarPackage != null)
           jarPackagesList.add(jarPackage);
       }
-        return (AJJarPackageData[])jarPackagesList.toArray(new AJJarPackageData[0]);  // AspectJ Change
+        return jarPackagesList.toArray(new AJJarPackageData[0]);  // AspectJ Change
     }
 
     private IStatus export(AJJarPackageData[] jarPackages) {  // AspectJ Change

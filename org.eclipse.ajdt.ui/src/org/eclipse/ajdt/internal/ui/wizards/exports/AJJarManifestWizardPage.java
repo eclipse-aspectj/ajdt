@@ -12,11 +12,7 @@
 package org.eclipse.ajdt.internal.ui.wizards.exports;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
@@ -444,11 +440,11 @@ class AJJarManifestWizardPage extends WizardPage implements IJarPackageWizardPag
 	private IType findMainMethodByName(String name) {
 		if (fMainTypes == null) {
 			// AspectJ Change Begin
-			List resources= AJJarPackagerUtil.asResources(fJarPackage.getElements());
+			List<IResource> resources= AJJarPackagerUtil.asResources(fJarPackage.getElements());
 			// AspectJ Change End
 			if (resources == null)
 				setErrorMessage(JarPackagerMessages.JarManifestWizardPage_error_noResourceSelected);
-			IJavaSearchScope searchScope= JavaSearchScopeFactory.getInstance().createJavaSearchScope((IResource[])resources.toArray(new IResource[0]), true);
+			IJavaSearchScope searchScope= JavaSearchScopeFactory.getInstance().createJavaSearchScope(Objects.requireNonNull(resources).toArray(new IResource[0]), true);
 			MainMethodSearchEngine engine= new MainMethodSearchEngine();
 			try {
 				fMainTypes= engine.searchMainMethods(getContainer(), searchScope, 0);
@@ -465,13 +461,13 @@ class AJJarManifestWizardPage extends WizardPage implements IJarPackageWizardPag
 
 	protected void handleMainClassBrowseButtonPressed() {
 		// AspectJ Change Begin
-		List resources= AJJarPackagerUtil.asResources(fJarPackage.getElements());
+		List<IResource> resources= AJJarPackagerUtil.asResources(fJarPackage.getElements());
 		// AspectJ Change End
 		if (resources == null) {
 			setErrorMessage(JarPackagerMessages.JarManifestWizardPage_error_noResourceSelected);
 			return;
 		}
-		IJavaSearchScope searchScope= JavaSearchScopeFactory.getInstance().createJavaSearchScope((IResource[])resources.toArray(new IResource[0]), true);
+		IJavaSearchScope searchScope= JavaSearchScopeFactory.getInstance().createJavaSearchScope(resources.toArray(new IResource[0]), true);
 		SelectionDialog dialog= JavaUI.createMainTypeDialog(getContainer().getShell(), getContainer(), searchScope, 0, false, ""); //$NON-NLS-1$
 		dialog.setTitle(JarPackagerMessages.JarManifestWizardPage_mainTypeSelectionDialog_title);
 		dialog.setMessage(JarPackagerMessages.JarManifestWizardPage_mainTypeSelectionDialog_message);

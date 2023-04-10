@@ -74,8 +74,7 @@ public class MockProblemRequestor implements IProblemRequestor {
 
     public static int countProblems(Map<String, CategorizedProblem[]> problems) {
       int count = 0;
-      for (Object o : problems.values()) {
-        CategorizedProblem[] probsArray = (CategorizedProblem[]) o;
+      for (CategorizedProblem[] probsArray : problems.values()) {
         count += probsArray.length;
       }
       return count;

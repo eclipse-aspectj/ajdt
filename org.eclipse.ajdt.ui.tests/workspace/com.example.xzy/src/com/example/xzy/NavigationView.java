@@ -17,11 +17,11 @@ import org.eclipse.ui.part.ViewPart;
 public class NavigationView extends ViewPart {
 	public static final String ID = "com.example.xzy.navigationView";
 	private TreeViewer viewer;
-	 
+
 	class TreeObject {
 		private String name;
 		private TreeParent parent;
-		
+
 		public TreeObject(String name) {
 			this.name = name;
 		}
@@ -38,9 +38,9 @@ public class NavigationView extends ViewPart {
 			return getName();
 		}
 	}
-	
+
 	class TreeParent extends TreeObject {
-		private ArrayList children;
+		private ArrayList<TreeObject> children;
 		public TreeParent(String name) {
 			super(name);
 			children = new ArrayList();
@@ -54,33 +54,33 @@ public class NavigationView extends ViewPart {
 			child.setParent(null);
 		}
 		public TreeObject[] getChildren() {
-			return (TreeObject[]) children.toArray(new TreeObject[children.size()]);
+			return children.toArray();
 		}
 		public boolean hasChildren() {
 			return children.size()>0;
 		}
 	}
 
-	class ViewContentProvider implements IStructuredContentProvider, 
+	class ViewContentProvider implements IStructuredContentProvider,
 										   ITreeContentProvider {
 
         public void inputChanged(Viewer v, Object oldInput, Object newInput) {
 		}
-        
+
 		public void dispose() {
 		}
-        
+
 		public Object[] getElements(Object parent) {
 			return getChildren(parent);
 		}
-        
+
 		public Object getParent(Object child) {
 			if (child instanceof TreeObject) {
 				return ((TreeObject)child).getParent();
 			}
 			return null;
 		}
-        
+
 		public Object[] getChildren(Object parent) {
 			if (parent instanceof TreeParent) {
 				return ((TreeParent)parent).getChildren();
@@ -94,7 +94,7 @@ public class NavigationView extends ViewPart {
 			return false;
 		}
 	}
-	
+
 	class ViewLabelProvider extends LabelProvider {
 
 		public String getText(Object obj) {

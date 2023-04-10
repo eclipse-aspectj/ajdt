@@ -8,6 +8,7 @@
  ******************************************************************************/
 package org.eclipse.ajdt.internal.ui.editor;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -41,6 +42,7 @@ import org.eclipse.jface.text.source.AnnotationModelEvent;
 import org.eclipse.jface.text.source.IAnnotationModel;
 import org.eclipse.jface.text.source.IAnnotationModelListener;
 import org.eclipse.jface.text.source.IAnnotationModelListenerExtension;
+import org.eclipse.jface.viewers.ILabelProviderListener;
 
 /**
  * Wrapper for a CompilationUnitAnnotationModel. Only used for non-.aj files
@@ -60,8 +62,8 @@ public class CompilationUnitAnnotationModelWrapper implements IAnnotationModel, 
 		 * @see IAnnotationModelListener#modelChanged(IAnnotationModel)
 		 */
 		public void modelChanged(IAnnotationModel model) {
-			IAnnotationModelListener[] listeners = (IAnnotationModelListener[]) fListenerList.getListeners();
-			for (IAnnotationModelListener listener : listeners)
+			Object[] listeners = fListenerList.getListeners();
+			for (IAnnotationModelListener listener : Arrays.copyOf(listeners, listeners.length, IAnnotationModelListener[].class))
 				listener.modelChanged(model);
 		}
 
@@ -69,8 +71,8 @@ public class CompilationUnitAnnotationModelWrapper implements IAnnotationModel, 
 		 * @see IAnnotationModelListenerExtension#modelChanged(AnnotationModelEvent)
 		 */
 		public void modelChanged(AnnotationModelEvent event) {
-			IAnnotationModelListener[] listeners = (IAnnotationModelListener[]) fListenerList.getListeners();
-			for (IAnnotationModelListener listener : listeners) {
+			Object[] listeners = fListenerList.getListeners();
+			for (IAnnotationModelListener listener : Arrays.copyOf(listeners, listeners.length, IAnnotationModelListener[].class)) {
 				if (listener instanceof IAnnotationModelListenerExtension)
 					((IAnnotationModelListenerExtension) listener).modelChanged(event);
 			}

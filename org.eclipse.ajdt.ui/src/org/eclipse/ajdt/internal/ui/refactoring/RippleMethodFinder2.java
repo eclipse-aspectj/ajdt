@@ -55,36 +55,33 @@ import org.eclipse.jdt.internal.corext.util.SearchUtils;
 public class RippleMethodFinder2 {
 
 	private final IMethod fMethod;
-	private List/*<IMethod>*/ fDeclarations;
+	private List<IMethod> fDeclarations;
 	private ITypeHierarchy fHierarchy;
-	private Map/*IType, IMethod*/ fTypeToMethod;
-	private Set/*IType*/ fRootTypes;
-	private MultiMap/*IType, IType*/ fRootReps;
-	private Map/*IType, ITypeHierarchy*/ fRootHierarchies;
+	private Map<IType, IMethod> fTypeToMethod;
+	private Set<IType> fRootTypes;
+	private MultiMap/*<IType, IType>*/ fRootReps;
+	private Map<IType, ITypeHierarchy> fRootHierarchies;
 	private UnionFind fUnionFind;
 
 	private final boolean fExcludeBinaries;
 	private final ReferencesInBinaryContext fBinaryRefs;
-	private Map/*<IMethod, SearchMatch>*/ fDeclarationToMatch;
+	private Map<IMethod, SearchMatch> fDeclarationToMatch;
 
 	private static class MultiMap {
-		HashMap/*<IType, Collection>*/ fImplementation= new HashMap();
+		HashMap<IType, Collection<IType>> fImplementation= new HashMap<>();
 
 		public void put(IType key, IType value) {
-			Collection collection= (Collection) fImplementation.get(key);
-			if (collection == null) {
-				collection= new HashSet();
-				fImplementation.put(key, collection);
-			}
+			Collection<IType> collection = fImplementation.computeIfAbsent(key, k -> new HashSet<>());
 			collection.add(value);
 		}
 
-		public Collection get(IType key) {
-			return (Collection) fImplementation.get(key);
+		public Collection<IType> get(IType key) {
+			return fImplementation.get(key);
 		}
 	}
+
 	private static class UnionFind {
-		HashMap/*<IType, IType>*/ fElementToRepresentative= new HashMap();
+		HashMap<IType, IType> fElementToRepresentative= new HashMap<>();
 
 		public void init(IType type) {
 			fElementToRepresentative.put(type, type);
@@ -93,20 +90,20 @@ public class RippleMethodFinder2 {
 		//path compression:
 		public IType find(IType element) {
 			IType root= element;
-			IType rep= (IType) fElementToRepresentative.get(root);
+			IType rep= fElementToRepresentative.get(root);
 			while (rep != null && ! rep.equals(root)) {
 				root= rep;
-				rep= (IType) fElementToRepresentative.get(root);
+				rep= fElementToRepresentative.get(root);
 			}
 			if (rep == null)
 				return null;
 
-			rep= (IType) fElementToRepresentative.get(element);
+			rep= fElementToRepresentative.get(element);
 			while (! rep.equals(root)) {
 				IType temp= element;
 				element= rep;
 				fElementToRepresentative.put(temp, root);
-				rep= (IType) fElementToRepresentative.get(element);
+				rep= fElementToRepresentative.get(element);
 			}
 			return root;
 		}
@@ -114,10 +111,10 @@ public class RippleMethodFinder2 {
 //		//straightforward:
 //		public IType find(IType element) {
 //			IType current= element;
-//			IType rep= (IType) fElementToRepresentative.get(current);
+//			IType rep= fElementToRepresentative.get(current);
 //			while (rep != null && ! rep.equals(current)) {
 //				current= rep;
-//				rep= (IType) fElementToRepresentative.get(current);
+//				rep= fElementToRepresentative.get(current);
 //			}
 //			if (rep == null)
 //				return null;
@@ -140,7 +137,7 @@ public class RippleMethodFinder2 {
 	private RippleMethodFinder2(IMethod method, ReferencesInBinaryContext binaryRefs) {
 		fMethod= method;
 		fExcludeBinaries= true;
-		fDeclarationToMatch= new HashMap();
+		fDeclarationToMatch= new HashMap<>();
 		fBinaryRefs= binaryRefs;
 	}
 
@@ -154,6 +151,7 @@ public class RippleMethodFinder2 {
 			pm.done();
 		}
 	}
+
 	public static IMethod[] getRelatedMethods(IMethod method, IProgressMonitor pm, WorkingCopyOwner owner) throws CoreException {
 		return getRelatedMethods(method, true, pm, owner);
 	}
@@ -174,16 +172,16 @@ public class RippleMethodFinder2 {
 		if (fDeclarationToMatch == null)
 			return rippleMethods;
 
-		List rippleMethodsList= new ArrayList(Arrays.asList(rippleMethods));
-		for (Iterator iter= rippleMethodsList.iterator(); iter.hasNext(); ) {
-			Object match= fDeclarationToMatch.get(iter.next());
+		List<IMethod> rippleMethodsList= new ArrayList<>(Arrays.asList(rippleMethods));
+		for (Iterator<IMethod> iter= rippleMethodsList.iterator(); iter.hasNext(); ) {
+			SearchMatch match= fDeclarationToMatch.get(iter.next());
 			if (match != null) {
 				iter.remove();
-				fBinaryRefs.add((SearchMatch) match);
+				fBinaryRefs.add(match);
 			}
 		}
 		fDeclarationToMatch= null;
-		return (IMethod[]) rippleMethodsList.toArray(new IMethod[0]);
+		return rippleMethodsList.toArray(new IMethod[0]);
 	}
 
 	private IMethod[] findAllRippleMethods(IProgressMonitor pm, WorkingCopyOwner owner) throws CoreException {
@@ -205,19 +203,18 @@ public class RippleMethodFinder2 {
 		fHierarchy= null;
 		fRootTypes= null;
 
-		Map/*IType, List<IType>*/ partitioning= new HashMap();
-    for (Object value : fTypeToMethod.keySet()) {
-      IType type = (IType) value;
-      IType rep = fUnionFind.find(type);
-      List/*<IType>*/ types = (List) partitioning.get(rep);
-      if (types == null)
-        types = new ArrayList();
-      types.add(type);
-      partitioning.put(rep, types);
-    }
+		Map<IType, List<IType>> partitioning= new HashMap<>();
+		for (IType type : fTypeToMethod.keySet()) {
+			IType rep = fUnionFind.find(type);
+			List<IType> types = partitioning.get(rep);
+			if (types == null)
+				types = new ArrayList<>();
+			types.add(type);
+			partitioning.put(rep, types);
+		}
 		Assert.isTrue(partitioning.size() > 0);
 		if (partitioning.size() == 1)
-			return (IMethod[]) fDeclarations.toArray(new IMethod[0]);
+			return fDeclarations.toArray(new IMethod[0]);
 
 		//Multiple partitions; must look out for nasty marriage cases
 		//(types inheriting method from two ancestors, but without redeclaring it).
@@ -227,93 +224,86 @@ public class RippleMethodFinder2 {
 		// new
 		IType methodTypeRep= fUnionFind.find(getType(fMethod));
 		// AspectJ end
-		List/*<IType>*/ relatedTypes= (List) partitioning.get(methodTypeRep);
+		List<IType> relatedTypes= partitioning.get(methodTypeRep);
 		boolean hasRelatedInterfaces= false;
-		List/*<IMethod>*/ relatedMethods= new ArrayList();
-    for (Object o : relatedTypes) {
-      IType relatedType = (IType) o;
-      relatedMethods.add(fTypeToMethod.get(relatedType));
-      if (relatedType.isInterface())
-        hasRelatedInterfaces = true;
-    }
+		List<IMethod> relatedMethods= new ArrayList<>();
+		for (IType relatedType : relatedTypes) {
+			relatedMethods.add(fTypeToMethod.get(relatedType));
+			if (relatedType.isInterface())
+				hasRelatedInterfaces = true;
+		}
 
 		//Definition: An alien type is a type that is not a related type. The set of
 		// alien types diminishes as new types become related (a.k.a marry a relatedType).
 
-		List/*<IMethod>*/ alienDeclarations= new ArrayList(fDeclarations);
+		List<IMethod> alienDeclarations= new ArrayList<>(fDeclarations);
 		fDeclarations= null;
 		alienDeclarations.removeAll(relatedMethods);
-		List/*<IType>*/ alienTypes= new ArrayList();
+		List<IType> alienTypes= new ArrayList<>();
 		boolean hasAlienInterfaces= false;
-    for (Object declaration : alienDeclarations) {
-      IMethod alienDeclaration = (IMethod) declaration;
-      // AspectJ Change
-      // original
+		for (IMethod alienDeclaration : alienDeclarations) {
+			// AspectJ Change
+			// original
 //			IType alienType= alienDeclaration.getDeclaringType();
-      // new
-      IType alienType = getType(alienDeclaration);
-      // AspectJ end
-      alienTypes.add(alienType);
-      if (alienType.isInterface())
-        hasAlienInterfaces = true;
-    }
+			// new
+			IType alienType = getType(alienDeclaration);
+			// AspectJ end
+			alienTypes.add(alienType);
+			if (alienType.isInterface())
+				hasAlienInterfaces = true;
+		}
 		if (alienTypes.size() == 0) //no nasty marriage scenarios without types to marry with...
-			return (IMethod[]) relatedMethods.toArray(new IMethod[0]);
+			return relatedMethods.toArray(new IMethod[0]);
 		if (! hasRelatedInterfaces && ! hasAlienInterfaces) //no nasty marriage scenarios without interfaces...
-			return (IMethod[]) relatedMethods.toArray(new IMethod[0]);
+			return relatedMethods.toArray(new IMethod[0]);
 
 		//find all subtypes of related types:
-		HashSet/*<IType>*/ relatedSubTypes= new HashSet();
-		List/*<IType>*/ relatedTypesToProcess= new ArrayList(relatedTypes);
+		HashSet<IType> relatedSubTypes= new HashSet<>();
+		List<IType> relatedTypesToProcess= new ArrayList<>(relatedTypes);
 		while (relatedTypesToProcess.size() > 0) {
 			//TODO: would only need subtype hierarchies of all top-of-ripple relatedTypesToProcess
-      for (Object typesToProcess : relatedTypesToProcess) {
-        if (pm.isCanceled())
-          throw new OperationCanceledException();
-        IType relatedType = (IType) typesToProcess;
-        ITypeHierarchy hierarchy = getCachedHierarchy(relatedType, owner, new SubProgressMonitor(pm, 1));
-        if (hierarchy == null)
-          hierarchy = relatedType.newTypeHierarchy(owner, new SubProgressMonitor(pm, 1));
-        IType[] allSubTypes = hierarchy.getAllSubtypes(relatedType);
-        Collections.addAll(relatedSubTypes, allSubTypes);
-      }
+			for (IType relatedType : relatedTypesToProcess) {
+				if (pm.isCanceled())
+					throw new OperationCanceledException();
+				ITypeHierarchy hierarchy = getCachedHierarchy(relatedType, owner, new SubProgressMonitor(pm, 1));
+				if (hierarchy == null)
+					hierarchy = relatedType.newTypeHierarchy(owner, new SubProgressMonitor(pm, 1));
+				IType[] allSubTypes = hierarchy.getAllSubtypes(relatedType);
+				Collections.addAll(relatedSubTypes, allSubTypes);
+			}
 			relatedTypesToProcess.clear(); //processed; make sure loop terminates
 
-			HashSet/*<IType>*/ marriedAlienTypeReps= new HashSet();
-      for (Object type : alienTypes) {
-        if (pm.isCanceled())
-          throw new OperationCanceledException();
-        IType alienType = (IType) type;
-        IMethod alienMethod = (IMethod) fTypeToMethod.get(alienType);
-        ITypeHierarchy hierarchy = getCachedHierarchy(alienType, owner, new SubProgressMonitor(pm, 1));
-        if (hierarchy == null)
-          hierarchy = alienType.newTypeHierarchy(owner, new SubProgressMonitor(pm, 1));
-        IType[] allSubtypes = hierarchy.getAllSubtypes(alienType);
-        for (IType subtype : allSubtypes) {
-          if (relatedSubTypes.contains(subtype)) {
-            if (JavaModelUtil.isVisibleInHierarchy(alienMethod, subtype.getPackageFragment())) {
-              marriedAlienTypeReps.add(fUnionFind.find(alienType));
-            }
-            else {
-              // not overridden
-            }
-          }
-        }
-      }
+			HashSet<IType> marriedAlienTypeReps = new HashSet<>();
+			for (IType alienType : alienTypes) {
+				if (pm.isCanceled())
+					throw new OperationCanceledException();
+				IMethod alienMethod = fTypeToMethod.get(alienType);
+				ITypeHierarchy hierarchy = getCachedHierarchy(alienType, owner, new SubProgressMonitor(pm, 1));
+				if (hierarchy == null)
+					hierarchy = alienType.newTypeHierarchy(owner, new SubProgressMonitor(pm, 1));
+				IType[] allSubtypes = hierarchy.getAllSubtypes(alienType);
+				for (IType subtype : allSubtypes) {
+					if (relatedSubTypes.contains(subtype)) {
+						if (JavaModelUtil.isVisibleInHierarchy(alienMethod, subtype.getPackageFragment())) {
+							marriedAlienTypeReps.add(fUnionFind.find(alienType));
+						} else {
+							// not overridden
+						}
+					}
+				}
+			}
 
 			if (marriedAlienTypeReps.size() == 0)
-				return (IMethod[]) relatedMethods.toArray(new IMethod[0]);
+				return relatedMethods.toArray(new IMethod[0]);
 
-      for (Object alienTypeRep : marriedAlienTypeReps) {
-        IType marriedAlienTypeRep = (IType) alienTypeRep;
-        List/*<IType>*/ marriedAlienTypes = (List) partitioning.get(marriedAlienTypeRep);
-        for (Object marriedAlienType : marriedAlienTypes) {
-          IType marriedAlienInterfaceType = (IType) marriedAlienType;
-          relatedMethods.add(fTypeToMethod.get(marriedAlienInterfaceType));
-        }
-        alienTypes.removeAll(marriedAlienTypes); //not alien any more
-        relatedTypesToProcess.addAll(marriedAlienTypes); //process freshly married types again
-      }
+			for (IType marriedAlienTypeRep : marriedAlienTypeReps) {
+				List<IType> marriedAlienTypes = partitioning.get(marriedAlienTypeRep);
+				for (IType marriedAlienInterfaceType : marriedAlienTypes) {
+					relatedMethods.add(fTypeToMethod.get(marriedAlienInterfaceType));
+				}
+				alienTypes.removeAll(marriedAlienTypes); //not alien any more
+				relatedTypesToProcess.addAll(marriedAlienTypes); //process freshly married types again
+			}
 		}
 
 		fRootReps= null;
@@ -321,29 +311,28 @@ public class RippleMethodFinder2 {
 		fTypeToMethod= null;
 		fUnionFind= null;
 
-		return (IMethod[]) relatedMethods.toArray(new IMethod[0]);
+		return relatedMethods.toArray(new IMethod[0]);
 	}
 
 	private ITypeHierarchy getCachedHierarchy(IType type, WorkingCopyOwner owner, IProgressMonitor monitor) throws JavaModelException {
 		IType rep= fUnionFind.find(type);
 		if (rep != null) {
-			Collection collection= fRootReps.get(rep);
-      for (Object o : collection) {
-        IType root = (IType) o;
-        ITypeHierarchy hierarchy = (ITypeHierarchy) fRootHierarchies.get(root);
-        if (hierarchy == null) {
-          hierarchy = root.newTypeHierarchy(owner, new SubProgressMonitor(monitor, 1));
-          fRootHierarchies.put(root, hierarchy);
-        }
-        if (hierarchy.contains(type))
-          return hierarchy;
-      }
+			Collection<IType> collection = fRootReps.get(rep);
+			for (IType root : collection) {
+				ITypeHierarchy hierarchy = fRootHierarchies.get(root);
+				if (hierarchy == null) {
+					hierarchy = root.newTypeHierarchy(owner, new SubProgressMonitor(monitor, 1));
+					fRootHierarchies.put(root, hierarchy);
+				}
+				if (hierarchy.contains(type))
+					return hierarchy;
+			}
 		}
 		return null;
 	}
 
 	private void findAllDeclarations(IProgressMonitor monitor, WorkingCopyOwner owner) throws CoreException {
-		fDeclarations= new ArrayList();
+		fDeclarations= new ArrayList<>();
 
 		class MethodRequestor extends SearchRequestor {
 			public void acceptSearchMatch(SearchMatch match) throws CoreException {
@@ -370,89 +359,81 @@ public class RippleMethodFinder2 {
 	}
 
 	private void createHierarchyOfDeclarations(IProgressMonitor pm, WorkingCopyOwner owner) throws JavaModelException {
-		IRegion region= JavaCore.newRegion();
-    for (Object fDeclaration : fDeclarations) {
-      // AspectJ Change
-      // original
-//		    IType declaringType= ((IMethod) iter.next()).getDeclaringType();
-      // new
-      IType declaringType = getType((IMethod) fDeclaration);
-      // AspectJ end
-      region.add(declaringType);
-    }
-		fHierarchy= JavaCore.newTypeHierarchy(region, owner, pm);
+		IRegion region = JavaCore.newRegion();
+		for (IMethod declaringType : fDeclarations) {
+			// AspectJ Change
+			// original
+			// IType declaringType= ((IMethod) iter.next()).getDeclaringType();
+			// new
+			// AspectJ end
+			region.add(declaringType);
+		}
+		fHierarchy = JavaCore.newTypeHierarchy(region, owner, pm);
 	}
 
 	private void createTypeToMethod() {
-		fTypeToMethod= new HashMap();
-    for (Object fDeclaration : fDeclarations) {
-      IMethod declaration = (IMethod) fDeclaration;
-      // AspectJ Change
-      // original
-//			fTypeToMethod.put(declaration.getDeclaringType(), declaration);
-      // new
-      fTypeToMethod.put(getType(declaration), declaration);
-      // AspectJ end
-    }
+		fTypeToMethod = new HashMap<>();
+		for (IMethod declaration : fDeclarations) {
+			// AspectJ Change
+			// original
+			//fTypeToMethod.put(declaration.getDeclaringType(), declaration);
+			// new
+			fTypeToMethod.put(getType(declaration), declaration);
+			// AspectJ end
+		}
 	}
 
 	private void createUnionFind() throws JavaModelException {
-		fRootTypes= new HashSet(fTypeToMethod.keySet());
-		fUnionFind= new UnionFind();
-    for (Object value : fTypeToMethod.keySet()) {
-      IType type = (IType) value;
-      fUnionFind.init(type);
-    }
-    for (Object o : fTypeToMethod.keySet()) {
-      IType type = (IType) o;
-      uniteWithSupertypes(type, type);
-    }
-		fRootReps= new MultiMap();
-    for (Object fRootType : fRootTypes) {
-      IType type = (IType) fRootType;
-      IType rep = fUnionFind.find(type);
-      if (rep != null)
-        fRootReps.put(rep, type);
-    }
-		fRootHierarchies= new HashMap();
+		fRootTypes = new HashSet<>(fTypeToMethod.keySet());
+		fUnionFind = new UnionFind();
+		for (IType type : fTypeToMethod.keySet()) {
+			fUnionFind.init(type);
+		}
+		for (IType type : fTypeToMethod.keySet()) {
+			uniteWithSupertypes(type, type);
+		}
+		fRootReps = new MultiMap();
+		for (IType type : fRootTypes) {
+			IType rep = fUnionFind.find(type);
+			if (rep != null)
+				fRootReps.put(rep, type);
+		}
+		fRootHierarchies = new HashMap<>();
 	}
 
 	private void uniteWithSupertypes(IType anchor, IType type) throws JavaModelException {
-		IType[] supertypes= fHierarchy.getSupertypes(type);
-    for (IType supertype : supertypes) {
-      IType superRep = fUnionFind.find(supertype);
-      if (superRep == null) {
-        //Type doesn't declare method, but maybe supertypes?
-        uniteWithSupertypes(anchor, supertype);
-      }
-      else {
-        //check whether method in supertype is really overridden:
-        IMember superMethod = (IMember) fTypeToMethod.get(supertype);
-        if (JavaModelUtil.isVisibleInHierarchy(superMethod, anchor.getPackageFragment())) {
-          IType rep = fUnionFind.find(anchor);
-          fUnionFind.union(rep, superRep);
-          // current type is no root anymore
-          fRootTypes.remove(anchor);
-          uniteWithSupertypes(supertype, supertype);
-        }
-        else {
-          //Not overridden -> overriding chain ends here.
-        }
-      }
-    }
+		IType[] supertypes = fHierarchy.getSupertypes(type);
+		for (IType supertype : supertypes) {
+			IType superRep = fUnionFind.find(supertype);
+			if (superRep == null) {
+				//Type doesn't declare method, but maybe supertypes?
+				uniteWithSupertypes(anchor, supertype);
+			} else {
+				//check whether method in supertype is really overridden:
+				IMember superMethod = (IMember) fTypeToMethod.get(supertype);
+				if (JavaModelUtil.isVisibleInHierarchy(superMethod, anchor.getPackageFragment())) {
+					IType rep = fUnionFind.find(anchor);
+					fUnionFind.union(rep, superRep);
+					// current type is no root anymore
+					fRootTypes.remove(anchor);
+					uniteWithSupertypes(supertype, supertype);
+				} else {
+					//Not overridden -> overriding chain ends here.
+				}
+			}
+		}
 	}
 
 	// AspectJ change
 	private IType getType(IMethod method) {
-	    if (method instanceof IntertypeElement) {
-	        IType candidate = ((IntertypeElement) method).findTargetType();
-	        if (candidate != null) {
-	            return candidate;
-	        }
-	    }
-	    return method.getDeclaringType();
+		if (method instanceof IntertypeElement) {
+			IType candidate = ((IntertypeElement) method).findTargetType();
+			if (candidate != null) {
+				return candidate;
+			}
+		}
+		return method.getDeclaringType();
 	}
 	// AspectJ end
-
 
 }

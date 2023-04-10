@@ -143,7 +143,7 @@ public class ProblemFinderTests extends AJDTCoreTestCase {
                     ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
 
             assertEquals("Should have one syntax error.", 1, MockProblemRequestor.filterProblems(problems).size()); //$NON-NLS-1$
-            CategorizedProblem prob = ((CategorizedProblem[]) problems.values().iterator().next())[0];
+            CategorizedProblem prob = problems.values().iterator().next()[0];
             assertEquals("Return type for the method is missing", prob.getMessage()); //$NON-NLS-1$
         } finally {
             // reset contents

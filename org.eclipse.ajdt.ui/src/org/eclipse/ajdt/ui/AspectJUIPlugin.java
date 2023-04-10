@@ -216,18 +216,18 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 	 * point, but there doesn't seem to be one.
 	 */
 	private void checkTemplatesInstalled() {
-	    TemplateStore codeTemplates;
-	    try {
-    		codeTemplates = JavaPlugin.getDefault()
-    				.getTemplateStore();
-	    } catch (Exception e) {
-	        // a problem occurred while loading templates (Bug 259033)
-	        // just ignore and try the next time.
-	        return;
-	    }
+		TemplateStore codeTemplates;
+		try {
+			codeTemplates = JavaPlugin.getDefault()
+					.getTemplateStore();
+		} catch (Exception e) {
+			// a problem occurred while loading templates (Bug 259033)
+			// just ignore and try the next time.
+			return;
+		}
 		// bug 90791: don't add templates if they are already there
 		// bug 125998: using pertypewithin because it was the most recently added
-	    // bug 245265: also look for the the "aspectj" context
+		// bug 245265: also look for the the "aspectj" context
 		Template template = codeTemplates.findTemplate("pertypewithin");
         if (template == null || !template.getContextTypeId().equals("aspectj")) { //$NON-NLS-1$
 			try {
@@ -237,7 +237,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 				if ((templates == null) || (templates.length == 0)) {
 					AJLog.log(UIMessages.codeTemplates_couldNotLoad);
 				} else {
-				    TemplatePersistenceData[] existingTemplates = codeTemplates.getTemplateData(true);
+					TemplatePersistenceData[] existingTemplates = codeTemplates.getTemplateData(true);
           for (TemplatePersistenceData templatePersistenceData : templates) {
             // Check that the individual template has not already been added
             // would have been nice if templates used the ID tag, but they don't, so have to iterate through all
@@ -289,8 +289,8 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 						| IResourceChangeEvent.PRE_BUILD);
 
 		if (!AspectJPlugin.getDefault().isHeadless()) {
-    		// set the UI version of core operations
-    		AspectJPlugin.getDefault().setAJLogger(new EventTraceLogger());
+			// set the UI version of core operations
+			AspectJPlugin.getDefault().setAJLogger(new EventTraceLogger());
 		}
 		// set the compiler factory to be the ui one
 		setCompilerFactory(new UICompilerFactory());
@@ -310,7 +310,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 
 		checkAspectJVersion();
 
-	    Job cuInitJob = new Job("Initialize CompilationUnit Manager") {
+		Job cuInitJob = new Job("Initialize CompilationUnit Manager") {
             protected IStatus run(IProgressMonitor monitor) {
                 // bug 278425 --- see if m2eclipse exists and ensure it is started before continuing
                 startM2Eclipse();
@@ -326,21 +326,21 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 
 	// this method may be outdated since the name of the bundle has moved
 	private void startM2Eclipse() {
-	    Bundle m2eclipseBundle = Platform.getBundle("org.maven.ide.eclipse");
-	    if (m2eclipseBundle != null) {
-	        try {
-	            // start bundle, but don't force bundle to be restarted next time
-	            m2eclipseBundle.start(Bundle.START_TRANSIENT);
-	        } catch (BundleException e) {
-	            // bundle couldn't be started for some reason
-	        }
-	    }
+		Bundle m2eclipseBundle = Platform.getBundle("org.maven.ide.eclipse");
+		if (m2eclipseBundle != null) {
+			try {
+				// start bundle, but don't force bundle to be restarted next time
+				m2eclipseBundle.start(Bundle.START_TRANSIENT);
+			} catch (BundleException e) {
+				// bundle couldn't be started for some reason
+			}
+		}
 	}
 
     public void stop(BundleContext context) throws Exception {
-	    super.stop(context);
-	    AspectJPlugin.getWorkspace().removeResourceChangeListener(ajProjectListener);
-	    AJBuilder.removeAJBuildListener(buildListener);
+		super.stop(context);
+		AspectJPlugin.getWorkspace().removeResourceChangeListener(ajProjectListener);
+		AJBuilder.removeAJBuildListener(buildListener);
 	}
 
 	/**
@@ -401,21 +401,20 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 			IClasspathEntry[] originalCP = javaProject.getRawClasspath();
 			IPath ajrtPath = new Path(AspectJPlugin.ASPECTJRT_CONTAINER);
 			boolean found = false;
-      for (IClasspathEntry iClasspathEntry : originalCP) {
-        if (iClasspathEntry.getPath().equals(ajrtPath)) {
-          found = true;
-          break;
-        }
-      }
+			for (IClasspathEntry iClasspathEntry : originalCP) {
+				if (iClasspathEntry.getPath().equals(ajrtPath)) {
+					found = true;
+					break;
+				}
+			}
 			if (!found) {
-    			IClasspathEntry ajrtLIB = JavaCore.newContainerEntry(
-    					ajrtPath, false);
-    			// Update the raw classpath with the new ajrtCP entry.
-    			int originalCPLength = originalCP.length;
-    			IClasspathEntry[] newCP = new IClasspathEntry[originalCPLength + 1];
-    			System.arraycopy(originalCP, 0, newCP, 0, originalCPLength);
-    			newCP[originalCPLength] = ajrtLIB;
-    			javaProject.setRawClasspath(newCP, new NullProgressMonitor());
+				IClasspathEntry ajrtLIB = JavaCore.newContainerEntry(ajrtPath, false);
+				// Update the raw classpath with the new ajrtCP entry.
+				int originalCPLength = originalCP.length;
+				IClasspathEntry[] newCP = new IClasspathEntry[originalCPLength + 1];
+				System.arraycopy(originalCP, 0, newCP, 0, originalCPLength);
+				newCP[originalCPLength] = ajrtLIB;
+				javaProject.setRawClasspath(newCP, new NullProgressMonitor());
 			}
 		} catch (JavaModelException ignored) {
 		}
@@ -431,36 +430,31 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 		IJavaProject javaProject = JavaCore.create(project);
 		try {
 			IClasspathEntry[] originalCP = javaProject.getRawClasspath();
-			ArrayList tempCP = new ArrayList();
+			ArrayList<IClasspathEntry> tempCP = new ArrayList<>();
 
 			// Go through each current classpath entry one at a time. If it
 			// is not a reference to the aspectjrt.jar then do not add it
 			// to the collection of new classpath entries.
-      for (IClasspathEntry iClasspathEntry : originalCP) {
-        IPath path = iClasspathEntry.getPath();
-        boolean keep = true;
-        if (path.toOSString().endsWith("ASPECTJRT_LIB") //$NON-NLS-1$
-            || path.toOSString().endsWith("aspectjrt.jar"))
-        { //$NON-NLS-1$
-          keep = false;
-        }
-        if (iClasspathEntry.getEntryKind() == IClasspathEntry.CPE_CONTAINER) {
-          if (path.segment(0).equals(AspectJPlugin.ASPECTJRT_CONTAINER)) {
-            keep = false;
-          }
-        }
-        if (keep) {
-          tempCP.add(iClasspathEntry);
-        }
-      }// end for
+			for (IClasspathEntry iClasspathEntry : originalCP) {
+				IPath path = iClasspathEntry.getPath();
+				boolean keep = !path.toOSString().endsWith("ASPECTJRT_LIB") //$NON-NLS-1$
+						&& !path.toOSString().endsWith("aspectjrt.jar"); //$NON-NLS-1$
+				if (iClasspathEntry.getEntryKind() == IClasspathEntry.CPE_CONTAINER) {
+					if (path.segment(0).equals(AspectJPlugin.ASPECTJRT_CONTAINER)) {
+						keep = false;
+					}
+				}
+				if (keep) {
+					tempCP.add(iClasspathEntry);
+				}
+			} // end for
 
 			// Set the classpath with only those elements that survived the
 			// above filtration process.
 			if (originalCP.length != tempCP.size()) {
-				IClasspathEntry[] newCP = (IClasspathEntry[]) tempCP
-						.toArray(new IClasspathEntry[0]);
+				IClasspathEntry[] newCP = tempCP.toArray(new IClasspathEntry[0]);
 				javaProject.setRawClasspath(newCP, new NullProgressMonitor());
-			}// end if at least one classpath element removed
+			} // end if at least one classpath element removed
 		} catch (JavaModelException ignored) {
 		}
 	}

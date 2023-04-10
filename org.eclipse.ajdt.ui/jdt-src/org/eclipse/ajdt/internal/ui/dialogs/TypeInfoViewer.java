@@ -1055,14 +1055,14 @@ public class TypeInfoViewer {
 
 	public TypeNameMatch[] getSelection() {
 		TableItem[] items = fTable.getSelection();
-		List result = new ArrayList(items.length);
+		List<TypeNameMatch> result = new ArrayList<>(items.length);
 		for (TableItem item : items) {
 			Object data = item.getData();
 			if (data instanceof TypeNameMatch) {
-				result.add(data);
+				result.add((TypeNameMatch) data);
 			}
 		}
-		return (TypeNameMatch[]) result.toArray(new TypeNameMatch[0]);
+		return result.toArray(new TypeNameMatch[0]);
 	}
 
 	public void stop() {
