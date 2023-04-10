@@ -57,17 +57,16 @@ public class AJJarPackagerUtil {
 	 *
 	 * @return a List with the selected resources
 	 */
-	public static List asResources(Object[] fSelectedElements) {
+	public static List<IResource> asResources(Object[] fSelectedElements) {
 		if (fSelectedElements == null)
 			return null;
-		List selectedResources= new ArrayList(fSelectedElements.length);
-    for (Object element : fSelectedElements) {
-      if (element instanceof IJavaElement) {
-        selectedResources.add(((IJavaElement) element).getResource());
-      }
-      else if (element instanceof IResource)
-        selectedResources.add(element);
-    }
+		List<IResource> selectedResources = new ArrayList<>(fSelectedElements.length);
+		for (Object element : fSelectedElements) {
+			if (element instanceof IJavaElement) {
+				selectedResources.add(((IJavaElement) element).getResource());
+			} else if (element instanceof IResource)
+				selectedResources.add((IResource) element);
+		}
 		return selectedResources;
 	}
 
@@ -82,9 +81,9 @@ public class AJJarPackagerUtil {
 	 * If the JAR package setting does not allow to overwrite the manifest
 	 * then a dialog will ask the user again.
 	 *
-	 * @param	parent	the parent for the dialog,
+	 * @param    parent    the parent for the dialog,
 	 * 			or <code>null</code> if no dialog should be presented
-	 * @return	<code>true</code> if it is OK to create the JAR
+	 * @return    <code>true</code> if it is OK to create the JAR
 	 */
 	static boolean canOverwrite(Shell parent, IFile file) {
 		if (file.isAccessible())
@@ -118,8 +117,8 @@ public class AJJarPackagerUtil {
 	/**
 	 * Creates a <code>CoreException</code> with the given parameters.
 	 *
-	 * @param	message	a string with the message
-	 * @param	ex		the exception to be wrapped or <code>null</code> if none
+	 * @param    message    a string with the message
+	 * @param    ex        the exception to be wrapped or <code>null</code> if none
 	 * @return a CoreException
 	 */
 	public static CoreException createCoreException(String message, Exception ex) {
@@ -136,18 +135,15 @@ public class AJJarPackagerUtil {
 	public static boolean isMainClassValid(JarPackageData data, IRunnableContext context) {
 		if (data == null)
 			return false;
-
-		IType mainClass= data.getManifestMainClass();
+		IType mainClass = data.getManifestMainClass();
 		if (mainClass == null)
 			// no main class specified
 			return true;
-
 		try {
 			// Check if main method is in scope
-			IFile file= (IFile)mainClass.getResource();
+			IFile file = (IFile) mainClass.getResource();
 			if (file == null || !contains(asResources(data.getElements()), file))
 				return false;
-
 			// Test if it has a main method
 			return JavaModelUtil.hasMainMethod(mainClass);
 		} catch (JavaModelException ignored) {
@@ -155,28 +151,25 @@ public class AJJarPackagerUtil {
 		return false;
 	}
 
-	static boolean contains(List resources, IFile file) {
+	static boolean contains(List<IResource> resources, IFile file) {
 		if (resources == null || file == null)
 			return false;
-
 		if (resources.contains(file))
 			return true;
-
-    for (Object o : resources) {
-      IResource resource = (IResource) o;
-      if (resource != null && resource.getType() != IResource.FILE) {
-        List children;
-        try {
-          children = Arrays.asList(((IContainer) resource).members());
-        }
-        catch (CoreException ex) {
-          // ignore this folder
-          continue;
-        }
-        if (contains(children, file))
-          return true;
-      }
-    }
+		for (IResource resource : resources) {
+			if (resource != null && resource.getType() != IResource.FILE) {
+				List<IResource> children;
+				try {
+					children = Arrays.asList(((IContainer) resource).members());
+				} catch (CoreException ex) {
+					// ignore this folder
+					continue;
+				}
+				if (contains(children, file))
+					return true;
+			}
+		}
 		return false;
 	}
+
 }
