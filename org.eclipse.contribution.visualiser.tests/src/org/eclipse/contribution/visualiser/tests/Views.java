@@ -71,7 +71,7 @@ public class Views extends TestCase {
 //	assertTrue("Views should be up after showViews() ?!??! ",viewsonscreen);
 	ProviderDefinition[] providers = ProviderManager.getAllProviderDefinitions();
 	int important_providers = 0; // Should have reached '2' by end of the next loop !
-	StringBuffer providersString = new StringBuffer();
+	StringBuilder providersString = new StringBuilder();
 		for (ProviderDefinition provider : providers) {
 			if (provider.getContentProvider() instanceof ResourceContentProvider
 				&& provider.getMarkupInstance() instanceof MarkerMarkupProvider) {

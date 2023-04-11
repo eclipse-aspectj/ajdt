@@ -64,7 +64,7 @@ public class MarkupUtilsTest extends TestCase {
 		}
 	if (!found) {
 		// dump some data we'll need for debugging !
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		for (IMarkupKind expKind : expKinds) {
 			sb.append(expKind).append(" "); //$NON-NLS-1$
 		}
