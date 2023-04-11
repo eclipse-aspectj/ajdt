@@ -1080,9 +1080,7 @@ public class AJProjectModelFacade {
 
             String spaces(int depth) {
                 StringBuilder sb = new StringBuilder();
-                for (int i = 0; i < depth; i++) {
-                    sb.append(" ");
-                }
+                sb.append(" ".repeat(Math.max(0, depth)));
                 return sb.toString();
             }
         };

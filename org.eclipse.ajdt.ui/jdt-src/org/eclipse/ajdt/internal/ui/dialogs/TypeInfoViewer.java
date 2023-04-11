@@ -790,9 +790,7 @@ public class TypeInfoViewer {
 		public String getText(int width) {
 			StringBuilder dashes = new StringBuilder();
 			int chars = (((width - fMessageLength) / fSeparatorWidth) / 2) - 2;
-			for (int i = 0; i < chars; i++) {
-				dashes.append(SEPARATOR);
-			}
+      dashes.append(String.valueOf(SEPARATOR).repeat(Math.max(0, chars)));
 			String result = dashes +
 											fMessage +
 											dashes;

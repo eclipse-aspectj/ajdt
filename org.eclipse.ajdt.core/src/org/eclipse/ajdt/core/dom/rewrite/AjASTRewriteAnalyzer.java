@@ -875,9 +875,7 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 
 			String lineDelim= getLineDelimiter();
 			StringBuilder buf= new StringBuilder(lineDelim);
-			for (int i= 0; i < newLines; i++) {
-				buf.append(lineDelim);
-			}
+			buf.append(lineDelim.repeat(Math.max(0, newLines)));
 			buf.append(createIndentString(getNodeIndent(nodeIndex + 1)));
 			return buf.toString();
 		}
@@ -955,9 +953,7 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 		ParagraphListRewriter listRewriter= new ParagraphListRewriter(insertIndent, separator);
 		StringBuilder leadString= new StringBuilder();
 		if (isAllOfKind(events, RewriteEvent.INSERTED)) {
-			for (int i= 0; i < lead; i++) {
-				leadString.append(getLineDelimiter());
-			}
+			leadString.append(String.valueOf(getLineDelimiter()).repeat(Math.max(0, lead)));
 			leadString.append(createIndentString(insertIndent));
 		}
 		return listRewriter.rewriteList(parent, property, insertPos, leadString.toString());
