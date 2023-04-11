@@ -54,7 +54,7 @@ public class DeclareElement extends AspectJMemberElement{
                     List<String> typesConverted = new ArrayList<>(types.size());
                     for (String parentTypeName : types) {
 
-                        parentTypeName = parentTypeName.replaceAll("\\$", "\\.");
+                        parentTypeName = parentTypeName.replaceAll("\\$", ".");
                         typesConverted.add(parentTypeName);
                     }
                     elementInfo.setTypes(typesConverted.toArray(new String[0]));

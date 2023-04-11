@@ -87,8 +87,7 @@ public class PaletteManager {
    * @return the PaletteDefinition found, or null
    */
   public static PaletteDefinition getPaletteByName(String name) {
-    for (Object o : getAllPaletteDefinitions()) {
-      PaletteDefinition r = (PaletteDefinition) o;
+    for (PaletteDefinition r : getAllPaletteDefinitions()) {
       if (r.getName().equals(name)) {
         return r;
       }
@@ -103,8 +102,7 @@ public class PaletteManager {
    * @return the PaletteDefinition with the given id, or null
    */
   public static PaletteDefinition getPaletteByID(String id) {
-    for (Object o : getAllPaletteDefinitions()) {
-      PaletteDefinition r = (PaletteDefinition) o;
+    for (PaletteDefinition r : getAllPaletteDefinitions()) {
       if (r.getID().equals(id)) {
         return r;
       }

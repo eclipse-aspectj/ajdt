@@ -100,7 +100,7 @@ public class MarkupUtilsTest extends TestCase {
   	assertTrue(inputs.size()==1);
   	Stripe s = (Stripe)inputs.get(0);
   	assertTrue(containsStripe(inputs,A,5,1,ANYWHERE));
-  	assertTrue(((IMarkupKind)s.getKinds().get(0)).getName().equals("AAA")); //$NON-NLS-1$
+  	assertTrue(s.getKinds().get(0).getName().equals("AAA")); //$NON-NLS-1$
   	assertTrue(s.getOffset()==5);
   }
 

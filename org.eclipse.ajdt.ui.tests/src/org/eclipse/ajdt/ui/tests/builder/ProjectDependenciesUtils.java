@@ -108,37 +108,27 @@ public class ProjectDependenciesUtils {
 
 		IMarker[] problemMarkers = project.findMarkers(IMarker.PROBLEM, false,
 				IResource.DEPTH_INFINITE);
-		if (problemMarkers.length > 0) {
-      for (IMarker marker : problemMarkers) {
-        int markerSeverity = marker.getAttribute(IMarker.SEVERITY, -1);
-        String markerMessage = marker.getAttribute(IMarker.MESSAGE,
-          "no message"); //$NON-NLS-1$
-        if (markerSeverity == IMarker.SEVERITY_ERROR) {
-          if (errorMessage == null
-              || markerMessage.equals(errorMessage))
-          {
-            return true;
-          }
-        }
-      }
+		for (IMarker marker : problemMarkers) {
+			int markerSeverity = marker.getAttribute(IMarker.SEVERITY, -1);
+			String markerMessage = marker.getAttribute(IMarker.MESSAGE, "no message"); //$NON-NLS-1$
+			if (markerSeverity == IMarker.SEVERITY_ERROR) {
+				if (errorMessage == null || markerMessage.equals(errorMessage)) {
+					return true;
+				}
+			}
 		}
 		IMarker[] javaModelMarkers = project.findMarkers(
 				IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, false,
 				IResource.DEPTH_INFINITE);
-		if (javaModelMarkers.length > 0) {
-      for (IMarker marker : javaModelMarkers) {
-        int markerSeverity = marker.getAttribute(IMarker.SEVERITY, -1);
-        String markerMessage = marker.getAttribute(IMarker.MESSAGE,
-          "no message"); //$NON-NLS-1$
-        if (markerSeverity == IMarker.SEVERITY_ERROR) {
-          if (errorMessage == null
-              || markerMessage.equals(errorMessage))
-          {
-            System.out.println("TEST: error message: " + markerMessage); //$NON-NLS-1$
-            projectIsMarked = true;
-          }
-        }
-      }
+		for (IMarker marker : javaModelMarkers) {
+			int markerSeverity = marker.getAttribute(IMarker.SEVERITY, -1);
+			String markerMessage = marker.getAttribute(IMarker.MESSAGE, "no message"); //$NON-NLS-1$
+			if (markerSeverity == IMarker.SEVERITY_ERROR) {
+				if (errorMessage == null || markerMessage.equals(errorMessage)) {
+					System.out.println("TEST: error message: " + markerMessage); //$NON-NLS-1$
+					projectIsMarked = true;
+				}
+			}
 		}
 
 		waitForJobsToComplete();
@@ -310,17 +300,11 @@ public class ProjectDependenciesUtils {
 			IMarker[] javaModelMarkers = project.findMarkers(
 					IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, false,
 					IResource.DEPTH_INFINITE);
-			if (javaModelMarkers.length > 0) {
-				for (IMarker marker : javaModelMarkers) {
-					int markerSeverity = marker.getAttribute(IMarker.SEVERITY,
-						-1);
-					String markerMessage = marker.getAttribute(IMarker.MESSAGE,
-						"no message"); //$NON-NLS-1$
-					if (markerSeverity == IMarker.SEVERITY_ERROR
-							&& markerMessage.equals(errorMessage))
-					{
-						return true;
-					}
+			for (IMarker marker : javaModelMarkers) {
+				int markerSeverity = marker.getAttribute(IMarker.SEVERITY, -1);
+				String markerMessage = marker.getAttribute(IMarker.MESSAGE, "no message"); //$NON-NLS-1$
+				if (markerSeverity == IMarker.SEVERITY_ERROR && markerMessage.equals(errorMessage)) {
+					return true;
 				}
 			}
 		} catch (CoreException e) {

@@ -292,11 +292,9 @@ public class XReferenceView extends ViewPart implements ISelectionListener,
 			if (activePage != null) {
 				IEditorReference[] openEditors = activePage
 						.getEditorReferences();
-				if (openEditors.length != 0) {
-					// remove the part listener for each open editor
-          for (IEditorReference openEditor : openEditors) {
-            openEditor.getPage().removePartListener(this);
-          }
+				// remove the part listener for each open editor
+				for (IEditorReference openEditor : openEditors) {
+					openEditor.getPage().removePartListener(this);
 				}
 			}
 		}
@@ -461,11 +459,9 @@ public class XReferenceView extends ViewPart implements ISelectionListener,
 			if (activePage != null) {
 				IEditorReference[] openEditors = activePage
 						.getEditorReferences();
-				if (openEditors.length != 0) {
-					// add a part listener to each open editor
-          for (IEditorReference openEditor : openEditors) {
-            openEditor.getPage().addPartListener(this);
-          }
+				// add a part listener to each open editor
+				for (IEditorReference openEditor : openEditors) {
+					openEditor.getPage().addPartListener(this);
 				}
 			}
 		}

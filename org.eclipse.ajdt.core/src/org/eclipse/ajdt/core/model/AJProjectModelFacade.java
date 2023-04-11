@@ -275,7 +275,7 @@ public class AJProjectModelFacade {
                 if (count > 1) {
                     // there is more than one element
                     // with this name
-                    ajHandle += "" + JavaElement.JEM_COUNT + count;
+                    ajHandle += String.valueOf(JavaElement.JEM_COUNT) + count;
                 }
             }
 
@@ -341,7 +341,7 @@ public class AJProjectModelFacade {
 
     private String convertToAspectJBinaryHandle(String ajHandle, boolean isSourceFromDependingProject) {
         int packageIndex = ajHandle.indexOf(JavaElement.JEM_PACKAGEFRAGMENT);
-        String newHandle = "" + JavaElement.JEM_JAVAPROJECT + project.getName() + JavaElement.JEM_PACKAGEFRAGMENTROOT + "binaries" + ajHandle.substring(packageIndex);
+        String newHandle = JavaElement.JEM_JAVAPROJECT + project.getName() + JavaElement.JEM_PACKAGEFRAGMENTROOT + "binaries" + ajHandle.substring(packageIndex);
 
         if (isSourceFromDependingProject) {
             // also must convert from a source unit to a binary unit
@@ -415,7 +415,7 @@ public class AJProjectModelFacade {
             }
             jHandle += "!0!0!0!0!I!0!false";
             if (count > 1) {
-                jHandle += "" + JavaElement.JEM_COUNT + count;
+                jHandle += String.valueOf(JavaElement.JEM_COUNT) + count;
             }
         }
 
@@ -483,7 +483,7 @@ public class AJProjectModelFacade {
             return !(isFile || isType || isInAspect);
         }
         String sourceTypeQualName() {
-            return qualName.replaceAll("\\$", "\\.");
+            return qualName.replaceAll("\\$", ".");
         }
     }
 
@@ -710,23 +710,21 @@ public class AJProjectModelFacade {
         // but that's ok, because we are only working
         // top-level types
         IPackageFragment[] fragments = findFragment(jproj, handleInfo);
-        if (fragments.length > 0) {
-            for (IPackageFragment fragment : fragments) {
-                ICompilationUnit[] cus = fragment.getCompilationUnits();
+        for (IPackageFragment fragment : fragments) {
+            ICompilationUnit[] cus = fragment.getCompilationUnits();
 
-              for (ICompilationUnit iCompilationUnit : cus) {
+            for (ICompilationUnit iCompilationUnit : cus) {
                 IType maybeType = CompilationUnitTools.findType(iCompilationUnit, handleInfo.simpleName, true);
                 if (maybeType != null) {
-                  return iCompilationUnit;
+                    return iCompilationUnit;
                 }
-              }
-                IClassFile[] cfs = fragment.getClassFiles();
-              for (IClassFile cf : cfs) {
+            }
+            IClassFile[] cfs = fragment.getClassFiles();
+            for (IClassFile cf : cfs) {
                 IType cType = cf.getType();
                 if (cType.getElementName().equals(handleInfo.simpleName)) {
-                  return cf;
+                    return cf;
                 }
-              }
             }
         }
         return (ICompilationUnit) ERROR_JAVA_ELEMENT;

@@ -311,10 +311,8 @@ public class JavaCorrectionProcessor implements org.eclipse.jface.text.quickassi
 	{
 		IMarker marker = annotation.getMarker();
 		IMarkerResolution[] res = IDE.getMarkerHelpRegistry().getResolutions(marker);
-		if (res.length > 0) {
-			for (IMarkerResolution re : res)
-				proposals.add(new MarkerResolutionProposal(re, marker));
-		}
+		for (IMarkerResolution re : res)
+			proposals.add(new MarkerResolutionProposal(re, marker));
 	}
 
 	private static abstract class SafeCorrectionProcessorAccess implements ISafeRunnable {

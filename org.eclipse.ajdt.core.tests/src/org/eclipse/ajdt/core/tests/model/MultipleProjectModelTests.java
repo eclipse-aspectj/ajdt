@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2010 SprinSource and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Andrew Eisenberg  - initial version
  *******************************************************************************/
@@ -29,7 +29,7 @@ import org.eclipse.jdt.core.JavaModelException;
 
 /**
  * Tests for mapping between IProgramElement and IJavaElements
- * 
+ *
  * This class tests that aj references across projects are working
  */
 public class MultipleProjectModelTests extends AJDTCoreTestCase {
@@ -37,7 +37,7 @@ public class MultipleProjectModelTests extends AJDTCoreTestCase {
     private IJavaProject commons;
     private IJavaProject dependent;
     private AJProjectModelFacade model;
-    
+
     @Override
     protected void setUp() throws Exception {
         super.setUp();
@@ -45,9 +45,9 @@ public class MultipleProjectModelTests extends AJDTCoreTestCase {
         dependent = JavaCore.create(createPredefinedProject("DefaultEmptyProjectDependent"));
         model = AJProjectModelFactory.getInstance().getModelForJavaElement(dependent);
     }
-    
+
     public void testITDFieldInOtherProject() throws Exception {
-        ICompilationUnit other = createCompilationUnitAndPackage("common", "Aspect.aj", 
+        ICompilationUnit other = createCompilationUnitAndPackage("common", "Aspect.aj",
                 "package common;\n" +
                 "public aspect Aspect {\n" +
                 "  public int ITD.x;\n" +
@@ -57,7 +57,7 @@ public class MultipleProjectModelTests extends AJDTCoreTestCase {
                 "  interface ITD { }\n" +
                 "  public @interface Foo{ }" +
                 "}", commons);
-        ICompilationUnit unit = createCompilationUnitAndPackage("dependent", "Java.java", 
+        ICompilationUnit unit = createCompilationUnitAndPackage("dependent", "Java.java",
                 "package dependent;\n" +
                 "public class Java {\n" +
                 "}", dependent);
@@ -66,7 +66,7 @@ public class MultipleProjectModelTests extends AJDTCoreTestCase {
         assertNoProblems(dependent.getProject());
         IType type = unit.getType("Java");
         IType otherType = other.getType("Aspect");
-        
+
         List<IJavaElement> elts = model.getRelationshipsForElement(type,  AJRelationshipManager.ASPECT_DECLARATIONS);
 
         // the ITDs + the declare statement
@@ -88,17 +88,17 @@ public class MultipleProjectModelTests extends AJDTCoreTestCase {
     private void roundTripCheck(IType otherType, IJavaElement orig) throws JavaModelException {
         assertTrue("Should exist: " + orig.getHandleIdentifier(), orig.exists());
         assertEquals(otherType, orig.getParent());
-        assertTrue("" + orig + " should be a child of " + otherType, isAChildOf(otherType, orig));
-        
+        assertTrue(orig + " should be a child of " + otherType, isAChildOf(otherType, orig));
+
         IProgramElement ipe = model.javaElementToProgramElement(orig);
         assertNotSame(IHierarchy.NO_STRUCTURE, ipe);
-        
+
         orig = model.programElementToJavaElement(ipe);
         assertTrue("Should exist: " + orig.getHandleIdentifier(), orig.exists());
         assertEquals(otherType, orig.getParent());
-        assertTrue("" + orig + " should be a child of " + otherType, isAChildOf(otherType, orig));
+        assertTrue(orig + " should be a child of " + otherType, isAChildOf(otherType, orig));
     }
-    
+
     private boolean isAChildOf(IParent parent, IJavaElement maybeChild) throws JavaModelException {
         IJavaElement[] children = parent.getChildren();
         for (IJavaElement child : children) {

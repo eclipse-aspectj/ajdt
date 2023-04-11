@@ -122,7 +122,7 @@ public class CheckboxTreeAndListGroup implements ICheckStateListener, ISelection
 
 		// if this tree element is already gray then its ancestors all are as well
 		if (!fCheckedStateStore.containsKey(treeElement))
-			fCheckedStateStore.put(treeElement, new ArrayList());
+			fCheckedStateStore.put(treeElement, new ArrayList<>());
 
 		Object parent= fTreeContentProvider.getParent(treeElement);
 		if (parent != null)
@@ -397,7 +397,7 @@ public class CheckboxTreeAndListGroup implements ICheckStateListener, ISelection
 		if (fCheckedStateStore.containsKey(treeElement))
 			return; // no need to proceed upwards from here
 
-		fCheckedStateStore.put(treeElement, new ArrayList());
+		fCheckedStateStore.put(treeElement, new ArrayList<>());
 		if (determineShouldBeWhiteChecked(treeElement)) {
 			setWhiteChecked(treeElement, true);
 		}

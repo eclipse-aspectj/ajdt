@@ -2015,13 +2015,11 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 				IJavaElement sibling= null;
 				if (enclosingType.isEnum()) {
 					IField[] fields = enclosingType.getFields();
-					if (fields.length > 0) {
-            for (IField field : fields) {
-              if (!field.isEnumConstant()) {
-                sibling = field;
-                break;
-              }
-            }
+					for (IField field : fields) {
+						if (!field.isEnumConstant()) {
+							sibling = field;
+							break;
+						}
 					}
 				} else {
 					IJavaElement[] elems= enclosingType.getChildren();

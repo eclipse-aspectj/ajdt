@@ -391,10 +391,8 @@ public class Menu extends ViewPart {
 	private void clear() {
 		if(canvas!=null){
 			Control[] children = canvas.getChildren();
-			if (children.length > 0) {
-				for (Control child : children) {
-					child.dispose();
-				}
+			for (Control child : children) {
+				child.dispose();
 			}
 		}
 	}

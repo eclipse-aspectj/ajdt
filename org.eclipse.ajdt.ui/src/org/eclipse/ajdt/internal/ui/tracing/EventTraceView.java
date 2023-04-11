@@ -191,7 +191,7 @@ public class EventTraceView extends ViewPart
 	    defaultList.add(DebugTracing.categoryNames[3]);
 
 	    if (checkedList == null){
-	    	checkedList = new ArrayList(defaultList);
+	    	checkedList = new ArrayList<>(defaultList);
 	    }
 	    DebugTracing.setDebugCategories(checkedList);
 

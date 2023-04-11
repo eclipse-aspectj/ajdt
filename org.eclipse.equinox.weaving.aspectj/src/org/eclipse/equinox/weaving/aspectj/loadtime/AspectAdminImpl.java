@@ -173,14 +173,12 @@ public class AspectAdminImpl implements AspectAdmin, SynchronousBundleListener {
      * @see org.eclipse.equinox.weaving.aspectj.AspectAdmin#resolveImportedPackage(org.osgi.framework.Bundle,
      *      java.lang.String, int)
      */
-    public Definition resolveImportedPackage(final Bundle bundle,
-            final String packageName, final int applyAspectsPolicy) {
+    public Definition resolveImportedPackage(final Bundle bundle, final String packageName, final int applyAspectsPolicy) {
         if (AspectAdmin.ASPECT_APPLY_POLICY_TRUE == applyAspectsPolicy) {
             final Definition exportedAspectDefinitions = getExportedAspectDefinitions(bundle);
             final Definition result = new Definition();
             if (exportedAspectDefinitions != null) {
-                final List<?> aspectClassNames = exportedAspectDefinitions
-                        .getAspectClassNames();
+                final List<?> aspectClassNames = exportedAspectDefinitions.getAspectClassNames();
               for (Object aspectClassName : aspectClassNames) {
                 final String aspectName = (String) aspectClassName;
                 final String aspectPackageName = getPackage(aspectName);
@@ -189,20 +187,14 @@ public class AspectAdminImpl implements AspectAdmin, SynchronousBundleListener {
                 }
               }
 
-              for (ConcreteAspect concreteAspect : exportedAspectDefinitions
-                .getConcreteAspects()) {
-                if (concreteAspect.name != null
-                    && getPackage(concreteAspect.name).equals(
-                  packageName))
-                {
+              for (ConcreteAspect concreteAspect : exportedAspectDefinitions.getConcreteAspects()) {
+                if (concreteAspect.name != null && getPackage(concreteAspect.name).equals(packageName)) {
                   result.getConcreteAspects().add(concreteAspect);
                 }
               }
 
-                if (exportedAspectDefinitions.getWeaverOptions().trim()
-                        .length() > 0) {
-                    result.appendWeaverOptions(exportedAspectDefinitions
-                            .getWeaverOptions());
+                if (exportedAspectDefinitions.getWeaverOptions().trim().length() > 0) {
+                    result.appendWeaverOptions(exportedAspectDefinitions.getWeaverOptions());
                 }
             }
             if (result.getAspectClassNames().size() > 0
@@ -218,37 +210,33 @@ public class AspectAdminImpl implements AspectAdmin, SynchronousBundleListener {
             final Definition exportedAspectDefinitions = getExportedAspectDefinitions(bundle);
             final Definition result = new Definition();
             if (exportedAspectDefinitions != null) {
-                final List<?> aspectClassNames = exportedAspectDefinitions
-                        .getAspectClassNames();
+              final List<?> aspectClassNames = exportedAspectDefinitions.getAspectClassNames();
               for (Object aspectClassName : aspectClassNames) {
                 final String aspectName = (String) aspectClassName;
                 final String aspectPackageName = getPackage(aspectName);
-                final int aspectPolicy = getAspectPolicy(bundle,
-                  aspectPackageName);
-                if (aspectPackageName.equals(packageName)
-                    && (AspectAdmin.ASPECT_POLICY_NOT_DEFINED == aspectPolicy || AspectAdmin.ASPECT_POLICY_OPT_OUT == aspectPolicy))
-                {
+                final int aspectPolicy = getAspectPolicy(bundle, aspectPackageName);
+                if (
+                  aspectPackageName.equals(packageName)
+                    && (AspectAdmin.ASPECT_POLICY_NOT_DEFINED == aspectPolicy || AspectAdmin.ASPECT_POLICY_OPT_OUT == aspectPolicy)
+                ) {
                   result.getAspectClassNames().add(aspectName);
                 }
               }
 
-              for (ConcreteAspect concreteAspect : exportedAspectDefinitions
-                .getConcreteAspects()) {
+              for (ConcreteAspect concreteAspect : exportedAspectDefinitions.getConcreteAspects()) {
                 final String aspectPackageName = getPackage(concreteAspect.name);
-                final int aspectPolicy = getAspectPolicy(bundle,
-                  aspectPackageName);
+                final int aspectPolicy = getAspectPolicy(bundle, aspectPackageName);
 
-                if (aspectPackageName.equals(packageName)
-                    && (AspectAdmin.ASPECT_POLICY_NOT_DEFINED == aspectPolicy || AspectAdmin.ASPECT_POLICY_OPT_OUT == aspectPolicy))
-                {
+                if (
+                  aspectPackageName.equals(packageName)
+                    && (AspectAdmin.ASPECT_POLICY_NOT_DEFINED == aspectPolicy || AspectAdmin.ASPECT_POLICY_OPT_OUT == aspectPolicy)
+                ) {
                   result.getConcreteAspects().add(concreteAspect);
                 }
               }
 
-                if (exportedAspectDefinitions.getWeaverOptions().trim()
-                        .length() > 0) {
-                    result.appendWeaverOptions(exportedAspectDefinitions
-                            .getWeaverOptions());
+                if (exportedAspectDefinitions.getWeaverOptions().trim().length() > 0) {
+                    result.appendWeaverOptions(exportedAspectDefinitions.getWeaverOptions());
                 }
             }
 
@@ -266,8 +254,7 @@ public class AspectAdminImpl implements AspectAdmin, SynchronousBundleListener {
      * @see org.eclipse.equinox.weaving.aspectj.AspectAdmin#resolveRequiredBundle(org.osgi.framework.Bundle,
      *      int)
      */
-    public Definition resolveRequiredBundle(final Bundle bundle,
-            final int applyAspectsPolicy) {
+    public Definition resolveRequiredBundle(final Bundle bundle, final int applyAspectsPolicy) {
         if (AspectAdmin.ASPECT_APPLY_POLICY_TRUE == applyAspectsPolicy) {
             return getExportedAspectDefinitions(bundle);
         } else if (AspectAdmin.ASPECT_APPLY_POLICY_FALSE == applyAspectsPolicy) {
@@ -277,28 +264,20 @@ public class AspectAdminImpl implements AspectAdmin, SynchronousBundleListener {
             final Definition result = new Definition();
 
             if (exportedAspectDefinitions != null) {
-              for (String aspect : exportedAspectDefinitions
-                .getAspectClassNames()) {
+              for (String aspect : exportedAspectDefinitions.getAspectClassNames()) {
                 final String aspectPackage = getPackage(aspect);
-                final int aspectPolicy = getAspectPolicy(bundle,
-                  aspectPackage);
+                final int aspectPolicy = getAspectPolicy(bundle, aspectPackage);
 
-                if (aspectPolicy == AspectAdmin.ASPECT_POLICY_NOT_DEFINED
-                    || aspectPolicy == AspectAdmin.ASPECT_POLICY_OPT_OUT)
-                {
+                if (aspectPolicy == AspectAdmin.ASPECT_POLICY_NOT_DEFINED || aspectPolicy == AspectAdmin.ASPECT_POLICY_OPT_OUT) {
                   result.getAspectClassNames().add(aspect);
                 }
               }
 
-              for (ConcreteAspect concreteAspect : exportedAspectDefinitions
-                .getConcreteAspects()) {
+              for (ConcreteAspect concreteAspect : exportedAspectDefinitions.getConcreteAspects()) {
                 final String aspectPackage = getPackage(concreteAspect.name);
-                final int aspectPolicy = getAspectPolicy(bundle,
-                  aspectPackage);
+                final int aspectPolicy = getAspectPolicy(bundle, aspectPackage);
 
-                if (aspectPolicy == AspectAdmin.ASPECT_POLICY_NOT_DEFINED
-                    || aspectPolicy == AspectAdmin.ASPECT_POLICY_OPT_OUT)
-                {
+                if (aspectPolicy == AspectAdmin.ASPECT_POLICY_NOT_DEFINED || aspectPolicy == AspectAdmin.ASPECT_POLICY_OPT_OUT) {
                   result.getConcreteAspects().add(concreteAspect);
                 }
               }
@@ -343,34 +322,26 @@ public class AspectAdminImpl implements AspectAdmin, SynchronousBundleListener {
             // parse export package headers
             final Dictionary<?, ?> manifest = bundle.getHeaders(""); //$NON-NLS-1$
             final ManifestElement[] exports = ManifestElement.parseHeader(
-                    Constants.EXPORT_PACKAGE, (String) manifest
-                            .get(Constants.EXPORT_PACKAGE));
+                Constants.EXPORT_PACKAGE, (String) manifest.get(Constants.EXPORT_PACKAGE)
+            );
 
             for (int i = 0; exports != null && i < exports.length; i++) {
                 final String packageName = exports[i].getValue();
                 exportedPackages.add(packageName);
 
                 // policies
-                final String policy = exports[i]
-                        .getDirective(ASPECT_POLICY_DIRECTIVE);
-                if (policy != null
-                        && policy.trim().toLowerCase().equals(
-                                ASPECT_POLICY_DIRECTIVE_OPT_OUT)) {
-                    policies
-                            .put(packageName, AspectAdmin.ASPECT_POLICY_OPT_OUT);
+                final String policy = exports[i].getDirective(ASPECT_POLICY_DIRECTIVE);
+                if (policy != null && policy.trim().equalsIgnoreCase(ASPECT_POLICY_DIRECTIVE_OPT_OUT)) {
+                    policies.put(packageName, AspectAdmin.ASPECT_POLICY_OPT_OUT);
                 }
-                if (policy != null
-                        && policy.trim().toLowerCase().equals(
-                                ASPECT_POLICY_DIRECTIVE_OPT_IN)) {
+                if (policy != null && policy.trim().equalsIgnoreCase(ASPECT_POLICY_DIRECTIVE_OPT_IN)) {
                     policies.put(packageName, AspectAdmin.ASPECT_POLICY_OPT_IN);
                 }
 
                 // aspects
-                final String allaspects = exports[i]
-                        .getAttribute(ASPECTS_ATTRIBUTE);
+                final String allaspects = exports[i].getAttribute(ASPECTS_ATTRIBUTE);
                 if (allaspects != null) {
-                    final String[] aspects = ManifestElement
-                            .getArrayFromList(allaspects);
+                    final String[] aspects = ManifestElement.getArrayFromList(allaspects);
                     if (aspects != null) {
                       for (String aspect : aspects) {
                         exportedAspects.add(packageName + "." + aspect); //$NON-NLS-1$
@@ -380,10 +351,8 @@ public class AspectAdminImpl implements AspectAdmin, SynchronousBundleListener {
             }
 
             // add aop.xml declared aspects to the list of exported aspects if their packages are exported
-            if (allAspectsDefinition != null
-                    && allAspectsDefinition.getAspectClassNames() != null) {
-              for (String aspect : allAspectsDefinition
-                .getAspectClassNames()) {
+            if (allAspectsDefinition != null && allAspectsDefinition.getAspectClassNames() != null) {
+              for (String aspect : allAspectsDefinition.getAspectClassNames()) {
                 final String packageName = getPackage(aspect);
                 if (exportedPackages.contains(packageName)) {
                   exportedAspects.add(aspect);
@@ -391,14 +360,9 @@ public class AspectAdminImpl implements AspectAdmin, SynchronousBundleListener {
               }
             }
 
-            if (allAspectsDefinition != null
-                    && allAspectsDefinition.getConcreteAspects().size() > 0) {
-              for (ConcreteAspect concreteAspect : allAspectsDefinition
-                .getConcreteAspects()) {
-                if (concreteAspect.name != null
-                    && exportedPackages
-                      .contains(getPackage(concreteAspect.name)))
-                {
+            if (allAspectsDefinition != null && allAspectsDefinition.getConcreteAspects().size() > 0) {
+              for (ConcreteAspect concreteAspect : allAspectsDefinition.getConcreteAspects()) {
+                if (concreteAspect.name != null && exportedPackages.contains(getPackage(concreteAspect.name))) {
                   exportedConcreteAspects.add(concreteAspect);
                 }
               }
@@ -408,26 +372,20 @@ public class AspectAdminImpl implements AspectAdmin, SynchronousBundleListener {
                 this.aspectDefinitions.put(bundle, allAspectsDefinition);
             }
 
-            if (exportedAspects.size() > 0
-                    || exportedConcreteAspects.size() > 0
-                    || (allAspectsDefinition != null && allAspectsDefinition
-                            .getWeaverOptions().length() > 0)) {
+            if (
+              exportedAspects.size() > 0
+                || exportedConcreteAspects.size() > 0
+                || (allAspectsDefinition != null && allAspectsDefinition.getWeaverOptions().length() > 0)
+            ) {
                 final Definition exportedAspectsDefinition = new Definition();
-                exportedAspectsDefinition.getAspectClassNames().addAll(
-                        exportedAspects);
-                exportedAspectsDefinition.getConcreteAspects().addAll(
-                        exportedConcreteAspects);
+                exportedAspectsDefinition.getAspectClassNames().addAll(exportedAspects);
+                exportedAspectsDefinition.getConcreteAspects().addAll(exportedConcreteAspects);
 
-                if (allAspectsDefinition != null
-                        && allAspectsDefinition.getWeaverOptions().trim()
-                                .length() > 0) {
-                    exportedAspectsDefinition
-                            .appendWeaverOptions(allAspectsDefinition
-                                    .getWeaverOptions());
+                if (allAspectsDefinition != null && allAspectsDefinition.getWeaverOptions().trim().length() > 0) {
+                    exportedAspectsDefinition.appendWeaverOptions(allAspectsDefinition.getWeaverOptions());
                 }
 
-                this.aspectDefinitionsExported.put(bundle,
-                        exportedAspectsDefinition);
+                this.aspectDefinitionsExported.put(bundle, exportedAspectsDefinition);
             }
 
             if (policies.size() > 0) {

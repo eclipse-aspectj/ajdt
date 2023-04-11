@@ -254,7 +254,7 @@
 			<dependencies>
 				<dependency>
 					<groupId>org.aspectj</groupId>
-					<artifactId>aspectjweaver</artifactId>
+					<artifactId>aspectjtools</artifactId>
 					<version>${aspectj.version}</version>
 					<scope>compile</scope>
 				</dependency>

@@ -133,7 +133,7 @@ public class RenderingMonitor extends ViewPart {
 		gd = new GridData();
 		gd.widthHint = widthHint;
 		colsText.setLayoutData(gd);
-		colsText.setText("" + numCols); //$NON-NLS-1$
+		colsText.setText(String.valueOf(numCols)); //$NON-NLS-1$
 
 		dsText = new Text(group, SWT.SINGLE);
 		gd = new GridData();

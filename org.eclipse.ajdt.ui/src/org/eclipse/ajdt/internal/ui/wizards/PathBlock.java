@@ -640,8 +640,8 @@ public abstract class PathBlock {
             projectOutJar.append(fCurrJProject.getPath().toString());
             projectOutJar.append("/").append(outJar); //$NON-NLS-1$
 
-            if (resource.getFullPath().toString().equals(
-              projectOutJar.toString()))
+            if (resource.getFullPath().toString().contentEquals(
+              projectOutJar))
             {
               MessageDialog.openInformation(getShell(),
                 UIMessages.buildpathwarning_title,
@@ -675,26 +675,19 @@ public abstract class PathBlock {
     private CPListElement[] openVariableSelectionDialog() {
         List<CPListElement> existingElements = fPathList.getElements();
         ArrayList<IPath> existingPaths = new ArrayList<>(existingElements.size());
-      for (Object existingElement : existingElements) {
-        CPListElement elem = (CPListElement) existingElement;
+      for (CPListElement elem : existingElements) {
         if (elem.getEntryKind() == IClasspathEntry.CPE_VARIABLE) {
           existingPaths.add(elem.getPath());
         }
       }
-        IPath[] existingPathsArray = existingPaths
-                .toArray(new IPath[0]);
-
-        IPath[] paths = BuildPathDialogAccess.chooseVariableEntries(
-                getShell(), existingPathsArray);
+        IPath[] existingPathsArray = existingPaths.toArray(new IPath[0]);
+        IPath[] paths = BuildPathDialogAccess.chooseVariableEntries(getShell(), existingPathsArray);
         if (paths != null) {
             ArrayList<CPListElement> result = new ArrayList<>();
           for (IPath path : paths) {
-            CPListElement elem = new CPListElement(fCurrJProject,
-              IClasspathEntry.CPE_VARIABLE, path, null);
-            IPath resolvedPath = JavaCore
-              .getResolvedVariablePath(path);
-            elem.setIsMissing((resolvedPath == null)
-                              || !resolvedPath.toFile().exists());
+            CPListElement elem = new CPListElement(fCurrJProject, IClasspathEntry.CPE_VARIABLE, path, null);
+            IPath resolvedPath = JavaCore.getResolvedVariablePath(path);
+            elem.setIsMissing((resolvedPath == null) || !resolvedPath.toFile().exists());
             if (!existingElements.contains(elem)) {
               result.add(elem);
             }
@@ -706,8 +699,7 @@ public abstract class PathBlock {
 
     private CPListElement[] openContainerSelectionDialog() {
         IClasspathEntry[] created = BuildPathDialogAccess
-                .chooseContainerEntries(getShell(), fCurrJProject,
-                        getRawClasspath());
+                .chooseContainerEntries(getShell(), fCurrJProject, getRawClasspath());
         if (created != null) {
             // check for existing restrictions
             try {
@@ -740,7 +732,7 @@ public abstract class PathBlock {
 
             List<CPListElement> elements= fPathList.getElements();
             for (int i= 0; i < elements.size(); i++) {
-                CPListElement curr= (CPListElement) elements.get(0);
+                CPListElement curr= elements.get(0);
                 if (curr.getEntryKind() == IClasspathEntry.CPE_PROJECT) {
                     IJavaProject proj= (IJavaProject) JavaCore.create(curr.getResource());
                     selectable.remove(proj);
@@ -796,8 +788,7 @@ public abstract class PathBlock {
         }
 
         List<CPListElement> cplist = fPathList.getElements();
-    for (Object o : cplist) {
-      CPListElement elem = (CPListElement) o;
+    for (CPListElement elem : cplist) {
       if (elem.getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
         IResource resource = elem.getResource();
         if (resource instanceof IContainer) {

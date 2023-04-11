@@ -73,7 +73,7 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
             return info;
         }
     }
-    private final class ITIT extends SourceType {
+    private static final class ITIT extends SourceType {
         final Object info;
         private ITIT(JavaElement parent, IType actualType, IProgramElement ajElement) throws JavaModelException {
             super(parent, actualType.getElementName());

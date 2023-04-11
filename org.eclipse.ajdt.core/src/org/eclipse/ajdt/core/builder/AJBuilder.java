@@ -110,7 +110,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
     /* (non-Javadoc)
      * @see org.eclipse.core.resources.IncrementalProjectBuilder#build(int, java.util.Map, org.eclipse.core.runtime.IProgressMonitor)
      */
-    protected IProject[] build(int kind, Map args, IProgressMonitor progressMonitor) throws CoreException {
+    protected IProject[] build(int kind, Map<String, String> args, IProgressMonitor progressMonitor) throws CoreException {
         IProject project = getProject();
         AjCompiler compiler = AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project);
 
@@ -457,10 +457,10 @@ public class AJBuilder extends IncrementalProjectBuilder {
         return participants;
     }
 
-    private void augmentAspectPath(IProject project, Map args) {
+    private void augmentAspectPath(IProject project, Map<String, String> args) {
         if (args.containsKey("aspectPath")) {
             AJLog.logStart("Augmenting aspect path with args from builder");
-            String toAugment = (String) args.get("aspectPath");
+            String toAugment = args.get("aspectPath");
             String[] toAugmentArr = toAugment.split(",");
             for (int i = 0; i < toAugmentArr.length; i++) {
                 toAugmentArr[i] = toAugmentArr[i].trim();
