@@ -42,20 +42,6 @@ public class ExtraPackageReferenceFinder extends AbstractExtraReferenceFinder<Pa
 
     private char[] pkgNames;
 
-    protected List<IAspectJElement> getRelevantChildren(IParent parent) throws JavaModelException {
-        IJavaElement[] children = parent.getChildren();
-        List<IAspectJElement> allItds = new LinkedList<>();
-
-        for (IJavaElement elt : children) {
-            if (elt instanceof IntertypeElement || elt instanceof DeclareElement) {
-                allItds.add((IAspectJElement) elt);
-            } else if (elt.getElementType() == IJavaElement.TYPE) {
-                allItds.addAll(getRelevantChildren((IParent) elt));
-            }
-        }
-        return allItds;
-    }
-
     protected boolean isMatch(IntertypeElement itd,
             PackageReferencePattern pattern) {
         ensurePkgNames(pattern);

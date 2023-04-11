@@ -82,14 +82,12 @@ abstract public class AbstractExtraReferenceFinder<T extends SearchPattern> {
         return matches;
     }
 
-    protected List<IAspectJElement> getRelevantChildren(IParent parent)
-            throws JavaModelException {
+    protected List<IAspectJElement> getRelevantChildren(IParent parent) throws JavaModelException {
         IJavaElement[] children = parent.getChildren();
         List<IAspectJElement> allItds = new LinkedList<>();
 
         for (IJavaElement elt : children) {
-            if (elt instanceof IntertypeElement
-                    || elt instanceof DeclareElement) {
+            if (elt instanceof IntertypeElement || elt instanceof DeclareElement) {
                 allItds.add((IAspectJElement) elt);
             } else if (elt.getElementType() == IJavaElement.TYPE) {
                 allItds.addAll(getRelevantChildren((IParent) elt));
