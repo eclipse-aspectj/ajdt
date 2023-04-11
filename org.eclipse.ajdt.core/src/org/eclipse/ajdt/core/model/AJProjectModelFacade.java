@@ -13,14 +13,7 @@ package org.eclipse.ajdt.core.model;
 
 import static org.eclipse.ajdt.core.javaelements.AspectElement.JEM_ASPECT_TYPE;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import org.aspectj.ajde.core.AjCompiler;
@@ -432,11 +425,8 @@ public class AJProjectModelFacade {
         jHandle = jHandle.replaceAll("\\*>", "\\\\*>");  // wild card type parameters
 
         IJavaElement je = AspectJCore.create(jHandle);
-        if (je == null) {
-            // occurs when the handles are not working properly
-            return ERROR_JAVA_ELEMENT;
-        }
-        return je;
+      // occurs when the handles are not working properly
+      return Objects.requireNonNullElse(je, ERROR_JAVA_ELEMENT);
     }
 
     private boolean isBinaryAspectJHandle(String ajHandle) {
@@ -546,11 +536,7 @@ public class AJProjectModelFacade {
                     candidate = findElementInJar(handleInfo, classFile);
                 }
             }
-            if (candidate != null) {
-                return candidate;
-            } else {
-                return ERROR_JAVA_ELEMENT;
-            }
+          return Objects.requireNonNullElse(candidate, ERROR_JAVA_ELEMENT);
         } catch (JavaModelException | NullPointerException e) {
             AspectJPlugin.getDefault().getLog().log(new Status(IStatus.WARNING,
                     AspectJPlugin.PLUGIN_ID, "Could not find type root for " + jHandle, e));

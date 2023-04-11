@@ -19,11 +19,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.StringTokenizer;
+import java.util.*;
 
 import org.apache.tools.ant.AntClassLoader;
 import org.apache.tools.ant.BuildException;
@@ -265,7 +261,7 @@ public class AjcTask extends MatchingTask {
 
 		// , "targetNearSource", "OcodeSize",
 		};
-		VALID_XOPTIONS = Collections.unmodifiableList(Arrays.asList(xs));
+		VALID_XOPTIONS = List.of(xs);
 
 		xs = new String[] { "constructorName", "packageDefaultMethod", "deprecation", "maskedCatchBlocks", "unusedLocals",
 				"unusedArguments", "unusedImports", "syntheticAccess", "assertIdentifier", "allDeprecation", "allJavadoc",
@@ -274,13 +270,13 @@ public class AjcTask extends MatchingTask {
 				"emptyBlock", "fieldHiding", "finally", "indirectStatic", "intfNonInherited", "javadoc", "localHiding", "nls",
 				"noEffectAssign", "pkgDefaultMethod", "semicolon", "unqualifiedField", "unusedPrivate", "unusedThrown",
 				"uselessTypeCheck", "specialParamHiding", "staticReceiver", "syntheticAccess", "none" };
-		VALID_WARNINGS = Collections.unmodifiableList(Arrays.asList(xs));
+		VALID_WARNINGS = List.of(xs);
 
 		xs = new String[] { "none", "lines", "vars", "source" };
-		VALID_DEBUG = Collections.unmodifiableList(Arrays.asList(xs));
+		VALID_DEBUG = List.of(xs);
 
 		xs = new String[] { "error", "warning", "ignore" };
-		VALID_XLINT = Collections.unmodifiableList(Arrays.asList(xs));
+		VALID_XLINT = List.of(xs);
 
 		ICommandEditor editor = null;
 		try {
@@ -1098,11 +1094,7 @@ public class AjcTask extends MatchingTask {
 				path = path.substring(0, path.length() - len) + ".tmp.jar";
 				tmpOutjar = new File(path);
 			}
-			if (null == tmpOutjar) {
-				cmd.addFlagged("-outjar", outjar.getAbsolutePath());
-			} else {
-				cmd.addFlagged("-outjar", tmpOutjar.getAbsolutePath());
-			}
+			cmd.addFlagged("-outjar", Objects.requireNonNullElseGet(tmpOutjar, () -> outjar).getAbsolutePath());
 			outjarFixedup = true;
 		}
 

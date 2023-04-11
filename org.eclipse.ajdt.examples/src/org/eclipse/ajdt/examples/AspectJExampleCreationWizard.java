@@ -143,13 +143,11 @@ public class AspectJExampleCreationWizard extends Wizard implements INewWizard, 
 		final IWorkbenchPage activePage= window.getActivePage();
 		if (activePage != null) {
 			final Display display= getShell().getDisplay();
-			display.asyncExec(new Runnable() {
-				public void run() {
-					try {
-						IDE.openEditor(activePage,(IFile)resource,true);
-					} catch (PartInitException e) {
-						AspectJExamplePlugin.log(e);
-					}
+			display.asyncExec(() -> {
+				try {
+					IDE.openEditor(activePage,(IFile)resource,true);
+				} catch (PartInitException e) {
+					AspectJExamplePlugin.log(e);
 				}
 			});
 			BasicNewResourceWizard.selectAndReveal(resource, activePage.getWorkbenchWindow());
@@ -177,14 +175,12 @@ public class AspectJExampleCreationWizard extends Wizard implements INewWizard, 
 
 		private int openDialog(final String file) {
 			final int[] result= { IDialogConstants.CANCEL_ID };
-			getShell().getDisplay().syncExec(new Runnable() {
-				public void run() {
-					String title= AspectJExampleMessages.getString("ExampleProjectCreationWizard.overwritequery.title"); //$NON-NLS-1$
-					String msg= AspectJExampleMessages.getFormattedString("ExampleProjectCreationWizard.overwritequery.message", file); //$NON-NLS-1$
-					String[] options= {IDialogConstants.YES_LABEL, IDialogConstants.NO_LABEL, IDialogConstants.YES_TO_ALL_LABEL, IDialogConstants.CANCEL_LABEL};
-					MessageDialog dialog= new MessageDialog(getShell(), title, null, msg, MessageDialog.QUESTION, options, 0);
-					result[0]= dialog.open();
-				}
+			getShell().getDisplay().syncExec(() -> {
+				String title= AspectJExampleMessages.getString("ExampleProjectCreationWizard.overwritequery.title"); //$NON-NLS-1$
+				String msg= AspectJExampleMessages.getFormattedString("ExampleProjectCreationWizard.overwritequery.message", file); //$NON-NLS-1$
+				String[] options= {IDialogConstants.YES_LABEL, IDialogConstants.NO_LABEL, IDialogConstants.YES_TO_ALL_LABEL, IDialogConstants.CANCEL_LABEL};
+				MessageDialog dialog= new MessageDialog(getShell(), title, null, msg, MessageDialog.QUESTION, options, 0);
+				result[0]= dialog.open();
 			});
 			return result[0];
 		}

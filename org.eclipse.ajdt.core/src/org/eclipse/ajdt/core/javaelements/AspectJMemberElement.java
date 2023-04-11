@@ -13,6 +13,7 @@ package org.eclipse.ajdt.core.javaelements;
 
 
 import java.util.List;
+import java.util.Objects;
 
 import org.aspectj.asm.IProgramElement.Accessibility;
 import org.aspectj.asm.IProgramElement.ExtraInformation;
@@ -46,11 +47,7 @@ public class AspectJMemberElement extends NamedMember implements IMethod, IAspec
 
 	public AspectJMemberElement(JavaElement parent, String name, String[] parameterTypes) {
 		super(parent, name);
-		if (parameterTypes == null) {
-			fParameterTypes= fgEmptyList;
-		} else {
-			fParameterTypes= parameterTypes;
-		}
+    fParameterTypes = Objects.requireNonNullElse(parameterTypes, fgEmptyList);
 	}
 
 	/* (non-Javadoc)

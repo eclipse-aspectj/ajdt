@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2003 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -32,30 +32,30 @@ import org.eclipse.jface.wizard.WizardPage;
 public class AspectJExampleCreationWizardPage extends WizardPage {
 
 	private IStatus fCurrStatus;
-	
+
 	private boolean fPageVisible;
-	
+
 	private IConfigurationElement fConfigurationElement;
-	
+
 	private String fNameLabel;
 	private String fProjectName;
-	
+
 	private Text fTextControl;
-	
+
 	public AspectJExampleCreationWizardPage(int pageNumber, IConfigurationElement elem) {
 		super("page" + pageNumber); //$NON-NLS-1$
 		fCurrStatus= createStatus(IStatus.OK, ""); //$NON-NLS-1$
-		
+
 		fConfigurationElement= elem;
-		
+
 		setTitle(getAttribute(elem, "pagetitle")); //$NON-NLS-1$
 		setDescription(getAttribute(elem, "pagedescription")); //$NON-NLS-1$
-		
+
 		fNameLabel= getAttribute(elem, "label"); //$NON-NLS-1$
 		fProjectName= getAttribute(elem, "name");		 //$NON-NLS-1$
-		
+
 	}
-	
+
 	private String getAttribute(IConfigurationElement elem, String tag) {
 		String res= elem.getAttribute(tag);
 		if (res == null) {
@@ -63,7 +63,7 @@ public class AspectJExampleCreationWizardPage extends WizardPage {
 		}
 		return res;
 	}
-	
+
 	/*
 	 * @see IDialogPage#createControl(Composite)
 	 */
@@ -72,21 +72,19 @@ public class AspectJExampleCreationWizardPage extends WizardPage {
 		GridLayout gd= new GridLayout();
 		gd.numColumns= 2;
 		composite.setLayout(gd);
-		
+
 		Label label= new Label(composite, SWT.LEFT);
 		label.setText(fNameLabel);
 		label.setLayoutData(new GridData());
 		fTextControl= new Text(composite, SWT.SINGLE | SWT.BORDER);
-		fTextControl.addModifyListener(new ModifyListener() {
-			public void modifyText(ModifyEvent e) {
-				if (!fTextControl.isDisposed()) {
-					validateText(fTextControl.getText());
-				}
+		fTextControl.addModifyListener(e -> {
+			if (!fTextControl.isDisposed()) {
+				validateText(fTextControl.getText());
 			}
 		});
 		fTextControl.setText(fProjectName);
 		fTextControl.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		
+
 		setControl(composite);
 	}
 
@@ -97,13 +95,13 @@ public class AspectJExampleCreationWizardPage extends WizardPage {
 			if (workspace.getRoot().getProject(text).exists()) {
 				status= createStatus(IStatus.ERROR, AspectJExampleMessages.getString("ExampleProjectCreationWizardPage.error.alreadyexists")); //$NON-NLS-1$
 			}
-		}	
+		}
 		updateStatus(status);
-		
+
 		fProjectName= text;
-	}	
-	
-	
+	}
+
+
 	/*
 	 * @see WizardPage#becomesVisible
 	 */
@@ -111,7 +109,7 @@ public class AspectJExampleCreationWizardPage extends WizardPage {
 		super.setVisible(visible);
 		fPageVisible= visible;
 		updateStatus(fCurrStatus);
-	}	
+	}
 
 	/**
 	 * Updates the status line and the ok button depending on the status
@@ -141,12 +139,12 @@ public class AspectJExampleCreationWizardPage extends WizardPage {
 		page.setErrorMessage(errorMessage);
 		page.setMessage(warningMessage);
 	}
-	
-	
+
+
 	private static IStatus createStatus(int severity, String message) {
 		return new Status(severity, AspectJExamplePlugin.getPluginId(), severity, message, null);
 	}
-	
+
 	/**
 	 * Returns the name entered by the user
 	 */
@@ -163,4 +161,3 @@ public class AspectJExampleCreationWizardPage extends WizardPage {
 	}
 
 }
-

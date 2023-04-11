@@ -11,6 +11,7 @@
 package org.eclipse.ajdt.core.javaelements;
 
 import java.util.List;
+import java.util.Objects;
 
 import org.aspectj.asm.IProgramElement.Modifiers;
 import org.aspectj.asm.IProgramElement.Accessibility;
@@ -178,11 +179,7 @@ public class AspectJMemberElementInfo extends SourceMethodElementInfo implements
 	}
 
 	public void setAnnotations(IAnnotation[] annotations) {
-	    if (annotations == null) {
-	        this.annotations = Annotation.NO_ANNOTATIONS;
-	    } else {
-	        this.annotations = annotations;
-	    }
+    this.annotations = Objects.requireNonNullElse(annotations, Annotation.NO_ANNOTATIONS);
 	}
 
 	public void setArguments(ILocalVariable[] arguments) {

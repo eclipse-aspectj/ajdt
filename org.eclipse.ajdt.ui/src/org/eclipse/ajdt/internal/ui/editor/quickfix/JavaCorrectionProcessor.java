@@ -11,11 +11,7 @@
 
 package org.eclipse.ajdt.internal.ui.editor.quickfix;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.IConfigurationElement;
@@ -191,11 +187,8 @@ public class JavaCorrectionProcessor implements org.eclipse.jface.text.quickassi
 				if (proposal instanceof IStatusLineProposal) {
 					IStatusLineProposal statusLineProposal= (IStatusLineProposal)proposal;
 					String message= statusLineProposal.getStatusMessage();
-					if (message != null) {
-						fAssistant.setStatusMessage(message);
-					} else {
-						fAssistant.setStatusMessage(""); //$NON-NLS-1$
-					}
+					//$NON-NLS-1$
+					fAssistant.setStatusMessage(Objects.requireNonNullElse(message, ""));
 				} else {
 					fAssistant.setStatusMessage(""); //$NON-NLS-1$
 				}
