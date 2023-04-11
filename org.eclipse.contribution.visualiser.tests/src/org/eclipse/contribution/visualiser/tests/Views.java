@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2003, 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Andy Clement - initial version
  *******************************************************************************/
@@ -30,8 +30,8 @@ public class Views extends TestCase {
 
   private static Visualiser visView;
   private static Menu vismenuView;
-  
-  
+
+
   private IWorkbenchPage getPage() {
      IWorkbench workbench= PlatformUI.getWorkbench();
 	 IWorkbenchWindow window= workbench.getActiveWorkbenchWindow();
@@ -42,12 +42,12 @@ public class Views extends TestCase {
 	vismenuView = (Menu)       getPage().showView("org.eclipse.contribution.visualiser.views.Menu"); //$NON-NLS-1$
 	visView     = (Visualiser) getPage().showView("org.eclipse.contribution.visualiser.views.Visualiser"); //$NON-NLS-1$
   }
-  
+
   public void hideViews() {
   	getPage().hideView(vismenuView);
   	getPage().hideView(visView);
   }
-  
+
   public void testOne() {
     try {
 		showViews();
@@ -56,44 +56,44 @@ public class Views extends TestCase {
 		fail("Should be able to show the two visualiser views"); //$NON-NLS-1$
 	}
   }
-  
+
   // Helper function
   private ProviderDefinition fetchFileProviderDefinition() {
 	ProviderDefinition[] providers = ProviderManager.getAllProviderDefinitions();
-	for (int i =0 ;i<providers.length;i++) {
-		if (providers[i].getContentProvider() instanceof FileContentProvider) return providers[i];
-	}
+		for (ProviderDefinition provider : providers) {
+			if (provider.getContentProvider() instanceof FileContentProvider) return provider;
+		}
 	return null;
   }
-  
+
   // Check that the 'default' two sample providers are registered
   public void testSimpleproject() {
 //	assertTrue("Views should be up after showViews() ?!??! ",viewsonscreen);
 	ProviderDefinition[] providers = ProviderManager.getAllProviderDefinitions();
 	int important_providers = 0; // Should have reached '2' by end of the next loop !
 	StringBuffer providersString = new StringBuffer();
-	for (int i = 0 ; i < providers.length; i++) {
-		if (providers[i].getContentProvider() instanceof ResourceContentProvider 
-				&& providers[i].getMarkupInstance() instanceof MarkerMarkupProvider) {
-			important_providers++;
-		} else if (providers[i].getContentProvider() instanceof FileContentProvider
-				&& providers[i].getMarkupInstance() instanceof FileMarkupProvider) {
-			important_providers++;
+		for (ProviderDefinition provider : providers) {
+			if (provider.getContentProvider() instanceof ResourceContentProvider
+				&& provider.getMarkupInstance() instanceof MarkerMarkupProvider) {
+				important_providers++;
+			} else if (provider.getContentProvider() instanceof FileContentProvider
+				&& provider.getMarkupInstance() instanceof FileMarkupProvider) {
+				important_providers++;
+			}
+			providersString.append(provider.getName() + " "); //$NON-NLS-1$
 		}
-		providersString.append(providers[i].getName()+" "); //$NON-NLS-1$
-	}
 	assertTrue("Should have found the Marker and File content providers, but instead found these:["+ //$NON-NLS-1$
 	  providersString.toString()+"]",important_providers==2); //$NON-NLS-1$
   }
-  
+
   // Check we can select the File provider successfully
   public void testSelectingProvider() {
   	ProviderDefinition cdp = fetchFileProviderDefinition();
   	ProviderManager.setCurrent(cdp);
   	assertTrue(ProviderManager.getCurrent().getContentProvider() instanceof FileContentProvider);
-  	
+
   }
-  
+
   public void testHideviews() {
     hideViews();
   }
