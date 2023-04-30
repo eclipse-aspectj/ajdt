@@ -16,7 +16,7 @@ Export-Package: org.aspectj.internal.lang.annotation;version="1.9.20",
  org.aspectj.runtime.internal.cflowstack;version="1.9.20",
  org.aspectj.runtime.reflect;version="1.9.20"
 Eclipse-BundleShape: jar
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-11
 Bundle-ClassPath: .
 Implementation-Version: 1.9.20
 Implementation-Vendor: aspectj.org
