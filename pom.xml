@@ -54,7 +54,7 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<maven.compiler.source>11</maven.compiler.source>
 		<maven.compiler.target>11</maven.compiler.target>
-		<tycho-version>3.0.4</tycho-version>
+		<tycho-version>4.0.0</tycho-version>
 		<tycho.surefire.extra.vmargs/>
 		<aspectj-maven-compiler-version>1.13.1</aspectj-maven-compiler-version>
 
