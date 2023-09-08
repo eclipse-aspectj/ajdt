@@ -183,7 +183,6 @@ public class ITDReferenceVisitor extends AjASTVisitor {
         return tentativeMatches;
     }
 
-    @SuppressWarnings("unchecked")
     private void checkMethodPattern(MethodRef node) {
         if (methodPattern != null) {
             if (node.getName().equals(String.valueOf(methodPattern.selector))) {

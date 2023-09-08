@@ -58,7 +58,7 @@ public class LTWUtilsTest extends UITestCase{
 				srcRoots.add(root);
 		}
 		assertEquals("There should be one src directory",1,srcRoots.size()); //$NON-NLS-1$
-		List<IType> aspects = LTWUtils.getAspects((IPackageFragmentRoot)srcRoots.get(0));
+		List<IType> aspects = LTWUtils.getAspects(srcRoots.get(0));
 		assertEquals("There should be two aspects",2,aspects.size()); //$NON-NLS-1$
 		String aspectOne = ((AspectElement)aspects.get(0)).getElementName();
 		String aspectTwo = ((AspectElement)aspects.get(1)).getElementName();

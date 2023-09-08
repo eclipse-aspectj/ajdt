@@ -410,7 +410,7 @@ public class RippleMethodFinder2 {
 				uniteWithSupertypes(anchor, supertype);
 			} else {
 				//check whether method in supertype is really overridden:
-				IMember superMethod = (IMember) fTypeToMethod.get(supertype);
+				IMember superMethod = fTypeToMethod.get(supertype);
 				if (JavaModelUtil.isVisibleInHierarchy(superMethod, anchor.getPackageFragment())) {
 					IType rep = fUnionFind.find(anchor);
 					fUnionFind.union(rep, superRep);

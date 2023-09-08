@@ -188,14 +188,14 @@ aspect PreferencePageBuilder {
 
     if (!dialogFieldOriginalValues.containsKey(page)) {
       Map<TreeListDialogField<?>, List<?>> fieldValues = new HashMap<>();
-      List<?> listOfElements = new ArrayList(elements);
+      List<?> listOfElements = new ArrayList<>(elements);
       fieldValues.put(dialogField, listOfElements);
       dialogFieldOriginalValues.put(page, fieldValues);
     }
     else {
       Map<TreeListDialogField<?>, List<?>> fieldValues = dialogFieldOriginalValues.get(page);
       if (!fieldValues.containsKey(dialogField)) {
-        List<?> listOfElements = new ArrayList(elements);
+        List<?> listOfElements = new ArrayList<>(elements);
         fieldValues.put(dialogField, listOfElements);
       }
     }

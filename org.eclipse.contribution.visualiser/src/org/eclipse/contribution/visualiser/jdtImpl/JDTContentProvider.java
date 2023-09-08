@@ -313,7 +313,7 @@ public class JDTContentProvider implements IContentProvider, ISelectionListener 
 				}
 				if (jdtg!=null) {
 
-					List members = getMembersForPackage(ipf);
+					List<IMember> members = getMembersForPackage(ipf);
 					if(members.size() == 0){
 						return null;
 					}

@@ -1,0 +1,8 @@
+# Make sure that AJC can compile the project from an IDE like IntelliJ IDEA.
+# Caveat: ECJ property must be prefixed by "org.aspectj" for AJC.
+# Use "ajc -properties .../org.eclipse.ajdt/ajc.prefs" to activate this config file.
+#
+# See also:
+# https://github.com/eclipse-jdt/eclipse.jdt.core/blob/e53f36cf836b620a316c9c2e321cf7ba6cc78e52/org.eclipse.jdt.core/model/org/eclipse/jdt/core/JavaCore.java#L2649-L2666
+# https://github.com/eclipse-aspectj/eclipse.jdt.core/blob/aeeae36048d1615da8e2bf86f6ce4ab1c0011743/org.eclipse.jdt.core/model/org/eclipse/jdt/core/JavaCore.java#L2650-L2667
+org.aspectj.org.eclipse.jdt.core.compiler.ignoreUnnamedModuleForSplitPackage=enabled

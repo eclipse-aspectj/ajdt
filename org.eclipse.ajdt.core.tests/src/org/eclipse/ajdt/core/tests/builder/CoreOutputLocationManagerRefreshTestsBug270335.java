@@ -54,7 +54,7 @@ public class CoreOutputLocationManagerRefreshTestsBug270335 extends AJDTCoreTest
     }
 
 
-    private class MockCoreCompilerConfiguration extends CoreCompilerConfiguration {
+    private static class MockCoreCompilerConfiguration extends CoreCompilerConfiguration {
 
         boolean iGotFlushed = false;
 

@@ -432,18 +432,15 @@ public class AJDTUtils {
           for (IProject referencingProject : referencingProjects) {
             IMarker[] problemMarkers = referencingProject.findMarkers(
               IMarker.PROBLEM, false, IResource.DEPTH_INFINITE);
-            if (problemMarkers.length > 0) {
-              for (IMarker marker : problemMarkers) {
-                int markerSeverity = marker.getAttribute(
-                  IMarker.SEVERITY, -1);
-                String markerMessage = marker.getAttribute(
-                  IMarker.MESSAGE, UIMessages.AJDTUtils_no_message);
+            for (IMarker marker : problemMarkers) {
+              int markerSeverity = marker.getAttribute(
+                IMarker.SEVERITY, -1);
+              String markerMessage = marker.getAttribute(
+                IMarker.MESSAGE, UIMessages.AJDTUtils_no_message);
 
-                if (markerSeverity == IMarker.SEVERITY_ERROR
-                    && markerMessage.equals(errorMessage))
-                {
-                  marker.delete();
-                }
+              if (markerSeverity == IMarker.SEVERITY_ERROR
+                && markerMessage.equals(errorMessage)) {
+                marker.delete();
               }
             }
           }

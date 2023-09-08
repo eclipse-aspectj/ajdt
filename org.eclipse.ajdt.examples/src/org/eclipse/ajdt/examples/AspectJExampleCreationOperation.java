@@ -3,7 +3,7 @@
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v1.0 which accompanies this distribution,
  * and is available at http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors: IBM Corporation - initial API and implementation
  ******************************************************************************/
 package org.eclipse.ajdt.examples;
@@ -72,9 +72,8 @@ public class AspectJExampleCreationOperation implements IRunnableWithProgress {
 									.getString("ExampleProjectCreationOperation.op_desc"), fPages.length); //$NON-NLS-1$
 			IWorkspaceRoot root = AspectJExamplePlugin.getWorkspace().getRoot();
 
-			for (int i = 0; i < fPages.length; i++) {
-				createProject(root, fPages[i], new SubProgressMonitor(monitor,
-						1));
+			for (AspectJExampleCreationWizardPage fPage : fPages) {
+				createProject(root, fPage, new SubProgressMonitor(monitor, 1));
 			}
 		} finally {
 			monitor.done();
@@ -178,8 +177,8 @@ public class AspectJExampleCreationOperation implements IRunnableWithProgress {
 	 */
 	private boolean contains(ICommand[] commands, String builderId) {
 		boolean found = false;
-		for (int i = 0; i < commands.length; i++) {
-			if (commands[i].getBuilderName().equals(builderId)) {
+		for (ICommand command : commands) {
+			if (command.getBuilderName().equals(builderId)) {
 				found = true;
 				break;
 			}
@@ -193,9 +192,9 @@ public class AspectJExampleCreationOperation implements IRunnableWithProgress {
 	private ICommand[] remove(ICommand[] sourceCommands, String builderId) {
 		ICommand[] newCommands = new ICommand[sourceCommands.length - 1];
 		int newCommandIndex = 0;
-		for (int i = 0; i < sourceCommands.length; i++) {
-			if (!sourceCommands[i].getBuilderName().equals(builderId)) {
-				newCommands[newCommandIndex++] = sourceCommands[i];
+		for (ICommand sourceCommand : sourceCommands) {
+			if (!sourceCommand.getBuilderName().equals(builderId)) {
+				newCommands[newCommandIndex++] = sourceCommand;
 			}
 		}
 		return newCommands;
@@ -225,7 +224,7 @@ public class AspectJExampleCreationOperation implements IRunnableWithProgress {
 			}
 
 			ZipFile zipFile = getZipFileFromPluginDir(importPath);
-			
+
 			importFilesFromZip(zipFile, destPath, new SubProgressMonitor(
 					monitor, 1));
 		} catch (CoreException e) {
@@ -252,7 +251,7 @@ public class AspectJExampleCreationOperation implements IRunnableWithProgress {
 	private void importFilesFromZip(ZipFile srcZipFile, IPath destPath,
 			IProgressMonitor monitor) throws InvocationTargetException,
 			InterruptedException {
-		
+
 		ZipFileStructureProvider structureProvider = new ZipFileStructureProvider(
 				srcZipFile);
 		ImportOperation operator = new ImportOperation(destPath, structureProvider

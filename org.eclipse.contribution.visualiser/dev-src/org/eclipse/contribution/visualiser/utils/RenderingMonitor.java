@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Matt Chapman - initial version
  *******************************************************************************/
@@ -59,7 +59,7 @@ public class RenderingMonitor extends ViewPart {
 	private static int imageKB;
 
 	private static int widthHint = 80;
-	
+
 	public RenderingMonitor() {
 		super();
 		instance = this;
@@ -67,7 +67,7 @@ public class RenderingMonitor extends ViewPart {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.eclipse.ui.IWorkbenchPart#createPartControl(org.eclipse.swt.widgets.Composite)
 	 */
 	public void createPartControl(Composite parent) {
@@ -99,7 +99,7 @@ public class RenderingMonitor extends ViewPart {
 		} else {
 			setAverage((float) runningTotal / numValues);
 		}
-		
+
 		ipText = new Text(group, SWT.SINGLE);
 		gd = new GridData();
 		gd.widthHint = widthHint;
@@ -133,22 +133,22 @@ public class RenderingMonitor extends ViewPart {
 		gd = new GridData();
 		gd.widthHint = widthHint;
 		colsText.setLayoutData(gd);
-		colsText.setText("" + numCols); //$NON-NLS-1$
+		colsText.setText(String.valueOf(numCols)); //$NON-NLS-1$
 
 		dsText = new Text(group, SWT.SINGLE);
 		gd = new GridData();
 		gd.widthHint = widthHint;
 		dsText.setLayoutData(gd);
 		dsText.setText(dataSize+" bars"); //$NON-NLS-1$
-		
+
 		// row 5
 		label = new Label(group, SWT.NONE);
 		label.setText("Time of geometry calc:"); //$NON-NLS-1$
-		
+
 		label = new Label(group, SWT.NONE);
-		
+
 		label = new Label(group, SWT.NONE);
-		
+
 		// row 6
 		geomText = new Text(group, SWT.SINGLE);
 		gd = new GridData();
@@ -167,7 +167,7 @@ public class RenderingMonitor extends ViewPart {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.eclipse.ui.IWorkbenchPart#setFocus()
 	 */
 	public void setFocus() {
@@ -184,11 +184,9 @@ public class RenderingMonitor extends ViewPart {
 				instance = null;
 				return;
 			}
-			Display.getDefault().asyncExec(new Runnable() {
-				public void run() {
-					instance.setAverage((float) runningTotal / numValues);
-					instance.msText.setText(lastTime + " ms"); //$NON-NLS-1$
-				}
+			Display.getDefault().asyncExec(() -> {
+				instance.setAverage((float) runningTotal / numValues);
+				instance.msText.setText(lastTime + " ms"); //$NON-NLS-1$
 			});
 		}
 	}
@@ -200,10 +198,8 @@ public class RenderingMonitor extends ViewPart {
 				instance = null;
 				return;
 			}
-			Display.getDefault().asyncExec(new Runnable() {
-				public void run() {
-					instance.provText.setText(provTime + " ms"); //$NON-NLS-1$
-				}
+			Display.getDefault().asyncExec(() -> {
+				instance.provText.setText(provTime + " ms"); //$NON-NLS-1$
 			});
 		}
 	}
@@ -215,10 +211,8 @@ public class RenderingMonitor extends ViewPart {
 				instance = null;
 				return;
 			}
-			Display.getDefault().asyncExec(new Runnable() {
-				public void run() {
-					instance.geomText.setText(geomTime + " ms"); //$NON-NLS-1$
-				}
+			Display.getDefault().asyncExec(() -> {
+				instance.geomText.setText(geomTime + " ms"); //$NON-NLS-1$
 			});
 		}
 	}
@@ -230,10 +224,8 @@ public class RenderingMonitor extends ViewPart {
 				instance = null;
 				return;
 			}
-			Display.getDefault().asyncExec(new Runnable() {
-				public void run() {
-					instance.dsText.setText(dataSize + " bars"); //$NON-NLS-1$
-				}
+			Display.getDefault().asyncExec(() -> {
+				instance.dsText.setText(dataSize + " bars"); //$NON-NLS-1$
 			});
 		}
 	}
@@ -246,10 +238,8 @@ public class RenderingMonitor extends ViewPart {
 				instance = null;
 				return;
 			}
-			Display.getDefault().asyncExec(new Runnable() {
-				public void run() {
-					instance.ipText.setText(imageKB + " KB"); //$NON-NLS-1$
-				}
+			Display.getDefault().asyncExec(() -> {
+				instance.ipText.setText(imageKB + " KB"); //$NON-NLS-1$
 			});
 		}
 	}
@@ -261,10 +251,8 @@ public class RenderingMonitor extends ViewPart {
 				instance = null;
 				return;
 			}
-			Display.getDefault().asyncExec(new Runnable() {
-				public void run() {
-					instance.colsText.setText("" + numCols); //$NON-NLS-1$
-				}
+			Display.getDefault().asyncExec(() -> {
+				instance.colsText.setText("" + numCols); //$NON-NLS-1$
 			});
 		}
 	}

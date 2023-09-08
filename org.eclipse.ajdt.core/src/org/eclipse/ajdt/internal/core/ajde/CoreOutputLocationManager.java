@@ -13,16 +13,8 @@
 package org.eclipse.ajdt.internal.core.ajde;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeMap;
 
 import org.aspectj.ajde.core.IOutputLocationManager;
 import org.eclipse.ajdt.core.AJLog;
@@ -712,11 +704,7 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
                 ResourcesPlugin.getWorkspace().getRoot().getFolder(path).getLocation() :
                 ResourcesPlugin.getWorkspace().getRoot().getProject(path.makeRelative().toOSString()).getLocation();
         File f;
-        if (locPath != null) {
-            f = locPath.toFile();
-        } else {
-            f = path.toFile();
-        }
+      f = Objects.requireNonNullElse(locPath, path).toFile();
         return f;
     }
 

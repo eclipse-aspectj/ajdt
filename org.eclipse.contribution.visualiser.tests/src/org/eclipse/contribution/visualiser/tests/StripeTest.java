@@ -84,7 +84,7 @@ public class StripeTest extends TestCase {
 	public void testStripeStringint() {
 		Stripe s = new Stripe(kind1, 10);
 		assertTrue("Too many kinds in the stripe, expected one", s.getKinds().size() == 1); //$NON-NLS-1$
-		assertTrue("Kind incorrect", ((IMarkupKind) s.getKinds().get(0)).getName().equals("KIND1")); //$NON-NLS-1$ //$NON-NLS-2$
+		assertTrue("Kind incorrect", s.getKinds().get(0).getName().equals("KIND1")); //$NON-NLS-1$ //$NON-NLS-2$
 		assertTrue("Offset wrong", s.getOffset() == 10); //$NON-NLS-1$
 		assertTrue("Depth wrong, should be defaulting to one", s.getDepth() == 1); //$NON-NLS-1$
 	}

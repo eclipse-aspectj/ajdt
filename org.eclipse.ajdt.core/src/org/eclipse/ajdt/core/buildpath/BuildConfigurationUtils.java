@@ -196,7 +196,7 @@ public class BuildConfigurationUtils {
 					}
 					IPath[] exclusionPatterns = new IPath[exclusions.size()];
 					for (int j = 0; j < exclusionPatterns.length; j++) {
-						String exclusionPathStr = (String) exclusions.get(j);
+						String exclusionPathStr = exclusions.get(j);
 						if (exclusionPathStr.startsWith(srcFolder)) {
 							exclusionPathStr = exclusionPathStr.substring(srcFolder.length());
 						}
@@ -206,7 +206,7 @@ public class BuildConfigurationUtils {
 					}
 					IPath[] inclusionPatterns = new IPath[inclusions.size()];
 					for (int j = 0; j < inclusionPatterns.length; j++) {
-						String inclusionPathStr = (String) inclusions.get(j);
+						String inclusionPathStr = inclusions.get(j);
 						if (inclusionPathStr.startsWith(srcFolder)) {
 							inclusionPathStr = inclusionPathStr.substring(srcFolder.length());
 						}

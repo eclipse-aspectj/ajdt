@@ -71,7 +71,7 @@ public abstract class History<T> {
 	private final String fInfoNodeName;
 
 	public History(String fileName, String rootNodeName, String infoNodeName) {
-		fHistory = new LinkedHashMap<Key<T>, T>(80, 0.75f, true) {
+		fHistory = new LinkedHashMap<>(80, 0.75f, true) {
 			private static final long serialVersionUID = 1L;
 
 			@Override

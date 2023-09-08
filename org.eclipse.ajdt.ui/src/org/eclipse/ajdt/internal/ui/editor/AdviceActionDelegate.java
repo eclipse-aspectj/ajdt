@@ -183,7 +183,7 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 			IMarker[] probMarkers = ifile.findMarkers(IMarker.MARKER, true, 2);
             MenuManager problemSubmenu = null;
             boolean problemSubmenuInitialized = false;
-            if (probMarkers != null && probMarkers.length != 0) {
+            if (probMarkers != null) {
               for (IMarker m : probMarkers) {
                 Object markerLine = m.getAttribute(IMarker.LINE_NUMBER);
                 if (markerLine != null && markerLine.equals(clickedLine)) {

@@ -279,7 +279,7 @@ public final class AspectJCodeScanner extends AbstractJavaScanner {
 				return Token.UNDEFINED;
 			}
 
-			if ("interface".equals(buffer.toString())) //$NON-NLS-1$
+			if ("interface".contentEquals(buffer)) //$NON-NLS-1$
 				return fInterfaceToken;
 
 			// begin AspectJ Change

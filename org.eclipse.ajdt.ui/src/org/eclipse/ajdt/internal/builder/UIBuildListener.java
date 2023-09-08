@@ -144,17 +144,15 @@ public class UIBuildListener implements IAJBuildListener {
             IMarker[] problemMarkers = project.findMarkers(
                     IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER,
                     false, IResource.DEPTH_ZERO);
-            if (problemMarkers.length > 0) {
-              for (IMarker marker : problemMarkers) {
-                int markerSeverity = marker.getAttribute(IMarker.SEVERITY, -1);
-                String markerMessage = marker.getAttribute(IMarker.MESSAGE, "no message"); //$NON-NLS-1$
-                if (markerSeverity == IMarker.SEVERITY_ERROR) {
-                  if (markerMessage.equals(errorMessage)) {
-                    return true;
-                  }
-                }
+          for (IMarker marker : problemMarkers) {
+            int markerSeverity = marker.getAttribute(IMarker.SEVERITY, -1);
+            String markerMessage = marker.getAttribute(IMarker.MESSAGE, "no message"); //$NON-NLS-1$
+            if (markerSeverity == IMarker.SEVERITY_ERROR) {
+              if (markerMessage.equals(errorMessage)) {
+                return true;
               }
             }
+          }
         } catch (CoreException e) {
             AJLog.log(AJLog.BUILDER,"build: Problem occured finding the markers for project " //$NON-NLS-1$
                             + project.getName() + ": " + e); //$NON-NLS-1$
@@ -375,16 +373,14 @@ public class UIBuildListener implements IAJBuildListener {
             IMarker[] problemMarkers = referencingProject.findMarkers(
               IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER,
               false, IResource.DEPTH_ZERO);
-            if (problemMarkers.length > 0) {
-              for (IMarker marker : problemMarkers) {
-                int markerSeverity = marker.getAttribute(
-                  IMarker.SEVERITY, -1);
-                if (markerSeverity == IMarker.SEVERITY_ERROR) {
-                  String markerMessage = marker.getAttribute(
-                    IMarker.MESSAGE, "no message"); //$NON-NLS-1$
-                  if (markerMessage.equals(errorMessage)) {
-                    marker.delete();
-                  }
+            for (IMarker marker : problemMarkers) {
+              int markerSeverity = marker.getAttribute(
+                IMarker.SEVERITY, -1);
+              if (markerSeverity == IMarker.SEVERITY_ERROR) {
+                String markerMessage = marker.getAttribute(
+                  IMarker.MESSAGE, "no message"); //$NON-NLS-1$
+                if (markerMessage.equals(errorMessage)) {
+                  marker.delete();
                 }
               }
             }
