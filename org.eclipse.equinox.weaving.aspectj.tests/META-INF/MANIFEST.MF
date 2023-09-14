@@ -1,0 +1,17 @@
+Manifest-Version: 1.0
+Automatic-Module-Name: org.eclipse.equinox.weaving.aspectj.tests
+Bundle-ManifestVersion: 2
+Bundle-Name: WeavingService Tests
+Bundle-SymbolicName: org.eclipse.equinox.weaving.aspectj.tests
+Bundle-Version: 1.0.400.qualifier
+Require-Bundle: org.junit;bundle-version="3.8.2",
+ org.eclipse.equinox.weaving.aspectj;bundle-version="1.0.400",
+ org.aspectj.weaver
+Bundle-Vendor: Eclipse AspectJ Development Tools
+Bundle-RequiredExecutionEnvironment: JavaSE-11
+Import-Package: org.aspectj.weaver,
+ org.aspectj.weaver.bcel,
+ org.aspectj.weaver.loadtime,
+ org.aspectj.weaver.loadtime.definition,
+ org.aspectj.weaver.tools
+ 
