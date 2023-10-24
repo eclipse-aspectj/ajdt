@@ -42,6 +42,8 @@
 		<module>org.eclipse.contribution.xref.core.tests</module>
 		<module>org.eclipse.contribution.xref.ui.tests</module>
 
+		<module>org.eclipse.equinox.weaving.aspectj.tests</module>
+
 		<module>org.eclipse.aspectj.feature_tests</module>
 
 		<!-- p2 repo -->

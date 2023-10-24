@@ -13,6 +13,7 @@
  *   Martin Lippert            reworked
  *   Martin Lippert            caching of generated classes
  *   Martin Lippert            added locking for weaving
+ *   Stefan Winkler            fixed issue with generated classes in hierarchies
  *******************************************************************************/
 
 package org.eclipse.equinox.weaving.aspectj.loadtime;
@@ -198,18 +199,16 @@ public class OSGiWeavingAdaptor extends ClassLoaderWeavingAdaptor {
      *         generated classes
      */
     public Map<String, byte[]> getGeneratedClassesFor(final String className) {
-        final Map<?, ?> generated = this.generatedClasses;
+        final Map<String, IUnwovenClassFile> generated = this.generatedClasses;
         final Map<String, byte[]> result = new HashMap<>();
 
-      for (Object o : generated.keySet()) {
-        final String name = (String) o;
-        final IUnwovenClassFile unwovenClass = (IUnwovenClassFile) generated
-          .get(name);
-
-        if (!className.equals(name)) {
-          result.put(name, unwovenClass.getBytes());
+        for (Map.Entry<String, IUnwovenClassFile> entry : generated.entrySet()) {
+            final String name = entry.getKey();
+            final IUnwovenClassFile unwovenClass = entry.getValue();
+            if (!name.equals(className) && name.equals(unwovenClass.getClassName())) {
+              result.put(name, unwovenClass.getBytes());
+            }
         }
-      }
 
         flushGeneratedClasses();
         return result;
