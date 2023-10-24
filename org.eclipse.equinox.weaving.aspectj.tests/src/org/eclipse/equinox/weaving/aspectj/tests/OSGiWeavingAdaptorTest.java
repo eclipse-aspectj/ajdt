@@ -28,7 +28,7 @@ import org.eclipse.equinox.weaving.aspectj.loadtime.OSGiWeavingAdaptor;
 
 /**
  * Test for the OSGiWeavingAdaptor
- * 
+ *
  * @author Stefan Winkler <stefan@winklerweb.net>
  */
 public class OSGiWeavingAdaptorTest extends TestCase {
@@ -37,7 +37,7 @@ public class OSGiWeavingAdaptorTest extends TestCase {
      * Test for https://github.com/eclipse-aspectj/ajdt/issues/45
      */
     public void testGeneratedClasses() throws Exception {
-        // GIVEN: 
+        // GIVEN:
         // - an OSGiWeavingAdaptor instance
         final OSGiWeavingAdaptor adaptor = new OSGiWeavingAdaptor(null, null, "dummy");
 
@@ -57,11 +57,11 @@ public class OSGiWeavingAdaptorTest extends TestCase {
             }
         });
 
-        // WHEN: 
-        // - the class is woven 
+        // WHEN:
+        // - the class is woven
 
         //   (Trying to mock the handling is too complex, so instead, we provide a valid .class file
-        //   here. This is enough to not throw an exception along the way. Other than that, we don't care about the 
+        //   here. This is enough to not throw an exception along the way. Other than that, we don't care about the
         //   classBytes. It's the keys of the generatedClasses field set by the getWovenBytes() method, we are interested in...)
         //   So, read our own .class file here:
         byte[] classBytes;
@@ -77,7 +77,7 @@ public class OSGiWeavingAdaptorTest extends TestCase {
         getWovenBytes.setAccessible(true);
         getWovenBytes.invoke(adaptor, "my.foo.MyClass", classBytes); // WeavingAdaptor:385
 
-        // - then the woven class would be defined, which causes another call to getWovenBytes() 
+        // - then the woven class would be defined, which causes another call to getWovenBytes()
         //   but this time for the base class. Before that call, the delegateForCurrentClass is reset to null
 
         Field delegateForCurrentClassField = WeavingAdaptor.class.getDeclaredField("delegateForCurrentClass");
@@ -90,7 +90,7 @@ public class OSGiWeavingAdaptorTest extends TestCase {
 
         // THEN:
         // - the result should not include the non-generated class, only the four generated ones
-        
+
         // build a string representation to provide details in the assertion message
         StringBuilder actualContentsBuilder = new StringBuilder("[");
         for (String key : actualResult.keySet()) {
@@ -100,15 +100,15 @@ public class OSGiWeavingAdaptorTest extends TestCase {
         String actualContents = actualContentsBuilder.toString();
 
         // assert our expected result
-        assertTrue("my.foo.MyClass$AjcClosure1 is not contained in " + actualContents.toString(),
-                actualResult.keySet().contains("my.foo.MyClass$AjcClosure1"));
-        assertTrue("my.foo.MyClass$AjcClosure3 is not contained in " + actualContents.toString(),
-                actualResult.keySet().contains("my.foo.MyClass$AjcClosure3"));
-        assertTrue("my.foo.MyBaseClass$AjcClosure1 is not contained in " + actualContents.toString(),
-                actualResult.keySet().contains("my.foo.MyBaseClass$AjcClosure1"));
-        assertTrue("my.foo.MyBaseClass$AjcClosure3 is not contained in " + actualContents.toString(),
-                actualResult.keySet().contains("my.foo.MyBaseClass$AjcClosure3"));
-        assertEquals("Expected size 4 of result " + actualContents.toString(),
+        assertTrue("my.foo.MyClass$AjcClosure1 is not contained in " + actualContents,
+                actualResult.containsKey("my.foo.MyClass$AjcClosure1"));
+        assertTrue("my.foo.MyClass$AjcClosure3 is not contained in " + actualContents,
+                actualResult.containsKey("my.foo.MyClass$AjcClosure3"));
+        assertTrue("my.foo.MyBaseClass$AjcClosure1 is not contained in " + actualContents,
+                actualResult.containsKey("my.foo.MyBaseClass$AjcClosure1"));
+        assertTrue("my.foo.MyBaseClass$AjcClosure3 is not contained in " + actualContents,
+                actualResult.containsKey("my.foo.MyBaseClass$AjcClosure3"));
+        assertEquals("Expected size 4 of result " + actualContents,
                 4, actualResult.size());
     }
 }
