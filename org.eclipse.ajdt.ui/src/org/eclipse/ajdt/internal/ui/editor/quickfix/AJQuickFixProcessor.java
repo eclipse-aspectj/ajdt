@@ -26,7 +26,7 @@ import org.eclipse.jdt.ui.text.java.IJavaCompletionProposal;
 import org.eclipse.jdt.ui.text.java.IProblemLocation;
 import org.eclipse.jdt.ui.text.java.IQuickAssistProcessor;
 import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.IWorkbenchWindow;
 
 /**
  * Adapted from org.eclipse.jdt.internal.ui.text.correction.QuickFixProcessor
@@ -57,7 +57,10 @@ public class AJQuickFixProcessor extends QuickFixProcessor implements IQuickAssi
 
 		if (AspectJPlugin.isAJProject(project)) {
 			// We're looking at a problem in an AspectJ Project
-			IEditorPart ed = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
+			IWorkbenchWindow workbenchWindow = getActiveWorkbenchWindow();
+			if (workbenchWindow == null)
+				return null;
+			IEditorPart ed = workbenchWindow.getActivePage().getActiveEditor();
 			if ((ed instanceof AspectJEditor)) {
 				// Only apply to the Java editor
 				return null;
