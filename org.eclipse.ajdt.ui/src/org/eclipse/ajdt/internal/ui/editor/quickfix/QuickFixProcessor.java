@@ -14,6 +14,8 @@ package org.eclipse.ajdt.internal.ui.editor.quickfix;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import org.eclipse.ajdt.internal.ui.editor.AspectJEditor;
 import org.eclipse.core.runtime.CoreException;
@@ -40,7 +42,9 @@ import org.eclipse.jdt.ui.text.java.IProblemLocation;
 import org.eclipse.jdt.ui.text.java.IQuickAssistProcessor;
 import org.eclipse.jdt.ui.text.java.IQuickFixProcessor;
 import org.eclipse.jdt.ui.text.java.correction.ICommandAccess;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
 /**
@@ -229,8 +233,10 @@ public class QuickFixProcessor implements IQuickFixProcessor, IQuickAssistProces
 		}
 
 		// AspectJ Change Begin
-		IEditorPart ed = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
-				.getActivePage().getActiveEditor();
+		IWorkbenchWindow workbenchWindow = getActiveWorkbenchWindow();
+		if (workbenchWindow == null)
+			return null;
+		IEditorPart ed = workbenchWindow.getActivePage().getActiveEditor();
 		if (!(ed instanceof AspectJEditor)) {
 			// we only want to provide corrections for the AspectJ editor
 			// otherwise we get double completions in the Java editor
@@ -571,4 +577,19 @@ public class QuickFixProcessor implements IQuickFixProcessor, IQuickAssistProces
         return false;
     }
     // end AspectJ Change
+
+		// begin AspectJ Change - utility method
+		public static IWorkbenchWindow getActiveWorkbenchWindow() {
+			CompletableFuture<IWorkbenchWindow> future = new CompletableFuture<>();
+			Display.getDefault().syncExec(() -> future.complete(PlatformUI.getWorkbench().getActiveWorkbenchWindow()));
+			IWorkbenchWindow workbenchWindow;
+			try {
+				workbenchWindow = future.get();
+			} catch (InterruptedException | ExecutionException e) {
+				return null;
+			}
+			return workbenchWindow;
+		}
+		// end AspectJ Change
+
 }
