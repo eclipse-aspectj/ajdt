@@ -147,7 +147,7 @@ public class AJCompilationUnitDeclarationWrapper extends
 		return delegate.hasErrors();
 	}
 
-	public StringBuffer print(int indent, StringBuffer output) {
+	public StringBuilder print(int indent, StringBuilder output) {
 		return delegate.print(indent, output);
 	}
 

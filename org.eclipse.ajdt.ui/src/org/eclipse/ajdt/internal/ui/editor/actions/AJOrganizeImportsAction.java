@@ -327,7 +327,10 @@ public class AJOrganizeImportsAction extends SelectionDispatchAction {
 				ErrorDialog.openError(getShell(), title, null, status);
 			}
 		} catch (InvocationTargetException e) {
-			ExceptionHandler.handle(e, getShell(), ActionMessages.OrganizeImportsAction_error_title, ActionMessages.OrganizeImportsAction_error_message);
+			ExceptionHandler.handle(e, getShell(), ActionMessages.OrganizeImportsAction_error_title,
+				/*ActionMessages.OrganizeImportsAction_error_message*/
+				"Unexpected error in organize imports. See log for details."
+			);
 		} catch (InterruptedException e) {
 			// Canceled by user
 		}
@@ -480,7 +483,10 @@ public class AJOrganizeImportsAction extends SelectionDispatchAction {
 					}
 				}
 			} catch (InvocationTargetException e) {
-				ExceptionHandler.handle(e, getShell(), ActionMessages.OrganizeImportsAction_error_title, ActionMessages.OrganizeImportsAction_error_message);
+				ExceptionHandler.handle(e, getShell(), ActionMessages.OrganizeImportsAction_error_title,
+					/*ActionMessages.OrganizeImportsAction_error_message*/
+					"Unexpected error in organize imports. See log for details."
+				);
 			} catch (InterruptedException ignored) {
 			} finally {
 				deregisterHelper(helper);
@@ -489,7 +495,10 @@ public class AJOrganizeImportsAction extends SelectionDispatchAction {
 				}
 			}
 		} catch (CoreException e) {
-			ExceptionHandler.handle(e, getShell(), ActionMessages.OrganizeImportsAction_error_title, ActionMessages.OrganizeImportsAction_error_message);
+			ExceptionHandler.handle(e, getShell(), ActionMessages.OrganizeImportsAction_error_title,
+				/*ActionMessages.OrganizeImportsAction_error_message*/
+				"Unexpected error in organize imports. See log for details."
+			);
 		}
 	}
 

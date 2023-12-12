@@ -184,14 +184,15 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 		if (this.tokenScanner == null) {
 			CompilerOptions compilerOptions = new CompilerOptions(this.options);
 			Scanner scanner = new Scanner(
-				true,                             // tokenizeComments
-				false,                            // tokenizeWhiteSpace
-				false,                            // checkNonExternalizedStringLiterals
-				compilerOptions.sourceLevel,      // sourceLevel
-				compilerOptions.complianceLevel,  // complianceLevel
-				null,                             // taskTags
-				null,                             // taskPriorities
-				true                              // taskCaseSensitive
+				true,                                  // tokenizeComments
+				false,                                 // tokenizeWhiteSpace
+				false,                                 // checkNonExternalizedStringLiterals
+				compilerOptions.sourceLevel,           // sourceLevel
+				compilerOptions.complianceLevel,       // complianceLevel
+				null,                                  // taskTags
+				null,                                  // taskPriorities
+				true,                                  // taskCaseSensitive
+				compilerOptions.enablePreviewFeatures  // isPreviewEnabled
 			);
 			scanner.setSource(this.content);
 			this.tokenScanner = new TokenScanner(scanner);
@@ -1276,13 +1277,13 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 				if (startPos != nextStart) {
 					int visibilityModifiers= addedModifiers & (Modifier.PUBLIC | Modifier.PRIVATE | Modifier.PROTECTED);
 					if (visibilityModifiers != 0) {
-						StringBuffer buf= new StringBuffer();
+						StringBuilder buf= new StringBuilder();
 						ASTRewriteFlattener.printModifiers(visibilityModifiers, buf);
 						doTextInsert(startPos, buf.toString(), editGroup);
 						addedModifiers &= ~visibilityModifiers;
 					}
 				}
-				StringBuffer buf= new StringBuffer();
+				StringBuilder buf= new StringBuilder();
 				ASTRewriteFlattener.printModifiers(addedModifiers, buf);
 				doTextInsert(nextStart, buf.toString(), editGroup);
 			}

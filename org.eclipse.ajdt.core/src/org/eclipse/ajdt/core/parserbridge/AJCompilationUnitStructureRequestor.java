@@ -287,6 +287,12 @@ public class AJCompilationUnitStructureRequestor extends
                     mi.typeParameters,
                     mdecl);
     }
+
+    @Override
+    public void exitCompactConstructor(int declarationEnd) {
+        super.exitCompactConstructor(declarationEnd);
+    }
+
     /* default */ static String[] convertTypeNamesToSigsCopy(char[][] typeNames) {
         if (typeNames == null)
             return CharOperation.NO_STRINGS;

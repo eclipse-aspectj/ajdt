@@ -58,7 +58,8 @@ public class AspectVisualizerPerspectiveFactory implements IPerspectiveFactory {
 		// views - standard workbench
 		layout.addShowViewShortcut(IPageLayout.ID_OUTLINE);
 		layout.addShowViewShortcut(IPageLayout.ID_TASK_LIST);
-		layout.addShowViewShortcut(IPageLayout.ID_RES_NAV);
+		// Removed in 2023-12, replaced by the Common Navigator Framework as of Eclipse release 3.5
+		//layout.addShowViewShortcut(IPageLayout.ID_RES_NAV);
 
 		// new actions - Java project creation wizard
 		layout
@@ -118,7 +119,8 @@ public class AspectVisualizerPerspectiveFactory implements IPerspectiveFactory {
 		placeHolderLeft.addPlaceholder(JavaUI.ID_TYPE_HIERARCHY);
 		placeHolderLeft.addPlaceholder(IPageLayout.ID_OUTLINE);
 		placeHolderLeft.addPlaceholder(JavaUI.ID_PACKAGES);
-		placeHolderLeft.addPlaceholder(IPageLayout.ID_RES_NAV);
+		// Removed in 2023-12, replaced by the Common Navigator Framework as of Eclipse release 3.5
+		//placeHolderLeft.addPlaceholder(IPageLayout.ID_RES_NAV);
 
 		IPlaceholderFolderLayout placeHolderBottom = layout
 				.createPlaceholderFolder(

@@ -98,7 +98,7 @@ public String[] getExceptionTypes() throws JavaModelException {
 	return typeSigs;
 }
 
-protected void getHandleMemento(StringBuffer buff) {
+protected void getHandleMemento(StringBuilder buff) {
     buff.append(getParent().getHandleMemento());
     char delimiter = getHandleMementoDelimiter();
     buff.append(delimiter);
@@ -228,6 +228,11 @@ public boolean isConstructor() throws JavaModelException {
 public boolean isMainMethod() throws JavaModelException {
 	return this.isMainMethod(this);
 }
+
+public boolean isMainMethodCandidate() throws JavaModelException {
+	return this.isMainMethodCandidate(this);
+}
+
 /* (non-Javadoc)
  * @see org.eclipse.jdt.core.IMethod#isResolved()
  */
@@ -248,7 +253,7 @@ public boolean isSimilar(IMethod method) {
 /**
  * @private Debugging purposes
  */
-protected void toStringInfo(int tab, StringBuffer buffer, Object info) {
+protected void toStringInfo(int tab, StringBuilder buffer, Object info) {
 	buffer.append(this.tabString(tab));
 	if (info == null) {
 		toStringName(buffer);

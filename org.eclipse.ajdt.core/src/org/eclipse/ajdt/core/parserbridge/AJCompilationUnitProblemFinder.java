@@ -1132,7 +1132,7 @@ public class AJCompilationUnitProblemFinder extends
 }
 
 
-class NullRequestor extends AJCompilationUnitStructureRequestor implements ISourceElementRequestor, IAspectSourceElementRequestor {
+class NullRequestor extends AJCompilationUnitStructureRequestor implements /*ISourceElementRequestor,*/ IAspectSourceElementRequestor {
 
     public NullRequestor() {
         super(null, null, null);
