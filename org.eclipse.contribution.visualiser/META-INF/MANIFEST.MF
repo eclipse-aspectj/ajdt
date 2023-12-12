@@ -34,5 +34,5 @@ Require-Bundle: org.eclipse.ui.workbench.texteditor,
  org.aspectj.runtime,
  org.eclipse.help
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Eclipse-AspectBundle: finished

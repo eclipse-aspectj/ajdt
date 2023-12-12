@@ -49,6 +49,6 @@ Eclipse-SupplementBundle: org.eclipse.jdt.core,
  org.eclipse.jdt.debug.ui,
  org.eclipse.jdt.debug,
  org.eclipse.jdt.groovy.core
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Bundle-Vendor: Eclipse AspectJ Development Tools
 Bundle-ActivationPolicy: lazy

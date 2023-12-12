@@ -23,6 +23,6 @@ Require-Bundle: org.eclipse.contribution.weaving.jdt;bundle-version="2.2.4",
 Bundle-ActivationPolicy: lazy
 Bundle-Activator: org.eclipse.contribution.weaving.jdt.tests.JDTWeavingTestsPlugin
 Bundle-ClassPath: jdtweavingtests.jar
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Export-Package: org.eclipse.contribution.weaving.jdt.tests
 Bundle-Vendor: Eclipse AspectJ Development Tools

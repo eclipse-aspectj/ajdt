@@ -13,6 +13,6 @@ Require-Bundle: org.eclipse.contribution.xref.core,
  org.junit,
  org.eclipse.jdt.core
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Import-Package: org.eclipse.contribution.xref.core,
  org.eclipse.core.runtime

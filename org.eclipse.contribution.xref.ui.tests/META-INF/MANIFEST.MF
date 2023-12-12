@@ -18,4 +18,4 @@ Require-Bundle: org.eclipse.contribution.xref.ui,
  org.eclipse.contribution.xref.core,
  org.eclipse.contribution.xref.core.tests;bundle-version="2.2.4"
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17

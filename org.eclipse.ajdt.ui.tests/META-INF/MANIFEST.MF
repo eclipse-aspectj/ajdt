@@ -56,4 +56,4 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.contribution.weaving.jdt;bundle-version="2.2.4",
  org.eclipse.core.resources
 Bundle-ActivationPolicy: lazy;exclude:="org.eclipse.ajdt.ui.tests"
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
