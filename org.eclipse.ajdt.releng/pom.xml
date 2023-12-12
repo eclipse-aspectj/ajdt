@@ -15,23 +15,6 @@
 		<zip.name>ajdt-${platform.version}-${unqualifiedVersion}.${buildQualifier}</zip.name>
 	</properties>
 
-	<distributionManagement>
-		<repository>
-			<id>aspectj-dev-deploy</id>
-			<name>AspectJ.dev WebDAV Releases</name>
-			<!-- Please specify the local mount point for the WebDAV share in your settings.xml -->
-			<url>${aspectj.dev.webdav.share}</url>
-			<uniqueVersion>false</uniqueVersion>
-		</repository>
-		<snapshotRepository>
-			<id>aspectj-dev-deploy</id>
-			<name>AspectJ.dev WebDAV Snapshots</name>
-			<!-- Please specify the local mount point for the WebDAV share in your settings.xml -->
-			<url>${aspectj.dev.webdav.share}</url>
-			<uniqueVersion>true</uniqueVersion>
-		</snapshotRepository>
-	</distributionManagement>
-
 	<repositories>
 		<!--
       Repeat Central definition from super POM https://maven.apache.org/ref/3.6.3/maven-model-builder/super-pom.html.
@@ -46,20 +29,6 @@
 			<layout>default</layout>
 			<snapshots>
 				<enabled>false</enabled>
-			</snapshots>
-			<releases>
-				<enabled>true</enabled>
-				<updatePolicy>never</updatePolicy>
-			</releases>
-		</repository>
-		<repository>
-			<id>aspectj-dev</id>
-			<name>AspectJ artifacts on aspectj.dev</name>
-			<url>https://aspectj.dev/maven</url>
-			<layout>default</layout>
-			<snapshots>
-				<enabled>true</enabled>
-				<updatePolicy>always</updatePolicy>
 			</snapshots>
 			<releases>
 				<enabled>true</enabled>
@@ -82,20 +51,6 @@
 			<layout>default</layout>
 			<snapshots>
 				<enabled>false</enabled>
-			</snapshots>
-			<releases>
-				<enabled>true</enabled>
-				<updatePolicy>never</updatePolicy>
-			</releases>
-		</pluginRepository>
-		<pluginRepository>
-			<id>aspectj-dev</id>
-			<name>AspectJ artifacts on aspectj.dev</name>
-			<url>https://aspectj.dev/maven</url>
-			<layout>default</layout>
-			<snapshots>
-				<enabled>true</enabled>
-				<updatePolicy>always</updatePolicy>
 			</snapshots>
 			<releases>
 				<enabled>true</enabled>
