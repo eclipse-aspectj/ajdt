@@ -266,7 +266,7 @@ public class AJProjectModelFacade {
         } else if (je instanceof AJCodeElement) {
             cu = ((AJCodeElement) je).getCompilationUnit();
             // get the occurence count
-            int count = ((AJCodeElement) je).occurrenceCount;
+            int count = ((AJCodeElement) je).getOccurrenceCount();
             // need the first bang after the last close paren
             int lastParen = ajHandle.lastIndexOf(')');
             int firstBang = ajHandle.indexOf(JavaElement.JEM_COUNT, lastParen);

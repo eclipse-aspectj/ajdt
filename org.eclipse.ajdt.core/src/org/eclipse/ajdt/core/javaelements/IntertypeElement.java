@@ -25,6 +25,8 @@ import org.aspectj.asm.IHierarchy;
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.bridge.ISourceLocation;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
+import org.eclipse.jdt.internal.compiler.env.IElementInfo;
+import org.eclipse.jdt.internal.core.JavaElementInfo;
 import org.eclipse.jdt.internal.core.LocalVariable;
 import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
@@ -89,7 +91,7 @@ public abstract class IntertypeElement extends AspectJMemberElement {
         return ((IntertypeElementInfo)getElementInfo()).getTargetType();
     }
 
-    protected Object createElementInfo() {
+    protected JavaElementInfo createElementInfo() {
         IntertypeElementInfo info = new IntertypeElementInfo();
 
         IProject project = this.getJavaProject().getProject();
@@ -176,7 +178,7 @@ public abstract class IntertypeElement extends AspectJMemberElement {
     /**
      * override this cached info because it was before we had a successful build
      */
-    public Object getElementInfo() throws JavaModelException {
+    public IElementInfo getElementInfo() throws JavaModelException {
         IntertypeElementInfo info = (IntertypeElementInfo) super.getElementInfo();
         if (info.getAJKind() == IProgramElement.Kind.ERROR &&
                 AJProjectModelFactory.getInstance().getModelForJavaElement(this).hasModel()) {

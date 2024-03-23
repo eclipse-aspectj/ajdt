@@ -20,10 +20,7 @@ import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeParameter;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.internal.core.JavaElement;
-import org.eclipse.jdt.internal.core.SourceConstructorWithChildrenInfo;
-import org.eclipse.jdt.internal.core.SourceMethod;
-import org.eclipse.jdt.internal.core.SourceMethodWithChildrenInfo;
+import org.eclipse.jdt.internal.core.*;
 
 public class MethodIntertypeElement extends IntertypeElement
 /* implements IMethod (already implemented by AspectJMemberElement */
@@ -42,7 +39,7 @@ public class MethodIntertypeElement extends IntertypeElement
     }
 
     @Override
-    protected Object createElementInfo() {
+    protected JavaElementInfo createElementInfo() {
       //      if (result.getAJKind()!=Kind.INTER_TYPE_FIELD) {
 //          throw new JavaModelException("Element exists, but is not a field: "+this);
 //      }
@@ -60,7 +57,7 @@ public class MethodIntertypeElement extends IntertypeElement
                       (JavaElement) parent,
                       parent.getElementName(),
                       MethodIntertypeElement.this.getQualifiedParameterTypes()) {
-                  protected Object createElementInfo() {
+                  protected JavaElementInfo createElementInfo() {
                       /* AJDT 1.7 */
                       ITDSourceConstructorElementInfo newInfo = new ITDSourceConstructorElementInfo(MethodIntertypeElement.this, info.getChildren());
                       newInfo.setFlags(CompilationUnitTools.getPublicModifierCode(info));
@@ -83,7 +80,7 @@ public class MethodIntertypeElement extends IntertypeElement
                       (JavaElement) parent,
                       getTargetName(),
                       MethodIntertypeElement.this.getQualifiedParameterTypes()) {
-                  protected Object createElementInfo() {
+                  protected JavaElementInfo createElementInfo() {
                       /* AJDT 1.7 */
                       ITDSourceMethodElementInfo newInfo = new ITDSourceMethodElementInfo(MethodIntertypeElement.this, info.getChildren());
                       newInfo.setReturnType(getQualifiedReturnTypeName(info));

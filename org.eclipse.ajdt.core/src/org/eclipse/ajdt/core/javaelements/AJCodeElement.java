@@ -34,26 +34,24 @@ public class AJCodeElement extends LocalVariable implements IAJCodeElement {
 	private int startLine;
 
 	public AJCodeElement(JavaElement parent, String name) {
-		super(parent,name,0,0,0,0,"I", new org.eclipse.jdt.internal.compiler.ast.Annotation[0], 0, false); //$NON-NLS-1$
-		this.name=name;
+		// The 3 calls to 'initializeLocations' are a horrible hack, see comment there
+		super(
+			parent, name, 0, 0,
+			initializeLocations(parent, name)[0],
+			initializeLocations(parent, name)[1],
+			"I", new org.eclipse.jdt.internal.compiler.ast.Annotation[0], 0, false //$NON-NLS-1$
+		);
+		this.name = name;
+		startLine = initializeLocations(parent, name)[2];
 	}
 
     public AJCodeElement(JavaElement parent, String name, int occurrence) {
         this(parent,name);
-        this.occurrenceCount = occurrence;
+        this.setOccurrenceCount(occurrence);
     }
 
-
-
 	public ISourceRange getNameRange() {
-		if (nameStart==0) {
-			initializeLocations();
-		}
 		return new SourceRange(this.nameStart, this.nameEnd-this.nameStart+1);
-	}
-
-	public int hashCode() {
-		return Util.combineHashCodes(name.hashCode(),occurrenceCount);
 	}
 
 	public boolean equals(Object o) {
@@ -61,68 +59,80 @@ public class AJCodeElement extends LocalVariable implements IAJCodeElement {
 			return super.equals(o);
 		}
 		AJCodeElement ajce = (AJCodeElement)o;
-		return super.equals(o) && (occurrenceCount == ajce.occurrenceCount);
+		return super.equals(o) && (getOccurrenceCount() == ajce.getOccurrenceCount());
 	}
 
-	public void initializeLocations() {
-	    // try the easy way:
-        IProgramElement ipe =
-            AJProjectModelFactory.getInstance().getModelForJavaElement(this).javaElementToProgramElement(this);
-        ISourceLocation sloc = ipe.getSourceLocation();
-        if (sloc != null) {
-            startLine = sloc.getLine();
+	public static int[] initializeLocations(JavaElement parent, String name) {
+		// This is a horrible hack to accomodate the fact that LocalVariable.nameStart, and .nameEnd were made final in
+		// Eclipse 2024-12. Instead of initialising the variables after creation, the values must now be passed directly
+		// into the super constructor. Therefore, this method is called 3x, once for each of the 3 values returned. This is
+		// inefficient, but keeps us from caching the array in a static thread-local variable, possibly creating a memory
+		// leak in doing so.
+		LocalVariable dummyInstance = new LocalVariable(
+			parent, name, 0, 0, 0, 0, "I", new org.eclipse.jdt.internal.compiler.ast.Annotation[0], 0, false //$NON-NLS-1$
+		);
 
-            nameStart = sloc.getOffset();
-            if (sloc instanceof EclipseSourceLocation) {
-                EclipseSourceLocation esloc = (EclipseSourceLocation) sloc;
-                nameEnd = esloc.getEndPos();
-            }
-        }
+		// Return values: [0] nameStart, [1] nameEnd, [2] startLine
+		final int[] locations = new int[3];
 
-        // sometimes the start and end values are not set...so do it the hard way
-        // so calculate it from the line
-        if (nameStart <= 0 || nameEnd <= 0) {
-            try {
-                IOpenable openable = this.getParent().getOpenableParent();
-                IBuffer buffer;
-                if (openable instanceof AJCompilationUnit) {
-                    AJCompilationUnit ajCompUnit = (AJCompilationUnit) openable;
-                    ajCompUnit.requestOriginalContentMode();
-                    buffer = openable.getBuffer();
-                    ajCompUnit.discardOriginalContentMode();
-                } else {
-                    buffer = openable.getBuffer();
-                }
-                String source = buffer.getContents();
+		// Try the easy way first
+		IProgramElement ipe =
+			AJProjectModelFactory.getInstance().getModelForJavaElement(dummyInstance).javaElementToProgramElement(dummyInstance);
+		ISourceLocation sloc = ipe.getSourceLocation();
+		if (sloc != null) {
+			locations[2] = sloc.getLine();
+			locations[0] = sloc.getOffset();
+			if (sloc instanceof EclipseSourceLocation) {
+				EclipseSourceLocation esloc = (EclipseSourceLocation) sloc;
+				locations[1] = esloc.getEndPos();
+			}
+		}
 
-                int lines = 0;
-    			for (int i = 0; i < source.length(); i++) {
-    				if (source.charAt(i) == '\n') {
-    				    lines++;
-    					if (lines == startLine-1) {
-    					    // starting remove white space
-    					    i++;
-    					    while (i < source.length() && (Character.isWhitespace(source.charAt(i))
-    					            && source.charAt(i) != '\n')) {
-    					        i++;
-    					    }
-    						nameStart=i;
-    						break;
-    					}
-    				}
-    			}
+		// Sometimes, the start and end values are not set. So, do it the hard way and calculate them from the line.
+		if (locations[0] <= 0 || locations[1] <= 0) {
+			try {
+				IOpenable openable = parent.getOpenableParent();
+				IBuffer buffer;
+				if (openable instanceof AJCompilationUnit) {
+					AJCompilationUnit ajCompUnit = (AJCompilationUnit) openable;
+					ajCompUnit.requestOriginalContentMode();
+					buffer = openable.getBuffer();
+					ajCompUnit.discardOriginalContentMode();
+				}
+				else {
+					buffer = openable.getBuffer();
+				}
+				String source = buffer.getContents();
 
-    			for (int i = nameStart+1; i < source.length(); i++) {
-    			    if (source.charAt(i) == '\n' || source.charAt(i) ==';') {
-    			        nameEnd = i-1;
-    			        break;
-    			    }
-    			}
+				int lines = 0;
+				for (int i = 0; i < source.length(); i++) {
+					if (source.charAt(i) == '\n') {
+						lines++;
+						if (lines == locations[2] - 1) {
+							// starting remove white space
+							i++;
+							while (i < source.length() && Character.isWhitespace(source.charAt(i)) && source.charAt(i) != '\n') {
+								i++;
+							}
+							locations[0] = i;
+							break;
+						}
+					}
+				}
 
-    			nameStart = Math.min(nameStart,nameEnd);
-    		} catch (JavaModelException ignored) {
-    		}
-	    }
+				for (int i = locations[0] + 1; i < source.length(); i++) {
+					if (source.charAt(i) == '\n' || source.charAt(i) == ';') {
+						locations[1] = i - 1;
+						break;
+					}
+				}
+
+				locations[0] = Math.min(locations[0], locations[1]);
+			}
+			catch (JavaModelException ignored) {}
+		}
+
+		return locations;
 	}
 
 	/**

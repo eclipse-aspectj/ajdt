@@ -20,6 +20,7 @@ import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.core.WorkingCopyOwner;
 import org.eclipse.jdt.internal.core.BinaryType;
 import org.eclipse.jdt.internal.core.JavaElement;
+import org.eclipse.jdt.internal.core.JavaElementInfo;
 import org.eclipse.jdt.internal.core.util.MementoTokenizer;
 
 /**
@@ -33,7 +34,7 @@ public class BinaryAspectElement extends BinaryType {
         super(parent, name);
     }
 
-    protected Object createElementInfo() {
+    protected JavaElementInfo createElementInfo() {
         IProgramElement ipe = AJProjectModelFactory.getInstance().getModelForJavaElement(this).javaElementToProgramElement(this);
         return new BinaryAspectElementInfo(ipe);
     }

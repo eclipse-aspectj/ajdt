@@ -109,7 +109,7 @@ public class AJSerialVersionSubProcessor extends PotentialProgrammingProblemsFix
     /**
      * from PotentialProgrammingProblemsFix
      */
-    private static SimpleName getSelectedName(CompilationUnit compilationUnit, IProblemLocation problem) {
+    public static SimpleName getSelectedName(CompilationUnit compilationUnit, IProblemLocation problem) {
         final ASTNode selection= problem.getCoveredNode(compilationUnit);
         if (selection == null)
             return null;

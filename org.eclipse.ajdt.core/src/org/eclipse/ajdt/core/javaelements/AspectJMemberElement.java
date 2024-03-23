@@ -107,9 +107,9 @@ protected void getHandleMemento(StringBuilder buff) {
     buff.append(delimiter);
     escapeMementoName(buff, fParameterType);
   }
-    if (this.occurrenceCount > 1) {
+    if (this.getOccurrenceCount() > 1) {
         buff.append(JEM_COUNT);
-        buff.append(this.occurrenceCount);
+        buff.append(this.getOccurrenceCount());
     }
 }
 /**
@@ -205,16 +205,15 @@ public String getSignature() throws JavaModelException {
     }
     return Signature.createMethodSignature(fParameterTypes, Signature.createTypeSignature(returnTypeName, false));
 }
-/**
- * @see org.eclipse.jdt.internal.core.JavaElement#hashCode()
- */
-public int hashCode() {
-   int hash = super.hashCode();
+@Override
+protected int calculateHashCode() {
+  int hash = super.calculateHashCode();
   for (String fParameterType : fParameterTypes) {
     hash = Util.combineHashCodes(hash, fParameterType.hashCode());
   }
-	return hash;
+  return hash;
 }
+
 /**
  * @see IMethod
  */

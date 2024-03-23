@@ -16,6 +16,7 @@ import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.JavaElement;
+import org.eclipse.jdt.internal.core.JavaElementInfo;
 import org.eclipse.jdt.internal.core.SourceField;
 import org.eclipse.jdt.internal.core.SourceFieldWithChildrenInfo;
 
@@ -43,7 +44,7 @@ public class FieldIntertypeElement extends IntertypeElement implements IField {
         try {
             final IntertypeElementInfo info = (IntertypeElementInfo) getElementInfo();
           return new SourceField((JavaElement) parent, getTargetName()) {
-              protected Object createElementInfo() {
+              protected JavaElementInfo createElementInfo() {
                   /* AJDT 1.7 */
                   ITDSourceFieldElementInfo newInfo = new ITDSourceFieldElementInfo(FieldIntertypeElement.this, info.getChildren());
                   newInfo.setFlags(CompilationUnitTools.getPublicModifierCode(info));

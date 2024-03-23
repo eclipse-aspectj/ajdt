@@ -19,6 +19,7 @@ import org.aspectj.asm.IProgramElement;
 import org.aspectj.asm.IProgramElement.Kind;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.jdt.internal.core.JavaElement;
+import org.eclipse.jdt.internal.core.JavaElementInfo;
 
 /**
  * @author Luzius Meisser
@@ -38,7 +39,7 @@ public class DeclareElement extends AspectJMemberElement{
     }
 
 
-    protected Object createElementInfo() {
+    protected JavaElementInfo createElementInfo() {
         try {
             IProgramElement ipe = AJProjectModelFactory.getInstance().getModelForJavaElement(this)
                     .javaElementToProgramElement(this);

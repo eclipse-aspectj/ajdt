@@ -62,9 +62,11 @@ import org.eclipse.jdt.core.compiler.CharOperation;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.internal.codeassist.CompletionEngine;
 import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
+import org.eclipse.jdt.internal.compiler.env.IElementInfo;
 import org.eclipse.jdt.internal.core.BecomeWorkingCopyOperation;
 import org.eclipse.jdt.internal.core.BufferManager;
 import org.eclipse.jdt.internal.core.CompilationUnit;
+import org.eclipse.jdt.internal.core.CompilationUnitElementInfo;
 import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.eclipse.jdt.internal.core.JavaModelStatus;
@@ -221,7 +223,7 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 		return ajFile;
 	}
 
-	protected void generateInfos(Object info, HashMap newElements, IProgressMonitor monitor) throws JavaModelException {
+	protected void generateInfos(IElementInfo info, Map<IJavaElement, IElementInfo> newElements, IProgressMonitor monitor) throws JavaModelException {
 		if (!(info instanceof AJCompilationUnitInfo)){
 			info = new AJCompilationUnitInfo();
 		}
@@ -426,7 +428,7 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 		return this.owner == AJWorkingCopyOwner.INSTANCE;
 	}
 
-	protected Object createElementInfo() {
+	protected CompilationUnitElementInfo createElementInfo() {
 		return new AJCompilationUnitInfo();
 	}
 

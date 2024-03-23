@@ -56,12 +56,12 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<maven.compiler.source>11</maven.compiler.source>
 		<maven.compiler.target>11</maven.compiler.target>
-		<tycho-version>3.0.4</tycho-version>
+		<tycho-version>4.0.6</tycho-version>
 		<tycho.surefire.extra.vmargs/>
-		<aspectj-maven-compiler-version>1.13.1</aspectj-maven-compiler-version>
+		<aspectj-maven-compiler-version>1.14</aspectj-maven-compiler-version>
 
 		<!-- AspectJ Core binaries + sources (tools, weaver, runtime) to include in AJDT -->
-		<aspectj.version>1.9.21</aspectj.version>
+		<aspectj.version>1.9.22</aspectj.version>
 
 		<aspectj.exclude.meta-data>
 			META-INF/**,
@@ -275,6 +275,25 @@
 						TODO: Switch to 4.30 maintenance channel, if and when available.
 					-->
 					<url>https://download.eclipse.org/eclipse/updates/4.31-I-builds/I20231201-1800/</url>
+				</repository>
+			</repositories>
+		</profile>
+
+		<profile>
+			<id>e431</id>
+			<properties>
+				<platform.version>e430</platform.version>
+				<!--
+					Go to https://download.eclipse.org/equinox/. Either download the corresponding 4.x SDK release archive and
+					identify the weaving hook version, or check the online bundles list for org.eclipse.equinox.weaving.hook_*.
+				-->
+				<weaving.hook.version>1.4.0.v20240213-1357</weaving.hook.version>
+			</properties>
+			<repositories>
+				<repository>
+					<id>2024-03-releases</id>
+					<layout>p2</layout>
+					<url>https://download.eclipse.org/releases/2024-03/</url>
 				</repository>
 			</repositories>
 		</profile>

@@ -97,10 +97,11 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
     public Map<String, String> getJavaOptionsMap() {
         Map<String, String> optionsMap = null;
 
-        JavaProject javaProject;
+        IProject iProject;
         try {
-            javaProject = (JavaProject) project.getNature(JavaCore.NATURE_ID);
-            optionsMap = javaProject.getOptions(true);
+            iProject = project.getNature(JavaCore.NATURE_ID).getProject();
+            if (iProject instanceof JavaProject)
+                optionsMap = ((JavaProject) iProject).getOptions(true);
         } catch (CoreException ignored) {
         }
 

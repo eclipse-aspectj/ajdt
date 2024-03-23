@@ -21,6 +21,7 @@ import org.aspectj.bridge.ISourceLocation;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.JavaElement;
+import org.eclipse.jdt.internal.core.JavaElementInfo;
 import org.eclipse.jdt.internal.core.SourceMethod;
 
 /**
@@ -83,7 +84,7 @@ public class MockSourceMethod extends SourceMethod {
 		return elementInfo.extra;
 	}
 
-	protected Object createElementInfo() {
+	protected JavaElementInfo createElementInfo() {
 	    if (elementInfo != null) {
 	        return elementInfo;
 	    }

@@ -23,13 +23,14 @@ import org.eclipse.jdt.internal.compiler.env.IBinaryField;
 import org.eclipse.jdt.internal.compiler.env.IBinaryMethod;
 import org.eclipse.jdt.internal.compiler.env.IBinaryNestedType;
 import org.eclipse.jdt.internal.compiler.env.IBinaryType;
+import org.eclipse.jdt.internal.core.JavaElementInfo;
 
 /**
  * @author Andrew Eisenberg
  * @created Mar 18, 2009
  *
  */
-public class BinaryAspectElementInfo /*extends ClassFileReader*/ implements IBinaryType {
+public class BinaryAspectElementInfo /*extends ClassFileReader*/ extends JavaElementInfo implements IBinaryType {
 
     private char[] fileName;
     private final char[] typeName;

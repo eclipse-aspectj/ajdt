@@ -48,9 +48,9 @@ public class AJInjarElement extends AJCodeElement implements IAJCodeElement {
 			// injar aspect, which has no parent
 			buff.append(getHandleMementoDelimiter());
 			buff.append(getName());
-			if (this.occurrenceCount > 1) {
+			if (this.getOccurrenceCount() > 1) {
 				buff.append(JEM_COUNT);
-				buff.append(this.occurrenceCount);
+				buff.append(this.getOccurrenceCount());
 			}
 		} else {
 			super.getHandleMemento(buff);

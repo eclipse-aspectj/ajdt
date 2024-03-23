@@ -32,16 +32,9 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeParameter;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.compiler.CharOperation;
+import org.eclipse.jdt.internal.compiler.env.IElementInfo;
 import org.eclipse.jdt.internal.compiler.env.ISourceType;
-import org.eclipse.jdt.internal.core.CompilationUnitElementInfo;
-import org.eclipse.jdt.internal.core.JavaElement;
-import org.eclipse.jdt.internal.core.SourceField;
-import org.eclipse.jdt.internal.core.SourceFieldElementInfo;
-import org.eclipse.jdt.internal.core.SourceMethod;
-import org.eclipse.jdt.internal.core.SourceMethodElementInfo;
-import org.eclipse.jdt.internal.core.SourceMethodInfo;
-import org.eclipse.jdt.internal.core.SourceType;
-import org.eclipse.jdt.internal.core.SourceTypeElementInfo;
+import org.eclipse.jdt.internal.core.*;
 
 /**
  * This class provides element info for SourceTypes that know about
@@ -58,7 +51,7 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
             this.info = info;
         }
 
-        public Object getElementInfo() throws JavaModelException {
+        public IElementInfo getElementInfo() throws JavaModelException {
             return info;
         }
     }
@@ -69,20 +62,20 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
             this.info = info;
         }
 
-        public Object getElementInfo() throws JavaModelException {
+        public IElementInfo getElementInfo() throws JavaModelException {
             return info;
         }
     }
     private static final class ITIT extends SourceType {
-        final Object info;
+        final IElementInfo info;
         private ITIT(JavaElement parent, IType actualType, IProgramElement ajElement) throws JavaModelException {
             super(parent, actualType.getElementName());
             this.info = createInfo(actualType, ajElement);
         }
 
         @SuppressWarnings("unchecked")
-        public Object createInfo(IType actualType, IProgramElement ajElement) throws JavaModelException {
-            Object elementInfo = ((JavaElement) actualType).getElementInfo();
+        public IElementInfo createInfo(IType actualType, IProgramElement ajElement) throws JavaModelException {
+            IElementInfo elementInfo = ((JavaElement) actualType).getElementInfo();
             if (elementInfo instanceof SourceTypeElementInfo) {
                 SourceTypeElementInfo origInfo = (SourceTypeElementInfo) elementInfo;
                 SourceTypeElementInfo newInfo = new SourceTypeElementInfo();
@@ -143,7 +136,7 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
             return newChildren;
         }
 
-        public Object getElementInfo() throws JavaModelException {
+        public IElementInfo getElementInfo() throws JavaModelException {
             return info;
         }
         @Override
@@ -164,7 +157,7 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
         }
 
         @Override
-        public Object getElementInfo() {
+        public IElementInfo getElementInfo() {
             if (thisInfo != null) {
                 return thisInfo;
             }
@@ -200,7 +193,7 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
         }
 
         @Override
-        public Object getElementInfo() {
+        public IElementInfo getElementInfo() {
             if (thisInfo != null) {
                 return thisInfo;
             }
@@ -533,7 +526,7 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
           parent,
                 "aspectOf",
                 new String[0]) {
-            protected Object createElementInfo() {
+            protected JavaElementInfo createElementInfo() {
                 return new SourceMethodInfo() {
                     @Override
                     public int getModifiers() {
@@ -558,7 +551,7 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
           parent,
                 "hasAspect",
                 new String[0]) {
-            protected Object createElementInfo() {
+            protected JavaElementInfo createElementInfo() {
                 return new SourceMethodInfo() {
                     @Override
                     public int getModifiers() {
@@ -582,7 +575,7 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
           parent,
                 "getWithinTypeName",
                 new String[0]) {
-            protected Object createElementInfo() {
+            protected JavaElementInfo createElementInfo() {
                 return new SourceMethodInfo() {
                     @Override
                     public int getModifiers() {

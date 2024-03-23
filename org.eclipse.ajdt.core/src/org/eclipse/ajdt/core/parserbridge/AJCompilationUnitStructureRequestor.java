@@ -106,6 +106,7 @@ import org.eclipse.jdt.internal.core.LocalVariable;
 import org.eclipse.jdt.internal.core.NamedMember;
 import org.eclipse.jdt.internal.core.PackageDeclaration;
 import org.eclipse.jdt.internal.core.SourceMethodElementInfo;
+import org.eclipse.jdt.internal.core.util.DeduplicationUtil;
 
 /**
  * This class can be used as a source requestor for the JDT parser *OR*
@@ -816,10 +817,10 @@ public class AJCompilationUnitStructureRequestor extends
         info.setNameSourceEnd(typeInfo.nameSourceEnd);
         JavaModelManager manager = JavaModelManager.getJavaModelManager();
         char[] superclass = typeInfo.superclass;
-        info.setSuperclassName(superclass == null ? null : manager.intern(superclass));
+        info.setSuperclassName(superclass == null ? null : DeduplicationUtil.intern(superclass));
         char[][] superinterfaces = typeInfo.superinterfaces;
         for (int i = 0, length = superinterfaces == null ? 0 : superinterfaces.length; i < length; i++)
-            superinterfaces[i] = manager.intern(superinterfaces[i]);
+            superinterfaces[i] = DeduplicationUtil.intern(superinterfaces[i]);
         info.setSuperInterfaceNames(superinterfaces);
         info.addCategories(handle, typeInfo.categories);
         this.newElements.put(handle, info);
@@ -1096,10 +1097,10 @@ public class AJCompilationUnitStructureRequestor extends
         Expression jdtExpr = null;
         if (ajExpr instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.StringLiteralConcatenation) {
             org.aspectj.org.eclipse.jdt.internal.compiler.ast.StringLiteralConcatenation castedAJ = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.StringLiteralConcatenation) ajExpr;
-            StringLiteralConcatenation castedJDT = new StringLiteralConcatenation((StringLiteral) convertToJDTExpression(castedAJ.literals[0]), (StringLiteral) convertToJDTExpression(castedAJ.literals[1]));
-            for (int i = 2; i < castedAJ.literals.length; i++) {
+            StringLiteralConcatenation castedJDT = new StringLiteralConcatenation((StringLiteral) convertToJDTExpression(castedAJ.getLiterals()[0]), (StringLiteral) convertToJDTExpression(castedAJ.getLiterals()[1]));
+            for (int i = 2; i < castedAJ.getLiterals().length; i++) {
                 // may not be able to handle non-string constants here
-                castedJDT.extendsWith((StringLiteral) convertToJDTExpression(castedAJ.literals[i]));
+                castedJDT.extendsWith((StringLiteral) convertToJDTExpression(castedAJ.getLiterals()[i]));
             }
             jdtExpr = castedJDT;
         } else if (ajExpr instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.CharLiteral) {

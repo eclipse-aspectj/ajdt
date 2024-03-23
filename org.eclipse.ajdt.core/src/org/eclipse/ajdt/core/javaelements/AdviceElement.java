@@ -16,6 +16,7 @@ import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.internal.core.ras.NoFFDC;
 import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.internal.core.JavaElement;
+import org.eclipse.jdt.internal.core.JavaElementInfo;
 
 /**
  * @author Luzius Meisser
@@ -60,9 +61,9 @@ public class AdviceElement extends AspectJMemberElement implements IAspectJEleme
 			}
 		}
 		buffer.append(')');
-		if (this.occurrenceCount > 1) {
+		if (this.getOccurrenceCount() > 1) {
 			buffer.append("#"); //$NON-NLS-1$
-			buffer.append(this.occurrenceCount);
+			buffer.append(this.getOccurrenceCount());
 		}
 	}
 
@@ -73,7 +74,7 @@ public class AdviceElement extends AspectJMemberElement implements IAspectJEleme
 		return AspectElement.JEM_ADVICE;
 	}
 
-	protected Object createElementInfo() {
+	protected JavaElementInfo createElementInfo() {
 	    try {
     	    IProgramElement ipe = AJProjectModelFactory.getInstance().getModelForJavaElement(this)
     	            .javaElementToProgramElement(this);
