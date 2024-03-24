@@ -62,15 +62,20 @@ jobs:
           java-version: ${{ matrix.java }}
           distribution: temurin
 
+        # Tycho needs Maven 3.9.0+
+      - name: Set up Maven
+        run:
+          mvn --errors --batch-mode --show-version org.apache.maven.plugins:maven-wrapper-plugin:3.2.0:wrapper "-Dmaven=3.9.6"
+
       - name: Print tool versions
         run: |
           java -version
-          mvn --batch-mode --version
+          ./mvnw --batch-mode --version
 
       # Always run build without tests first
 
       - name: Build + package (no tests)
-        run: mvn --batch-mode -Pe431 -DskipTests clean verify
+        run: ./mvnw --batch-mode -Pe431 -DskipTests clean verify
 
       # Then optionally run tests in one of 3 user-selected modes
       # TODO: find a way to avoid duplication
@@ -80,28 +85,28 @@ jobs:
         # UI tests need frame buffer on Linux
         uses: GabrielBB/xvfb-action@v1
         with:
-          run: mvn --batch-mode -Pe431 verify
+          run: ./mvnw --batch-mode -Pe431 verify
 
       - name: Run more tests, fail at end
         if: ${{ github.event.inputs.testMode == 'run more tests, fail at end' }}
         # UI tests need frame buffer on Linux
         uses: GabrielBB/xvfb-action@v1
         with:
-          run: mvn --batch-mode -Pe431 --fail-at-end verify
+          run: ./mvnw --batch-mode -Pe431 --fail-at-end verify
 
       - name: Run all tests, ignore failures
         if: ${{ github.event.inputs.testMode == 'run all tests, ignore failures' }}
         # UI tests need frame buffer on Linux
         uses: GabrielBB/xvfb-action@v1
         with:
-          run: mvn --batch-mode -Pe431 -Dmaven.test.failure.ignore=true verify
+          run: ./mvnw --batch-mode -Pe431 -Dmaven.test.failure.ignore=true verify
 
       # No matter if a preceding test run failed or not, try to generate and upload a test report
       # TODO: these steps should only happen if at least the build without tests passed, not always
 
       - name: Generate aggregate test report
         if: always()
-        run: mvn --batch-mode -Pe431 -Daggregate=true surefire-report:report-only
+        run: ./mvnw --batch-mode -Pe431 -Daggregate=true surefire-report:report-only
 
       - name: Attach aggregate test report to build
         if: always()
