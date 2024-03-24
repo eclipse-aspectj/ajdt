@@ -282,7 +282,7 @@
 		<profile>
 			<id>e431</id>
 			<properties>
-				<platform.version>e430</platform.version>
+				<platform.version>e431</platform.version>
 				<!--
 					Go to https://download.eclipse.org/equinox/. Either download the corresponding 4.x SDK release archive and
 					identify the weaving hook version, or check the online bundles list for org.eclipse.equinox.weaving.hook_*.
