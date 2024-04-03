@@ -270,7 +270,11 @@ public class OSGiWeavingAdaptor extends ClassLoaderWeavingAdaptor {
         }
 
         synchronized (this) {
-            bytes = super.weaveClass(name, bytes, mustWeave);
+            byte[] wovenBytes = super.weaveClass(name, bytes, mustWeave);
+            // Since 1.9.21.2, the AspectJ weaver, like other canonical Java instrumentation agents, returns null,
+            // if nothing was woven. We accommodate to that change here.
+            if (wovenBytes != null)
+                bytes = wovenBytes;
         }
 
         ((OSGiGeneratedClassHandler) this.generatedClassHandler)
