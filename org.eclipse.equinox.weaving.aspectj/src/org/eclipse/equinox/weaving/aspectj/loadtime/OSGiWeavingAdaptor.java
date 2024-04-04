@@ -159,15 +159,16 @@ public class OSGiWeavingAdaptor extends ClassLoaderWeavingAdaptor {
         debug("generating class '" + name + "'");
 
         try {
+            // TODO: For 2024-06 (4.32), make ClassLoaderWeavingAdaptor::defineClass protected and call it via super
+            //       from here instead of duplicating class definition code or hackily calling a private method
             if (defineClassMethod == null) {
-                defineClassMethod = ClassLoader.class.getDeclaredMethod(
-                        "defineClass",
-                  String.class, bytes.getClass(),
-                  int.class, int.class);
+                defineClassMethod = ClassLoaderWeavingAdaptor.class.getDeclaredMethod(
+                    "defineClass",
+                    ClassLoader.class, String.class, byte[].class
+                );
             }
             defineClassMethod.setAccessible(true);
-            clazz = defineClassMethod.invoke(loader, name,
-              bytes, 0, bytes.length);
+            clazz = defineClassMethod.invoke(this, loader, name, bytes);
         } catch (final InvocationTargetException e) {
             if (e.getTargetException() instanceof LinkageError) {
                 warn("define generated class failed", e.getTargetException());
