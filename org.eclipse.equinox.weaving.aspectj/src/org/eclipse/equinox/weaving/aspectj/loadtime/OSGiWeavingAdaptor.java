@@ -19,7 +19,6 @@
 package org.eclipse.equinox.weaving.aspectj.loadtime;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
@@ -149,40 +148,21 @@ public class OSGiWeavingAdaptor extends ClassLoaderWeavingAdaptor {
         this.namespace = namespace;
     }
 
-    private void defineClass(final ClassLoader loader, final String name,
-            final byte[] bytes) {
+    protected void defineClass(final ClassLoader loader, final String name, final byte[] bytes) {
         if (trace.isTraceEnabled()) {
             trace.enter("defineClass", this,
                     new Object[] { loader, name, bytes });
         }
-        Object clazz = null;
         debug("generating class '" + name + "'");
 
         try {
-            // TODO: For 2024-06 (4.32), make ClassLoaderWeavingAdaptor::defineClass protected and call it via super
-            //       from here instead of duplicating class definition code or hackily calling a private method
-            if (defineClassMethod == null) {
-                defineClassMethod = ClassLoaderWeavingAdaptor.class.getDeclaredMethod(
-                    "defineClass",
-                    ClassLoader.class, String.class, byte[].class
-                );
-            }
-            defineClassMethod.setAccessible(true);
-            clazz = defineClassMethod.invoke(this, loader, name, bytes);
-        } catch (final InvocationTargetException e) {
-            if (e.getTargetException() instanceof LinkageError) {
-                warn("define generated class failed", e.getTargetException());
-                // is already defined (happens for X$ajcMightHaveAspect interfaces since aspects are reweaved)
-                // TODO maw I don't think this is OK and
-            } else {
-                warn("define generated class failed", e.getTargetException());
-            }
+            super.defineClass(loader, name, bytes);
         } catch (final Exception e) {
             warn("define generated class failed", e);
         }
 
         if (trace.isTraceEnabled()) {
-            trace.exit("defineClass", clazz);
+            trace.exit("defineClass", name);
         }
     }
 
