@@ -19,7 +19,6 @@
 package org.eclipse.equinox.weaving.aspectj.loadtime;
 
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -96,8 +95,7 @@ public class OSGiWeavingAdaptor extends ClassLoaderWeavingAdaptor {
          * Callback when we need to define a generated class in the JVM (version
          * for newer AspectJ versions, but we can ignore the originalBytes here)
          */
-        public void acceptClass(final String name, final byte[] originalBytes,
-                final byte[] weavedBytes) {
+        public void acceptClass(final String name, final byte[] originalBytes, final byte[] weavedBytes) {
             acceptClass(name, weavedBytes);
         }
 
@@ -105,8 +103,7 @@ public class OSGiWeavingAdaptor extends ClassLoaderWeavingAdaptor {
             while (!classesToBeDefined.isEmpty()) {
                 final GeneratedClass generatedClass = classesToBeDefined.poll();
                 if (generatedClass != null) {
-                    defineClass(loaderRef.getClassLoader(),
-                            generatedClass.getName(), generatedClass.getBytes());
+                    defineClass(loaderRef.getClassLoader(), generatedClass.getName(), generatedClass.getBytes());
                 } else {
                     break;
                 }
@@ -115,19 +112,12 @@ public class OSGiWeavingAdaptor extends ClassLoaderWeavingAdaptor {
 
     }
 
-    private static Trace trace = TraceFactory.getTraceFactory().getTrace(
-            ClassLoaderWeavingAdaptor.class);
+    private static Trace trace = TraceFactory.getTraceFactory().getTrace(ClassLoaderWeavingAdaptor.class);
 
     private final ClassLoader classLoader;
-
-    private Method defineClassMethod;
-
     private boolean initialized;
-
     private final Object initializeLock = new Object();
-
     private final String namespace;
-
     private final OSGiWeavingContext weavingContext;
 
     /**
@@ -140,8 +130,7 @@ public class OSGiWeavingAdaptor extends ClassLoaderWeavingAdaptor {
      * @param namespace The namespace of this adaptor, some kind of unique ID
      *            for this weaver
      */
-    public OSGiWeavingAdaptor(final ClassLoader loader,
-            final OSGiWeavingContext context, final String namespace) {
+    public OSGiWeavingAdaptor(final ClassLoader loader, final OSGiWeavingContext context, final String namespace) {
         super();
         this.classLoader = loader;
         this.weavingContext = context;
@@ -167,17 +156,15 @@ public class OSGiWeavingAdaptor extends ClassLoaderWeavingAdaptor {
     }
 
     /**
-     * In some situations the weaving creates new classes on the fly that are
-     * not part of the original bundle. This is the case when the weaver needs
-     * to create closure-like constructs for the woven code.
+     * In some situations, weaving creates new classes on the fly that are not part of the original bundle. This is the
+     * case when the weaver needs to create closure-like constructs for the woven code.
+     * <p>
+     * This method returns a map of the generated classes (name -> bytecode) and  flushes the internal cache afterward
+     * to avoid memory damage over time.
      *
-     * This method returns a map of the generated classes (name -> bytecode) and
-     * flushes the internal cache afterwards to avoid memory damage over time.
+     * @param className name of the class for which additional classes might have got generated
      *
-     * @param className The name of the class for which additional classes might
-     *            got generated
-     * @return the map of generated class names and bytecodes for those
-     *         generated classes
+     * @return map of generated class names and bytecodes for those generated classes
      */
     public Map<String, byte[]> getGeneratedClassesFor(final String className) {
         final Map<String, IUnwovenClassFile> generated = this.generatedClasses;
@@ -210,26 +197,16 @@ public class OSGiWeavingAdaptor extends ClassLoaderWeavingAdaptor {
         synchronized (initializeLock) {
             if (!initialized) {
                 super.initialize(classLoader, weavingContext);
-                this.generatedClassHandler = new OSGiGeneratedClassHandler(
-                        classLoader);
+                this.generatedClassHandler = new OSGiGeneratedClassHandler(classLoader);
                 initialized = true;
-
                 if (AspectJWeavingStarter.verbose) {
-                    if (isEnabled()) {
-                        System.err
-                                .println("[org.eclipse.equinox.weaving.aspectj] info weaving bundle '"
-                                        + weavingContext.getClassLoaderName()
-                                        + "'");
-                    } else {
-                        System.err
-                                .println("[org.eclipse.equinox.weaving.aspectj] info not weaving bundle '"
-                                        + weavingContext.getClassLoaderName()
-                                        + "'");
-                    }
+                    System.err.println(
+                        "[org.eclipse.equinox.weaving.aspectj] info " + (isEnabled() ? "" : "not ") +
+                        "weaving bundle '" + weavingContext.getClassLoaderName() + "'"
+                    );
                 }
             }
         }
-
     }
 
     /**
@@ -237,15 +214,13 @@ public class OSGiWeavingAdaptor extends ClassLoaderWeavingAdaptor {
      *      byte[], boolean)
      */
     @Override
-    public byte[] weaveClass(final String name, byte[] bytes,
-            final boolean mustWeave) throws IOException {
+    public byte[] weaveClass(final String name, byte[] bytes, final boolean mustWeave) throws IOException {
 
         /* Avoid recursion during adaptor initialization */
         synchronized (initializeLock) {
             if (!initialized) {
                 super.initialize(classLoader, weavingContext);
-                this.generatedClassHandler = new OSGiGeneratedClassHandler(
-                        classLoader);
+                this.generatedClassHandler = new OSGiGeneratedClassHandler(classLoader);
                 initialized = true;
             }
         }
@@ -258,8 +233,7 @@ public class OSGiWeavingAdaptor extends ClassLoaderWeavingAdaptor {
                 bytes = wovenBytes;
         }
 
-        ((OSGiGeneratedClassHandler) this.generatedClassHandler)
-                .defineGeneratedClasses();
+        ((OSGiGeneratedClassHandler) this.generatedClassHandler).defineGeneratedClasses();
 
         return bytes;
     }

@@ -10,21 +10,15 @@
  *******************************************************************************/
 package org.eclipse.equinox.weaving.aspectj.tests;
 
-import java.io.ByteArrayInputStream;
+import junit.framework.TestCase;
+import org.aspectj.weaver.tools.GeneratedClassHandler;
+import org.aspectj.weaver.tools.WeavingAdaptor;
+import org.eclipse.equinox.weaving.aspectj.loadtime.OSGiWeavingAdaptor;
+
 import java.io.InputStream;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.util.Map;
-
-import junit.framework.TestCase;
-import static junit.framework.Assert.assertTrue;
-import static junit.framework.Assert.assertEquals;
-
-import org.aspectj.weaver.tools.WeavingAdaptor;
-import org.aspectj.weaver.tools.GeneratedClassHandler;
-import org.eclipse.equinox.weaving.aspectj.loadtime.OSGiWeavingAdaptor;
 
 /**
  * Test for the OSGiWeavingAdaptor
@@ -34,7 +28,7 @@ import org.eclipse.equinox.weaving.aspectj.loadtime.OSGiWeavingAdaptor;
 public class OSGiWeavingAdaptorTest extends TestCase {
 
     /**
-     * Test for https://github.com/eclipse-aspectj/ajdt/issues/45
+     * Test for <a href="https://github.com/eclipse-aspectj/ajdt/issues/45">GitHub issue 45</a>
      */
     public void testGeneratedClasses() throws Exception {
         // GIVEN:
@@ -52,9 +46,7 @@ public class OSGiWeavingAdaptorTest extends TestCase {
         generatedClassHandlerField.setAccessible(true);
         generatedClassHandlerField.set(adaptor, new GeneratedClassHandler() {
             @Override
-            public void acceptClass(String name, byte[] originalBytes,
-                    byte[] weavedBytes) {
-            }
+            public void acceptClass(String name, byte[] originalBytes, byte[] weavedBytes) {}
         });
 
         // WHEN:
@@ -69,7 +61,7 @@ public class OSGiWeavingAdaptorTest extends TestCase {
             classBytes = is.readAllBytes();
         }
 
-        //   and call the method getWovenBytes("my.foo.MyClass", classBytes) - this is private, so do it via reflection
+        // - and call the method getWovenBytes("my.foo.MyClass", classBytes) - this is private, so do it via reflection
         //   (actually, the method weaveClass() is invoked, but getWovenBytes() is easier to call in the test, because
         //   we don't need to initialize all the logging, caching, ... facilities)
         Method getWovenBytes = WeavingAdaptor.class
