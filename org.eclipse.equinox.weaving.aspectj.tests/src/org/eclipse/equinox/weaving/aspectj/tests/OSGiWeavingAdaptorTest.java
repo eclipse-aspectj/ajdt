@@ -100,7 +100,11 @@ public class OSGiWeavingAdaptorTest extends TestCase {
                 actualResult.containsKey("my.foo.MyBaseClass$AjcClosure1"));
         assertTrue("my.foo.MyBaseClass$AjcClosure3 is not contained in " + actualContents,
                 actualResult.containsKey("my.foo.MyBaseClass$AjcClosure3"));
-        assertEquals("Expected size 4 of result " + actualContents,
-                4, actualResult.size());
+        assertTrue("my.foo.MyBaseClass is not contained in " + actualContents,
+                actualResult.containsKey("my.foo.MyBaseClass"));
+        assertFalse("my.foo.MyClass is contained in " + actualContents,
+                actualResult.containsKey("my.foo.MyClass"));
+        assertEquals("Expected size 5 of result " + actualContents,
+                5, actualResult.size());
     }
 }
