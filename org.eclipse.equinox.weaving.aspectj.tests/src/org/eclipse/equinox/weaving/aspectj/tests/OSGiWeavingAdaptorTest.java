@@ -81,7 +81,7 @@ public class OSGiWeavingAdaptorTest extends TestCase {
         Map<String, byte[]> actualResult = adaptor.getGeneratedClassesFor("my.foo.MyClass");
 
         // THEN:
-        // - the result should not include the non-generated class, only the four generated ones
+        // - the result should not include the non-generated class, only the generated ones
 
         // build a string representation to provide details in the assertion message
         StringBuilder actualContentsBuilder = new StringBuilder("[");
