@@ -302,6 +302,20 @@
 		</profile>
 
 		<profile>
+			<!--
+				This profile enables an IDE like IntelliJ IDEA to resolve classes from aspectjrt, aspectjweaver, aspectjtools
+				directly, because the corresponding Maven modules creating OSGi components (org.aspectj.runtime,
+				org.aspectj.weaver, org.aspectj.ajde) are only created during the 'package' phase, which is too late for an IDE
+				project import. For IDE compilation to succeed, the IDE simply needs to be able to resolve all AspectJ classes,
+				which is the case if aspectjtools is declared  dependency, because it is a super set of the other dependencies.
+
+				CAVEAT: Do not use this profile in Maven builds! It is just a tool to help IDEs to compile the project.
+
+				TODO: This trick could be avoided, if core AspectJ itself would create OSGi manifests for its main artifacts,
+				      but then AJDT specifics would bleed into AspectJ, among them the icons packaged into org.aspectj.ajde.
+				      But the latter could be put into an extra module, leaving only the JAR manifests to contain OSGi
+				      information, which might be OK.
+			-->
 			<id>intellij</id>
 			<dependencies>
 				<dependency>
