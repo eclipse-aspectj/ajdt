@@ -8,7 +8,6 @@ Bundle-Vendor: Eclipse AspectJ Development Tools
 Export-Package: org.aspectj.ajde.core,
  org.aspectj.ajde.core.internal,
  org.aspectj.ajdt.ajc,
- org.aspectj.ajdt.compiler,
  org.aspectj.ajdt.core,
  org.aspectj.ajdt.core.dom,
  org.aspectj.ajdt.internal.compiler,

@@ -82,6 +82,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ExtraCompilerModifie
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.SourceTypeConverter;
+import org.aspectj.org.eclipse.jdt.internal.compiler.parser.TerminalToken;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.AbortCompilation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.HashtableOfObjectToInt;
@@ -405,11 +406,11 @@ protected void consumeClassInstanceCreationExpressionWithTypeArguments() {
 			alloc.sourceStart);
 	}
 }
-protected void consumeConstructorHeaderName() {
+protected void consumeConstructorHeaderName(boolean isCompact) {
 	long selectorSourcePositions = this.identifierPositionStack[this.identifierPtr];
 	int selectorSourceEnd = (int) selectorSourcePositions;
 	int currentAstPtr = this.astPtr;
-	super.consumeConstructorHeaderName();
+	super.consumeConstructorHeaderName(isCompact);
 	if (this.astPtr > currentAstPtr) { // if ast node was pushed on the ast stack
 		this.sourceEnds.put(this.astStack[this.astPtr], selectorSourceEnd);
 		rememberCategories();
@@ -427,7 +428,7 @@ protected void consumeConstructorHeaderNameWithTypeParameters() {
 }
 protected void consumeEnumConstantWithClassBody() {
 	super.consumeEnumConstantWithClassBody();
-	if ((currentToken == TokenNameCOMMA || currentToken == TokenNameSEMICOLON)
+	if ((currentToken == TerminalToken.TokenNameCOMMA || currentToken == TerminalToken.TokenNameSEMICOLON)
 			&& astStack[astPtr] instanceof FieldDeclaration) {
 		this.sourceEnds.put(this.astStack[this.astPtr], this.scanner.currentPosition - 1);
 		rememberCategories();
@@ -435,7 +436,7 @@ protected void consumeEnumConstantWithClassBody() {
 }
 protected void consumeEnumConstantNoClassBody() {
 	super.consumeEnumConstantNoClassBody();
-	if ((currentToken == TokenNameCOMMA || currentToken == TokenNameSEMICOLON)
+	if ((currentToken == TerminalToken.TokenNameCOMMA || currentToken == TerminalToken.TokenNameSEMICOLON)
 			&& this.astStack[this.astPtr] instanceof FieldDeclaration) {
 		this.sourceEnds.put(this.astStack[this.astPtr], this.scanner.currentPosition - 1);
 		rememberCategories();
@@ -452,7 +453,7 @@ protected void consumeExitVariableWithInitialization() {
 	// the scanner is located after the comma or the semi-colon.
 	// we want to include the comma or the semi-colon
 	super.consumeExitVariableWithInitialization();
-	if ((currentToken == TokenNameCOMMA || currentToken == TokenNameSEMICOLON)
+	if ((currentToken == TerminalToken.TokenNameCOMMA || currentToken == TerminalToken.TokenNameSEMICOLON)
 			&& this.astStack[this.astPtr] instanceof FieldDeclaration) {
 		this.sourceEnds.put(this.astStack[this.astPtr], this.scanner.currentPosition - 1);
 		rememberCategories();
@@ -462,7 +463,7 @@ protected void consumeExitVariableWithoutInitialization() {
 	// ExitVariableWithoutInitialization ::= $empty
 	// do nothing by default
 	super.consumeExitVariableWithoutInitialization();
-	if ((currentToken == TokenNameCOMMA || currentToken == TokenNameSEMICOLON)
+	if ((currentToken == TerminalToken.TokenNameCOMMA || currentToken == TerminalToken.TokenNameSEMICOLON)
 			&& astStack[astPtr] instanceof FieldDeclaration) {
 		this.sourceEnds.put(this.astStack[this.astPtr], this.scanner.currentPosition - 1);
 		rememberCategories();
@@ -481,8 +482,8 @@ protected void consumeFieldAccess(boolean isSuperAccess) {
 		requestor.acceptFieldReference(fr.token, fr.sourceStart);
 	}
 }
-protected void consumeFormalParameter(boolean isVarArgs) {
-	super.consumeFormalParameter(isVarArgs);
+protected void consumeSingleVariableDeclarator(boolean isVarArgs) {
+	super.consumeSingleVariableDeclarator(isVarArgs);
 
 	// Flush comments prior to this formal parameter so the declarationSourceStart of the following parameter
 	// is correctly set (see bug 80904)
@@ -648,7 +649,7 @@ protected void consumeSingleStaticImportDeclarationName() {
 	this.modifiers = ClassFileConstants.AccDefault;
 	this.modifiersSourceStart = -1; // <-- see comment into modifiersFlag(int)
 
-	if (this.currentToken == TokenNameSEMICOLON){
+	if (this.currentToken == TerminalToken.TokenNameSEMICOLON){
 		impt.declarationSourceEnd = this.scanner.currentPosition - 1;
 	} else {
 		impt.declarationSourceEnd = impt.sourceEnd;
@@ -668,7 +669,7 @@ protected void consumeSingleStaticImportDeclarationName() {
 	if (this.currentElement != null){
 		this.lastCheckPoint = impt.declarationSourceEnd+1;
 		this.currentElement = this.currentElement.add(impt, 0);
-		this.lastIgnoredToken = -1;
+		this.lastIgnoredToken = TerminalToken.TokenNameInvalid;
 		this.restartRecovery = true; // used to avoid branching back into the regular automaton
 	}
 	if (reportReferenceInfo) {
@@ -706,7 +707,7 @@ protected void consumeSingleTypeImportDeclarationName() {
 	System.arraycopy(this.identifierPositionStack, this.identifierPtr + 1, positions, 0, length);
 	pushOnAstStack(impt = newImportReference(tokens, positions, false, ClassFileConstants.AccDefault));
 
-	if (this.currentToken == TokenNameSEMICOLON){
+	if (this.currentToken == TerminalToken.TokenNameSEMICOLON){
 		impt.declarationSourceEnd = this.scanner.currentPosition - 1;
 	} else {
 		impt.declarationSourceEnd = impt.sourceEnd;
@@ -719,7 +720,7 @@ protected void consumeSingleTypeImportDeclarationName() {
 	if (this.currentElement != null){
 		this.lastCheckPoint = impt.declarationSourceEnd+1;
 		this.currentElement = this.currentElement.add(impt, 0);
-		this.lastIgnoredToken = -1;
+		this.lastIgnoredToken = TerminalToken.TokenNameInvalid;
 		this.restartRecovery = true; // used to avoid branching back into the regular automaton
 	}
 	if (reportReferenceInfo) {
@@ -743,7 +744,7 @@ protected void consumeStaticImportOnDemandDeclarationName() {
 	this.modifiers = ClassFileConstants.AccDefault;
 	this.modifiersSourceStart = -1; // <-- see comment into modifiersFlag(int)
 
-	if (this.currentToken == TokenNameSEMICOLON){
+	if (this.currentToken == TerminalToken.TokenNameSEMICOLON){
 		impt.declarationSourceEnd = this.scanner.currentPosition - 1;
 	} else {
 		impt.declarationSourceEnd = impt.sourceEnd;
@@ -763,7 +764,7 @@ protected void consumeStaticImportOnDemandDeclarationName() {
 	if (this.currentElement != null){
 		this.lastCheckPoint = impt.declarationSourceEnd+1;
 		this.currentElement = this.currentElement.add(impt, 0);
-		this.lastIgnoredToken = -1;
+		this.lastIgnoredToken = TerminalToken.TokenNameInvalid;
 		this.restartRecovery = true; // used to avoid branching back into the regular automaton
 	}
 	if (reportReferenceInfo) {
@@ -785,7 +786,7 @@ protected void consumeTypeImportOnDemandDeclarationName() {
 	pushOnAstStack(impt = new ImportReference(tokens, positions, true, ClassFileConstants.AccDefault));
 
 	impt.trailingStarPosition = this.intStack[this.intPtr--];
-	if (this.currentToken == TokenNameSEMICOLON){
+	if (this.currentToken == TerminalToken.TokenNameSEMICOLON){
 		impt.declarationSourceEnd = this.scanner.currentPosition - 1;
 	} else {
 		impt.declarationSourceEnd = impt.sourceEnd;
@@ -798,7 +799,7 @@ protected void consumeTypeImportOnDemandDeclarationName() {
 	if (this.currentElement != null){
 		this.lastCheckPoint = impt.declarationSourceEnd+1;
 		this.currentElement = this.currentElement.add(impt, 0);
-		this.lastIgnoredToken = -1;
+		this.lastIgnoredToken = TerminalToken.TokenNameInvalid;
 		this.restartRecovery = true; // used to avoid branching back into the regular automaton
 	}
 	if (reportReferenceInfo) {

@@ -25,7 +25,7 @@ import org.aspectj.asm.IProgramElement.Accessibility;
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.core.compiler.InvalidInputException;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.Scanner;
-import org.aspectj.org.eclipse.jdt.internal.compiler.parser.TerminalTokens;
+import org.aspectj.org.eclipse.jdt.internal.compiler.parser.TerminalToken;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
@@ -64,7 +64,7 @@ import org.eclipse.jdt.core.JavaModelException;
  *
  * @author Luzius Meisser
  */
-public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
+public class AspectsConvertingParser implements NoFFDC {
 
     private static final String IMPLEMENTS = "implements";
 
@@ -255,8 +255,8 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
         typeReferences.clear();
         usedIdentifiers.clear();
 
-        int tok = 1;
-        int prevTok;
+        TerminalToken tok = TerminalToken.TokenNameDOT;
+        TerminalToken prevTok;
         int pos;
         int typeDeclStart = 0;
         char[] text = null;
@@ -270,7 +270,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
             } catch (InvalidInputException e) {
                 continue;
             }
-            if (tok == TokenNameEOF)
+            if (tok == TerminalToken.TokenNameEOF)
                 break;
 
             text = scanner.getCurrentIdentifierSource();
@@ -586,13 +586,13 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                 break;
             }
 
-            if (tok != TokenNameDOT) {
+            if (tok != TerminalToken.TokenNameDOT) {
                 afterDot = false;
             }
-            if (tok != TokenNameLPAREN) {
+            if (tok != TerminalToken.TokenNameLPAREN) {
                 afterOpenParen = false;
             }
-            if (tok != TokenNameCOMMA) {
+            if (tok != TerminalToken.TokenNameCOMMA) {
                 afterComma = false;
             }
         }
@@ -670,8 +670,8 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
     }
 
 
-    private boolean tokenLooksLikeTypeName(int token, char[] text) {
-        return token == TokenNameIdentifier && text != null && text.length > 0 && Character.isUpperCase(text[0]);
+    private boolean tokenLooksLikeTypeName(TerminalToken token, char[] text) {
+        return token == TerminalToken.TokenNameIdentifier && text != null && text.length > 0 && Character.isUpperCase(text[0]);
     }
 
 
