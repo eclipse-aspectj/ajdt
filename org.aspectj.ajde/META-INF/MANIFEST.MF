@@ -3,7 +3,7 @@ Automatic-Module-Name: org.aspectj.ajde
 Bundle-ManifestVersion: 2
 Bundle-Name: AspectJ
 Bundle-SymbolicName: org.aspectj.ajde; singleton:=true
-Bundle-Version: 1.9.22.qualifier
+Bundle-Version: 1.9.23.qualifier
 Bundle-Vendor: Eclipse AspectJ Development Tools
 Export-Package: org.aspectj.ajde.core,
  org.aspectj.ajde.core.internal,

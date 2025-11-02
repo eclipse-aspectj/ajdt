@@ -8,7 +8,7 @@ Bundle-Name: AspectJ Weaver
 Bundle-SymbolicName: org.aspectj.weaver
 Bundle-Version: 1.9.23.qualifier
 Bundle-Vendor: Eclipse AspectJ Development Tools
-Require-Bundle: org.aspectj.runtime;bundle-version="1.9.22";visibility:=reexport
+Require-Bundle: org.aspectj.runtime;bundle-version="1.9.23";visibility:=reexport
 Export-Package: org.aspectj.apache.bcel;version="1.9.23",
  org.aspectj.apache.bcel.classfile;version="1.9.23",
  org.aspectj.apache.bcel.classfile.annotation;version="1.9.23",
