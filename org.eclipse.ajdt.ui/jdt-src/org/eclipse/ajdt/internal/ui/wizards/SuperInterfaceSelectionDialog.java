@@ -206,9 +206,6 @@ public class SuperInterfaceSelectionDialog extends OpenTypeSelectionDialog {
 
 	public static String getNameWithTypeParameters(IType type) {
 		String superName= type.getFullyQualifiedName('.');
-		if (!JavaModelUtil.is50OrHigher(type.getJavaProject())) {
-			return superName;
-		}
 		try {
 			ITypeParameter[] typeParameters= type.getTypeParameters();
 			if (typeParameters.length > 0) {
