@@ -67,5 +67,6 @@ Require-Bundle: org.apache.ant,
  org.eclipse.text,
  org.aspectj.weaver;bundle-version="1.9.24";visibility:=reexport
 Bundle-ActivationPolicy: lazy
+Bundle-Activator: org.aspectj.org.eclipse.jdt.core.JavaCore
 Eclipse-BundleShape: jar
 Bundle-ClassPath: .
