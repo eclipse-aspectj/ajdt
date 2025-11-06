@@ -250,7 +250,7 @@ public class AJOrganizeImportsOperation implements IWorkspaceRunnable {
 				TypeNameMatchCollector collector= new TypeNameMatchCollector(typesFound);
 				new SearchEngine().searchAllTypeNames(null, allTypes, scope, collector, IJavaSearchConstants.WAIT_UNTIL_READY_TO_SEARCH, monitor);
 
-				boolean is50OrHigher= 	JavaModelUtil.is50OrHigher(project);
+				boolean is50OrHigher= true;
 
 				for (i= 0; i < typesFound.size(); i++) {
 					TypeNameMatch curr= typesFound.get(i);
