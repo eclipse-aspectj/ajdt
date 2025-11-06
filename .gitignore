@@ -35,3 +35,4 @@ out/
 
 # IDEA downloaded OSGi core library
 /lib/osgi.core-*.jar
+*.versionsBackup
