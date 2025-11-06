@@ -9,7 +9,7 @@ Bundle-Activator: org.eclipse.equinox.weaving.aspectj.AspectJWeavingActivator
 Require-Bundle: org.aspectj.weaver
 Import-Package: org.aspectj.weaver,
  org.aspectj.weaver.bcel,
- org.aspectj.weaver.loadtime;version="1.9.24",
+ org.aspectj.weaver.loadtime;version="1.9.25",
  org.aspectj.weaver.loadtime.definition,
  org.aspectj.weaver.tools,
  org.eclipse.equinox.service.weaving,

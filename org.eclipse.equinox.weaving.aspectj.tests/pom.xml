@@ -17,7 +17,7 @@ Stefan Winkler - initial implementation
 		<dependency>
 			<groupId>org.aspectj.ajde</groupId>
 			<artifactId>org.aspectj.weaver</artifactId>
-			<version>1.9.24-SNAPSHOT</version>
+			<version>1.9.25-SNAPSHOT</version>
 			<scope>compile</scope>
 		</dependency>
 	</dependencies>
