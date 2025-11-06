@@ -658,13 +658,6 @@ protected void consumeSingleStaticImportDeclarationName() {
 	//this.endPosition is just before the ;
 	impt.declarationSourceStart = this.intStack[this.intPtr--];
 
-	if(!this.statementRecoveryActivated &&
-			this.options.sourceLevel < ClassFileConstants.JDK1_5 &&
-			this.lastErrorEndPositionBeforeRecovery < this.scanner.currentPosition) {
-		impt.modifiers = ClassFileConstants.AccDefault; // convert the static import reference to a non-static importe reference
-		this.problemReporter().invalidUsageOfStaticImports(impt);
-	}
-
 	// recovery
 	if (this.currentElement != null){
 		this.lastCheckPoint = impt.declarationSourceEnd+1;
@@ -752,13 +745,6 @@ protected void consumeStaticImportOnDemandDeclarationName() {
 	impt.declarationEnd = impt.declarationSourceEnd;
 	//this.endPosition is just before the ;
 	impt.declarationSourceStart = this.intStack[this.intPtr--];
-
-	if(!this.statementRecoveryActivated &&
-			options.sourceLevel < ClassFileConstants.JDK1_5 &&
-			this.lastErrorEndPositionBeforeRecovery < this.scanner.currentPosition) {
-		impt.modifiers = ClassFileConstants.AccDefault; // convert the static import reference to a non-static importe reference
-		this.problemReporter().invalidUsageOfStaticImports(impt);
-	}
 
 	// recovery
 	if (this.currentElement != null){
