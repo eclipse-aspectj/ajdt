@@ -69,4 +69,5 @@ Require-Bundle: org.apache.ant,
 Bundle-ActivationPolicy: lazy
 Bundle-Activator: org.aspectj.org.eclipse.jdt.core.JavaCore
 Eclipse-BundleShape: jar
-Bundle-ClassPath: .
+Bundle-ClassPath: .,
+ classes/

@@ -31,6 +31,7 @@ Export-Package: org.aspectj.apache.bcel;version="1.9.25",
  org.aspectj.weaver.tools;version="1.9.25"
 Eclipse-BundleShape: jar
 Bundle-RequiredExecutionEnvironment: JavaSE-17
-Bundle-ClassPath: .
+Bundle-ClassPath: .,
+ classes/
 Implementation-Version: 1.9.22
 Implementation-Vendor: aspectj.org
