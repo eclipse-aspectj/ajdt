@@ -58,7 +58,7 @@ public class ReflectionUtils {
         }
     }
 
-    public static <T> Object executePrivateMethod(Class<T> clazz, String methodName, Class<?>[] types, org.eclipse.jdt.internal.ui.refactoring.UserInterfaceManager target, Object[] args) {
+    public static <T> Object executePrivateMethod(Class<T> clazz, String methodName, Class<?>[] types, Object target, Object[] args) {
         // forget caching for now...
         try {
             Method method = clazz.getDeclaredMethod(methodName, types);
