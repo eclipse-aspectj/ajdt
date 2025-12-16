@@ -230,10 +230,6 @@ public class UnresolvedElementsSubProcessor {
 
 		// add type proposals
 		if (typeKind != 0) {
-			if (!JavaModelUtil.is50OrHigher(cu.getJavaProject())) {
-				typeKind= typeKind & ~(TypeKinds.ANNOTATIONS | TypeKinds.ENUMS | TypeKinds.VARIABLES);
-			}
-
 			int relevance= Character.isUpperCase(ASTNodes.getSimpleNameIdentifier(node).charAt(0)) ? 5 : -2;
 			addSimilarTypeProposals(typeKind, cu, node, relevance + 1, proposals);
 			addNewTypeProposals(cu, node, typeKind, relevance, proposals);
@@ -525,7 +521,7 @@ public class UnresolvedElementsSubProcessor {
 	}
 
 	private static int evauateTypeKind(ASTNode node, IJavaProject project) {
-    return ASTResolving.getPossibleTypeKinds(node, JavaModelUtil.is50OrHigher(project));
+    return ASTResolving.getPossibleTypeKinds(node, true);
 	}
 
 

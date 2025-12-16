@@ -64,7 +64,7 @@
 		<aspectj-maven-compiler-version>1.14</aspectj-maven-compiler-version>
 
 		<!-- AspectJ Core binaries + sources (tools, weaver, runtime) to include in AJDT -->
-		<aspectj.version>1.9.23-SNAPSHOT</aspectj.version>
+		<aspectj.version>1.9.25</aspectj.version>
 
 		<aspectj.exclude.meta-data>
 			META-INF/**,
@@ -548,6 +548,11 @@
 				<plugin>
 					<groupId>org.eclipse.tycho</groupId>
 					<artifactId>tycho-p2-plugin</artifactId>
+					<version>${tycho-version}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.eclipse.tycho</groupId>
+					<artifactId>tycho-versions-plugin</artifactId>
 					<version>${tycho-version}</version>
 				</plugin>
 				<plugin>

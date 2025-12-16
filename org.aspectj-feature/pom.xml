@@ -10,7 +10,7 @@
 	</parent>
 
 	<groupId>org.aspectj.ajde</groupId>
-	<version>1.9.22-SNAPSHOT</version>
+	<version>1.9.25-SNAPSHOT</version>
 	<artifactId>org.aspectj</artifactId>
 	<packaging>eclipse-feature</packaging>
 

@@ -202,10 +202,7 @@ public class QuickFixProcessor implements IQuickFixProcessor, IQuickAssistProces
 			case IProblem.UnhandledWarningToken:
 				return true;
 			default:
-				if (JavaModelUtil.is50OrHigher(cu.getJavaProject())) {
-					return SuppressWarningsSubProcessor.hasSuppressWarningsProposal(cu.getJavaProject(), problemId);  // AJDT 3.6
-				}
-				return false;
+				return SuppressWarningsSubProcessor.hasSuppressWarningsProposal(cu.getJavaProject(), problemId);  // AJDT 3.6
 		}
 	}
 
@@ -555,9 +552,7 @@ public class QuickFixProcessor implements IQuickFixProcessor, IQuickAssistProces
 				break;
 			default:
 		}
-		if (JavaModelUtil.is50OrHigher(context.getCompilationUnit().getJavaProject())) {
-			SuppressWarningsSubProcessor.addSuppressWarningsProposals(context, problem, proposals);
-		}
+		SuppressWarningsSubProcessor.addSuppressWarningsProposals(context, problem, proposals);
 	}
 
 	// begin AspectJ Change
