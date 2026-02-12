@@ -3,7 +3,7 @@ Automatic-Module-Name: org.eclipse.contribution.visualiser.tests
 Bundle-ManifestVersion: 2
 Bundle-Name: Visualser Tests
 Bundle-SymbolicName: org.eclipse.contribution.visualiser.tests;singleton:=true
-Bundle-Version: 2.2.4.qualifier
+Bundle-Version: 2.3.0.qualifier
 Bundle-ClassPath: .
 Export-Package: org.eclipse.contribution.visualiser.tests
 Require-Bundle: org.eclipse.ui,
