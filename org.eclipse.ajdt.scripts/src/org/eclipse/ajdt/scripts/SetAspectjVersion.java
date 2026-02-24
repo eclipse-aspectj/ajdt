@@ -14,10 +14,13 @@ import static java.util.Objects.requireNonNull;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /** Usage:
  * <pre>{@code
@@ -27,7 +30,7 @@ import java.util.Arrays;
 public final class SetAspectjVersion {
 	private final Maven maven;
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		Maven maven = new Maven("mvn", getGitRoot());
 		SetAspectjVersion instance = new SetAspectjVersion(maven);
 		instance.setAspectjVersion(args[0]);
@@ -38,17 +41,27 @@ public final class SetAspectjVersion {
 		this.maven = requireNonNull(maven);
 	}
 	
-	private void setAspectjVersion(String version) {
+	private void setAspectjVersion(String version) throws IOException {
+		String original = version;
 		maven.execute("versions:set-property", "-Dproperty=aspectj.version", "-DnewVersion="+version);
-		String snapshotVersion = version.endsWith("-SNAPSHOT") ? version : version + "-SNAPSHOT";
-		setVersion("org.aspectj.weaver", snapshotVersion);
-		setVersion("org.aspectj.ajde", snapshotVersion);
-		setVersion("org.aspectj.runtime", snapshotVersion);
-		setVersion("org.aspectj-feature", snapshotVersion);
+		version = Arrays.stream(version.split("\\.", 4)).limit(3).collect(Collectors.joining("."));
+		// Convert Maven versions to OSGI. Ignore extra segments, we rely on build qualifiers to distinguish sub-micro bumps.
+		// - 1.9.25.1 -> 1.9.25-SNAPSHOT
+		// - 1.9.25-SNAPSHOT -> 1.9.25-SNAPSHOT
+		version = Arrays.stream(version.split("[.-]")) // Split on dot OR hyphen
+			    .limit(3)
+			    .filter(s -> s.matches("\\d+"))
+			    .collect(Collectors.joining("."));
+		version = version.endsWith("-SNAPSHOT") ? version : version + "-SNAPSHOT";
+		setVersion("org.aspectj.weaver", version, original);
+		setVersion("org.aspectj.ajde", version, original);
+		setVersion("org.aspectj.runtime", version, original);
+		setVersion("org.aspectj-feature", version, original);
 	}
 
-	private void setVersion(String mavenProjectRelativePath, String version) {
-		maven.execute("org.eclipse.tycho:tycho-versions-plugin:set-version", "--file", mavenProjectRelativePath, "-DnewVersion=" + version, "-DupdateVersionRangeMatchingBounds");
+	private void setVersion(String mavenProjectRelativePath, String osgiCompatibleVersion, String originalVersion) throws IOException {
+		Files.write(getGitRoot().resolve(mavenProjectRelativePath).resolve("forceQualifierUpdate.txt"), List.of("AspectJ: " + originalVersion), StandardCharsets.UTF_8);
+		maven.execute("org.eclipse.tycho:tycho-versions-plugin:set-version", "--file", mavenProjectRelativePath, "-DnewVersion=" + osgiCompatibleVersion, "-DupdateVersionRangeMatchingBounds");
 	}
 
 	private static final class Maven {
