@@ -3,7 +3,7 @@ Automatic-Module-Name: org.eclipse.ajdt.core
 Bundle-ManifestVersion: 2
 Bundle-Name: AspectJ Development Tools Core
 Bundle-SymbolicName: org.eclipse.ajdt.core; singleton:=true
-Bundle-Version: 2.2.4.qualifier
+Bundle-Version: 2.3.0.qualifier
 Bundle-Activator: org.eclipse.ajdt.core.AspectJPlugin
 Bundle-Vendor: Eclipse AspectJ Development Tools
 Bundle-Localization: plugin

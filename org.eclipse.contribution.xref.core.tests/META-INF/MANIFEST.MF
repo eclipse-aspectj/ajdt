@@ -3,7 +3,7 @@ Automatic-Module-Name: org.eclipse.contribution.xref.core.tests
 Bundle-ManifestVersion: 2
 Bundle-Name: Cross Reference Core Test Plugin
 Bundle-SymbolicName: org.eclipse.contribution.xref.core.tests; singleton:=true
-Bundle-Version: 2.2.4.qualifier
+Bundle-Version: 2.3.0.qualifier
 Bundle-ClassPath: xrefcoretests.jar
 Bundle-Vendor: Eclipse AspectJ Development Tools
 Bundle-Localization: plugin
